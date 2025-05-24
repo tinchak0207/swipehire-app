@@ -13,7 +13,7 @@ interface CompanyCardContentProps {
   isSuperLiked?: boolean;
 }
 
-export function CompanyCardContent({ company }: CompanyCardContentProps) { // Removed onAction, isLiked, isSuperLiked as they are handled in parent
+export function CompanyCardContent({ company }: CompanyCardContentProps) { 
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
@@ -31,7 +31,9 @@ export function CompanyCardContent({ company }: CompanyCardContentProps) { // Re
       { threshold: 0.5 } 
     );
 
-    observer.observe(currentVideoRef);
+    if (currentVideoRef) {
+        observer.observe(currentVideoRef);
+    }
 
     return () => {
       if (currentVideoRef) {
@@ -43,7 +45,7 @@ export function CompanyCardContent({ company }: CompanyCardContentProps) { // Re
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      <div className="relative w-full bg-muted shrink-0">
+      <div className="relative w-full bg-muted shrink-0 aspect-[16/9] max-h-[60vh] sm:max-h-[55vh] md:max-h-[50vh]"> {/* Consistent aspect ratio */}
         {company.introVideoUrl ? (
           <video
             ref={videoRef}
@@ -52,7 +54,7 @@ export function CompanyCardContent({ company }: CompanyCardContentProps) { // Re
             muted
             loop
             playsInline
-            className="w-full h-auto max-h-[50vh] sm:max-h-[60vh] object-cover bg-black aspect-video"
+            className="w-full h-full object-cover bg-black"
             data-ai-hint="company video"
             poster={company.logoUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(company.name)}`}
           >
@@ -62,20 +64,19 @@ export function CompanyCardContent({ company }: CompanyCardContentProps) { // Re
           <Image
             src={company.logoUrl}
             alt={company.name + " logo"}
-            width={600}
-            height={338} // Adjusted to a more standard banner/logo aspect
-            className="object-contain w-full h-auto max-h-[50vh] sm:max-h-[60vh] aspect-[16/9] p-4" // aspect-video might be better for logos if wide
+            fill // Use fill with parent having aspect ratio and position relative
+            className="object-contain p-4" // object-contain for logos
             data-ai-hint={company.dataAiHint || "company logo"}
             priority
           />
         ) : (
-          <div className="w-full h-[200px] sm:h-[250px] bg-muted flex items-center justify-center" data-ai-hint="company building">
+          <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="company building">
             <Building className="w-24 h-24 text-muted-foreground" />
           </div>
         )}
       </div>
 
-      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto">
+      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar"> {/* Added overscroll-y-contain */}
         <CardHeader className="p-0 mb-1.5 sm:mb-2">
           <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
           <CardDescription className="text-xs sm:text-sm text-muted-foreground">{company.industry}</CardDescription>
@@ -121,8 +122,6 @@ export function CompanyCardContent({ company }: CompanyCardContentProps) { // Re
             </div>
           )}
         </CardContent>
-         {/* Spacer to push footer down if content is short, not strictly needed if CardFooter is outside this scrollable div */}
-         {/* <div className="flex-grow"></div>  */}
       </div>
     </div>
   );
