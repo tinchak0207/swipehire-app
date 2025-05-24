@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -6,145 +7,145 @@ import { mockCandidates } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Eye, Star, Undo2 } from 'lucide-react';
+import { CardFooter } from '@/components/ui/card';
+import { ArrowLeft, ArrowRight, Eye, Star, ThumbsUp, ThumbsDown, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function CandidateDiscoveryPage() {
   const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [likedCandidates, setLikedCandidates] = useState<Set<string>>(new Set());
-  const [superLikedCandidates, setSuperLikedCandidates] = useState<Set<string>>(new Set()); // For "favorite"
-  const [history, setHistory] = useState<{ candidate: Candidate; action: string }[]>([]);
+  const [superLikedCandidates, setSuperLikedCandidates] = useState<Set<string>>(new Set());
+  // Store passed candidates to potentially hide them or visually differentiate
+  const [passedCandidates, setPassedCandidates] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
 
   useEffect(() => {
-    // In a real app, fetch candidates from an API
     setCandidates(mockCandidates);
+     // Load liked/superliked/passed from localStorage if needed in a real app
   }, []);
 
-  const currentCandidate = candidates[currentIndex];
-
-  const handleSwipe = (action: 'like' | 'pass' | 'superlike' | 'details') => {
-    if (!currentCandidate) return;
-
-    const newHistory = [...history, { candidate: currentCandidate, action }];
-    setHistory(newHistory);
+  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'superlike' | 'details') => {
+    const candidate = candidates.find(c => c.id === candidateId);
+    if (!candidate) return;
 
     let message = "";
+    let toastVariant: "default" | "destructive" = "default";
+
     if (action === 'like') {
-      setLikedCandidates(prev => new Set(prev).add(currentCandidate.id));
-      message = `Liked ${currentCandidate.name}`;
-      // Here you would check for a mutual match
+      setLikedCandidates(prev => new Set(prev).add(candidateId));
+      setPassedCandidates(prev => { const newSet = new Set(prev); newSet.delete(candidateId); return newSet; });
+      message = `Liked ${candidate.name}`;
       if (Math.random() > 0.7) { // Simulate mutual match
         toast({
           title: "🎉 It's a Match!",
-          description: `You and ${currentCandidate.name} are both interested!`,
-          variant: "default",
+          description: `You and ${candidate.name} are both interested!`,
         });
       }
     } else if (action === 'pass') {
-      message = `Passed on ${currentCandidate.name}`;
+      setPassedCandidates(prev => new Set(prev).add(candidateId));
+      setLikedCandidates(prev => { const newSet = new Set(prev); newSet.delete(candidateId); return newSet; });
+      setSuperLikedCandidates(prev => { const newSet = new Set(prev); newSet.delete(candidateId); return newSet; });
+      message = `Passed on ${candidate.name}`;
+      toastVariant = "destructive";
     } else if (action === 'superlike') {
-      setSuperLikedCandidates(prev => new Set(prev).add(currentCandidate.id));
-      message = `Super liked ${currentCandidate.name}! They'll be notified.`;
+      setSuperLikedCandidates(prev => new Set(prev).add(candidateId));
+      setLikedCandidates(prev => new Set(prev).add(candidateId)); // Superlike implies like
+      setPassedCandidates(prev => { const newSet = new Set(prev); newSet.delete(candidateId); return newSet; });
+      message = `Super liked ${candidate.name}! They'll be notified.`;
     } else if (action === 'details') {
-      // In a real app, this would navigate to a detailed profile page
-      message = `Viewing details for ${currentCandidate.name}`;
-      toast({ title: message, description: "Detailed view functionality to be implemented."});
-      // We don't advance to next candidate for details view in this simplified version
-      return;
+      message = `Viewing details for ${candidate.name}`;
+      // In a real app, this might open a modal or navigate to a detailed profile page
+      toast({ title: message, description: "Detailed view functionality to be implemented." });
+      return; // No further state change for details in this version
     }
     
-    toast({ title: message });
-    
-    if (currentIndex < candidates.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-      toast({ title: "No more candidates", description: "You've seen everyone for now!"});
-    }
+    toast({ title: message, variant: toastVariant });
   };
 
-  const handleUndo = () => {
-    if (history.length === 0) {
-      toast({ title: "Nothing to undo", variant: "destructive" });
-      return;
-    }
-
-    const lastAction = history[history.length - 1];
-    
-    // Revert state based on last action
-    if (lastAction.action === 'like') {
-      setLikedCandidates(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(lastAction.candidate.id);
-        return newSet;
-      });
-    } else if (lastAction.action === 'superlike') {
-      setSuperLikedCandidates(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(lastAction.candidate.id);
-        return newSet;
-      });
-    }
-
-    setCurrentIndex(candidates.findIndex(c => c.id === lastAction.candidate.id));
-    setHistory(history.slice(0, -1));
-    toast({ title: `Undid action for ${lastAction.candidate.name}` });
-  };
-
+  const visibleCandidates = candidates.filter(c => !passedCandidates.has(c.id));
 
   if (candidates.length === 0) {
     return <div className="flex justify-center items-center h-64"><p>Loading candidates...</p></div>;
   }
 
-  if (!currentCandidate && candidates.length > 0) {
-    return (
-      <div className="text-center py-10">
-        <h2 className="text-2xl font-semibold mb-4">You've Swiped Through All Candidates!</h2>
-        <p className="text-muted-foreground mb-6">Check back later for new profiles or adjust your filters.</p>
-        <Button onClick={handleUndo} disabled={history.length === 0}>
-          <Undo2 className="mr-2 h-4 w-4" /> Undo Last Swipe
-        </Button>
-      </div>
-    );
-  }
-  
-
   return (
-    <div className="flex flex-col items-center p-4 space-y-6">
-      {currentCandidate ? (
-        <SwipeCard key={currentCandidate.id}>
-          <CandidateCardContent candidate={currentCandidate} />
-        </SwipeCard>
-      ) : (
-         <div className="text-center py-10">
+    <div className="flex flex-col items-center p-2 sm:p-4 w-full">
+      <div className="w-full max-w-md space-y-6 scrollable-feed">
+        {visibleCandidates.length > 0 ? visibleCandidates.map(candidate => (
+          <SwipeCard key={candidate.id} className={`transition-opacity duration-300 ${superLikedCandidates.has(candidate.id) ? 'ring-2 ring-accent' : likedCandidates.has(candidate.id) ? 'ring-2 ring-green-500' : ''}`}>
+            <CandidateCardContent candidate={candidate} />
+            <CardFooter className="p-3 grid grid-cols-4 gap-2 border-t bg-card">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-col h-auto py-2 hover:bg-destructive/10 text-destructive hover:text-destructive"
+                onClick={() => handleAction(candidate.id, 'pass')}
+                aria-label={`Pass on ${candidate.name}`}
+              >
+                <ThumbsDown className="h-5 w-5 mb-1" />
+                <span className="text-xs">Pass</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-col h-auto py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
+                onClick={() => handleAction(candidate.id, 'details')}
+                aria-label={`View details for ${candidate.name}`}
+              >
+                <Info className="h-5 w-5 mb-1" />
+                <span className="text-xs">Details</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex-col h-auto py-2 hover:bg-accent/10 ${superLikedCandidates.has(candidate.id) ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`}
+                onClick={() => handleAction(candidate.id, 'superlike')}
+                aria-label={`Superlike ${candidate.name}`}
+              >
+                <Star className={`h-5 w-5 mb-1 ${superLikedCandidates.has(candidate.id) ? 'fill-accent' : ''}`} />
+                <span className="text-xs">Superlike</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex-col h-auto py-2 hover:bg-green-500/10 ${likedCandidates.has(candidate.id) && !superLikedCandidates.has(candidate.id) ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`}
+                onClick={() => handleAction(candidate.id, 'like')}
+                aria-label={`Like ${candidate.name}`}
+              >
+                <ThumbsUp className={`h-5 w-5 mb-1 ${likedCandidates.has(candidate.id) && !superLikedCandidates.has(candidate.id) ? 'fill-green-500' : ''}`} />
+                <span className="text-xs">Like</span>
+              </Button>
+            </CardFooter>
+          </SwipeCard>
+        )) : (
+          <div className="text-center py-10 col-span-full">
             <h2 className="text-2xl font-semibold mb-4">No More Candidates</h2>
-            <p className="text-muted-foreground">You've seen everyone for now!</p>
-         </div>
-      )}
-      
-      <div className="flex space-x-3 sm:space-x-4">
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('pass')} disabled={!currentCandidate}>
-          <ArrowLeft className="h-6 w-6 sm:h-7 sm:w-7 text-destructive" />
-          <span className="sr-only">Pass</span>
-        </Button>
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('details')} disabled={!currentCandidate}>
-          <Eye className="h-6 w-6 sm:h-7 sm:w-7 text-blue-500" />
-          <span className="sr-only">View Details</span>
-        </Button>
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('superlike')} disabled={!currentCandidate}>
-          <Star className="h-6 w-6 sm:h-7 sm:w-7 text-accent" />
-          <span className="sr-only">Favorite</span>
-        </Button>
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('like')} disabled={!currentCandidate}>
-          <ArrowRight className="h-6 w-6 sm:h-7 sm:w-7 text-green-500" />
-          <span className="sr-only">Like</span>
-        </Button>
+            <p className="text-muted-foreground">You've seen everyone for now, or try adjusting your filters!</p>
+          </div>
+        )}
       </div>
-       <Button onClick={handleUndo} variant="ghost" disabled={history.length === 0} className="mt-4">
-          <Undo2 className="mr-2 h-4 w-4" /> Undo Last Swipe
-        </Button>
+      {/* Add a "Load More" button or infinite scroll mechanism here in a real app */}
+      {/* For now, all mock candidates are loaded */}
+       <style jsx>{`
+        .scrollable-feed {
+          max-height: calc(100vh - 200px); /* Adjust based on header/footer height */
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        /* Custom scrollbar (optional) */
+        .scrollable-feed::-webkit-scrollbar {
+          width: 8px;
+        }
+        .scrollable-feed::-webkit-scrollbar-thumb {
+          background-color: hsl(var(--primary) / 0.5);
+          border-radius: 4px;
+        }
+        .scrollable-feed::-webkit-scrollbar-track {
+          background-color: hsl(var(--muted));
+          border-radius: 4px;
+        }
+      `}</style>
     </div>
   );
 }

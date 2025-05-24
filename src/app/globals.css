@@ -121,17 +121,20 @@ body {
   animation: gradientBG 15s ease infinite;
 }
 
+/* Reddish gradient for Recruiter/Boss role */
 .recruiter-role-bg {
-  background: linear-gradient(135deg, #FFD1DC, #FF69B4, #C71585); /* Light Pink to Deep Pink/MediumVioletRed */
+  background: linear-gradient(135deg, hsl(0, 80%, 85%), hsl(0, 70%, 65%), hsl(340, 70%, 50%)); /* Light Pink/Red to Deep Red */
   background-size: 200% 200%;
   animation: gradientBG 10s ease infinite alternate;
 }
 
+/* Blueish gradient for Job Seeker/Staff role */
 .jobseeker-role-bg {
-  background: linear-gradient(135deg, #ADD8E6, #63A6FF, #1E90FF); /* Light Blue to DodgerBlue */
+  background: linear-gradient(135deg, hsl(200, 80%, 85%), hsl(var(--accent)), hsl(220, 90%, 55%)); /* Light Blue to Deep Blue */
   background-size: 200% 200%;
   animation: gradientBG 10s ease infinite alternate;
 }
+
 
 @keyframes gradientBG {
   0% {

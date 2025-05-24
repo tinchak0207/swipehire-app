@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -6,15 +7,15 @@ import { mockCompanies } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Eye, Star, Undo2 } from 'lucide-react';
+import { CardFooter } from '@/components/ui/card';
+import { ArrowLeft, ArrowRight, Eye, Star, ThumbsUp, ThumbsDown, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function JobDiscoveryPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [likedCompanies, setLikedCompanies] = useState<Set<string>>(new Set());
   const [superLikedCompanies, setSuperLikedCompanies] = useState<Set<string>>(new Set());
-  const [history, setHistory] = useState<{ company: Company; action: string }[]>([]);
+  const [passedCompanies, setPassedCompanies] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
 
@@ -22,121 +23,126 @@ export function JobDiscoveryPage() {
     setCompanies(mockCompanies);
   }, []);
 
-  const currentCompany = companies[currentIndex];
-
-  const handleSwipe = (action: 'like' | 'pass' | 'superlike' | 'details') => {
-    if (!currentCompany) return;
-
-    const newHistory = [...history, { company: currentCompany, action }];
-    setHistory(newHistory);
+  const handleAction = (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details') => {
+    const company = companies.find(c => c.id === companyId);
+    if (!company) return;
 
     let message = "";
+    let toastVariant: "default" | "destructive" = "default";
+
+
     if (action === 'like') {
-      setLikedCompanies(prev => new Set(prev).add(currentCompany.id));
-      message = `Interested in ${currentCompany.name}`;
-       if (Math.random() > 0.7) { // Simulate mutual match
+      setLikedCompanies(prev => new Set(prev).add(companyId));
+      setPassedCompanies(prev => { const newSet = new Set(prev); newSet.delete(companyId); return newSet; });
+      message = `Interested in ${company.name}`;
+      if (Math.random() > 0.7) { // Simulate mutual match
         toast({
           title: "🎉 Company Interested!",
-          description: `${currentCompany.name} is also interested in profiles like yours!`,
+          description: `${company.name} is also interested in profiles like yours!`,
         });
       }
     } else if (action === 'pass') {
-      message = `Passed on ${currentCompany.name}`;
+      setPassedCompanies(prev => new Set(prev).add(companyId));
+      setLikedCompanies(prev => { const newSet = new Set(prev); newSet.delete(companyId); return newSet; });
+      setSuperLikedCompanies(prev => { const newSet = new Set(prev); newSet.delete(companyId); return newSet; });
+      message = `Passed on ${company.name}`;
+      toastVariant = "destructive";
     } else if (action === 'superlike') {
-      setSuperLikedCompanies(prev => new Set(prev).add(currentCompany.id));
-      message = `Super liked ${currentCompany.name}! Your profile will be prioritized.`;
+      setSuperLikedCompanies(prev => new Set(prev).add(companyId));
+      setLikedCompanies(prev => new Set(prev).add(companyId)); 
+      setPassedCompanies(prev => { const newSet = new Set(prev); newSet.delete(companyId); return newSet; });
+      message = `Super liked ${company.name}! Your profile will be prioritized.`;
     } else if (action === 'details') {
-      message = `Viewing details for ${currentCompany.name}`;
-      toast({ title: message, description: "Detailed view functionality to be implemented."});
+      message = `Viewing details for ${company.name}`;
+      toast({ title: message, description: "Detailed view functionality to be implemented." });
       return;
     }
 
-    toast({ title: message });
-
-    if (currentIndex < companies.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    } else {
-       toast({ title: "No more companies", description: "You've seen all available opportunities for now!"});
-    }
+    toast({ title: message, variant: toastVariant });
   };
-
-  const handleUndo = () => {
-    if (history.length === 0) {
-      toast({ title: "Nothing to undo", variant: "destructive" });
-      return;
-    }
-
-    const lastAction = history[history.length - 1];
-    
-    if (lastAction.action === 'like') {
-      setLikedCompanies(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(lastAction.company.id);
-        return newSet;
-      });
-    } else if (lastAction.action === 'superlike') {
-      setSuperLikedCompanies(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(lastAction.company.id);
-        return newSet;
-      });
-    }
-
-    setCurrentIndex(companies.findIndex(c => c.id === lastAction.company.id));
-    setHistory(history.slice(0, -1));
-    toast({ title: `Undid action for ${lastAction.company.name}` });
-  };
+  
+  const visibleCompanies = companies.filter(c => !passedCompanies.has(c.id));
 
   if (companies.length === 0) {
     return <div className="flex justify-center items-center h-64"><p>Loading companies...</p></div>;
   }
-  
-  if (!currentCompany && companies.length > 0) {
-     return (
-      <div className="text-center py-10">
-        <h2 className="text-2xl font-semibold mb-4">You've Swiped Through All Companies!</h2>
-        <p className="text-muted-foreground mb-6">Check back later for new job postings or adjust your preferences.</p>
-        <Button onClick={handleUndo} disabled={history.length === 0}>
-          <Undo2 className="mr-2 h-4 w-4" /> Undo Last Swipe
-        </Button>
-      </div>
-    );
-  }
-
 
   return (
-    <div className="flex flex-col items-center p-4 space-y-6">
-      {currentCompany ? (
-        <SwipeCard key={currentCompany.id}>
-          <CompanyCardContent company={currentCompany} />
-        </SwipeCard>
-      ) : (
-         <div className="text-center py-10">
+    <div className="flex flex-col items-center p-2 sm:p-4 w-full">
+      <div className="w-full max-w-md space-y-6 scrollable-feed">
+        {visibleCompanies.length > 0 ? visibleCompanies.map(company => (
+          <SwipeCard key={company.id} className={`transition-opacity duration-300 ${superLikedCompanies.has(company.id) ? 'ring-2 ring-accent' : likedCompanies.has(company.id) ? 'ring-2 ring-green-500' : ''}`}>
+            <CompanyCardContent company={company} />
+            <CardFooter className="p-3 grid grid-cols-4 gap-2 border-t bg-card">
+               <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-col h-auto py-2 hover:bg-destructive/10 text-destructive hover:text-destructive"
+                onClick={() => handleAction(company.id, 'pass')}
+                aria-label={`Pass on ${company.name}`}
+              >
+                <ThumbsDown className="h-5 w-5 mb-1" />
+                <span className="text-xs">Pass</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="flex-col h-auto py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
+                onClick={() => handleAction(company.id, 'details')}
+                aria-label={`View details for ${company.name}`}
+              >
+                <Info className="h-5 w-5 mb-1" />
+                <span className="text-xs">Details</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex-col h-auto py-2 hover:bg-accent/10 ${superLikedCompanies.has(company.id) ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`}
+                onClick={() => handleAction(company.id, 'superlike')}
+                aria-label={`Superlike ${company.name}`}
+              >
+                <Star className={`h-5 w-5 mb-1 ${superLikedCompanies.has(company.id) ? 'fill-accent' : ''}`} />
+                <span className="text-xs">Superlike</span>
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className={`flex-col h-auto py-2 hover:bg-green-500/10 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`}
+                onClick={() => handleAction(company.id, 'like')}
+                aria-label={`Like ${company.name}`}
+              >
+                <ThumbsUp className={`h-5 w-5 mb-1 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'fill-green-500' : ''}`} />
+                <span className="text-xs">Apply</span>
+              </Button>
+            </CardFooter>
+          </SwipeCard>
+        )) : (
+           <div className="text-center py-10 col-span-full">
             <h2 className="text-2xl font-semibold mb-4">No More Companies</h2>
-            <p className="text-muted-foreground">You've seen all available opportunities for now!</p>
-         </div>
-      )}
-      <div className="flex space-x-3 sm:space-x-4">
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('pass')} disabled={!currentCompany}>
-          <ArrowLeft className="h-6 w-6 sm:h-7 sm:w-7 text-destructive" />
-           <span className="sr-only">Pass</span>
-        </Button>
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('details')} disabled={!currentCompany}>
-          <Eye className="h-6 w-6 sm:h-7 sm:w-7 text-blue-500" />
-           <span className="sr-only">View Details</span>
-        </Button>
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('superlike')} disabled={!currentCompany}>
-          <Star className="h-6 w-6 sm:h-7 sm:w-7 text-accent" />
-           <span className="sr-only">Favorite</span>
-        </Button>
-        <Button variant="outline" size="lg" className="bg-card hover:bg-muted rounded-full p-3 sm:p-4 shadow-lg" onClick={() => handleSwipe('like')} disabled={!currentCompany}>
-          <ArrowRight className="h-6 w-6 sm:h-7 sm:w-7 text-green-500" />
-           <span className="sr-only">Like</span>
-        </Button>
+            <p className="text-muted-foreground">You've seen all opportunities for now, or try adjusting your preferences!</p>
+          </div>
+        )}
       </div>
-      <Button onClick={handleUndo} variant="ghost" disabled={history.length === 0} className="mt-4">
-        <Undo2 className="mr-2 h-4 w-4" /> Undo Last Swipe
-      </Button>
+      {/* Add a "Load More" button or infinite scroll mechanism here in a real app */}
+       <style jsx>{`
+        .scrollable-feed {
+          max-height: calc(100vh - 200px); /* Adjust based on header/footer height */
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+        /* Custom scrollbar (optional) */
+        .scrollable-feed::-webkit-scrollbar {
+          width: 8px;
+        }
+        .scrollable-feed::-webkit-scrollbar-thumb {
+          background-color: hsl(var(--primary) / 0.5);
+          border-radius: 4px;
+        }
+        .scrollable-feed::-webkit-scrollbar-track {
+          background-color: hsl(var(--muted));
+          border-radius: 4px;
+        }
+      `}</style>
     </div>
   );
 }
