@@ -35,7 +35,7 @@ export default function HomePage() {
     }
 
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-      setUserRole(storedRoleValue);
+      setUserRole(storedRoleValue as UserRole);
     } else {
       setUserRole(null); 
       localStorage.removeItem('userRole'); 
@@ -146,7 +146,7 @@ export default function HomePage() {
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-            <TabsList className={`grid w-full grid-cols-1 sm:grid-cols-${currentTabItems.length} mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1`}> 
+            <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1`}> 
               {currentTabItems.map(item => (
                 <TabsTrigger 
                   key={item.value} 
