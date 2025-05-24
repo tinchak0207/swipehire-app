@@ -7,10 +7,11 @@ import { CandidateDiscoveryPage } from "@/components/pages/CandidateDiscoveryPag
 import { JobDiscoveryPage } from "@/components/pages/JobDiscoveryPage";
 import { AiToolsPage } from "@/components/pages/AiToolsPage";
 import { MatchesPage } from "@/components/pages/MatchesPage";
+import { SettingsPage } from "@/components/pages/SettingsPage"; // Import SettingsPage
 import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
 import { LoginPage } from "@/components/pages/LoginPage";
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, LayoutGrid, Loader2 } from 'lucide-react';
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2 } from 'lucide-react'; // Added UserCog for Settings
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -34,9 +35,10 @@ export default function HomePage() {
 
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
       setUserRole(storedRoleValue);
-      setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
+      // setActiveTab is handled by another useEffect based on userRole
     } else {
       setUserRole(null); // No valid role or role cleared
+      localStorage.removeItem('userRole'); // Clean up invalid role
     }
     
     setIsInitialLoading(false);
@@ -57,9 +59,9 @@ export default function HomePage() {
   const handleRoleSelect = (role: UserRole) => {
     localStorage.setItem('userRole', role);
     setUserRole(role);
-    setActiveTab(role === 'recruiter' ? "findTalent" : "findJobs");
     // If not authenticated yet, they can still select a role.
     // Login can happen next via header.
+    // setActiveTab will be updated by the useEffect watching userRole
   };
   
   const handleLogout = () => {
@@ -80,7 +82,7 @@ export default function HomePage() {
   useEffect(() => {
     if (userRole) {
       const defaultRoleTab = userRole === 'recruiter' ? "findTalent" : "findJobs";
-      const commonTabs = ["aiTools", "myMatches"];
+      const commonTabs = ["aiTools", "myMatches", "settings"]; // Added "settings"
       if (activeTab !== defaultRoleTab && !commonTabs.includes(activeTab)) {
          setActiveTab(defaultRoleTab);
       } else if (userRole === 'recruiter' && activeTab === 'findJobs') {
@@ -88,8 +90,8 @@ export default function HomePage() {
       } else if (userRole === 'jobseeker' && activeTab === 'findTalent') {
          setActiveTab('findJobs');
       }
-    } else if (!userRole && !showLoginPage) { // If no role and not showing login, default might not matter or reset
-        setActiveTab("findTalent"); // A sensible default if needed before role selection
+    } else if (!userRole && !showLoginPage) { 
+        setActiveTab("findTalent"); 
     }
   }, [userRole, activeTab, showLoginPage]);
 
@@ -98,12 +100,14 @@ export default function HomePage() {
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage /> },
     { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage /> },
     { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
+    { value: "settings", label: "Settings", icon: UserCog, component: <SettingsPage currentUserRole={userRole} onRoleChange={handleRoleSelect} /> },
   ];
 
   const jobseekerTabItems = [
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage /> },
     { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage /> },
     { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
+    { value: "settings", label: "Settings", icon: UserCog, component: <SettingsPage currentUserRole={userRole} onRoleChange={handleRoleSelect} /> },
   ];
   
   const currentTabItems = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
@@ -138,7 +142,8 @@ export default function HomePage() {
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1">
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-4 mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1"> 
+              {/* Changed to sm:grid-cols-4 */}
               {currentTabItems.map(item => (
                 <TabsTrigger 
                   key={item.value} 
@@ -212,3 +217,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
