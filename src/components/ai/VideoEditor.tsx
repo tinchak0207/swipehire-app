@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, type ChangeEvent } from 'react';
@@ -113,24 +114,29 @@ export function VideoEditor() {
             <FormField
               control={form.control}
               name="videoFile"
-              render={({ field: { onChange, ...fieldProps } }) => ( // Excluding 'value' from fieldProps for file input
-                <FormItem>
-                  <FormLabel className="text-lg font-semibold">Upload Video</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="file"
-                      accept="video/*"
-                      {...fieldProps}
-                      onChange={(e) => {
-                        onChange(e.target.files); // RHF expects FileList
-                        handleFileChange(e);
-                      }}
-                      className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              render={({ field }) => {
+                // Destructure field to separate value from other props
+                // RHF's field.value for file inputs is the FileList, which should not be passed as 'value' prop to native input type="file"
+                const { value: _fieldValue, onChange: fieldOnChange, ...restOfField } = field;
+                return (
+                  <FormItem>
+                    <FormLabel className="text-lg font-semibold">Upload Video</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="file"
+                        accept="video/*"
+                        {...restOfField} // Spreads name, ref, onBlur
+                        onChange={(e) => {
+                          fieldOnChange(e.target.files); // Update RHF state with FileList
+                          handleFileChange(e); // Your custom handler for preview etc.
+                        }}
+                        className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
 
             {previewUrl && !isLoading && (
@@ -184,3 +190,4 @@ export function VideoEditor() {
     </Card>
   );
 }
+        
