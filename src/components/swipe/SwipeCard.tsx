@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card } from '@/components/ui/card';
+import { cn } from "@/lib/utils"; // Added this import
 
 interface SwipeCardProps {
   children: React.ReactNode;
