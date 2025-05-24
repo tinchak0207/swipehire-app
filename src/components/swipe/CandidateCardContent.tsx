@@ -2,26 +2,54 @@
 import type { Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, DollarSign, Save, Share2 } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import React, { useEffect, useRef } from 'react';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
 }
 
 export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const currentVideoRef = videoRef.current;
+    if (!currentVideoRef) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          currentVideoRef.play().catch(error => console.log("Autoplay prevented for candidate video:", error));
+        } else {
+          currentVideoRef.pause();
+        }
+      },
+      { threshold: 0.5 } // Play when 50% of the video is visible
+    );
+
+    observer.observe(currentVideoRef);
+
+    return () => {
+      if (currentVideoRef) {
+        observer.unobserve(currentVideoRef);
+      }
+       observer.disconnect();
+    };
+  }, [candidate.videoResumeUrl]); // Re-run if video URL changes, though unlikely for a specific candidate
+
   return (
     <div className="flex flex-col h-full">
-      {/* Video or Avatar Section */}
-       <div className="relative w-full" style={{ paddingTop: candidate.videoResumeUrl ? '56.25%' : '0' }}> {/* 16:9 aspect ratio for video */}
+      <div className="relative w-full bg-muted">
         {candidate.videoResumeUrl ? (
           <video
+            ref={videoRef}
             src={candidate.videoResumeUrl}
             controls
-            autoPlay
-            muted
+            autoPlay // Autoplay will be controlled by IntersectionObserver
+            muted // Start muted as per common practice
             loop
-            className="absolute top-0 left-0 w-full h-full object-cover bg-black"
+            className="w-full h-auto max-h-[350px] sm:max-h-[400px] md:max-h-[450px] object-cover bg-black aspect-video" // Maintain aspect ratio
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x338.png?text=${candidate.name}`}
           >
@@ -32,19 +60,17 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
             src={candidate.avatarUrl}
             alt={candidate.name}
             width={600}
-            height={350} // Adjust height as needed, or make it responsive
-            className="object-cover w-full h-56 sm:h-64 md:h-72" // Fixed height for image-only
+            height={450} 
+            className="object-cover w-full h-auto max-h-[350px] sm:max-h-[400px] md:max-h-[450px] aspect-[4/3]" // Maintain aspect ratio for images too
             data-ai-hint={candidate.dataAiHint || "person"}
           />
         ) : (
-          <div className="w-full h-56 sm:h-64 md:h-72 bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
+          <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
             <Briefcase className="w-24 h-24 text-muted-foreground" />
           </div>
         )}
       </div>
 
-
-      {/* Content Section */}
       <div className="p-4 flex-grow flex flex-col">
         <CardHeader className="p-0 mb-2">
           <CardTitle className="text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -70,12 +96,6 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
               </div>
           )}
           
-          {/* Placeholder for salary expectation - add to Candidate type if needed */}
-          {/* <div className="flex items-center text-muted-foreground">
-              <DollarSign className="h-4 w-4 mr-2 shrink-0" />
-              <span>Expected Salary: $XXk - $YYk</span>
-          </div> */}
-
           {candidate.skills && candidate.skills.length > 0 && (
             <div className="mt-2">
               <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1">Skills:</h4>
@@ -98,7 +118,6 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
             </div>
           </div>
         )}
-         {/* Action Buttons - Placed in CardFooter in the parent DiscoveryPage to manage state */}
       </div>
     </div>
   );

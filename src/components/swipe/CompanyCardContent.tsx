@@ -2,34 +2,57 @@
 import type { Company } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, Sparkles, Users, MapPin, Briefcase as JobTypeIcon, DollarSign, ThumbsDown, Info, Star, ThumbsUp, Save, Share2 } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
+import React, { useEffect, useRef } from 'react';
 
 interface CompanyCardContentProps {
   company: Company;
-  onAction?: (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save' | 'share') => void; // Added for card-specific actions
+  onAction?: (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save' | 'share') => void;
   isLiked?: boolean;
   isSuperLiked?: boolean;
 }
 
 export function CompanyCardContent({ company, onAction, isLiked, isSuperLiked }: CompanyCardContentProps) {
-  const handleAction = (action: 'like' | 'pass' | 'superlike' | 'details' | 'save' | 'share') => {
-    onAction?.(company.id, action);
-  };
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const currentVideoRef = videoRef.current;
+    if (!currentVideoRef) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          currentVideoRef.play().catch(error => console.log("Autoplay prevented for company video:", error));
+        } else {
+          currentVideoRef.pause();
+        }
+      },
+      { threshold: 0.5 } // Play when 50% of the video is visible
+    );
+
+    observer.observe(currentVideoRef);
+
+    return () => {
+      if (currentVideoRef) {
+        observer.unobserve(currentVideoRef);
+      }
+      observer.disconnect();
+    };
+  }, [company.introVideoUrl]); // Re-run if video URL changes
 
   return (
     <div className="flex flex-col h-full">
-      {/* Video or Logo Section - Top 60% if video exists */}
-      <div className="relative w-full" style={{ paddingTop: company.introVideoUrl ? '56.25%' : '0' /* 16:9 aspect ratio for video */ }}>
+      <div className="relative w-full bg-muted">
         {company.introVideoUrl ? (
           <video
+            ref={videoRef}
             src={company.introVideoUrl}
             controls
-            autoPlay
-            muted
+            autoPlay // Autoplay will be controlled by IntersectionObserver
+            muted // Start muted
             loop
-            className="absolute top-0 left-0 w-full h-full object-cover bg-black"
+            className="w-full h-auto max-h-[350px] sm:max-h-[400px] md:max-h-[450px] object-cover bg-black aspect-video" // Maintain aspect ratio
             data-ai-hint="company video"
             poster={company.logoUrl || `https://placehold.co/600x338.png?text=${company.name}`}
           >
@@ -40,18 +63,17 @@ export function CompanyCardContent({ company, onAction, isLiked, isSuperLiked }:
             src={company.logoUrl}
             alt={company.name + " logo"}
             width={600}
-            height={350}
-            className="object-contain w-full h-48 sm:h-56 md:h-64 bg-muted p-4"
+            height={450}
+            className="object-contain w-full h-auto max-h-[350px] sm:max-h-[400px] md:max-h-[450px] aspect-[4/3] p-4"
             data-ai-hint={company.dataAiHint || "company logo"}
           />
         ) : (
-          <div className="w-full h-48 sm:h-56 md:h-64 bg-muted flex items-center justify-center" data-ai-hint="company building">
+          <div className="w-full h-[200px] sm:h-[250px] md:h-[300px] bg-muted flex items-center justify-center" data-ai-hint="company building">
             <Building className="w-24 h-24 text-muted-foreground" />
           </div>
         )}
       </div>
 
-      {/* Content Section */}
       <div className="p-4 flex-grow flex flex-col">
         <CardHeader className="p-0 mb-2">
           <CardTitle className="text-xl font-bold text-primary truncate">{company.name}</CardTitle>
@@ -59,7 +81,6 @@ export function CompanyCardContent({ company, onAction, isLiked, isSuperLiked }:
           {company.jobOpenings && company.jobOpenings.length > 0 && (
             <p className="text-lg font-semibold text-foreground mt-1">{company.jobOpenings[0].title}</p>
           )}
-           {/* Location can be added here if available in Company type */}
         </CardHeader>
 
         <CardContent className="p-0 mb-3 space-y-2 text-sm">
@@ -99,12 +120,7 @@ export function CompanyCardContent({ company, onAction, isLiked, isSuperLiked }:
             </div>
           )}
         </CardContent>
-        
-        {/* Action Buttons - Placed in CardFooter in the parent DiscoveryPage to manage state */}
       </div>
     </div>
   );
 }
-
-// Add location to Company type if not already there and update mockData
-// Update JobDiscoveryPage.tsx to pass onAction, isLiked, isSuperLiked and render buttons in its CardFooter
