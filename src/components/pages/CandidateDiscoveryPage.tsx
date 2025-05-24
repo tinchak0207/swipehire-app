@@ -60,7 +60,7 @@ export function CandidateDiscoveryPage() {
         setHasMore(false);
       }
       setIsLoading(false);
-    }, 100); // Short delay for initial load simulation
+    }, 100); 
 
     // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCandidatesDemo');
@@ -72,7 +72,7 @@ export function CandidateDiscoveryPage() {
     const storedSaved = localStorage.getItem('savedCandidatesDemo');
     if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allCandidates]); // Removed loadMoreCandidates from initial useEffect deps as it's called directly
+  }, []); 
 
    useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -83,7 +83,7 @@ export function CandidateDiscoveryPage() {
       }
     }, { 
         threshold: 0.1, 
-        root: feedContainerRef.current,
+        root: feedContainerRef.current, // observe within the scrollable container
         rootMargin: '0px 0px 300px 0px' // Load when trigger is 300px from bottom of root
     });
 
@@ -115,9 +115,16 @@ export function CandidateDiscoveryPage() {
     const newPassed = new Set(passedCandidates);
     const newSaved = new Set(savedCandidates);
 
-    if (action !== 'pass') {
+    if (action !== 'pass') { // Allow un-passing by other actions
       newPassed.delete(candidateId);
     }
+     if (action !== 'like' && action !== 'superlike') {
+      newLiked.delete(candidateId);
+    }
+    if (action !== 'superlike') {
+      newSuperLiked.delete(candidateId);
+    }
+
 
     if (action === 'like') {
       newLiked.add(candidateId);
@@ -128,32 +135,21 @@ export function CandidateDiscoveryPage() {
           description: `You and ${candidate.name} are both interested!`,
         });
       }
-      setLikedCandidates(newLiked);
-      updateLocalStorageSet('likedCandidatesDemo', newLiked);
     } else if (action === 'pass') {
       newPassed.add(candidateId);
-      newLiked.delete(candidateId);
+      newLiked.delete(candidateId); // Passing also unlikes/unsuperlikes
       newSuperLiked.delete(candidateId);
       message = `Passed on ${candidate.name}`;
       toastVariant = "destructive";
-      setPassedCandidates(newPassed);
-      updateLocalStorageSet('passedCandidatesDemo', newPassed);
-      
-      // Optimistically remove from displayed list
-      // setDisplayedCandidates(prev => prev.filter(c => c.id !== candidateId));
-
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
-      newLiked.add(candidateId); 
+      newLiked.add(candidateId); // Superlike also counts as a like
       message = `Super liked ${candidate.name}! They'll be notified.`;
-      setSuperLikedCandidates(newSuperLiked);
-      updateLocalStorageSet('superLikedCandidatesDemo', newSuperLiked);
-      setLikedCandidates(newLiked);
-      updateLocalStorageSet('likedCandidatesDemo', newLiked);
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
+      // This is where you might open a modal or navigate to a detail page
       toast({ title: message, description: "Detailed view functionality to be implemented." });
-      return; 
+      return; // Don't update sets for 'details'
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
         newSaved.delete(candidateId);
@@ -162,9 +158,16 @@ export function CandidateDiscoveryPage() {
         newSaved.add(candidateId);
         message = `Saved ${candidate.name}!`;
       }
-      setSavedCandidates(newSaved);
-      updateLocalStorageSet('savedCandidatesDemo', newSaved);
     }
+    
+    setLikedCandidates(newLiked);
+    updateLocalStorageSet('likedCandidatesDemo', newLiked);
+    setSuperLikedCandidates(newSuperLiked);
+    updateLocalStorageSet('superLikedCandidatesDemo', newSuperLiked);
+    setPassedCandidates(newPassed);
+    updateLocalStorageSet('passedCandidatesDemo', newPassed);
+    setSavedCandidates(newSaved);
+    updateLocalStorageSet('savedCandidatesDemo', newSaved);
     
     if (action !== 'details') {
         toast({ title: message, variant: toastVariant });
@@ -178,6 +181,7 @@ export function CandidateDiscoveryPage() {
       ref={feedContainerRef}
       className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
       style={{ height: 'calc(100vh - 160px)' }} 
+      tabIndex={0} // Make it focusable
     >
       {visibleCandidates.map((candidate) => (
         <div 

@@ -73,7 +73,7 @@ export function JobDiscoveryPage() {
     const storedSaved = localStorage.getItem('savedCompaniesDemo');
     if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allCompanies]);
+  }, []);
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -84,7 +84,7 @@ export function JobDiscoveryPage() {
       }
     }, { 
         threshold: 0.1, 
-        root: feedContainerRef.current,
+        root: feedContainerRef.current, // observe within the scrollable container
         rootMargin: '0px 0px 300px 0px' // Load when trigger is 300px from bottom of root
     });
 
@@ -115,9 +115,16 @@ export function JobDiscoveryPage() {
     const newPassed = new Set(passedCompanies);
     const newSaved = new Set(savedCompanies);
 
-    if (action !== 'pass') {
+    if (action !== 'pass') { // Allow un-passing by other actions
       newPassed.delete(companyId);
     }
+    if (action !== 'like' && action !== 'superlike') {
+        newLiked.delete(companyId);
+    }
+    if (action !== 'superlike') {
+        newSuperLiked.delete(companyId);
+    }
+
 
     if (action === 'like') {
       newLiked.add(companyId);
@@ -128,31 +135,20 @@ export function JobDiscoveryPage() {
           description: `${company.name} is also interested in profiles like yours!`,
         });
       }
-      setLikedCompanies(newLiked);
-      updateLocalStorageSet('likedCompaniesDemo', newLiked);
     } else if (action === 'pass') {
       newPassed.add(companyId);
-      newLiked.delete(companyId);
+      newLiked.delete(companyId); // Passing also unlikes/unsuperlikes
       newSuperLiked.delete(companyId);
       message = `Passed on ${company.name}`;
       toastVariant = "destructive";
-      setPassedCompanies(newPassed);
-      updateLocalStorageSet('passedCompaniesDemo', newPassed);
-      // Optimistically remove from displayed list
-      // setDisplayedCompanies(prev => prev.filter(c => c.id !== companyId));
-
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
-      newLiked.add(companyId); 
+      newLiked.add(companyId); // Superlike also counts as a like
       message = `Super liked ${company.name}! Your profile will be prioritized.`;
-      setSuperLikedCompanies(newSuperLiked);
-      updateLocalStorageSet('superLikedCompaniesDemo', newSuperLiked);
-      setLikedCompanies(newLiked);
-      updateLocalStorageSet('likedCompaniesDemo', newLiked);
     } else if (action === 'details') {
       message = `Viewing details for ${company.name}`;
       toast({ title: message, description: "Detailed view functionality to be implemented." });
-      return;
+      return; // Don't update sets for 'details'
     } else if (action === 'save') {
       if (newSaved.has(companyId)) {
         newSaved.delete(companyId);
@@ -161,9 +157,16 @@ export function JobDiscoveryPage() {
         newSaved.add(companyId);
         message = `Saved ${company.name}!`;
       }
-      setSavedCompanies(newSaved);
-      updateLocalStorageSet('savedCompaniesDemo', newSaved);
     }
+    
+    setLikedCompanies(newLiked);
+    updateLocalStorageSet('likedCompaniesDemo', newLiked);
+    setSuperLikedCompanies(newSuperLiked);
+    updateLocalStorageSet('superLikedCompaniesDemo', newSuperLiked);
+    setPassedCompanies(newPassed);
+    updateLocalStorageSet('passedCompaniesDemo', newPassed);
+    setSavedCompanies(newSaved);
+    updateLocalStorageSet('savedCompaniesDemo', newSaved);
     
     if (action !== 'details') {
         toast({ title: message, variant: toastVariant });
@@ -177,6 +180,7 @@ export function JobDiscoveryPage() {
       ref={feedContainerRef}
       className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
       style={{ height: 'calc(100vh - 160px)' }} 
+      tabIndex={0} // Make it focusable
     >
       {visibleCompanies.map(company => (
         <div 
@@ -189,9 +193,7 @@ export function JobDiscoveryPage() {
           >
             <CompanyCardContent 
                 company={company} 
-                onAction={handleAction} 
-                isLiked={likedCompanies.has(company.id)}
-                isSuperLiked={superLikedCompanies.has(company.id)}
+                // Removed direct action props, handleAction is local now
             />
             <CardFooter className="p-3 grid grid-cols-5 gap-2 border-t bg-card">
               <Button 
