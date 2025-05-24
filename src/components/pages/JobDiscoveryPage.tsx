@@ -8,15 +8,15 @@ import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
-import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2 } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const ITEMS_PER_PAGE = 3; // Number of items to load per "page"
+const ITEMS_PER_BATCH = 3; // Number of items to load per "batch"
 
 export function JobDiscoveryPage() {
   const [allCompanies] = useState<Company[]>(mockCompanies);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded"
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   
@@ -27,32 +27,31 @@ export function JobDiscoveryPage() {
 
   const { toast } = useToast();
   const observer = useRef<IntersectionObserver | null>(null);
-  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
+  const feedContainerRef = useRef<HTMLDivElement | null>(null);
+
 
   const loadMoreCompanies = useCallback(() => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
     
-    // Simulate API call delay
     setTimeout(() => {
-      const nextPage = currentPage + 1;
-      const newCompanies = allCompanies.slice(0, nextPage * ITEMS_PER_PAGE);
+      const newIndex = currentIndex + ITEMS_PER_BATCH;
+      const newBatch = allCompanies.slice(0, newIndex);
       
-      if (newCompanies.length >= allCompanies.length) {
+      setDisplayedCompanies(newBatch);
+      setCurrentIndex(newIndex);
+
+      if (newIndex >= allCompanies.length) {
         setHasMore(false);
       }
-      setDisplayedCompanies(newCompanies);
-      setCurrentPage(nextPage);
       setIsLoading(false);
-    }, 500);
-  }, [isLoading, hasMore, currentPage, allCompanies]);
+    }, 700); // Simulate API delay
+  }, [isLoading, hasMore, currentIndex, allCompanies]);
 
   useEffect(() => {
     // Initial load
-    setDisplayedCompanies(allCompanies.slice(0, ITEMS_PER_PAGE * currentPage));
-     if (ITEMS_PER_PAGE * currentPage >= allCompanies.length) {
-      setHasMore(false);
-    }
+    loadMoreCompanies();
 
     // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
@@ -63,7 +62,8 @@ export function JobDiscoveryPage() {
     if (storedPassed) setPassedCompanies(new Set(JSON.parse(storedPassed)));
     const storedSaved = localStorage.getItem('savedCompaniesDemo');
     if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
-  }, [allCompanies]); // Removed currentPage from deps to avoid re-slicing on every loadMore
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Initial load only
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -72,10 +72,10 @@ export function JobDiscoveryPage() {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
         loadMoreCompanies();
       }
-    });
+    }, { threshold: 0.1, root: feedContainerRef.current });
 
-    if (loadMoreRef.current) {
-      observer.current.observe(loadMoreRef.current);
+    if (loadMoreTriggerRef.current) {
+      observer.current.observe(loadMoreTriggerRef.current);
     }
 
     return () => {
@@ -101,9 +101,13 @@ export function JobDiscoveryPage() {
     const newPassed = new Set(passedCompanies);
     const newSaved = new Set(savedCompanies);
 
+    // If an action is taken, remove from passed list
+    if (action !== 'pass') {
+      newPassed.delete(companyId);
+    }
+
     if (action === 'like') {
       newLiked.add(companyId);
-      newPassed.delete(companyId);
       message = `Interested in ${company.name}`;
       if (Math.random() > 0.7) {
         toast({
@@ -124,7 +128,6 @@ export function JobDiscoveryPage() {
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
       newLiked.add(companyId); 
-      newPassed.delete(companyId);
       message = `Super liked ${company.name}! Your profile will be prioritized.`;
       setSuperLikedCompanies(newSuperLiked);
       updateLocalStorageSet('superLikedCompaniesDemo', newSuperLiked);
@@ -153,24 +156,24 @@ export function JobDiscoveryPage() {
   
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
 
-  if (allCompanies.length === 0 && !isLoading) { // Check allCompanies before initial load
-    return <div className="flex justify-center items-center h-64"><p>No companies available.</p></div>;
-  }
-
-
   return (
-    <div className="flex flex-col items-center p-2 sm:p-4 w-full">
-      <div className="w-full max-w-xl space-y-6 scrollable-feed">
-        {visibleCompanies.map(company => (
+    <div 
+      ref={feedContainerRef}
+      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth"
+      style={{ height: 'calc(100vh - 160px)' }} // Adjust 160px based on header/tabs/footer height
+    >
+      {visibleCompanies.map(company => (
+        <div 
+          key={company.id}
+          className="h-full snap-start snap-always flex items-center justify-center p-1" // Snap item wrapper
+        >
           <SwipeCard 
-            key={company.id} 
-            className={`transition-all duration-300 ease-out 
-                        ${superLikedCompanies.has(company.id) ? 'ring-4 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-4 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} 
-                        min-h-[600px] md:min-h-[700px]`}
+            className={`transition-all duration-300 ease-out w-full h-full
+                        ${superLikedCompanies.has(company.id) ? 'ring-4 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-4 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
           >
             <CompanyCardContent 
                 company={company} 
-                onAction={handleAction} // This prop might not be used if actions are directly on card, review
+                onAction={handleAction} 
                 isLiked={likedCompanies.has(company.id)}
                 isSuperLiked={superLikedCompanies.has(company.id)}
             />
@@ -227,39 +230,29 @@ export function JobDiscoveryPage() {
               </Button>
             </CardFooter>
           </SwipeCard>
-        ))}
-         {isLoading && (
-          <div className="flex justify-center items-center py-6">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      ))}
+      
+      {isLoading && (
+        <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
+          <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+          <p>Loading more companies...</p>
+        </div>
+      )}
+
+      {!isLoading && !hasMore && visibleCompanies.length === 0 && (
+         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
+            <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
+            <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Companies</h2>
+            <p className="text-muted-foreground">You've seen all opportunities for now, or all profiles have been passed. Try again later or adjust preferences (if available).</p>
           </div>
-        )}
-        {!isLoading && !hasMore && visibleCompanies.length === 0 && (
-           <div className="text-center py-10 col-span-full">
-             <h2 className="text-2xl font-semibold mb-4">No More Companies</h2>
-             <p className="text-muted-foreground">You've seen all opportunities for now, or try adjusting your preferences!</p>
-           </div>
-        )}
-        <div ref={loadMoreRef} style={{ height: '1px' }} /> {/* Invisible element to trigger loading more */}
-      </div>
-       <style jsx>{`
-        .scrollable-feed {
-          max-height: calc(100vh - 200px); /* Adjust based on header/footer/search bar height */
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
-          padding-right: 4px; 
-        }
-        .scrollable-feed::-webkit-scrollbar {
-          width: 8px;
-        }
-        .scrollable-feed::-webkit-scrollbar-thumb {
-          background-color: hsl(var(--primary) / 0.5);
-          border-radius: 4px;
-        }
-        .scrollable-feed::-webkit-scrollbar-track {
-          background-color: hsl(var(--muted));
-          border-radius: 4px;
-        }
-      `}</style>
+      )}
+      
+      {hasMore && visibleCompanies.length > 0 && (
+        <div ref={loadMoreTriggerRef} className="h-10 snap-start"> 
+            {/* Invisible trigger for IntersectionObserver */}
+        </div>
+      )}
     </div>
   );
 }
