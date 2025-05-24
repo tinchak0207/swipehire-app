@@ -7,12 +7,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea'; // No longer using Textarea for display
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { editVideo, type EditVideoInput } from '@/ai/flows/video-editor';
 import { Loader2, Clapperboard } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ReactMarkdown from 'react-markdown';
 
 const FormSchema = z.object({
   videoFile: z.custom<FileList>((val) => val instanceof FileList && val.length > 0, "Please upload a video file.")
@@ -78,13 +79,13 @@ export function VideoEditor() {
         setAnalysis(result.analysis);
         toast({
           title: "Video Processed!",
-          description: "Your video has been edited and analyzed by AI.",
+          description: "Your video has been analyzed by AI.",
         });
       } catch (error) {
         console.error("Error editing video:", error);
         toast({
-          title: "Error Editing Video",
-          description: "Failed to edit video. The AI might be unable to process this video, or it's too large/long. Please try a short, common format video.",
+          title: "Error Analyzing Video",
+          description: "Failed to analyze video. The AI might be unable to process this video, or it's too large/long. Please try a short, common format video.",
           variant: "destructive",
         });
       } finally {
@@ -102,7 +103,7 @@ export function VideoEditor() {
       <CardHeader>
         <CardTitle className="flex items-center text-2xl">
           <Clapperboard className="mr-2 h-6 w-6 text-primary" />
-          AI Video Editor
+          AI Video Analysis
         </CardTitle>
         <CardDescription>
           Upload your video resume, and our AI will analyze and suggest optimizations to make it more engaging and professional. (Demo: Max 10MB video)
@@ -151,13 +152,13 @@ export function VideoEditor() {
             {isLoading && (
               <div className="flex flex-col items-center justify-center h-64 bg-muted/30 rounded-md">
                 <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Editing your video... this can take some time.</p>
+                <p className="text-muted-foreground">Analyzing your video... this can take some time.</p>
               </div>
             )}
 
             {editedVideoDataUri && !isLoading && (
               <div className="pt-4 border-t mt-4">
-                <h3 className="text-xl font-semibold mb-2 text-primary">Edited Video:</h3>
+                <h3 className="text-xl font-semibold mb-2 text-primary">Original Video (for reference):</h3>
                  <video controls src={editedVideoDataUri} className="w-full max-w-md rounded-md shadow-md mb-4" data-ai-hint="video player">
                   Your browser does not support the video tag.
                 </video>
@@ -165,13 +166,10 @@ export function VideoEditor() {
             )}
             {analysis && !isLoading && (
               <div className="pt-4 border-t mt-2">
-                <h3 className="text-xl font-semibold mb-2 text-primary">AI Analysis:</h3>
-                <Textarea
-                  readOnly
-                  value={analysis}
-                  className="min-h-[150px] bg-muted/50 text-foreground text-base"
-                  rows={8}
-                />
+                <h3 className="text-xl font-semibold mb-2 text-primary">AI Analysis & Suggestions:</h3>
+                <div className="prose prose-sm sm:prose lg:prose-lg xl:prose-xl max-w-none p-4 border rounded-md bg-muted/50 text-foreground">
+                  <ReactMarkdown>{analysis}</ReactMarkdown>
+                </div>
               </div>
             )}
           </CardContent>
@@ -182,7 +180,7 @@ export function VideoEditor() {
               ) : (
                 <Clapperboard className="mr-2 h-5 w-5" />
               )}
-              Edit Video
+              Analyze Video
             </Button>
           </CardFooter>
         </form>
