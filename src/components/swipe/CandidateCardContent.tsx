@@ -32,7 +32,6 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
         observer.observe(currentVideoRef);
     }
     
-
     return () => {
       if (currentVideoRef) {
         observer.unobserve(currentVideoRef);
@@ -42,8 +41,10 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
   }, [candidate.videoResumeUrl]); 
 
   return (
+    // Ensure this outer div takes full height and uses flex column
     <div className="flex flex-col h-full overflow-hidden"> 
-      <div className="relative w-full bg-muted shrink-0 aspect-[16/9] max-h-[60vh] sm:max-h-[55vh] md:max-h-[50vh]"> {/* Consistent aspect ratio and max height */}
+      {/* Video/Image Container - Takes up a larger portion of height */}
+      <div className="relative w-full bg-muted shrink-0 h-[60%]"> 
         {candidate.videoResumeUrl ? (
           <video
             ref={videoRef}
@@ -54,7 +55,7 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
             playsInline 
             className="w-full h-full object-cover bg-black"
             data-ai-hint="candidate video resume"
-            poster={candidate.avatarUrl || `https://placehold.co/600x338.png?text=${encodeURIComponent(candidate.name)}`}
+            poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
           >
             Your browser does not support the video tag.
           </video>
@@ -62,7 +63,7 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
           <Image
             src={candidate.avatarUrl}
             alt={candidate.name}
-            fill // Use fill with parent having aspect ratio and position relative
+            fill
             className="object-cover"
             data-ai-hint={candidate.dataAiHint || "person"}
             priority 
@@ -74,7 +75,8 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
         )}
       </div>
 
-      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar"> {/* Added overscroll-y-contain */}
+      {/* Content Area - Takes remaining height and is scrollable if needed */}
+      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[40%]">
         <CardHeader className="p-0 mb-2">
           <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
           <CardDescription className="text-xs sm:text-sm text-muted-foreground">{candidate.role}</CardDescription>

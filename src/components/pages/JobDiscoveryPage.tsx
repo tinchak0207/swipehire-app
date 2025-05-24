@@ -3,14 +3,13 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Company } from '@/lib/types';
-// import { mockCompanies } from '@/lib/mockData'; // We will fetch from service now
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
 import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchJobsFromBackend } from '@/services/jobService'; // Import the service function
+import { fetchJobsFromBackend } from '@/services/jobService'; 
 
 export function JobDiscoveryPage() {
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
@@ -29,14 +28,13 @@ export function JobDiscoveryPage() {
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const loadCompanies = useCallback(async (cursor?: string) => {
-    if (isLoading && !isInitialLoading) return; // Prevent multiple simultaneous loads for "load more"
+    if (isLoading && !isInitialLoading) return; 
     
     if (isInitialLoading) {
-      setIsLoading(true); // For initial load spinner
-    } else if (cursor) { // Only set loading for "load more" if there's a cursor (i.e., not the first call to loadMore)
+      setIsLoading(true); 
+    } else if (cursor || (!cursor && hasMore)) { // Also set loading if we are trying to load more even without a cursor (e.g. first "load more" call)
       setIsLoading(true);
     }
-
 
     try {
       const { jobs, hasMore: newHasMore, nextCursor: newNextCursor } = await fetchJobsFromBackend(cursor);
@@ -44,24 +42,24 @@ export function JobDiscoveryPage() {
       setDisplayedCompanies(prev => {
         const existingIds = new Set(prev.map(c => c.id));
         const uniqueNewJobs = jobs.filter(job => !existingIds.has(job.id));
-        return cursor ? [...prev, ...uniqueNewJobs] : uniqueNewJobs; // Replace if no cursor (initial load)
+        return cursor ? [...prev, ...uniqueNewJobs] : uniqueNewJobs; 
       });
       setHasMore(newHasMore);
       setNextCursor(newNextCursor);
     } catch (error) {
       console.error("Failed to fetch jobs:", error);
       toast({ title: "Error fetching jobs", description: "Could not load opportunities. Please try again.", variant: "destructive" });
-      setHasMore(false); // Stop trying if there's an error
+      setHasMore(false); 
     } finally {
       setIsLoading(false);
       if (isInitialLoading) setIsInitialLoading(false);
     }
-  }, [isLoading, isInitialLoading, toast]);
+  }, [isLoading, isInitialLoading, toast, hasMore]); // Added hasMore to dependencies
 
   // Initial load
   useEffect(() => {
     setIsInitialLoading(true);
-    loadCompanies(); // Load initial batch
+    loadCompanies(); 
 
     // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
@@ -73,7 +71,7 @@ export function JobDiscoveryPage() {
     const storedSaved = localStorage.getItem('savedCompaniesDemo');
     if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // loadCompanies is memoized but ESLint might complain; it's stable here.
+  }, []); 
 
 
   // IntersectionObserver setup for infinite scroll
@@ -85,8 +83,8 @@ export function JobDiscoveryPage() {
         loadCompanies(nextCursor);
       }
     }, { 
-        threshold: 0.1, 
-        rootMargin: '0px 0px 300px 0px' 
+        threshold: 0.1, // Trigger when 10% of the sentinel is visible
+        rootMargin: '0px 0px 200px 0px' // Start loading when 200px from bottom
     });
 
     if (loadMoreTriggerRef.current) {
@@ -105,7 +103,7 @@ export function JobDiscoveryPage() {
   };
 
   const handleAction = (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save') => {
-    const company = displayedCompanies.find(c => c.id === companyId); // Check against displayed companies
+    const company = displayedCompanies.find(c => c.id === companyId); 
     if (!company) return;
 
     let message = "";
@@ -147,7 +145,7 @@ export function JobDiscoveryPage() {
       message = `Super liked ${company.name}! Your profile will be prioritized.`;
     } else if (action === 'details') {
       message = `Viewing details for ${company.name}`;
-      toast({ title: message, description: "Detailed view functionality to be implemented." });
+      toast({ title: message, description: "Detailed view/expansion to be implemented." });
       return; 
     } else if (action === 'save') {
       if (newSaved.has(companyId)) {
@@ -174,10 +172,14 @@ export function JobDiscoveryPage() {
   };
   
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
+  const fixedElementsHeight = '160px'; // Approximate height of header + tabs
 
-  if (isInitialLoading && displayedCompanies.length === 0) {
+  if (isInitialLoading && displayedCompanies.length === 0 && isLoading) { // Show loader only if truly initial loading and actively fetching
      return (
-      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center bg-background">
+      <div 
+        className="flex items-center justify-center bg-background"
+        style={{ height: `calc(100vh - ${fixedElementsHeight})` }} 
+      >
         <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
@@ -185,85 +187,94 @@ export function JobDiscoveryPage() {
 
   return (
     <div 
-      className="w-full max-w-xl mx-auto p-2 space-y-4 overflow-y-auto no-scrollbar"
-      style={{ maxHeight: 'calc(100vh - 160px)' }} 
+      className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
+      style={{ height: `calc(100vh - ${fixedElementsHeight})` }} 
       tabIndex={0} 
     >
       {visibleCompanies.map(company => (
+        <div 
+          key={company.id}
+          className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 bg-background" // Added bg-background
+        >
           <SwipeCard 
-            key={company.id}
-            className={`transition-all duration-300 ease-out w-full
-                        ${superLikedCompanies.has(company.id) ? 'ring-4 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-4 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
+            className={`w-full max-w-xl h-full flex flex-col
+                        ${superLikedCompanies.has(company.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
           >
             <CompanyCardContent company={company} />
-            <CardFooter className="p-3 grid grid-cols-5 gap-2 border-t bg-card">
+            <CardFooter className="p-2 sm:p-3 grid grid-cols-5 gap-1 sm:gap-2 border-t bg-card shrink-0">
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="flex-col h-auto py-2 hover:bg-destructive/10 text-destructive hover:text-destructive"
+                className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive"
                 onClick={() => handleAction(company.id, 'pass')}
                 aria-label={`Pass on ${company.name}`}
               >
-                <ThumbsDown className="h-5 w-5 mb-1" />
+                <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" />
                 <span className="text-xs">Pass</span>
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="flex-col h-auto py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
+                className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
                 onClick={() => handleAction(company.id, 'details')}
                 aria-label={`View details for ${company.name}`}
               >
-                <Info className="h-5 w-5 mb-1" />
+                <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" />
                 <span className="text-xs">Details</span>
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`flex-col h-auto py-2 hover:bg-accent/10 ${superLikedCompanies.has(company.id) ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`}
+                className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-accent/10 ${superLikedCompanies.has(company.id) ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`}
                 onClick={() => handleAction(company.id, 'superlike')}
                 aria-label={`Superlike ${company.name}`}
               >
-                <Star className={`h-5 w-5 mb-1 ${superLikedCompanies.has(company.id) ? 'fill-accent' : ''}`} />
+                <Star className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${superLikedCompanies.has(company.id) ? 'fill-accent' : ''}`} />
                 <span className="text-xs">Superlike</span>
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`flex-col h-auto py-2 hover:bg-green-500/10 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`}
+                className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`}
                 onClick={() => handleAction(company.id, 'like')}
                 aria-label={`Apply to ${company.name}`}
               >
-                <ThumbsUp className={`h-5 w-5 mb-1 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'fill-green-500' : ''}`} />
+                <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'fill-green-500' : ''}`} />
                 <span className="text-xs">Apply</span>
               </Button>
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className={`flex-col h-auto py-2 hover:bg-primary/10 ${savedCompanies.has(company.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
+                className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCompanies.has(company.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`}
                 onClick={() => handleAction(company.id, 'save')}
                 aria-label={`Save ${company.name}`}
               >
-                <Save className={`h-5 w-5 mb-1 ${savedCompanies.has(company.id) ? 'fill-primary' : ''}`} />
+                <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCompanies.has(company.id) ? 'fill-primary' : ''}`} />
                 <span className="text-xs">Save</span>
               </Button>
             </CardFooter>
           </SwipeCard>
+        </div>
       ))}
       
-      {hasMore && !isLoading && (
-         <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center text-transparent">.</div>
-      )}
-
-      {isLoading && !isInitialLoading && ( // Show loading for "load more" only
-        <div className="flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
+      {isLoading && !isInitialLoading && ( 
+        <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
           <p>Loading more companies...</p>
         </div>
       )}
 
+      {hasMore && !isLoading && !isInitialLoading && ( // Ensure trigger isn't shown during initial load
+         <div 
+            ref={loadMoreTriggerRef} 
+            className="h-full snap-start snap-always flex items-center justify-center text-transparent" // Full height snap point
+         >
+           . {/* Content for observer */}
+         </div>
+      )}
+
       {!isLoading && !hasMore && visibleCompanies.length === 0 && (
-         <div className="flex flex-col items-center justify-center p-6 text-center bg-background min-h-[calc(100vh-200px)]">
+         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Companies</h2>
             <p className="text-muted-foreground">You've seen all opportunities for now. Try again later!</p>
