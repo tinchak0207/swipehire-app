@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface CompanyCardContentProps {
   company: Company;
-  onSwipeAction: (companyId: string, action: 'pass' | 'details' | 'save') => void;
+  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => void;
 }
 
 export function CompanyCardContent({ company, onSwipeAction }: CompanyCardContentProps) {
@@ -17,9 +17,9 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0); // For visual feedback
-  const SWIPE_THRESHOLD = 75; // Min drag distance in pixels
-  const MAX_ROTATION = 10; // Max rotation in degrees
+  const [currentX, setCurrentX] = useState(0);
+  const SWIPE_THRESHOLD = 75;
+  const MAX_ROTATION = 10;
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -51,12 +51,12 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-     if ((e.target as HTMLElement).closest('video') && (e.target as HTMLElement).hasAttribute('controls')) {
-        const videoElement = (e.target as HTMLElement).closest('video');
-        if (videoElement) {
-            const rect = videoElement.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) return;
-        }
+    if ((e.target as HTMLElement).closest('video[controls]') && (e.target as HTMLElement).tagName !== 'VIDEO') {
+      const videoElement = (e.target as HTMLElement).closest('video');
+      if (videoElement) {
+          const rect = videoElement.getBoundingClientRect();
+          if (e.clientY > rect.bottom - 40) return;
+      }
     }
     if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) {
       return;
@@ -80,15 +80,13 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
     if (!isDragging || !cardContentRef.current) return;
 
     cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    setCurrentX(startX); // Snap back
+    const finalDeltaX = e.clientX - startX;
+    setCurrentX(startX); // Snap back visually
 
-    const deltaX = e.clientX - startX;
-
-    if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-      if (deltaX < 0) { // Swipe Left
-        onSwipeAction(company.id, 'details');
-        setTimeout(() => onSwipeAction(company.id, 'save'), 200);
-      } else { // Swipe Right
+    if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
+      if (finalDeltaX > 0) { // Swipe Right (mouse dragged to the right)
+        onSwipeAction(company.id, 'like');
+      } else { // Swipe Left (mouse dragged to the left)
         onSwipeAction(company.id, 'pass');
       }
     }
@@ -130,7 +128,6 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
-        // transition: isDragging ? 'none' : 'transform 0.3s ease-out'
       }}
     >
       {/* Video/Image Container */}

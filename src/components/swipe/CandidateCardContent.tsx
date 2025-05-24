@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
-  onSwipeAction: (candidateId: string, action: 'pass' | 'details' | 'save') => void;
+  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => void;
 }
 
 export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCardContentProps) {
@@ -17,8 +17,8 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0); // For visual feedback
-  const SWIPE_THRESHOLD = 75; // Min drag distance in pixels to be considered a swipe
+  const [currentX, setCurrentX] = useState(0);
+  const SWIPE_THRESHOLD = 75;
   const MAX_ROTATION = 10; // Max rotation in degrees
 
   useEffect(() => {
@@ -50,23 +50,25 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('video') && (e.target as HTMLElement).hasAttribute('controls')) {
-        const videoElement = (e.target as HTMLElement).closest('video');
-        if (videoElement) {
-            const rect = videoElement.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) return;
-        }
+    // Prevent drag if clicking on video controls
+    if ((e.target as HTMLElement).closest('video[controls]') && (e.target as HTMLElement).tagName !== 'VIDEO') {
+      const videoElement = (e.target as HTMLElement).closest('video');
+      if (videoElement) {
+          const rect = videoElement.getBoundingClientRect();
+          // Heuristic: if click is in bottom ~40px of video, assume it's controls
+          if (e.clientY > rect.bottom - 40) return; 
+      }
     }
-     if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) { // Added data-no-drag
+    if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) {
       return;
     }
 
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX); // Initialize currentX
+    setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; // Remove transition during drag
+      cardContentRef.current.style.transition = 'none'; 
     }
     document.body.style.userSelect = 'none';
   };
@@ -79,16 +81,14 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
     
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Add transition for snap back
-    setCurrentX(startX); // Trigger snap back visually
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+    const finalDeltaX = e.clientX - startX; // Use final clientX for action logic
+    setCurrentX(startX); // Snap back visually by resetting currentX to startX
 
-    const deltaX = e.clientX - startX; // Use final position for action logic
-
-    if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-      if (deltaX < 0) { // Swipe Left
-        onSwipeAction(candidate.id, 'details');
-        setTimeout(() => onSwipeAction(candidate.id, 'save'), 200);
-      } else { // Swipe Right
+    if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
+      if (finalDeltaX > 0) { // Swipe Right (mouse dragged to the right)
+        onSwipeAction(candidate.id, 'like');
+      } else { // Swipe Left (mouse dragged to the left)
         onSwipeAction(candidate.id, 'pass');
       }
     }
@@ -121,7 +121,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   return (
     <div
       ref={cardContentRef}
-      className="flex flex-col h-full overflow-hidden relative" // Added relative for potential overlays
+      className="flex flex-col h-full overflow-hidden relative"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -129,7 +129,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
-        // transition: isDragging ? 'none' : 'transform 0.3s ease-out' // Apply transition only when not dragging
       }}
     >
       {/* Video/Image Container - Takes up a larger portion of height */}
@@ -145,7 +144,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
             className="w-full h-full object-cover bg-black"
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
-            data-no-drag="true" // Prevent drag on controls
+            data-no-drag="true"
           >
             Your browser does not support the video tag.
           </video>
