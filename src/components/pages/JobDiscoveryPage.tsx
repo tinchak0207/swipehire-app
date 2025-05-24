@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Company } from '@/lib/types';
 import { mockCompanies } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
@@ -14,10 +14,11 @@ import { useToast } from '@/hooks/use-toast';
 const ITEMS_PER_BATCH = 3; 
 
 export function JobDiscoveryPage() {
-  const [allCompanies] = useState<Company[]>(mockCompanies);
+  const [initialMockCompanies] = useState<Company[]>(mockCompanies);
+  const [userPostedCompanies, setUserPostedCompanies] = useState<Company[]>([]);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0); 
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Manages loading state for initial batch and more items
   const [hasMore, setHasMore] = useState(true);
   
   const [likedCompanies, setLikedCompanies] = useState<Set<string>>(new Set());
@@ -29,40 +30,12 @@ export function JobDiscoveryPage() {
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  const loadMoreCompanies = useCallback(() => {
-    if (isLoading || !hasMore) return;
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = allCompanies.slice(currentIndex, newLoadIndex);
-      
-      setDisplayedCompanies(prevDisplayed => {
-        const prevIds = new Set(prevDisplayed.map(c => c.id));
-        const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
-        return [...prevDisplayed, ...uniqueNewItems];
-      });
-      
-      setCurrentIndex(newLoadIndex);
-
-      if (newLoadIndex >= allCompanies.length) {
-        setHasMore(false);
-      }
-      setIsLoading(false);
-    }, 700);
-  }, [isLoading, hasMore, currentIndex, allCompanies]);
-
+  // Load user-posted companies and interaction states from localStorage on mount
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-        const initialBatch = allCompanies.slice(0, ITEMS_PER_BATCH);
-        setDisplayedCompanies(initialBatch);
-        setCurrentIndex(ITEMS_PER_BATCH);
-        if (ITEMS_PER_BATCH >= allCompanies.length) {
-            setHasMore(false);
-        }
-        setIsLoading(false);
-    }, 100);
+    const storedUserCompaniesString = localStorage.getItem('userPostedCompanies');
+    if (storedUserCompaniesString) {
+      setUserPostedCompanies(JSON.parse(storedUserCompaniesString));
+    }
 
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
     if (storedLiked) setLikedCompanies(new Set(JSON.parse(storedLiked)));
@@ -72,9 +45,64 @@ export function JobDiscoveryPage() {
     if (storedPassed) setPassedCompanies(new Set(JSON.parse(storedPassed)));
     const storedSaved = localStorage.getItem('savedCompaniesDemo');
     if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Memoize the combined list of all available companies
+  const allAvailableCompanies = useMemo(() => {
+    const combined = [...userPostedCompanies, ...initialMockCompanies];
+    const uniqueIds = new Set<string>();
+    return combined.filter(company => {
+        if (!uniqueIds.has(company.id)) {
+            uniqueIds.add(company.id);
+            return true;
+        }
+        return false;
+    });
+  }, [userPostedCompanies, initialMockCompanies]);
+
+  // Effect to initialize or re-initialize displayed companies when allAvailableCompanies changes
+  useEffect(() => {
+    if (allAvailableCompanies.length === 0) {
+      setDisplayedCompanies([]);
+      setCurrentIndex(0);
+      setHasMore(false);
+      setIsLoading(false); // Ensure loading is false if no data
+      return;
+    }
+
+    setIsLoading(true);
+    setTimeout(() => {
+        const initialBatch = allAvailableCompanies.slice(0, ITEMS_PER_BATCH);
+        setDisplayedCompanies(initialBatch);
+        setCurrentIndex(ITEMS_PER_BATCH);
+        setHasMore(ITEMS_PER_BATCH < allAvailableCompanies.length);
+        setIsLoading(false);
+    }, 100); // Simulate fetch time
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allAvailableCompanies]);
+
+
+  const loadMoreCompanies = useCallback(() => {
+    if (isLoading || !hasMore || allAvailableCompanies.length === 0) return;
+    setIsLoading(true);
+    
+    setTimeout(() => {
+      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
+      const newBatch = allAvailableCompanies.slice(currentIndex, newLoadIndex);
+      
+      setDisplayedCompanies(prevDisplayed => {
+        const prevIds = new Set(prevDisplayed.map(c => c.id));
+        const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
+        return [...prevDisplayed, ...uniqueNewItems];
+      });
+      
+      setCurrentIndex(newLoadIndex);
+      setHasMore(newLoadIndex < allAvailableCompanies.length);
+      setIsLoading(false);
+    }, 700);
+  }, [isLoading, hasMore, currentIndex, allAvailableCompanies]);
+
+  // IntersectionObserver setup for infinite scroll
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
 
@@ -103,7 +131,7 @@ export function JobDiscoveryPage() {
   };
 
   const handleAction = (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save') => {
-    const company = allCompanies.find(c => c.id === companyId);
+    const company = allAvailableCompanies.find(c => c.id === companyId);
     if (!company) return;
 
     let message = "";

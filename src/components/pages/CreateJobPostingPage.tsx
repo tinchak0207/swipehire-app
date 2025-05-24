@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { JobPosting } from '@/lib/types'; 
+import type { Company, CompanyJobOpening } from '@/lib/types'; 
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
@@ -75,30 +75,53 @@ export function CreateJobPostingPage() {
     }
 
     setIsLoading(true);
-    console.log("Job Posting Data:", data);
 
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const newJobPosting: Partial<JobPosting> = {
-      id: `job-${Date.now()}`, 
+    // Construct CompanyJobOpening from form data
+    const newJobOpening: CompanyJobOpening = {
       title: data.title,
       description: data.description,
-      compensation: data.compensation,
-      tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-      companyId: 'current-user-company-id', 
-      postedAt: new Date(),
+      salaryRange: data.compensation,
+      tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      // videoOrImageUrl: For this demo, we won't handle file uploads to a persistent URL.
+      // If data.mediaFile exists, you might generate a temporary ObjectURL or DataURL for immediate preview,
+      // but it won't persist in localStorage well or be shareable.
+    };
+
+    // Wrap the job opening in a new Company object
+    const newCompanyForJob: Company = {
+      id: `user-posted-comp-${Date.now()}`, // Unique ID for the new company wrapper
+      name: "Community Job Post", // Generic name for these kinds of listings
+      industry: 'Various',
+      description: `A new opportunity: ${data.title}. This job was posted directly by a recruiter.`, // Company-level description
+      cultureHighlights: [],
+      logoUrl: 'https://placehold.co/300x200.png?text=New+Job', // Generic logo
+      dataAiHint: 'job post',
+      jobOpenings: [newJobOpening], // The actual job details
     };
     
-    console.log("Formatted Job Posting:", newJobPosting);
+    try {
+      const existingUserCompaniesString = localStorage.getItem('userPostedCompanies');
+      const existingUserCompanies: Company[] = existingUserCompaniesString ? JSON.parse(existingUserCompaniesString) : [];
+      // Add new job to the beginning of the list so it appears first
+      localStorage.setItem('userPostedCompanies', JSON.stringify([newCompanyForJob, ...existingUserCompanies]));
 
-    toast({
-      title: "Job Posted Successfully!",
-      description: `Your job "${data.title}" is now live.`,
-    });
+      toast({
+        title: "Job Posted!",
+        description: `Your job "${data.title}" has been submitted and is now visible in the 'Find Jobs' section (for this demo).`,
+      });
 
-    form.reset();
-    setFileName(null);
-    setIsLoading(false);
+      form.reset();
+      setFileName(null);
+    } catch (error) {
+      console.error("Error saving job to localStorage:", error);
+      toast({
+        title: "Error",
+        description: "Could not save the job posting. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
