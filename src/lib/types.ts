@@ -27,6 +27,8 @@ export interface Company {
   introVideoUrl?: string; // URL or data URI
   jobOpenings?: { title: string; description: string }[];
   companyNeeds?: string; // For icebreaker context
+  salaryRange?: string; // New
+  jobType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship'; // New
 }
 
 export interface Match {

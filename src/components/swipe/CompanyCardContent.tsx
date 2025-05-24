@@ -2,96 +2,109 @@
 import type { Company } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, Sparkles, Users, PlayCircle } from 'lucide-react';
-import { CardContent, CardFooter, CardHeader } from '../ui/card';
+import { Building, Sparkles, Users, MapPin, Briefcase as JobTypeIcon, DollarSign, ThumbsDown, Info, Star, ThumbsUp, Save, Share2 } from 'lucide-react';
+import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Button } from '../ui/button';
 
 interface CompanyCardContentProps {
   company: Company;
+  onAction?: (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save' | 'share') => void; // Added for card-specific actions
+  isLiked?: boolean;
+  isSuperLiked?: boolean;
 }
 
-export function CompanyCardContent({ company }: CompanyCardContentProps) {
+export function CompanyCardContent({ company, onAction, isLiked, isSuperLiked }: CompanyCardContentProps) {
+  const handleAction = (action: 'like' | 'pass' | 'superlike' | 'details' | 'save' | 'share') => {
+    onAction?.(company.id, action);
+  };
+
   return (
     <div className="flex flex-col h-full">
-      <CardHeader className="p-0 relative">
+      {/* Video or Logo Section - Top 60% if video exists */}
+      <div className="relative w-full" style={{ paddingTop: company.introVideoUrl ? '56.25%' : '0' /* 16:9 aspect ratio for video */ }}>
         {company.introVideoUrl ? (
-           <div className="w-full h-64 sm:h-80 bg-black flex flex-col items-center justify-center text-white relative" data-ai-hint="video content">
-            <Image
-              src={company.logoUrl || 'https://placehold.co/500x350.png'} // Use logo as poster or generic
-              alt={company.name + " intro video poster"}
-              layout="fill"
-              objectFit="cover"
-              className="opacity-50"
-              data-ai-hint={company.dataAiHint || "logo brand"}
-            />
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4">
-              <PlayCircle className="w-16 h-16 text-white/80 mb-2" />
-              <span className="text-lg font-semibold">Watch Company Intro</span>
-              <span className="text-sm text-white/70">(Feature coming soon)</span>
-            </div>
-          </div>
+          <video
+            src={company.introVideoUrl}
+            controls
+            autoPlay
+            muted
+            loop
+            className="absolute top-0 left-0 w-full h-full object-cover bg-black"
+            data-ai-hint="company video"
+            poster={company.logoUrl || `https://placehold.co/600x338.png?text=${company.name}`}
+          >
+            Your browser does not support the video tag.
+          </video>
         ) : company.logoUrl ? (
           <Image
             src={company.logoUrl}
-            alt={company.name}
-            width={500}
+            alt={company.name + " logo"}
+            width={600}
             height={350}
-            className="object-cover w-full h-64 sm:h-80" 
-            data-ai-hint={company.dataAiHint || "logo brand"}
+            className="object-contain w-full h-48 sm:h-56 md:h-64 bg-muted p-4"
+            data-ai-hint={company.dataAiHint || "company logo"}
           />
         ) : (
-          <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center" data-ai-hint="company logo">
-            <Building className="w-16 h-16 text-muted-foreground" />
+          <div className="w-full h-48 sm:h-56 md:h-64 bg-muted flex items-center justify-center" data-ai-hint="company building">
+            <Building className="w-24 h-24 text-muted-foreground" />
           </div>
         )}
-         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/50 to-transparent p-4 pt-12">
-          <h2 className="text-2xl font-bold text-white truncate">{company.name}</h2>
-          <p className="text-md text-primary-foreground/90 truncate">{company.industry}</p>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="p-4 flex-grow">
-        <p className="text-sm text-muted-foreground mb-3 h-16 overflow-hidden line-clamp-3">
-          {company.description}
-        </p>
-        
-        {company.jobOpenings && company.jobOpenings.length > 0 && (
-          <div className="mb-3">
-             <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1.5 flex items-center">
-                <Users className="h-3.5 w-3.5 mr-1.5" /> Open Roles:
-            </h4>
-            <div className="flex flex-wrap gap-1.5">
-                {company.jobOpenings.slice(0,2).map(job => (
-                    <Badge key={job.title} variant="outline" className="text-xs">{job.title}</Badge>
-                ))}
-                {company.jobOpenings.length > 2 && <Badge variant="outline" className="text-xs">+{company.jobOpenings.length - 2} more</Badge>}
+      </div>
+
+      {/* Content Section */}
+      <div className="p-4 flex-grow flex flex-col">
+        <CardHeader className="p-0 mb-2">
+          <CardTitle className="text-xl font-bold text-primary truncate">{company.name}</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">{company.industry}</CardDescription>
+          {company.jobOpenings && company.jobOpenings.length > 0 && (
+            <p className="text-lg font-semibold text-foreground mt-1">{company.jobOpenings[0].title}</p>
+          )}
+           {/* Location can be added here if available in Company type */}
+        </CardHeader>
+
+        <CardContent className="p-0 mb-3 space-y-2 text-sm">
+          {company.location && (
+             <div className="flex items-center text-muted-foreground">
+                <MapPin className="h-4 w-4 mr-2 shrink-0" />
+                <span>{company.location || "Not specified"}</span>
             </div>
-          </div>
-        )}
-
-        <div>
-          <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1.5 flex items-center">
-            <Sparkles className="h-3.5 w-3.5 mr-1.5 text-accent" /> Culture Highlights:
-          </h4>
-          <div className="flex flex-wrap gap-1.5">
-            {company.cultureHighlights.slice(0, 3).map((highlight) => (
-              <Badge key={highlight} variant="secondary" className="text-xs bg-accent/10 text-accent-foreground hover:bg-accent/20">{highlight}</Badge>
-            ))}
-            {company.cultureHighlights.length > 3 && <Badge variant="secondary" className="text-xs bg-accent/10 text-accent-foreground hover:bg-accent/20">...</Badge>}
-          </div>
-        </div>
-      </CardContent>
-
-      <CardFooter className="p-4 border-t bg-muted/30">
-        {company.introVideoUrl ? (
-          <p className="text-xs text-primary font-medium">
-              Swipe to see more or learn about roles!
+          )}
+          {company.salaryRange && (
+            <div className="flex items-center text-muted-foreground">
+              <DollarSign className="h-4 w-4 mr-2 shrink-0" />
+              <span>{company.salaryRange}</span>
+            </div>
+          )}
+          {company.jobType && (
+            <div className="flex items-center text-muted-foreground">
+              <JobTypeIcon className="h-4 w-4 mr-2 shrink-0" />
+              <span>{company.jobType}</span>
+            </div>
+          )}
+          
+          <p className="text-muted-foreground line-clamp-3">
+            {company.description}
+            {company.description.length > 100 && <span className="text-primary cursor-pointer hover:underline ml-1">Read more</span>}
           </p>
-        ) : (
-           <p className="text-xs text-muted-foreground">
-              Learn more about their culture and open roles.
-          </p>
-        )}
-      </CardFooter>
+
+          {company.cultureHighlights && company.cultureHighlights.length > 0 && (
+            <div className="mt-2">
+              <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1">Culture:</h4>
+              <div className="flex flex-wrap gap-1">
+                {company.cultureHighlights.slice(0, 3).map((highlight) => (
+                  <Badge key={highlight} variant="secondary" className="text-xs">{highlight}</Badge>
+                ))}
+                 {company.cultureHighlights.length > 3 && <Badge variant="outline" className="text-xs">+{company.cultureHighlights.length-3} more</Badge>}
+              </div>
+            </div>
+          )}
+        </CardContent>
+        
+        {/* Action Buttons - Placed in CardFooter in the parent DiscoveryPage to manage state */}
+      </div>
     </div>
   );
 }
+
+// Add location to Company type if not already there and update mockData
+// Update JobDiscoveryPage.tsx to pass onAction, isLiked, isSuperLiked and render buttons in its CardFooter
