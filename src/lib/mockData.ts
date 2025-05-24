@@ -114,6 +114,28 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
   }
 ];
 
+const mockJobOpeningsComp4: CompanyJobOpening[] = [
+  {
+    title: "Lead Game Developer (Unity)",
+    description: "Spearhead the development of our next hit mobile game. Must have 5+ years of experience with Unity and C#, and a passion for creating engaging gameplay experiences.",
+    salaryRange: "$130k - $170k",
+    jobType: "Full-time",
+    tags: ["gaming", "unity", "csharp", "mobiledev", "lead"],
+    location: "Remote (Canada)",
+  }
+];
+
+const mockJobOpeningsComp5: CompanyJobOpening[] = [
+  {
+    title: "Junior Marketing Analyst",
+    description: "Support our marketing team with data analysis, campaign tracking, and report generation. Entry-level position, great for learning and growth. Basic SQL knowledge is a plus.",
+    salaryRange: "$55k - $70k",
+    jobType: "Full-time",
+    tags: ["marketing", "analysis", "entrylevel", "data"],
+    location: "Chicago, IL (Hybrid)",
+  }
+];
+
 
 export const mockCompanies: Company[] = [
   {
@@ -127,6 +149,7 @@ export const mockCompanies: Company[] = [
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     companyNeeds: "We need to optimize our payment processing system and enhance user experience on our e-commerce platform.",
     jobOpenings: mockJobOpeningsComp1,
+    // salaryRange and jobType moved to jobOpenings
   },
   {
     id: 'comp2',
@@ -151,4 +174,28 @@ export const mockCompanies: Company[] = [
     companyNeeds: "Seeking data scientists to analyze environmental data and improve our green tech solutions.",
     jobOpenings: mockJobOpeningsComp3,
   },
+  {
+    id: 'comp4',
+    name: 'PixelPlay Studios',
+    industry: 'Gaming',
+    description: 'Creating immersive and fun gaming experiences for players worldwide. We are a team of passionate gamers and developers.',
+    cultureHighlights: ['Game Nights', 'Latest Hardware', 'Flexible Work', 'Stock Options'],
+    logoUrl: 'https://placehold.co/500x350.png',
+    dataAiHint: 'gaming company logo controller',
+    introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
+    companyNeeds: "We are looking for experienced game developers and artists to join our growing team for an exciting new IP.",
+    jobOpenings: mockJobOpeningsComp4,
+  },
+  {
+    id: 'comp5',
+    name: 'MarketMinds Co.',
+    industry: 'Market Research',
+    description: 'Providing actionable insights through comprehensive market research and data analysis. Helping businesses make informed decisions.',
+    cultureHighlights: ['Data-Driven', 'Continuous Learning', 'Client-Focused', 'Supportive Team'],
+    logoUrl: 'https://placehold.co/500x350.png',
+    dataAiHint: 'analytics chart logo',
+    companyNeeds: "Expanding our team of analysts to cover new industries and research methodologies.",
+    jobOpenings: mockJobOpeningsComp5,
+  },
 ];
+
