@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -8,13 +9,31 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateVideoScript, type GenerateVideoScriptInput } from '@/ai/flows/video-script-generator';
-import { Loader2, Wand2 } from 'lucide-react';
+import { Loader2, Wand2, Palette, Building } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+const toneAndStyleOptions = [
+  { value: "professional", label: "Professional & Formal" },
+  { value: "friendly", label: "Relaxed & Friendly" },
+  { value: "technical", label: "Technology-Oriented" },
+  { value: "sales", label: "Sales-Oriented" },
+];
+
+const industryTemplateOptions = [
+  { value: "general", label: "General / Other" },
+  { value: "technology", label: "Technology Industry" },
+  { value: "creative", label: "Creative Industry" },
+  { value: "finance", label: "Financial Industry" },
+  { value: "education", label: "Education Industry" },
+];
 
 const FormSchema = z.object({
   experience: z.string().min(10, "Please describe your experience in at least 10 characters."),
   desiredWorkStyle: z.string().min(5, "Please describe your desired work style in at least 5 characters."),
+  toneAndStyle: z.enum(["professional", "friendly", "technical", "sales"]),
+  industryTemplate: z.enum(["technology", "creative", "finance", "education", "general"]),
 });
 
 export function VideoScriptGenerator() {
@@ -27,6 +46,8 @@ export function VideoScriptGenerator() {
     defaultValues: {
       experience: "",
       desiredWorkStyle: "",
+      toneAndStyle: "professional",
+      industryTemplate: "general",
     },
   });
 
@@ -38,7 +59,7 @@ export function VideoScriptGenerator() {
       setGeneratedScript(result.script);
       toast({
         title: "Script Generated!",
-        description: "Your video script is ready.",
+        description: "Your personalized video script is ready.",
       });
     } catch (error) {
       console.error("Error generating video script:", error);
@@ -60,7 +81,7 @@ export function VideoScriptGenerator() {
           AI Video Script Assistant
         </CardTitle>
         <CardDescription>
-          Describe your experience and desired work style, and our AI will craft a compelling video script for you.
+          Describe your experience, choose a tone and industry, and our AI will craft a compelling video script for you.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -100,6 +121,60 @@ export function VideoScriptGenerator() {
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="toneAndStyle"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-semibold flex items-center">
+                    <Palette className="mr-2 h-5 w-5 text-muted-foreground" />
+                    Tone and Style
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a tone and style" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {toneAndStyleOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="industryTemplate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-lg font-semibold flex items-center">
+                    <Building className="mr-2 h-5 w-5 text-muted-foreground" />
+                    Industry Template
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an industry template" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {industryTemplateOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
           <CardFooter className="flex flex-col items-start space-y-4">
             <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
@@ -110,6 +185,12 @@ export function VideoScriptGenerator() {
               )}
               Generate Script
             </Button>
+            {isLoading && !generatedScript && (
+                <div className="w-full pt-4 border-t mt-4 flex flex-col items-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
+                    <p className="text-muted-foreground">Crafting your script...</p>
+                </div>
+            )}
             {generatedScript && (
               <div className="w-full pt-4 border-t mt-4">
                 <h3 className="text-xl font-semibold mb-2 text-primary">Generated Script:</h3>
@@ -117,7 +198,7 @@ export function VideoScriptGenerator() {
                   readOnly
                   value={generatedScript}
                   className="min-h-[200px] bg-muted/50 text-foreground text-base"
-                  rows={10}
+                  rows={15}
                 />
               </div>
             )}
@@ -127,3 +208,4 @@ export function VideoScriptGenerator() {
     </Card>
   );
 }
+
