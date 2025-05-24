@@ -16,7 +16,7 @@ const ITEMS_PER_BATCH = 3; // Number of items to load per "batch"
 export function CandidateDiscoveryPage() {
   const [allCandidates] = useState<Candidate[]>(mockCandidates);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded"
+  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded" from allCandidates
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
@@ -34,23 +34,33 @@ export function CandidateDiscoveryPage() {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
     
+    // Simulate API delay
     setTimeout(() => {
-      const newIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = allCandidates.slice(0, newIndex);
+      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
+      const newBatch = allCandidates.slice(currentIndex, newLoadIndex);
       
-      setDisplayedCandidates(newBatch);
-      setCurrentIndex(newIndex);
+      setDisplayedCandidates(prev => [...prev, ...newBatch]);
+      setCurrentIndex(newLoadIndex);
 
-      if (newIndex >= allCandidates.length) {
+      if (newLoadIndex >= allCandidates.length) {
         setHasMore(false);
       }
       setIsLoading(false);
-    }, 700); // Simulate API delay
+    }, 700);
   }, [isLoading, hasMore, currentIndex, allCandidates]);
 
   useEffect(() => {
-    // Initial load
-    loadMoreCandidates();
+    // Initial load: Load the first batch directly
+    setIsLoading(true);
+    setTimeout(() => {
+      const initialBatch = allCandidates.slice(0, ITEMS_PER_BATCH);
+      setDisplayedCandidates(initialBatch);
+      setCurrentIndex(ITEMS_PER_BATCH);
+      if (ITEMS_PER_BATCH >= allCandidates.length) {
+        setHasMore(false);
+      }
+      setIsLoading(false);
+    }, 100); // Short delay for initial load simulation
 
     // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCandidatesDemo');
@@ -62,7 +72,7 @@ export function CandidateDiscoveryPage() {
     const storedSaved = localStorage.getItem('savedCandidatesDemo');
     if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Initial load only
+  }, [allCandidates]); // Removed loadMoreCandidates from initial useEffect deps as it's called directly
 
    useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -71,7 +81,11 @@ export function CandidateDiscoveryPage() {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
         loadMoreCandidates();
       }
-    }, { threshold: 0.1, root: feedContainerRef.current }); // Observe within the scroll container
+    }, { 
+        threshold: 0.1, 
+        root: feedContainerRef.current,
+        rootMargin: '0px 0px 300px 0px' // Load when trigger is 300px from bottom of root
+    });
 
     if (loadMoreTriggerRef.current) {
       observer.current.observe(loadMoreTriggerRef.current);
@@ -101,7 +115,6 @@ export function CandidateDiscoveryPage() {
     const newPassed = new Set(passedCandidates);
     const newSaved = new Set(savedCandidates);
 
-    // If an action is taken, remove from passed list (allows re-evaluation)
     if (action !== 'pass') {
       newPassed.delete(candidateId);
     }
@@ -125,6 +138,10 @@ export function CandidateDiscoveryPage() {
       toastVariant = "destructive";
       setPassedCandidates(newPassed);
       updateLocalStorageSet('passedCandidatesDemo', newPassed);
+      
+      // Optimistically remove from displayed list
+      // setDisplayedCandidates(prev => prev.filter(c => c.id !== candidateId));
+
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
       newLiked.add(candidateId); 
@@ -160,12 +177,12 @@ export function CandidateDiscoveryPage() {
     <div 
       ref={feedContainerRef}
       className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
-      style={{ height: 'calc(100vh - 160px)' }} // Adjust 160px based on header/tabs/footer height
+      style={{ height: 'calc(100vh - 160px)' }} 
     >
-      {visibleCandidates.map((candidate, index) => (
+      {visibleCandidates.map((candidate) => (
         <div 
           key={candidate.id} 
-          className="h-full snap-start snap-always flex items-center justify-center p-1" // Snap item wrapper
+          className="h-full snap-start snap-always flex items-center justify-center p-1"
         >
           <SwipeCard 
             className={`transition-all duration-300 ease-out w-full h-full
@@ -228,6 +245,11 @@ export function CandidateDiscoveryPage() {
         </div>
       ))}
 
+      {/* Trigger for loading more items - must be inside the scrollable container */}
+      {hasMore && !isLoading && (
+         <div ref={loadMoreTriggerRef} className="h-10 snap-start flex items-center justify-center text-transparent">.</div>
+      )}
+
       {isLoading && (
         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -239,17 +261,8 @@ export function CandidateDiscoveryPage() {
          <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Candidates</h2>
-            <p className="text-muted-foreground">You've seen everyone for now, or all profiles have been passed. Try again later or adjust filters (if available).</p>
+            <p className="text-muted-foreground">You've seen everyone for now. Try again later!</p>
           </div>
-      )}
-      
-      {/* This trigger is for loading more items. It should be after the last actual item or the loading/no-more items card. */}
-      {/* For simplicity, if there are visible candidates, and we can still load more, put it after them. */}
-      {hasMore && visibleCandidates.length > 0 && (
-        <div ref={loadMoreTriggerRef} className="h-10 snap-start"> {/* Small, observable, snap-aligned element */}
-            {/* This is an invisible trigger. If it's visible while loading, it might cause issues. */}
-            {/* Ensure it's only really active when not loading. */}
-        </div>
       )}
     </div>
   );

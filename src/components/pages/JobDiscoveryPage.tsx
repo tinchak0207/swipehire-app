@@ -16,7 +16,7 @@ const ITEMS_PER_BATCH = 3; // Number of items to load per "batch"
 export function JobDiscoveryPage() {
   const [allCompanies] = useState<Company[]>(mockCompanies);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded"
+  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded" from allCompanies
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   
@@ -36,22 +36,32 @@ export function JobDiscoveryPage() {
     setIsLoading(true);
     
     setTimeout(() => {
-      const newIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = allCompanies.slice(0, newIndex);
+      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
+      const newBatch = allCompanies.slice(currentIndex, newLoadIndex);
       
-      setDisplayedCompanies(newBatch);
-      setCurrentIndex(newIndex);
+      setDisplayedCompanies(prev => [...prev, ...newBatch]);
+      setCurrentIndex(newLoadIndex);
 
-      if (newIndex >= allCompanies.length) {
+      if (newLoadIndex >= allCompanies.length) {
         setHasMore(false);
       }
       setIsLoading(false);
-    }, 700); // Simulate API delay
+    }, 700);
   }, [isLoading, hasMore, currentIndex, allCompanies]);
 
   useEffect(() => {
     // Initial load
-    loadMoreCompanies();
+    setIsLoading(true);
+    setTimeout(() => {
+        const initialBatch = allCompanies.slice(0, ITEMS_PER_BATCH);
+        setDisplayedCompanies(initialBatch);
+        setCurrentIndex(ITEMS_PER_BATCH);
+        if (ITEMS_PER_BATCH >= allCompanies.length) {
+            setHasMore(false);
+        }
+        setIsLoading(false);
+    }, 100);
+
 
     // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
@@ -63,7 +73,7 @@ export function JobDiscoveryPage() {
     const storedSaved = localStorage.getItem('savedCompaniesDemo');
     if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Initial load only
+  }, [allCompanies]);
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -72,7 +82,11 @@ export function JobDiscoveryPage() {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
         loadMoreCompanies();
       }
-    }, { threshold: 0.1, root: feedContainerRef.current });
+    }, { 
+        threshold: 0.1, 
+        root: feedContainerRef.current,
+        rootMargin: '0px 0px 300px 0px' // Load when trigger is 300px from bottom of root
+    });
 
     if (loadMoreTriggerRef.current) {
       observer.current.observe(loadMoreTriggerRef.current);
@@ -101,7 +115,6 @@ export function JobDiscoveryPage() {
     const newPassed = new Set(passedCompanies);
     const newSaved = new Set(savedCompanies);
 
-    // If an action is taken, remove from passed list
     if (action !== 'pass') {
       newPassed.delete(companyId);
     }
@@ -125,6 +138,9 @@ export function JobDiscoveryPage() {
       toastVariant = "destructive";
       setPassedCompanies(newPassed);
       updateLocalStorageSet('passedCompaniesDemo', newPassed);
+      // Optimistically remove from displayed list
+      // setDisplayedCompanies(prev => prev.filter(c => c.id !== companyId));
+
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
       newLiked.add(companyId); 
@@ -160,12 +176,12 @@ export function JobDiscoveryPage() {
     <div 
       ref={feedContainerRef}
       className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
-      style={{ height: 'calc(100vh - 160px)' }} // Adjust 160px based on header/tabs/footer height
+      style={{ height: 'calc(100vh - 160px)' }} 
     >
       {visibleCompanies.map(company => (
         <div 
           key={company.id}
-          className="h-full snap-start snap-always flex items-center justify-center p-1" // Snap item wrapper
+          className="h-full snap-start snap-always flex items-center justify-center p-1"
         >
           <SwipeCard 
             className={`transition-all duration-300 ease-out w-full h-full
@@ -233,6 +249,11 @@ export function JobDiscoveryPage() {
         </div>
       ))}
       
+      {/* Trigger for loading more items - must be inside the scrollable container */}
+      {hasMore && !isLoading && (
+         <div ref={loadMoreTriggerRef} className="h-10 snap-start flex items-center justify-center text-transparent">.</div>
+      )}
+
       {isLoading && (
         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
@@ -244,14 +265,8 @@ export function JobDiscoveryPage() {
          <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Companies</h2>
-            <p className="text-muted-foreground">You've seen all opportunities for now, or all profiles have been passed. Try again later or adjust preferences (if available).</p>
+            <p className="text-muted-foreground">You've seen all opportunities for now. Try again later!</p>
           </div>
-      )}
-      
-      {hasMore && visibleCompanies.length > 0 && (
-        <div ref={loadMoreTriggerRef} className="h-10 snap-start"> 
-            {/* Invisible trigger for IntersectionObserver */}
-        </div>
       )}
     </div>
   );
