@@ -8,7 +8,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
-  // Prop to handle actions triggered by swipe
   onSwipeAction: (candidateId: string, action: 'pass' | 'details' | 'save') => void;
 }
 
@@ -18,7 +17,9 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0); // For visual feedback
   const SWIPE_THRESHOLD = 75; // Min drag distance in pixels to be considered a swipe
+  const MAX_ROTATION = 10; // Max rotation in degrees
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -49,77 +50,87 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent drag if target is an interactive element like video controls or buttons (if any were inside this component)
     if ((e.target as HTMLElement).closest('video') && (e.target as HTMLElement).hasAttribute('controls')) {
-        // More specific: check if click is on controls area of video
         const videoElement = (e.target as HTMLElement).closest('video');
         if (videoElement) {
             const rect = videoElement.getBoundingClientRect();
-            // Approximate controls height (usually bottom 30-40px)
             if (e.clientY > rect.bottom - 40) return;
         }
     }
-     if ((e.target as HTMLElement).closest('button, a, input, textarea')) {
+     if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) { // Added data-no-drag
       return;
     }
 
     setIsDragging(true);
     setStartX(e.clientX);
+    setCurrentX(e.clientX); // Initialize currentX
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
+      cardContentRef.current.style.transition = 'none'; // Remove transition during drag
     }
-    // Prevent text selection during drag
     document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    // Here you could add logic for visual feedback (e.g., transform: translateX)
-    // For now, we only act on mouseUp
+    if (!isDragging || !cardContentRef.current) return;
+    setCurrentX(e.clientX);
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (cardContentRef.current) {
-      cardContentRef.current.style.cursor = 'grab';
-    }
-    document.body.style.userSelect = ''; // Re-enable text selection
+    if (!isDragging || !cardContentRef.current) return;
+    
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Add transition for snap back
+    setCurrentX(startX); // Trigger snap back visually
 
-    const deltaX = e.clientX - startX;
+    const deltaX = e.clientX - startX; // Use final position for action logic
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       if (deltaX < 0) { // Swipe Left
         onSwipeAction(candidate.id, 'details');
-        // Add a small delay before saving to ensure 'details' toast (if any) can show
         setTimeout(() => onSwipeAction(candidate.id, 'save'), 200);
       } else { // Swipe Right
         onSwipeAction(candidate.id, 'pass');
       }
     }
+    
+    setIsDragging(false);
+    if (cardContentRef.current) {
+      cardContentRef.current.style.cursor = 'grab';
+    }
+    document.body.style.userSelect = '';
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) {
-      // Treat as if mouseUp occurred at the point of leaving if needed, or just cancel drag
+    if (isDragging && cardContentRef.current) {
+      cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+      setCurrentX(startX); // Snap back
       setIsDragging(false);
-      if (cardContentRef.current) {
-        cardContentRef.current.style.cursor = 'grab';
-      }
+      cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
     }
   };
 
+  const getCardTransform = () => {
+    if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
+    const deltaX = currentX - startX;
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
+    return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
+  };
 
   return (
     <div
       ref={cardContentRef}
-      className="flex flex-col h-full overflow-hidden"
+      className="flex flex-col h-full overflow-hidden relative" // Added relative for potential overlays
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave} // Reset if mouse leaves while dragging
-      style={{ cursor: 'grab' }} // Initial cursor
+      onMouseLeave={handleMouseLeave}
+      style={{ 
+        cursor: 'grab',
+        transform: getCardTransform(),
+        // transition: isDragging ? 'none' : 'transform 0.3s ease-out' // Apply transition only when not dragging
+      }}
     >
       {/* Video/Image Container - Takes up a larger portion of height */}
       <div className="relative w-full bg-muted shrink-0 h-[60%]">
@@ -134,6 +145,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
             className="w-full h-full object-cover bg-black"
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
+            data-no-drag="true" // Prevent drag on controls
           >
             Your browser does not support the video tag.
           </video>

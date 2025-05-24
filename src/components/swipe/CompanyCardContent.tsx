@@ -8,7 +8,6 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface CompanyCardContentProps {
   company: Company;
-  // Prop to handle actions triggered by swipe
   onSwipeAction: (companyId: string, action: 'pass' | 'details' | 'save') => void;
 }
 
@@ -18,7 +17,9 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0); // For visual feedback
   const SWIPE_THRESHOLD = 75; // Min drag distance in pixels
+  const MAX_ROTATION = 10; // Max rotation in degrees
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -57,29 +58,29 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
             if (e.clientY > rect.bottom - 40) return;
         }
     }
-    if ((e.target as HTMLElement).closest('button, a, input, textarea')) {
+    if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) {
       return;
     }
     setIsDragging(true);
     setStartX(e.clientX);
+    setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
+      cardContentRef.current.style.transition = 'none';
     }
     document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    // Visual feedback could be added here
+    if (!isDragging || !cardContentRef.current) return;
+    setCurrentX(e.clientX);
   };
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging) return;
-    setIsDragging(false);
-    if (cardContentRef.current) {
-      cardContentRef.current.style.cursor = 'grab';
-    }
-    document.body.style.userSelect = '';
+    if (!isDragging || !cardContentRef.current) return;
+
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+    setCurrentX(startX); // Snap back
 
     const deltaX = e.clientX - startX;
 
@@ -91,27 +92,46 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         onSwipeAction(company.id, 'pass');
       }
     }
+    
+    setIsDragging(false);
+    if (cardContentRef.current) {
+      cardContentRef.current.style.cursor = 'grab';
+    }
+    document.body.style.userSelect = '';
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging) {
+    if (isDragging && cardContentRef.current) {
+      cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+      setCurrentX(startX); // Snap back
       setIsDragging(false);
-      if (cardContentRef.current) {
-        cardContentRef.current.style.cursor = 'grab';
-      }
+      cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
     }
   };
 
+  const getCardTransform = () => {
+    if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
+    const deltaX = currentX - startX;
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
+    return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
+  };
+
+
   return (
     <div
       ref={cardContentRef}
-      className="flex flex-col h-full overflow-hidden"
+      className="flex flex-col h-full overflow-hidden relative"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
-      style={{ cursor: 'grab' }}
+      style={{ 
+        cursor: 'grab',
+        transform: getCardTransform(),
+        // transition: isDragging ? 'none' : 'transform 0.3s ease-out'
+      }}
     >
       {/* Video/Image Container */}
       <div className="relative w-full bg-muted shrink-0 h-[60%]">
@@ -126,6 +146,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
             className="w-full h-full object-cover bg-black"
             data-ai-hint="company video"
             poster={company.logoUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(company.name)}`}
+            data-no-drag="true"
           >
             Your browser does not support the video tag.
           </video>
