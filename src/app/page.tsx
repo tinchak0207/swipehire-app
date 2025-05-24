@@ -21,7 +21,7 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("findTalent"); 
+  const [activeTab, setActiveTab] = useState<string>("findTalent");
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -37,10 +37,10 @@ export default function HomePage() {
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
       setUserRole(storedRoleValue as UserRole);
     } else {
-      setUserRole(null); 
-      localStorage.removeItem('userRole'); 
+      setUserRole(null);
+      localStorage.removeItem('userRole');
     }
-    
+
     setIsInitialLoading(false);
 
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -59,13 +59,13 @@ export default function HomePage() {
     localStorage.setItem('userRole', role);
     setUserRole(role);
   };
-  
+
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userRole'); 
+    localStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setUserRole(null);
-    setShowLoginPage(false); 
+    setShowLoginPage(false);
   };
 
   const handleLoginRequest = () => {
@@ -89,8 +89,8 @@ export default function HomePage() {
       } else if (userRole === 'jobseeker' && activeTab === 'postJob') { // Job seekers shouldn't see 'postJob'
          setActiveTab('findJobs');
       }
-    } else if (!userRole && !showLoginPage) { 
-        setActiveTab("findTalent"); 
+    } else if (!userRole && !showLoginPage) {
+        setActiveTab("findTalent");
     }
   }, [userRole, activeTab, showLoginPage]);
 
@@ -111,10 +111,12 @@ export default function HomePage() {
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage /> },
     ...baseTabItems,
   ];
-  
+
   let currentTabItems = jobseekerTabItems; // Default
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
+  } else if (userRole === 'jobseeker') {
+    currentTabItems = jobseekerTabItems;
   }
 
 
@@ -133,27 +135,27 @@ export default function HomePage() {
   if (!userRole) {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <AppHeader 
-        isAuthenticated={isAuthenticated} 
-        onLoginRequest={handleLoginRequest} 
-        onLogout={handleLogout} 
+      <AppHeader
+        isAuthenticated={isAuthenticated}
+        onLoginRequest={handleLoginRequest}
+        onLogout={handleLogout}
       />
       <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-            <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1`}> 
+            <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
-                <TabsTrigger 
-                  key={item.value} 
-                  value={item.value} 
-                  className="py-2.5 sm:py-2 text-sm sm:text-base data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out"
+                <TabsTrigger
+                  key={item.value}
+                  value={item.value}
+                  className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out"
                 >
-                  <item.icon className="w-4 h-4 sm:w-5 sm:h-5 mr-2 opacity-80" />
+                  <item.icon className="w-4 h-4 mr-2 opacity-80" />
                   {item.label}
                 </TabsTrigger>
               ))}
@@ -188,9 +190,9 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
 
   return (
     <div className="sm:hidden mb-4 px-2">
-      <Button 
-        onClick={() => setIsOpen(!isOpen)} 
-        variant="outline" 
+      <Button
+        onClick={() => setIsOpen(!isOpen)}
+        variant="outline"
         className="w-full justify-between text-lg py-3 bg-card shadow"
       >
         <div className="flex items-center">
@@ -220,4 +222,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
