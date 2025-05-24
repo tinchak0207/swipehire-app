@@ -128,15 +128,14 @@ export function CandidateDiscoveryPage() {
     if (action === 'like') {
       newLiked.add(candidateId);
       message = `Liked ${candidate.name}`;
-      // Simulate a match (30% chance)
-      if (Math.random() > 0.7) {
+      if (Math.random() > 0.7) { // Simulate a match (30% chance)
         toast({
           title: "🎉 It's a Match!",
-          description: `You and ${candidate.name} are both interested! Check 'My Matches'.`,
+          description: `You and ${candidate.name} are both interested! Check 'My Matches' to generate an icebreaker.`,
+          duration: 5000,
         });
-        // For a more complete simulation, you might also add the corresponding company to a 'companyLikedByCandidate' list
-        // if your MatchesPage logic depends on such mutual explicit likes from both sides stored separately.
-        // For now, the MatchesPage likely infers matches from the likedCandidates and likedCompanies lists.
+      } else {
+        toast({ title: message, variant: toastVariant });
       }
     } else if (action === 'pass') {
       newPassed.add(candidateId);
@@ -144,21 +143,24 @@ export function CandidateDiscoveryPage() {
       newSuperLiked.delete(candidateId);
       message = `Passed on ${candidate.name}`;
       toastVariant = "destructive";
+      toast({ title: message, variant: toastVariant });
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
-      newLiked.add(candidateId); // Superlike implies a like
-      message = `Super liked ${candidate.name}! They'll be notified.`;
-       // Simulate a higher chance of match for superlike
-      if (Math.random() > 0.5) {
+      newLiked.add(candidateId); 
+      message = `Super liked ${candidate.name}!`;
+      if (Math.random() > 0.5) { // Simulate a higher chance of match for superlike
         toast({
           title: "🎉 It's a Super Match!",
-          description: `You and ${candidate.name} are both super interested! Check 'My Matches'.`,
+          description: `You and ${candidate.name} are very interested! Check 'My Matches' to generate an icebreaker.`,
+          duration: 5000,
         });
+      } else {
+        toast({ title: message });
       }
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
       toast({ title: message, description: "Detailed view/expansion to be implemented." });
-      return; // No state update needed for details toast only
+      return; 
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
         newSaved.delete(candidateId);
@@ -167,6 +169,7 @@ export function CandidateDiscoveryPage() {
         newSaved.add(candidateId);
         message = `Saved ${candidate.name}!`;
       }
+      toast({ title: message });
     }
 
     setLikedCandidates(newLiked);
@@ -177,14 +180,10 @@ export function CandidateDiscoveryPage() {
     updateLocalStorageSet('passedCandidatesDemo', newPassed);
     setSavedCandidates(newSaved);
     updateLocalStorageSet('savedCandidatesDemo', newSaved);
-
-    if (action !== 'details') { // Avoid double toast if details also toasts
-        toast({ title: message, variant: toastVariant });
-    }
   };
 
   const visibleCandidates = displayedCandidates.filter(c => !passedCandidates.has(c.id));
-  const fixedElementsHeight = '160px'; // Estimate for header and tabs/mobile menu
+  const fixedElementsHeight = '160px'; 
 
   return (
     <div
@@ -284,5 +283,6 @@ export function CandidateDiscoveryPage() {
     </div>
   );
 }
+    
 
     
