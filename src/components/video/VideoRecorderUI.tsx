@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Video, Zap, Lightbulb, AlertTriangle, CheckCircle, RefreshCw, PlayCircle, TimerIcon, HelpCircle } from 'lucide-react';
+import { Video, Zap, Lightbulb, AlertTriangle, CheckCircle, RefreshCw, PlayCircle, TimerIcon, HelpCircle, CameraOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function VideoRecorderUI() {
@@ -39,27 +39,27 @@ export function VideoRecorderUI() {
       } catch (error: any) {
         console.error('Error accessing camera:', error.name, error.message);
         setHasCameraPermission(false);
-        let title = 'Camera Access Problem';
-        let description = 'Could not access camera. Please check permissions and ensure it is not in use.';
+        let title = 'Camera Problem';
+        let description = 'Could not access camera. Please check permissions.';
         
         if (error.name === 'NotAllowedError') {
             title = 'Camera Access Denied';
-            description = 'Camera access was denied. Please allow access in your browser settings.';
+            description = 'Please allow camera access in browser settings.';
         } else if (error.name === 'NotFoundError') {
             title = 'No Camera Found';
-            description = 'No camera detected. Ensure it is connected and enabled.';
+            description = 'Ensure camera is connected & enabled.';
         } else if (error.name === 'NotReadableError') {
-            title = 'Camera Issue: In Use or Hardware';
-            description = 'Camera might be busy or have a hardware problem. Close other apps using it, check connections/drivers, or restart.';
+            title = 'Camera In Use or Hardware Issue';
+            description = 'Close other apps using camera, check connections/drivers, or restart.';
         } else if (error.name === 'AbortError') {
             title = 'Camera Access Aborted';
-            description = 'Camera access was interrupted. Please try again.';
+            description = 'Camera access interrupted. Please try again.';
         } else if (error.name === 'SecurityError') {
             title = 'Camera Access Blocked';
             description = 'Access blocked by browser/system security. Check settings.';
         } else if (error.name === 'TypeError') {
             title = 'Camera Configuration Error';
-            description = 'Issue with camera setup on your device or browser.';
+            description = 'Issue with camera setup on your device/browser.';
         }
         
         toast({
@@ -166,9 +166,9 @@ export function VideoRecorderUI() {
             )}
              {hasCameraPermission === false && !videoRef.current?.srcObject && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white p-4 text-center">
-                    <AlertTriangle className="h-12 w-12 mb-3 text-destructive" />
+                    <CameraOff className="h-12 w-12 mb-3" />
                     <p className="font-semibold text-lg">Camera Access Failed</p>
-                    <p className="text-sm">Could not start video. Please check alert messages for details.</p>
+                    <p className="text-sm">Could not start video. Please check troubleshooting tips below.</p>
                 </div>
             )}
           </div>
@@ -188,11 +188,10 @@ export function VideoRecorderUI() {
         </div>
 
         {hasCameraPermission === false && (
-          <Alert variant="destructive" className="mt-4">
-            <AlertTriangle className="h-5 w-5" />
-            <AlertTitle>Camera Issue</AlertTitle>
+          <Alert variant="default" className="mt-4">
+            <HelpCircle className="h-5 w-5" />
             <AlertDescription className="space-y-1 text-sm">
-                <p>Could not access the camera. Try these steps:</p>
+                <p className="font-semibold">Need help with camera access? Try these steps:</p>
                 <ul className="list-disc list-inside pl-4">
                     <li>Allow camera permission in browser settings.</li>
                     <li>Close other apps using the camera (Zoom, etc.).</li>
