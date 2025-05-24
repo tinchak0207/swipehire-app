@@ -9,38 +9,47 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
   onRoleChange: (newRole: UserRole) => void;
-  // onSettingsSave: (settings: { name: string; email: string }) => void; // For future use
 }
 
 export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [country, setCountry] = useState('');
+  const [documentId, setDocumentId] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
     setSelectedRole(currentUserRole);
-    // Load saved name and email from localStorage if they exist
     const savedName = localStorage.getItem('userNameSettings');
     const savedEmail = localStorage.getItem('userEmailSettings');
+    const savedAddress = localStorage.getItem('userAddressSettings');
+    const savedCountry = localStorage.getItem('userCountrySettings');
+    const savedDocumentId = localStorage.getItem('userDocumentIdSettings');
+
     if (savedName) setUserName(savedName);
     if (savedEmail) setUserEmail(savedEmail);
+    if (savedAddress) setAddress(savedAddress);
+    if (savedCountry) setCountry(savedCountry);
+    if (savedDocumentId) setDocumentId(savedDocumentId);
   }, [currentUserRole]);
 
   const handleSaveSettings = () => {
     if (selectedRole && selectedRole !== currentUserRole) {
       onRoleChange(selectedRole);
     }
-    // Save name and email to localStorage
     localStorage.setItem('userNameSettings', userName);
     localStorage.setItem('userEmailSettings', userEmail);
+    localStorage.setItem('userAddressSettings', address);
+    localStorage.setItem('userCountrySettings', country);
+    localStorage.setItem('userDocumentIdSettings', documentId);
 
-    // onSettingsSave({ name: userName, email: userEmail }); // For future backend integration
     toast({
       title: 'Settings Saved',
       description: 'Your preferences have been updated.',
@@ -95,7 +104,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
             <User className="mr-2 h-5 w-5 text-primary" />
             Personal Information
           </CardTitle>
-          <CardDescription>Update your contact details.</CardDescription>
+          <CardDescription>Update your contact and personal details.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1">
@@ -119,6 +128,39 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               placeholder="Enter your email address" 
               value={userEmail} 
               onChange={(e) => setUserEmail(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="address" className="text-base flex items-center">
+              <Home className="mr-2 h-4 w-4 text-muted-foreground" /> Street Address
+            </Label>
+            <Input 
+              id="address" 
+              placeholder="Enter your street address" 
+              value={address} 
+              onChange={(e) => setAddress(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="country" className="text-base flex items-center">
+              <Globe className="mr-2 h-4 w-4 text-muted-foreground" /> Country
+            </Label>
+            <Input 
+              id="country" 
+              placeholder="Enter your country" 
+              value={country} 
+              onChange={(e) => setCountry(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="documentId" className="text-base flex items-center">
+              <ScanLine className="mr-2 h-4 w-4 text-muted-foreground" /> Document ID (e.g., National ID, Passport)
+            </Label>
+            <Input 
+              id="documentId" 
+              placeholder="Enter your document ID number" 
+              value={documentId} 
+              onChange={(e) => setDocumentId(e.target.value)} 
             />
           </div>
         </CardContent>
