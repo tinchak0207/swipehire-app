@@ -94,7 +94,7 @@ export interface Company {
   cultureHighlights: string[];
   logoUrl?: string; // URL or data URI
   dataAiHint?: string; // For logoUrl
-  introVideoUrl?: string; // URL or data URI
+  introVideoUrl?: string; // URL for a company culture video (e.g., office tour, team life).
   jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string; // For icebreaker context
 }
