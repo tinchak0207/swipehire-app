@@ -30,7 +30,7 @@ body {
     --accent: 217 100% 70%; /* #63A6FF Blue */
     --accent-foreground: 0 0% 100%; /* White for contrast on accent */
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84.2% 60.2%; /* Reddish */
     --destructive-foreground: 0 0% 98%;
 
     --border: 240 20% 85%; /* Slightly darker gray for borders */
@@ -119,6 +119,18 @@ body {
   background: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--accent)), #8A2BE2, hsl(var(--secondary)));
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
+}
+
+.recruiter-role-bg {
+  background: linear-gradient(135deg, #FFD1DC, #FF69B4, #C71585); /* Light Pink to Deep Pink/MediumVioletRed */
+  background-size: 200% 200%;
+  animation: gradientBG 10s ease infinite alternate;
+}
+
+.jobseeker-role-bg {
+  background: linear-gradient(135deg, #ADD8E6, #63A6FF, #1E90FF); /* Light Blue to DodgerBlue */
+  background-size: 200% 200%;
+  animation: gradientBG 10s ease infinite alternate;
 }
 
 @keyframes gradientBG {
