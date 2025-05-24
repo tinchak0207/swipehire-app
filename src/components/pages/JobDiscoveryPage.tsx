@@ -39,7 +39,12 @@ export function JobDiscoveryPage() {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = allCompanies.slice(currentIndex, newLoadIndex);
       
-      setDisplayedCompanies(prev => [...prev, ...newBatch]);
+      setDisplayedCompanies(prevDisplayed => {
+        const prevIds = new Set(prevDisplayed.map(c => c.id));
+        const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
+        return [...prevDisplayed, ...uniqueNewItems];
+      });
+      
       setCurrentIndex(newLoadIndex);
 
       if (newLoadIndex >= allCompanies.length) {
@@ -84,8 +89,8 @@ export function JobDiscoveryPage() {
       }
     }, { 
         threshold: 0.1, 
-        root: feedContainerRef.current, // observe within the scrollable container
-        rootMargin: '0px 0px 300px 0px' // Load when trigger is 300px from bottom of root
+        root: feedContainerRef.current, 
+        rootMargin: '0px 0px 300px 0px' 
     });
 
     if (loadMoreTriggerRef.current) {
@@ -115,7 +120,7 @@ export function JobDiscoveryPage() {
     const newPassed = new Set(passedCompanies);
     const newSaved = new Set(savedCompanies);
 
-    if (action !== 'pass') { // Allow un-passing by other actions
+    if (action !== 'pass') { 
       newPassed.delete(companyId);
     }
     if (action !== 'like' && action !== 'superlike') {
@@ -137,18 +142,18 @@ export function JobDiscoveryPage() {
       }
     } else if (action === 'pass') {
       newPassed.add(companyId);
-      newLiked.delete(companyId); // Passing also unlikes/unsuperlikes
+      newLiked.delete(companyId); 
       newSuperLiked.delete(companyId);
       message = `Passed on ${company.name}`;
       toastVariant = "destructive";
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
-      newLiked.add(companyId); // Superlike also counts as a like
+      newLiked.add(companyId); 
       message = `Super liked ${company.name}! Your profile will be prioritized.`;
     } else if (action === 'details') {
       message = `Viewing details for ${company.name}`;
       toast({ title: message, description: "Detailed view functionality to be implemented." });
-      return; // Don't update sets for 'details'
+      return; 
     } else if (action === 'save') {
       if (newSaved.has(companyId)) {
         newSaved.delete(companyId);
@@ -180,7 +185,7 @@ export function JobDiscoveryPage() {
       ref={feedContainerRef}
       className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
       style={{ height: 'calc(100vh - 160px)' }} 
-      tabIndex={0} // Make it focusable
+      tabIndex={0} 
     >
       {visibleCompanies.map(company => (
         <div 
@@ -193,7 +198,6 @@ export function JobDiscoveryPage() {
           >
             <CompanyCardContent 
                 company={company} 
-                // Removed direct action props, handleAction is local now
             />
             <CardFooter className="p-3 grid grid-cols-5 gap-2 border-t bg-card">
               <Button 
@@ -251,7 +255,6 @@ export function JobDiscoveryPage() {
         </div>
       ))}
       
-      {/* Trigger for loading more items - must be inside the scrollable container */}
       {hasMore && !isLoading && (
          <div ref={loadMoreTriggerRef} className="h-10 snap-start flex items-center justify-center text-transparent">.</div>
       )}
@@ -273,3 +276,4 @@ export function JobDiscoveryPage() {
     </div>
   );
 }
+
