@@ -6,10 +6,11 @@ import type { UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -23,10 +24,20 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
   const [address, setAddress] = useState('');
   const [country, setCountry] = useState('');
   const [documentId, setDocumentId] = useState('');
+
+  // Job Seeker Specific Fields
+  const [profileHeadline, setProfileHeadline] = useState('');
+  const [experienceSummary, setExperienceSummary] = useState('');
+  const [skills, setSkills] = useState(''); // Comma-separated
+  const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
+  const [pastProjects, setPastProjects] = useState('');
+  const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
+
   const { toast } = useToast();
 
   useEffect(() => {
     setSelectedRole(currentUserRole);
+    // Load general settings
     const savedName = localStorage.getItem('userNameSettings');
     const savedEmail = localStorage.getItem('userEmailSettings');
     const savedAddress = localStorage.getItem('userAddressSettings');
@@ -38,12 +49,30 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     if (savedAddress) setAddress(savedAddress);
     if (savedCountry) setCountry(savedCountry);
     if (savedDocumentId) setDocumentId(savedDocumentId);
+
+    // Load job seeker specific settings if role is jobseeker
+    if (currentUserRole === 'jobseeker') {
+      const savedHeadline = localStorage.getItem('jobSeekerProfileHeadline');
+      const savedExpSummary = localStorage.getItem('jobSeekerExperienceSummary');
+      const savedSkills = localStorage.getItem('jobSeekerSkills');
+      const savedWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle');
+      const savedPastProjects = localStorage.getItem('jobSeekerPastProjects');
+      const savedVideoLink = localStorage.getItem('jobSeekerVideoPortfolioLink');
+
+      if (savedHeadline) setProfileHeadline(savedHeadline);
+      if (savedExpSummary) setExperienceSummary(savedExpSummary);
+      if (savedSkills) setSkills(savedSkills);
+      if (savedWorkStyle) setDesiredWorkStyle(savedWorkStyle);
+      if (savedPastProjects) setPastProjects(savedPastProjects);
+      if (savedVideoLink) setVideoPortfolioLink(savedVideoLink);
+    }
   }, [currentUserRole]);
 
   const handleSaveSettings = () => {
     if (selectedRole && selectedRole !== currentUserRole) {
       onRoleChange(selectedRole);
     }
+    // Save general settings
     localStorage.setItem('userNameSettings', userName);
     localStorage.setItem('userEmailSettings', userEmail);
     localStorage.setItem('userAddressSettings', address);
@@ -54,13 +83,22 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         const profileComplete = userName.trim() !== '' && userEmail.trim() !== '';
         localStorage.setItem('recruiterProfileComplete', JSON.stringify(profileComplete));
     } else {
-        // If role is not recruiter or changed from recruiter, remove the flag
         localStorage.removeItem('recruiterProfileComplete');
+    }
+
+    // Save job seeker specific settings
+    if (selectedRole === 'jobseeker') {
+      localStorage.setItem('jobSeekerProfileHeadline', profileHeadline);
+      localStorage.setItem('jobSeekerExperienceSummary', experienceSummary);
+      localStorage.setItem('jobSeekerSkills', skills);
+      localStorage.setItem('jobSeekerDesiredWorkStyle', desiredWorkStyle);
+      localStorage.setItem('jobSeekerPastProjects', pastProjects);
+      localStorage.setItem('jobSeekerVideoPortfolioLink', videoPortfolioLink);
     }
 
     toast({
       title: 'Settings Saved',
-      description: 'Your preferences have been updated.',
+      description: 'Your preferences and profile information have been updated.',
     });
   };
 
@@ -77,10 +115,10 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
-            <Briefcase className="mr-2 h-5 w-5 text-primary" />
-            Change Your Role
+            <Users className="mr-2 h-5 w-5 text-primary" /> 
+            Your Role
           </CardTitle>
-          <CardDescription>Select whether you are currently hiring or looking for a job.</CardDescription>
+          <CardDescription>Select whether you are currently hiring or looking for a job. This changes the tools and features available to you.</CardDescription>
         </CardHeader>
         <CardContent>
           <RadioGroup
@@ -112,7 +150,11 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
             <User className="mr-2 h-5 w-5 text-primary" />
             Personal Information
           </CardTitle>
-          <CardDescription>Update your contact and personal details. Recruiters: Name and Email are required to post jobs.</CardDescription>
+          <CardDescription>
+            Update your contact and personal details. 
+            {selectedRole === 'recruiter' && " Recruiters: Name and Email are required to post jobs."}
+            {selectedRole === 'jobseeker' && " Job Seekers: This information helps build your discoverable profile."}
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1">
@@ -174,6 +216,89 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         </CardContent>
       </Card>
 
+      {selectedRole === 'jobseeker' && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+              <Edit3 className="mr-2 h-5 w-5 text-primary" />
+              My Discoverable Profile Details
+            </CardTitle>
+            <CardDescription>This information will be visible to recruiters. Make it compelling!</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="profileHeadline" className="text-base flex items-center">
+                <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" /> My Professional Headline / Role
+              </Label>
+              <Input 
+                id="profileHeadline" 
+                placeholder="e.g., Senior Software Engineer, Aspiring UX Designer" 
+                value={profileHeadline} 
+                onChange={(e) => setProfileHeadline(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="experienceSummary" className="text-base flex items-center">
+                <TrendingUp className="mr-2 h-4 w-4 text-muted-foreground" /> My Experience Summary
+              </Label>
+              <Textarea 
+                id="experienceSummary" 
+                placeholder="Briefly describe your key experience and what you bring to the table." 
+                value={experienceSummary} 
+                onChange={(e) => setExperienceSummary(e.target.value)}
+                className="min-h-[100px]"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="skills" className="text-base flex items-center">
+                <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (comma-separated)
+              </Label>
+              <Input 
+                id="skills" 
+                placeholder="e.g., React, Python, Project Management, Figma" 
+                value={skills} 
+                onChange={(e) => setSkills(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="desiredWorkStyle" className="text-base flex items-center">
+                <UserCog className="mr-2 h-4 w-4 text-muted-foreground" /> My Desired Work Style
+              </Label>
+              <Input 
+                id="desiredWorkStyle" 
+                placeholder="e.g., Fully Remote, Hybrid, Collaborative team" 
+                value={desiredWorkStyle} 
+                onChange={(e) => setDesiredWorkStyle(e.target.value)} 
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="pastProjects" className="text-base flex items-center">
+                <Edit3 className="mr-2 h-4 w-4 text-muted-foreground" /> My Key Past Projects/Achievements
+              </Label>
+              <Textarea 
+                id="pastProjects" 
+                placeholder="Briefly highlight 1-2 significant projects or achievements." 
+                value={pastProjects} 
+                onChange={(e) => setPastProjects(e.target.value)}
+                className="min-h-[80px]" 
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="videoPortfolioLink" className="text-base flex items-center">
+                <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Link to My Video Resume/Portfolio
+              </Label>
+              <Input 
+                id="videoPortfolioLink" 
+                type="url"
+                placeholder="https://example.com/my-portfolio-or-video.mp4" 
+                value={videoPortfolioLink} 
+                onChange={(e) => setVideoPortfolioLink(e.target.value)} 
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -207,3 +332,4 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     </div>
   );
 }
+
