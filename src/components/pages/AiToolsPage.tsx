@@ -75,33 +75,31 @@ export function AiToolsPage() {
 
   return (
     <div className={cn(
-      "p-4 md:p-6 space-y-8 min-h-[calc(100vh-180px)] transition-all duration-500 ease-in-out",
-      selectedToolKey ? activeBackgroundClass : 'bg-background' // Apply dynamic background only when a tool is selected
+      "p-4 md:p-6 space-y-8 min-h-[calc(100vh-180px)] transition-all duration-500 ease-in-out flex flex-col",
+      selectedToolKey ? activeBackgroundClass : 'bg-background'
     )}>
       {!selectedToolKey ? (
         <>
-          <div className="text-center mb-10">
+          <div className="text-center mb-8 md:mb-10">
             <Sparkles className="mx-auto h-12 w-12 text-primary mb-3" />
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">AI Resume Enhancement Suite</h1>
-            <p className="text-lg text-muted-foreground mt-2">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">AI Resume Enhancement Suite</h1>
+            <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
               Craft the perfect first impression with our AI-powered tools. Choose a tool to get started:
             </p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 max-w-3xl mx-auto w-full">
             {aiToolsData.map((tool) => (
               <Card
                 key={tool.key}
                 onClick={() => handleToolSelect(tool)}
                 className={cn(
-                  "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white",
-                  tool.bgClass // Apply individual background to the card itself
+                  "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 min-h-[200px] sm:min-h-[240px]",
+                  tool.bgClass 
                 )}
               >
-                <CardHeader className="items-center text-center p-6">
-                  <tool.Icon className="h-12 w-12 mb-3 text-white/90 group-hover:scale-110 transition-transform" />
-                  <CardTitle className="text-xl md:text-2xl font-semibold">{tool.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="text-center px-6 pb-6">
+                <tool.Icon className="h-12 w-12 sm:h-14 sm:w-14 mb-3 text-white/90 group-hover:scale-110 transition-transform" />
+                <CardTitle className="text-xl sm:text-2xl font-semibold text-center">{tool.title}</CardTitle>
+                <CardContent className="text-center p-0 mt-2">
                   <p className="text-sm text-white/80">{tool.description}</p>
                 </CardContent>
               </Card>
@@ -109,20 +107,27 @@ export function AiToolsPage() {
           </div>
         </>
       ) : (
-        <div className={cn("rounded-lg", selectedToolKey && activeBackgroundClass !== 'bg-background' ? 'bg-card/10 backdrop-blur-sm p-4 md:p-6' : '')}>
+        <div className={cn(
+          "rounded-lg w-full flex-grow flex flex-col", 
+          selectedToolKey && activeBackgroundClass !== 'bg-background' ? 'bg-card/5 backdrop-blur-sm p-4 md:p-6' : 'p-0'
+          )}>
           <Button
             onClick={handleBackToGrid}
             variant="outline"
-            className={cn("mb-6 text-sm", activeBackgroundClass !== 'bg-background' ? "bg-white/20 hover:bg-white/30 border-white/50 text-white" : "")}
+            className={cn(
+                "mb-6 text-sm self-start", 
+                activeBackgroundClass !== 'bg-background' ? "bg-white/20 hover:bg-white/30 border-white/50 text-white" : "bg-card text-card-foreground"
+            )}
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to AI Tools
           </Button>
-          {SelectedComponent && <SelectedComponent />}
+          <div className="flex-grow">
+            {SelectedComponent && <SelectedComponent />}
+          </div>
         </div>
       )}
     </div>
   );
 }
-
     
