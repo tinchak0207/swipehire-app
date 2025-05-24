@@ -1,10 +1,12 @@
+
 "use client";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
-import { Wand2, UserSquare2, Clapperboard, Sparkles } from 'lucide-react';
+import { VideoRecorderUI } from "@/components/video/VideoRecorderUI"; // New Import
+import { Wand2, UserSquare2, Clapperboard, Sparkles, Camera } from 'lucide-react'; // Added Camera icon
 
 export function AiToolsPage() {
   return (
@@ -42,11 +44,24 @@ export function AiToolsPage() {
           </AccordionContent>
         </AccordionItem>
 
+        {/* New AccordionItem for Video Recorder UI */}
+        <AccordionItem value="item-4" className="border-b-0 mb-6 bg-card rounded-lg shadow-md overflow-hidden">
+          <AccordionTrigger className="p-6 text-xl hover:no-underline font-semibold text-primary hover:bg-primary/5 transition-colors">
+            <div className="flex items-center">
+              <Camera className="mr-3 h-6 w-6" />
+              Video Resume Recorder UI
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="p-6 pt-0">
+            <VideoRecorderUI />
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="item-3" className="border-b-0 bg-card rounded-lg shadow-md overflow-hidden">
           <AccordionTrigger className="p-6 text-xl hover:no-underline font-semibold text-primary hover:bg-primary/5 transition-colors">
             <div className="flex items-center">
               <Clapperboard className="mr-3 h-6 w-6" />
-              AI Video Editor
+              AI Video Editor (Upload & Analyze)
             </div>
           </AccordionTrigger>
           <AccordionContent className="p-6 pt-0">
