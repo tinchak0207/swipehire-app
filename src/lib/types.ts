@@ -16,6 +16,16 @@ export interface Candidate {
   pastProjects?: string; // For icebreaker context
 }
 
+export interface CompanyJobOpening {
+  title: string;
+  description: string;
+  location?: string;
+  salaryRange?: string;
+  jobType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship';
+  tags?: string[];
+  videoOrImageUrl?: string; // Optional video/image for the job posting
+}
+
 export interface Company {
   id: string;
   name: string;
@@ -25,10 +35,11 @@ export interface Company {
   logoUrl?: string; // URL or data URI
   dataAiHint?: string; // For logoUrl
   introVideoUrl?: string; // URL or data URI
-  jobOpenings?: { title: string; description: string }[];
+  jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string; // For icebreaker context
-  salaryRange?: string; // New
-  jobType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship'; // New
+  // These were moved to CompanyJobOpening
+  // salaryRange?: string; 
+  // jobType?: 'Full-time' | 'Part-time' | 'Contract' | 'Internship'; 
 }
 
 export interface Match {
@@ -59,4 +70,16 @@ export interface IcebreakerRequest {
   candidateSkills: string;
   companyNeeds: string;
   pastProjects: string;
+}
+
+// New type for user-created job postings
+export interface JobPosting {
+  id: string;
+  title: string;
+  description: string;
+  compensation: string;
+  tags: string[]; // Array of strings
+  mediaUrl?: string; // URL for optional video/picture
+  companyId: string; // To link back to the posting company (assuming recruiter posts for their company)
+  postedAt: Date;
 }

@@ -1,5 +1,5 @@
 
-import type { Candidate, Company } from './types';
+import type { Candidate, Company, CompanyJobOpening } from './types';
 
 export const mockCandidates: Candidate[] = [
   {
@@ -58,6 +58,63 @@ export const mockCandidates: Candidate[] = [
   },
 ];
 
+const mockJobOpeningsComp1: CompanyJobOpening[] = [
+  { 
+    title: "Senior Frontend Developer", 
+    description: "Join our team to build amazing user interfaces with React and Next.js. Experience with TypeScript is a plus. You'll be responsible for developing new features, maintaining existing code, and collaborating with backend developers.",
+    salaryRange: '$120k - $160k',
+    jobType: 'Full-time',
+    tags: ['frontend', 'react', 'nextjs', 'typescript'],
+    location: "Remote (US)",
+  },
+  { 
+    title: "Backend Python Developer", 
+    description: "Help scale our infrastructure and build robust APIs using Python and Django. We are looking for someone with strong database skills and experience with cloud platforms like AWS.",
+    salaryRange: '$110k - $150k',
+    jobType: 'Full-time',
+    tags: ['backend', 'python', 'django', 'api', 'aws'],
+    location: "Remote (Global)",
+  }
+];
+
+const mockJobOpeningsComp2: CompanyJobOpening[] = [
+ { 
+    title: "Graphic Designer", 
+    description: "Create stunning visuals for various clients, including branding, web assets, and print materials. Proficiency in Adobe Creative Suite is required. A strong portfolio is a must.",
+    salaryRange: '$70k - $90k',
+    jobType: 'Full-time',
+    tags: ['design', 'graphic design', 'adobe suite', 'branding'],
+    location: "New York, NY (Hybrid)",
+  },
+  { 
+    title: "Social Media Manager", 
+    description: "Develop and execute social media strategies to grow our clients' online presence. Experience with content creation, analytics, and community management is key.",
+    salaryRange: '$60k - $80k',
+    jobType: 'Part-time',
+    tags: ['social media', 'marketing', 'content creation', 'analytics'],
+    location: "Remote (US)",
+  }
+];
+const mockJobOpeningsComp3: CompanyJobOpening[] = [
+  { 
+    title: "Environmental Scientist", 
+    description: "Conduct research and develop solutions for environmental challenges. Requires a Master's degree in Environmental Science or related field and experience with data analysis.",
+    salaryRange: '$90k - $130k',
+    jobType: 'Contract',
+    tags: ['science', 'environment', 'research', 'sustainability'],
+    location: "Various Project Sites",
+  },
+  { 
+    title: "Project Manager - Renewable Energy", 
+    description: "Lead exciting projects in the renewable energy sector. PMP certification and experience managing large-scale energy projects are preferred.",
+    salaryRange: '$100k - $140k',
+    jobType: 'Full-time',
+    tags: ['project management', 'renewable energy', 'pmp', 'leadership'],
+    location: "Austin, TX",
+  }
+];
+
+
 export const mockCompanies: Company[] = [
   {
     id: 'comp1',
@@ -65,16 +122,11 @@ export const mockCompanies: Company[] = [
     industry: 'Technology',
     description: 'Cutting-edge software solutions for a brighter future. We value innovation, collaboration, and impact. Join us to work on challenging projects with a talented team.',
     cultureHighlights: ['Remote-First', 'Unlimited PTO', 'Weekly Tech Talks', 'Health & Wellness'],
-    logoUrl: 'https://placehold.co/500x350.png', // Wider logo/banner
+    logoUrl: 'https://placehold.co/500x350.png', 
     dataAiHint: 'modern logo tech company',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     companyNeeds: "We need to optimize our payment processing system and enhance user experience on our e-commerce platform.",
-    jobOpenings: [
-      { title: "Senior Frontend Developer", description: "Join our team to build amazing user interfaces."},
-      { title: "Backend Python Developer", description: "Help scale our infrastructure and build robust APIs."}
-    ],
-    salaryRange: '$120k - $160k',
-    jobType: 'Full-time',
+    jobOpenings: mockJobOpeningsComp1,
   },
   {
     id: 'comp2',
@@ -85,12 +137,7 @@ export const mockCompanies: Company[] = [
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'creative agency logo',
     companyNeeds: "We are looking to expand our design team to handle new client projects requiring innovative branding and digital experiences.",
-    jobOpenings: [
-      { title: "Graphic Designer", description: "Create stunning visuals for various clients."},
-      { title: "Social Media Manager", description: "Develop and execute social media strategies."}
-    ],
-    salaryRange: '$70k - $90k',
-    jobType: 'Full-time',
+    jobOpenings: mockJobOpeningsComp2,
   },
   {
     id: 'comp3',
@@ -102,11 +149,6 @@ export const mockCompanies: Company[] = [
     dataAiHint: 'eco friendly logo',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
     companyNeeds: "Seeking data scientists to analyze environmental data and improve our green tech solutions.",
-     jobOpenings: [
-      { title: "Environmental Scientist", description: "Conduct research and develop solutions for environmental challenges."},
-      { title: "Project Manager - Renewable Energy", description: "Lead exciting projects in the renewable energy sector."}
-    ],
-    salaryRange: '$90k - $130k',
-    jobType: 'Contract',
+    jobOpenings: mockJobOpeningsComp3,
   },
 ];
