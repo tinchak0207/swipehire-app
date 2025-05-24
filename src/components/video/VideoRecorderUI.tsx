@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Video, Zap, Lightbulb, AlertTriangle, CheckCircle, RefreshCw, PlayCircle, TimerIcon, HelpCircle } from 'lucide-react'; // Added HelpCircle
+import { Video, Zap, Lightbulb, AlertTriangle, CheckCircle, RefreshCw, PlayCircle, TimerIcon, HelpCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 export function VideoRecorderUI() {
@@ -134,7 +134,7 @@ export function VideoRecorderUI() {
 
       <CardContent className="p-4 md:p-6 space-y-4">
         <div className="grid md:grid-cols-3 gap-4 items-start">
-          <div className="md:col-span-2 bg-muted rounded-lg overflow-hidden shadow-inner aspect-video">
+          <div className="md:col-span-2 bg-muted rounded-lg overflow-hidden shadow-inner aspect-video relative">
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
@@ -143,10 +143,11 @@ export function VideoRecorderUI() {
               playsInline // Important for iOS
               data-ai-hint="camera feed preview"
             />
-            {hasCameraPermission === null && ( // Initial loading state for camera
-              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white">
-                <Video className="h-12 w-12 mb-2" />
-                <p>Accessing camera...</p>
+            {hasCameraPermission === null && ( 
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center">
+                <Video className="h-12 w-12 mb-2 opacity-80" />
+                <p className="font-semibold">Requesting camera access...</p>
+                <p className="text-sm">Please check your browser for a permission prompt.</p>
               </div>
             )}
           </div>
@@ -213,4 +214,3 @@ export function VideoRecorderUI() {
     </Card>
   );
 }
-
