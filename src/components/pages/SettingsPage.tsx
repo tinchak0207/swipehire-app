@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -97,10 +97,14 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     }
 
     toast({
-      title: 'Settings Saved',
-      description: 'Your preferences and profile information have been updated.',
+      title: selectedRole === 'jobseeker' ? 'Profile Updated!' : 'Settings Saved',
+      description: selectedRole === 'jobseeker' ? 'Your profile is now visible to recruiters with the latest information.' : 'Your preferences and profile information have been updated.',
     });
   };
+
+  const saveButtonText = selectedRole === 'jobseeker' ? "Update & Publish My Profile" : "Save Settings";
+  const SaveButtonIcon = selectedRole === 'jobseeker' ? Save : UserCog;
+
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
@@ -325,8 +329,8 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
 
       <CardFooter className="flex justify-end pt-6">
         <Button onClick={handleSaveSettings} size="lg">
-          <UserCog className="mr-2 h-5 w-5" />
-          Save Settings
+          <SaveButtonIcon className="mr-2 h-5 w-5" />
+          {saveButtonText}
         </Button>
       </CardFooter>
     </div>
