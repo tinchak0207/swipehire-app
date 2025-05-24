@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form'; // Added FormDescription
 import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { JobPosting } from '@/lib/types'; // Assuming JobPosting type is defined
