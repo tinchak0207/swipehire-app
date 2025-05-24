@@ -8,37 +8,37 @@ import { JobDiscoveryPage } from "@/components/pages/JobDiscoveryPage";
 import { AiToolsPage } from "@/components/pages/AiToolsPage";
 import { MatchesPage } from "@/components/pages/MatchesPage";
 import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
-import { LoginPage } from "@/components/pages/LoginPage"; // Added
+import { LoginPage } from "@/components/pages/LoginPage";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, LayoutGrid, Loader2 } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Added
   const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("findTalent"); 
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const storedAuth = localStorage.getItem('isAuthenticated');
+    const storedRoleValue = localStorage.getItem('userRole');
+
     if (storedAuth === 'true') {
       setIsAuthenticated(true);
-      const storedRoleValue = localStorage.getItem('userRole');
-      if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-        setUserRole(storedRoleValue);
-        setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
-      } else {
-        if (storedRoleValue !== null) {
-          localStorage.removeItem('userRole');
-        }
-        setUserRole(null);
-      }
     } else {
       setIsAuthenticated(false);
-      setUserRole(null); // Ensure role is also cleared if not authenticated
     }
+
+    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+      setUserRole(storedRoleValue);
+      setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
+    } else {
+      setUserRole(null); // No valid role or role cleared
+    }
+    
     setIsInitialLoading(false);
 
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -50,24 +50,33 @@ export default function HomePage() {
   const handleLoginSuccess = () => {
     localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
-    // After login, user might still need to select a role
-    const storedRoleValue = localStorage.getItem('userRole');
-    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-        setUserRole(storedRoleValue);
-        setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
-    } else {
-        setUserRole(null);
-    }
+    setShowLoginPage(false);
+    // If no role is set after login, the !userRole condition will show RoleSelectionPage
   };
 
   const handleRoleSelect = (role: UserRole) => {
     localStorage.setItem('userRole', role);
     setUserRole(role);
     setActiveTab(role === 'recruiter' ? "findTalent" : "findJobs");
+    // If not authenticated yet, they can still select a role.
+    // Login can happen next via header.
+  };
+  
+  const handleLogout = () => {
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('userRole'); // Also clear role on logout for a full reset
+    setIsAuthenticated(false);
+    setUserRole(null);
+    setShowLoginPage(false); // Hide login page if it was open
+    // Active tab will reset when role becomes null
   };
 
-  // This useEffect ensures activeTab is correctly set if userRole changes (e.g. after selection or load)
-  // Also ensures that if the activeTab is not relevant for the current role, it defaults to the primary tab for that role.
+  const handleLoginRequest = () => {
+    setShowLoginPage(true);
+  };
+
+
+  // This useEffect ensures activeTab is correctly set if userRole changes or on initial load with a role.
   useEffect(() => {
     if (userRole) {
       const defaultRoleTab = userRole === 'recruiter' ? "findTalent" : "findJobs";
@@ -79,8 +88,10 @@ export default function HomePage() {
       } else if (userRole === 'jobseeker' && activeTab === 'findTalent') {
          setActiveTab('findJobs');
       }
+    } else if (!userRole && !showLoginPage) { // If no role and not showing login, default might not matter or reset
+        setActiveTab("findTalent"); // A sensible default if needed before role selection
     }
-  }, [userRole, activeTab]);
+  }, [userRole, activeTab, showLoginPage]);
 
 
   const recruiterTabItems = [
@@ -106,7 +117,7 @@ export default function HomePage() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (showLoginPage) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
@@ -114,10 +125,14 @@ export default function HomePage() {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
   
-
+  // User has selected a role, show the main app
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      <AppHeader />
+      <AppHeader 
+        isAuthenticated={isAuthenticated} 
+        onLoginRequest={handleLoginRequest} 
+        onLogout={handleLogout} 
+      />
       <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {isMobile ? (
@@ -197,4 +212,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-

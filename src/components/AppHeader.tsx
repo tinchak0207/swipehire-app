@@ -1,7 +1,15 @@
-import { FileVideo2 } from 'lucide-react';
-import Link from 'next/link';
 
-export function AppHeader() {
+import { FileVideo2, LogIn, LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+
+interface AppHeaderProps {
+  isAuthenticated: boolean;
+  onLoginRequest: () => void;
+  onLogout: () => void;
+}
+
+export function AppHeader({ isAuthenticated, onLoginRequest, onLogout }: AppHeaderProps) {
   return (
     <header className="bg-primary text-primary-foreground shadow-md">
       <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between">
@@ -14,7 +22,20 @@ export function AppHeader() {
             </p>
           </div>
         </Link>
-        {/* Future navigation items can go here */}
+        
+        <div>
+          {isAuthenticated ? (
+            <Button variant="ghost" onClick={onLogout} className="text-primary-foreground hover:bg-primary/80 hover:text-accent-foreground">
+              <LogOut className="mr-2 h-5 w-5" />
+              Logout
+            </Button>
+          ) : (
+            <Button variant="ghost" onClick={onLoginRequest} className="text-primary-foreground hover:bg-primary/80 hover:text-accent-foreground">
+              <LogIn className="mr-2 h-5 w-5" />
+              Login / Sign Up
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );
