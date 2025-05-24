@@ -11,12 +11,12 @@ import { CardFooter } from '@/components/ui/card';
 import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const ITEMS_PER_BATCH = 3; // Number of items to load per "batch"
+const ITEMS_PER_BATCH = 3;
 
 export function CandidateDiscoveryPage() {
   const [allCandidates] = useState<Candidate[]>(mockCandidates);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded" from allCandidates
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
 
@@ -28,18 +28,21 @@ export function CandidateDiscoveryPage() {
   const { toast } = useToast();
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
-  const feedContainerRef = useRef<HTMLDivElement | null>(null);
 
   const loadMoreCandidates = useCallback(() => {
     if (isLoading || !hasMore) return;
     setIsLoading(true);
     
-    // Simulate API delay
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = allCandidates.slice(currentIndex, newLoadIndex);
       
-      setDisplayedCandidates(prev => [...prev, ...newBatch]);
+      setDisplayedCandidates(prevDisplayed => {
+        const prevIds = new Set(prevDisplayed.map(c => c.id));
+        const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
+        return [...prevDisplayed, ...uniqueNewItems];
+      });
+      
       setCurrentIndex(newLoadIndex);
 
       if (newLoadIndex >= allCandidates.length) {
@@ -50,7 +53,6 @@ export function CandidateDiscoveryPage() {
   }, [isLoading, hasMore, currentIndex, allCandidates]);
 
   useEffect(() => {
-    // Initial load: Load the first batch directly
     setIsLoading(true);
     setTimeout(() => {
       const initialBatch = allCandidates.slice(0, ITEMS_PER_BATCH);
@@ -62,7 +64,6 @@ export function CandidateDiscoveryPage() {
       setIsLoading(false);
     }, 100); 
 
-    // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCandidatesDemo');
     if (storedLiked) setLikedCandidates(new Set(JSON.parse(storedLiked)));
     const storedSuperLiked = localStorage.getItem('superLikedCandidatesDemo');
@@ -83,8 +84,7 @@ export function CandidateDiscoveryPage() {
       }
     }, { 
         threshold: 0.1, 
-        root: feedContainerRef.current, // observe within the scrollable container
-        rootMargin: '0px 0px 300px 0px' // Load when trigger is 300px from bottom of root
+        rootMargin: '0px 0px 300px 0px'
     });
 
     if (loadMoreTriggerRef.current) {
@@ -115,7 +115,7 @@ export function CandidateDiscoveryPage() {
     const newPassed = new Set(passedCandidates);
     const newSaved = new Set(savedCandidates);
 
-    if (action !== 'pass') { // Allow un-passing by other actions
+    if (action !== 'pass') {
       newPassed.delete(candidateId);
     }
      if (action !== 'like' && action !== 'superlike') {
@@ -124,7 +124,6 @@ export function CandidateDiscoveryPage() {
     if (action !== 'superlike') {
       newSuperLiked.delete(candidateId);
     }
-
 
     if (action === 'like') {
       newLiked.add(candidateId);
@@ -137,19 +136,18 @@ export function CandidateDiscoveryPage() {
       }
     } else if (action === 'pass') {
       newPassed.add(candidateId);
-      newLiked.delete(candidateId); // Passing also unlikes/unsuperlikes
+      newLiked.delete(candidateId);
       newSuperLiked.delete(candidateId);
       message = `Passed on ${candidate.name}`;
       toastVariant = "destructive";
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
-      newLiked.add(candidateId); // Superlike also counts as a like
+      newLiked.add(candidateId);
       message = `Super liked ${candidate.name}! They'll be notified.`;
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
-      // This is where you might open a modal or navigate to a detail page
       toast({ title: message, description: "Detailed view functionality to be implemented." });
-      return; // Don't update sets for 'details'
+      return; 
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
         newSaved.delete(candidateId);
@@ -178,18 +176,14 @@ export function CandidateDiscoveryPage() {
 
   return (
     <div 
-      ref={feedContainerRef}
-      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
-      style={{ height: 'calc(100vh - 160px)' }} 
-      tabIndex={0} // Make it focusable
+      className="w-full max-w-xl mx-auto p-2 space-y-4 overflow-y-auto no-scrollbar"
+      style={{ maxHeight: 'calc(100vh - 160px)' }} 
+      tabIndex={0}
     >
       {visibleCandidates.map((candidate) => (
-        <div 
-          key={candidate.id} 
-          className="h-full snap-start snap-always flex items-center justify-center p-1"
-        >
           <SwipeCard 
-            className={`transition-all duration-300 ease-out w-full h-full
+            key={candidate.id}
+            className={`transition-all duration-300 ease-out w-full 
                         ${superLikedCandidates.has(candidate.id) ? 'ring-4 ring-accent shadow-accent/30' : likedCandidates.has(candidate.id) ? 'ring-4 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
           >
             <CandidateCardContent candidate={candidate} />
@@ -246,23 +240,21 @@ export function CandidateDiscoveryPage() {
               </Button>
             </CardFooter>
           </SwipeCard>
-        </div>
       ))}
 
-      {/* Trigger for loading more items - must be inside the scrollable container */}
       {hasMore && !isLoading && (
-         <div ref={loadMoreTriggerRef} className="h-10 snap-start flex items-center justify-center text-transparent">.</div>
+         <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center text-transparent">.</div>
       )}
 
       {isLoading && (
-        <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
+        <div className="flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
           <p>Loading more candidates...</p>
         </div>
       )}
 
       {!isLoading && !hasMore && visibleCandidates.length === 0 && (
-         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
+         <div className="flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Candidates</h2>
             <p className="text-muted-foreground">You've seen everyone for now. Try again later!</p>

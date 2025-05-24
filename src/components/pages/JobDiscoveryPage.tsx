@@ -11,12 +11,12 @@ import { CardFooter } from '@/components/ui/card';
 import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-const ITEMS_PER_BATCH = 3; // Number of items to load per "batch"
+const ITEMS_PER_BATCH = 3; 
 
 export function JobDiscoveryPage() {
   const [allCompanies] = useState<Company[]>(mockCompanies);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks how many items are "loaded" from allCompanies
+  const [currentIndex, setCurrentIndex] = useState(0); 
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   
@@ -28,8 +28,6 @@ export function JobDiscoveryPage() {
   const { toast } = useToast();
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
-  const feedContainerRef = useRef<HTMLDivElement | null>(null);
-
 
   const loadMoreCompanies = useCallback(() => {
     if (isLoading || !hasMore) return;
@@ -55,7 +53,6 @@ export function JobDiscoveryPage() {
   }, [isLoading, hasMore, currentIndex, allCompanies]);
 
   useEffect(() => {
-    // Initial load
     setIsLoading(true);
     setTimeout(() => {
         const initialBatch = allCompanies.slice(0, ITEMS_PER_BATCH);
@@ -67,8 +64,6 @@ export function JobDiscoveryPage() {
         setIsLoading(false);
     }, 100);
 
-
-    // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
     if (storedLiked) setLikedCompanies(new Set(JSON.parse(storedLiked)));
     const storedSuperLiked = localStorage.getItem('superLikedCompaniesDemo');
@@ -89,7 +84,6 @@ export function JobDiscoveryPage() {
       }
     }, { 
         threshold: 0.1, 
-        root: feedContainerRef.current, 
         rootMargin: '0px 0px 300px 0px' 
     });
 
@@ -129,7 +123,6 @@ export function JobDiscoveryPage() {
     if (action !== 'superlike') {
         newSuperLiked.delete(companyId);
     }
-
 
     if (action === 'like') {
       newLiked.add(companyId);
@@ -182,23 +175,17 @@ export function JobDiscoveryPage() {
 
   return (
     <div 
-      ref={feedContainerRef}
-      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
-      style={{ height: 'calc(100vh - 160px)' }} 
+      className="w-full max-w-xl mx-auto p-2 space-y-4 overflow-y-auto no-scrollbar"
+      style={{ maxHeight: 'calc(100vh - 160px)' }} 
       tabIndex={0} 
     >
       {visibleCompanies.map(company => (
-        <div 
-          key={company.id}
-          className="h-full snap-start snap-always flex items-center justify-center p-1"
-        >
           <SwipeCard 
-            className={`transition-all duration-300 ease-out w-full h-full
+            key={company.id}
+            className={`transition-all duration-300 ease-out w-full
                         ${superLikedCompanies.has(company.id) ? 'ring-4 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-4 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
           >
-            <CompanyCardContent 
-                company={company} 
-            />
+            <CompanyCardContent company={company} />
             <CardFooter className="p-3 grid grid-cols-5 gap-2 border-t bg-card">
               <Button 
                 variant="ghost" 
@@ -252,22 +239,21 @@ export function JobDiscoveryPage() {
               </Button>
             </CardFooter>
           </SwipeCard>
-        </div>
       ))}
       
       {hasMore && !isLoading && (
-         <div ref={loadMoreTriggerRef} className="h-10 snap-start flex items-center justify-center text-transparent">.</div>
+         <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center text-transparent">.</div>
       )}
 
       {isLoading && (
-        <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
+        <div className="flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
           <p>Loading more companies...</p>
         </div>
       )}
 
       {!isLoading && !hasMore && visibleCompanies.length === 0 && (
-         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
+         <div className="flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Companies</h2>
             <p className="text-muted-foreground">You've seen all opportunities for now. Try again later!</p>
@@ -276,4 +262,3 @@ export function JobDiscoveryPage() {
     </div>
   );
 }
-

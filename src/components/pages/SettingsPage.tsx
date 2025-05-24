@@ -50,6 +50,14 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     localStorage.setItem('userCountrySettings', country);
     localStorage.setItem('userDocumentIdSettings', documentId);
 
+    if (selectedRole === 'recruiter') {
+        const profileComplete = userName.trim() !== '' && userEmail.trim() !== '';
+        localStorage.setItem('recruiterProfileComplete', JSON.stringify(profileComplete));
+    } else {
+        // If role is not recruiter or changed from recruiter, remove the flag
+        localStorage.removeItem('recruiterProfileComplete');
+    }
+
     toast({
       title: 'Settings Saved',
       description: 'Your preferences have been updated.',
@@ -104,7 +112,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
             <User className="mr-2 h-5 w-5 text-primary" />
             Personal Information
           </CardTitle>
-          <CardDescription>Update your contact and personal details.</CardDescription>
+          <CardDescription>Update your contact and personal details. Recruiters: Name and Email are required to post jobs.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1">

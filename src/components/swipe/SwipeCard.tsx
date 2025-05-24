@@ -12,8 +12,7 @@ export function SwipeCard({ children, className }: SwipeCardProps) {
   return (
     <Card 
       className={cn(
-        "w-full rounded-xl shadow-2xl overflow-hidden transform transition-all duration-300 ease-out flex flex-col bg-card", // Ensure bg-card for visibility
-        // Removed fixed min-height, relies on parent snap item for height (e.g., h-full)
+        "w-full rounded-xl shadow-lg hover:shadow-xl overflow-hidden flex flex-col bg-card",
         className
       )}
     >

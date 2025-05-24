@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent } from 'react';
+import { useState, type ChangeEvent, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -9,22 +9,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form'; // Added FormDescription
-import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase } from 'lucide-react';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { JobPosting } from '@/lib/types'; // Assuming JobPosting type is defined
+import type { JobPosting } from '@/lib/types'; 
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
   description: z.string().min(20, "Description must be at least 20 characters."),
   compensation: z.string().min(1, "Please specify compensation or prize."),
   tags: z.string().refine(value => {
-    if (!value) return true; // Optional or handle as needed
+    if (!value) return true; 
     const tags = value.split(',').map(tag => tag.trim());
     return tags.every(tag => tag.length > 0 && tag.length <= 20 && !tag.includes(' '));
   }, "Tags should be comma-separated, no spaces within tags, max 20 chars each."),
   mediaFile: z.custom<FileList>((val) => val === undefined || (val instanceof FileList && val.length <= 1), "Only one file can be uploaded.")
-    .refine(files => files === undefined || files.length === 0 || files?.[0]?.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) // Example: 5MB limit
+    .refine(files => files === undefined || files.length === 0 || files?.[0]?.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.type.startsWith("image/") || files?.[0]?.type.startsWith("video/"), "Please upload a valid image or video file.")
     .optional(),
 });
@@ -34,7 +35,15 @@ type FormValues = z.infer<typeof FormSchema>;
 export function CreateJobPostingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [isPostingAllowed, setIsPostingAllowed] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const profileComplete = localStorage.getItem('recruiterProfileComplete') === 'true';
+      setIsPostingAllowed(profileComplete);
+    }
+  }, []);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -56,25 +65,27 @@ export function CreateJobPostingPage() {
   };
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (!isPostingAllowed) {
+        toast({
+            title: "Profile Incomplete",
+            description: "Please complete your profile in Settings to post a job.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     setIsLoading(true);
     console.log("Job Posting Data:", data);
 
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // In a real app, you would:
-    // 1. Upload mediaFile if present to a storage service and get its URL.
-    // 2. Save the job posting data (including mediaUrl) to your backend.
-    // 3. Potentially update mockData or a global state to make it appear in recommendations.
-
     const newJobPosting: Partial<JobPosting> = {
-      id: `job-${Date.now()}`, // Temporary ID
+      id: `job-${Date.now()}`, 
       title: data.title,
       description: data.description,
       compensation: data.compensation,
       tags: data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0),
-      // mediaUrl: uploadedMediaUrl, // From storage service
-      companyId: 'current-user-company-id', // Placeholder
+      companyId: 'current-user-company-id', 
       postedAt: new Date(),
     };
     
@@ -92,7 +103,16 @@ export function CreateJobPostingPage() {
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      <Card className="w-full shadow-xl">
+      {!isPostingAllowed && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-5 w-5" />
+          <AlertTitle>Profile Incomplete to Post Jobs</AlertTitle>
+          <AlertDescription>
+            Please complete your Name and Email in the <strong>Settings</strong> page to enable job posting.
+          </AlertDescription>
+        </Alert>
+      )}
+      <Card className={`w-full shadow-xl ${!isPostingAllowed ? 'opacity-50 pointer-events-none' : ''}`}>
         <CardHeader>
           <CardTitle className="flex items-center text-2xl sm:text-3xl">
             <Briefcase className="mr-3 h-7 w-7 text-primary" />
@@ -112,7 +132,7 @@ export function CreateJobPostingPage() {
                   <FormItem>
                     <FormLabel className="text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-muted-foreground" />Job Title / Mission Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Senior Software Engineer, Design a new Logo" {...field} />
+                      <Input placeholder="e.g., Senior Software Engineer, Design a new Logo" {...field} disabled={!isPostingAllowed}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -130,6 +150,7 @@ export function CreateJobPostingPage() {
                         placeholder="Describe the role, responsibilities, required skills, and any specific quest objectives..."
                         className="resize-y min-h-[120px]"
                         {...field}
+                        disabled={!isPostingAllowed}
                       />
                     </FormControl>
                     <FormMessage />
@@ -144,7 +165,7 @@ export function CreateJobPostingPage() {
                   <FormItem>
                     <FormLabel className="text-lg flex items-center"><DollarSign className="mr-2 h-5 w-5 text-muted-foreground" />Compensation / Prize</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., $100,000 - $120,000 per year, $500 for project completion" {...field} />
+                      <Input placeholder="e.g., $100,000 - $120,000 per year, $500 for project completion" {...field} disabled={!isPostingAllowed}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -158,7 +179,7 @@ export function CreateJobPostingPage() {
                   <FormItem>
                     <FormLabel className="text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-muted-foreground" />Tags (comma-separated)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., react,full-time,design,urgent" {...field} />
+                      <Input placeholder="e.g., react,full-time,design,urgent" {...field} disabled={!isPostingAllowed}/>
                     </FormControl>
                      <FormDescription>
                       Help categorize your job. Use commas to separate tags (e.g., engineering,remote,full-stack).
@@ -184,6 +205,7 @@ export function CreateJobPostingPage() {
                         }}
                         className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
                         {...rest}
+                        disabled={!isPostingAllowed}
                       />
                     </FormControl>
                     {fileName && <p className="text-sm text-muted-foreground mt-1">Selected file: {fileName}</p>}
@@ -194,7 +216,7 @@ export function CreateJobPostingPage() {
 
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
+              <Button type="submit" disabled={isLoading || !isPostingAllowed} size="lg" className="w-full sm:w-auto">
                 {isLoading ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 ) : (
