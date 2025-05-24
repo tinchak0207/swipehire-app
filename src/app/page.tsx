@@ -8,32 +8,36 @@ import { JobDiscoveryPage } from "@/components/pages/JobDiscoveryPage";
 import { AiToolsPage } from "@/components/pages/AiToolsPage";
 import { MatchesPage } from "@/components/pages/MatchesPage";
 import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
+import { LoginPage } from "@/components/pages/LoginPage"; // Added
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, LayoutGrid, Loader2 } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Added
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("findTalent"); // Default, will be updated
+  const [activeTab, setActiveTab] = useState<string>("findTalent"); 
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const storedRoleValue = localStorage.getItem('userRole');
-    // Explicitly check for valid roles
-    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-      setUserRole(storedRoleValue);
-      setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
-    } else {
-      // If no valid role is stored (null, undefined, or invalid string),
-      // ensure userRole is null to show RoleSelectionPage.
-      // Also, clear any invalid entry from localStorage.
-      if (storedRoleValue !== null) { // Only remove if there was an invalid item that's not 'null' literal
-        localStorage.removeItem('userRole');
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    if (storedAuth === 'true') {
+      setIsAuthenticated(true);
+      const storedRoleValue = localStorage.getItem('userRole');
+      if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+        setUserRole(storedRoleValue);
+        setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
+      } else {
+        if (storedRoleValue !== null) {
+          localStorage.removeItem('userRole');
+        }
+        setUserRole(null);
       }
-      setUserRole(null); 
-      // activeTab will be set by handleRoleSelect or the other useEffect based on userRole
+    } else {
+      setIsAuthenticated(false);
+      setUserRole(null); // Ensure role is also cleared if not authenticated
     }
     setIsInitialLoading(false);
 
@@ -43,28 +47,56 @@ export default function HomePage() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  const handleLoginSuccess = () => {
+    localStorage.setItem('isAuthenticated', 'true');
+    setIsAuthenticated(true);
+    // After login, user might still need to select a role
+    const storedRoleValue = localStorage.getItem('userRole');
+    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+        setUserRole(storedRoleValue);
+        setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
+    } else {
+        setUserRole(null);
+    }
+  };
+
   const handleRoleSelect = (role: UserRole) => {
     localStorage.setItem('userRole', role);
     setUserRole(role);
     setActiveTab(role === 'recruiter' ? "findTalent" : "findJobs");
   };
 
+  // This useEffect ensures activeTab is correctly set if userRole changes (e.g. after selection or load)
+  // Also ensures that if the activeTab is not relevant for the current role, it defaults to the primary tab for that role.
   useEffect(() => {
-    // This ensures activeTab is correctly set if userRole changes (e.g. after selection or load)
     if (userRole) {
-      setActiveTab(userRole === 'recruiter' ? "findTalent" : "findJobs");
+      const defaultRoleTab = userRole === 'recruiter' ? "findTalent" : "findJobs";
+      const commonTabs = ["aiTools", "myMatches"];
+      if (activeTab !== defaultRoleTab && !commonTabs.includes(activeTab)) {
+         setActiveTab(defaultRoleTab);
+      } else if (userRole === 'recruiter' && activeTab === 'findJobs') {
+         setActiveTab('findTalent');
+      } else if (userRole === 'jobseeker' && activeTab === 'findTalent') {
+         setActiveTab('findJobs');
+      }
     }
-    // If userRole is null, activeTab might remain its default or what it was, 
-    // but it won't matter as tabs aren't shown.
-  }, [userRole]);
+  }, [userRole, activeTab]);
 
 
-  const tabItems = [
+  const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage /> },
+    { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage /> },
+    { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
+  ];
+
+  const jobseekerTabItems = [
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage /> },
     { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage /> },
     { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
   ];
+  
+  const currentTabItems = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
+
 
   if (isInitialLoading) {
     return (
@@ -74,9 +106,14 @@ export default function HomePage() {
     );
   }
 
+  if (!isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  }
+
   if (!userRole) {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
+  
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -84,10 +121,10 @@ export default function HomePage() {
       <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {isMobile ? (
-            <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={tabItems} />
+            <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1">
-              {tabItems.map(item => (
+            <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 h-auto sm:h-12 rounded-lg shadow-sm bg-card border p-1">
+              {currentTabItems.map(item => (
                 <TabsTrigger 
                   key={item.value} 
                   value={item.value} 
@@ -100,7 +137,7 @@ export default function HomePage() {
             </TabsList>
           )}
 
-          {tabItems.map(item => (
+          {currentTabItems.map(item => (
             <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
               {item.component}
             </TabsContent>
@@ -160,3 +197,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
