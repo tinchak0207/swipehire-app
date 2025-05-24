@@ -74,7 +74,9 @@ const ProfileRecommenderOutputSchema = z.object({
     experienceRelevanceScore: z.number().min(0).max(100),
     cultureFitScore: z.number().min(0).max(100),
     growthPotentialScore: z.number().min(0).max(100),
-  }).describe("Breakdown of scores for each weighted category.")
+  }).describe("Breakdown of scores for each weighted category."),
+  isUnderestimatedTalent: z.boolean().describe("Indicates if this candidate might be an underestimated talent or hidden gem based on their profile relative to the job criteria."),
+  underestimatedReasoning: z.string().optional().describe("Brief reasoning if the candidate is considered underestimated (e.g., strong transferable skills, high growth potential despite lacking specific years of experience for the role, unique project experience that shows adaptability)."),
 });
 export type ProfileRecommenderOutput = z.infer<typeof ProfileRecommenderOutputSchema>;
 
@@ -88,9 +90,10 @@ const profileRecommenderPrompt = ai.definePrompt({
   input: {schema: ProfileRecommenderInputSchema},
   output: {schema: ProfileRecommenderOutputSchema},
   prompt: `You are an AI HR expert specializing in evaluating candidate profiles against job requirements and company culture.
-Your task is to assess the provided Candidate Profile based on the Job Criteria and return a match score, a reasoning statement, and weighted scores for different categories.
+Your task is to assess the provided Candidate Profile based on the Job Criteria and return a match score, a reasoning statement, weighted scores, and an assessment of whether the candidate is an "underestimated talent".
 
 Candidate Profile:
+ID: {{{candidateProfile.id}}}
 Role: {{{candidateProfile.role}}}
 Experience Summary: {{{candidateProfile.experienceSummary}}}
 Skills: {{#if candidateProfile.skills}} {{#each candidateProfile.skills}} {{{this}}}{{#unless @last}}, {{/unless}}{{/each}} {{else}}Not specified{{/if}}
@@ -129,7 +132,17 @@ Provide a score from 0 to 100 for each of these four categories.
 Then, calculate the overall \`matchScore\` using the specified weights.
 The \`reasoning\` should be a concise summary explaining the overall score, highlighting strong matches and any notable concerns or gaps.
 
-Return the candidateId ("{{{candidateProfile.id}}}") along with the scores and reasoning.
+**Underestimated Talent Assessment:**
+After the primary scoring, specifically assess if this candidate might be an "underestimated talent" or a "hidden gem".
+Consider these factors:
+-   **Skill Potential vs. Formal Experience:** Does the candidate demonstrate strong skills ({{{candidateProfile.skills}}}) or impressive outcomes in {{{candidateProfile.pastProjects}}} that suggest high potential, even if their formal work experience level ({{{candidateProfile.workExperienceLevel}}}) is slightly below the job's required level ({{{jobCriteria.requiredExperienceLevel}}})?
+-   **Cross-Domain Capabilities:** Do their {{{candidateProfile.skills}}} or {{{candidateProfile.pastProjects}}} suggest valuable experience in an adjacent domain that, while not a direct match, could bring innovative perspectives to the role?
+-   **Learning Agility & Drive:** Can you infer strong learning ability, adaptability, or a proactive attitude from their {{{candidateProfile.experienceSummary}}} or {{{candidateProfile.desiredWorkStyle}}}?
+-   **Alignment with Growth Potential:** Does the Growth Potential score further support this?
+
+If you identify such potential, set \`isUnderestimatedTalent\` to true and provide a brief \`underestimatedReasoning\` explaining why (e.g., "Strong transferable skills in X make them a high-potential candidate despite lacking Y years in the specific role," or "Unique project Z demonstrates adaptability and quick learning relevant to this position."). Otherwise, set \`isUnderestimatedTalent\` to false.
+
+Return the candidateId ("{{{candidateProfile.id}}}") along with all scores, reasoning, and the underestimated talent assessment.
 `,
 });
 
@@ -140,13 +153,10 @@ const profileRecommenderFlow = ai.defineFlow(
     outputSchema: ProfileRecommenderOutputSchema,
   },
   async (input) => {
-    // In a real scenario, you might fetch full candidate/job details here if only IDs were passed.
-    // For now, we assume full objects are passed in `input`.
-
     const {output} = await profileRecommenderPrompt(input);
 
     if (!output) {
-      // Fallback if AI fails to generate structured output, though definePrompt tries to enforce it.
+      // Fallback if AI fails to generate structured output
       return {
         candidateId: input.candidateProfile.id,
         matchScore: 0,
@@ -156,12 +166,13 @@ const profileRecommenderFlow = ai.defineFlow(
           experienceRelevanceScore: 0,
           cultureFitScore: 0,
           growthPotentialScore: 0,
-        }
+        },
+        isUnderestimatedTalent: false,
+        underestimatedReasoning: "AI analysis failed."
       };
     }
-    // Ensure candidateId is correctly passed through. The prompt asks the AI to include it.
-    // If AI might forget, we can enforce it:
-    // return { ...output, candidateId: input.candidateProfile.id };
-    return output;
+    // Ensure candidateId is correctly passed through.
+    return { ...output, candidateId: input.candidateProfile.id };
   }
 );
+
