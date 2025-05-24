@@ -83,6 +83,7 @@ export default function HomePage() {
 
   const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage /> },
+    // THIS IS THE "POST A JOB" FEATURE/TAB for recruiters
     { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> },
     ...baseTabItems,
   ];
@@ -116,7 +117,6 @@ export default function HomePage() {
     } else if (!showLoginPage) {
       // If no user role is set and we are not showing the login page (i.e., on RoleSelectionPage or initial state before role selection),
       // the activeTab doesn't visually matter as Tabs are not shown.
-      // Setting a sensible default or one of the base tabs if preferred.
       // Current initial state is "findTalent", which is fine.
     }
   }, [userRole, activeTab, showLoginPage]); // Dependencies for managing activeTab state.
@@ -231,3 +231,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
