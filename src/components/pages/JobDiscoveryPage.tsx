@@ -1,25 +1,23 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Company } from '@/lib/types';
-import { mockCompanies } from '@/lib/mockData';
+// import { mockCompanies } from '@/lib/mockData'; // We will fetch from service now
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
 import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-const ITEMS_PER_BATCH = 3; 
+import { fetchJobsFromBackend } from '@/services/jobService'; // Import the service function
 
 export function JobDiscoveryPage() {
-  const [initialMockCompanies] = useState<Company[]>(mockCompanies);
-  const [userPostedCompanies, setUserPostedCompanies] = useState<Company[]>([]);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); 
-  const [isLoading, setIsLoading] = useState(false); // Manages loading state for initial batch and more items
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   
   const [likedCompanies, setLikedCompanies] = useState<Set<string>>(new Set());
   const [superLikedCompanies, setSuperLikedCompanies] = useState<Set<string>>(new Set());
@@ -30,13 +28,42 @@ export function JobDiscoveryPage() {
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  // Load user-posted companies and interaction states from localStorage on mount
-  useEffect(() => {
-    const storedUserCompaniesString = localStorage.getItem('userPostedCompanies');
-    if (storedUserCompaniesString) {
-      setUserPostedCompanies(JSON.parse(storedUserCompaniesString));
+  const loadCompanies = useCallback(async (cursor?: string) => {
+    if (isLoading && !isInitialLoading) return; // Prevent multiple simultaneous loads for "load more"
+    
+    if (isInitialLoading) {
+      setIsLoading(true); // For initial load spinner
+    } else if (cursor) { // Only set loading for "load more" if there's a cursor (i.e., not the first call to loadMore)
+      setIsLoading(true);
     }
 
+
+    try {
+      const { jobs, hasMore: newHasMore, nextCursor: newNextCursor } = await fetchJobsFromBackend(cursor);
+      
+      setDisplayedCompanies(prev => {
+        const existingIds = new Set(prev.map(c => c.id));
+        const uniqueNewJobs = jobs.filter(job => !existingIds.has(job.id));
+        return cursor ? [...prev, ...uniqueNewJobs] : uniqueNewJobs; // Replace if no cursor (initial load)
+      });
+      setHasMore(newHasMore);
+      setNextCursor(newNextCursor);
+    } catch (error) {
+      console.error("Failed to fetch jobs:", error);
+      toast({ title: "Error fetching jobs", description: "Could not load opportunities. Please try again.", variant: "destructive" });
+      setHasMore(false); // Stop trying if there's an error
+    } finally {
+      setIsLoading(false);
+      if (isInitialLoading) setIsInitialLoading(false);
+    }
+  }, [isLoading, isInitialLoading, toast]);
+
+  // Initial load
+  useEffect(() => {
+    setIsInitialLoading(true);
+    loadCompanies(); // Load initial batch
+
+    // Load interaction states from localStorage
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
     if (storedLiked) setLikedCompanies(new Set(JSON.parse(storedLiked)));
     const storedSuperLiked = localStorage.getItem('superLikedCompaniesDemo');
@@ -45,70 +72,17 @@ export function JobDiscoveryPage() {
     if (storedPassed) setPassedCompanies(new Set(JSON.parse(storedPassed)));
     const storedSaved = localStorage.getItem('savedCompaniesDemo');
     if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
-  }, []);
-
-  // Memoize the combined list of all available companies
-  const allAvailableCompanies = useMemo(() => {
-    const combined = [...userPostedCompanies, ...initialMockCompanies];
-    const uniqueIds = new Set<string>();
-    return combined.filter(company => {
-        if (!uniqueIds.has(company.id)) {
-            uniqueIds.add(company.id);
-            return true;
-        }
-        return false;
-    });
-  }, [userPostedCompanies, initialMockCompanies]);
-
-  // Effect to initialize or re-initialize displayed companies when allAvailableCompanies changes
-  useEffect(() => {
-    if (allAvailableCompanies.length === 0) {
-      setDisplayedCompanies([]);
-      setCurrentIndex(0);
-      setHasMore(false);
-      setIsLoading(false); // Ensure loading is false if no data
-      return;
-    }
-
-    setIsLoading(true);
-    setTimeout(() => {
-        const initialBatch = allAvailableCompanies.slice(0, ITEMS_PER_BATCH);
-        setDisplayedCompanies(initialBatch);
-        setCurrentIndex(ITEMS_PER_BATCH);
-        setHasMore(ITEMS_PER_BATCH < allAvailableCompanies.length);
-        setIsLoading(false);
-    }, 100); // Simulate fetch time
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allAvailableCompanies]);
+  }, []); // loadCompanies is memoized but ESLint might complain; it's stable here.
 
-
-  const loadMoreCompanies = useCallback(() => {
-    if (isLoading || !hasMore || allAvailableCompanies.length === 0) return;
-    setIsLoading(true);
-    
-    setTimeout(() => {
-      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = allAvailableCompanies.slice(currentIndex, newLoadIndex);
-      
-      setDisplayedCompanies(prevDisplayed => {
-        const prevIds = new Set(prevDisplayed.map(c => c.id));
-        const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
-        return [...prevDisplayed, ...uniqueNewItems];
-      });
-      
-      setCurrentIndex(newLoadIndex);
-      setHasMore(newLoadIndex < allAvailableCompanies.length);
-      setIsLoading(false);
-    }, 700);
-  }, [isLoading, hasMore, currentIndex, allAvailableCompanies]);
 
   // IntersectionObserver setup for infinite scroll
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
 
     observer.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && hasMore && !isLoading) {
-        loadMoreCompanies();
+      if (entries[0].isIntersecting && hasMore && !isLoading && !isInitialLoading) {
+        loadCompanies(nextCursor);
       }
     }, { 
         threshold: 0.1, 
@@ -124,14 +98,14 @@ export function JobDiscoveryPage() {
         observer.current.disconnect();
       }
     };
-  }, [hasMore, isLoading, loadMoreCompanies]);
+  }, [hasMore, isLoading, nextCursor, loadCompanies, isInitialLoading]);
 
   const updateLocalStorageSet = (key: string, set: Set<string>) => {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
   const handleAction = (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save') => {
-    const company = allAvailableCompanies.find(c => c.id === companyId);
+    const company = displayedCompanies.find(c => c.id === companyId); // Check against displayed companies
     if (!company) return;
 
     let message = "";
@@ -200,6 +174,14 @@ export function JobDiscoveryPage() {
   };
   
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
+
+  if (isInitialLoading && displayedCompanies.length === 0) {
+     return (
+      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -273,7 +255,7 @@ export function JobDiscoveryPage() {
          <div ref={loadMoreTriggerRef} className="h-10 flex items-center justify-center text-transparent">.</div>
       )}
 
-      {isLoading && (
+      {isLoading && !isInitialLoading && ( // Show loading for "load more" only
         <div className="flex flex-col items-center justify-center p-4 text-muted-foreground bg-background">
           <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
           <p>Loading more companies...</p>
@@ -281,7 +263,7 @@ export function JobDiscoveryPage() {
       )}
 
       {!isLoading && !hasMore && visibleCompanies.length === 0 && (
-         <div className="flex flex-col items-center justify-center p-6 text-center bg-background">
+         <div className="flex flex-col items-center justify-center p-6 text-center bg-background min-h-[calc(100vh-200px)]">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Companies</h2>
             <p className="text-muted-foreground">You've seen all opportunities for now. Try again later!</p>

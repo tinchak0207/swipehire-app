@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Company, CompanyJobOpening } from '@/lib/types'; 
+import { postJobToBackend } from '@/services/jobService'; // Import the service function
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
@@ -76,47 +77,44 @@ export function CreateJobPostingPage() {
 
     setIsLoading(true);
 
-    // Construct CompanyJobOpening from form data
     const newJobOpening: CompanyJobOpening = {
       title: data.title,
       description: data.description,
       salaryRange: data.compensation,
       tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
-      // videoOrImageUrl: For this demo, we won't handle file uploads to a persistent URL.
-      // If data.mediaFile exists, you might generate a temporary ObjectURL or DataURL for immediate preview,
-      // but it won't persist in localStorage well or be shareable.
+      // In a real app, if data.mediaFile exists, you'd upload it to Firebase Storage here
+      // and get back a URL to store in videoOrImageUrl.
+      // For now, we'll just simulate this.
+      videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? `https://placehold.co/600x400.png?text=${encodeURIComponent(data.mediaFile[0].name)}` : undefined,
     };
 
-    // Wrap the job opening in a new Company object
     const newCompanyForJob: Company = {
-      id: `user-posted-comp-${Date.now()}`, // Unique ID for the new company wrapper
-      name: "Community Job Post", // Generic name for these kinds of listings
+      id: `temp-id-${Date.now()}`, // Backend will assign a real ID
+      name: localStorage.getItem('userNameSettings') || "A Recruiter", // Use recruiter's name if available
       industry: 'Various',
-      description: `A new opportunity: ${data.title}. This job was posted directly by a recruiter.`, // Company-level description
+      description: `A new opportunity: ${data.title}. Posted by ${localStorage.getItem('userNameSettings') || "a recruiter"}.`,
       cultureHighlights: [],
-      logoUrl: 'https://placehold.co/300x200.png?text=New+Job', // Generic logo
+      logoUrl: 'https://placehold.co/300x200.png?text=New+Post',
       dataAiHint: 'job post',
-      jobOpenings: [newJobOpening], // The actual job details
+      jobOpenings: [newJobOpening],
     };
     
     try {
-      const existingUserCompaniesString = localStorage.getItem('userPostedCompanies');
-      const existingUserCompanies: Company[] = existingUserCompaniesString ? JSON.parse(existingUserCompaniesString) : [];
-      // Add new job to the beginning of the list so it appears first
-      localStorage.setItem('userPostedCompanies', JSON.stringify([newCompanyForJob, ...existingUserCompanies]));
+      // Replace localStorage with a call to the backend service
+      await postJobToBackend(newCompanyForJob);
 
       toast({
         title: "Job Posted!",
-        description: `Your job "${data.title}" has been submitted and is now visible in the 'Find Jobs' section (for this demo).`,
+        description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
 
       form.reset();
       setFileName(null);
     } catch (error) {
-      console.error("Error saving job to localStorage:", error);
+      console.error("Error posting job:", error);
       toast({
         title: "Error",
-        description: "Could not save the job posting. Please try again.",
+        description: "Could not post the job. Please try again.",
         variant: "destructive",
       });
     } finally {
