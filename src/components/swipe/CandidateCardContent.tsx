@@ -1,7 +1,8 @@
+
 import type { Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap, PlayCircle } from 'lucide-react';
 import { CardContent, CardFooter, CardHeader } from '../ui/card';
 
 interface CandidateCardContentProps {
@@ -12,7 +13,23 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
   return (
     <div className="flex flex-col h-full">
       <CardHeader className="p-0 relative">
-        {candidate.avatarUrl ? (
+        {candidate.videoResumeUrl ? (
+          <div className="w-full h-64 sm:h-80 bg-black flex flex-col items-center justify-center text-white relative" data-ai-hint="video content">
+            <Image
+              src={candidate.avatarUrl || 'https://placehold.co/500x350.png'} // Use avatar as poster, or a generic placeholder
+              alt={candidate.name + " video resume poster"}
+              layout="fill"
+              objectFit="cover"
+              className="opacity-50" // Dim poster if video is primary
+              data-ai-hint={candidate.dataAiHint || "person"}
+            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 p-4">
+              <PlayCircle className="w-16 h-16 text-white/80 mb-2" />
+              <span className="text-lg font-semibold">Watch Video Resume</span>
+              <span className="text-sm text-white/70">(Feature coming soon)</span>
+            </div>
+          </div>
+        ) : candidate.avatarUrl ? (
           <Image
             src={candidate.avatarUrl}
             alt={candidate.name}
@@ -22,7 +39,7 @@ export function CandidateCardContent({ candidate }: CandidateCardContentProps) {
             data-ai-hint={candidate.dataAiHint || "person"}
           />
         ) : (
-          <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center">
+          <div className="w-full h-64 sm:h-80 bg-muted flex items-center justify-center" data-ai-hint="profile avatar">
             <Briefcase className="w-16 h-16 text-muted-foreground" />
           </div>
         )}

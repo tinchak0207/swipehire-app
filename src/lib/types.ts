@@ -1,3 +1,6 @@
+
+export type UserRole = 'recruiter' | 'jobseeker';
+
 export interface Candidate {
   id: string;
   name: string;
@@ -5,6 +8,7 @@ export interface Candidate {
   experienceSummary: string;
   skills: string[];
   avatarUrl?: string; // URL or data URI
+  dataAiHint?: string; // For avatarUrl
   videoResumeUrl?: string; // URL or data URI for placeholder
   profileStrength?: number; // 0-100 for AI recommendation hint
   location?: string;
@@ -19,9 +23,8 @@ export interface Company {
   description: string;
   cultureHighlights: string[];
   logoUrl?: string; // URL or data URI
+  dataAiHint?: string; // For logoUrl
   introVideoUrl?: string; // URL or data URI
-  officeEnvironmentUrl?: string; // URL or data URI
-  employeeReviews?: { rating: number; review: string }[];
   jobOpenings?: { title: string; description: string }[];
   companyNeeds?: string; // For icebreaker context
 }

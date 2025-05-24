@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -111,5 +112,23 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+  }
+}
+
+.dynamic-bg {
+  background: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--accent)), #8A2BE2, hsl(var(--secondary)));
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+@keyframes gradientBG {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
   }
 }

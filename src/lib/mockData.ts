@@ -1,3 +1,4 @@
+
 import type { Candidate, Company } from './types';
 
 export const mockCandidates: Candidate[] = [
@@ -7,9 +8,9 @@ export const mockCandidates: Candidate[] = [
     role: 'Senior Software Engineer',
     experienceSummary: '5 years of Python development, loves remote work and agile teams. Passionate about AI and machine learning applications.',
     skills: ['Python', 'Django', 'React', 'AWS', 'Docker', 'AI'],
-    avatarUrl: 'https://placehold.co/300x300.png',
+    avatarUrl: 'https://placehold.co/500x700.png', // Taller image
     dataAiHint: 'professional woman',
-    videoResumeUrl: 'https://placehold.co/640x360.png',
+    videoResumeUrl: 'https://example.com/video1.mp4', // Actual video URL placeholder
     profileStrength: 90,
     location: "San Francisco, CA",
     desiredWorkStyle: "Fully Remote, Flexible Hours",
@@ -21,7 +22,7 @@ export const mockCandidates: Candidate[] = [
     role: 'UX/UI Designer',
     experienceSummary: 'Creative designer with 3 years of experience in mobile and web application design. Proficient in Figma and Adobe Suite.',
     skills: ['UX Design', 'UI Design', 'Figma', 'Adobe XD', 'Prototyping'],
-    avatarUrl: 'https://placehold.co/300x300.png',
+    avatarUrl: 'https://placehold.co/500x700.png',
     dataAiHint: 'creative man',
     profileStrength: 85,
     location: "New York, NY",
@@ -34,9 +35,9 @@ export const mockCandidates: Candidate[] = [
     role: 'Product Manager',
     experienceSummary: 'Results-driven PM with a knack for launching successful SaaS products. 7 years in product strategy and roadmap execution.',
     skills: ['Product Management', 'Agile', 'Scrum', 'Roadmapping', 'Market Analysis'],
-    avatarUrl: 'https://placehold.co/300x300.png',
+    avatarUrl: 'https://placehold.co/500x700.png',
     dataAiHint: 'focused person',
-    videoResumeUrl: 'https://placehold.co/640x360.png',
+    videoResumeUrl: 'https://example.com/video2.mp4',
     profileStrength: 95,
     location: "Austin, TX",
     desiredWorkStyle: "Remote or On-site, Fast-paced Startup",
@@ -48,7 +49,7 @@ export const mockCandidates: Candidate[] = [
     role: 'Data Scientist',
     experienceSummary: 'Expert in statistical modeling and machine learning with 4 years experience. Eager to solve complex problems with data.',
     skills: ['Machine Learning', 'Data Analysis', 'Python', 'R', 'SQL'],
-    avatarUrl: 'https://placehold.co/300x300.png',
+    avatarUrl: 'https://placehold.co/500x700.png',
     dataAiHint: 'intelligent woman',
     profileStrength: 88,
     location: "Remote",
@@ -64,11 +65,9 @@ export const mockCompanies: Company[] = [
     industry: 'Technology',
     description: 'Cutting-edge software solutions for a brighter future. We value innovation, collaboration, and impact.',
     cultureHighlights: ['Remote-First', 'Unlimited PTO', 'Weekly Tech Talks'],
-    logoUrl: 'https://placehold.co/150x150.png',
-    dataAiHint: 'modern logo',
-    introVideoUrl: 'https://placehold.co/640x360.png',
-    officeEnvironmentUrl: 'https://placehold.co/600x400.png',
-    dataAiHint: 'modern office',
+    logoUrl: 'https://placehold.co/500x350.png', // Wider logo/banner
+    dataAiHint: 'modern logo tech company',
+    introVideoUrl: 'https://example.com/video_comp1.mp4',
     companyNeeds: "We need to optimize our payment processing system and enhance user experience on our e-commerce platform.",
     jobOpenings: [
       { title: "Senior Frontend Developer", description: "Join our team to build amazing user interfaces."},
@@ -81,8 +80,8 @@ export const mockCompanies: Company[] = [
     industry: 'Marketing & Advertising',
     description: 'We ignite brands with creative campaigns and data-driven strategies. Looking for passionate creators.',
     cultureHighlights: ['Pet-Friendly Office', 'Flexible Hours', 'Creative Workshops'],
-    logoUrl: 'https://placehold.co/150x150.png',
-    dataAiHint: 'creative logo',
+    logoUrl: 'https://placehold.co/500x350.png',
+    dataAiHint: 'creative agency logo',
     companyNeeds: "We are looking to expand our design team to handle new client projects requiring innovative branding and digital experiences.",
     jobOpenings: [
       { title: "Graphic Designer", description: "Create stunning visuals for various clients."},
@@ -95,9 +94,9 @@ export const mockCompanies: Company[] = [
     industry: 'Sustainability',
     description: 'Dedicated to building a sustainable future through innovative green technologies. Join our mission-driven team.',
     cultureHighlights: ['Impactful Work', 'Collaborative Environment', 'Eco-Conscious'],
-    logoUrl: 'https://placehold.co/150x150.png',
-    dataAiHint: 'eco logo',
-    introVideoUrl: 'https://placehold.co/640x360.png',
+    logoUrl: 'https://placehold.co/500x350.png',
+    dataAiHint: 'eco friendly logo',
+    introVideoUrl: 'https://example.com/video_comp3.mp4',
     companyNeeds: "Seeking data scientists to analyze environmental data and improve our green tech solutions.",
      jobOpenings: [
       { title: "Environmental Scientist", description: "Conduct research and develop solutions for environmental challenges."},

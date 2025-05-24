@@ -1,3 +1,4 @@
+
 "use client";
 
 import { AppHeader } from "@/components/AppHeader";
@@ -6,20 +7,45 @@ import { CandidateDiscoveryPage } from "@/components/pages/CandidateDiscoveryPag
 import { JobDiscoveryPage } from "@/components/pages/JobDiscoveryPage";
 import { AiToolsPage } from "@/components/pages/AiToolsPage";
 import { MatchesPage } from "@/components/pages/MatchesPage";
-import { Users, Briefcase, Wand2, HeartHandshake, LayoutGrid } from 'lucide-react';
+import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
+import type { UserRole } from "@/lib/types";
+import { Users, Briefcase, Wand2, HeartHandshake, LayoutGrid, Loader2 } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState("findTalent");
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<string>("findTalent"); // Default, will be updated
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    const storedRole = localStorage.getItem('userRole') as UserRole | null;
+    if (storedRole) {
+      setUserRole(storedRole);
+      setActiveTab(storedRole === 'recruiter' ? "findTalent" : "findJobs");
+    }
+    setIsInitialLoading(false);
+
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const handleRoleSelect = (role: UserRole) => {
+    localStorage.setItem('userRole', role);
+    setUserRole(role);
+    setActiveTab(role === 'recruiter' ? "findTalent" : "findJobs");
+  };
+
+  useEffect(() => {
+    // This ensures activeTab is correctly set if userRole changes (e.g. after selection)
+    if (userRole) {
+      setActiveTab(userRole === 'recruiter' ? "findTalent" : "findJobs");
+    }
+  }, [userRole]);
+
 
   const tabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage /> },
@@ -28,11 +54,23 @@ export default function HomePage() {
     { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
   ];
 
+  if (isInitialLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!userRole) {
+    return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
+  }
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader />
       <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
-        <Tabs defaultValue="findTalent" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={tabItems} />
           ) : (
@@ -51,8 +89,7 @@ export default function HomePage() {
           )}
 
           {tabItems.map(item => (
-            <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg ">
-              {/* Removed Card wrapper here as pages might have their own layout */}
+            <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
               {item.component}
             </TabsContent>
           ))}
