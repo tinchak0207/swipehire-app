@@ -151,6 +151,20 @@ body {
   animation: gradientBG 10s ease infinite alternate;
 }
 
+/* AI Tool Backgrounds */
+.ai-tool-bg-script {
+  background: linear-gradient(135deg, hsl(210, 80%, 70%), hsl(230, 60%, 50%)); /* Blueish */
+}
+.ai-tool-bg-avatar {
+  background: linear-gradient(135deg, hsl(280, 70%, 65%), hsl(260, 80%, 55%)); /* Purplish */
+}
+.ai-tool-bg-recorder {
+  background: linear-gradient(135deg, hsl(160, 70%, 60%), hsl(180, 60%, 45%)); /* Greenish/Teal */
+}
+.ai-tool-bg-editor {
+  background: linear-gradient(135deg, hsl(30, 80%, 65%), hsl(0, 70%, 55%)); /* Orange/Reddish */
+}
+
 
 @keyframes gradientBG {
   0% {
@@ -182,3 +196,5 @@ body {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
 }
+
+    
