@@ -140,3 +140,10 @@ export interface JobPosting {
   companyId: string;
   postedAt: Date;
 }
+
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'ai' | 'contact'; // 'contact' represents the other person in the match
+  text: string;
+  timestamp: Date;
+}
