@@ -80,27 +80,25 @@ export function AiToolsPage() {
     )}>
       {!selectedToolKey ? (
         <>
-          <div className="text-center mb-8 md:mb-10">
+          <div className="text-center mb-6 md:mb-8">
             <Sparkles className="mx-auto h-12 w-12 text-primary mb-3" />
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">AI Resume Enhancement Suite</h1>
-            <p className="text-lg text-muted-foreground mt-2 max-w-2xl mx-auto">
-              Craft the perfect first impression with our AI-powered tools. Choose a tool to get started:
-            </p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Ask AI to...</h1>
+            {/* Subtitle removed for simplification */}
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 max-w-3xl mx-auto w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-4xl mx-auto w-full"> {/* Reduced gap, increased max-w */}
             {aiToolsData.map((tool) => (
               <Card
                 key={tool.key}
                 onClick={() => handleToolSelect(tool)}
                 className={cn(
-                  "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 min-h-[200px] sm:min-h-[240px]",
+                  "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-8 min-h-[280px] sm:min-h-[320px]", // Increased min-h and padding
                   tool.bgClass 
                 )}
               >
-                <tool.Icon className="h-12 w-12 sm:h-14 sm:w-14 mb-3 text-white/90 group-hover:scale-110 transition-transform" />
-                <CardTitle className="text-xl sm:text-2xl font-semibold text-center">{tool.title}</CardTitle>
-                <CardContent className="text-center p-0 mt-2">
-                  <p className="text-sm text-white/80">{tool.description}</p>
+                <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-4 text-white/90 group-hover:scale-110 transition-transform" /> {/* Increased icon size and margin */}
+                <CardTitle className="text-2xl sm:text-3xl font-bold text-center">{tool.title}</CardTitle> {/* Increased title size and made bold */}
+                <CardContent className="text-center p-0 mt-3">
+                  <p className="text-base sm:text-lg text-white/80">{tool.description}</p> {/* Increased description size */}
                 </CardContent>
               </Card>
             ))}
@@ -130,4 +128,3 @@ export function AiToolsPage() {
     </div>
   );
 }
-    
