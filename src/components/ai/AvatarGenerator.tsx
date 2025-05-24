@@ -13,7 +13,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateAvatar, type AvatarGeneratorInput } from '@/ai/flows/avatar-generator';
 import Image from 'next/image';
-import { Loader2, UserSquare2, Smile, Briefcase, PersonStanding, ImageIcon, Palette } from 'lucide-react';
+import { Loader2, UserSquare2, Smile, Briefcase, PersonStanding, ImageIcon, Palette, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const genderOptions = [
@@ -276,8 +276,8 @@ export function AvatarGenerator() {
                   <Image 
                     src={avatarDataUri} 
                     alt="Generated Avatar" 
-                    layout="fill"
-                    objectFit="cover" 
+                    fill
+                    style={{objectFit: 'cover'}}
                     data-ai-hint="generated avatar professional"
                   />
                 </div>
@@ -299,3 +299,4 @@ export function AvatarGenerator() {
     </Card>
   );
 }
+
