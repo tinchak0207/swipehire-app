@@ -121,16 +121,16 @@ body {
   animation: gradientBG 15s ease infinite;
 }
 
-/* Reddish gradient for Recruiter/Boss role */
+/* Purple/Orange gradient for Recruiter/Boss role */
 .recruiter-role-bg {
-  background: linear-gradient(135deg, hsl(0, 80%, 85%), hsl(0, 70%, 65%), hsl(340, 70%, 50%)); /* Light Pink/Red to Deep Red */
+  background: linear-gradient(135deg, hsl(25, 95%, 65%), hsl(280, 75%, 55%)); /* Orange to Purple */
   background-size: 200% 200%;
   animation: gradientBG 10s ease infinite alternate;
 }
 
-/* Blueish gradient for Job Seeker/Staff role */
+/* Blue/Green gradient for Job Seeker/Staff role */
 .jobseeker-role-bg {
-  background: linear-gradient(135deg, hsl(200, 80%, 85%), hsl(var(--accent)), hsl(220, 90%, 55%)); /* Light Blue to Deep Blue */
+  background: linear-gradient(135deg, hsl(150, 70%, 55%), hsl(210, 85%, 60%)); /* Green to Blue */
   background-size: 200% 200%;
   animation: gradientBG 10s ease infinite alternate;
 }
@@ -146,4 +146,14 @@ body {
   100% {
     background-position: 0% 50%;
   }
+}
+
+@keyframes pulseSelection {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+  50% { transform: scale(1.02); box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.3); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.0); }
+}
+
+.animate-pulse-selection {
+  animation: pulseSelection 0.8s ease-out;
 }
