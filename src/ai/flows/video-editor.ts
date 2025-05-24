@@ -2,9 +2,9 @@
 'use server';
 
 /**
- * @fileOverview An AI agent that analyzes video resumes and suggests edits to improve their quality.
+ * @fileOverview An AI agent that analyzes video resumes and suggests edits to improve their quality, including a quality rating.
  *
- * - editVideo - A function that handles the video analysis and suggestion process.
+ * - editVideo - A function that handles the video analysis, rating, and suggestion process.
  * - EditVideoInput - The input type for the editVideo function.
  * - EditVideoOutput - The return type for the editVideo function.
  */
@@ -27,7 +27,7 @@ const EditVideoOutputSchema = z.object({
     .describe(
       'The conceptually edited video resume (or original if no direct editing is performed by the model), as a data URI. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
     ),
-  analysis: z.string().describe('A detailed analysis of the original video and suggested edits based on voice, visual, and content optimization criteria.'),
+  analysis: z.string().describe('A detailed analysis of the original video, suggested edits, and a quality rating based on voice, visual, content optimization, and overall quality criteria.'),
 });
 export type EditVideoOutput = z.infer<typeof EditVideoOutputSchema>;
 
@@ -39,8 +39,8 @@ const prompt = ai.definePrompt({
   name: 'editVideoPrompt',
   input: {schema: EditVideoInputSchema},
   output: {schema: EditVideoOutputSchema},
-  prompt: `You are an expert AI video analysis and editing suggestion assistant, tasked with providing feedback to improve video resumes.
-You will receive a video resume. Your goal is to analyze it based on the following multi-dimensional criteria and provide a detailed textual analysis with actionable suggestions.
+  prompt: `You are an expert AI video analysis, editing suggestion, and quality rating assistant, tasked with providing feedback to improve video resumes.
+You will receive a video resume. Your goal is to analyze it based on the following multi-dimensional criteria and provide a detailed textual analysis with actionable suggestions and a quality rating.
 You should return the original video data URI as the 'editedVideoDataUri' field, as you are providing analysis and not performing direct video editing.
 
 **I. Voice Analysis:**
@@ -69,9 +69,20 @@ You should return the original video data URI as the 'editedVideoDataUri' field,
        *   **Skill Tags & Achievement Display:** If specific skills are demonstrated or achievements mentioned, suggest how these could be visually represented (e.g., "a brief overlay of 'Project Management' when discussing the X project," "a small graphic denoting the 'Top Performer' award").
        *   **Attractive Openings & Endings:** Suggest how to make the opening more engaging (e.g., "a dynamic title card with your name and role") and the ending more impactful (e.g., "a clear call to action with contact information displayed on screen").
 
+**IV. Quality Rating System & Improvement Guidance:**
+    *   **Overall Assessment:** Briefly state your overall impression of the video's effectiveness.
+    *   **Rating Breakdown (Conceptual - provide qualitative assessment for each):**
+        *   **Professionalism (approx. 30% weight):** Assess clothing, background setting, and the professionalism of language and expression.
+        *   **Attractiveness (approx. 25% weight):** Evaluate the opening remarks, overall expression style, and personal charm conveyed. Is it engaging?
+        *   **Clarity (approx. 25% weight):** Consider picture quality (lighting, focus), sound clarity (audio levels, background noise), and the logical flow of the content.
+        *   **Completeness (approx. 20% weight):** Judge the completeness of information presented, appropriateness of the video duration (ideally 60-90s), and the rationality of the overall structure.
+    *   **Improvement Suggestions for Low-Scoring Items:** For any areas identified as needing improvement in the rating, provide specific, actionable suggestions.
+    *   **Reference Successful Cases (Conceptual):** Where appropriate, offer conceptual examples. (e.g., "For clearer articulation, listen to how professional speakers enunciate key terms." or "Many successful video resumes start with a direct and confident introduction of their value proposition within the first 10 seconds.")
+    *   **Re-recording Optimization Guidance:** If the video has significant issues, provide guidance on what to focus on if re-recording (e.g., "If re-recording, pay special attention to your lighting and ensure your main points are delivered clearly within the first minute.")
+
 **Output Requirements:**
 1.  **editedVideoDataUri**: Return the original 'videoDataUri' provided in the input.
-2.  **analysis**: Provide a comprehensive textual analysis covering all the points above (Voice, Visuals, and Editing Optimization Suggestions). Structure your analysis clearly (e.g., using headings for each section). Be specific in your feedback and suggestions. For example, instead of saying "improve pauses," suggest "Consider shortening the pause at 0:15 for a more fluid transition," or for content "Suggest highlighting 'Python' and 'Data Analysis' as on-screen keywords when mentioned."
+2.  **analysis**: Provide a comprehensive textual analysis covering all the points above (Voice, Visuals, Editing Optimization Suggestions, and the Quality Rating System & Improvement Guidance). Structure your analysis clearly (e.g., using headings for each section). Be specific in your feedback and suggestions.
 
 **Video Resume to Analyze:** {{media url=videoDataUri}}
 `,
@@ -99,3 +110,4 @@ const editVideoFlow = ai.defineFlow(
     }
   }
 );
+
