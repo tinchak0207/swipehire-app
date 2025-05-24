@@ -10,9 +10,9 @@ import { MatchesPage } from "@/components/pages/MatchesPage";
 import { SettingsPage } from "@/components/pages/SettingsPage";
 import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
 import { LoginPage } from "@/components/pages/LoginPage";
-import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage"; // Import CreateJobPostingPage
+import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2 } from 'lucide-react'; // Added FilePlus2 for Post Job
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2 } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -21,7 +21,7 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("findTalent");
+  const [activeTab, setActiveTab] = useState<string>("findTalent"); // Default to recruiter's primary tab
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function HomePage() {
       setUserRole(storedRoleValue as UserRole);
     } else {
       setUserRole(null);
-      localStorage.removeItem('userRole');
+      localStorage.removeItem('userRole'); // Clear invalid role
     }
 
     setIsInitialLoading(false);
@@ -53,6 +53,8 @@ export default function HomePage() {
     localStorage.setItem('isAuthenticated', 'true');
     setIsAuthenticated(true);
     setShowLoginPage(false);
+    // If no role is set after login, user will be directed to RoleSelectionPage
+    // If a role was already set, they'll see the main app for that role.
   };
 
   const handleRoleSelect = (role: UserRole) => {
@@ -62,39 +64,17 @@ export default function HomePage() {
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userRole');
+    localStorage.removeItem('userRole'); // Optionally clear role on logout
     setIsAuthenticated(false);
-    setUserRole(null);
-    setShowLoginPage(false);
+    setUserRole(null); // This will take them to RoleSelectionPage if they try to access main content
+    setShowLoginPage(false); // Ensure login page isn't stuck
   };
 
   const handleLoginRequest = () => {
     setShowLoginPage(true);
   };
 
-  useEffect(() => {
-    if (userRole) {
-      const defaultRoleTab = userRole === 'recruiter' ? "findTalent" : "findJobs";
-      // Common tabs for both, including "postJob" for recruiter
-      const commonTabs = ["aiTools", "myMatches", "settings"];
-      if (userRole === 'recruiter') commonTabs.push("postJob");
-
-
-      if (activeTab !== defaultRoleTab && !commonTabs.includes(activeTab)) {
-         setActiveTab(defaultRoleTab);
-      } else if (userRole === 'recruiter' && activeTab === 'findJobs') {
-         setActiveTab('findTalent');
-      } else if (userRole === 'jobseeker' && activeTab === 'findTalent') {
-         setActiveTab('findJobs');
-      } else if (userRole === 'jobseeker' && activeTab === 'postJob') { // Job seekers shouldn't see 'postJob'
-         setActiveTab('findJobs');
-      }
-    } else if (!userRole && !showLoginPage) {
-        setActiveTab("findTalent");
-    }
-  }, [userRole, activeTab, showLoginPage]);
-
-
+  // Define tab structures
   const baseTabItems = [
     { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage /> },
     { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
@@ -112,12 +92,34 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems; // Default
+  // Determine current tab items based on user role
+  let currentTabItems = jobseekerTabItems; // Default to jobseeker if no role (though RoleSelectionPage would show)
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   } else if (userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   }
+  
+  useEffect(() => {
+    // This effect ensures the activeTab is valid for the current userRole.
+    // It runs when userRole or activeTab changes.
+    if (userRole) {
+      const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
+      const validTabValues = itemsForCurrentRole.map(item => item.value);
+      const defaultTabForCurrentRole = userRole === 'recruiter' ? "findTalent" : "findJobs";
+
+      if (!validTabValues.includes(activeTab)) {
+        // If the current activeTab is not valid for the current role (e.g., switched roles,
+        // or activeTab was 'postJob' and user became jobseeker), reset to the default tab.
+        setActiveTab(defaultTabForCurrentRole);
+      }
+    } else if (!showLoginPage) {
+      // If no user role is set and we are not showing the login page (i.e., on RoleSelectionPage or initial state before role selection),
+      // the activeTab doesn't visually matter as Tabs are not shown.
+      // Setting a sensible default or one of the base tabs if preferred.
+      // Current initial state is "findTalent", which is fine.
+    }
+  }, [userRole, activeTab, showLoginPage]); // Dependencies for managing activeTab state.
 
 
   if (isInitialLoading) {
@@ -136,6 +138,9 @@ export default function HomePage() {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
+  // At this point, userRole is set and not showing login page.
+  // currentTabItems is correctly determined based on userRole.
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
@@ -148,15 +153,19 @@ export default function HomePage() {
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
+            // The TabsList below uses `grid-cols-${currentTabItems.length}`.
+            // This dynamically sets the number of columns in the grid based on how many tabs are relevant for the current userRole.
+            // For example, if currentTabItems.length is 5 (for a recruiter), it becomes `grid-cols-5`.
+            // This ensures the tabs are always laid out horizontally on desktop.
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
                   key={item.value}
                   value={item.value}
-                  className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out"
+                  className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
                 >
-                  <item.icon className="w-4 h-4 mr-2 opacity-80" />
-                  {item.label}
+                  <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
+                  <span className="truncate">{item.label}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
