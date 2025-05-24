@@ -94,20 +94,22 @@ const editVideoFlow = ai.defineFlow(
     inputSchema: EditVideoInputSchema,
     outputSchema: EditVideoOutputSchema,
   },
-  async input => {
+  async (input: EditVideoInput) => {
     const {output} = await prompt(input);
     
-    if (output) {
+    // Ensure the output structure always includes editedVideoDataUri using the input videoDataUri
+    // and provides a fallback for analysis if the AI output is problematic.
+    if (output && output.analysis) {
         return {
-            editedVideoDataUri: output.editedVideoDataUri || input.videoDataUri,
-            analysis: output.analysis || "Analysis could not be generated.",
+            editedVideoDataUri: input.videoDataUri, // Always return the original video URI as per prompt instructions
+            analysis: output.analysis,
         };
     } else {
+        // Handle cases where the AI output might be missing the analysis or the entire output object
         return {
             editedVideoDataUri: input.videoDataUri,
-            analysis: "The AI failed to produce an output. Please try again.",
+            analysis: output?.analysis || "The AI analysis could not be generated or was incomplete. Please try again.",
         };
     }
   }
 );
-
