@@ -26,7 +26,7 @@ export function VideoRecorderUI() {
         toast({
           variant: 'destructive',
           title: 'Camera Not Supported',
-          description: 'Your browser does not support camera access. Please try a modern browser like Chrome, Firefox, or Safari.',
+          description: 'Your browser does not support camera access. Try a modern browser.',
         });
         return;
       }
@@ -37,33 +37,36 @@ export function VideoRecorderUI() {
           videoRef.current.srcObject = stream;
         }
       } catch (error: any) {
-        console.error('Error accessing camera:', error);
+        console.error('Error accessing camera:', error.name, error.message);
         setHasCameraPermission(false);
         let title = 'Camera Access Problem';
-        let description = 'Please enable camera permissions in your browser settings to use this feature.';
+        let description = 'Could not access camera. Please check permissions and ensure it is not in use.';
         
         if (error.name === 'NotAllowedError') {
-            description = 'Camera access was denied. You need to allow camera access in your browser settings for this site.';
+            title = 'Camera Access Denied';
+            description = 'Camera access was denied. Please allow access in your browser settings.';
         } else if (error.name === 'NotFoundError') {
-            description = 'No camera was found. Please ensure a camera is connected and enabled.';
+            title = 'No Camera Found';
+            description = 'No camera detected. Ensure it is connected and enabled.';
         } else if (error.name === 'NotReadableError') {
-            title = 'Camera In Use or Hardware Issue';
-            description = 'The camera might be in use by another application, or a hardware error occurred. Please close other apps using the camera (e.g., Zoom, Skype, other browser tabs) and try again. If the issue persists, check your camera hardware and drivers, or try restarting your computer.';
+            title = 'Camera Issue: In Use or Hardware';
+            description = 'Camera might be busy or have a hardware problem. Close other apps using it, check connections/drivers, or restart.';
         } else if (error.name === 'AbortError') {
-            description = 'Camera access was aborted. This can happen if the page was closed or another device took over.';
+            title = 'Camera Access Aborted';
+            description = 'Camera access was interrupted. Please try again.';
         } else if (error.name === 'SecurityError') {
             title = 'Camera Access Blocked';
-            description = 'Camera access is blocked by your browser or system security settings. Please check your security settings for this site.';
+            description = 'Access blocked by browser/system security. Check settings.';
         } else if (error.name === 'TypeError') {
-            title = 'Camera Access Configuration Error';
-            description = 'There might be an issue with the camera configuration on your device or browser.';
+            title = 'Camera Configuration Error';
+            description = 'Issue with camera setup on your device or browser.';
         }
         
         toast({
           variant: 'destructive',
           title: title,
           description: description,
-          duration: 10000, // Increased duration for more complex error messages
+          duration: 8000,
         });
       }
     };
@@ -96,7 +99,7 @@ export function VideoRecorderUI() {
 
   const handleStartRecording = () => {
     if (!hasCameraPermission) {
-      toast({ title: "Camera Permission Needed", description: "Cannot start recording without camera access. Please check the guidance above.", variant: "destructive" });
+      toast({ title: "Camera Permission Needed", description: "Cannot start recording without camera access. Please check guidance.", variant: "destructive" });
       return;
     }
     setIsRecording(true);
@@ -165,7 +168,7 @@ export function VideoRecorderUI() {
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 text-white p-4 text-center">
                     <AlertTriangle className="h-12 w-12 mb-3 text-destructive" />
                     <p className="font-semibold text-lg">Camera Access Failed</p>
-                    <p className="text-sm">Could not start video. Please check the alert message for details or try refreshing.</p>
+                    <p className="text-sm">Could not start video. Please check alert messages for details.</p>
                 </div>
             )}
           </div>
@@ -187,17 +190,16 @@ export function VideoRecorderUI() {
         {hasCameraPermission === false && (
           <Alert variant="destructive" className="mt-4">
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle>Camera Access Problem Detected</AlertTitle>
-            <AlertDescription className="space-y-1">
-              <p>We encountered an issue accessing your camera. Please try the following:</p>
-              <ul className="list-disc list-inside pl-4 text-sm">
-                <li><strong>Check browser permissions:</strong> Ensure this website has permission to access your camera (usually in the address bar or site settings).</li>
-                <li><strong>Close other applications:</strong> Make sure no other apps (e.g., Zoom, Skype, other browser tabs) are using the camera.</li>
-                <li><strong>Check physical connection:</strong> If using an external camera, ensure it's properly connected.</li>
-                <li><strong>Restart your browser or computer:</strong> Sometimes a simple restart can resolve hardware or software conflicts.</li>
-                <li><strong>System permissions:</strong> Ensure your operating system allows apps to access the camera (check System Preferences on Mac or Privacy settings on Windows).</li>
-              </ul>
-              <p className="mt-2">If the problem persists, there might be a hardware issue or a more specific configuration problem with your camera or system.</p>
+            <AlertTitle>Camera Issue</AlertTitle>
+            <AlertDescription className="space-y-1 text-sm">
+                <p>Could not access the camera. Try these steps:</p>
+                <ul className="list-disc list-inside pl-4">
+                    <li>Allow camera permission in browser settings.</li>
+                    <li>Close other apps using the camera (Zoom, etc.).</li>
+                    <li>Check camera connection & drivers.</li>
+                    <li>Restart browser or computer.</li>
+                </ul>
+                <p className="mt-1">If issues continue, check system settings or camera hardware.</p>
             </AlertDescription>
           </Alert>
         )}
