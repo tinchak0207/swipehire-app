@@ -20,10 +20,20 @@ export default function HomePage() {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    const storedRole = localStorage.getItem('userRole') as UserRole | null;
-    if (storedRole) {
-      setUserRole(storedRole);
-      setActiveTab(storedRole === 'recruiter' ? "findTalent" : "findJobs");
+    const storedRoleValue = localStorage.getItem('userRole');
+    // Explicitly check for valid roles
+    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+      setUserRole(storedRoleValue);
+      setActiveTab(storedRoleValue === 'recruiter' ? "findTalent" : "findJobs");
+    } else {
+      // If no valid role is stored (null, undefined, or invalid string),
+      // ensure userRole is null to show RoleSelectionPage.
+      // Also, clear any invalid entry from localStorage.
+      if (storedRoleValue !== null) { // Only remove if there was an invalid item that's not 'null' literal
+        localStorage.removeItem('userRole');
+      }
+      setUserRole(null); 
+      // activeTab will be set by handleRoleSelect or the other useEffect based on userRole
     }
     setIsInitialLoading(false);
 
@@ -40,10 +50,12 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    // This ensures activeTab is correctly set if userRole changes (e.g. after selection)
+    // This ensures activeTab is correctly set if userRole changes (e.g. after selection or load)
     if (userRole) {
       setActiveTab(userRole === 'recruiter' ? "findTalent" : "findJobs");
     }
+    // If userRole is null, activeTab might remain its default or what it was, 
+    // but it won't matter as tabs aren't shown.
   }, [userRole]);
 
 
