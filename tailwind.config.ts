@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -6,6 +7,11 @@ export default {
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  safelist: [ // Ensure these grid column classes are generated
+    'grid-cols-3',
+    'grid-cols-4',
+    'grid-cols-5',
   ],
   theme: {
   	extend: {
