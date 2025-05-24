@@ -122,7 +122,21 @@ body {
   animation: gradientBG 15s ease infinite;
 }
 
-/* Orange to Purple gradient for Recruiter/Boss role (Original Purple/Orange) */
+/* Reddish gradient for Recruiter/Boss role */
+.recruiter-role-bg-reddish {
+  background: linear-gradient(135deg, hsl(0, 80%, 70%), hsl(340, 70%, 50%)); /* Light Pink/Red to Deeper Red */
+  background-size: 200% 200%;
+  animation: gradientBG 10s ease infinite alternate;
+}
+
+/* Blueish gradient for Job Seeker/Staff role */
+.jobseeker-role-bg-blueish {
+  background: linear-gradient(135deg, hsl(200, 80%, 70%), hsl(220, 70%, 50%)); /* Light Blue to Deeper Blue */
+  background-size: 200% 200%;
+  animation: gradientBG 10s ease infinite alternate;
+}
+
+/* Orange to Purple gradient for Recruiter/Boss role */
 .recruiter-role-bg {
   background: linear-gradient(135deg, hsl(25, 95%, 65%), hsl(280, 75%, 55%)); /* Orange to Purple */
   background-size: 200% 200%;
@@ -158,4 +172,13 @@ body {
 
 .animate-pulse-selection {
   animation: pulseSelection 0.8s ease-out;
+}
+
+/* Hide scrollbar utility class */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

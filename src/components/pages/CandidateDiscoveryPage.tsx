@@ -7,7 +7,7 @@ import { mockCandidates } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
-import { Card, CardFooter } from '@/components/ui/card';
+import { CardFooter } from '@/components/ui/card';
 import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -159,7 +159,7 @@ export function CandidateDiscoveryPage() {
   return (
     <div 
       ref={feedContainerRef}
-      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth"
+      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
       style={{ height: 'calc(100vh - 160px)' }} // Adjust 160px based on header/tabs/footer height
     >
       {visibleCandidates.map((candidate, index) => (

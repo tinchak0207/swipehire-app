@@ -159,7 +159,7 @@ export function JobDiscoveryPage() {
   return (
     <div 
       ref={feedContainerRef}
-      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth"
+      className="w-full max-w-xl mx-auto snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar"
       style={{ height: 'calc(100vh - 160px)' }} // Adjust 160px based on header/tabs/footer height
     >
       {visibleCompanies.map(company => (
