@@ -103,7 +103,7 @@ export function CandidateDiscoveryPage() {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
-  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save') => {
+  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => {
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
 
@@ -128,11 +128,15 @@ export function CandidateDiscoveryPage() {
     if (action === 'like') {
       newLiked.add(candidateId);
       message = `Liked ${candidate.name}`;
+      // Simulate a match (30% chance)
       if (Math.random() > 0.7) {
         toast({
           title: "🎉 It's a Match!",
-          description: `You and ${candidate.name} are both interested!`,
+          description: `You and ${candidate.name} are both interested! Check 'My Matches'.`,
         });
+        // For a more complete simulation, you might also add the corresponding company to a 'companyLikedByCandidate' list
+        // if your MatchesPage logic depends on such mutual explicit likes from both sides stored separately.
+        // For now, the MatchesPage likely infers matches from the likedCandidates and likedCompanies lists.
       }
     } else if (action === 'pass') {
       newPassed.add(candidateId);
@@ -142,12 +146,19 @@ export function CandidateDiscoveryPage() {
       toastVariant = "destructive";
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
-      newLiked.add(candidateId);
+      newLiked.add(candidateId); // Superlike implies a like
       message = `Super liked ${candidate.name}! They'll be notified.`;
+       // Simulate a higher chance of match for superlike
+      if (Math.random() > 0.5) {
+        toast({
+          title: "🎉 It's a Super Match!",
+          description: `You and ${candidate.name} are both super interested! Check 'My Matches'.`,
+        });
+      }
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
       toast({ title: message, description: "Detailed view/expansion to be implemented." });
-      return;
+      return; // No state update needed for details toast only
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
         newSaved.delete(candidateId);
@@ -167,13 +178,13 @@ export function CandidateDiscoveryPage() {
     setSavedCandidates(newSaved);
     updateLocalStorageSet('savedCandidatesDemo', newSaved);
 
-    if (action !== 'details') {
+    if (action !== 'details') { // Avoid double toast if details also toasts
         toast({ title: message, variant: toastVariant });
     }
   };
 
   const visibleCandidates = displayedCandidates.filter(c => !passedCandidates.has(c.id));
-  const fixedElementsHeight = '160px';
+  const fixedElementsHeight = '160px'; // Estimate for header and tabs/mobile menu
 
   return (
     <div
@@ -273,3 +284,5 @@ export function CandidateDiscoveryPage() {
     </div>
   );
 }
+
+    

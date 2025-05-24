@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Company } from '@/lib/types';
+// import { mockCompanies } from '@/lib/mockData'; // Will be fetched via service
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
@@ -99,7 +100,7 @@ export function JobDiscoveryPage() {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
-  const handleAction = (companyId: string, action: 'like' | 'pass' | 'superlike' | 'details' | 'save') => {
+  const handleAction = (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => {
     const company = displayedCompanies.find(c => c.id === companyId);
     if (!company) return;
 
@@ -124,10 +125,11 @@ export function JobDiscoveryPage() {
     if (action === 'like') {
       newLiked.add(companyId);
       message = `Interested in ${company.name}`;
+      // Simulate a match (30% chance)
       if (Math.random() > 0.7) {
         toast({
           title: "🎉 Company Interested!",
-          description: `${company.name} is also interested in profiles like yours!`,
+          description: `${company.name} is also interested in profiles like yours! Check 'My Matches'.`,
         });
       }
     } else if (action === 'pass') {
@@ -138,12 +140,19 @@ export function JobDiscoveryPage() {
       toastVariant = "destructive";
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
-      newLiked.add(companyId);
+      newLiked.add(companyId); // Superlike implies a like
       message = `Super liked ${company.name}! Your profile will be prioritized.`;
+      // Simulate a higher chance of match for superlike
+      if (Math.random() > 0.5) {
+         toast({
+          title: "🎉 Company Super Interested!",
+          description: `${company.name} is also very interested in profiles like yours! Check 'My Matches'.`,
+        });
+      }
     } else if (action === 'details') {
       message = `Viewing details for ${company.name}`;
       toast({ title: message, description: "Detailed view/expansion to be implemented." });
-      return;
+      return; // No state update needed for details toast only
     } else if (action === 'save') {
       if (newSaved.has(companyId)) {
         newSaved.delete(companyId);
@@ -163,13 +172,13 @@ export function JobDiscoveryPage() {
     setSavedCompanies(newSaved);
     updateLocalStorageSet('savedCompaniesDemo', newSaved);
 
-    if (action !== 'details') {
+    if (action !== 'details') { // Avoid double toast if details also toasts
         toast({ title: message, variant: toastVariant });
     }
   };
 
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
-  const fixedElementsHeight = '160px';
+  const fixedElementsHeight = '160px'; // Estimate for header and tabs/mobile menu
 
   if (isInitialLoading && displayedCompanies.length === 0 && isLoading) {
      return (
@@ -280,3 +289,5 @@ export function JobDiscoveryPage() {
     </div>
   );
 }
+
+    
