@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3 } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -388,10 +388,11 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               <div>
                 <h4 className="font-semibold text-primary">Professional Edition ($299/month - Conceptual)</h4>
                 <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
-                  <li>Unlimited right-sliding</li>
-                  <li>Advanced Screening (Skill Set, Salary, Arrival Time)</li>
-                  <li>Priority Recommendation</li>
-                  <li>Batch Operations & Detailed Analysis Reports</li>
+                  <li>Unlimited right-sliding opportunities</li>
+                  <li>Advanced Screening (Skill Set, Salary Expectation, Arrival Time)</li>
+                  <li>Priority Recommendation (Candidates have priority to see corporate information)</li>
+                  <li>Batch Operation Functions</li>
+                  <li>Detailed Analysis Report</li>
                 </ul>
               </div>
               <div>
@@ -399,8 +400,10 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
                 <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
                   <li>All Professional features</li>
                   <li>Multi-Person Collaboration</li>
-                  <li>Customized Filtering & API Integration</li>
-                  <li>Brand Exposure Optimization & Dedicated Account Manager</li>
+                  <li>Customized Filtering Criteria</li>
+                  <li>API Integration Capability</li>
+                  <li>Dedicated Account Manager</li>
+                  <li>Brand Exposure Optimization</li>
                 </ul>
               </div>
               <div>
@@ -408,13 +411,79 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
                 <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
                   <li>All Enterprise features</li>
                   <li>Proprietary Recruitment Funnel Design</li>
-                  <li>Deep System Integration & Professional Consulting</li>
-                  <li>Advanced Data Analysis & Insight Reports</li>
+                  <li>Deep Integration with Enterprise Systems</li>
+                  <li>Professional Consulting Services</li>
+                  <li>Data Analysis & Insight Reports</li>
                 </ul>
               </div>
             </div>
             <Button variant="outline" disabled className="w-full">
               <BarChart3 className="mr-2 h-4 w-4" /> Manage Subscription (Coming Soon)
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {selectedRole === 'jobseeker' && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+              <Sparkles className="mr-2 h-5 w-5 text-primary" />
+              Value-Added Services for Job Seekers (Future)
+            </CardTitle>
+            <CardDescription>
+              Accelerate your job search and stand out to recruiters.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <div>
+              <h4 className="font-semibold text-primary">Free Basic Functions</h4>
+              <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                <li>Basic Resume Builder</li>
+                <li>AI Script Generation (3 times per month)</li>
+                <li>Basic Video Recording Function</li>
+                <li>Standard Recommendation Algorithm</li>
+                <li>Basic Chat Function</li>
+                <li>20 Swipe Right Opportunities per month</li>
+              </ul>
+            </div>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-semibold text-primary">Job Search Acceleration Package ($99/month - Conceptual)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>Unlimited AI Script Generation</li>
+                  <li>Professional Video Filters & Effects</li>
+                  <li>Advanced Resume Templates</li>
+                  <li>Priority Referrals (Increase Exposure by 30%)</li>
+                  <li>Unlimited Right-Sliding Opportunities</li>
+                  <li>Interview Preparation Resources</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-primary">Job Hunter Pack ($199/month - Conceptual)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>All features of Job Hunting Package</li>
+                  <li>Professional image consulting</li>
+                  <li>Resume review by industry experts</li>
+                  <li>Mock interview practice</li>
+                  <li>Career planning guidance</li>
+                  <li>Priority notification of inbound opportunities</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-primary">Super Member ($399/month - Conceptual)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>All features of the Career Master Package</li>
+                  <li>One-on-one career counselor</li>
+                  <li>Headhunting service</li>
+                  <li>Salary negotiation guidance</li>
+                  <li>Background check report</li>
+                  <li>Lifetime Member Exclusive Events</li>
+                </ul>
+              </div>
+            </div>
+            <Button variant="outline" disabled className="w-full">
+              <Film className="mr-2 h-4 w-4" /> Explore Job Seeker Plans (Coming Soon)
             </Button>
           </CardContent>
         </Card>
