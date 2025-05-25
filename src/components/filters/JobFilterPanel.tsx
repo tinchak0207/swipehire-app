@@ -9,6 +9,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { WorkExperienceLevel, EducationLevel, LocationPreference, JobType, type JobFilters } from '@/lib/types';
 import { X } from 'lucide-react';
+import { SheetHeader, SheetTitle } from "@/components/ui/sheet"; // Added import
 
 interface JobFilterPanelProps {
   activeFilters: JobFilters;
@@ -69,9 +70,9 @@ export function JobFilterPanel({
 
   return (
     <div className="flex flex-col h-full">
-      <header className="p-4 border-b sticky top-0 bg-background z-10">
-        <h3 className="text-lg font-semibold text-primary">Filter Job Postings</h3>
-      </header>
+      <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
+        <SheetTitle className="text-primary">Filter Job Postings</SheetTitle>
+      </SheetHeader>
       <ScrollArea className="flex-grow p-4 space-y-6">
         {createCheckboxGroup('Required Experience', experienceOptions, activeFilters.experienceLevels, 'experienceLevels')}
         <Separator className="my-6" />
