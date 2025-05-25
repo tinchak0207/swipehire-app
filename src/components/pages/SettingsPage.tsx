@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -309,23 +309,57 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
             <ShieldCheck className="mr-2 h-5 w-5 text-primary" />
             Identity Verification
           </CardTitle>
-          <CardDescription>Verify your identity to build trust (Feature Coming Soon).</CardDescription>
+          <CardDescription>Verify your identity to build trust and credibility on the platform.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            We are working on a system to allow you to verify your identity by submitting relevant documents or certificates. 
-            This will help enhance the credibility of your profile.
+            We are working on a system to allow you to verify your identity. This will enhance the credibility of your profile or job postings.
+            Future verification methods may include:
           </p>
+          <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-4">
+            <li>Corporate Mailbox Verification (Planned)</li>
+            <li>Job Reference Checks (Planned)</li>
+            <li>Colleague Cross-Checking (Planned)</li>
+            <li>Document Upload (e.g., professional certificates)</li>
+          </ul>
           <div className="p-4 border-2 border-dashed rounded-md text-center bg-muted/50">
-            <ShieldCheck className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
+            <BadgeCheck className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
             <p className="font-semibold">Verification Portal Coming Soon</p>
-            <p className="text-xs text-muted-foreground">Upload certificates and complete verification steps here.</p>
+            <p className="text-xs text-muted-foreground">Securely upload documents and complete verification steps here.</p>
           </div>
            <Button variant="outline" disabled className="w-full">
-            Upload Certificate (Disabled)
+            Upload Certificate or Document (Disabled)
           </Button>
         </CardContent>
       </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+             <MessageSquare className="mr-2 h-5 w-5 text-primary" />
+            Employee Evaluation System (Conceptual)
+          </CardTitle>
+          <CardDescription>Settings related to how company culture and work environments are reviewed (Future Feature).</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+                This section will allow users to manage settings related to an upcoming employee evaluation system. Our goal is to provide a platform for transparent and constructive feedback.
+            </p>
+            <div className="p-3 border rounded-md bg-muted/30 space-y-2">
+                <p className="text-xs font-medium text-foreground">Key Principles (Planned):</p>
+                <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5 pl-4">
+                    <li>Anonymous and secure submissions.</li>
+                    <li>Multi-dimensional evaluation (work environment, colleagues, management).</li>
+                    <li>Mechanisms for ensuring rating credibility and filtering malicious content.</li>
+                    <li>Balanced reporting to show a comprehensive view.</li>
+                </ul>
+            </div>
+            <Button variant="outline" disabled className="w-full">
+                Manage Evaluation Preferences (Disabled)
+            </Button>
+        </CardContent>
+      </Card>
+
 
       <CardFooter className="flex justify-end pt-6">
         <Button onClick={handleSaveSettings} size="lg">
@@ -337,3 +371,4 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
   );
 }
 
+    
