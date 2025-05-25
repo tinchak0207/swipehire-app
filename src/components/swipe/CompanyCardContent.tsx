@@ -2,9 +2,10 @@
 import type { Company } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import React, { useEffect, useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 interface CompanyCardContentProps {
   company: Company;
@@ -51,14 +52,16 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('video[controls]') && (e.target as HTMLElement).tagName !== 'VIDEO') {
-      const videoElement = (e.target as HTMLElement).closest('video');
+    // Prevent drag if clicking on video controls or other interactive elements
+    const targetElement = e.target as HTMLElement;
+    if (targetElement.closest('video[controls]') && targetElement.tagName !== 'VIDEO') {
+      const videoElement = targetElement.closest('video');
       if (videoElement) {
           const rect = videoElement.getBoundingClientRect();
-          if (e.clientY > rect.bottom - 40) return;
+          if (e.clientY > rect.bottom - 40) return; 
       }
     }
-    if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) {
+    if (targetElement.closest('button, a, input, textarea, [data-no-drag="true"], .no-swipe-area')) {
       return;
     }
     setIsDragging(true);
@@ -84,10 +87,10 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
     setCurrentX(startX); // Snap back visually
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX > 0) { // Swipe Right (mouse dragged to the right)
-        onSwipeAction(company.id, 'like');
-      } else { // Swipe Left (mouse dragged to the left)
+      if (finalDeltaX < 0) { // Swipe Left (mouse dragged to the left)
         onSwipeAction(company.id, 'pass');
+      } else { // Swipe Right (mouse dragged to the right)
+        onSwipeAction(company.id, 'like');
       }
     }
     
@@ -210,6 +213,14 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
             </div>
           )}
         </CardContent>
+
+        {/* Placeholder for Q&A Feature */}
+        <div className="mt-auto pt-2 border-t border-border/50 no-swipe-area">
+          <Button variant="outline" size="sm" className="w-full text-muted-foreground" disabled>
+            <HelpCircle className="mr-2 h-4 w-4" />
+            Instant Q&A (Coming Soon)
+          </Button>
+        </div>
       </div>
     </div>
   );
