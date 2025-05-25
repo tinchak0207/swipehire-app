@@ -9,7 +9,7 @@ import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
-import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react'; // Added Share2
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -48,9 +48,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const filteredCandidates = useMemo(() => {
-    let candidates = [...allCandidates]; // Start with a copy of all candidates
+    let candidates = [...allCandidates]; 
 
-    // Apply active filters
     if (activeFilters.experienceLevels.size > 0) {
       candidates = candidates.filter(c => c.workExperienceLevel && activeFilters.experienceLevels.has(c.workExperienceLevel));
     }
@@ -66,7 +65,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       );
     }
 
-    // Apply search term
     const lowerSearchTerm = searchTerm.toLowerCase();
     if (searchTerm.trim()) {
       candidates = candidates.filter(candidate =>
@@ -87,13 +85,11 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     }
     setIsLoading(true);
 
-    // Simulate API delay
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredCandidates.slice(currentIndex, newLoadIndex);
 
       setDisplayedCandidates(prevDisplayed => {
-        // Ensure unique items if re-filtering might re-introduce already displayed ones
         const prevIds = new Set(prevDisplayed.map(c => c.id));
         const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
         return [...prevDisplayed, ...uniqueNewItems];
@@ -107,35 +103,25 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
 
 
   useEffect(() => {
-    // Reset and load initial batch whenever filteredCandidates array changes
     setDisplayedCandidates([]);
     setCurrentIndex(0);
-    // setHasMore must be true if there are items to load, false otherwise.
-    // loadMoreCandidates itself will set hasMore to false if it loads all remaining items.
     setHasMore(filteredCandidates.length > 0); 
     if (filteredCandidates.length > 0) {
-      // Call loadMoreCandidates directly to load the first batch
-      // instead of relying on the intersection observer initially.
-      // The loadMoreCandidates should ideally reset its own loading state.
-      setIsLoading(false); // Ensure loading is false before calling
+      setIsLoading(false); 
       
-      // Directly load the first batch.
-      // We need to ensure currentIndex is 0 for this first call.
       const newLoadIndex = 0 + ITEMS_PER_BATCH;
       const newBatch = filteredCandidates.slice(0, newLoadIndex);
       setDisplayedCandidates(newBatch);
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredCandidates.length);
     } else {
-      // If no candidates match filters/search, ensure displayed is empty and no more to load.
       setDisplayedCandidates([]);
       setCurrentIndex(0);
       setHasMore(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates]); // IMPORTANT: Only depend on filteredCandidates itself.
+  }, [filteredCandidates]); 
 
-  // IntersectionObserver for infinite scroll
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
 
@@ -144,8 +130,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         loadMoreCandidates();
       }
     }, {
-        threshold: 0.1, // Trigger when 10% of the trigger element is visible
-        rootMargin: '0px 0px 300px 0px' // Start loading 300px before the end
+        threshold: 0.1, 
+        rootMargin: '0px 0px 300px 0px' 
     });
 
     if (loadMoreTriggerRef.current) {
@@ -157,7 +143,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         observer.current.disconnect();
       }
     };
-  }, [hasMore, isLoading, loadMoreCandidates]); // Dependencies for the observer setup
+  }, [hasMore, isLoading, loadMoreCandidates]); 
 
 
   useEffect(() => {
@@ -175,7 +161,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
-  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => {
+  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => {
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
 
@@ -187,7 +173,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     const newPassed = new Set(passedCandidates);
     const newSaved = new Set(savedCandidates);
 
-    // Logic to manage the sets based on action
     if (action !== 'pass') newPassed.delete(candidateId);
     if (action !== 'like' && action !== 'superlike') newLiked.delete(candidateId);
     if (action !== 'superlike') newSuperLiked.delete(candidateId);
@@ -195,10 +180,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     if (action === 'like') {
       newLiked.add(candidateId);
       message = `Liked ${candidate.name}`;
-      if (Math.random() > 0.7) { // Simulate a match
+      if (Math.random() > 0.7) { 
         toast({
           title: "🎉 It's a Match!",
-          description: `You and ${candidate.name} are both interested! Check 'My Matches' to generate an icebreaker.`,
+          description: `You and ${candidate.name} are both interested! Check 'My Matches' to start a conversation.`,
           duration: 7000,
         });
       } else {
@@ -206,19 +191,19 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
     } else if (action === 'pass') {
       newPassed.add(candidateId);
-      newLiked.delete(candidateId); // Cannot be liked and passed
-      newSuperLiked.delete(candidateId); // Cannot be superliked and passed
+      newLiked.delete(candidateId); 
+      newSuperLiked.delete(candidateId); 
       message = `Passed on ${candidate.name}`;
       toastVariant = "destructive";
       toast({ title: message, variant: toastVariant });
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
-      newLiked.add(candidateId); // Superlike also implies a like
+      newLiked.add(candidateId); 
       message = `Super liked ${candidate.name}!`;
-       if (Math.random() > 0.5) { // Higher chance of match for superlike
+       if (Math.random() > 0.5) { 
          toast({
           title: "🎉 It's a Super Match!",
-          description: `You and ${candidate.name} are very interested! Check 'My Matches' to generate an icebreaker.`,
+          description: `You and ${candidate.name} are very interested! Check 'My Matches' to start a conversation.`,
           duration: 7000,
         });
       } else {
@@ -226,9 +211,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
-      // Here you would typically open a modal or navigate to a detail page
       toast({ title: message, description: "Detailed view/expansion to be implemented." });
-      return; // Details action doesn't change like/pass/save state directly
+      return; 
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
         newSaved.delete(candidateId);
@@ -238,6 +222,17 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         message = `Saved ${candidate.name}!`;
       }
       toast({ title: message });
+    } else if (action === 'share') {
+      const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}. (URL: ${window.location.origin})`;
+      navigator.clipboard.writeText(shareText)
+        .then(() => {
+          toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
+        })
+        .catch(err => {
+          console.error('Failed to copy: ', err);
+          toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
+        });
+      return; // Share action doesn't change other states
     }
 
     setLikedCandidates(newLiked); updateLocalStorageSet('likedCandidatesDemo', newLiked);
@@ -252,13 +247,12 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     isChecked: boolean
   ) => {
     setActiveFilters(prevFilters => {
-      const newSet = new Set(prevFilters[filterType] as Set<any>); // Cast to Set<any> for manipulation
+      const newSet = new Set(prevFilters[filterType] as Set<any>); 
       if (isChecked) {
         newSet.add(value);
       } else {
         newSet.delete(value);
       }
-      // No need to call applyFilters here, useMemo will trigger re-filter
       return {
         ...prevFilters,
         [filterType]: newSet,
@@ -268,14 +262,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
 
   const handleClearFilters = () => {
     setActiveFilters(initialFilters);
-    // Optionally close the sheet if desired, or let Apply Filters do it
-    // setIsSheetOpen(false); 
   };
 
   const handleApplyFilters = () => {
-    setIsSheetOpen(false); // Close the sheet
-    // The filtering is reactive via useMemo, so no explicit re-fetch needed here for client-side filtering
-    // The useEffect depending on filteredCandidates will handle resetting displayed list and loading initial batch
+    setIsSheetOpen(false); 
   };
 
   const countActiveFilters = () => {
@@ -287,10 +277,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   };
   const numActiveFilters = countActiveFilters();
 
-
-  // Estimate the height of fixed elements (header, tabs, filter button area)
-  // This might need adjustment based on your actual layout
-  const fixedElementsHeight = '200px'; // Increased to account for the new filter bar
+  const fixedElementsHeight = '160px'; // Approximate height for header and filter bar
   const visibleCandidates = displayedCandidates.filter(c => !passedCandidates.has(c.id));
 
   return (
@@ -335,7 +322,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                           ${superLikedCandidates.has(candidate.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCandidates.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
             >
               <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} />
-              <CardFooter className="p-2 sm:p-3 grid grid-cols-5 gap-1 sm:gap-2 border-t bg-card shrink-0">
+              <CardFooter className="p-2 sm:p-3 grid grid-cols-6 gap-1 sm:gap-2 border-t bg-card shrink-0">
                 <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => handleAction(candidate.id, 'pass')} aria-label={`Pass on ${candidate.name}`}>
                   <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
                 </Button>
@@ -351,6 +338,9 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                 <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCandidates.has(candidate.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => handleAction(candidate.id, 'save')} aria-label={`Save ${candidate.name}`}>
                   <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCandidates.has(candidate.id) ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
                 </Button>
+                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => handleAction(candidate.id, 'share')} aria-label={`Share ${candidate.name}`}>
+                  <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
+                </Button>
               </CardFooter>
             </SwipeCard>
           </div>
@@ -362,19 +352,13 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
             <p>Loading more candidates...</p>
           </div>
         )}
-
-        {/* This div is the trigger for loading more */}
-        {hasMore && !isLoading && filteredCandidates.length > 0 && currentIndex < filteredCandidates.length && (
+        
+        {hasMore && !isLoading && filteredCandidates.length > 0 && (
            <div
              ref={loadMoreTriggerRef}
-             className="h-full snap-start snap-always flex items-center justify-center text-muted-foreground" 
-             // This element should be within the scrollable container, but not necessarily take full height if that's an issue.
-             // A small sentinel div is often enough if rootMargin is set appropriately.
-             // Making it full height can cause issues if it's the *only* thing left and user can't scroll past it.
-             // Let's make it small:
-             // style={{ height: '1px' }} 
+             className="h-full snap-start snap-always flex items-center justify-center text-muted-foreground"
            >
-            {/* Optionally, a very subtle "loading more..." could be here if it's made visible */}
+            {/* This element is now a full snap item to ensure it's observed correctly */}
            </div>
         )}
 

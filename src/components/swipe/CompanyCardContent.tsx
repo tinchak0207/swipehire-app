@@ -2,17 +2,17 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2 } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2 } from 'lucide-react'; // Added Share2
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { useToast } from '@/hooks/use-toast';
-import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types'; // Import enums
+import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types'; 
 
 interface CompanyCardContentProps {
   company: Company;
-  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => void;
+  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => void;
 }
 
 const MAX_DESCRIPTION_LENGTH = 100;
@@ -21,6 +21,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const { toast } = useToast(); // Initialize toast
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -30,7 +31,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
   const [aiJobFitAnalysis, setAiJobFitAnalysis] = useState<ProfileRecommenderOutput['candidateJobFitAnalysis'] | null>(null);
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
-  const { toast } = useToast();
+
 
   const fetchAiAnalysis = useCallback(async () => {
     if (!company || !company.jobOpenings || company.jobOpenings.length === 0) {
@@ -41,19 +42,22 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
     try {
       const jobSeekerProfile: CandidateProfileForAI = {
-        id: 'currentUserProfile', // Placeholder ID for the current user
+        id: 'currentUserProfile', 
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s) || [],
         location: localStorage.getItem('userAddressSettings') || localStorage.getItem('userCountrySettings') || undefined,
         desiredWorkStyle: localStorage.getItem('jobSeekerDesiredWorkStyle') || undefined,
         pastProjects: localStorage.getItem('jobSeekerPastProjects') || undefined,
-        // The following fields are not yet in MyProfilePage.tsx, so pass undefined or defaults
-        // If these were enums, ensure they are correctly typed or mapped
-        workExperienceLevel: WorkExperienceLevel.UNSPECIFIED, // Placeholder
-        educationLevel: EducationLevel.UNSPECIFIED, // Placeholder
-        locationPreference: LocationPreference.UNSPECIFIED, // Placeholder
-        // salaryExpectationMin, salaryExpectationMax, availability, jobTypePreference would also be fetched if available
+        workExperienceLevel: (localStorage.getItem('jobSeekerExperienceLevel') as WorkExperienceLevel) || WorkExperienceLevel.UNSPECIFIED,
+        educationLevel: (localStorage.getItem('jobSeekerEducationLevel') as EducationLevel) || EducationLevel.UNSPECIFIED,
+        locationPreference: (localStorage.getItem('jobSeekerLocationPreference') as LocationPreference) || LocationPreference.UNSPECIFIED,
+        languages: localStorage.getItem('jobSeekerLanguages')?.split(',').map(s => s.trim()).filter(s => s) || [],
+        salaryExpectationMin: parseInt(localStorage.getItem('jobSeekerSalaryMin') || '0') || undefined,
+        salaryExpectationMax: parseInt(localStorage.getItem('jobSeekerSalaryMax') || '0') || undefined,
+        availability: (localStorage.getItem('jobSeekerAvailability') as Availability) || Availability.UNSPECIFIED,
+        jobTypePreference: (localStorage.getItem('jobSeekerJobTypePreference')?.split(',') as JobType[]) || [],
+        personalityAssessment: JSON.parse(localStorage.getItem('jobSeekerPersonalityAssessment') || 'null') || undefined,
       };
       
       const currentJobOpening = company.jobOpenings[0];
@@ -81,11 +85,10 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       }
     } catch (error) {
       console.error("Error fetching AI job fit analysis:", error);
-      toast({ title: "AI Analysis Error", description: "Failed to get AI insights for this job.", variant: "destructive" });
+      toast({ title: "AI Analysis Error", description: "Failed to get AI insights for this job. Please ensure your profile in 'My Profile' is up to date.", variant: "destructive" });
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company, toast]);
 
 
@@ -126,20 +129,18 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
      if (targetElement.closest('video[controls]') || targetElement.closest('button') || targetElement.closest('a') || targetElement.closest('[data-no-drag="true"]') || targetElement.closest('.no-swipe-area')) {
-      // Check if click is on video controls bar
       if (targetElement.tagName === 'VIDEO') {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) { // Approximate height of controls bar
+        if (e.clientY > rect.bottom - 40) { 
           return;
         }
       } else if (targetElement.closest('video[controls]') && !targetElement.classList.contains('no-swipe-area')) {
-         // If it's part of the video but not explicitly no-swipe (like the video element itself), allow swipe
       } else {
-        return; // Don't start drag if on button, link, or specifically marked no-drag area
+        return; 
       }
     }
-
+    e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
     setCurrentX(e.clientX); 
@@ -165,9 +166,9 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
       if (finalDeltaX < 0) { 
-        onSwipeAction(company.id, 'pass');
+        onSwipeAction(company.id, 'pass'); // Swiped Left (original: 'pass')
       } else { 
-        onSwipeAction(company.id, 'like');
+        onSwipeAction(company.id, 'like'); // Swiped Right (original: 'like')
       }
     } else {
        if (cardContentRef.current) {
@@ -186,6 +187,9 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
       setCurrentX(startX); 
+      if (cardContentRef.current) {
+        cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+      }
       setIsDragging(false);
       cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
@@ -213,7 +217,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   return (
     <div
       ref={cardContentRef}
-      className="flex flex-col h-full overflow-hidden relative"
+      className="flex flex-col h-full overflow-hidden relative bg-card"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -223,7 +227,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         transform: getCardTransform(),
       }}
     >
-      <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[60vh]"> {/* Ensure video doesn't take too much screen */}
+      <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100vh_-_300px)] md:max-h-[calc(100vh_-_250px)]">
         {company.introVideoUrl ? (
           <video
             ref={videoRef}
@@ -287,9 +291,15 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
           <p className="text-muted-foreground pt-1">
             {displayedDescription}
             {descriptionText.length > MAX_DESCRIPTION_LENGTH && (
-              <button onClick={toggleDescription} className="text-primary hover:underline ml-1 text-xs font-semibold" data-no-drag="true">
+              <Button 
+                variant="link" 
+                size="sm" 
+                onClick={toggleDescription} 
+                className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold no-swipe-area" 
+                data-no-drag="true"
+              >
                 {showFullDescription ? "Read less" : "Read more"}
-              </button>
+              </Button>
             )}
           </p>
 

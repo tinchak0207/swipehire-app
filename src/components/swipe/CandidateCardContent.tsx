@@ -2,15 +2,16 @@
 import type { Candidate, PersonalityTraitAssessment } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles } from 'lucide-react'; // Added Sparkles for Hidden Gem
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2 } from 'lucide-react'; // Added Share2
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useToast } from '@/hooks/use-toast'; // Added useToast
 
 interface CandidateCardContentProps {
   candidate: Candidate;
-  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => void;
+  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => void;
 }
 
 const MAX_SUMMARY_LENGTH = 120;
@@ -19,12 +20,13 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const [showFullSummary, setShowFullSummary] = useState(false);
+  const { toast } = useToast(); // Initialize toast
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0); // Tracks current X for visual drag
+  const [currentX, setCurrentX] = useState(0);
   const SWIPE_THRESHOLD = 75;
-  const MAX_ROTATION = 10; // Max rotation in degrees
+  const MAX_ROTATION = 10;
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -56,26 +58,24 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
-    // Prevent drag if clicking on video controls, buttons, links, or explicitly no-drag areas
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
         if (targetElement.tagName === 'VIDEO') {
             const videoElement = targetElement as HTMLVideoElement;
             const rect = videoElement.getBoundingClientRect();
-            // Check if the click is near the bottom where controls usually are
-            if (e.clientY > rect.bottom - 40) return; 
+            if (e.clientY > rect.bottom - 40) return;
         } else {
           return;
         }
     }
-
+    e.preventDefault(); // Prevent text selection during drag
     setIsDragging(true);
     setStartX(e.clientX);
     setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; // No transition during drag
+      cardContentRef.current.style.transition = 'none';
     }
-    document.body.style.userSelect = 'none'; 
+    document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -86,18 +86,17 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
     
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Re-enable transition for snap-back
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
     const finalDeltaX = e.clientX - startX;
-    setCurrentX(startX); // Reset visual position for snap-back
+    setCurrentX(startX);
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { // Swiped Left
-        onSwipeAction(candidate.id, 'pass');
-      } else { // Swiped Right
-        onSwipeAction(candidate.id, 'like');
+      if (finalDeltaX < 0) { 
+        onSwipeAction(candidate.id, 'pass'); // Swiped Left (original: 'pass')
+      } else { 
+        onSwipeAction(candidate.id, 'like'); // Swiped Right (original: 'like')
       }
     } else {
-      // Snap back if not a full swipe
       if (cardContentRef.current) {
          cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -113,13 +112,13 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); // Reset for visual snap back
+      setCurrentX(startX);
+      if (cardContentRef.current) {
+        cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+      }
       setIsDragging(false);
       cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
-       if (cardContentRef.current) { // Ensure it snaps back
-         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-       }
     }
   };
   
@@ -136,7 +135,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       case 'positive':
         return <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 shrink-0" />;
       case 'neutral':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />; // Changed from AlertCircle
+        return <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />;
       case 'negative':
         return <XCircle className="h-4 w-4 text-red-500 mr-1.5 shrink-0" />;
       default:
@@ -145,7 +144,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   };
 
   const toggleSummary = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card swipe when clicking "Read more/less"
+    e.stopPropagation(); 
     setShowFullSummary(!showFullSummary);
   };
 
@@ -156,7 +155,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   return (
     <div
       ref={cardContentRef}
-      className="flex flex-col h-full overflow-hidden relative"
+      className="flex flex-col h-full overflow-hidden relative bg-card"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
@@ -166,7 +165,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         transform: getCardTransform(),
       }}
     >
-      <div className="relative w-full bg-muted shrink-0 h-[55%] md:h-[60%]">
+      <div className="relative w-full bg-muted shrink-0 h-[60%] md:h-[60%] max-h-[calc(100vh_-_300px)] md:max-h-[calc(100vh_-_250px)]"> {/* Adjusted max-height */}
         {candidate.videoResumeUrl ? (
           <video
             ref={videoRef}
@@ -178,7 +177,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
             className="w-full h-full object-cover bg-black"
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
-            data-no-drag="true" 
+            data-no-drag="true"
           >
             Your browser does not support the video tag.
           </video>
@@ -198,7 +197,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         )}
       </div>
 
-      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[45%] md:h-[40%]">
+      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[40%]">
         <CardHeader className="p-0 mb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -231,9 +230,15 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
           <p className="text-muted-foreground">
             {displayedSummary}
             {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH && (
-              <button onClick={toggleSummary} className="text-primary hover:underline ml-1 text-xs font-semibold" data-no-drag="true">
+              <Button 
+                variant="link" 
+                size="sm" 
+                onClick={toggleSummary} 
+                className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold no-swipe-area" 
+                data-no-drag="true"
+              >
                 {showFullSummary ? "Read less" : "Read more"}
-              </button>
+              </Button>
             )}
           </p>
 
