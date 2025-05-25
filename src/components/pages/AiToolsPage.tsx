@@ -6,8 +6,8 @@ import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
 import { VideoRecorderUI } from "@/components/video/VideoRecorderUI";
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft } from 'lucide-react';
-import { Card, CardTitle, CardContent } from '@/components/ui/card';
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem } from 'lucide-react'; // Added Gem icon
+import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card'; // Added CardHeader, CardDescription, CardFooter
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -57,15 +57,14 @@ const aiToolsData: AiTool[] = [
   },
 ];
 
-// New component for the animated background
 const AnimatedToolBackground = ({ bgClass, show }: { bgClass: string; show: boolean }) => {
   return (
     <div
       className={cn(
-        "fixed inset-0 transition-opacity duration-500 ease-in-out", // Animates opacity
-        bgClass, // Applies the gradient
-        show ? "opacity-100" : "opacity-0 pointer-events-none", // Controls visibility and interaction
-        "z-0" // Ensures it's behind the main content but covers the page default background
+        "fixed inset-0 transition-opacity duration-500 ease-in-out",
+        bgClass,
+        show ? "opacity-100" : "opacity-0 pointer-events-none",
+        "z-0"
       )}
     />
   );
@@ -82,24 +81,19 @@ export function AiToolsPage() {
 
   const handleBackToGrid = () => {
     setSelectedToolKey(null);
-    // activeBackgroundClass will effectively be "cleared" because AnimatedToolBackground will get show=false
+    setActiveBackgroundClass('');
   };
 
   const SelectedComponent = selectedToolKey ? aiToolsData.find(tool => tool.key === selectedToolKey)?.Component : null;
 
   return (
-    // Main container always has the default theme background.
-    // `relative` is important for z-index stacking context.
     <div className={cn(
       "p-4 md:p-6 space-y-8 min-h-[calc(100vh-200px)] flex flex-col bg-background relative"
     )}>
-      {/* Animated background layer - only rendered and shown when a tool is selected */}
-      {/* It's mounted when a tool is selected to trigger the fade-in animation */}
       {selectedToolKey && activeBackgroundClass && (
         <AnimatedToolBackground bgClass={activeBackgroundClass} show={!!selectedToolKey} />
       )}
 
-      {/* Content area - needs a higher z-index to be on top of the animated background */}
       <div className="relative z-10 flex flex-col flex-grow">
         {!selectedToolKey ? (
           <>
@@ -114,7 +108,7 @@ export function AiToolsPage() {
                   onClick={() => handleToolSelect(tool)}
                   className={cn(
                     "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-8 min-h-[280px] sm:min-h-[320px]",
-                    tool.bgClass // Each card in the grid has its own background
+                    tool.bgClass
                   )}
                 >
                   <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-4 text-white/90 group-hover:scale-110 transition-transform" />
@@ -125,16 +119,64 @@ export function AiToolsPage() {
                 </Card>
               ))}
             </div>
+
+            {/* New Card for Premium Video Services */}
+            <Card className="mt-10 col-span-1 sm:col-span-2 shadow-lg max-w-4xl mx-auto w-full bg-card border">
+              <CardHeader>
+                <CardTitle className="flex items-center text-2xl text-primary">
+                  <Gem className="mr-3 h-6 w-6" />
+                  Premium AI Video Optimization Services
+                </CardTitle>
+                <CardDescription className="text-muted-foreground">
+                  Elevate your video resumes with our professional AI-powered optimization packages. (Future Offering)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-semibold text-lg text-foreground">Basic Optimization Package ($199/time)</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1 pl-4">
+                    <li>Automatic editing and rhythm adjustment</li>
+                    <li>Basic visual beautification (lighting, color)</li>
+                    <li>Standard subtitle generation</li>
+                    <li>Basic quality scoring</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-lg text-foreground">Professional Optimization Package ($499/session)</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1 pl-4">
+                    <li>Advanced editing and effects</li>
+                    <li>Professional voice-overs and background music</li>
+                    <li>Multi-language subtitle support</li>
+                    <li>Industry-specific template application</li>
+                    <li>A/B testing of different versions</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-lg text-foreground">Enterprise Customization Package ($1,299/time)</h4>
+                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1 pl-4">
+                    <li>Fully customized production</li>
+                    <li>Professional photography guidance</li>
+                    <li>Branding elements integration</li>
+                    <li>Multi-platform format output</li>
+                    <li>Professional production team support</li>
+                  </ul>
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button disabled className="w-full sm:w-auto">
+                  Contact Sales for Premium Services (Coming Soon)
+                </Button>
+              </CardFooter>
+            </Card>
+
           </>
         ) : (
-          // When a tool is selected, this div wraps the back button and the tool component.
           <div className="w-full flex-grow flex flex-col">
             <Button
               onClick={handleBackToGrid}
               variant="outline"
               className={cn(
                   "mb-6 text-sm self-start",
-                  // Style button to be visible against the dynamic background
                   "bg-white/20 hover:bg-white/30 border-white/50 text-white backdrop-blur-sm focus:ring-white/50 focus:ring-offset-0"
               )}
             >
@@ -150,4 +192,6 @@ export function AiToolsPage() {
     </div>
   );
 }
+    
+
     
