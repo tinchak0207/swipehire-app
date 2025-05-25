@@ -42,6 +42,11 @@ export enum JobType {
   UNSPECIFIED = 'Unspecified',
 }
 
+export interface PersonalityTraitAssessment {
+  trait: string;
+  fit: 'positive' | 'neutral' | 'negative';
+  reason?: string;
+}
 
 export interface Candidate {
   id: string;
@@ -66,6 +71,10 @@ export interface Candidate {
   salaryExpectationMax?: number;
   availability?: Availability; // e.g., immediate, within 1 month
   jobTypePreference?: JobType[]; // Candidate can prefer multiple job types
+
+  // Fields for Coworker Fit Label
+  personalityAssessment?: PersonalityTraitAssessment[];
+  optimalWorkStyles?: string[];
 }
 
 export interface CompanyJobOpening {
@@ -84,6 +93,8 @@ export interface CompanyJobOpening {
   requiredLanguages?: string[];
   salaryMin?: number; // For more precise filtering
   salaryMax?: number; // For more precise filtering
+  companyCultureKeywords?: string[]; // Added for AI profile recommender
+  companyIndustry?: string; // Added for AI profile recommender
 }
 
 export interface Company {
@@ -94,9 +105,12 @@ export interface Company {
   cultureHighlights: string[];
   logoUrl?: string; // URL or data URI
   dataAiHint?: string; // For logoUrl
-  introVideoUrl?: string; // URL for a company culture video (e.g., office tour, team life, daily work record).
+  // introVideoUrl?: string; // URL for a company culture video (e.g., office tour, team life, daily work record).
+  introVideoUrl?: string; // URL for a company culture video. Content can include office environment, team culture, daily work record.
   jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string; // For icebreaker context
+  salaryRange?: string; // Company-wide typical salary info
+  jobType?: JobType; // Predominant job type if applicable at company level
 }
 
 export interface Match {

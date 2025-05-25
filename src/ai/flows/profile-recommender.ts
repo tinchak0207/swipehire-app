@@ -10,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import type { Candidate, CompanyJobOpening } from '@/lib/types';
+import type { Candidate, CompanyJobOpening, PersonalityTraitAssessment } from '@/lib/types';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 
 // Define Zod enums matching those in types.ts for validation within the flow
@@ -65,6 +65,12 @@ const ProfileRecommenderInputSchema = z.object({
 });
 export type ProfileRecommenderInput = z.infer<typeof ProfileRecommenderInputSchema>;
 
+const PersonalityTraitAssessmentSchema = z.object({
+  trait: z.string().describe("The personality trait identified, e.g., Social, Creative, Independent."),
+  fit: z.enum(['positive', 'neutral', 'negative']).describe("Assessment of the trait's fit for the role/company: 'positive', 'neutral', or 'negative'."),
+  reason: z.string().optional().describe("A brief explanation for the fit assessment.")
+});
+
 const ProfileRecommenderOutputSchema = z.object({
   candidateId: z.string(),
   matchScore: z.number().min(0).max(100).describe("A score from 0 to 100 indicating how well the candidate matches the job criteria."),
@@ -77,6 +83,8 @@ const ProfileRecommenderOutputSchema = z.object({
   }).describe("Breakdown of scores for each weighted category."),
   isUnderestimatedTalent: z.boolean().describe("Indicates if this candidate might be an underestimated talent or hidden gem based on their profile relative to the job criteria."),
   underestimatedReasoning: z.string().optional().describe("Brief reasoning if the candidate is considered underestimated (e.g., strong transferable skills, high growth potential despite lacking specific years of experience for the role, unique project experience that shows adaptability)."),
+  personalityAssessment: z.array(PersonalityTraitAssessmentSchema).optional().describe("An array of personality trait assessments based on the candidate's profile and the company culture."),
+  optimalWorkStyles: z.array(z.string()).optional().describe("A list of optimal work style characteristics suitable for the candidate in the context of the role/company."),
 });
 export type ProfileRecommenderOutput = z.infer<typeof ProfileRecommenderOutputSchema>;
 
@@ -90,7 +98,7 @@ const profileRecommenderPrompt = ai.definePrompt({
   input: {schema: ProfileRecommenderInputSchema},
   output: {schema: ProfileRecommenderOutputSchema},
   prompt: `You are an AI HR expert specializing in evaluating candidate profiles against job requirements and company culture.
-Your task is to assess the provided Candidate Profile based on the Job Criteria and return a match score, a reasoning statement, weighted scores, and an assessment of whether the candidate is an "underestimated talent".
+Your task is to assess the provided Candidate Profile based on the Job Criteria and return a match score, a reasoning statement, weighted scores, an "underestimated talent" assessment, a personality fit assessment, and optimal work style suggestions.
 
 Candidate Profile:
 ID: {{{candidateProfile.id}}}
@@ -142,7 +150,21 @@ Consider these factors:
 
 If you identify such potential, set \`isUnderestimatedTalent\` to true and provide a brief \`underestimatedReasoning\` explaining why (e.g., "Strong transferable skills in X make them a high-potential candidate despite lacking Y years in the specific role," or "Unique project Z demonstrates adaptability and quick learning relevant to this position."). Otherwise, set \`isUnderestimatedTalent\` to false.
 
-Return the candidateId ("{{{candidateProfile.id}}}") along with all scores, reasoning, and the underestimated talent assessment.
+**Personality Fit & Work Style Assessment (for Coworker Fit Label):**
+Based on the candidate's \`desiredWorkStyle\`, \`experienceSummary\`, and overall profile, assess their potential fit with a typical professional environment, considering the job's nature and the company's culture keywords ({{{jobCriteria.companyCultureKeywords}}}).
+-   **Personality Assessment:** Identify 2-3 key personality traits. For each trait, provide:
+    *   \`trait\`: The name of the trait (e.g., "Social", "Creative", "Independent", "Detail-Oriented").
+    *   \`fit\`: Assess this trait's fit as 'positive', 'neutral', or 'negative' in the context of the job criteria. 'Positive' means the trait is likely beneficial. 'Neutral' means it could be good or a challenge depending on the specific team and role nuances. 'Negative' means it might pose a challenge.
+    *   \`reason\`: A very brief justification for the fit assessment (e.g., "Enjoys interacting with people, aligns with collaborative culture", "Prefers to work independently, needs adaptable environment", "May find fast-paced environment challenging if excessively detail-focused without flexibility").
+    Limit to a maximum of 3-4 assessments.
+-   **Optimal Work Styles:** List 2-4 bullet points describing work style characteristics or environments where this candidate would likely thrive or be most effective, considering their profile and the job criteria. Examples:
+    *   "Open collaboration, encourages cross-departmental communication"
+    *   "Agile development, fast iterative feedback"
+    *   "Structured environment with clear goals"
+    *   "Autonomy in task execution"
+    *   "Learning-oriented, supports technical exploration"
+
+Return the candidateId ("{{{candidateProfile.id}}}") along with all scores, reasoning, the underestimated talent assessment, personality assessment, and optimal work style suggestions.
 `,
 });
 
@@ -168,7 +190,9 @@ const profileRecommenderFlow = ai.defineFlow(
           growthPotentialScore: 0,
         },
         isUnderestimatedTalent: false,
-        underestimatedReasoning: "AI analysis failed."
+        underestimatedReasoning: "AI analysis failed.",
+        personalityAssessment: [],
+        optimalWorkStyles: []
       };
     }
     // Ensure candidateId is correctly passed through.

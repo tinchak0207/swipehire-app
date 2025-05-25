@@ -1,8 +1,8 @@
 
-import type { Candidate } from '@/lib/types';
+import type { Candidate, PersonalityTraitAssessment } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, MessageSquare } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import React, { useEffect, useRef, useState } from 'react';
 
@@ -50,16 +50,15 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent drag if clicking on video controls
-    if ((e.target as HTMLElement).closest('video[controls]') && (e.target as HTMLElement).tagName !== 'VIDEO') {
-      const videoElement = (e.target as HTMLElement).closest('video');
-      if (videoElement) {
-          const rect = videoElement.getBoundingClientRect();
-          // Heuristic: if click is in bottom ~40px of video, assume it's controls
-          if (e.clientY > rect.bottom - 40) return; 
-      }
+    const targetElement = e.target as HTMLElement;
+    if (targetElement.closest('video[controls]') && targetElement.tagName !== 'VIDEO') {
+        const videoElement = targetElement.closest('video');
+        if (videoElement) {
+            const rect = videoElement.getBoundingClientRect();
+            if (e.clientY > rect.bottom - 40) return;
+        }
     }
-    if ((e.target as HTMLElement).closest('button, a, input, textarea, [data-no-drag="true"]')) {
+    if (targetElement.closest('button, a, input, textarea, [data-no-drag="true"], .no-swipe-area')) {
       return;
     }
 
@@ -68,7 +67,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; 
+      cardContentRef.current.style.transition = 'none';
     }
     document.body.style.userSelect = 'none';
   };
@@ -82,14 +81,14 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     if (!isDragging || !cardContentRef.current) return;
     
     cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    const finalDeltaX = e.clientX - startX; // Use final clientX for action logic
-    setCurrentX(startX); // Snap back visually by resetting currentX to startX
+    const finalDeltaX = e.clientX - startX;
+    setCurrentX(startX); 
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX > 0) { // Swipe Right (mouse dragged to the right)
-        onSwipeAction(candidate.id, 'like');
-      } else { // Swipe Left (mouse dragged to the left)
+      if (finalDeltaX < 0) { 
         onSwipeAction(candidate.id, 'pass');
+      } else { 
+        onSwipeAction(candidate.id, 'like');
       }
     }
     
@@ -103,7 +102,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); // Snap back
+      setCurrentX(startX); 
       setIsDragging(false);
       cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
@@ -116,6 +115,19 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
+  };
+  
+  const renderPersonalityFitIcon = (fit: PersonalityTraitAssessment['fit']) => {
+    switch (fit) {
+      case 'positive':
+        return <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 shrink-0" />;
+      case 'neutral':
+        return <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />;
+      case 'negative':
+        return <XCircle className="h-4 w-4 text-red-500 mr-1.5 shrink-0" />;
+      default:
+        return null;
+    }
   };
 
   return (
@@ -131,7 +143,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         transform: getCardTransform(),
       }}
     >
-      {/* Video/Image Container - Takes up a larger portion of height */}
       <div className="relative w-full bg-muted shrink-0 h-[60%]">
         {candidate.videoResumeUrl ? (
           <video
@@ -164,7 +175,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         )}
       </div>
 
-      {/* Content Area - Takes remaining height and is scrollable if needed */}
       <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[40%]">
         <CardHeader className="p-0 mb-2">
           <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -180,7 +190,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm">
           <p className="text-muted-foreground line-clamp-3 sm:line-clamp-4">
             {candidate.experienceSummary}
-             {candidate.experienceSummary.length > 120 && <span className="text-primary cursor-pointer hover:underline ml-1 text-xs">Read more</span>}
+             {candidate.experienceSummary.length > 120 && <span className="text-primary cursor-pointer hover:underline ml-1 text-xs" onClick={(e) => {e.stopPropagation(); onSwipeAction(candidate.id, 'details')}}>Read more</span>}
           </p>
 
           {candidate.desiredWorkStyle && (
@@ -202,6 +212,40 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
             </div>
           )}
         </CardContent>
+
+        {/* Coworker Fit Label Section */}
+        {(candidate.personalityAssessment || candidate.optimalWorkStyles) && (
+          <div className="mt-2 pt-2 border-t border-border/50 text-xs">
+            <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
+              <Users className="h-4 w-4 mr-1.5 text-primary" /> Coworker Fit Profile:
+            </h4>
+            {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 && (
+              <div className="mb-2 space-y-1">
+                <p className="font-medium text-foreground">Personality Insights:</p>
+                {candidate.personalityAssessment.map((item, index) => (
+                  <div key={index} className="flex items-start">
+                    {renderPersonalityFitIcon(item.fit)}
+                    <div>
+                      <span className="font-semibold">{item.trait}:</span>
+                      <span className="text-muted-foreground ml-1">{item.reason || (item.fit === 'positive' ? 'Likely a good fit.' : item.fit === 'neutral' ? 'Potential to consider.' : 'Potential challenge.')}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 && (
+              <div>
+                <p className="font-medium text-foreground">Optimal Work Style:</p>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5">
+                  {candidate.optimalWorkStyles.map((style, index) => (
+                    <li key={index}>{style}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
 
         {candidate.profileStrength && (
           <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">

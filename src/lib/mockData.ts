@@ -9,6 +9,7 @@ import {
   Availability,
   JobType,
   type DiaryPost,
+  type PersonalityTraitAssessment,
 } from './types';
 
 export const mockCandidates: Candidate[] = [
@@ -23,9 +24,8 @@ export const mockCandidates: Candidate[] = [
     videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', // Actual video URL placeholder
     profileStrength: 90,
     location: "San Francisco, CA",
-    desiredWorkStyle: "Fully Remote, Flexible Hours",
+    desiredWorkStyle: "Fully Remote, Flexible Hours, Collaborative projects",
     pastProjects: "Developed an e-commerce recommendation engine, Contributed to open-source ML library",
-    // New fields
     workExperienceLevel: WorkExperienceLevel.SENIOR,
     educationLevel: EducationLevel.MASTER,
     locationPreference: LocationPreference.REMOTE,
@@ -34,6 +34,16 @@ export const mockCandidates: Candidate[] = [
     salaryExpectationMax: 160000,
     availability: Availability.ONE_MONTH,
     jobTypePreference: [JobType.FULL_TIME, JobType.CONTRACT],
+    personalityAssessment: [
+      { trait: "Collaborative", fit: "positive", reason: "Experience in agile teams suggests good fit for teamwork." },
+      { trait: "Proactive Learner", fit: "positive", reason: "Passion for AI/ML indicates continuous learning." },
+      { trait: "Independent (due to remote preference)", fit: "neutral", reason: "Effective in remote settings, ensure clear communication for team cohesion." }
+    ],
+    optimalWorkStyles: [
+      "Remote or hybrid environments with strong communication tools.",
+      "Projects involving R&D or new technology adoption.",
+      "Agile development with clear sprint goals."
+    ]
   },
   {
     id: 'cand2',
@@ -45,7 +55,7 @@ export const mockCandidates: Candidate[] = [
     dataAiHint: 'creative man',
     profileStrength: 85,
     location: "New York, NY",
-    desiredWorkStyle: "Hybrid, Collaborative Environment",
+    desiredWorkStyle: "Hybrid, Collaborative Environment, User-focused projects",
     pastProjects: "Redesigned a mobile banking app, Created a design system for a SaaS product",
     workExperienceLevel: WorkExperienceLevel.JUNIOR,
     educationLevel: EducationLevel.UNIVERSITY,
@@ -55,6 +65,16 @@ export const mockCandidates: Candidate[] = [
     salaryExpectationMax: 90000,
     availability: Availability.IMMEDIATE,
     jobTypePreference: [JobType.FULL_TIME],
+    personalityAssessment: [
+      { trait: "Creative", fit: "positive", reason: "Strong portfolio and design focus." },
+      { trait: "User-Centric", fit: "positive", reason: "Emphasizes user needs in design." },
+      { trait: "Detail-Oriented", fit: "neutral", reason: "Good for design quality, ensure it doesn't slow down agile processes." }
+    ],
+    optimalWorkStyles: [
+      "Cross-functional teams with product managers and developers.",
+      "Environments that value user feedback and iterative design.",
+      "Opportunities to contribute to design systems."
+    ]
   },
   {
     id: 'cand3',
@@ -67,7 +87,7 @@ export const mockCandidates: Candidate[] = [
     videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
     profileStrength: 95,
     location: "Austin, TX",
-    desiredWorkStyle: "Remote or On-site, Fast-paced Startup",
+    desiredWorkStyle: "Remote or On-site, Fast-paced Startup, Data-driven decision making",
     pastProjects: "Launched three new SaaS products from concept to market, Grew user base by 200% for a B2B platform",
     workExperienceLevel: WorkExperienceLevel.SENIOR,
     educationLevel: EducationLevel.UNIVERSITY,
@@ -77,6 +97,7 @@ export const mockCandidates: Candidate[] = [
     salaryExpectationMax: 170000,
     availability: Availability.NEGOTIABLE,
     jobTypePreference: [JobType.FULL_TIME],
+    // No personality assessment for this one to test conditional rendering
   },
   {
     id: 'cand4',
@@ -88,7 +109,7 @@ export const mockCandidates: Candidate[] = [
     dataAiHint: 'intelligent woman',
     profileStrength: 88,
     location: "Boston, MA", // Changed from Remote for more variety
-    desiredWorkStyle: "Remote, Research-Oriented",
+    desiredWorkStyle: "Remote, Research-Oriented, Problem-solving focus",
     pastProjects: "Built a predictive model for customer churn, Optimized ad spend using ML algorithms",
     workExperienceLevel: WorkExperienceLevel.MID_LEVEL,
     educationLevel: EducationLevel.DOCTORATE,
@@ -110,7 +131,7 @@ export const mockCandidates: Candidate[] = [
     videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
     profileStrength: 92,
     location: "Los Angeles, CA",
-    desiredWorkStyle: "Creative agency, project-based work",
+    desiredWorkStyle: "Creative agency, project-based work, innovative environment",
     pastProjects: "Led global rebranding for a major consumer product, Won multiple awards for advertising campaigns.",
     workExperienceLevel: WorkExperienceLevel.EXPERT,
     educationLevel: EducationLevel.MASTER,
@@ -137,6 +158,8 @@ const mockJobOpeningsComp1: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 120000,
     salaryMax: 160000,
+    companyCultureKeywords: ["innovative", "collaborative", "remote-first", "agile"],
+    companyIndustry: "Technology"
   },
   {
     title: "Backend Python Developer",
@@ -151,6 +174,8 @@ const mockJobOpeningsComp1: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 110000,
     salaryMax: 150000,
+    companyCultureKeywords: ["technical excellence", "ownership", "remote-first", "scalable solutions"],
+    companyIndustry: "Technology"
   }
 ];
 
@@ -168,6 +193,8 @@ const mockJobOpeningsComp2: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 70000,
     salaryMax: 90000,
+    companyCultureKeywords: ["creative", "dynamic", "client-focused", "pet-friendly"],
+    companyIndustry: "Marketing & Advertising"
   },
   {
     title: "Social Media Manager",
@@ -181,6 +208,8 @@ const mockJobOpeningsComp2: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 60000,
     salaryMax: 80000,
+    companyCultureKeywords: ["results-oriented", "fast-paced", "data-driven", "flexible"],
+    companyIndustry: "Marketing & Advertising"
   }
 ];
 const mockJobOpeningsComp3: CompanyJobOpening[] = [
@@ -197,6 +226,8 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 90000,
     salaryMax: 130000,
+    companyCultureKeywords: ["mission-driven", "impactful", "research-oriented", "eco-conscious"],
+    companyIndustry: "Sustainability"
   },
   {
     title: "Project Manager - Renewable Energy",
@@ -210,6 +241,8 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 100000,
     salaryMax: 140000,
+    companyCultureKeywords: ["leadership", "sustainability", "project-excellence", "collaborative"],
+    companyIndustry: "Sustainability"
   }
 ];
 
@@ -226,6 +259,8 @@ const mockJobOpeningsComp4: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 130000,
     salaryMax: 170000,
+    companyCultureKeywords: ["passionate", "gamer-centric", "innovative", "flexible-work"],
+    companyIndustry: "Gaming"
   }
 ];
 
@@ -243,6 +278,8 @@ const mockJobOpeningsComp5: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 55000,
     salaryMax: 70000,
+    companyCultureKeywords: ["data-driven", "learning-oriented", "supportive", "client-focused"],
+    companyIndustry: "Market Research"
   }
 ];
 
@@ -332,6 +369,8 @@ const additionalMockCompanies: Company[] = [
         requiredLanguages: ['English'],
         salaryMin: 140000,
         salaryMax: 180000,
+        companyCultureKeywords: ["cutting-edge", "research", "healthcare AI", "impactful"],
+        companyIndustry: "Healthcare Technology"
       },
     ],
   },
@@ -358,6 +397,8 @@ const additionalMockCompanies: Company[] = [
         requiredLanguages: ['English'],
         salaryMin: 75000,
         salaryMax: 95000,
+        companyCultureKeywords: ["education", "remote-first", "impact", "learning"],
+        companyIndustry: "EdTech"
       },
     ],
   },
