@@ -115,7 +115,7 @@ export interface Company {
   jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string; // For icebreaker context
   salaryRange?: string; // Company-wide typical salary info (less common, usually per-job)
-  // jobType?: JobType; // Predominant job type if applicable at company level (less common)
+  jobType?: JobType; // Predominant job type if applicable at company level (less common)
 }
 
 export interface Match {
@@ -258,18 +258,25 @@ export interface CandidateFilters {
   educationLevels: Set<EducationLevel>;
   locationPreferences: Set<LocationPreference>;
   jobTypes: Set<JobType>;
-  // skills: string[]; // For text-based skill search later
-  // minSalary: number;
-  // maxSalary: number;
 }
 
-// Note: JobFilters would be similar, but apply to job properties
 export interface JobFilters {
-  experienceLevels: Set<WorkExperienceLevel>; // Required experience for the job
-  educationLevels: Set<EducationLevel>;   // Required education for the job
-  workLocationTypes: Set<LocationPreference>; // On-site, Remote, Hybrid for the job
-  jobTypes: Set<JobType>; // Type of the job
-  // companyIndustries: Set<string>; // Future filter
-  // minSalary: number; // Future filter
-  // maxSalary: number; // Future filter
+  experienceLevels: Set<WorkExperienceLevel>;
+  educationLevels: Set<EducationLevel>;
+  workLocationTypes: Set<LocationPreference>;
+  jobTypes: Set<JobType>;
+}
+
+// Types for Company Q&A Flow
+export interface CompanyQAInput {
+  companyName: string;
+  companyDescription: string;
+  companyIndustry?: string;
+  companyCultureHighlights?: string[];
+  jobOpeningsSummary?: string; // A summary of job openings
+  userQuestion: string;
+}
+
+export interface CompanyQAOutput {
+  aiAnswer: string;
 }
