@@ -75,6 +75,10 @@ export interface Candidate {
   // Fields for Coworker Fit Label
   personalityAssessment?: PersonalityTraitAssessment[];
   optimalWorkStyles?: string[];
+
+  // Field for Underestimated Talent
+  isUnderestimatedTalent?: boolean;
+  underestimatedReasoning?: string;
 }
 
 export interface CompanyJobOpening {
@@ -177,4 +181,72 @@ export interface DiaryPost {
   likes?: number;
   views?: number;
   isFeatured?: boolean;
+}
+
+
+// Types for AI Profile Recommender Flow
+export interface CandidateProfileForAI {
+    id: string;
+    role?: string;
+    experienceSummary?: string;
+    skills?: string[];
+    location?: string;
+    desiredWorkStyle?: string;
+    pastProjects?: string;
+    workExperienceLevel?: WorkExperienceLevel;
+    educationLevel?: EducationLevel;
+    locationPreference?: LocationPreference;
+    languages?: string[];
+    salaryExpectationMin?: number;
+    salaryExpectationMax?: number;
+    availability?: Availability;
+    jobTypePreference?: JobType[];
+    personalityAssessment?: PersonalityTraitAssessment[]; // For context in candidateJobFitAnalysis
+}
+
+export interface JobCriteriaForAI {
+    title: string;
+    description: string;
+    requiredSkills?: string[];
+    requiredExperienceLevel?: WorkExperienceLevel;
+    requiredEducationLevel?: EducationLevel;
+    workLocationType?: LocationPreference;
+    jobLocation?: string;
+    requiredLanguages?: string[];
+    salaryMin?: number;
+    salaryMax?: number;
+    jobType?: JobType;
+    companyCultureKeywords?: string[];
+    companyIndustry?: string;
+}
+
+export interface ProfileRecommenderInput {
+    candidateProfile: CandidateProfileForAI;
+    jobCriteria: JobCriteriaForAI;
+}
+
+export interface ProfileRecommenderOutput {
+    candidateId: string;
+    matchScore: number;
+    reasoning: string;
+    weightedScores: {
+        skillsMatchScore: number;
+        experienceRelevanceScore: number;
+        cultureFitScore: number;
+        growthPotentialScore: number;
+    };
+    isUnderestimatedTalent: boolean;
+    underestimatedReasoning?: string;
+    personalityAssessment?: PersonalityTraitAssessment[];
+    optimalWorkStyles?: string[];
+    candidateJobFitAnalysis?: { // This part assesses job fit for the candidate
+        matchScoreForCandidate: number;
+        reasoningForCandidate: string;
+        weightedScoresForCandidate: {
+            cultureFitScore: number;
+            jobRelevanceScore: number;
+            growthOpportunityScore: number;
+            jobConditionFitScore: number;
+        };
+    };
 }

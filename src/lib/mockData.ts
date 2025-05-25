@@ -43,7 +43,9 @@ export const mockCandidates: Candidate[] = [
       "Remote or hybrid environments with strong communication tools.",
       "Projects involving R&D or new technology adoption.",
       "Agile development with clear sprint goals."
-    ]
+    ],
+    isUnderestimatedTalent: true,
+    underestimatedReasoning: "Shows strong potential in AI/ML with less formal experience in that specific niche, but transferable skills are high."
   },
   {
     id: 'cand2',
@@ -97,7 +99,8 @@ export const mockCandidates: Candidate[] = [
     salaryExpectationMax: 170000,
     availability: Availability.NEGOTIABLE,
     jobTypePreference: [JobType.FULL_TIME],
-    // No personality assessment for this one to test conditional rendering
+    isUnderestimatedTalent: true,
+    underestimatedReasoning: "Exceptional track record of growth and product launch success that may not be fully captured by standard experience metrics."
   },
   {
     id: 'cand4',
@@ -141,6 +144,7 @@ export const mockCandidates: Candidate[] = [
     salaryExpectationMax: 200000,
     availability: Availability.NEGOTIABLE,
     jobTypePreference: [JobType.FULL_TIME, JobType.CONSULTANT],
+    isUnderestimatedTalent: false, // Explicitly false for testing
   },
 ];
 
@@ -468,4 +472,3 @@ export const mockDiaryPosts: DiaryPost[] = [
     views: 40,
   }
 ];
-

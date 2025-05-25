@@ -1,10 +1,12 @@
+
 import type { Candidate, PersonalityTraitAssessment } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye } from 'lucide-react'; // Added Eye for View Details
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles } from 'lucide-react'; // Added Sparkles for Hidden Gem
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
@@ -20,7 +22,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0);
+  const [currentX, setCurrentX] = useState(0); // Tracks current X for visual drag
   const SWIPE_THRESHOLD = 75;
   const MAX_ROTATION = 10; // Max rotation in degrees
 
@@ -54,26 +56,26 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
-    if (targetElement.closest('video[controls]') && targetElement.tagName !== 'VIDEO') {
-        const videoElement = targetElement.closest('video');
-        if (videoElement) {
+    // Prevent drag if clicking on video controls, buttons, links, or explicitly no-drag areas
+    if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
+        if (targetElement.tagName === 'VIDEO') {
+            const videoElement = targetElement as HTMLVideoElement;
             const rect = videoElement.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) return;
+            // Check if the click is near the bottom where controls usually are
+            if (e.clientY > rect.bottom - 40) return; 
+        } else {
+          return;
         }
-    }
-     // Prevent drag if clicking on buttons or links within the scrollable text area
-    if (targetElement.closest('button, a, [data-no-drag="true"], .no-swipe-area')) {
-      return;
     }
 
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX); // Initialize currentX
+    setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; // Remove transition during drag
+      cardContentRef.current.style.transition = 'none'; // No transition during drag
     }
-    document.body.style.userSelect = 'none'; // Prevent text selection during drag
+    document.body.style.userSelect = 'none'; 
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -84,28 +86,28 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
     
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Add transition back for snap
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Re-enable transition for snap-back
     const finalDeltaX = e.clientX - startX;
-    setCurrentX(startX); // Reset for visual snap back
+    setCurrentX(startX); // Reset visual position for snap-back
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { 
+      if (finalDeltaX < 0) { // Swiped Left
         onSwipeAction(candidate.id, 'pass');
-      } else { 
+      } else { // Swiped Right
         onSwipeAction(candidate.id, 'like');
       }
     } else {
-      // If not a swipe, ensure the card snaps back to center smoothly
-       if (cardContentRef.current) {
+      // Snap back if not a full swipe
+      if (cardContentRef.current) {
          cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-       }
+      }
     }
     
     setIsDragging(false);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = ''; // Re-enable text selection
+    document.body.style.userSelect = '';
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -115,11 +117,14 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       setIsDragging(false);
       cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
+       if (cardContentRef.current) { // Ensure it snaps back
+         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+       }
     }
   };
   
   const getCardTransform = () => {
-    if (!isDragging) return 'translateX(0px) rotateZ(0deg)'; // Default position
+    if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
@@ -131,7 +136,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       case 'positive':
         return <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 shrink-0" />;
       case 'neutral':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />;
+        return <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />; // Changed from AlertCircle
       case 'negative':
         return <XCircle className="h-4 w-4 text-red-500 mr-1.5 shrink-0" />;
       default:
@@ -195,7 +200,24 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
       <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[45%] md:h-[40%]">
         <CardHeader className="p-0 mb-2">
-          <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+            {candidate.isUnderestimatedTalent && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
+                      <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
+                      Hidden Gem
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="max-w-xs">
+                    <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+          </div>
           <CardDescription className="text-xs sm:text-sm text-muted-foreground">{candidate.role}</CardDescription>
            {candidate.location && (
             <div className="flex items-center text-xs text-muted-foreground mt-0.5">
