@@ -89,6 +89,7 @@ export interface CompanyJobOpening {
   jobType?: JobType; // Full-time, Part-time etc.
   tags?: string[];
   videoOrImageUrl?: string; // Optional video/image for the job posting
+  dataAiHint?: string; // For videoOrImageUrl
 
   // New fields for filtering
   requiredExperienceLevel?: WorkExperienceLevel;
@@ -113,8 +114,8 @@ export interface Company {
   introVideoUrl?: string; // URL for a company culture video. Content can include office environment, team culture, daily work record.
   jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string; // For icebreaker context
-  salaryRange?: string; // Company-wide typical salary info
-  jobType?: JobType; // Predominant job type if applicable at company level
+  salaryRange?: string; // Company-wide typical salary info (less common, usually per-job)
+  // jobType?: JobType; // Predominant job type if applicable at company level (less common)
 }
 
 export interface Match {
@@ -143,7 +144,7 @@ export interface IcebreakerRequest {
   candidateName: string;
   jobDescription: string;
   candidateSkills: string;
-  companyNeeds: string;
+  companyNeeds:string;
   pastProjects: string;
 }
 
@@ -155,7 +156,7 @@ export interface JobPosting {
   compensation: string;
   tags: string[];
   mediaUrl?: string;
-  companyId: string;
+  companyId: string; // Could be the ID of the recruiter's company or the recruiter's user ID
   postedAt: Date;
 }
 
@@ -249,4 +250,26 @@ export interface ProfileRecommenderOutput {
             jobConditionFitScore: number;
         };
     };
+}
+
+// Filter types for Discovery Pages
+export interface CandidateFilters {
+  experienceLevels: Set<WorkExperienceLevel>;
+  educationLevels: Set<EducationLevel>;
+  locationPreferences: Set<LocationPreference>;
+  jobTypes: Set<JobType>;
+  // skills: string[]; // For text-based skill search later
+  // minSalary: number;
+  // maxSalary: number;
+}
+
+// Note: JobFilters would be similar, but apply to job properties
+export interface JobFilters {
+  experienceLevels: Set<WorkExperienceLevel>; // Required experience for the job
+  educationLevels: Set<EducationLevel>;   // Required education for the job
+  workLocationTypes: Set<LocationPreference>; // On-site, Remote, Hybrid
+  jobTypes: Set<JobType>;
+  // companyIndustries: string[];
+  // minSalary: number;
+  // maxSalary: number;
 }
