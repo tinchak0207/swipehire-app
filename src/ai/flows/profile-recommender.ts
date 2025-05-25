@@ -1,9 +1,10 @@
 
 'use server';
 /**
- * @fileOverview An AI agent that recommends and scores candidate profiles against job criteria.
+ * @fileOverview An AI agent that recommends and scores candidate profiles against job criteria,
+ * and also assesses how well a job fits a candidate.
  *
- * - recommendProfiles - A function that analyzes candidate profiles against job requirements and provides a match score and reasoning.
+ * - recommendProfile - A function that analyzes candidate profiles against job requirements and provides a match score and reasoning.
  * - ProfileRecommenderInput - The input type for the recommendProfiles function.
  * - ProfileRecommenderOutput - The return type for the recommendProfiles function.
  */
@@ -37,6 +38,11 @@ const CandidateProfileSchema = z.object({
   salaryExpectationMax: z.number().optional().describe("Candidate's maximum salary expectation."),
   availability: ZodAvailability.optional().describe("Candidate's availability to start a new role."),
   jobTypePreference: z.array(ZodJobType).optional().describe("Candidate's preferred job types."),
+  personalityAssessment: z.array(z.object({ // Include this for context if available
+    trait: z.string(),
+    fit: z.enum(['positive', 'neutral', 'negative']),
+    reason: z.string().optional(),
+  })).optional().describe("Candidate's personality assessment (if previously generated).")
 }).describe("A candidate's profile data.");
 export type CandidateProfileForAI = z.infer<typeof CandidateProfileSchema>;
 
@@ -71,20 +77,32 @@ const PersonalityTraitAssessmentSchema = z.object({
   reason: z.string().optional().describe("A brief explanation for the fit assessment.")
 });
 
+const CandidateJobFitAnalysisSchema = z.object({
+  matchScoreForCandidate: z.number().min(0).max(100).describe("A score from 0 to 100 indicating how well the job opportunity fits the candidate's profile and preferences."),
+  reasoningForCandidate: z.string().describe("A brief explanation of the job-to-candidate fit score, highlighting key alignment factors and potential mismatches from the candidate's perspective."),
+  weightedScoresForCandidate: z.object({
+    cultureFitScore: z.number().min(0).max(100),
+    jobRelevanceScore: z.number().min(0).max(100),
+    growthOpportunityScore: z.number().min(0).max(100),
+    jobConditionFitScore: z.number().min(0).max(100),
+  }).describe("Breakdown of scores for the job-to-candidate fit assessment based on the specified weights."),
+}).describe("Analysis of how well the job fits the candidate.");
+
 const ProfileRecommenderOutputSchema = z.object({
   candidateId: z.string(),
-  matchScore: z.number().min(0).max(100).describe("A score from 0 to 100 indicating how well the candidate matches the job criteria."),
-  reasoning: z.string().describe("A brief explanation of the match score, highlighting key matching factors and potential gaps."),
+  matchScore: z.number().min(0).max(100).describe("A score from 0 to 100 indicating how well the candidate matches the job criteria (Recruiter's Perspective)."),
+  reasoning: z.string().describe("A brief explanation of the match score from the recruiter's perspective, highlighting key matching factors and potential gaps."),
   weightedScores: z.object({
     skillsMatchScore: z.number().min(0).max(100),
     experienceRelevanceScore: z.number().min(0).max(100),
-    cultureFitScore: z.number().min(0).max(100),
+    cultureFitScore: z.number().min(0).max(100), // This is recruiter's view of candidate to company culture
     growthPotentialScore: z.number().min(0).max(100),
-  }).describe("Breakdown of scores for each weighted category."),
+  }).describe("Breakdown of scores for each weighted category (Recruiter's Perspective)."),
   isUnderestimatedTalent: z.boolean().describe("Indicates if this candidate might be an underestimated talent or hidden gem based on their profile relative to the job criteria."),
-  underestimatedReasoning: z.string().optional().describe("Brief reasoning if the candidate is considered underestimated (e.g., strong transferable skills, high growth potential despite lacking specific years of experience for the role, unique project experience that shows adaptability)."),
-  personalityAssessment: z.array(PersonalityTraitAssessmentSchema).optional().describe("An array of personality trait assessments based on the candidate's profile and the company culture."),
-  optimalWorkStyles: z.array(z.string()).optional().describe("A list of optimal work style characteristics suitable for the candidate in the context of the role/company."),
+  underestimatedReasoning: z.string().optional().describe("Brief reasoning if the candidate is considered underestimated."),
+  personalityAssessment: z.array(PersonalityTraitAssessmentSchema).optional().describe("An array of personality trait assessments based on the candidate's profile and the company culture (for recruiter's view)."),
+  optimalWorkStyles: z.array(z.string()).optional().describe("A list of optimal work style characteristics suitable for the candidate in the context of the role/company (for recruiter's view)."),
+  candidateJobFitAnalysis: CandidateJobFitAnalysisSchema.optional().describe("An analysis of how well the job opportunity fits the candidate (Job Seeker's Perspective)."),
 });
 export type ProfileRecommenderOutput = z.infer<typeof ProfileRecommenderOutputSchema>;
 
@@ -97,8 +115,13 @@ const profileRecommenderPrompt = ai.definePrompt({
   name: 'profileRecommenderPrompt',
   input: {schema: ProfileRecommenderInputSchema},
   output: {schema: ProfileRecommenderOutputSchema},
-  prompt: `You are an AI HR expert specializing in evaluating candidate profiles against job requirements and company culture.
-Your task is to assess the provided Candidate Profile based on the Job Criteria and return a match score, a reasoning statement, weighted scores, an "underestimated talent" assessment, a personality fit assessment, and optimal work style suggestions.
+  prompt: `You are an AI HR expert. Your task is twofold:
+1.  **Recruiter's Perspective**: Evaluate the provided Candidate Profile against the Job Criteria. Provide a \`matchScore\`, \`reasoning\`, \`weightedScores\` (Skills: 40%, Experience: 30%, Culture Fit: 20%, Growth Potential: 10%), an "underestimated talent" assessment, a personality fit assessment (for coworker fit), and optimal work style suggestions for the candidate in the context of the role.
+2.  **Job Seeker's Perspective**: Separately, assess how well this Job Opportunity fits the Candidate's profile and preferences. Provide this analysis in the \`candidateJobFitAnalysis\` field, including a \`matchScoreForCandidate\`, \`reasoningForCandidate\`, and \`weightedScoresForCandidate\` based on the following criteria:
+    *   Culture Fit Matching (35%): Candidate's desired work style, personality insights vs. Company culture keywords, company industry, job's work location type.
+    *   Job Relevance (30%): Candidate's skills, experience summary, past projects, education level vs. Job title, description, required skills, required experience level.
+    *   Growth Opportunity Evaluation (20%): Potential for learning and career development in this role and company, inferred from job description and company industry.
+    *   Job Condition Fitting (15%): Candidate's salary expectations ({{{candidateProfile.salaryExpectationMin}}} - {{{candidateProfile.salaryExpectationMax}}}), location preferences ({{{candidateProfile.locationPreference}}}, {{{candidateProfile.location}}}), job type preferences ({{{candidateProfile.jobTypePreference}}}) vs. Job's salary range ({{{jobCriteria.salaryMin}}} - {{{jobCriteria.salaryMax}}}), job location ({{{jobCriteria.jobLocation}}}, {{{jobCriteria.workLocationType}}}), and job type ({{{jobCriteria.jobType}}}).
 
 Candidate Profile:
 ID: {{{candidateProfile.id}}}
@@ -115,6 +138,12 @@ Languages: {{#if candidateProfile.languages}} {{#each candidateProfile.languages
 Salary Expectation: {{{candidateProfile.salaryExpectationMin}}} - {{{candidateProfile.salaryExpectationMax}}}
 Availability: {{{candidateProfile.availability}}}
 Job Type Preference: {{#if candidateProfile.jobTypePreference}} {{#each candidateProfile.jobTypePreference}} {{{this}}}{{#unless @last}}, {{/unless}}{{/each}} {{else}}Not specified{{/if}}
+{{#if candidateProfile.personalityAssessment}}
+Personality Insights (for recruiter's context):
+{{#each candidateProfile.personalityAssessment}}
+- {{trait}}: {{fit}} ({{{reason}}})
+{{/each}}
+{{/if}}
 
 Job Criteria:
 Job Title: {{{jobCriteria.title}}}
@@ -130,41 +159,41 @@ Job Type: {{{jobCriteria.jobType}}}
 Company Culture Keywords: {{#if jobCriteria.companyCultureKeywords}} {{#each jobCriteria.companyCultureKeywords}} {{{this}}}{{#unless @last}}, {{/unless}}{{/each}} {{else}}Not specified{{/if}}
 Company Industry: {{{jobCriteria.companyIndustry}}}
 
-Evaluation Criteria and Weights:
-1.  **Skills Match (40%):** How well do the candidate's skills ({{{candidateProfile.skills}}}) match the required skills ({{{jobCriteria.requiredSkills}}}) for the position? Consider direct matches and related skills.
-2.  **Experience Relevance (30%):** Assess the relevance of the candidate's past experience (summarized in {{{candidateProfile.experienceSummary}}} and {{{candidateProfile.pastProjects}}}), and their overall work experience level ({{{candidateProfile.workExperienceLevel}}}) against the job's requirements ({{{jobCriteria.description}}}, {{{jobCriteria.requiredExperienceLevel}}}).
-3.  **Culture Fit (20%):** Based on the candidate's desired work style ({{{candidateProfile.desiredWorkStyle}}}), and any implicit cues from their experience, how well might they fit with the company culture (described by {{{jobCriteria.companyCultureKeywords}}}) and industry ({{{jobCriteria.companyIndustry}}})? Also consider location preferences ({{{candidateProfile.locationPreference}}} vs {{{jobCriteria.workLocationType}}}, {{{candidateProfile.location}}} vs {{{jobCriteria.jobLocation}}}) and job type alignment ({{{candidateProfile.jobTypePreference}}} vs {{{jobCriteria.jobType}}}).
-4.  **Growth Potential (10%):** Based on the candidate's learning ability (inferred from skill diversity, project variety, education level {{{candidateProfile.educationLevel}}}), how likely are they to grow and develop in this role and company? Consider also their salary expectations ({{{candidateProfile.salaryExpectationMin}}} - {{{candidateProfile.salaryExpectationMax}}} vs {{{jobCriteria.salaryMin}}} - {{{jobCriteria.salaryMax}}}) and availability ({{{candidateProfile.availability}}}).
+**Part 1: Recruiter's Perspective Assessment (Candidate to Job)**
+Evaluation Criteria and Weights for \`weightedScores\`:
+1.  **Skills Match (40%):** How well do the candidate's skills ({{{candidateProfile.skills}}}) match the required skills ({{{jobCriteria.requiredSkills}}})? Consider direct and related skills.
+2.  **Experience Relevance (30%):** Assess relevance of candidate's past experience ({{{candidateProfile.experienceSummary}}}, {{{candidateProfile.pastProjects}}}), and work experience level ({{{candidateProfile.workExperienceLevel}}}) against job's requirements ({{{jobCriteria.description}}}, {{{jobCriteria.requiredExperienceLevel}}}).
+3.  **Culture Fit (20%):** Based on candidate's desired work style ({{{candidateProfile.desiredWorkStyle}}}), and implicit cues, how well might they fit the company culture ({{{jobCriteria.companyCultureKeywords}}}) and industry ({{{jobCriteria.companyIndustry}}})?
+4.  **Growth Potential (10%):** Based on inferred learning ability (skill diversity, project variety, education {{{candidateProfile.educationLevel}}}), how likely are they to grow?
 
-Provide a score from 0 to 100 for each of these four categories.
-Then, calculate the overall \`matchScore\` using the specified weights.
-The \`reasoning\` should be a concise summary explaining the overall score, highlighting strong matches and any notable concerns or gaps.
+Provide scores (0-100) for these four categories in \`weightedScores\`.
+Calculate overall \`matchScore\` using these weights.
+\`reasoning\` should summarize the overall score.
 
 **Underestimated Talent Assessment:**
-After the primary scoring, specifically assess if this candidate might be an "underestimated talent" or a "hidden gem".
-Consider these factors:
--   **Skill Potential vs. Formal Experience:** Does the candidate demonstrate strong skills ({{{candidateProfile.skills}}}) or impressive outcomes in {{{candidateProfile.pastProjects}}} that suggest high potential, even if their formal work experience level ({{{candidateProfile.workExperienceLevel}}}) is slightly below the job's required level ({{{jobCriteria.requiredExperienceLevel}}})?
--   **Cross-Domain Capabilities:** Do their {{{candidateProfile.skills}}} or {{{candidateProfile.pastProjects}}} suggest valuable experience in an adjacent domain that, while not a direct match, could bring innovative perspectives to the role?
--   **Learning Agility & Drive:** Can you infer strong learning ability, adaptability, or a proactive attitude from their {{{candidateProfile.experienceSummary}}} or {{{candidateProfile.desiredWorkStyle}}}?
--   **Alignment with Growth Potential:** Does the Growth Potential score further support this?
+Assess if this candidate is an "underestimated talent". Consider:
+-   Skill Potential vs. Formal Experience.
+-   Cross-Domain Capabilities.
+-   Learning Agility & Drive.
+Set \`isUnderestimatedTalent\` and \`underestimatedReasoning\` accordingly.
 
-If you identify such potential, set \`isUnderestimatedTalent\` to true and provide a brief \`underestimatedReasoning\` explaining why (e.g., "Strong transferable skills in X make them a high-potential candidate despite lacking Y years in the specific role," or "Unique project Z demonstrates adaptability and quick learning relevant to this position."). Otherwise, set \`isUnderestimatedTalent\` to false.
+**Personality Fit & Work Style Assessment (for Recruiter's View of Coworker Fit):**
+Based on candidate's profile and company culture keywords:
+-   **Personality Assessment (\`personalityAssessment\` output):** Identify 2-3 key personality traits. For each: \`trait\`, \`fit\` ('positive', 'neutral', 'negative'), \`reason\`.
+-   **Optimal Work Styles (\`optimalWorkStyles\` output):** List 2-4 work style characteristics where candidate would thrive.
 
-**Personality Fit & Work Style Assessment (for Coworker Fit Label):**
-Based on the candidate's \`desiredWorkStyle\`, \`experienceSummary\`, and overall profile, assess their potential fit with a typical professional environment, considering the job's nature and the company's culture keywords ({{{jobCriteria.companyCultureKeywords}}}).
--   **Personality Assessment:** Identify 2-3 key personality traits. For each trait, provide:
-    *   \`trait\`: The name of the trait (e.g., "Social", "Creative", "Independent", "Detail-Oriented").
-    *   \`fit\`: Assess this trait's fit as 'positive', 'neutral', or 'negative' in the context of the job criteria. 'Positive' means the trait is likely beneficial. 'Neutral' means it could be good or a challenge depending on the specific team and role nuances. 'Negative' means it might pose a challenge.
-    *   \`reason\`: A very brief justification for the fit assessment (e.g., "Enjoys interacting with people, aligns with collaborative culture", "Prefers to work independently, needs adaptable environment", "May find fast-paced environment challenging if excessively detail-focused without flexibility").
-    Limit to a maximum of 3-4 assessments.
--   **Optimal Work Styles:** List 2-4 bullet points describing work style characteristics or environments where this candidate would likely thrive or be most effective, considering their profile and the job criteria. Examples:
-    *   "Open collaboration, encourages cross-departmental communication"
-    *   "Agile development, fast iterative feedback"
-    *   "Structured environment with clear goals"
-    *   "Autonomy in task execution"
-    *   "Learning-oriented, supports technical exploration"
+**Part 2: Job Seeker's Perspective Assessment (Job to Candidate)**
+Evaluate the Job Opportunity for the Candidate using these criteria and weights for \`candidateJobFitAnalysis.weightedScoresForCandidate\`:
+1.  **Culture Fit Matching (35%):** How well does the company culture ({{{jobCriteria.companyCultureKeywords}}}, {{{jobCriteria.companyIndustry}}}), and job's work style ({{{jobCriteria.workLocationType}}}) align with the candidate's stated preferences ({{{candidateProfile.desiredWorkStyle}}}, {{{candidateProfile.locationPreference}}}) and inferred personality (from {{{candidateProfile.personalityAssessment}}})?
+2.  **Job Relevance (30%):** How well do the job's requirements ({{{jobCriteria.title}}}, {{{jobCriteria.description}}}, {{{jobCriteria.requiredSkills}}}, {{{jobCriteria.requiredExperienceLevel}}}) align with the candidate's skills ({{{candidateProfile.skills}}}), experience ({{{candidateProfile.experienceSummary}}}, {{{candidateProfile.pastProjects}}}), and career aspirations (inferred from {{{candidateProfile.role}}}, {{{candidateProfile.educationLevel}}})?
+3.  **Growth Opportunity Evaluation (20%):** Assess the potential for the candidate to learn and grow in this role and company, based on the job description, company industry, and nature of tasks.
+4.  **Job Condition Fitting (15%):** How well do the job's practical conditions – salary ({{{jobCriteria.salaryMin}}} - {{{jobCriteria.salaryMax}}}), location ({{{jobCriteria.jobLocation}}}, {{{jobCriteria.workLocationType}}}), and type ({{{jobCriteria.jobType}}}) – match the candidate's expectations and preferences ({{{candidateProfile.salaryExpectationMin}}} - {{{candidateProfile.salaryExpectationMax}}}, {{{candidateProfile.locationPreference}}}, {{{candidateProfile.location}}}, {{{candidateProfile.jobTypePreference}}})?
 
-Return the candidateId ("{{{candidateProfile.id}}}") along with all scores, reasoning, the underestimated talent assessment, personality assessment, and optimal work style suggestions.
+Provide scores (0-100) for these four categories in \`candidateJobFitAnalysis.weightedScoresForCandidate\`.
+Calculate overall \`candidateJobFitAnalysis.matchScoreForCandidate\` using these weights.
+\`candidateJobFitAnalysis.reasoningForCandidate\` should summarize this job-to-candidate fit.
+
+Return the candidateId ("{{{candidateProfile.id}}}") along with all assessments.
 `,
 });
 
@@ -192,11 +221,35 @@ const profileRecommenderFlow = ai.defineFlow(
         isUnderestimatedTalent: false,
         underestimatedReasoning: "AI analysis failed.",
         personalityAssessment: [],
-        optimalWorkStyles: []
+        optimalWorkStyles: [],
+        candidateJobFitAnalysis: {
+            matchScoreForCandidate: 0,
+            reasoningForCandidate: "AI analysis failed.",
+            weightedScoresForCandidate: {
+                cultureFitScore: 0,
+                jobRelevanceScore: 0,
+                growthOpportunityScore: 0,
+                jobConditionFitScore: 0,
+            }
+        }
       };
     }
     // Ensure candidateId is correctly passed through.
-    return { ...output, candidateId: input.candidateProfile.id };
+    // Also ensure candidateJobFitAnalysis has a fallback if AI doesn't provide it fully structured (though schema should enforce it)
+    return { 
+        ...output, 
+        candidateId: input.candidateProfile.id,
+        candidateJobFitAnalysis: output.candidateJobFitAnalysis || {
+            matchScoreForCandidate: 0,
+            reasoningForCandidate: "AI analysis did not provide job-to-candidate fit details.",
+            weightedScoresForCandidate: {
+                cultureFitScore: 0,
+                jobRelevanceScore: 0,
+                growthOpportunityScore: 0,
+                jobConditionFitScore: 0,
+            }
+        }
+    };
   }
 );
 

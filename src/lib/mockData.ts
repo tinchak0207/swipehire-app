@@ -91,7 +91,7 @@ export const mockCandidates: Candidate[] = [
     pastProjects: "Launched three new SaaS products from concept to market, Grew user base by 200% for a B2B platform",
     workExperienceLevel: WorkExperienceLevel.SENIOR,
     educationLevel: EducationLevel.UNIVERSITY,
-    locationPreference: LocationPreference.SPECIFIC_CITY,
+    locationPreference: LocationPreference.SPECIFIC_CITY, // Example: Austin, TX
     languages: ['English', 'Spanish'],
     salaryExpectationMin: 130000,
     salaryExpectationMax: 170000,
@@ -108,7 +108,7 @@ export const mockCandidates: Candidate[] = [
     avatarUrl: 'https://placehold.co/500x700.png',
     dataAiHint: 'intelligent woman',
     profileStrength: 88,
-    location: "Boston, MA", // Changed from Remote for more variety
+    location: "Boston, MA", 
     desiredWorkStyle: "Remote, Research-Oriented, Problem-solving focus",
     pastProjects: "Built a predictive model for customer churn, Optimized ad spend using ML algorithms",
     workExperienceLevel: WorkExperienceLevel.MID_LEVEL,
@@ -135,7 +135,7 @@ export const mockCandidates: Candidate[] = [
     pastProjects: "Led global rebranding for a major consumer product, Won multiple awards for advertising campaigns.",
     workExperienceLevel: WorkExperienceLevel.EXPERT,
     educationLevel: EducationLevel.MASTER,
-    locationPreference: LocationPreference.SPECIFIC_CITY,
+    locationPreference: LocationPreference.SPECIFIC_CITY, // Example: Los Angeles, CA
     languages: ['English'],
     salaryExpectationMin: 150000,
     salaryExpectationMax: 200000,
@@ -158,8 +158,8 @@ const mockJobOpeningsComp1: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 120000,
     salaryMax: 160000,
-    companyCultureKeywords: ["innovative", "collaborative", "remote-first", "agile"],
-    companyIndustry: "Technology"
+    companyCultureKeywords: ["innovative", "collaborative", "remote-first", "agile", "work-life balance"],
+    companyIndustry: "SaaS Technology"
   },
   {
     title: "Backend Python Developer",
@@ -174,8 +174,8 @@ const mockJobOpeningsComp1: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 110000,
     salaryMax: 150000,
-    companyCultureKeywords: ["technical excellence", "ownership", "remote-first", "scalable solutions"],
-    companyIndustry: "Technology"
+    companyCultureKeywords: ["technical excellence", "ownership", "remote-first", "scalable solutions", "learning"],
+    companyIndustry: "SaaS Technology"
   }
 ];
 
@@ -193,7 +193,7 @@ const mockJobOpeningsComp2: CompanyJobOpening[] = [
     requiredLanguages: ['English'],
     salaryMin: 70000,
     salaryMax: 90000,
-    companyCultureKeywords: ["creative", "dynamic", "client-focused", "pet-friendly"],
+    companyCultureKeywords: ["creative", "dynamic", "client-focused", "pet-friendly", "team-oriented"],
     companyIndustry: "Marketing & Advertising"
   },
   {
@@ -204,11 +204,12 @@ const mockJobOpeningsComp2: CompanyJobOpening[] = [
     tags: ['social media', 'marketing', 'content creation', 'analytics'],
     location: "Remote (US)",
     requiredExperienceLevel: WorkExperienceLevel.JUNIOR,
+    requiredEducationLevel: EducationLevel.UNIVERSITY,
     workLocationType: LocationPreference.REMOTE,
     requiredLanguages: ['English'],
     salaryMin: 60000,
     salaryMax: 80000,
-    companyCultureKeywords: ["results-oriented", "fast-paced", "data-driven", "flexible"],
+    companyCultureKeywords: ["results-oriented", "fast-paced", "data-driven", "flexible", "creative freedom"],
     companyIndustry: "Marketing & Advertising"
   }
 ];
@@ -222,12 +223,12 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
     location: "Various Project Sites",
     requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL,
     requiredEducationLevel: EducationLevel.MASTER,
-    workLocationType: LocationPreference.SPECIFIC_CITY, // Assuming project sites are specific
+    workLocationType: LocationPreference.SPECIFIC_CITY, 
     requiredLanguages: ['English'],
     salaryMin: 90000,
     salaryMax: 130000,
-    companyCultureKeywords: ["mission-driven", "impactful", "research-oriented", "eco-conscious"],
-    companyIndustry: "Sustainability"
+    companyCultureKeywords: ["mission-driven", "impactful", "research-oriented", "eco-conscious", "field-work"],
+    companyIndustry: "Environmental Consulting"
   },
   {
     title: "Project Manager - Renewable Energy",
@@ -237,12 +238,13 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
     tags: ['project management', 'renewable energy', 'pmp', 'leadership'],
     location: "Austin, TX",
     requiredExperienceLevel: WorkExperienceLevel.SENIOR,
+    requiredEducationLevel: EducationLevel.UNIVERSITY,
     workLocationType: LocationPreference.SPECIFIC_CITY,
     requiredLanguages: ['English'],
     salaryMin: 100000,
     salaryMax: 140000,
-    companyCultureKeywords: ["leadership", "sustainability", "project-excellence", "collaborative"],
-    companyIndustry: "Sustainability"
+    companyCultureKeywords: ["leadership", "sustainability", "project-excellence", "collaborative", "innovation"],
+    companyIndustry: "Renewable Energy"
   }
 ];
 
@@ -255,11 +257,12 @@ const mockJobOpeningsComp4: CompanyJobOpening[] = [
     tags: ["gaming", "unity", "csharp", "mobiledev", "lead"],
     location: "Remote (Canada)",
     requiredExperienceLevel: WorkExperienceLevel.SENIOR,
+    requiredEducationLevel: EducationLevel.UNIVERSITY,
     workLocationType: LocationPreference.REMOTE,
     requiredLanguages: ['English'],
     salaryMin: 130000,
     salaryMax: 170000,
-    companyCultureKeywords: ["passionate", "gamer-centric", "innovative", "flexible-work"],
+    companyCultureKeywords: ["passionate", "gamer-centric", "innovative", "flexible-work", "creative"],
     companyIndustry: "Gaming"
   }
 ];
@@ -272,13 +275,13 @@ const mockJobOpeningsComp5: CompanyJobOpening[] = [
     jobType: JobType.FULL_TIME,
     tags: ["marketing", "analysis", "entrylevel", "data"],
     location: "Chicago, IL (Hybrid)",
-    requiredExperienceLevel: WorkExperienceLevel.INTERN, // Or JUNIOR
+    requiredExperienceLevel: WorkExperienceLevel.INTERN, 
     requiredEducationLevel: EducationLevel.UNIVERSITY,
     workLocationType: LocationPreference.HYBRID,
     requiredLanguages: ['English'],
     salaryMin: 55000,
     salaryMax: 70000,
-    companyCultureKeywords: ["data-driven", "learning-oriented", "supportive", "client-focused"],
+    companyCultureKeywords: ["data-driven", "learning-oriented", "supportive", "client-focused", "analytical"],
     companyIndustry: "Market Research"
   }
 ];
@@ -288,9 +291,9 @@ export const mockCompanies: Company[] = [
   {
     id: 'comp1',
     name: 'Innovatech Solutions',
-    industry: 'Technology',
+    industry: 'SaaS Technology',
     description: 'Cutting-edge software solutions for a brighter future. We value innovation, collaboration, and impact. Join us to work on challenging projects with a talented team.',
-    cultureHighlights: ['Remote-First', 'Unlimited PTO', 'Weekly Tech Talks', 'Health & Wellness'],
+    cultureHighlights: ['Remote-First', 'Unlimited PTO', 'Weekly Tech Talks', 'Health & Wellness', 'work-life balance'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'modern logo tech company',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -302,7 +305,7 @@ export const mockCompanies: Company[] = [
     name: 'Creative Spark Inc.',
     industry: 'Marketing & Advertising',
     description: 'We ignite brands with creative campaigns and data-driven strategies. Looking for passionate creators to join our vibrant and dynamic team.',
-    cultureHighlights: ['Pet-Friendly Office', 'Flexible Hours', 'Creative Workshops', 'Team Outings'],
+    cultureHighlights: ['Pet-Friendly Office', 'Flexible Hours', 'Creative Workshops', 'Team Outings', 'team-oriented'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'creative agency logo',
     companyNeeds: "We are looking to expand our design team to handle new client projects requiring innovative branding and digital experiences.",
@@ -311,9 +314,9 @@ export const mockCompanies: Company[] = [
   {
     id: 'comp3',
     name: 'GreenFuture Ltd.',
-    industry: 'Sustainability',
+    industry: 'Environmental Consulting',
     description: 'Dedicated to building a sustainable future through innovative green technologies. Join our mission-driven team and make a real difference in the world.',
-    cultureHighlights: ['Impactful Work', 'Collaborative Environment', 'Eco-Conscious', 'Learning Budget'],
+    cultureHighlights: ['Impactful Work', 'Collaborative Environment', 'Eco-Conscious', 'Learning Budget', 'field-work'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'eco friendly logo',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
@@ -325,7 +328,7 @@ export const mockCompanies: Company[] = [
     name: 'PixelPlay Studios',
     industry: 'Gaming',
     description: 'Creating immersive and fun gaming experiences for players worldwide. We are a team of passionate gamers and developers.',
-    cultureHighlights: ['Game Nights', 'Latest Hardware', 'Flexible Work', 'Stock Options'],
+    cultureHighlights: ['Game Nights', 'Latest Hardware', 'Flexible Work', 'Stock Options', 'creative'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'gaming company logo controller',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
@@ -337,7 +340,7 @@ export const mockCompanies: Company[] = [
     name: 'MarketMinds Co.',
     industry: 'Market Research',
     description: 'Providing actionable insights through comprehensive market research and data analysis. Helping businesses make informed decisions.',
-    cultureHighlights: ['Data-Driven', 'Continuous Learning', 'Client-Focused', 'Supportive Team'],
+    cultureHighlights: ['Data-Driven', 'Continuous Learning', 'Client-Focused', 'Supportive Team', 'analytical'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'analytics chart logo',
     companyNeeds: "Expanding our team of analysts to cover new industries and research methodologies.",
@@ -351,7 +354,7 @@ const additionalMockCompanies: Company[] = [
     name: 'HealthFirst Diagnostics',
     industry: 'Healthcare Technology',
     description: 'Pioneering AI-driven diagnostic tools to improve patient outcomes. We are a fast-growing startup with a mission to revolutionize healthcare.',
-    cultureHighlights: ['Impactful Work', 'Stock Options', 'Modern Tech Stack', 'Collaborative Research'],
+    cultureHighlights: ['Impactful Work', 'Stock Options', 'Modern Tech Stack', 'Collaborative Research', 'cutting-edge'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'healthcare tech logo',
     companyNeeds: "Looking for machine learning engineers and full-stack developers passionate about healthcare.",
@@ -379,7 +382,7 @@ const additionalMockCompanies: Company[] = [
     name: 'EduSphere Online',
     industry: 'EdTech',
     description: 'Providing accessible and engaging online learning platforms for K-12 and lifelong learners. Join us to shape the future of education.',
-    cultureHighlights: ['Remote-First', 'Mission-Driven', 'Continuous Feedback', 'Professional Development'],
+    cultureHighlights: ['Remote-First', 'Mission-Driven', 'Continuous Feedback', 'Professional Development', 'learning'],
     logoUrl: 'https://placehold.co/500x350.png',
     dataAiHint: 'education online logo',
     companyNeeds: "Hiring instructional designers, full-stack developers, and customer success managers.",
@@ -465,3 +468,4 @@ export const mockDiaryPosts: DiaryPost[] = [
     views: 40,
   }
 ];
+
