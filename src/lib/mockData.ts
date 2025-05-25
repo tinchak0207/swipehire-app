@@ -8,6 +8,7 @@ import {
   LocationPreference,
   Availability,
   JobType,
+  type DiaryPost,
 } from './types';
 
 export const mockCandidates: Candidate[] = [
@@ -307,8 +308,6 @@ export const mockCompanies: Company[] = [
   },
 ];
 
-// To ensure enough mock data, let's add a few more companies if needed
-// This is just for robust mock data, can be removed if the above 5 are sufficient
 const additionalMockCompanies: Company[] = [
   {
     id: 'comp6',
@@ -365,3 +364,63 @@ const additionalMockCompanies: Company[] = [
 ];
 
 mockCompanies.push(...additionalMockCompanies.filter(ac => !mockCompanies.find(mc => mc.id === ac.id)));
+
+
+export const mockDiaryPosts: DiaryPost[] = [
+  {
+    id: 'diary1',
+    authorId: 'cand1',
+    authorName: 'Alice Wonderland',
+    authorAvatarUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman face',
+    title: 'My First Week with a New AI Project!',
+    content: 'Just wrapped up my first week diving deep into a new machine learning project. The learning curve is steep, but the potential impact is huge. Spent most of my time setting up the environment and preprocessing data. Already learned so much about TensorFlow Extended (TFX)! Excited for what\'s next. #AI #MachineLearning #NewBeginnings',
+    imageUrl: 'https://placehold.co/600x400.png',
+    timestamp: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
+    tags: ['ai', 'learning', 'tensorflow'],
+    likes: 15,
+    views: 120,
+    isFeatured: true,
+  },
+  {
+    id: 'diary2',
+    authorId: 'cand2',
+    authorName: 'Bob The Builder',
+    authorAvatarUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'man face',
+    title: 'Brainstorming Session: Redesigning a Mobile App',
+    content: 'Had an amazing brainstorming session with the team today for the new mobile app redesign. So many creative ideas flowing! We focused on user journey mapping and identifying pain points in the current app. Feeling inspired by the collaborative energy. #UXDesign #Teamwork #Creativity',
+    timestamp: Date.now() - 1000 * 60 * 60 * 10, // 10 hours ago
+    tags: ['ux', 'design', 'collaboration'],
+    likes: 22,
+    views: 95,
+  },
+  {
+    id: 'diary3',
+    authorId: 'cand1',
+    authorName: 'Alice Wonderland',
+    authorAvatarUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'woman face',
+    title: 'Overcoming a Coding Challenge',
+    content: 'Spent the entire day debugging a tricky Python script. It was frustrating, but that moment when you finally find the bug and everything works is just priceless! Persistence pays off. #Python #CodingLife #ProblemSolving',
+    imageUrl: 'https://placehold.co/600x400.png',
+    timestamp: Date.now() - 1000 * 60 * 60 * 24 * 5, // 5 days ago
+    tags: ['python', 'debugging', 'development'],
+    likes: 30,
+    views: 250,
+    isFeatured: true,
+  },
+  {
+    id: 'diary4',
+    authorId: 'cand3',
+    authorName: 'Charlie Brown',
+    authorAvatarUrl: 'https://placehold.co/100x100.png',
+    dataAiHint: 'person face',
+    title: 'Reflecting on Q3 Product Strategy',
+    content: 'Just finished a deep dive into our Q3 product strategy. Lots of market research and data analysis involved. It\'s crucial to stay agile and adapt to customer needs. Feeling confident about the roadmap ahead. #ProductManagement #Strategy #SaaS',
+    timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
+    tags: ['product', 'strategy', 'planning'],
+    likes: 8,
+    views: 40,
+  }
+];

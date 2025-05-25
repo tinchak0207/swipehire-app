@@ -94,7 +94,7 @@ export interface Company {
   cultureHighlights: string[];
   logoUrl?: string; // URL or data URI
   dataAiHint?: string; // For logoUrl
-  introVideoUrl?: string; // URL for a company culture video (e.g., office tour, team life).
+  introVideoUrl?: string; // URL for a company culture video (e.g., office tour, team life, daily work record).
   jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string; // For icebreaker context
 }
@@ -146,4 +146,21 @@ export interface ChatMessage {
   sender: 'user' | 'ai' | 'contact'; // 'contact' represents the other person in the match
   text: string;
   timestamp: Date;
+}
+
+export interface DiaryPost {
+  id: string;
+  authorId: string; // Could be linked to a fuller User object later
+  authorName: string;
+  authorAvatarUrl?: string; // Optional
+  dataAiHint?: string; // For authorAvatarUrl
+  title: string;
+  content: string;
+  imageUrl?: string; // Optional image for the post
+  timestamp: number; // Use number for easy sorting (Date.now())
+  tags?: string[];
+  // Conceptual fields for AI curation (not fully implemented in prototype)
+  likes?: number;
+  views?: number;
+  isFeatured?: boolean;
 }
