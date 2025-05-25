@@ -22,7 +22,7 @@ export function RoleSelectionPage({ onRoleSelect }: RoleSelectionPageProps) {
   
   return (
     <div className="flex flex-col min-h-screen items-center justify-center overflow-hidden">
-      <div className="my-8 text-center">
+      <div className="my-8 text-center px-4">
         <h1 className="text-4xl md:text-5xl font-bold text-primary mb-2">Welcome to SwipeHire</h1>
         <p className="text-lg md:text-xl text-muted-foreground">Choose your path to connect and succeed.</p>
       </div>
@@ -41,9 +41,9 @@ export function RoleSelectionPage({ onRoleSelect }: RoleSelectionPageProps) {
             className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-orange-500/20 rounded-full blur-3xl animate-pulse-slow opacity-60 group-hover:opacity-80"
             style={{ animationDuration: '7s' }}
           />
-          <Users className="h-28 w-28 sm:h-36 sm:w-36 mb-6 text-white/95 drop-shadow-lg" />
-          <h2 className="text-3xl sm:text-4xl font-bold mb-2 drop-shadow-md">I'm Hiring</h2>
-          <p className="text-lg sm:text-xl drop-shadow-sm">Post jobs, discover talent.</p>
+          <Users className="h-20 w-20 sm:h-28 sm:w-28 mb-4 text-white/95 drop-shadow-lg" />
+          <h2 className="text-2xl sm:text-3xl font-bold mb-1 drop-shadow-md">I'm Hiring</h2>
+          <p className="text-md sm:text-lg drop-shadow-sm opacity-90">Post jobs, discover talent, and build your dream team.</p>
         </div>
 
         {/* Custom SVG Divider */}
@@ -78,9 +78,9 @@ export function RoleSelectionPage({ onRoleSelect }: RoleSelectionPageProps) {
             className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-green-500/20 rounded-full blur-3xl animate-pulse-slow opacity-60 group-hover:opacity-80"
             style={{ animationDelay: '1.5s', animationDuration: '8s' }}
           />
-          <Briefcase className="h-28 w-28 sm:h-36 sm:w-36 mb-6 text-white/95 drop-shadow-lg" />
-          <h2 className="text-3xl sm:text-4xl font-bold mb-2 drop-shadow-md">I'm Job Hunting</h2>
-          <p className="text-lg sm:text-xl drop-shadow-sm">Find roles, showcase skills.</p>
+          <Briefcase className="h-20 w-20 sm:h-28 sm:w-28 mb-4 text-white/95 drop-shadow-lg" />
+          <h2 className="text-2xl sm:text-3xl font-bold mb-1 drop-shadow-md">I'm Job Hunting</h2>
+          <p className="text-md sm:text-lg drop-shadow-sm opacity-90">Find exciting roles, showcase your skills, and land your next career move.</p>
         </div>
       </div>
       <style jsx>{`

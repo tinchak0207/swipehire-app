@@ -11,37 +11,45 @@ import { SettingsPage } from "@/components/pages/SettingsPage";
 import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
 import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
-import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage"; // Added new Diary page
+import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
+import { WelcomePage } from "@/components/pages/WelcomePage"; // Added WelcomePage
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+
+const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
 
 export default function HomePage() {
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("findTalent"); // Default to recruiter's primary tab
+  const [activeTab, setActiveTab] = useState<string>("findTalent"); 
   const [isMobile, setIsMobile] = useState(false);
+  const [showWelcomePage, setShowWelcomePage] = useState<boolean>(false);
 
   useEffect(() => {
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    const storedRoleValue = localStorage.getItem('userRole');
-
-    if (storedAuth === 'true') {
-      setIsAuthenticated(true);
+    const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
+    if (hasSeenWelcome !== 'true') {
+      setShowWelcomePage(true);
     } else {
-      setIsAuthenticated(false);
-    }
+      const storedAuth = localStorage.getItem('isAuthenticated');
+      const storedRoleValue = localStorage.getItem('userRole');
 
-    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-      setUserRole(storedRoleValue as UserRole);
-    } else {
-      setUserRole(null);
-      localStorage.removeItem('userRole'); // Clear invalid role
-    }
+      if (storedAuth === 'true') {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
 
+      if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+        setUserRole(storedRoleValue as UserRole);
+      } else {
+        setUserRole(null);
+        localStorage.removeItem('userRole'); 
+      }
+    }
     setIsInitialLoading(false);
 
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -49,6 +57,16 @@ export default function HomePage() {
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
+
+  const handleStartExploring = () => {
+    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+    setShowWelcomePage(false);
+    // After welcome, check auth and role as usual
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    const storedRoleValue = localStorage.getItem('userRole');
+    if (storedAuth === 'true') setIsAuthenticated(true); else setIsAuthenticated(false);
+    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') setUserRole(storedRoleValue as UserRole); else setUserRole(null);
+  };
 
   const handleLoginSuccess = () => {
     localStorage.setItem('isAuthenticated', 'true');
@@ -59,7 +77,6 @@ export default function HomePage() {
   const handleRoleSelect = (role: UserRole) => {
     localStorage.setItem('userRole', role);
     setUserRole(role);
-     // Set default tab based on new role
     if (role === 'recruiter') {
       setActiveTab('findTalent');
     } else {
@@ -73,13 +90,14 @@ export default function HomePage() {
     setIsAuthenticated(false);
     setUserRole(null); 
     setShowLoginPage(false); 
+    // Optionally, could reset hasSeenWelcome to show welcome again on next visit after logout
+    // localStorage.removeItem(HAS_SEEN_WELCOME_KEY); 
   };
 
   const handleLoginRequest = () => {
     setShowLoginPage(true);
   };
 
-  // Define tab structures
   const baseTabItems = [
     { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage /> },
     { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage /> },
@@ -88,18 +106,16 @@ export default function HomePage() {
 
   const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage /> },
-    // THIS IS THE "POST A JOB" FEATURE/TAB for recruiters
-    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> },
+    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> }, // THIS IS THE "POST A JOB" FEATURE/TAB for recruiters
     ...baseTabItems,
   ];
 
   const jobseekerTabItems = [
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage /> },
-    { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage /> }, // New Diary Tab
+    { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage /> }, 
     ...baseTabItems,
   ];
 
-  // Determine current tab items based on user role
   let currentTabItems = jobseekerTabItems; 
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
@@ -116,11 +132,10 @@ export default function HomePage() {
       if (!validTabValues.includes(activeTab)) {
         setActiveTab(defaultTabForCurrentRole);
       }
-    } else if (!showLoginPage) {
-      // Default active tab for RoleSelectionPage or initial load (no role, not on login page)
-      // setActiveTab("findTalent"); // Or any other suitable default if needed
+    } else if (!showLoginPage && !showWelcomePage) {
+      // Default active tab if no role, not on login, and not on welcome
     }
-  }, [userRole, activeTab, showLoginPage]); // Dependencies for managing activeTab state.
+  }, [userRole, activeTab, showLoginPage, showWelcomePage]); 
 
 
   if (isInitialLoading) {
@@ -131,14 +146,15 @@ export default function HomePage() {
     );
   }
 
+  if (showWelcomePage) {
+    return <WelcomePage onStartExploring={handleStartExploring} />;
+  }
+
   if (showLoginPage) {
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
   if (!isAuthenticated) {
-    // If not authenticated, and not trying to show login page, show login page.
-    // This simplifies logic if role exists but user logs out.
-    // RoleSelectionPage only shown if authenticated but no role selected.
      return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
   
@@ -158,7 +174,7 @@ export default function HomePage() {
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-            // TabsList ensures horizontal layout on desktop due to grid-cols-X
+            // TabsList ensures horizontal layout on desktop
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
