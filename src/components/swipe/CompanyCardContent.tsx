@@ -1,4 +1,3 @@
-
 import type { Company } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -12,9 +11,12 @@ interface CompanyCardContentProps {
   onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => void;
 }
 
+const MAX_DESCRIPTION_LENGTH = 100;
+
 export function CompanyCardContent({ company, onSwipeAction }: CompanyCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -52,7 +54,6 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Prevent drag if clicking on video controls or other interactive elements
     const targetElement = e.target as HTMLElement;
     if (targetElement.closest('video[controls]') && targetElement.tagName !== 'VIDEO') {
       const videoElement = targetElement.closest('video');
@@ -66,12 +67,12 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
     }
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX);
+    setCurrentX(e.clientX); // Initialize currentX
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none';
+      cardContentRef.current.style.transition = 'none'; // Remove transition during drag
     }
-    document.body.style.userSelect = 'none';
+    document.body.style.userSelect = 'none'; // Prevent text selection during drag
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -82,29 +83,34 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
 
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Add transition back for snap
     const finalDeltaX = e.clientX - startX;
-    setCurrentX(startX); // Snap back visually
+    setCurrentX(startX); // Reset for visual snap back
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { // Swipe Left (mouse dragged to the left)
+      if (finalDeltaX < 0) { 
         onSwipeAction(company.id, 'pass');
-      } else { // Swipe Right (mouse dragged to the right)
+      } else { 
         onSwipeAction(company.id, 'like');
       }
+    } else {
+      // If not a swipe, ensure the card snaps back to center smoothly
+       if (cardContentRef.current) {
+         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+       }
     }
     
     setIsDragging(false);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = '';
+    document.body.style.userSelect = ''; // Re-enable text selection
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); // Snap back
+      setCurrentX(startX); // Reset for visual snap back
       setIsDragging(false);
       cardContentRef.current.style.cursor = 'grab';
       document.body.style.userSelect = '';
@@ -112,13 +118,22 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   };
 
   const getCardTransform = () => {
-    if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
+    if (!isDragging) return 'translateX(0px) rotateZ(0deg)'; // Default position
     const deltaX = currentX - startX;
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
 
+  const toggleDescription = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card swipe when clicking "Read more/less"
+    setShowFullDescription(!showFullDescription);
+  };
+  
+  const descriptionText = jobOpening ? jobOpening.description : company.description;
+  const displayedDescription = showFullDescription
+    ? descriptionText
+    : descriptionText.slice(0, MAX_DESCRIPTION_LENGTH) + (descriptionText.length > MAX_DESCRIPTION_LENGTH ? "..." : "");
 
   return (
     <div
@@ -133,8 +148,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         transform: getCardTransform(),
       }}
     >
-      {/* Video/Image Container */}
-      <div className="relative w-full bg-muted shrink-0 h-[60%]">
+      <div className="relative w-full bg-muted shrink-0 h-[55%] md:h-[60%]">
         {company.introVideoUrl ? (
           <video
             ref={videoRef}
@@ -166,8 +180,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         )}
       </div>
 
-      {/* Content Area */}
-      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[40%]">
+      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[45%] md:h-[40%]">
         <CardHeader className="p-0 mb-1.5 sm:mb-2">
           <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
           <CardDescription className="text-xs sm:text-sm text-muted-foreground">{company.industry}</CardDescription>
@@ -196,9 +209,13 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
             </div>
           )}
 
-          <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3 pt-1">
-            {(jobOpening ? jobOpening.description : company.description)}
-            {(jobOpening ? jobOpening.description : company.description).length > 100 && <span className="text-primary cursor-pointer hover:underline ml-1 text-xs">Read more</span>}
+          <p className="text-muted-foreground pt-1">
+            {displayedDescription}
+            {descriptionText.length > MAX_DESCRIPTION_LENGTH && (
+              <button onClick={toggleDescription} className="text-primary hover:underline ml-1 text-xs font-semibold" data-no-drag="true">
+                {showFullDescription ? "Read less" : "Read more"}
+              </button>
+            )}
           </p>
 
           {company.cultureHighlights && company.cultureHighlights.length > 0 && (
@@ -214,7 +231,6 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
           )}
         </CardContent>
 
-        {/* Placeholder for Q&A Feature */}
         <div className="mt-auto pt-2 border-t border-border/50 no-swipe-area">
           <Button variant="outline" size="sm" className="w-full text-muted-foreground" disabled>
             <HelpCircle className="mr-2 h-4 w-4" />
