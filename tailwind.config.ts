@@ -11,7 +11,8 @@ export default {
   safelist: [ // Ensure these grid column classes are generated
     'grid-cols-3',
     'grid-cols-4',
-    'grid-cols-5', // Added for job seeker tabs (Find Jobs, My Diary, AI Tools, My Matches, Settings)
+    'grid-cols-5', 
+    'grid-cols-6', // Added for job seeker tabs (Find Jobs, My Profile, My Diary, AI Tools, My Matches, Settings)
   ],
   theme: {
   	extend: {

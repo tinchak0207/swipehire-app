@@ -6,11 +6,11 @@ import type { UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// import { Textarea } from '@/components/ui/textarea'; // Textarea specific to job seeker profile now in MyProfilePage
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction, UserCircle } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -25,13 +25,13 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
   const [country, setCountry] = useState('');
   const [documentId, setDocumentId] = useState('');
 
-  // Job Seeker Specific Fields
-  const [profileHeadline, setProfileHeadline] = useState('');
-  const [experienceSummary, setExperienceSummary] = useState('');
-  const [skills, setSkills] = useState(''); // Comma-separated
-  const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
-  const [pastProjects, setPastProjects] = useState('');
-  const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
+  // Job Seeker Specific Fields - MOVED TO MyProfilePage.tsx
+  // const [profileHeadline, setProfileHeadline] = useState('');
+  // const [experienceSummary, setExperienceSummary] = useState('');
+  // const [skills, setSkills] = useState(''); // Comma-separated
+  // const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
+  // const [pastProjects, setPastProjects] = useState('');
+  // const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
 
   const { toast } = useToast();
 
@@ -50,22 +50,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     if (savedCountry) setCountry(savedCountry);
     if (savedDocumentId) setDocumentId(savedDocumentId);
 
-    // Load job seeker specific settings if role is jobseeker
-    if (currentUserRole === 'jobseeker') {
-      const savedHeadline = localStorage.getItem('jobSeekerProfileHeadline');
-      const savedExpSummary = localStorage.getItem('jobSeekerExperienceSummary');
-      const savedSkills = localStorage.getItem('jobSeekerSkills');
-      const savedWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle');
-      const savedPastProjects = localStorage.getItem('jobSeekerPastProjects');
-      const savedVideoLink = localStorage.getItem('jobSeekerVideoPortfolioLink');
-
-      if (savedHeadline) setProfileHeadline(savedHeadline);
-      if (savedExpSummary) setExperienceSummary(savedExpSummary);
-      if (savedSkills) setSkills(savedSkills);
-      if (savedWorkStyle) setDesiredWorkStyle(savedWorkStyle);
-      if (savedPastProjects) setPastProjects(savedPastProjects);
-      if (savedVideoLink) setVideoPortfolioLink(savedVideoLink);
-    }
+    // Job seeker specific settings are now handled in MyProfilePage.tsx
   }, [currentUserRole]);
 
   const handleSaveSettings = () => {
@@ -86,33 +71,25 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         localStorage.removeItem('recruiterProfileComplete');
     }
 
-    // Save job seeker specific settings
-    if (selectedRole === 'jobseeker') {
-      localStorage.setItem('jobSeekerProfileHeadline', profileHeadline);
-      localStorage.setItem('jobSeekerExperienceSummary', experienceSummary);
-      localStorage.setItem('jobSeekerSkills', skills);
-      localStorage.setItem('jobSeekerDesiredWorkStyle', desiredWorkStyle);
-      localStorage.setItem('jobSeekerPastProjects', pastProjects);
-      localStorage.setItem('jobSeekerVideoPortfolioLink', videoPortfolioLink);
-    }
+    // Job seeker specific settings are saved in MyProfilePage.tsx
 
     toast({
-      title: selectedRole === 'jobseeker' ? 'Profile Updated!' : 'Settings Saved',
-      description: selectedRole === 'jobseeker' ? 'Your profile is now visible to recruiters with the latest information.' : 'Your preferences and profile information have been updated.',
+      title: 'Settings Saved',
+      description: 'Your preferences and general information have been updated.',
     });
   };
 
-  const saveButtonText = selectedRole === 'jobseeker' ? "Update & Publish My Profile" : "Save Settings";
-  const SaveButtonIcon = selectedRole === 'jobseeker' ? Save : UserCog;
+  const saveButtonText = "Save Settings";
+  const SaveButtonIcon = UserCog;
 
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
       <div className="text-center mb-8">
         <UserCog className="mx-auto h-12 w-12 text-primary mb-3" />
-        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Account Settings</h1>
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">App Settings</h1>
         <p className="text-lg text-muted-foreground mt-2">
-          Manage your profile, role, and verification status.
+          Manage your role, personal details, and app preferences.
         </p>
       </div>
 
@@ -157,7 +134,6 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
           <CardDescription>
             Update your contact and personal details. 
             {selectedRole === 'recruiter' && " Recruiters: Name and Email are required to post jobs."}
-            {selectedRole === 'jobseeker' && " Job Seekers: This information helps build your discoverable profile."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -220,96 +196,13 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         </CardContent>
       </Card>
 
-      {selectedRole === 'jobseeker' && (
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center text-xl">
-              <Edit3 className="mr-2 h-5 w-5 text-primary" />
-              My Discoverable Profile Details
-            </CardTitle>
-            <CardDescription>This information will be visible to recruiters. Make it compelling!</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1">
-              <Label htmlFor="profileHeadline" className="text-base flex items-center">
-                <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" /> My Professional Headline / Role
-              </Label>
-              <Input 
-                id="profileHeadline" 
-                placeholder="e.g., Senior Software Engineer, Aspiring UX Designer" 
-                value={profileHeadline} 
-                onChange={(e) => setProfileHeadline(e.target.value)} 
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="experienceSummary" className="text-base flex items-center">
-                <TrendingUp className="mr-2 h-4 w-4 text-muted-foreground" /> My Experience Summary
-              </Label>
-              <Textarea 
-                id="experienceSummary" 
-                placeholder="Briefly describe your key experience and what you bring to the table." 
-                value={experienceSummary} 
-                onChange={(e) => setExperienceSummary(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="skills" className="text-base flex items-center">
-                <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (comma-separated)
-              </Label>
-              <Input 
-                id="skills" 
-                placeholder="e.g., React, Python, Project Management, Figma" 
-                value={skills} 
-                onChange={(e) => setSkills(e.target.value)} 
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="desiredWorkStyle" className="text-base flex items-center">
-                <UserCog className="mr-2 h-4 w-4 text-muted-foreground" /> My Desired Work Style
-              </Label>
-              <Input 
-                id="desiredWorkStyle" 
-                placeholder="e.g., Fully Remote, Hybrid, Collaborative team" 
-                value={desiredWorkStyle} 
-                onChange={(e) => setDesiredWorkStyle(e.target.value)} 
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="pastProjects" className="text-base flex items-center">
-                <Edit3 className="mr-2 h-4 w-4 text-muted-foreground" /> My Key Past Projects/Achievements
-              </Label>
-              <Textarea 
-                id="pastProjects" 
-                placeholder="Briefly highlight 1-2 significant projects or achievements." 
-                value={pastProjects} 
-                onChange={(e) => setPastProjects(e.target.value)}
-                className="min-h-[80px]" 
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="videoPortfolioLink" className="text-base flex items-center">
-                <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Link to My Video Resume/Portfolio
-              </Label>
-              <Input 
-                id="videoPortfolioLink" 
-                type="url"
-                placeholder="https://example.com/my-portfolio-or-video.mp4" 
-                value={videoPortfolioLink} 
-                onChange={(e) => setVideoPortfolioLink(e.target.value)} 
-              />
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
             <ShieldCheck className="mr-2 h-5 w-5 text-primary" />
             Identity Verification
           </CardTitle>
-          <CardDescription>Verify your identity to build trust and credibility on the platform.</CardDescription>
+          <CardDescription>Verify your identity to build trust and credibility on the platform. (Planned Feature)</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
@@ -317,9 +210,9 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
             Future verification methods may include:
           </p>
           <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 pl-4">
-            <li>Corporate Mailbox Verification (Planned)</li>
-            <li>Job Reference Checks (Planned)</li>
-            <li>Colleague Cross-Checking (Planned)</li>
+            <li>Corporate Mailbox Verification</li>
+            <li>Job References</li>
+            <li>Colleague Cross-Checking</li>
             <li>Document Upload (e.g., professional certificates)</li>
           </ul>
           <div className="p-4 border-2 border-dashed rounded-md text-center bg-muted/50">
@@ -498,4 +391,3 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     </div>
   );
 }
-    

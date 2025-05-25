@@ -1,0 +1,152 @@
+
+"use client";
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save } from 'lucide-react';
+
+export function MyProfilePage() {
+  const [profileHeadline, setProfileHeadline] = useState('');
+  const [experienceSummary, setExperienceSummary] = useState('');
+  const [skills, setSkills] = useState(''); // Comma-separated
+  const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
+  const [pastProjects, setPastProjects] = useState('');
+  const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
+
+  const { toast } = useToast();
+
+  useEffect(() => {
+    // Load job seeker specific settings
+    const savedHeadline = localStorage.getItem('jobSeekerProfileHeadline');
+    const savedExpSummary = localStorage.getItem('jobSeekerExperienceSummary');
+    const savedSkills = localStorage.getItem('jobSeekerSkills');
+    const savedWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle');
+    const savedPastProjects = localStorage.getItem('jobSeekerPastProjects');
+    const savedVideoLink = localStorage.getItem('jobSeekerVideoPortfolioLink');
+
+    if (savedHeadline) setProfileHeadline(savedHeadline);
+    if (savedExpSummary) setExperienceSummary(savedExpSummary);
+    if (savedSkills) setSkills(savedSkills);
+    if (savedWorkStyle) setDesiredWorkStyle(savedWorkStyle);
+    if (savedPastProjects) setPastProjects(savedPastProjects);
+    if (savedVideoLink) setVideoPortfolioLink(savedVideoLink);
+  }, []);
+
+  const handleSaveProfile = () => {
+    localStorage.setItem('jobSeekerProfileHeadline', profileHeadline);
+    localStorage.setItem('jobSeekerExperienceSummary', experienceSummary);
+    localStorage.setItem('jobSeekerSkills', skills);
+    localStorage.setItem('jobSeekerDesiredWorkStyle', desiredWorkStyle);
+    localStorage.setItem('jobSeekerPastProjects', pastProjects);
+    localStorage.setItem('jobSeekerVideoPortfolioLink', videoPortfolioLink);
+
+    toast({
+      title: 'Profile Updated & Published!',
+      description: 'Your profile is now visible to recruiters with the latest information.',
+    });
+  };
+
+  return (
+    <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
+      <div className="text-center mb-8">
+        <UserCircle className="mx-auto h-12 w-12 text-primary mb-3" />
+        <h1 className="text-3xl md:text-4xl font-bold tracking-tight">My Professional Profile</h1>
+        <p className="text-lg text-muted-foreground mt-2">
+          Craft your profile to stand out to recruiters. This information will be visible to them.
+        </p>
+      </div>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <Edit3 className="mr-2 h-5 w-5 text-primary" />
+            Edit Your Discoverable Profile
+          </CardTitle>
+          <CardDescription>This information will be visible to recruiters. Make it compelling!</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-1">
+            <Label htmlFor="profileHeadline" className="text-base flex items-center">
+              <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" /> My Professional Headline / Role
+            </Label>
+            <Input 
+              id="profileHeadline" 
+              placeholder="e.g., Senior Software Engineer, Aspiring UX Designer" 
+              value={profileHeadline} 
+              onChange={(e) => setProfileHeadline(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="experienceSummary" className="text-base flex items-center">
+              <TrendingUp className="mr-2 h-4 w-4 text-muted-foreground" /> My Experience Summary
+            </Label>
+            <Textarea 
+              id="experienceSummary" 
+              placeholder="Briefly describe your key experience and what you bring to the table." 
+              value={experienceSummary} 
+              onChange={(e) => setExperienceSummary(e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="skills" className="text-base flex items-center">
+              <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (comma-separated)
+            </Label>
+            <Input 
+              id="skills" 
+              placeholder="e.g., React, Python, Project Management, Figma" 
+              value={skills} 
+              onChange={(e) => setSkills(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="desiredWorkStyle" className="text-base flex items-center">
+              <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" /> My Desired Work Style
+            </Label>
+            <Input 
+              id="desiredWorkStyle" 
+              placeholder="e.g., Fully Remote, Hybrid, Collaborative team" 
+              value={desiredWorkStyle} 
+              onChange={(e) => setDesiredWorkStyle(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="pastProjects" className="text-base flex items-center">
+              <Edit3 className="mr-2 h-4 w-4 text-muted-foreground" /> My Key Past Projects/Achievements
+            </Label>
+            <Textarea 
+              id="pastProjects" 
+              placeholder="Briefly highlight 1-2 significant projects or achievements." 
+              value={pastProjects} 
+              onChange={(e) => setPastProjects(e.target.value)}
+              className="min-h-[80px]" 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="videoPortfolioLink" className="text-base flex items-center">
+              <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Link to My Video Resume/Portfolio
+            </Label>
+            <Input 
+              id="videoPortfolioLink" 
+              type="url"
+              placeholder="https://example.com/my-portfolio-or-video.mp4" 
+              value={videoPortfolioLink} 
+              onChange={(e) => setVideoPortfolioLink(e.target.value)} 
+            />
+          </div>
+        </CardContent>
+        <CardFooter className="flex justify-end pt-6">
+          <Button onClick={handleSaveProfile} size="lg">
+            <Save className="mr-2 h-5 w-5" />
+            Update & Publish My Profile
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}

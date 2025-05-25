@@ -12,9 +12,10 @@ import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
 import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
-import { WelcomePage } from "@/components/pages/WelcomePage"; // Added WelcomePage
+import { WelcomePage } from "@/components/pages/WelcomePage";
+import { MyProfilePage } from "@/components/pages/MyProfilePage"; // Import MyProfilePage
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText } from 'lucide-react';
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react'; // Added UserCircle
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -112,6 +113,7 @@ export default function HomePage() {
 
   const jobseekerTabItems = [
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage /> },
+    { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage /> },
     { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage /> }, 
     ...baseTabItems,
   ];
@@ -124,7 +126,10 @@ export default function HomePage() {
   }
   
   useEffect(() => {
-    if (userRole) {
+    // This effect ensures that if the activeTab becomes invalid for the current role
+    // (e.g., after a role switch or if it was loaded from a previous session with a different role),
+    // it resets to a default tab for the current role.
+    if (userRole && isAuthenticated) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
       const defaultTabForCurrentRole = userRole === 'recruiter' ? "findTalent" : "findJobs";
@@ -132,10 +137,9 @@ export default function HomePage() {
       if (!validTabValues.includes(activeTab)) {
         setActiveTab(defaultTabForCurrentRole);
       }
-    } else if (!showLoginPage && !showWelcomePage) {
-      // Default active tab if no role, not on login, and not on welcome
     }
-  }, [userRole, activeTab, showLoginPage, showWelcomePage]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRole, isAuthenticated, activeTab]); // Dependencies: re-run if role, auth status, or current activeTab changes.
 
 
   if (isInitialLoading) {
@@ -175,6 +179,7 @@ export default function HomePage() {
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
             // TabsList ensures horizontal layout on desktop
+            // The number of columns is dynamically set based on the number of tabs for the current role.
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
