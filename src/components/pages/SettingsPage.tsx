@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3 } from 'lucide-react';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -360,6 +360,65 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         </CardContent>
       </Card>
 
+      {selectedRole === 'recruiter' && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+              <DollarSign className="mr-2 h-5 w-5 text-primary" />
+              Subscription Plans (Future)
+            </CardTitle>
+            <CardDescription>
+              Unlock powerful features to find the best talent faster.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4 text-sm">
+            <p className="text-muted-foreground">
+              SwipeHire aims to provide value at every level. While core features are available to all, advanced functionalities for enterprises will be available through tiered subscriptions:
+            </p>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-semibold text-primary">Basic (Free)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>Limited swipe opportunities (e.g., 50/month)</li>
+                  <li>Basic screening criteria</li>
+                  <li>Standard recommendation algorithm</li>
+                  <li>Basic chat function</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-primary">Professional Edition ($299/month - Conceptual)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>Unlimited right-sliding</li>
+                  <li>Advanced Screening (Skill Set, Salary, Arrival Time)</li>
+                  <li>Priority Recommendation</li>
+                  <li>Batch Operations & Detailed Analysis Reports</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-primary">Enterprise Edition ($899/month - Conceptual)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>All Professional features</li>
+                  <li>Multi-Person Collaboration</li>
+                  <li>Customized Filtering & API Integration</li>
+                  <li>Brand Exposure Optimization & Dedicated Account Manager</li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="font-semibold text-primary">Customized Edition (Contact Us)</h4>
+                <ul className="list-disc list-inside pl-4 text-muted-foreground text-xs">
+                  <li>All Enterprise features</li>
+                  <li>Proprietary Recruitment Funnel Design</li>
+                  <li>Deep System Integration & Professional Consulting</li>
+                  <li>Advanced Data Analysis & Insight Reports</li>
+                </ul>
+              </div>
+            </div>
+            <Button variant="outline" disabled className="w-full">
+              <BarChart3 className="mr-2 h-4 w-4" /> Manage Subscription (Coming Soon)
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       <CardFooter className="flex justify-end pt-6">
         <Button onClick={handleSaveSettings} size="lg">
@@ -370,5 +429,4 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     </div>
   );
 }
-
     
