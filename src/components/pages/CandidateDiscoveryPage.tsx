@@ -29,7 +29,8 @@ const initialFilters: CandidateFilters = {
 };
 
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
-  const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates);
+  const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
+  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,7 +48,14 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  const filteredCandidates = useMemo(() => {
+  useEffect(() => {
+    // Simulate fetching all candidates initially
+    setAllCandidates(mockCandidates);
+    setFilteredCandidates(mockCandidates); // Initially, all candidates are filtered candidates
+  }, []);
+
+
+  const localFilteredCandidates = useMemo(() => {
     let candidates = [...allCandidates]; 
 
     if (activeFilters.experienceLevels.size > 0) {
@@ -78,6 +86,11 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     return candidates;
   }, [allCandidates, activeFilters, searchTerm]);
 
+  useEffect(() => {
+    setFilteredCandidates(localFilteredCandidates);
+  }, [localFilteredCandidates]);
+
+
   const loadMoreCandidates = useCallback(() => {
     if (isLoading || !hasMore || currentIndex >= filteredCandidates.length) {
       if (currentIndex >= filteredCandidates.length) setHasMore(false);
@@ -105,22 +118,26 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   useEffect(() => {
     setDisplayedCandidates([]);
     setCurrentIndex(0);
-    setHasMore(filteredCandidates.length > 0); 
-    if (filteredCandidates.length > 0) {
-      setIsLoading(false); 
+    
+    const hasFilteredItems = filteredCandidates.length > 0;
+    setHasMore(hasFilteredItems); 
+  
+    if (hasFilteredItems) {
+      setIsLoading(false); // Ensure loading is false before attempting to load
       
-      const newLoadIndex = 0 + ITEMS_PER_BATCH;
+      const newLoadIndex = 0 + ITEMS_PER_BATCH; // Calculate based on 0
       const newBatch = filteredCandidates.slice(0, newLoadIndex);
       setDisplayedCandidates(newBatch);
-      setCurrentIndex(newLoadIndex);
+      setCurrentIndex(newLoadIndex); // Set current index to after the loaded batch
       setHasMore(newLoadIndex < filteredCandidates.length);
     } else {
+      // If no filtered items, reset display and stop loading
       setDisplayedCandidates([]);
       setCurrentIndex(0);
       setHasMore(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates]); 
+  }, [filteredCandidates]); // Re-run when filteredCandidates changes (due to search or filter updates)
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -211,9 +228,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
-      // In a real app, this might open a modal or navigate to a detailed profile page.
-      // For now, the card itself expands with "Read more"
-      // toast({ title: message, description: "Detailed view/expansion to be implemented." });
+      // Handled by "Read more" within CandidateCardContent
       return; 
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
@@ -225,11 +240,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
       toast({ title: message });
     } else if (action === 'share') {
-      // Share functionality is handled within CandidateCardContent
-      // We call this function here just to be consistent if any backend tracking was needed.
-      // For now, it's mostly a placeholder action at this page level.
-      // The actual share logic (clipboard/navigator.share) is in CandidateCardContent.
-      // toast({ title: "Sharing " + candidate.name }); // This toast would be redundant
+      // Logic is in CandidateCardContent
       return;
     }
 
@@ -317,7 +328,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           >
             <SwipeCard
               className={`w-full max-w-xl h-full flex flex-col
-                          ${superLikedCandidates.has(candidate.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCandidates.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
+                          ${superLikedCandidates.has(candidate.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCandidates.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}
+                          ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}
             >
               <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} />
               <CardFooter className="p-2 sm:p-3 grid grid-cols-6 gap-1 sm:gap-2 border-t bg-card shrink-0">
@@ -336,7 +348,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                 <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCandidates.has(candidate.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => handleAction(candidate.id, 'save')} aria-label={`Save ${candidate.name}`}>
                   <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCandidates.has(candidate.id) ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => onSwipeAction(candidate.id, 'share')} aria-label={`Share ${candidate.name}`}>
+                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => handleAction(candidate.id, 'share')} aria-label={`Share ${candidate.name}`}>
                   <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
                 </Button>
               </CardFooter>
@@ -379,3 +391,5 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
+
+    
