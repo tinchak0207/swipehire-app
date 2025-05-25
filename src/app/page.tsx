@@ -13,9 +13,9 @@ import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
 import { WelcomePage } from "@/components/pages/WelcomePage";
-import { MyProfilePage } from "@/components/pages/MyProfilePage"; // Import MyProfilePage
+import { MyProfilePage } from "@/components/pages/MyProfilePage";
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react'; // Added UserCircle
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -26,9 +26,10 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<string>("findTalent"); 
+  const [activeTab, setActiveTab] = useState<string>("findTalent");
   const [isMobile, setIsMobile] = useState(false);
   const [showWelcomePage, setShowWelcomePage] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
@@ -48,7 +49,7 @@ export default function HomePage() {
         setUserRole(storedRoleValue as UserRole);
       } else {
         setUserRole(null);
-        localStorage.removeItem('userRole'); 
+        localStorage.removeItem('userRole');
       }
     }
     setIsInitialLoading(false);
@@ -62,7 +63,6 @@ export default function HomePage() {
   const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
-    // After welcome, check auth and role as usual
     const storedAuth = localStorage.getItem('isAuthenticated');
     const storedRoleValue = localStorage.getItem('userRole');
     if (storedAuth === 'true') setIsAuthenticated(true); else setIsAuthenticated(false);
@@ -87,12 +87,10 @@ export default function HomePage() {
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userRole'); 
+    localStorage.removeItem('userRole');
     setIsAuthenticated(false);
-    setUserRole(null); 
-    setShowLoginPage(false); 
-    // Optionally, could reset hasSeenWelcome to show welcome again on next visit after logout
-    // localStorage.removeItem(HAS_SEEN_WELCOME_KEY); 
+    setUserRole(null);
+    setShowLoginPage(false);
   };
 
   const handleLoginRequest = () => {
@@ -106,29 +104,26 @@ export default function HomePage() {
   ];
 
   const recruiterTabItems = [
-    { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage /> },
-    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> }, // THIS IS THE "POST A JOB" FEATURE/TAB for recruiters
+    { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} /> },
+    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> },
     ...baseTabItems,
   ];
 
   const jobseekerTabItems = [
-    { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage /> },
+    { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} /> },
     { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage /> },
-    { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage /> }, 
+    { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage /> },
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems; 
+  let currentTabItems = jobseekerTabItems;
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   } else if (userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   }
-  
+
   useEffect(() => {
-    // This effect ensures that if the activeTab becomes invalid for the current role
-    // (e.g., after a role switch or if it was loaded from a previous session with a different role),
-    // it resets to a default tab for the current role.
     if (userRole && isAuthenticated) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
@@ -139,7 +134,7 @@ export default function HomePage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated, activeTab]); // Dependencies: re-run if role, auth status, or current activeTab changes.
+  }, [userRole, isAuthenticated, activeTab]);
 
 
   if (isInitialLoading) {
@@ -161,7 +156,7 @@ export default function HomePage() {
   if (!isAuthenticated) {
      return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
-  
+
   if (!userRole) {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
@@ -172,14 +167,14 @@ export default function HomePage() {
         isAuthenticated={isAuthenticated}
         onLoginRequest={handleLoginRequest}
         onLogout={handleLogout}
+        searchTerm={searchTerm}
+        onSearchTermChange={setSearchTerm}
       />
       <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-            // TabsList ensures horizontal layout on desktop
-            // The number of columns is dynamically set based on the number of tabs for the current role.
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
@@ -194,9 +189,10 @@ export default function HomePage() {
             </TabsList>
           )}
 
+          {/* Render the component for the active tab, passing searchTerm if it's a discovery page */}
           {currentTabItems.map(item => (
             <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
-              {item.component}
+              {React.cloneElement(item.component, (item.value === 'findTalent' || item.value === 'findJobs') ? { searchTerm } : {})}
             </TabsContent>
           ))}
         </Tabs>

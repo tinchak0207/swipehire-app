@@ -8,9 +8,11 @@ interface AppHeaderProps {
   isAuthenticated: boolean;
   onLoginRequest: () => void;
   onLogout: () => void;
+  searchTerm: string;
+  onSearchTermChange: (term: string) => void;
 }
 
-export function AppHeader({ isAuthenticated, onLoginRequest, onLogout }: AppHeaderProps) {
+export function AppHeader({ isAuthenticated, onLoginRequest, onLogout, searchTerm, onSearchTermChange }: AppHeaderProps) {
   return (
     <header className="bg-primary text-primary-foreground shadow-md sticky top-0 z-40">
       <div className="container mx-auto px-4 py-3 sm:py-4 flex items-center justify-between gap-4">
@@ -26,13 +28,15 @@ export function AppHeader({ isAuthenticated, onLoginRequest, onLogout }: AppHead
 
         <div className="flex-grow max-w-xl hidden sm:flex items-center relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input 
-            type="search" 
-            placeholder="Search jobs, companies, or talent..." 
+          <Input
+            type="search"
+            placeholder="Search jobs, companies, or talent..."
             className="w-full pl-10 pr-4 py-2 rounded-lg bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/70 border-none focus:bg-primary-foreground/20 focus:ring-accent"
+            value={searchTerm}
+            onChange={(e) => onSearchTermChange(e.target.value)}
           />
         </div>
-        
+
         <div>
           {isAuthenticated ? (
             <Button variant="ghost" onClick={onLogout} className="text-primary-foreground hover:bg-primary/80 hover:text-accent-foreground">

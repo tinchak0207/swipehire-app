@@ -3,21 +3,28 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { Company } from '@/lib/types';
-// import { mockCompanies } from '@/lib/mockData'; // Will be fetched via service
+import { mockCompanies as staticMockCompanies } from '@/lib/mockData'; // Renamed to avoid conflict
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
 import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { fetchJobsFromBackend } from '@/services/jobService';
 
-export function JobDiscoveryPage() {
+const ITEMS_PER_BATCH = 3; // For infinite scroll
+
+interface JobDiscoveryPageProps {
+  searchTerm?: string;
+}
+
+export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
+  const [masterJobFeed, setMasterJobFeed] = useState<Company[]>([]); // Holds all jobs (mock + user-posted)
+  const [filteredJobFeed, setFilteredJobFeed] = useState<Company[]>([]);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
-  const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
 
   const [likedCompanies, setLikedCompanies] = useState<Set<string>>(new Set());
   const [superLikedCompanies, setSuperLikedCompanies] = useState<Set<string>>(new Set());
@@ -28,38 +35,35 @@ export function JobDiscoveryPage() {
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  const loadCompanies = useCallback(async (cursor?: string) => {
-    if (isLoading && !isInitialLoading) return;
+  // Function to load initial master list of jobs
+  const loadInitialData = useCallback(async () => {
+    setIsInitialLoading(true);
+    setIsLoading(true); // Also set general loading true
+    // Simulate fetching user-posted jobs from localStorage
+    const storedUserPostedCompanies = localStorage.getItem('userPostedCompanies');
+    const userPostedJobs: Company[] = storedUserPostedCompanies ? JSON.parse(storedUserPostedCompanies) : [];
 
-    if (isInitialLoading) {
-      setIsLoading(true);
-    } else if (cursor || (!cursor && hasMore)) {
-      setIsLoading(true);
-    }
+    // Combine user-posted jobs with static mock data
+    // Ensure no duplicates if mock data could somehow include IDs from userPostedJobs
+    const combinedJobs = [
+      ...userPostedJobs,
+      ...staticMockCompanies.filter(mc => !userPostedJobs.find(upj => upj.id === mc.id))
+    ];
 
-    try {
-      const { jobs, hasMore: newHasMore, nextCursor: newNextCursor } = await fetchJobsFromBackend(cursor);
+    setMasterJobFeed(combinedJobs);
+    setFilteredJobFeed(combinedJobs); // Initially, filtered is same as master
+    
+    setDisplayedCompanies([]);
+    setCurrentIndex(0);
+    setHasMore(combinedJobs.length > 0);
+    
+    setIsInitialLoading(false);
+    setIsLoading(false);
+  }, []);
 
-      setDisplayedCompanies(prev => {
-        const existingIds = new Set(prev.map(c => c.id));
-        const uniqueNewJobs = jobs.filter(job => !existingIds.has(job.id));
-        return cursor ? [...prev, ...uniqueNewJobs] : uniqueNewJobs;
-      });
-      setHasMore(newHasMore);
-      setNextCursor(newNextCursor);
-    } catch (error) {
-      console.error("Failed to fetch jobs:", error);
-      toast({ title: "Error fetching jobs", description: "Could not load opportunities. Please try again.", variant: "destructive" });
-      setHasMore(false);
-    } finally {
-      setIsLoading(false);
-      if (isInitialLoading) setIsInitialLoading(false);
-    }
-  }, [isLoading, isInitialLoading, toast, hasMore]);
 
   useEffect(() => {
-    setIsInitialLoading(true);
-    loadCompanies();
+    loadInitialData();
 
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
     if (storedLiked) setLikedCompanies(new Set(JSON.parse(storedLiked)));
@@ -72,17 +76,77 @@ export function JobDiscoveryPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Effect for handling search term changes
+  useEffect(() => {
+    if (isInitialLoading) return; // Don't filter until initial data is loaded
 
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const newFilteredCompanies = masterJobFeed.filter(company => {
+      if (!searchTerm.trim()) return true;
+      const jobOpening = company.jobOpenings && company.jobOpenings[0];
+      return (
+        company.name.toLowerCase().includes(lowerSearchTerm) ||
+        (company.industry && company.industry.toLowerCase().includes(lowerSearchTerm)) ||
+        (jobOpening && jobOpening.title.toLowerCase().includes(lowerSearchTerm)) ||
+        (jobOpening && jobOpening.description.toLowerCase().includes(lowerSearchTerm)) ||
+        (jobOpening && jobOpening.tags && jobOpening.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm))) ||
+        (jobOpening && jobOpening.location && jobOpening.location.toLowerCase().includes(lowerSearchTerm))
+      );
+    });
+
+    setFilteredJobFeed(newFilteredCompanies);
+    setDisplayedCompanies([]);
+    setCurrentIndex(0);
+    setHasMore(newFilteredCompanies.length > 0);
+    setIsLoading(false); // Reset loading state before potentially loading new batch
+  }, [searchTerm, masterJobFeed, isInitialLoading]);
+
+
+  const loadMoreCompanies = useCallback(() => {
+    if (isLoading || !hasMore || filteredJobFeed.length === 0) return;
+    setIsLoading(true);
+
+    setTimeout(() => {
+      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
+      const newBatch = filteredJobFeed.slice(currentIndex, newLoadIndex);
+
+      setDisplayedCompanies(prevDisplayed => {
+        const prevIds = new Set(prevDisplayed.map(c => c.id));
+        const uniqueNewItems = newBatch.filter(item => !prevIds.has(item.id));
+        return [...prevDisplayed, ...uniqueNewItems];
+      });
+
+      setCurrentIndex(newLoadIndex);
+
+      if (newLoadIndex >= filteredJobFeed.length) {
+        setHasMore(false);
+      }
+      setIsLoading(false);
+    }, 700); // Simulate network delay
+  }, [isLoading, hasMore, currentIndex, filteredJobFeed]);
+
+  // Effect to load first batch when filteredJobFeed changes (after search or initial load)
+  useEffect(() => {
+    if (!isInitialLoading && filteredJobFeed.length > 0) {
+      setHasMore(true);
+      loadMoreCompanies();
+    } else if (!isInitialLoading && filteredJobFeed.length === 0) {
+      setHasMore(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredJobFeed, isInitialLoading]); // Not including loadMoreCompanies to avoid re-trigger loop here
+
+  // IntersectionObserver for infinite scroll
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
 
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading && !isInitialLoading) {
-        loadCompanies(nextCursor);
+        loadMoreCompanies();
       }
     }, {
         threshold: 0.1,
-        rootMargin: '0px 0px 300px 0px'
+        rootMargin: '0px 0px 300px 0px' // Start loading when trigger is 300px from bottom
     });
 
     if (loadMoreTriggerRef.current) {
@@ -94,14 +158,15 @@ export function JobDiscoveryPage() {
         observer.current.disconnect();
       }
     };
-  }, [hasMore, isLoading, nextCursor, loadCompanies, isInitialLoading]);
+  }, [hasMore, isLoading, loadMoreCompanies, isInitialLoading]);
+
 
   const updateLocalStorageSet = (key: string, set: Set<string>) => {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
   const handleAction = (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike') => {
-    const company = displayedCompanies.find(c => c.id === companyId);
+    const company = masterJobFeed.find(c => c.id === companyId); // Check against master list
     if (!company) return;
 
     let message = "";
@@ -125,11 +190,11 @@ export function JobDiscoveryPage() {
     if (action === 'like') {
       newLiked.add(companyId);
       message = `Interested in ${company.name}`;
-      if (Math.random() > 0.7) { // Simulate a match (30% chance)
+      if (Math.random() > 0.7) {
         toast({
           title: "🎉 Company Interested!",
           description: `${company.name} shows interest! Check 'My Matches' to generate an icebreaker and connect.`,
-          duration: 5000,
+          duration: 7000,
         });
       } else {
         toast({ title: message, variant: toastVariant });
@@ -143,13 +208,13 @@ export function JobDiscoveryPage() {
       toast({ title: message, variant: toastVariant });
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
-      newLiked.add(companyId); 
+      newLiked.add(companyId);
       message = `Super liked ${company.name}!`;
-       if (Math.random() > 0.5) { // Simulate a higher chance of match for superlike
+       if (Math.random() > 0.5) {
          toast({
           title: "🎉 Company Super Interested!",
           description: `${company.name} is very interested! Check 'My Matches' to generate an icebreaker and connect.`,
-          duration: 5000,
+          duration: 7000,
         });
       } else {
         toast({ title: message });
@@ -157,7 +222,7 @@ export function JobDiscoveryPage() {
     } else if (action === 'details') {
       message = `Viewing details for ${company.name}`;
       toast({ title: message, description: "Detailed view/expansion to be implemented." });
-      return; 
+      return;
     } else if (action === 'save') {
       if (newSaved.has(companyId)) {
         newSaved.delete(companyId);
@@ -180,9 +245,9 @@ export function JobDiscoveryPage() {
   };
 
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
-  const fixedElementsHeight = '160px'; 
+  const fixedElementsHeight = '160px';
 
-  if (isInitialLoading && displayedCompanies.length === 0 && isLoading) {
+  if (isInitialLoading && masterJobFeed.length === 0) {
      return (
       <div
         className="flex items-center justify-center bg-background"
@@ -272,26 +337,29 @@ export function JobDiscoveryPage() {
         </div>
       )}
 
-      {hasMore && !isLoading && !isInitialLoading && (
+      {hasMore && !isLoading && !isInitialLoading && filteredJobFeed.length > 0 && (
          <div
             ref={loadMoreTriggerRef}
-            className="h-full snap-start snap-always flex items-center justify-center text-transparent"
+            className="h-1" /* Small trigger for observer */
          >
-           .
          </div>
       )}
 
-      {!isLoading && !hasMore && visibleCompanies.length === 0 && (
+      {!isLoading && !hasMore && visibleCompanies.length === 0 && filteredJobFeed.length === 0 && searchTerm && (
+         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
+            <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
+            <h2 className="text-2xl font-semibold mb-3 text-foreground">No Jobs Found</h2>
+            <p className="text-muted-foreground">Try adjusting your search term.</p>
+          </div>
+      )}
+
+      {!isLoading && !hasMore && visibleCompanies.length === 0 && filteredJobFeed.length === 0 && !searchTerm && (
          <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Companies</h2>
-            <p className="text-muted-foreground">You've seen all opportunities for now. Try again later!</p>
+            <p className="text-muted-foreground">You've seen all opportunities for now. Check back later or clear your search!</p>
           </div>
       )}
     </div>
   );
 }
-
-    
-
-    

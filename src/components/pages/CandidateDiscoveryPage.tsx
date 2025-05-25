@@ -13,8 +13,13 @@ import { useToast } from '@/hooks/use-toast';
 
 const ITEMS_PER_BATCH = 3;
 
-export function CandidateDiscoveryPage() {
-  const [allCandidates] = useState<Candidate[]>(mockCandidates);
+interface CandidateDiscoveryPageProps {
+  searchTerm?: string;
+}
+
+export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
+  const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates);
+  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>(mockCandidates);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -35,7 +40,7 @@ export function CandidateDiscoveryPage() {
 
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = allCandidates.slice(currentIndex, newLoadIndex);
+      const newBatch = filteredCandidates.slice(currentIndex, newLoadIndex);
 
       setDisplayedCandidates(prevDisplayed => {
         const prevIds = new Set(prevDisplayed.map(c => c.id));
@@ -45,37 +50,52 @@ export function CandidateDiscoveryPage() {
 
       setCurrentIndex(newLoadIndex);
 
-      if (newLoadIndex >= allCandidates.length) {
+      if (newLoadIndex >= filteredCandidates.length) {
         setHasMore(false);
       }
       setIsLoading(false);
     }, 700);
-  }, [isLoading, hasMore, currentIndex, allCandidates]);
+  }, [isLoading, hasMore, currentIndex, filteredCandidates]);
 
   useEffect(() => {
-    setIsLoading(true);
-    setTimeout(() => {
-      const initialBatch = allCandidates.slice(0, ITEMS_PER_BATCH);
-      setDisplayedCandidates(initialBatch);
-      setCurrentIndex(ITEMS_PER_BATCH);
-      if (ITEMS_PER_BATCH >= allCandidates.length) {
-        setHasMore(false);
-      }
-      setIsLoading(false);
-    }, 100);
-
-    const storedLiked = localStorage.getItem('likedCandidatesDemo');
-    if (storedLiked) setLikedCandidates(new Set(JSON.parse(storedLiked)));
-    const storedSuperLiked = localStorage.getItem('superLikedCandidatesDemo');
-    if (storedSuperLiked) setSuperLikedCandidates(new Set(JSON.parse(storedSuperLiked)));
-    const storedPassed = localStorage.getItem('passedCandidatesDemo');
-    if (storedPassed) setPassedCandidates(new Set(JSON.parse(storedPassed)));
-    const storedSaved = localStorage.getItem('savedCandidatesDemo');
-    if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved)));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Load initial set of candidates (all for client-side search)
+    setAllCandidates(mockCandidates);
   }, []);
 
-   useEffect(() => {
+  useEffect(() => {
+    // Filter candidates based on search term
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const newFilteredCandidates = allCandidates.filter(candidate => {
+      if (!searchTerm.trim()) return true;
+      return (
+        candidate.name.toLowerCase().includes(lowerSearchTerm) ||
+        candidate.role.toLowerCase().includes(lowerSearchTerm) ||
+        candidate.experienceSummary.toLowerCase().includes(lowerSearchTerm) ||
+        (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm))) ||
+        (candidate.location && candidate.location.toLowerCase().includes(lowerSearchTerm))
+      );
+    });
+    setFilteredCandidates(newFilteredCandidates);
+    setDisplayedCandidates([]); // Reset displayed candidates
+    setCurrentIndex(0); // Reset index
+    setHasMore(newFilteredCandidates.length > 0); // Reset hasMore
+    setIsLoading(false); // Ensure loading is false before potentially loading more
+  }, [searchTerm, allCandidates]);
+
+  useEffect(() => {
+    // This effect runs after filteredCandidates is updated by the search term
+    // to load the first batch of filtered results.
+    if (filteredCandidates.length > 0) {
+      setHasMore(true); // Potentially more to load
+      loadMoreCandidates(); // Load the first batch from the new filtered list
+    } else {
+      setHasMore(false); // No items to load
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredCandidates]); // Deliberately not including loadMoreCandidates here
+
+
+  useEffect(() => {
     if (observer.current) observer.current.disconnect();
 
     observer.current = new IntersectionObserver(entries => {
@@ -98,6 +118,17 @@ export function CandidateDiscoveryPage() {
     };
   }, [hasMore, isLoading, loadMoreCandidates]);
 
+
+  useEffect(() => {
+    const storedLiked = localStorage.getItem('likedCandidatesDemo');
+    if (storedLiked) setLikedCandidates(new Set(JSON.parse(storedLiked)));
+    const storedSuperLiked = localStorage.getItem('superLikedCandidatesDemo');
+    if (storedSuperLiked) setSuperLikedCandidates(new Set(JSON.parse(storedSuperLiked)));
+    const storedPassed = localStorage.getItem('passedCandidatesDemo');
+    if (storedPassed) setPassedCandidates(new Set(JSON.parse(storedPassed)));
+    const storedSaved = localStorage.getItem('savedCandidatesDemo');
+    if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved)));
+  }, []);
 
   const updateLocalStorageSet = (key: string, set: Set<string>) => {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
@@ -128,11 +159,11 @@ export function CandidateDiscoveryPage() {
     if (action === 'like') {
       newLiked.add(candidateId);
       message = `Liked ${candidate.name}`;
-      if (Math.random() > 0.7) { // Simulate a match (30% chance)
+      if (Math.random() > 0.7) {
         toast({
           title: "🎉 It's a Match!",
           description: `You and ${candidate.name} are both interested! Check 'My Matches' to generate an icebreaker.`,
-          duration: 5000,
+          duration: 7000,
         });
       } else {
         toast({ title: message, variant: toastVariant });
@@ -146,13 +177,13 @@ export function CandidateDiscoveryPage() {
       toast({ title: message, variant: toastVariant });
     } else if (action === 'superlike') {
       newSuperLiked.add(candidateId);
-      newLiked.add(candidateId); 
+      newLiked.add(candidateId);
       message = `Super liked ${candidate.name}!`;
-      if (Math.random() > 0.5) { // Simulate a higher chance of match for superlike
-        toast({
+      if (Math.random() > 0.5) {
+         toast({
           title: "🎉 It's a Super Match!",
           description: `You and ${candidate.name} are very interested! Check 'My Matches' to generate an icebreaker.`,
-          duration: 5000,
+          duration: 7000,
         });
       } else {
         toast({ title: message });
@@ -160,7 +191,7 @@ export function CandidateDiscoveryPage() {
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
       toast({ title: message, description: "Detailed view/expansion to be implemented." });
-      return; 
+      return;
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
         newSaved.delete(candidateId);
@@ -183,7 +214,7 @@ export function CandidateDiscoveryPage() {
   };
 
   const visibleCandidates = displayedCandidates.filter(c => !passedCandidates.has(c.id));
-  const fixedElementsHeight = '160px'; 
+  const fixedElementsHeight = '160px';
 
   return (
     <div
@@ -264,16 +295,23 @@ export function CandidateDiscoveryPage() {
         </div>
       )}
 
-      {hasMore && !isLoading && (
+      {hasMore && !isLoading && filteredCandidates.length > 0 && (
          <div
            ref={loadMoreTriggerRef}
-           className="h-full snap-start snap-always flex items-center justify-center text-transparent"
+           className="h-1" /* Small trigger for observer */
          >
-           .
          </div>
       )}
 
-      {!isLoading && !hasMore && visibleCandidates.length === 0 && (
+      {!isLoading && !hasMore && visibleCandidates.length === 0 && filteredCandidates.length === 0 && searchTerm && (
+         <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
+            <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
+            <h2 className="text-2xl font-semibold mb-3 text-foreground">No Candidates Found</h2>
+            <p className="text-muted-foreground">Try adjusting your search term.</p>
+          </div>
+      )}
+
+      {!isLoading && !hasMore && visibleCandidates.length === 0 && filteredCandidates.length === 0 && !searchTerm && (
          <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">No More Candidates</h2>
@@ -283,6 +321,3 @@ export function CandidateDiscoveryPage() {
     </div>
   );
 }
-    
-
-    
