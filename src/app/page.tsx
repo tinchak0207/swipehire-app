@@ -1,6 +1,7 @@
 
 "use client";
 
+import React, { useState, useEffect } from "react"; // Added React import
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CandidateDiscoveryPage } from "@/components/pages/CandidateDiscoveryPage";
@@ -16,7 +17,6 @@ import { WelcomePage } from "@/components/pages/WelcomePage";
 import { MyProfilePage } from "@/components/pages/MyProfilePage";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
@@ -90,7 +90,7 @@ export default function HomePage() {
     localStorage.removeItem('userRole');
     setIsAuthenticated(false);
     setUserRole(null);
-    setShowLoginPage(false);
+    setShowLoginPage(false); // Ensure login page isn't stuck open
   };
 
   const handleLoginRequest = () => {
@@ -105,7 +105,7 @@ export default function HomePage() {
 
   const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} /> },
-    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> },
+    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> }, // "Post a Job" tab for recruiters
     ...baseTabItems,
   ];
 
@@ -116,25 +116,25 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems;
+  let currentTabItems = jobseekerTabItems; // Default to job seeker
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
-  } else if (userRole === 'jobseeker') {
-    currentTabItems = jobseekerTabItems;
   }
 
+  // Effect to manage active tab based on role changes or invalid states
   useEffect(() => {
     if (userRole && isAuthenticated) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
       const defaultTabForCurrentRole = userRole === 'recruiter' ? "findTalent" : "findJobs";
 
+      // If current activeTab is not valid for the new role, reset it
       if (!validTabValues.includes(activeTab)) {
         setActiveTab(defaultTabForCurrentRole);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated, activeTab]);
+  }, [userRole, isAuthenticated]); // Removed activeTab from deps to avoid potential loops; it's an output of this effect
 
 
   if (isInitialLoading) {
@@ -161,6 +161,9 @@ export default function HomePage() {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
+  // This logic correctly renders tabs horizontally on desktop
+  // and uses a mobile menu on smaller screens.
+  // The `grid-cols-${currentTabItems.length}` ensures horizontal layout based on the number of tabs.
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
