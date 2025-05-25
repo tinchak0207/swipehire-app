@@ -24,9 +24,9 @@ const ZodJobType = z.nativeEnum(JobType);
 
 const CandidateProfileSchema = z.object({
   id: z.string(),
-  role: z.string().describe("Candidate's stated role or desired position."),
-  experienceSummary: z.string().describe("Summary of the candidate's work experience."),
-  skills: z.array(z.string()).describe("List of candidate's skills."),
+  role: z.string().describe("Candidate's stated role or desired position.").optional(),
+  experienceSummary: z.string().describe("Summary of the candidate's work experience.").optional(),
+  skills: z.array(z.string()).describe("List of candidate's skills.").optional(),
   location: z.string().optional().describe("Candidate's current location or preferred city."),
   desiredWorkStyle: z.string().optional().describe("Candidate's preferred work style (e.g., remote, collaborative)."),
   pastProjects: z.string().optional().describe("Brief description of key past projects or achievements."),
@@ -118,9 +118,9 @@ const profileRecommenderPrompt = ai.definePrompt({
   prompt: `You are an AI HR expert. Your task is twofold:
 1.  **Recruiter's Perspective**: Evaluate the provided Candidate Profile against the Job Criteria. Provide a \`matchScore\`, \`reasoning\`, \`weightedScores\` (Skills: 40%, Experience: 30%, Culture Fit: 20%, Growth Potential: 10%), an "underestimated talent" assessment, a personality fit assessment (for coworker fit), and optimal work style suggestions for the candidate in the context of the role.
 2.  **Job Seeker's Perspective**: Separately, assess how well this Job Opportunity fits the Candidate's profile and preferences. Provide this analysis in the \`candidateJobFitAnalysis\` field, including a \`matchScoreForCandidate\`, \`reasoningForCandidate\`, and \`weightedScoresForCandidate\` based on the following criteria:
-    *   Culture Fit Matching (35%): Candidate's desired work style, personality insights vs. Company culture keywords, company industry, job's work location type.
-    *   Job Relevance (30%): Candidate's skills, experience summary, past projects, education level vs. Job title, description, required skills, required experience level.
-    *   Growth Opportunity Evaluation (20%): Potential for learning and career development in this role and company, inferred from job description and company industry.
+    *   Culture Fit Matching (35%): Candidate's desired work style ({{{candidateProfile.desiredWorkStyle}}}), personality insights ({{{candidateProfile.personalityAssessment}}}) vs. Company culture keywords ({{{jobCriteria.companyCultureKeywords}}}), company industry ({{{jobCriteria.companyIndustry}}}), job's work location type ({{{jobCriteria.workLocationType}}}).
+    *   Job Relevance (30%): Candidate's skills ({{{candidateProfile.skills}}}), experience summary ({{{candidateProfile.experienceSummary}}}), past projects ({{{candidateProfile.pastProjects}}}), education level ({{{candidateProfile.educationLevel}}}) vs. Job title ({{{jobCriteria.title}}}), description ({{{jobCriteria.description}}}), required skills ({{{jobCriteria.requiredSkills}}}), required experience level ({{{jobCriteria.requiredExperienceLevel}}}).
+    *   Growth Opportunity Evaluation (20%): Potential for learning and career development in this role and company, inferred from job description ({{{jobCriteria.description}}}) and company industry ({{{jobCriteria.companyIndustry}}}).
     *   Job Condition Fitting (15%): Candidate's salary expectations ({{{candidateProfile.salaryExpectationMin}}} - {{{candidateProfile.salaryExpectationMax}}}), location preferences ({{{candidateProfile.locationPreference}}}, {{{candidateProfile.location}}}), job type preferences ({{{candidateProfile.jobTypePreference}}}) vs. Job's salary range ({{{jobCriteria.salaryMin}}} - {{{jobCriteria.salaryMax}}}), job location ({{{jobCriteria.jobLocation}}}, {{{jobCriteria.workLocationType}}}), and job type ({{{jobCriteria.jobType}}}).
 
 Candidate Profile:
@@ -204,12 +204,35 @@ const profileRecommenderFlow = ai.defineFlow(
     outputSchema: ProfileRecommenderOutputSchema,
   },
   async (input) => {
-    const {output} = await profileRecommenderPrompt(input);
+    // Fallback for candidateProfile if it's sparse (e.g., from a job seeker's initial localStorage profile)
+    const candidateProfileWithDefaults = {
+      id: input.candidateProfile.id || 'unknown-candidate',
+      role: input.candidateProfile.role || 'Not specified',
+      experienceSummary: input.candidateProfile.experienceSummary || 'Not specified',
+      skills: input.candidateProfile.skills || [],
+      location: input.candidateProfile.location || 'Not specified',
+      desiredWorkStyle: input.candidateProfile.desiredWorkStyle || 'Not specified',
+      pastProjects: input.candidateProfile.pastProjects || 'Not specified',
+      workExperienceLevel: input.candidateProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
+      educationLevel: input.candidateProfile.educationLevel || EducationLevel.UNSPECIFIED,
+      locationPreference: input.candidateProfile.locationPreference || LocationPreference.UNSPECIFIED,
+      languages: input.candidateProfile.languages || [],
+      salaryExpectationMin: input.candidateProfile.salaryExpectationMin, // Keep as undefined if not set
+      salaryExpectationMax: input.candidateProfile.salaryExpectationMax, // Keep as undefined if not set
+      availability: input.candidateProfile.availability || Availability.UNSPECIFIED,
+      jobTypePreference: input.candidateProfile.jobTypePreference || [],
+      personalityAssessment: input.candidateProfile.personalityAssessment || [],
+    };
+
+    const {output} = await profileRecommenderPrompt({
+        candidateProfile: candidateProfileWithDefaults,
+        jobCriteria: input.jobCriteria
+    });
 
     if (!output) {
       // Fallback if AI fails to generate structured output
       return {
-        candidateId: input.candidateProfile.id,
+        candidateId: input.candidateProfile.id || 'unknown-candidate',
         matchScore: 0,
         reasoning: "AI analysis failed to generate a structured response. Please review manually.",
         weightedScores: {
@@ -236,9 +259,9 @@ const profileRecommenderFlow = ai.defineFlow(
     }
     // Ensure candidateId is correctly passed through.
     // Also ensure candidateJobFitAnalysis has a fallback if AI doesn't provide it fully structured (though schema should enforce it)
-    return { 
-        ...output, 
-        candidateId: input.candidateProfile.id,
+    return {
+        ...output,
+        candidateId: input.candidateProfile.id || 'unknown-candidate',
         candidateJobFitAnalysis: output.candidateJobFitAnalysis || {
             matchScoreForCandidate: 0,
             reasoningForCandidate: "AI analysis did not provide job-to-candidate fit details.",
