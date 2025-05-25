@@ -7,13 +7,13 @@ import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card'
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
-import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow'; // New import
+import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types'; 
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog"; // For Q&A
-import { Input } from '@/components/ui/input'; // For Q&A
-import { Textarea } from '@/components/ui/textarea'; // For Q&A display
-import { ScrollArea } from '@/components/ui/scroll-area'; // For Q&A display
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CompanyCardContentProps {
   company: Company;
@@ -31,13 +31,12 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
-  const SWIPE_THRESHOLD = 75;
-  const MAX_ROTATION = 10;
+  const SWIPE_THRESHOLD = 75; // Pixels
+  const MAX_ROTATION = 10; // Degrees
 
   const [aiJobFitAnalysis, setAiJobFitAnalysis] = useState<ProfileRecommenderOutput['candidateJobFitAnalysis'] | null>(null);
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
 
-  // State for Q&A Dialog
   const [isQADialogOpen, setIsQADialogOpen] = useState(false);
   const [userQuestion, setUserQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
@@ -71,7 +70,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         personalityAssessment: JSON.parse(localStorage.getItem('jobSeekerPersonalityAssessment') || 'null') || undefined,
       };
       
-      const currentJobOpening = company.jobOpenings[0];
+      const currentJobOpening = company.jobOpenings[0]; // Assuming primary job opening for context
       const jobCriteria: JobCriteriaForAI = {
         title: currentJobOpening.title,
         description: currentJobOpening.description,
@@ -84,15 +83,14 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         salaryMin: currentJobOpening.salaryMin,
         salaryMax: currentJobOpening.salaryMax,
         jobType: currentJobOpening.jobType || JobType.UNSPECIFIED,
-        companyCultureKeywords: currentJobOpening.companyCultureKeywords || [],
-        companyIndustry: currentJobOpening.companyIndustry || undefined,
+        companyCultureKeywords: currentJobOpening.companyCultureKeywords || company.cultureHighlights || [],
+        companyIndustry: company.industry || undefined,
       };
 
       const result = await recommendProfile({ candidateProfile: jobSeekerProfile, jobCriteria });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
       } else {
-        // toast({ title: "AI Analysis Note", description: "Could not generate a detailed job fit analysis at this time.", variant: "default" });
         console.warn("AI Analysis Note: Could not generate a detailed job fit analysis for company:", company.name);
       }
     } catch (error) {
@@ -124,9 +122,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       { threshold: 0.5 }
     );
 
-    if (currentVideoRef) {
-        observer.observe(currentVideoRef);
-    }
+    observer.observe(currentVideoRef);
 
     return () => {
       if (currentVideoRef) {
@@ -144,12 +140,11 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        // Check if click is on the controls area (approx bottom 40px)
         if (e.clientY > rect.bottom - 40) { 
-          return; // Don't initiate drag if clicking video controls
+          return; 
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea')) {
-        return; // Don't initiate drag if clicking interactive elements
+        return; 
       }
     }
     e.preventDefault();
@@ -177,9 +172,9 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
     setCurrentX(startX); 
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { 
+      if (finalDeltaX < 0) { // Swiped Left
         onSwipeAction(company.id, 'pass');
-      } else { 
+      } else { // Swiped Right
         onSwipeAction(company.id, 'like');
       }
     } else {
@@ -253,6 +248,33 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
     }
   };
 
+  const handleShare = async () => {
+    const shareText = `Check out this job at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
+    const shareUrl = window.location.origin; // In a real app, this would be a deep link
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `SwipeHire: ${company.name} - ${jobOpening?.title || 'Job'}`,
+          text: shareText,
+          url: shareUrl,
+        });
+        toast({ title: "Shared!", description: "Job opportunity shared successfully." });
+      } catch (error) {
+        console.error('Error sharing:', error);
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText} See more at: ${shareUrl}`);
+        toast({ title: "Copied to Clipboard!", description: "Job link copied." });
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
+      }
+    }
+    // onSwipeAction(company.id, 'share');
+  };
+
   return (
     <div
       ref={cardContentRef}
@@ -264,6 +286,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
+        transition: isDragging ? 'none' : 'transform 0.3s ease-out',
       }}
     >
       <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100vh_-_350px)] md:max-h-[calc(100vh_-_300px)]">
@@ -381,7 +404,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
           )}
           <Dialog open={isQADialogOpen} onOpenChange={(isOpen) => {
             setIsQADialogOpen(isOpen);
-            if (!isOpen) { // Reset QA state when dialog closes
+            if (!isOpen) { 
               setUserQuestion("");
               setAiAnswer(null);
               setIsAskingQuestion(false);
@@ -436,6 +459,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
             </DialogContent>
           </Dialog>
         </div>
+        {/* Share button added to the footer in JobDiscoveryPage.tsx */}
       </div>
     </div>
   );

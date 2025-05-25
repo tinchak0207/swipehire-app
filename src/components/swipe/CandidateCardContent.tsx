@@ -2,12 +2,12 @@
 import type { Candidate, PersonalityTraitAssessment } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2 } from 'lucide-react'; // Added Share2
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2 } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import React, { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useToast } from '@/hooks/use-toast'; // Added useToast
+import { useToast } from '@/hooks/use-toast';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
@@ -20,13 +20,13 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const [showFullSummary, setShowFullSummary] = useState(false);
-  const { toast } = useToast(); // Initialize toast
+  const { toast } = useToast();
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
-  const SWIPE_THRESHOLD = 75;
-  const MAX_ROTATION = 10;
+  const SWIPE_THRESHOLD = 75; // Pixels
+  const MAX_ROTATION = 10; // Degrees
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -43,9 +43,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       { threshold: 0.5 }
     );
 
-    if (currentVideoRef) {
-      observer.observe(currentVideoRef);
-    }
+    observer.observe(currentVideoRef);
 
     return () => {
       if (currentVideoRef) {
@@ -59,15 +57,18 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
-        if (targetElement.tagName === 'VIDEO') {
+        if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
             const videoElement = targetElement as HTMLVideoElement;
             const rect = videoElement.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) return;
+            // Check if click is on the controls area (approx bottom 40px)
+            if (e.clientY > rect.bottom - 40) {
+                return; // Don't initiate drag if clicking video controls
+            }
         } else {
-          return;
+          return; // Don't initiate drag if clicking other interactive elements
         }
     }
-    e.preventDefault(); // Prevent text selection during drag
+    e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
     setCurrentX(e.clientX);
@@ -75,7 +76,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       cardContentRef.current.style.cursor = 'grabbing';
       cardContentRef.current.style.transition = 'none';
     }
-    document.body.style.userSelect = 'none';
+    document.body.style.userSelect = 'none'; // Prevent text selection globally
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -88,15 +89,16 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     
     cardContentRef.current.style.transition = 'transform 0.3s ease-out';
     const finalDeltaX = e.clientX - startX;
-    setCurrentX(startX);
+    setCurrentX(startX); // Reset for the snap back visual
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { 
-        onSwipeAction(candidate.id, 'pass'); // Swiped Left (original: 'pass')
-      } else { 
-        onSwipeAction(candidate.id, 'like'); // Swiped Right (original: 'like')
+      if (finalDeltaX < 0) { // Swiped Left
+        onSwipeAction(candidate.id, 'pass');
+      } else { // Swiped Right
+        onSwipeAction(candidate.id, 'like');
       }
     } else {
+      // Snap back if not swiped far enough
       if (cardContentRef.current) {
          cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -106,13 +108,13 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = '';
+    document.body.style.userSelect = ''; // Re-enable text selection
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX);
+      setCurrentX(startX); // Reset for snap back
       if (cardContentRef.current) {
         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -125,7 +127,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const getCardTransform = () => {
     if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
-    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); // Normalize rotation
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
@@ -144,13 +146,43 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   };
 
   const toggleSummary = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation(); // Prevent card swipe or other actions
     setShowFullSummary(!showFullSummary);
   };
 
   const displayedSummary = showFullSummary 
     ? candidate.experienceSummary 
     : candidate.experienceSummary.slice(0, MAX_SUMMARY_LENGTH) + (candidate.experienceSummary.length > MAX_SUMMARY_LENGTH ? "..." : "");
+
+  const handleShare = async () => {
+    const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
+    const shareUrl = window.location.origin; // In a real app, this would be a deep link to the candidate profile
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `SwipeHire: ${candidate.name}`,
+          text: shareText,
+          url: shareUrl,
+        });
+        toast({ title: "Shared!", description: "Candidate profile shared successfully." });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        // Toast for share cancellation is usually not shown as it's user-initiated
+        // toast({ title: "Share Cancelled", description: "Sharing was cancelled or failed.", variant: "default" });
+      }
+    } else {
+      try {
+        await navigator.clipboard.writeText(`${shareText} See more at: ${shareUrl}`);
+        toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
+      } catch (err) {
+        console.error('Failed to copy: ', err);
+        toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
+      }
+    }
+    // Call the onSwipeAction for 'share' if you need to track this action internally
+    // onSwipeAction(candidate.id, 'share'); 
+  };
 
   return (
     <div
@@ -163,9 +195,10 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
+        transition: isDragging ? 'none' : 'transform 0.3s ease-out', // Apply transition only when not dragging
       }}
     >
-      <div className="relative w-full bg-muted shrink-0 h-[60%] md:h-[60%] max-h-[calc(100vh_-_300px)] md:max-h-[calc(100vh_-_250px)]"> {/* Adjusted max-height */}
+      <div className="relative w-full bg-muted shrink-0 h-[60%] md:h-[60%] max-h-[calc(100vh_-_300px)] md:max-h-[calc(100vh_-_250px)]">
         {candidate.videoResumeUrl ? (
           <video
             ref={videoRef}
@@ -303,6 +336,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
             </div>
           </div>
         )}
+        {/* Share button added to the footer in CandidateDiscoveryPage.tsx */}
       </div>
     </div>
   );

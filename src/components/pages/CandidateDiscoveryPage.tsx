@@ -9,7 +9,7 @@ import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
-import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react'; // Added Share2
+import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -211,7 +211,9 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
     } else if (action === 'details') {
       message = `Viewing details for ${candidate.name}`;
-      toast({ title: message, description: "Detailed view/expansion to be implemented." });
+      // In a real app, this might open a modal or navigate to a detailed profile page.
+      // For now, the card itself expands with "Read more"
+      // toast({ title: message, description: "Detailed view/expansion to be implemented." });
       return; 
     } else if (action === 'save') {
       if (newSaved.has(candidateId)) {
@@ -223,16 +225,12 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
       toast({ title: message });
     } else if (action === 'share') {
-      const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}. (URL: ${window.location.origin})`;
-      navigator.clipboard.writeText(shareText)
-        .then(() => {
-          toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
-        })
-        .catch(err => {
-          console.error('Failed to copy: ', err);
-          toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
-        });
-      return; // Share action doesn't change other states
+      // Share functionality is handled within CandidateCardContent
+      // We call this function here just to be consistent if any backend tracking was needed.
+      // For now, it's mostly a placeholder action at this page level.
+      // The actual share logic (clipboard/navigator.share) is in CandidateCardContent.
+      // toast({ title: "Sharing " + candidate.name }); // This toast would be redundant
+      return;
     }
 
     setLikedCandidates(newLiked); updateLocalStorageSet('likedCandidatesDemo', newLiked);
@@ -277,7 +275,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   };
   const numActiveFilters = countActiveFilters();
 
-  const fixedElementsHeight = '160px'; // Approximate height for header and filter bar
+  const fixedElementsHeight = '160px'; 
   const visibleCandidates = displayedCandidates.filter(c => !passedCandidates.has(c.id));
 
   return (
@@ -338,7 +336,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                 <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCandidates.has(candidate.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => handleAction(candidate.id, 'save')} aria-label={`Save ${candidate.name}`}>
                   <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCandidates.has(candidate.id) ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => handleAction(candidate.id, 'share')} aria-label={`Share ${candidate.name}`}>
+                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => onSwipeAction(candidate.id, 'share')} aria-label={`Share ${candidate.name}`}>
                   <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
                 </Button>
               </CardFooter>

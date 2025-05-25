@@ -9,7 +9,7 @@ import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
 import { CardFooter } from '@/components/ui/card';
-import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react'; // Added Share2
+import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; 
 import { JobFilterPanel } from "@/components/filters/JobFilterPanel"; 
@@ -57,26 +57,21 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     setIsInitialLoading(true);
     setIsLoading(true); // Also set general loading
     try {
-      // Fetch initial batch from backend simulator
       const { jobs: initialJobs, hasMore: initialHasMore, nextCursor: initialNextCursor } = await fetchJobsFromBackend();
       const combinedJobs = [
         ...initialJobs,
-        // Keep existing mockCompanies that are not present in initialJobs (based on ID)
-        // This preserves any unique mock data if the backend doesn't have it yet.
         ...staticMockCompanies.filter(mc => !initialJobs.find(upj => upj.id === mc.id))
       ];
       
       setMasterJobFeed(combinedJobs);
-      setNextPageCursor(initialNextCursor); // Save cursor for next backend fetch
-      // Note: hasMore from this initial fetch might not be the "final" hasMore after filtering.
-      // The hasMore state used for infinite scroll will be derived from filteredJobFeed.
+      setNextPageCursor(initialNextCursor);
     } catch (error) {
       console.error("Failed to load initial jobs:", error);
-      setMasterJobFeed(staticMockCompanies); // Fallback to static mocks
+      setMasterJobFeed(staticMockCompanies); 
       toast({ title: "Error", description: "Could not load initial job listings.", variant: "destructive" });
     } finally {
       setIsInitialLoading(false);
-      setIsLoading(false); // Reset general loading
+      setIsLoading(false); 
     }
   }, [toast]);
 
@@ -151,18 +146,17 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     }, 700);
   }, [isLoading, hasMore, currentIndex, filteredJobFeed]);
   
-  // This useEffect now handles initial load and subsequent loads based on filteredJobFeed changes.
   useEffect(() => {
-    if (isInitialLoading) return; // Wait for initial data load to complete
+    if (isInitialLoading) return; 
 
     setDisplayedCompanies([]);
-    setCurrentIndex(0); // Reset current index for the filtered list
+    setCurrentIndex(0); 
     
     const hasFilteredItems = filteredJobFeed.length > 0;
-    setHasMore(hasFilteredItems); // If there are filtered items, there might be more
+    setHasMore(hasFilteredItems); 
 
     if (hasFilteredItems) {
-      setIsLoading(false); // Ensure loading is false before calling
+      setIsLoading(false); 
       
       const newLoadIndex = 0 + ITEMS_PER_BATCH;
       const newBatch = filteredJobFeed.slice(0, newLoadIndex);
@@ -170,22 +164,18 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredJobFeed.length);
     } else {
-      // No items match current filters/search
       setDisplayedCompanies([]);
       setCurrentIndex(0);
       setHasMore(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredJobFeed, isInitialLoading]); // Depend on filteredJobFeed and isInitialLoading
+  }, [filteredJobFeed, isInitialLoading]); 
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading && !isInitialLoading) {
-        // For now, local loading is used. Replace with backend fetch if API supports it.
         loadMoreCompaniesFromLocal(); 
-        // Example: if using backend pagination for filtered results:
-        // fetchMoreFilteredJobsFromBackend(); 
       }
     }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
     if (loadMoreTriggerRef.current) {
@@ -194,7 +184,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     return () => {
       if (observer.current) observer.current.disconnect();
     };
-  }, [hasMore, isLoading, isInitialLoading, loadMoreCompaniesFromLocal]); // Add loadMoreCompaniesFromLocal
+  }, [hasMore, isLoading, isInitialLoading, loadMoreCompaniesFromLocal]);
 
   const updateLocalStorageSet = (key: string, set: Set<string>) => {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
@@ -248,7 +238,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       }
     } else if (action === 'details') {
       message = `Viewing details for ${company.name}`;
-      toast({ title: message, description: "Detailed view/expansion to be implemented." });
+      // For now, "Read more" on card handles details expansion.
+      // toast({ title: message, description: "Detailed view/expansion to be implemented." });
       return;
     } else if (action === 'save') {
       if (newSaved.has(companyId)) {
@@ -260,15 +251,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       }
       toast({ title: message });
     } else if (action === 'share') {
-      const shareText = `Check out this job opportunity at ${company.name} on SwipeHire! (URL: ${window.location.origin})`;
-      navigator.clipboard.writeText(shareText)
-        .then(() => {
-          toast({ title: "Copied to Clipboard!", description: "Job link copied." });
-        })
-        .catch(err => {
-          console.error('Failed to copy: ', err);
-          toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
-        });
+      // Share functionality is handled within CompanyCardContent
+      // toast({ title: "Sharing " + company.name }); // Redundant
       return; 
     }
     setLikedCompanies(newLiked); updateLocalStorageSet('likedCompaniesDemo', newLiked);
@@ -385,7 +369,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
                 <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCompanies.has(company.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => handleAction(company.id, 'save')} aria-label={`Save ${company.name}`}>
                   <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCompanies.has(company.id) ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => handleAction(company.id, 'share')} aria-label={`Share ${company.name}`}>
+                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => onSwipeAction(company.id, 'share')} aria-label={`Share ${company.name}`}>
                   <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
                 </Button>
               </CardFooter>
