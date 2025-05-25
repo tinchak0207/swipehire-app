@@ -1,13 +1,15 @@
 
-import type { Candidate, PersonalityTraitAssessment } from '@/lib/types';
+import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2 } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2, Brain, Loader2 } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
+import { recommendProfile } from '@/ai/flows/profile-recommender';
+import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
@@ -25,8 +27,67 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
-  const SWIPE_THRESHOLD = 75; // Pixels
-  const MAX_ROTATION = 10; // Degrees
+  const SWIPE_THRESHOLD = 75; 
+  const MAX_ROTATION = 10; 
+
+  const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
+  const [aiRecruiterMatchScore, setAiRecruiterMatchScore] = useState<number | null>(null);
+  const [aiRecruiterReasoning, setAiRecruiterReasoning] = useState<string | null>(null);
+
+  const fetchAiRecruiterAnalysis = useCallback(async () => {
+    if (!candidate) return;
+    setIsLoadingAiAnalysis(true);
+    setAiRecruiterMatchScore(null);
+    setAiRecruiterReasoning(null);
+
+    try {
+      const candidateForAI: CandidateProfileForAI = {
+        id: candidate.id,
+        role: candidate.role,
+        experienceSummary: candidate.experienceSummary,
+        skills: candidate.skills,
+        location: candidate.location,
+        desiredWorkStyle: candidate.desiredWorkStyle,
+        pastProjects: candidate.pastProjects,
+        workExperienceLevel: candidate.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
+        educationLevel: candidate.educationLevel || EducationLevel.UNSPECIFIED,
+        locationPreference: candidate.locationPreference || LocationPreference.UNSPECIFIED,
+        languages: candidate.languages || [],
+        salaryExpectationMin: candidate.salaryExpectationMin,
+        salaryExpectationMax: candidate.salaryExpectationMax,
+        availability: candidate.availability || Availability.UNSPECIFIED,
+        jobTypePreference: candidate.jobTypePreference || [],
+        personalityAssessment: candidate.personalityAssessment || [],
+      };
+
+      // Generic job criteria for recruiter's general assessment
+      const genericJobCriteria: JobCriteriaForAI = {
+        title: "General Talent Assessment",
+        description: "Assessing overall potential and fit for a variety of roles within a dynamic company.",
+        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"], // Use some candidate skills or generic ones
+        requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL, // A common baseline
+        requiredEducationLevel: EducationLevel.UNIVERSITY,
+        companyCultureKeywords: ["innovative", "collaborative", "fast-paced", "results-oriented"],
+        companyIndustry: "Technology", // A common default
+      };
+
+      const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
+      setAiRecruiterMatchScore(result.matchScore);
+      setAiRecruiterReasoning(result.reasoning);
+
+    } catch (error) {
+      console.error("Error fetching AI recruiter analysis for candidate " + candidate.name + ":", error);
+      toast({ title: "AI Analysis Error", description: `Could not get AI assessment for ${candidate.name}.`, variant: "destructive", duration: 3000 });
+    } finally {
+      setIsLoadingAiAnalysis(false);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidate.id]); // Depend only on candidate.id or candidate itself if its reference changes properly
+
+  useEffect(() => {
+    fetchAiRecruiterAnalysis();
+  }, [fetchAiRecruiterAnalysis]);
+
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -60,12 +121,11 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
             const videoElement = targetElement as HTMLVideoElement;
             const rect = videoElement.getBoundingClientRect();
-            // Check if click is on the controls area (approx bottom 40px)
             if (e.clientY > rect.bottom - 40) {
-                return; // Don't initiate drag if clicking video controls
+                return;
             }
         } else {
-          return; // Don't initiate drag if clicking other interactive elements
+          return; 
         }
     }
     e.preventDefault();
@@ -76,7 +136,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       cardContentRef.current.style.cursor = 'grabbing';
       cardContentRef.current.style.transition = 'none';
     }
-    document.body.style.userSelect = 'none'; // Prevent text selection globally
+    document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -87,18 +147,19 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
     
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
     const finalDeltaX = e.clientX - startX;
-    setCurrentX(startX); // Reset for the snap back visual
+    if (cardContentRef.current) {
+      cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+    }
+    setCurrentX(startX); 
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { // Swiped Left
+      if (finalDeltaX < 0) { 
         onSwipeAction(candidate.id, 'pass');
-      } else { // Swiped Right
+      } else { 
         onSwipeAction(candidate.id, 'like');
       }
     } else {
-      // Snap back if not swiped far enough
       if (cardContentRef.current) {
          cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -108,13 +169,13 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = ''; // Re-enable text selection
+    document.body.style.userSelect = '';
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); // Reset for snap back
+      setCurrentX(startX); 
       if (cardContentRef.current) {
         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -127,7 +188,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const getCardTransform = () => {
     if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
-    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); // Normalize rotation
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); 
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
@@ -146,8 +207,10 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   };
 
   const toggleSummary = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card swipe or other actions
+    e.stopPropagation(); 
     setShowFullSummary(!showFullSummary);
+    // To trigger the 'details' action when "Read more" is clicked for summary
+    onSwipeAction(candidate.id, 'details'); 
   };
 
   const displayedSummary = showFullSummary 
@@ -156,7 +219,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const handleShare = async () => {
     const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
-    const shareUrl = window.location.origin; // In a real app, this would be a deep link to the candidate profile
+    const shareUrl = window.location.origin; 
 
     if (navigator.share) {
       try {
@@ -168,8 +231,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         toast({ title: "Shared!", description: "Candidate profile shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
-        // Toast for share cancellation is usually not shown as it's user-initiated
-        // toast({ title: "Share Cancelled", description: "Sharing was cancelled or failed.", variant: "default" });
       }
     } else {
       try {
@@ -180,8 +241,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
       }
     }
-    // Call the onSwipeAction for 'share' if you need to track this action internally
-    // onSwipeAction(candidate.id, 'share'); 
   };
 
   return (
@@ -195,10 +254,10 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
-        transition: isDragging ? 'none' : 'transform 0.3s ease-out', // Apply transition only when not dragging
+        transition: isDragging ? 'none' : 'transform 0.3s ease-out', 
       }}
     >
-      <div className="relative w-full bg-muted shrink-0 h-[60%] md:h-[60%] max-h-[calc(100vh_-_300px)] md:max-h-[calc(100vh_-_250px)]">
+      <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100vh_-_300px)] md:max-h-[calc(100vh_-_250px)]">
         {candidate.videoResumeUrl ? (
           <video
             ref={videoRef}
@@ -295,6 +354,38 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
           )}
         </CardContent>
 
+        {/* AI Recruiter Assessment Section */}
+        <div className="mt-2 pt-2 border-t border-border/50 text-xs">
+            <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
+                <Brain className="h-4 w-4 mr-1.5 text-primary" /> AI Assessment:
+            </h4>
+            {isLoadingAiAnalysis && (
+                <div className="flex items-center text-muted-foreground">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Analyzing profile...</span>
+                </div>
+            )}
+            {!isLoadingAiAnalysis && aiRecruiterMatchScore !== null && (
+                <div className="space-y-1">
+                    <div className="text-sm text-foreground">
+                        <span className="font-semibold">Match Score:</span>
+                        <span className={`ml-1 font-bold ${aiRecruiterMatchScore >= 75 ? 'text-green-600' : aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {aiRecruiterMatchScore}%
+                        </span>
+                    </div>
+                    {aiRecruiterReasoning && (
+                        <p className="text-xs text-muted-foreground italic line-clamp-2">
+                            {aiRecruiterReasoning}
+                        </p>
+                    )}
+                </div>
+            )}
+            {!isLoadingAiAnalysis && aiRecruiterMatchScore === null && (
+                 <p className="text-xs text-muted-foreground italic">AI assessment unavailable.</p>
+            )}
+        </div>
+
+
         {(candidate.personalityAssessment || candidate.optimalWorkStyles) && (
           <div className="mt-2 pt-2 border-t border-border/50 text-xs">
             <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
@@ -336,7 +427,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
             </div>
           </div>
         )}
-        {/* Share button added to the footer in CandidateDiscoveryPage.tsx */}
       </div>
     </div>
   );
