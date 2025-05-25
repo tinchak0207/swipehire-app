@@ -267,9 +267,9 @@ export interface CandidateFilters {
 export interface JobFilters {
   experienceLevels: Set<WorkExperienceLevel>; // Required experience for the job
   educationLevels: Set<EducationLevel>;   // Required education for the job
-  workLocationTypes: Set<LocationPreference>; // On-site, Remote, Hybrid
-  jobTypes: Set<JobType>;
-  // companyIndustries: string[];
-  // minSalary: number;
-  // maxSalary: number;
+  workLocationTypes: Set<LocationPreference>; // On-site, Remote, Hybrid for the job
+  jobTypes: Set<JobType>; // Type of the job
+  // companyIndustries: Set<string>; // Future filter
+  // minSalary: number; // Future filter
+  // maxSalary: number; // Future filter
 }
