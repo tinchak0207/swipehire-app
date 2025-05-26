@@ -22,8 +22,8 @@ interface CompanyCardContentProps {
   isLiked: boolean;
 }
 
-const MAX_COMPANY_DESCRIPTION_LENGTH = 120; // For the modal
-const MAX_JOB_DESCRIPTION_LENGTH = 100; // For the collapsed card
+const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250; 
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60; 
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10; // degrees
 
@@ -49,7 +49,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setAiJobFitAnalysis(null);
+    setAiJobFitAnalysis(null); 
     setIsLoadingAiAnalysis(false);
     setUserQuestion("");
     setAiAnswer(null);
@@ -67,7 +67,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
     setAiJobFitAnalysis(null);
 
     try {
-      // Attempt to parse profile from localStorage, using defaults for missing fields
       const jobSeekerProfileHeadline = localStorage.getItem('jobSeekerProfileHeadline') || undefined;
       const jobSeekerExperienceSummary = localStorage.getItem('jobSeekerExperienceSummary') || undefined;
       const jobSeekerSkillsRaw = localStorage.getItem('jobSeekerSkills');
@@ -254,7 +253,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
         toast({ title: "Shared!", description: "Job opportunity shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
-        // toast({ title: "Share Failed", description: "Could not share at this moment.", variant: "destructive" });
       }
     } else {
       try {
@@ -269,14 +267,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   };
 
   const jobDescriptionForCard = jobOpening?.description || "";
-  const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH 
-    ? jobDescriptionForCard.substring(0, MAX_JOB_DESCRIPTION_LENGTH) + "..."
+  const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH_CARD 
+    ? jobDescriptionForCard.substring(0, MAX_JOB_DESCRIPTION_LENGTH_CARD) + "..."
     : jobDescriptionForCard;
 
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal 
     ? jobDescriptionForModal
-    : jobDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH) + (jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH ? "..." : "");
+    : jobDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + (jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL ? "..." : "");
 
 
   return (
@@ -296,6 +294,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
         <div className="relative w-full bg-muted shrink-0 h-[50%] md:h-[55%] max-h-[calc(100vh_-_400px)] sm:max-h-[calc(100vh_-_350px)]">
           {company.introVideoUrl ? (
             <video
+              ref={videoRef}
               src={company.introVideoUrl}
               muted
               autoPlay
@@ -321,7 +320,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
           )}
         </div>
 
-        <div className="p-3 sm:p-4 flex-grow flex flex-col h-[50%] md:h-[45%] overflow-y-auto no-scrollbar overscroll-y-contain">
+        <div className="p-3 sm:p-4 flex-grow flex flex-col h-[50%] md:h-[45%] overflow-hidden"> 
           <CardHeader className="p-0 mb-1.5 sm:mb-2">
             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
             <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
@@ -350,7 +349,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
               </div>
             )}
             {jobOpening?.description && (
-                <p className="text-muted-foreground text-xs mt-1 line-clamp-2">
+                <p className="text-muted-foreground text-xs mt-1 line-clamp-2"> 
                     {truncatedJobDescriptionForCard}
                 </p>
             )}
@@ -360,13 +359,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onSwipeAction(company.id, 'pass');}} aria-label={`Pass on ${company.name}`}>
               <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
             </Button>
-            <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={handleDetailsButtonClick} aria-label={`View details for ${company.name}`}>
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={(e) => {e.stopPropagation(); handleDetailsButtonClick(e);}} aria-label={`View details for ${company.name}`}>
               <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
             </Button>
             <Button variant="ghost" size="sm" className={cn("flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10", isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600')} onClick={(e) => { e.stopPropagation(); onSwipeAction(company.id, 'like');}} aria-label={`Apply to ${company.name}`}>
               <ThumbsUp className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1", isLiked ? 'fill-green-500' : '')} /> <span className="text-xs">Apply</span>
             </Button>
-             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${company.name}`}>
+             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={(e) => {e.stopPropagation(); handleShare(e);}} aria-label={`Share ${company.name}`}>
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
             </Button>
           </CardFooter>
@@ -381,7 +380,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
             </DialogTitle>
             <CardDescription className="truncate">{company.industry}</CardDescription>
           </DialogHeader>
-          <ScrollArea className="flex-grow overflow-y-auto">
+          <ScrollArea className="flex-grow overscroll-y-contain"> 
             <div className="p-4 sm:p-6 space-y-6">
               {company.introVideoUrl && (
                 <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
@@ -390,7 +389,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                     src={company.introVideoUrl}
                     controls
                     muted
-                    autoPlay={false} // Autoplay only when in main feed, not in modal initially
+                    autoPlay={false}
                     loop
                     playsInline
                     className="w-full h-full object-cover"
@@ -410,7 +409,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                   <h3 className="text-lg font-semibold text-foreground mb-1">Job Description: {jobOpening.title}</h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
                     {displayedJobDescriptionInModal}
-                    {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH && (
+                    {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
                         <Button 
                             variant="link" 
                             size="sm" 

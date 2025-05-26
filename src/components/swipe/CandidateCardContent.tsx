@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Save } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -18,19 +18,17 @@ interface CandidateCardContentProps {
   isLiked: boolean;
 }
 
-const MAX_SUMMARY_LENGTH = 120;
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10; // degrees
 
 export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: CandidateCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
-  const [showFullSummary, setShowFullSummary] = useState(false);
   const { toast } = useToast();
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0); // Tracks current mouse X for transform
+  const [currentX, setCurrentX] = useState(0);
   
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
   const [aiRecruiterMatchScore, setAiRecruiterMatchScore] = useState<number | null>(null);
@@ -45,12 +43,12 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     try {
       const candidateForAI: CandidateProfileForAI = {
         id: candidate.id,
-        role: candidate.role,
-        experienceSummary: candidate.experienceSummary,
-        skills: candidate.skills,
-        location: candidate.location,
-        desiredWorkStyle: candidate.desiredWorkStyle,
-        pastProjects: candidate.pastProjects,
+        role: candidate.role || undefined,
+        experienceSummary: candidate.experienceSummary || undefined,
+        skills: candidate.skills || [],
+        location: candidate.location || undefined,
+        desiredWorkStyle: candidate.desiredWorkStyle || undefined,
+        pastProjects: candidate.pastProjects || undefined,
         workExperienceLevel: candidate.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
         educationLevel: candidate.educationLevel || EducationLevel.UNSPECIFIED,
         locationPreference: candidate.locationPreference || LocationPreference.UNSPECIFIED,
@@ -62,15 +60,14 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
         personalityAssessment: candidate.personalityAssessment || [],
       };
 
-      // Generic job criteria for recruiter's general assessment
       const genericJobCriteria: JobCriteriaForAI = {
         title: "General Talent Assessment",
         description: "Assessing overall potential and fit for a variety of roles within a dynamic company.",
-        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"], // Use some candidate skills or generic ones
-        requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL, // Example default
-        requiredEducationLevel: EducationLevel.UNIVERSITY, // Example default
-        companyCultureKeywords: ["innovative", "collaborative", "fast-paced", "results-oriented"],
-        companyIndustry: "Technology", // Example default
+        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"],
+        requiredExperienceLevel: candidate.workExperienceLevel || WorkExperienceLevel.MID_LEVEL,
+        requiredEducationLevel: candidate.educationLevel || EducationLevel.UNIVERSITY,
+        companyCultureKeywords: candidate.desiredWorkStyle?.split(',').map(s => s.trim()).filter(s => s.length > 0) || ["innovative", "collaborative"],
+        companyIndustry: "Technology", 
       };
 
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
@@ -88,7 +85,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
   useEffect(() => {
     fetchAiRecruiterAnalysis();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidate.id]); // Re-fetch when candidate changes
+  }, [candidate.id]);
 
 
   useEffect(() => {
@@ -119,29 +116,26 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
-    // Allow interaction with video controls, buttons, links, and specifically marked no-drag areas
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
-        // Specifically check if the click is on the video's own control bar
-        if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
-            const videoElement = targetElement as HTMLVideoElement;
-            const rect = videoElement.getBoundingClientRect();
-            // Heuristic: control bars are usually at the bottom
-            if (e.clientY > rect.bottom - 40) { // Adjust 40px as needed for control bar height
-                return; // Do not start drag if click is on control bar
-            }
-        } else {
-          return; // Do not start drag if on other interactive elements
-        }
+      if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
+          const videoElement = targetElement as HTMLVideoElement;
+          const rect = videoElement.getBoundingClientRect();
+          if (e.clientY > rect.bottom - 40) { 
+              return; 
+          }
+      } else {
+        return; 
+      }
     }
-    e.preventDefault(); // Prevent text selection, etc.
+    e.preventDefault(); 
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX); // Initialize currentX with startX
+    setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; // Remove transition during drag for direct manipulation
+      cardContentRef.current.style.transition = 'none';
     }
-    document.body.style.userSelect = 'none'; // Prevent text selection on the page during drag
+    document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -149,30 +143,29 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     setCurrentX(e.clientX);
   };
 
-  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { // Combined for mouseup and mouseleave
+  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { 
     if (!isDragging || !cardContentRef.current) return;
     
-    const finalDeltaX = currentX - startX; // Use currentX at the moment of mouse up/leave
+    const finalDeltaX = currentX - startX; 
     
-    // Reset styles for snap back animation
     cardContentRef.current.style.transition = 'transform 0.3s ease-out';
     cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { // Swiped Left
+      if (finalDeltaX < 0) { 
         onSwipeAction(candidate.id, 'pass');
-      } else { // Swiped Right
+      } else { 
         onSwipeAction(candidate.id, 'like');
       }
     }
     
     setIsDragging(false);
-    setStartX(0); // Reset startX
-    setCurrentX(0); // Reset currentX
+    setStartX(0); 
+    setCurrentX(0); 
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = ''; // Re-enable text selection
+    document.body.style.userSelect = ''; 
   };
   
   const getCardTransform = () => {
@@ -196,19 +189,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     }
   };
 
-  const toggleSummary = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card swipe when clicking "Read more"
-    setShowFullSummary(!showFullSummary);
-  };
-
-  const displayedSummary = showFullSummary 
-    ? candidate.experienceSummary 
-    : candidate.experienceSummary.slice(0, MAX_SUMMARY_LENGTH) + (candidate.experienceSummary.length > MAX_SUMMARY_LENGTH ? "..." : "");
-
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Replace with actual app URL
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com';
 
     if (navigator.share) {
       try {
@@ -220,7 +204,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
         toast({ title: "Shared!", description: "Candidate profile shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
-        // toast({ title: "Share Failed", description: "Could not share at this moment.", variant: "destructive" });
       }
     } else {
       try {
@@ -240,8 +223,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
       className="flex flex-col h-full overflow-hidden relative bg-card"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUpOrLeave} // Use combined handler
-      onMouseLeave={handleMouseUpOrLeave} // Use combined handler
+      onMouseUp={handleMouseUpOrLeave}
+      onMouseLeave={handleMouseUpOrLeave}
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
@@ -260,7 +243,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
             className="w-full h-full object-cover bg-black"
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
-            data-no-drag="true" // Prevent swipe initiation from video controls
+            data-no-drag="true" 
           >
             Your browser does not support the video tag.
           </video>
@@ -280,10 +263,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
         )}
       </div>
 
-      <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[40%]">
+      <div className="p-3 sm:p-4 flex-grow flex flex-col h-[40%] overflow-hidden">
         <CardHeader className="p-0 mb-2">
           <div className="flex items-start justify-between">
-            <div className="flex-grow min-w-0"> {/* Added min-w-0 for proper truncation */}
+            <div className="flex-grow min-w-0"> 
                 <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
                 <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
             </div>
@@ -311,20 +294,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
           )}
         </CardHeader>
 
-        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm flex-grow">
-          <p className="text-muted-foreground">
-            {displayedSummary}
-            {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH && (
-              <Button 
-                variant="link" 
-                size="sm" 
-                onClick={toggleSummary} 
-                className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold no-swipe-area" 
-                data-no-drag="true"
-              >
-                {showFullSummary ? "Read less" : "Read more"}
-              </Button>
-            )}
+        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm flex-grow overflow-hidden">
+          <p className="text-muted-foreground line-clamp-3">
+            {candidate.experienceSummary}
           </p>
 
           {candidate.desiredWorkStyle && (
@@ -338,23 +310,23 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
             <div className="mt-1.5 sm:mt-2">
               <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1">Skills:</h4>
               <div className="flex flex-wrap gap-1">
-                {candidate.skills.slice(0, 4).map((skill) => (
+                {candidate.skills.slice(0, 3).map((skill) => (
                   <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">{skill}</Badge>
                 ))}
-                {candidate.skills.length > 4 && <Badge variant="outline" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">+{candidate.skills.length-4} more</Badge>}
+                {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">+{candidate.skills.length-3} more</Badge>}
               </div>
             </div>
           )}
         </CardContent>
 
-        <div className="mt-2 pt-2 border-t border-border/50 text-xs">
+        <div className="mt-2 pt-2 border-t border-border/50 text-xs overflow-hidden">
             <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
                 <Brain className="h-4 w-4 mr-1.5 text-primary" /> AI Assessment:
             </h4>
             {isLoadingAiAnalysis && (
                 <div className="flex items-center text-muted-foreground">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Analyzing profile...</span>
+                    <span>Analyzing...</span>
                 </div>
             )}
             {!isLoadingAiAnalysis && aiRecruiterMatchScore !== null && (
@@ -381,21 +353,20 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
             )}
         </div>
 
-
         {(candidate.personalityAssessment || candidate.optimalWorkStyles) && (
-          <div className="mt-2 pt-2 border-t border-border/50 text-xs">
+          <div className="mt-2 pt-2 border-t border-border/50 text-xs overflow-hidden">
             <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
               <Users className="h-4 w-4 mr-1.5 text-primary" /> Coworker Fit Profile:
             </h4>
             {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 && (
-              <div className="mb-2 space-y-1">
-                <p className="font-medium text-foreground">Personality Insights:</p>
-                {candidate.personalityAssessment.map((item, index) => (
+              <div className="mb-1 space-y-0.5">
+                <p className="font-medium text-foreground text-xs">Personality Insights:</p>
+                {candidate.personalityAssessment.slice(0,1).map((item, index) => ( 
                   <div key={index} className="flex items-start">
                     {renderPersonalityFitIcon(item.fit)}
-                    <div>
-                      <span className="font-semibold">{item.trait}:</span>
-                      <span className="text-muted-foreground ml-1 line-clamp-2">{item.reason || (item.fit === 'positive' ? 'Likely a good fit.' : item.fit === 'neutral' ? 'Potential to consider.' : 'Potential challenge.')}</span>
+                    <div className="min-w-0">
+                      <span className="font-semibold line-clamp-1">{item.trait}:</span>
+                      <span className="text-muted-foreground ml-1 line-clamp-1">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
                     </div>
                   </div>
                 ))}
@@ -403,12 +374,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
             )}
             {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 && (
               <div>
-                <p className="font-medium text-foreground">Optimal Work Style:</p>
+                <p className="font-medium text-foreground text-xs">Optimal Work Style:</p>
                 <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5">
-                  {candidate.optimalWorkStyles.slice(0, 2).map((style, index) => ( // Show first 2, full list in details
+                  {candidate.optimalWorkStyles.slice(0, 1).map((style, index) => ( 
                     <li key={index} className="line-clamp-1">{style}</li>
                   ))}
-                  {candidate.optimalWorkStyles.length > 2 && <li className="text-xs italic">...and more (see details)</li>}
                 </ul>
               </div>
             )}
@@ -435,7 +405,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
         <Button variant="ghost" size="sm" className={cn("flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10", isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600')} onClick={(e) => { e.stopPropagation(); onSwipeAction(candidate.id, 'like');}} aria-label={`Like ${candidate.name}`}>
           <ThumbsUp className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1", isLiked ? 'fill-green-500' : '')} /> <span className="text-xs">Like</span>
         </Button>
-        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${candidate.name}`}>
+        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={(e) => {e.stopPropagation(); handleShare(e);}} aria-label={`Share ${candidate.name}`}>
           <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
         </Button>
       </CardFooter>
