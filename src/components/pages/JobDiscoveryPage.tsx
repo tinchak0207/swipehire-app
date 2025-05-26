@@ -7,7 +7,7 @@ import { mockCompanies as staticMockCompanies } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter } from 'lucide-react'; // Removed ThumbsUp, ThumbsDown, Info, Star, Save, Share2
+import { Loader2, SearchX, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; 
 import { JobFilterPanel } from "@/components/filters/JobFilterPanel"; 
@@ -40,8 +40,6 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
   const [likedCompanies, setLikedCompanies] = useState<Set<string>>(new Set());
-  // const [superLikedCompanies, setSuperLikedCompanies] = useState<Set<string>>(new Set()); // Removed
-  // const [savedCompanies, setSavedCompanies] = useState<Set<string>>(new Set()); // Removed
   const [passedCompanies, setPassedCompanies] = useState<Set<string>>(new Set());
 
 
@@ -74,12 +72,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     loadAndSetInitialJobs();
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
     if (storedLiked) setLikedCompanies(new Set(JSON.parse(storedLiked)));
-    // const storedSuperLiked = localStorage.getItem('superLikedCompaniesDemo'); // Removed
-    // if (storedSuperLiked) setSuperLikedCompanies(new Set(JSON.parse(storedSuperLiked))); // Removed
     const storedPassed = localStorage.getItem('passedCompaniesDemo');
     if (storedPassed) setPassedCompanies(new Set(JSON.parse(storedPassed)));
-    // const storedSaved = localStorage.getItem('savedCompaniesDemo'); // Removed
-    // if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved))); // Removed
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -190,7 +184,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     if (!company) return;
     
     if (action === 'details') {
-        console.log("Details action triggered for company:", companyId);
+        // Details are now typically handled within the CompanyCardContent itself via its modal
+        console.log("Details action triggered for company:", companyId, " - Modal should be handled by CompanyCardContent.");
         return; 
     }
 
@@ -208,7 +203,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       if (Math.random() > 0.7) {
         toast({
           title: "🎉 Company Interested!",
-          description: `${company.name} shows interest! Check 'My Matches' to start a conversation.`,
+          description: `${company.name} shows interest! Check 'My Matches' to start a conversation and generate an AI icebreaker.`,
           duration: 7000,
         });
       } else {
@@ -221,6 +216,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       toastVariant = "destructive";
       toast({ title: message, variant: toastVariant });
     } else if (action === 'share') {
+      // Share logic is handled within CompanyCardContent
       return; 
     }
     setLikedCompanies(newLiked); updateLocalStorageSet('likedCompaniesDemo', newLiked);
@@ -258,18 +254,14 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   };
   const numActiveFilters = countActiveFilters();
 
-  const fixedElementsHeight = '160px'; 
+  // Approximate height of elements above the scrollable content (AppHeader, Tabs)
+  // Adjust this value based on your actual layout.
+  const fixedElementsHeight = '120px'; 
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
 
   if (isInitialLoading) {
     return (
-      <div className="flex flex-col h-full">
-        <div className="p-2 sm:p-3 sticky top-0 bg-background z-10 border-b">
-         <div className="max-w-xl mx-auto flex justify-between items-center">
-           <h2 className="text-lg font-semibold text-primary">Discover Jobs</h2>
-            <Button variant="outline" size="sm" disabled><Filter className="mr-2 h-4 w-4" /> Filters</Button>
-          </div>
-        </div>
+      <div className="flex flex-col h-full relative">
         <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}>
           <Loader2 className="h-16 w-16 animate-spin text-primary" />
         </div>
@@ -278,31 +270,32 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-2 sm:p-3 sticky top-0 bg-background z-10 border-b">
-        <div className="max-w-xl mx-auto flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-primary">Discover Jobs</h2>
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-                {numActiveFilters > 0 && (
-                  <Badge variant="secondary" className="ml-2">{numActiveFilters}</Badge>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-sm p-0">
-              <JobFilterPanel 
-                activeFilters={activeFilters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={handleClearFilters}
-                onApplyFilters={handleApplyFilters}
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
+    <div className="flex flex-col h-full relative">
+       <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetTrigger asChild>
+          <Button 
+            variant="default" 
+            size="icon" 
+            className="fixed bottom-20 right-4 z-20 rounded-full w-14 h-14 shadow-lg sm:bottom-6 sm:right-6"
+            aria-label="Open filters"
+          >
+            <Filter className="h-6 w-6" />
+            {numActiveFilters > 0 && (
+              <Badge variant="secondary" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">
+                {numActiveFilters}
+              </Badge>
+            )}
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:max-w-sm p-0">
+          <JobFilterPanel 
+            activeFilters={activeFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+            onApplyFilters={handleApplyFilters}
+          />
+        </SheetContent>
+      </Sheet>
 
       <div
         className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow"
@@ -322,8 +315,6 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
                 company={company} 
                 onSwipeAction={handleAction}
                 isLiked={likedCompanies.has(company.id)}
-                // isSuperLiked={superLikedCompanies.has(company.id)} // Removed
-                // isSaved={savedCompanies.has(company.id)} // Removed
               />
             </SwipeCard>
           </div>
@@ -339,8 +330,9 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         {hasMore && !isLoading && !isInitialLoading && filteredJobFeed.length > 0 && (
            <div
              ref={loadMoreTriggerRef}
-             className="h-full snap-start snap-always flex items-center justify-center text-muted-foreground"
+             className="h-1 opacity-0" // Small, invisible trigger
            >
+             Load More
            </div>
         )}
 

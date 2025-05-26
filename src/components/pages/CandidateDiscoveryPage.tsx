@@ -8,7 +8,7 @@ import { mockCandidates } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, X } from 'lucide-react'; // Removed ThumbsUp, ThumbsDown, Info, Star, Save, Share2 as they are now in CandidateCardContent
+import { Loader2, SearchX, Filter, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -39,8 +39,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const [activeFilters, setActiveFilters] = useState<CandidateFilters>(initialFilters);
 
   const [likedCandidates, setLikedCandidates] = useState<Set<string>>(new Set());
-  // const [superLikedCandidates, setSuperLikedCandidates] = useState<Set<string>>(new Set()); // Removed
-  // const [savedCandidates, setSavedCandidates] = useState<Set<string>>(new Set()); // Removed
   const [passedCandidates, setPassedCandidates] = useState<Set<string>>(new Set());
 
 
@@ -50,7 +48,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
 
   useEffect(() => {
     setAllCandidates(mockCandidates);
-    setFilteredCandidates(mockCandidates); 
+    // Initial filtering based on searchTerm and activeFilters happens in useMemo
   }, []);
 
 
@@ -76,8 +74,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     if (searchTerm.trim()) {
       candidates = candidates.filter(candidate =>
         candidate.name.toLowerCase().includes(lowerSearchTerm) ||
-        candidate.role.toLowerCase().includes(lowerSearchTerm) ||
-        candidate.experienceSummary.toLowerCase().includes(lowerSearchTerm) ||
+        (candidate.role && candidate.role.toLowerCase().includes(lowerSearchTerm)) ||
+        (candidate.experienceSummary && candidate.experienceSummary.toLowerCase().includes(lowerSearchTerm)) ||
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm))) ||
         (candidate.location && candidate.location.toLowerCase().includes(lowerSearchTerm))
       );
@@ -164,12 +162,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   useEffect(() => {
     const storedLiked = localStorage.getItem('likedCandidatesDemo');
     if (storedLiked) setLikedCandidates(new Set(JSON.parse(storedLiked)));
-    // const storedSuperLiked = localStorage.getItem('superLikedCandidatesDemo'); // Removed
-    // if (storedSuperLiked) setSuperLikedCandidates(new Set(JSON.parse(storedSuperLiked))); // Removed
     const storedPassed = localStorage.getItem('passedCandidatesDemo');
     if (storedPassed) setPassedCandidates(new Set(JSON.parse(storedPassed)));
-    // const storedSaved = localStorage.getItem('savedCandidatesDemo'); // Removed
-    // if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved))); // Removed
   }, []);
 
   const updateLocalStorageSet = (key: string, set: Set<string>) => {
@@ -196,7 +190,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       if (Math.random() > 0.7) { 
         toast({
           title: "🎉 It's a Match!",
-          description: `You and ${candidate.name} are both interested! Check 'My Matches' to start a conversation.`,
+          description: `You and ${candidate.name} are both interested! Check 'My Matches' to start a conversation and generate an AI icebreaker.`,
           duration: 7000,
         });
       } else {
@@ -209,8 +203,9 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       toastVariant = "destructive";
       toast({ title: message, variant: toastVariant });
     } else if (action === 'details') {
-      // This action is now primarily handled inside CandidateCardContent or by opening a modal
-      // For now, we'll just log it or show a toast as the page doesn't directly manage a details modal for candidates yet.
+      // Details are now typically handled within the CandidateCardContent itself if it has a modal
+      // For now, this action might be used for analytics or if a separate details view is implemented
+      console.log(`Viewing details for ${candidate.name} - this action might trigger a modal in CandidateCardContent`);
       toast({ title: `Viewing details for ${candidate.name}` });
       return; 
     } else if (action === 'share') {
@@ -258,35 +253,38 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   };
   const numActiveFilters = countActiveFilters();
 
-  const fixedElementsHeight = '160px'; 
+  // Approximate height of elements above the scrollable content (AppHeader, Tabs)
+  // Adjust this value based on your actual layout.
+  const fixedElementsHeight = '120px'; 
   const visibleCandidates = displayedCandidates.filter(c => !passedCandidates.has(c.id));
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="p-2 sm:p-3 sticky top-0 bg-background z-10 border-b">
-        <div className="max-w-xl mx-auto flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-primary">Discover Talent</h2>
-          <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" />
-                Filters
-                {numActiveFilters > 0 && (
-                  <Badge variant="secondary" className="ml-2">{numActiveFilters}</Badge>
-                )}
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:max-w-sm p-0">
-              <CandidateFilterPanel 
-                activeFilters={activeFilters}
-                onFilterChange={handleFilterChange}
-                onClearFilters={handleClearFilters}
-                onApplyFilters={handleApplyFilters}
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
+    <div className="flex flex-col h-full relative">
+      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+        <SheetTrigger asChild>
+          <Button 
+            variant="default" 
+            size="icon" 
+            className="fixed bottom-20 right-4 z-20 rounded-full w-14 h-14 shadow-lg sm:bottom-6 sm:right-6"
+            aria-label="Open filters"
+          >
+            <Filter className="h-6 w-6" />
+            {numActiveFilters > 0 && (
+              <Badge variant="secondary" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">
+                {numActiveFilters}
+              </Badge>
+            )}
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="right" className="w-full sm:max-w-sm p-0">
+          <CandidateFilterPanel 
+            activeFilters={activeFilters}
+            onFilterChange={handleFilterChange}
+            onClearFilters={handleClearFilters}
+            onApplyFilters={handleApplyFilters}
+          />
+        </SheetContent>
+      </Sheet>
 
       <div
         className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow"
@@ -322,8 +320,9 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         {hasMore && !isLoading && filteredCandidates.length > 0 && (
            <div
              ref={loadMoreTriggerRef}
-             className="h-full snap-start snap-always flex items-center justify-center text-muted-foreground"
+             className="h-1 opacity-0" // Small, invisible trigger for IntersectionObserver
            >
+             Load More
            </div>
         )}
 
