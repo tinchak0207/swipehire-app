@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Save } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,14 +10,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useToast } from '@/hooks/use-toast';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
-  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => void; // Removed 'save' and 'superlike'
+  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
   isLiked: boolean;
 }
 
 const MAX_SUMMARY_LENGTH = 120;
+const SWIPE_THRESHOLD = 75;
+const MAX_ROTATION = 10; // degrees
 
 export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: CandidateCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -27,10 +30,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
-  const [currentX, setCurrentX] = useState(0);
-  const SWIPE_THRESHOLD = 75;
-  const MAX_ROTATION = 10;
-
+  const [currentX, setCurrentX] = useState(0); // Tracks current mouse X for transform
+  
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
   const [aiRecruiterMatchScore, setAiRecruiterMatchScore] = useState<number | null>(null);
   const [aiRecruiterReasoning, setAiRecruiterReasoning] = useState<string | null>(null);
@@ -65,20 +66,20 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
       const genericJobCriteria: JobCriteriaForAI = {
         title: "General Talent Assessment",
         description: "Assessing overall potential and fit for a variety of roles within a dynamic company.",
-        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"],
-        requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL,
-        requiredEducationLevel: EducationLevel.UNIVERSITY,
+        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"], // Use some candidate skills or generic ones
+        requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL, // Example default
+        requiredEducationLevel: EducationLevel.UNIVERSITY, // Example default
         companyCultureKeywords: ["innovative", "collaborative", "fast-paced", "results-oriented"],
-        companyIndustry: "Technology",
+        companyIndustry: "Technology", // Example default
       };
 
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
       setAiRecruiterMatchScore(result.matchScore);
       setAiRecruiterReasoning(result.reasoning);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching AI recruiter analysis for candidate " + candidate.name + ":", error);
-      toast({ title: "AI Analysis Error", description: `Could not get AI assessment for ${candidate.name}.`, variant: "destructive", duration: 3000 });
+      toast({ title: "AI Analysis Error", description: `Could not get AI assessment for ${candidate.name}. ${error.message || ''}`, variant: "destructive", duration: 3000 });
     } finally {
       setIsLoadingAiAnalysis(false);
     }
@@ -86,7 +87,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
 
   useEffect(() => {
     fetchAiRecruiterAnalysis();
-  }, [fetchAiRecruiterAnalysis]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidate.id]); // Re-fetch when candidate changes
 
 
   useEffect(() => {
@@ -101,7 +103,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
           currentVideoRef.pause();
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 } 
     );
 
     observer.observe(currentVideoRef);
@@ -117,26 +119,29 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
+    // Allow interaction with video controls, buttons, links, and specifically marked no-drag areas
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
+        // Specifically check if the click is on the video's own control bar
         if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
             const videoElement = targetElement as HTMLVideoElement;
             const rect = videoElement.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) {
-                return;
+            // Heuristic: control bars are usually at the bottom
+            if (e.clientY > rect.bottom - 40) { // Adjust 40px as needed for control bar height
+                return; // Do not start drag if click is on control bar
             }
         } else {
-          return; 
+          return; // Do not start drag if on other interactive elements
         }
     }
-    e.preventDefault();
+    e.preventDefault(); // Prevent text selection, etc.
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX);
+    setCurrentX(e.clientX); // Initialize currentX with startX
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none';
+      cardContentRef.current.style.transition = 'none'; // Remove transition during drag for direct manipulation
     }
-    document.body.style.userSelect = 'none';
+    document.body.style.userSelect = 'none'; // Prevent text selection on the page during drag
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -144,45 +149,30 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     setCurrentX(e.clientX);
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { // Combined for mouseup and mouseleave
     if (!isDragging || !cardContentRef.current) return;
     
-    const finalDeltaX = e.clientX - startX;
-    if (cardContentRef.current) {
-      cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    }
-    setCurrentX(startX); 
+    const finalDeltaX = currentX - startX; // Use currentX at the moment of mouse up/leave
+    
+    // Reset styles for snap back animation
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
+    cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) { 
+      if (finalDeltaX < 0) { // Swiped Left
         onSwipeAction(candidate.id, 'pass');
-      } else { 
+      } else { // Swiped Right
         onSwipeAction(candidate.id, 'like');
-      }
-    } else {
-      if (cardContentRef.current) {
-         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
     }
     
     setIsDragging(false);
+    setStartX(0); // Reset startX
+    setCurrentX(0); // Reset currentX
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = '';
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging && cardContentRef.current) {
-      cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); 
-      if (cardContentRef.current) {
-        cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-      }
-      setIsDragging(false);
-      cardContentRef.current.style.cursor = 'grab';
-      document.body.style.userSelect = '';
-    }
+    document.body.style.userSelect = ''; // Re-enable text selection
   };
   
   const getCardTransform = () => {
@@ -207,7 +197,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
   };
 
   const toggleSummary = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation(); // Prevent card swipe when clicking "Read more"
     setShowFullSummary(!showFullSummary);
   };
 
@@ -215,7 +205,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     ? candidate.experienceSummary 
     : candidate.experienceSummary.slice(0, MAX_SUMMARY_LENGTH) + (candidate.experienceSummary.length > MAX_SUMMARY_LENGTH ? "..." : "");
 
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Replace with actual app URL
 
@@ -249,8 +240,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
       className="flex flex-col h-full overflow-hidden relative bg-card"
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUp}
-      onMouseLeave={handleMouseLeave}
+      onMouseUp={handleMouseUpOrLeave} // Use combined handler
+      onMouseLeave={handleMouseUpOrLeave} // Use combined handler
       style={{ 
         cursor: 'grab',
         transform: getCardTransform(),
@@ -269,7 +260,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
             className="w-full h-full object-cover bg-black"
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
-            data-no-drag="true"
+            data-no-drag="true" // Prevent swipe initiation from video controls
           >
             Your browser does not support the video tag.
           </video>
@@ -291,8 +282,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
 
       <div className="p-3 sm:p-4 flex-grow flex flex-col overflow-y-auto overscroll-y-contain no-scrollbar h-[40%]">
         <CardHeader className="p-0 mb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+          <div className="flex items-start justify-between">
+            <div className="flex-grow min-w-0"> {/* Added min-w-0 for proper truncation */}
+                <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+                <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
+            </div>
             {candidate.isUnderestimatedTalent && (
               <TooltipProvider>
                 <Tooltip>
@@ -309,11 +303,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
               </TooltipProvider>
             )}
           </div>
-          <CardDescription className="text-xs sm:text-sm text-muted-foreground">{candidate.role}</CardDescription>
            {candidate.location && (
             <div className="flex items-center text-xs text-muted-foreground mt-0.5">
                 <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
-                <span>{candidate.location}</span>
+                <span className="truncate">{candidate.location}</span>
             </div>
           )}
         </CardHeader>
@@ -337,7 +330,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
           {candidate.desiredWorkStyle && (
               <div className="flex items-center text-muted-foreground">
                   <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
-                  <span>{candidate.desiredWorkStyle}</span>
+                  <span className="line-clamp-1">{candidate.desiredWorkStyle}</span>
               </div>
           )}
 
@@ -368,7 +361,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
                 <div className="space-y-1">
                     <div className="text-sm text-foreground">
                         <span className="font-semibold">Match Score:</span>
-                        <span className={`ml-1 font-bold ${aiRecruiterMatchScore >= 75 ? 'text-green-600' : aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        <span className={cn(
+                            "ml-1 font-bold",
+                            aiRecruiterMatchScore >= 75 ? 'text-green-600' : 
+                            aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        )}>
                             {aiRecruiterMatchScore}%
                         </span>
                     </div>
@@ -398,7 +395,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
                     {renderPersonalityFitIcon(item.fit)}
                     <div>
                       <span className="font-semibold">{item.trait}:</span>
-                      <span className="text-muted-foreground ml-1">{item.reason || (item.fit === 'positive' ? 'Likely a good fit.' : item.fit === 'neutral' ? 'Potential to consider.' : 'Potential challenge.')}</span>
+                      <span className="text-muted-foreground ml-1 line-clamp-2">{item.reason || (item.fit === 'positive' ? 'Likely a good fit.' : item.fit === 'neutral' ? 'Potential to consider.' : 'Potential challenge.')}</span>
                     </div>
                   </div>
                 ))}
@@ -408,9 +405,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
               <div>
                 <p className="font-medium text-foreground">Optimal Work Style:</p>
                 <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5">
-                  {candidate.optimalWorkStyles.map((style, index) => (
-                    <li key={index}>{style}</li>
+                  {candidate.optimalWorkStyles.slice(0, 2).map((style, index) => ( // Show first 2, full list in details
+                    <li key={index} className="line-clamp-1">{style}</li>
                   ))}
+                  {candidate.optimalWorkStyles.length > 2 && <li className="text-xs italic">...and more (see details)</li>}
                 </ul>
               </div>
             )}
@@ -427,15 +425,15 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
           </div>
         )}
       </div>
-      <CardFooter className="p-2 sm:p-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0">
-        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => onSwipeAction(candidate.id, 'pass')} aria-label={`Pass on ${candidate.name}`}>
+      <CardFooter className="p-2 sm:p-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
+        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onSwipeAction(candidate.id, 'pass');}} aria-label={`Pass on ${candidate.name}`}>
           <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
         </Button>
-        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={() => onSwipeAction(candidate.id, 'details')} aria-label={`View details for ${candidate.name}`}>
+        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={(e) => { e.stopPropagation(); onSwipeAction(candidate.id, 'details');}} aria-label={`View details for ${candidate.name}`}>
           <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
         </Button>
-        <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => onSwipeAction(candidate.id, 'like')} aria-label={`Like ${candidate.name}`}>
-          <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isLiked ? 'fill-green-500' : ''}`} /> <span className="text-xs">Like</span>
+        <Button variant="ghost" size="sm" className={cn("flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10", isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600')} onClick={(e) => { e.stopPropagation(); onSwipeAction(candidate.id, 'like');}} aria-label={`Like ${candidate.name}`}>
+          <ThumbsUp className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1", isLiked ? 'fill-green-500' : '')} /> <span className="text-xs">Like</span>
         </Button>
         <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${candidate.name}`}>
           <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>

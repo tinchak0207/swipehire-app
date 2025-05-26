@@ -14,16 +14,18 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface CompanyCardContentProps {
   company: Company;
-  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => void; // Removed 'save' and 'superlike'
+  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
   isLiked: boolean;
-  // isSuperLiked: boolean; // Removed
-  // isSaved: boolean; // Removed
 }
 
-const MAX_DESCRIPTION_LENGTH = 100;
+const MAX_COMPANY_DESCRIPTION_LENGTH = 120; // For the modal
+const MAX_JOB_DESCRIPTION_LENGTH = 100; // For the collapsed card
+const SWIPE_THRESHOLD = 75;
+const MAX_ROTATION = 10; // degrees
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -33,8 +35,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
-  const SWIPE_THRESHOLD = 75;
-  const MAX_ROTATION = 10;
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [aiJobFitAnalysis, setAiJobFitAnalysis] = useState<ProfileRecommenderOutput['candidateJobFitAnalysis'] | null>(null);
@@ -42,18 +42,19 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   const [userQuestion, setUserQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
-  const [showFullDescription, setShowFullDescription] = useState(false);
+  const [showFullJobDescriptionInModal, setShowFullJobDescriptionInModal] = useState(false);
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
-  const handleDetailsButtonClick = () => {
+  const handleDetailsButtonClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     setAiJobFitAnalysis(null);
     setIsLoadingAiAnalysis(false);
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
-    setShowFullDescription(false);
+    setShowFullJobDescriptionInModal(false);
     setIsDetailsModalOpen(true);
   };
 
@@ -66,14 +67,23 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
     setAiJobFitAnalysis(null);
 
     try {
+      // Attempt to parse profile from localStorage, using defaults for missing fields
+      const jobSeekerProfileHeadline = localStorage.getItem('jobSeekerProfileHeadline') || undefined;
+      const jobSeekerExperienceSummary = localStorage.getItem('jobSeekerExperienceSummary') || undefined;
+      const jobSeekerSkillsRaw = localStorage.getItem('jobSeekerSkills');
+      const jobSeekerSkills = jobSeekerSkillsRaw ? jobSeekerSkillsRaw.split(',').map(s => s.trim()).filter(s => s) : [];
+      const jobSeekerDesiredWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle') || undefined;
+      const jobSeekerPastProjects = localStorage.getItem('jobSeekerPastProjects') || undefined;
+      const jobSeekerLocation = localStorage.getItem('userAddressSettings') || localStorage.getItem('userCountrySettings') || undefined;
+      
       const candidateForAI: CandidateProfileForAI = {
         id: 'currentUserProfile', 
-        role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
-        experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
-        skills: localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s) || [],
-        location: localStorage.getItem('userAddressSettings') || localStorage.getItem('userCountrySettings') || undefined,
-        desiredWorkStyle: localStorage.getItem('jobSeekerDesiredWorkStyle') || undefined,
-        pastProjects: localStorage.getItem('jobSeekerPastProjects') || undefined,
+        role: jobSeekerProfileHeadline,
+        experienceSummary: jobSeekerExperienceSummary,
+        skills: jobSeekerSkills,
+        location: jobSeekerLocation,
+        desiredWorkStyle: jobSeekerDesiredWorkStyle,
+        pastProjects: jobSeekerPastProjects,
         workExperienceLevel: (localStorage.getItem('jobSeekerExperienceLevel') as WorkExperienceLevel) || WorkExperienceLevel.UNSPECIFIED,
         educationLevel: (localStorage.getItem('jobSeekerEducationLevel') as EducationLevel) || EducationLevel.UNSPECIFIED,
         locationPreference: (localStorage.getItem('jobSeekerLocationPreference') as LocationPreference) || LocationPreference.UNSPECIFIED,
@@ -170,14 +180,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
     setCurrentX(e.clientX);
   };
 
-  const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
     
-    const finalDeltaX = e.clientX - startX; 
-    if (cardContentRef.current) {
-      cardContentRef.current.style.transition = 'transform 0.3s ease-out'; 
-    }
-    setCurrentX(startX); 
+    const finalDeltaX = currentX - startX; 
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; 
+    cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
       if (finalDeltaX < 0) { 
@@ -185,30 +193,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
       } else { 
         onSwipeAction(company.id, 'like');
       }
-    } else {
-      if (cardContentRef.current) {
-         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-      }
     }
     
     setIsDragging(false);
+    setStartX(0);
+    setCurrentX(0);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
     document.body.style.userSelect = ''; 
-  };
-
-  const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isDragging && cardContentRef.current) {
-      cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); 
-      if (cardContentRef.current) {
-        cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-      }
-      setIsDragging(false);
-      cardContentRef.current.style.cursor = 'grab';
-      document.body.style.userSelect = '';
-    }
   };
   
   const getCardTransform = () => {
@@ -246,7 +239,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
     }
   };
 
-  const handleShare = async () => {
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; 
 
@@ -260,6 +254,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
         toast({ title: "Shared!", description: "Job opportunity shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
+        // toast({ title: "Share Failed", description: "Could not share at this moment.", variant: "destructive" });
       }
     } else {
       try {
@@ -273,15 +268,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
     }
   };
 
-  const toggleDescription = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowFullDescription(!showFullDescription);
-  };
+  const jobDescriptionForCard = jobOpening?.description || "";
+  const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH 
+    ? jobDescriptionForCard.substring(0, MAX_JOB_DESCRIPTION_LENGTH) + "..."
+    : jobDescriptionForCard;
 
-  const jobDescriptionText = jobOpening?.description || "No job description available.";
-  const displayedDescription = showFullDescription
-    ? jobDescriptionText
-    : jobDescriptionText.slice(0, MAX_DESCRIPTION_LENGTH) + (jobDescriptionText.length > MAX_DESCRIPTION_LENGTH ? "..." : "");
+  const jobDescriptionForModal = jobOpening?.description || "No job description available.";
+  const displayedJobDescriptionInModal = showFullJobDescriptionInModal 
+    ? jobDescriptionForModal
+    : jobDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH) + (jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH ? "..." : "");
 
 
   return (
@@ -291,8 +286,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
         className="flex flex-col h-full overflow-hidden relative bg-card cursor-grab"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
+        onMouseUp={handleMouseUpOrLeave}
+        onMouseLeave={handleMouseUpOrLeave}
         style={{
           transform: getCardTransform(),
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
@@ -329,7 +324,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
         <div className="p-3 sm:p-4 flex-grow flex flex-col h-[50%] md:h-[45%] overflow-y-auto no-scrollbar overscroll-y-contain">
           <CardHeader className="p-0 mb-1.5 sm:mb-2">
             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
-            <CardDescription className="text-xs sm:text-sm text-muted-foreground">{company.industry}</CardDescription>
+            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
             {jobOpening && (
               <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
             )}
@@ -354,17 +349,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                 <span className="truncate">{jobOpening?.jobType}</span>
               </div>
             )}
+            {jobOpening?.description && (
+                <p className="text-muted-foreground text-xs mt-1 line-clamp-2">
+                    {truncatedJobDescriptionForCard}
+                </p>
+            )}
           </CardContent>
             
-          <CardFooter className="p-0 pt-2 mt-auto grid grid-cols-4 gap-1 sm:gap-2 shrink-0">
-            <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => onSwipeAction(company.id, 'pass')} aria-label={`Pass on ${company.name}`}>
+          <CardFooter className="p-0 pt-2 mt-auto grid grid-cols-4 gap-1 sm:gap-2 shrink-0 no-swipe-area">
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onSwipeAction(company.id, 'pass');}} aria-label={`Pass on ${company.name}`}>
               <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={handleDetailsButtonClick} aria-label={`View details for ${company.name}`}>
               <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
             </Button>
-            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => onSwipeAction(company.id, 'like')} aria-label={`Apply to ${company.name}`}>
-              <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isLiked ? 'fill-green-500' : ''}`} /> <span className="text-xs">Apply</span>
+            <Button variant="ghost" size="sm" className={cn("flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10", isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600')} onClick={(e) => { e.stopPropagation(); onSwipeAction(company.id, 'like');}} aria-label={`Apply to ${company.name}`}>
+              <ThumbsUp className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1", isLiked ? 'fill-green-500' : '')} /> <span className="text-xs">Apply</span>
             </Button>
              <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${company.name}`}>
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
@@ -379,7 +379,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
             <DialogTitle className="text-2xl text-primary">
               {jobOpening?.title || "Company Details"} at {company.name}
             </DialogTitle>
-            <CardDescription>{company.industry}</CardDescription>
+            <CardDescription className="truncate">{company.industry}</CardDescription>
           </DialogHeader>
           <ScrollArea className="flex-grow overflow-y-auto">
             <div className="p-4 sm:p-6 space-y-6">
@@ -390,7 +390,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                     src={company.introVideoUrl}
                     controls
                     muted
-                    autoPlay
+                    autoPlay={false} // Autoplay only when in main feed, not in modal initially
                     loop
                     playsInline
                     className="w-full h-full object-cover"
@@ -409,16 +409,16 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-1">Job Description: {jobOpening.title}</h3>
                   <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {displayedDescription}
-                    {jobDescriptionText.length > MAX_DESCRIPTION_LENGTH && (
+                    {displayedJobDescriptionInModal}
+                    {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH && (
                         <Button 
                             variant="link" 
                             size="sm" 
-                            onClick={toggleDescription} 
+                            onClick={(e) => {e.stopPropagation(); setShowFullJobDescriptionInModal(!showFullJobDescriptionInModal);}}
                             className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
                             data-no-drag="true"
                         >
-                            {showFullDescription ? "Read less" : "Read more"}
+                            {showFullJobDescriptionInModal ? "Read less" : "Read more"}
                         </Button>
                     )}
                   </p>
@@ -456,15 +456,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
                 </h3>
-                <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis} className="mb-3 w-full sm:w-auto">
+                <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-3 w-full sm:w-auto">
                   {isLoadingAiAnalysis ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
                     <Sparkles className="mr-2 h-4 w-4" />
                   )}
-                  Analyze My Fit for this Job
+                  {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
                 </Button>
-                {isLoadingAiAnalysis && (
+                {isLoadingAiAnalysis && !aiJobFitAnalysis && (
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     <span>Assessing fit...</span>
@@ -474,7 +474,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                   <div className="space-y-1 p-3 bg-muted/50 rounded-md">
                     <div className="text-md text-foreground">
                       <span className="font-semibold">Your Fit Score:</span>
-                      <span className={`ml-1.5 font-bold text-lg ${aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' : aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'}`}>
+                      <span className={cn(
+                        "ml-1.5 font-bold text-lg",
+                        aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' : 
+                        aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        )}>
                         {aiJobFitAnalysis.matchScoreForCandidate}%
                       </span>
                     </div>
