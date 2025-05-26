@@ -7,8 +7,7 @@ import { mockCompanies as staticMockCompanies } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
-// CardFooter import is no longer needed here as buttons are moved to CompanyCardContent
-import { Loader2, SearchX, Filter } from 'lucide-react';
+import { Loader2, SearchX, Filter } from 'lucide-react'; // Removed ThumbsUp, ThumbsDown, Info, Star, Save, Share2
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; 
 import { JobFilterPanel } from "@/components/filters/JobFilterPanel"; 
@@ -41,9 +40,10 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
   const [likedCompanies, setLikedCompanies] = useState<Set<string>>(new Set());
-  const [superLikedCompanies, setSuperLikedCompanies] = useState<Set<string>>(new Set());
+  // const [superLikedCompanies, setSuperLikedCompanies] = useState<Set<string>>(new Set()); // Removed
+  // const [savedCompanies, setSavedCompanies] = useState<Set<string>>(new Set()); // Removed
   const [passedCompanies, setPassedCompanies] = useState<Set<string>>(new Set());
-  const [savedCompanies, setSavedCompanies] = useState<Set<string>>(new Set());
+
 
   const { toast } = useToast();
   const observer = useRef<IntersectionObserver | null>(null);
@@ -53,14 +53,13 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     setIsInitialLoading(true);
     setIsLoading(true); 
     try {
-      const { jobs: initialJobs } = await fetchJobsFromBackend(); // Removed hasMore, nextCursor for now
+      const { jobs: initialJobs } = await fetchJobsFromBackend(); 
       const combinedJobs = [
         ...initialJobs,
         ...staticMockCompanies.filter(mc => !initialJobs.find(upj => upj.id === mc.id))
       ];
       
       setMasterJobFeed(combinedJobs);
-      // setNextPageCursor(initialNextCursor); // Removed for simpler local pagination
     } catch (error) {
       console.error("Failed to load initial jobs:", error);
       setMasterJobFeed(staticMockCompanies); 
@@ -75,12 +74,12 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     loadAndSetInitialJobs();
     const storedLiked = localStorage.getItem('likedCompaniesDemo');
     if (storedLiked) setLikedCompanies(new Set(JSON.parse(storedLiked)));
-    const storedSuperLiked = localStorage.getItem('superLikedCompaniesDemo');
-    if (storedSuperLiked) setSuperLikedCompanies(new Set(JSON.parse(storedSuperLiked)));
+    // const storedSuperLiked = localStorage.getItem('superLikedCompaniesDemo'); // Removed
+    // if (storedSuperLiked) setSuperLikedCompanies(new Set(JSON.parse(storedSuperLiked))); // Removed
     const storedPassed = localStorage.getItem('passedCompaniesDemo');
     if (storedPassed) setPassedCompanies(new Set(JSON.parse(storedPassed)));
-    const storedSaved = localStorage.getItem('savedCompaniesDemo');
-    if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved)));
+    // const storedSaved = localStorage.getItem('savedCompaniesDemo'); // Removed
+    // if (storedSaved) setSavedCompanies(new Set(JSON.parse(storedSaved))); // Removed
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -186,15 +185,11 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
-  const handleAction = (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => {
+  const handleAction = (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => {
     const company = masterJobFeed.find(c => c.id === companyId);
     if (!company) return;
     
-    // The 'details' action is now handled within CompanyCardContent to open its modal
     if (action === 'details') {
-        // The CompanyCardContent will manage opening its own modal.
-        // No direct state change here needed for JobDiscoveryPage regarding the modal.
-        // We might still log it or do other things if needed.
         console.log("Details action triggered for company:", companyId);
         return; 
     }
@@ -202,15 +197,10 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     let message = "";
     let toastVariant: "default" | "destructive" = "default";
     const newLiked = new Set(likedCompanies);
-    const newSuperLiked = new Set(superLikedCompanies);
     const newPassed = new Set(passedCompanies);
-    const newSaved = new Set(savedCompanies);
 
-    // Reset other interaction types if a new one is made
     if (action !== 'pass') newPassed.delete(companyId);
-    if (action !== 'like' && action !== 'superlike') newLiked.delete(companyId);
-    if (action !== 'superlike') newSuperLiked.delete(companyId);
-    // 'save' is independent
+    if (action !== 'like') newLiked.delete(companyId);
 
     if (action === 'like') {
       newLiked.add(companyId);
@@ -227,40 +217,14 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     } else if (action === 'pass') {
       newPassed.add(companyId);
       newLiked.delete(companyId);
-      newSuperLiked.delete(companyId);
       message = `Passed on ${company.name}`;
       toastVariant = "destructive";
       toast({ title: message, variant: toastVariant });
-    } else if (action === 'superlike') {
-      newSuperLiked.add(companyId);
-      newLiked.add(companyId); // Superlike also implies like
-      message = `Super liked ${company.name}!`;
-      if (Math.random() > 0.5) {
-        toast({
-          title: "🎉 Company Super Interested!",
-          description: `${company.name} is very interested! Check 'My Matches' to start a conversation.`,
-          duration: 7000,
-        });
-      } else {
-        toast({ title: message });
-      }
-    } else if (action === 'save') {
-      if (newSaved.has(companyId)) {
-        newSaved.delete(companyId);
-        message = `Unsaved ${company.name}.`;
-      } else {
-        newSaved.add(companyId);
-        message = `Saved ${company.name}!`;
-      }
-      toast({ title: message });
     } else if (action === 'share') {
-      // Share logic is handled by CompanyCardContent
       return; 
     }
     setLikedCompanies(newLiked); updateLocalStorageSet('likedCompaniesDemo', newLiked);
-    setSuperLikedCompanies(newSuperLiked); updateLocalStorageSet('superLikedCompaniesDemo', newSuperLiked);
     setPassedCompanies(newPassed); updateLocalStorageSet('passedCompaniesDemo', newPassed);
-    setSavedCompanies(newSaved); updateLocalStorageSet('savedCompaniesDemo', newSaved);
   };
 
   const handleFilterChange = <K extends keyof JobFilters>(
@@ -352,16 +316,15 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
           >
             <SwipeCard
               className={`w-full max-w-xl h-full flex flex-col
-                          ${superLikedCompanies.has(company.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
+                          ${likedCompanies.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
             >
               <CompanyCardContent 
                 company={company} 
                 onSwipeAction={handleAction}
                 isLiked={likedCompanies.has(company.id)}
-                isSuperLiked={superLikedCompanies.has(company.id)}
-                isSaved={savedCompanies.has(company.id)}
+                // isSuperLiked={superLikedCompanies.has(company.id)} // Removed
+                // isSaved={savedCompanies.has(company.id)} // Removed
               />
-              {/* Action buttons are now inside CompanyCardContent */}
             </SwipeCard>
           </div>
         ))}
@@ -378,7 +341,6 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
              ref={loadMoreTriggerRef}
              className="h-full snap-start snap-always flex items-center justify-center text-muted-foreground"
            >
-             {/* Invisible trigger for infinite scroll */}
            </div>
         )}
 
@@ -401,5 +363,3 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     </div>
   );
 }
-
-    

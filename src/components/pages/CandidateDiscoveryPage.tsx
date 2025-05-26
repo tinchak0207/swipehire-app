@@ -8,8 +8,7 @@ import { mockCandidates } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
-import { CardFooter } from '@/components/ui/card';
-import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react';
+import { Loader2, SearchX, Filter, X } from 'lucide-react'; // Removed ThumbsUp, ThumbsDown, Info, Star, Save, Share2 as they are now in CandidateCardContent
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -40,18 +39,18 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const [activeFilters, setActiveFilters] = useState<CandidateFilters>(initialFilters);
 
   const [likedCandidates, setLikedCandidates] = useState<Set<string>>(new Set());
-  const [superLikedCandidates, setSuperLikedCandidates] = useState<Set<string>>(new Set());
+  // const [superLikedCandidates, setSuperLikedCandidates] = useState<Set<string>>(new Set()); // Removed
+  // const [savedCandidates, setSavedCandidates] = useState<Set<string>>(new Set()); // Removed
   const [passedCandidates, setPassedCandidates] = useState<Set<string>>(new Set());
-  const [savedCandidates, setSavedCandidates] = useState<Set<string>>(new Set());
+
 
   const { toast } = useToast();
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // Simulate fetching all candidates initially
     setAllCandidates(mockCandidates);
-    setFilteredCandidates(mockCandidates); // Initially, all candidates are filtered candidates
+    setFilteredCandidates(mockCandidates); 
   }, []);
 
 
@@ -123,21 +122,20 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     setHasMore(hasFilteredItems); 
   
     if (hasFilteredItems) {
-      setIsLoading(false); // Ensure loading is false before attempting to load
+      setIsLoading(false);
       
-      const newLoadIndex = 0 + ITEMS_PER_BATCH; // Calculate based on 0
+      const newLoadIndex = 0 + ITEMS_PER_BATCH; 
       const newBatch = filteredCandidates.slice(0, newLoadIndex);
       setDisplayedCandidates(newBatch);
-      setCurrentIndex(newLoadIndex); // Set current index to after the loaded batch
+      setCurrentIndex(newLoadIndex); 
       setHasMore(newLoadIndex < filteredCandidates.length);
     } else {
-      // If no filtered items, reset display and stop loading
       setDisplayedCandidates([]);
       setCurrentIndex(0);
       setHasMore(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates]); // Re-run when filteredCandidates changes (due to search or filter updates)
+  }, [filteredCandidates]); 
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -166,19 +164,19 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   useEffect(() => {
     const storedLiked = localStorage.getItem('likedCandidatesDemo');
     if (storedLiked) setLikedCandidates(new Set(JSON.parse(storedLiked)));
-    const storedSuperLiked = localStorage.getItem('superLikedCandidatesDemo');
-    if (storedSuperLiked) setSuperLikedCandidates(new Set(JSON.parse(storedSuperLiked)));
+    // const storedSuperLiked = localStorage.getItem('superLikedCandidatesDemo'); // Removed
+    // if (storedSuperLiked) setSuperLikedCandidates(new Set(JSON.parse(storedSuperLiked))); // Removed
     const storedPassed = localStorage.getItem('passedCandidatesDemo');
     if (storedPassed) setPassedCandidates(new Set(JSON.parse(storedPassed)));
-    const storedSaved = localStorage.getItem('savedCandidatesDemo');
-    if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved)));
+    // const storedSaved = localStorage.getItem('savedCandidatesDemo'); // Removed
+    // if (storedSaved) setSavedCandidates(new Set(JSON.parse(storedSaved))); // Removed
   }, []);
 
   const updateLocalStorageSet = (key: string, set: Set<string>) => {
     localStorage.setItem(key, JSON.stringify(Array.from(set)));
   };
 
-  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => {
+  const handleAction = (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => {
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
 
@@ -186,13 +184,11 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     let toastVariant: "default" | "destructive" = "default";
 
     const newLiked = new Set(likedCandidates);
-    const newSuperLiked = new Set(superLikedCandidates);
     const newPassed = new Set(passedCandidates);
-    const newSaved = new Set(savedCandidates);
 
     if (action !== 'pass') newPassed.delete(candidateId);
-    if (action !== 'like' && action !== 'superlike') newLiked.delete(candidateId);
-    if (action !== 'superlike') newSuperLiked.delete(candidateId);
+    if (action !== 'like') newLiked.delete(candidateId);
+
 
     if (action === 'like') {
       newLiked.add(candidateId);
@@ -209,45 +205,21 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     } else if (action === 'pass') {
       newPassed.add(candidateId);
       newLiked.delete(candidateId); 
-      newSuperLiked.delete(candidateId); 
       message = `Passed on ${candidate.name}`;
       toastVariant = "destructive";
       toast({ title: message, variant: toastVariant });
-    } else if (action === 'superlike') {
-      newSuperLiked.add(candidateId);
-      newLiked.add(candidateId); 
-      message = `Super liked ${candidate.name}!`;
-       if (Math.random() > 0.5) { 
-         toast({
-          title: "🎉 It's a Super Match!",
-          description: `You and ${candidate.name} are very interested! Check 'My Matches' to start a conversation.`,
-          duration: 7000,
-        });
-      } else {
-        toast({ title: message });
-      }
     } else if (action === 'details') {
-      message = `Viewing details for ${candidate.name}`;
-      // Handled by "Read more" within CandidateCardContent
+      // This action is now primarily handled inside CandidateCardContent or by opening a modal
+      // For now, we'll just log it or show a toast as the page doesn't directly manage a details modal for candidates yet.
+      toast({ title: `Viewing details for ${candidate.name}` });
       return; 
-    } else if (action === 'save') {
-      if (newSaved.has(candidateId)) {
-        newSaved.delete(candidateId);
-        message = `Unsaved ${candidate.name}.`;
-      } else {
-        newSaved.add(candidateId);
-        message = `Saved ${candidate.name}!`;
-      }
-      toast({ title: message });
     } else if (action === 'share') {
-      // Logic is in CandidateCardContent
+      // Share logic is handled within CandidateCardContent
       return;
     }
 
     setLikedCandidates(newLiked); updateLocalStorageSet('likedCandidatesDemo', newLiked);
-    setSuperLikedCandidates(newSuperLiked); updateLocalStorageSet('superLikedCandidatesDemo', newSuperLiked);
     setPassedCandidates(newPassed); updateLocalStorageSet('passedCandidatesDemo', newPassed);
-    setSavedCandidates(newSaved); updateLocalStorageSet('savedCandidatesDemo', newSaved);
   };
 
   const handleFilterChange = <K extends keyof CandidateFilters>(
@@ -328,30 +300,14 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           >
             <SwipeCard
               className={`w-full max-w-xl h-full flex flex-col
-                          ${superLikedCandidates.has(candidate.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCandidates.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}
+                          ${likedCandidates.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}
                           ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}
             >
-              <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} />
-              <CardFooter className="p-2 sm:p-3 grid grid-cols-6 gap-1 sm:gap-2 border-t bg-card shrink-0">
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => handleAction(candidate.id, 'pass')} aria-label={`Pass on ${candidate.name}`}>
-                  <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={() => handleAction(candidate.id, 'details')} aria-label={`View details for ${candidate.name}`}>
-                  <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
-                </Button>
-                <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-accent/10 ${superLikedCandidates.has(candidate.id) ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`} onClick={() => handleAction(candidate.id, 'superlike')} aria-label={`Superlike ${candidate.name}`}>
-                  <Star className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${superLikedCandidates.has(candidate.id) ? 'fill-accent' : ''}`} /> <span className="text-xs">Superlike</span>
-                </Button>
-                <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${likedCandidates.has(candidate.id) && !superLikedCandidates.has(candidate.id) ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => handleAction(candidate.id, 'like')} aria-label={`Like ${candidate.name}`}>
-                  <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${likedCandidates.has(candidate.id) && !superLikedCandidates.has(candidate.id) ? 'fill-green-500' : ''}`} /> <span className="text-xs">Like</span>
-                </Button>
-                <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCandidates.has(candidate.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => handleAction(candidate.id, 'save')} aria-label={`Save ${candidate.name}`}>
-                  <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCandidates.has(candidate.id) ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => handleAction(candidate.id, 'share')} aria-label={`Share ${candidate.name}`}>
-                  <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
-                </Button>
-              </CardFooter>
+              <CandidateCardContent 
+                candidate={candidate} 
+                onSwipeAction={handleAction} 
+                isLiked={likedCandidates.has(candidate.id)}
+              />
             </SwipeCard>
           </div>
         ))}
@@ -368,7 +324,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
              ref={loadMoreTriggerRef}
              className="h-full snap-start snap-always flex items-center justify-center text-muted-foreground"
            >
-            {/* This element is now a full snap item to ensure it's observed correctly */}
            </div>
         )}
 
@@ -391,5 +346,3 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
-
-    

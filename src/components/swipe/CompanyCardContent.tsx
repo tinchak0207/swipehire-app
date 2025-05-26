@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Star, Save } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -17,15 +17,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CompanyCardContentProps {
   company: Company;
-  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => void;
+  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => void; // Removed 'save' and 'superlike'
   isLiked: boolean;
-  isSuperLiked: boolean;
-  isSaved: boolean;
+  // isSuperLiked: boolean; // Removed
+  // isSaved: boolean; // Removed
 }
 
 const MAX_DESCRIPTION_LENGTH = 100;
 
-export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLiked, isSaved }: CompanyCardContentProps) {
+export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -53,7 +53,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
-    setShowFullDescription(false); // Reset description view when opening modal
+    setShowFullDescription(false);
     setIsDetailsModalOpen(true);
   };
 
@@ -67,7 +67,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', // Placeholder ID
+        id: 'currentUserProfile', 
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s) || [],
@@ -147,22 +147,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) { // Check if click is on controls area
+        if (e.clientY > rect.bottom - 40) { 
             return;
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return; // Do not initiate drag if clicking interactive elements
+        return; 
       }
     }
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX); // Initialize currentX
+    setCurrentX(e.clientX); 
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; // No transition during drag
+      cardContentRef.current.style.transition = 'none'; 
     }
-    document.body.style.userSelect = 'none'; // Prevent text selection during drag
+    document.body.style.userSelect = 'none'; 
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -173,11 +173,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
     
-    const finalDeltaX = e.clientX - startX; // Use clientX from the event
+    const finalDeltaX = e.clientX - startX; 
     if (cardContentRef.current) {
-      cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Re-enable transition for snap back
+      cardContentRef.current.style.transition = 'transform 0.3s ease-out'; 
     }
-    setCurrentX(startX); // Reset for snap back effect
+    setCurrentX(startX); 
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
       if (finalDeltaX < 0) { 
@@ -195,13 +195,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = ''; // Re-enable text selection
+    document.body.style.userSelect = ''; 
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX); // Reset for snap back
+      setCurrentX(startX); 
       if (cardContentRef.current) {
         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -260,13 +260,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
         toast({ title: "Shared!", description: "Job opportunity shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
-         toast({ title: "Share Failed", description: "Could not share at this moment.", variant: "destructive" });
       }
     } else {
       try {
         await navigator.clipboard.writeText(`${shareText} See more at: ${shareUrl}`);
         toast({ title: "Copied to Clipboard!", description: "Job link copied." });
-      } catch (err) {
+      } catch (err)
+      {
         console.error('Failed to copy: ', err);
         toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
       }
@@ -298,7 +298,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Main Collapsed Card View */}
         <div className="relative w-full bg-muted shrink-0 h-[50%] md:h-[55%] max-h-[calc(100vh_-_400px)] sm:max-h-[calc(100vh_-_350px)]">
           {company.introVideoUrl ? (
             <video
@@ -355,25 +354,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
                 <span className="truncate">{jobOpening?.jobType}</span>
               </div>
             )}
-             {/* Truncated Job Description for collapsed view - now removed as per user request */}
           </CardContent>
             
-          {/* Action Buttons moved inside CompanyCardContent */}
-          <CardFooter className="p-0 pt-2 mt-auto grid grid-cols-6 gap-1 sm:gap-2 shrink-0">
+          <CardFooter className="p-0 pt-2 mt-auto grid grid-cols-4 gap-1 sm:gap-2 shrink-0">
             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => onSwipeAction(company.id, 'pass')} aria-label={`Pass on ${company.name}`}>
               <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
             </Button>
             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={handleDetailsButtonClick} aria-label={`View details for ${company.name}`}>
               <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
             </Button>
-            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-accent/10 ${isSuperLiked ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`} onClick={() => onSwipeAction(company.id, 'superlike')} aria-label={`Superlike ${company.name}`}>
-              <Star className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isSuperLiked ? 'fill-accent' : ''}`} /> <span className="text-xs">Superlike</span>
-            </Button>
-            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${isLiked && !isSuperLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => onSwipeAction(company.id, 'like')} aria-label={`Apply to ${company.name}`}>
-              <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isLiked && !isSuperLiked ? 'fill-green-500' : ''}`} /> <span className="text-xs">Apply</span>
-            </Button>
-            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${isSaved ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => onSwipeAction(company.id, 'save')} aria-label={`Save ${company.name}`}>
-              <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isSaved ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
+            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => onSwipeAction(company.id, 'like')} aria-label={`Apply to ${company.name}`}>
+              <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isLiked ? 'fill-green-500' : ''}`} /> <span className="text-xs">Apply</span>
             </Button>
              <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${company.name}`}>
               <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
@@ -382,7 +373,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
         </div>
       </div>
 
-      {/* Details Dialog */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0">
           <DialogHeader className="p-4 sm:p-6 border-b">
@@ -462,7 +452,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
                 </div>
               )}
 
-              {/* AI Fit Analysis Section */}
               <div className="pt-4 border-t">
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
@@ -505,7 +494,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
                 )}
               </div>
 
-              {/* Instant Q&A Section */}
               <div className="pt-4 border-t">
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <MessageSquare className="mr-2 h-5 w-5 text-primary" /> Ask AI About {company.name}
@@ -551,5 +539,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLik
     </>
   );
 }
-
-    

@@ -2,8 +2,8 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2, Brain, Loader2 } from 'lucide-react';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Eye, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp } from 'lucide-react';
+import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,12 +13,13 @@ import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, 
 
 interface CandidateCardContentProps {
   candidate: Candidate;
-  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => void;
+  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => void; // Removed 'save' and 'superlike'
+  isLiked: boolean;
 }
 
 const MAX_SUMMARY_LENGTH = 120;
 
-export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCardContentProps) {
+export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: CandidateCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const [showFullSummary, setShowFullSummary] = useState(false);
@@ -27,8 +28,8 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
-  const SWIPE_THRESHOLD = 75; 
-  const MAX_ROTATION = 10; 
+  const SWIPE_THRESHOLD = 75;
+  const MAX_ROTATION = 10;
 
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
   const [aiRecruiterMatchScore, setAiRecruiterMatchScore] = useState<number | null>(null);
@@ -64,11 +65,11 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
       const genericJobCriteria: JobCriteriaForAI = {
         title: "General Talent Assessment",
         description: "Assessing overall potential and fit for a variety of roles within a dynamic company.",
-        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"], // Use some candidate skills or generic ones
-        requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL, // A common baseline
+        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"],
+        requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL,
         requiredEducationLevel: EducationLevel.UNIVERSITY,
         companyCultureKeywords: ["innovative", "collaborative", "fast-paced", "results-oriented"],
-        companyIndustry: "Technology", // A common default
+        companyIndustry: "Technology",
       };
 
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
@@ -81,8 +82,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidate.id]); // Depend only on candidate.id or candidate itself if its reference changes properly
+  }, [candidate, toast]); 
 
   useEffect(() => {
     fetchAiRecruiterAnalysis();
@@ -209,8 +209,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
   const toggleSummary = (e: React.MouseEvent) => {
     e.stopPropagation(); 
     setShowFullSummary(!showFullSummary);
-    // To trigger the 'details' action when "Read more" is clicked for summary
-    onSwipeAction(candidate.id, 'details'); 
   };
 
   const displayedSummary = showFullSummary 
@@ -219,7 +217,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
 
   const handleShare = async () => {
     const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
-    const shareUrl = window.location.origin; 
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Replace with actual app URL
 
     if (navigator.share) {
       try {
@@ -231,12 +229,14 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
         toast({ title: "Shared!", description: "Candidate profile shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
+        // toast({ title: "Share Failed", description: "Could not share at this moment.", variant: "destructive" });
       }
     } else {
       try {
         await navigator.clipboard.writeText(`${shareText} See more at: ${shareUrl}`);
         toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
-      } catch (err) {
+      } catch (err)
+      {
         console.error('Failed to copy: ', err);
         toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
       }
@@ -318,7 +318,7 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
           )}
         </CardHeader>
 
-        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm">
+        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm flex-grow">
           <p className="text-muted-foreground">
             {displayedSummary}
             {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH && (
@@ -354,7 +354,6 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
           )}
         </CardContent>
 
-        {/* AI Recruiter Assessment Section */}
         <div className="mt-2 pt-2 border-t border-border/50 text-xs">
             <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
                 <Brain className="h-4 w-4 mr-1.5 text-primary" /> AI Assessment:
@@ -428,6 +427,20 @@ export function CandidateCardContent({ candidate, onSwipeAction }: CandidateCard
           </div>
         )}
       </div>
+      <CardFooter className="p-2 sm:p-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0">
+        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => onSwipeAction(candidate.id, 'pass')} aria-label={`Pass on ${candidate.name}`}>
+          <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
+        </Button>
+        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={() => onSwipeAction(candidate.id, 'details')} aria-label={`View details for ${candidate.name}`}>
+          <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
+        </Button>
+        <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => onSwipeAction(candidate.id, 'like')} aria-label={`Like ${candidate.name}`}>
+          <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isLiked ? 'fill-green-500' : ''}`} /> <span className="text-xs">Like</span>
+        </Button>
+        <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${candidate.name}`}>
+          <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
+        </Button>
+      </CardFooter>
     </div>
   );
 }
