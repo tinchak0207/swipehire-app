@@ -2,8 +2,8 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain } from 'lucide-react';
-import { CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Star, Save } from 'lucide-react';
+import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
@@ -18,9 +18,14 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface CompanyCardContentProps {
   company: Company;
   onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => void;
+  isLiked: boolean;
+  isSuperLiked: boolean;
+  isSaved: boolean;
 }
 
-export function CompanyCardContent({ company, onSwipeAction }: CompanyCardContentProps) {
+const MAX_DESCRIPTION_LENGTH = 100;
+
+export function CompanyCardContent({ company, onSwipeAction, isLiked, isSuperLiked, isSaved }: CompanyCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -37,43 +42,20 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
   const [userQuestion, setUserQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
+
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
-  // Handle 'details' action to open modal
-  useEffect(() => {
-    // This effect allows JobDiscoveryPage to trigger the modal via prop.
-    // However, the actual triggering of the modal is now primarily done
-    // by calling setIsDetailsModalOpen(true) from within the component
-    // when the "Details" button is clicked.
-    // For this specific request, the 'details' action in onSwipeAction will
-    // be used to open the modal.
-  }, []); // Empty dependency array as this is a one-time setup or driven by prop changes
-
   const handleDetailsButtonClick = () => {
-    setAiJobFitAnalysis(null); // Reset previous analysis
+    setAiJobFitAnalysis(null);
     setIsLoadingAiAnalysis(false);
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
+    setShowFullDescription(false); // Reset description view when opening modal
     setIsDetailsModalOpen(true);
   };
-  
-  // The onSwipeAction for 'details' will be connected to this function from the parent
-  React.useEffect(() => {
-    const originalOnSwipeAction = onSwipeAction;
-    // @ts-ignore
-    onSwipeAction = (companyId: string, action: 'like' | 'pass' | 'details' | 'save' | 'superlike' | 'share') => {
-      if (action === 'details' && companyId === company.id) {
-        handleDetailsButtonClick();
-      } else {
-        originalOnSwipeAction(companyId, action);
-      }
-    };
-  // This is a bit hacky, ideally parent component would handle opening the modal via a direct prop
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onSwipeAction, company.id]);
-
 
   const fetchAiAnalysis = useCallback(async () => {
     if (!company || !jobOpening) {
@@ -85,7 +67,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile',
+        id: 'currentUserProfile', // Placeholder ID
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s) || [],
@@ -100,7 +82,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         salaryExpectationMax: parseInt(localStorage.getItem('jobSeekerSalaryMax') || '0') || undefined,
         availability: (localStorage.getItem('jobSeekerAvailability') as Availability) || Availability.UNSPECIFIED,
         jobTypePreference: (localStorage.getItem('jobSeekerJobTypePreference')?.split(',') as JobType[]) || [],
-        personalityAssessment: JSON.parse(localStorage.getItem('jobSeekerPersonalityAssessment') || 'null') || undefined,
+        personalityAssessment: JSON.parse(localStorage.getItem('jobSeekerPersonalityAssessment') || 'null') || [],
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -119,16 +101,16 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         companyIndustry: company.industry || undefined,
       };
 
-      const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria });
+      const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
         toast({ title: "AI Fit Analysis Complete!", description: "Your personalized fit score is ready." });
       } else {
         toast({ title: "AI Analysis Note", description: "Could not generate a detailed job fit analysis for this job.", variant: "default" });
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error fetching AI job fit analysis for company " + company.name + ":", error);
-      toast({ title: "AI Analysis Error", description: "Failed to get AI insights for this job. Ensure your profile in 'My Profile' is up to date.", variant: "destructive" });
+      toast({ title: "AI Analysis Error", description: `Failed to get AI insights. ${error.message || 'Ensure your profile is up to date.'}`, variant: "destructive" });
     } finally {
       setIsLoadingAiAnalysis(false);
     }
@@ -136,7 +118,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
-    if (!currentVideoRef || !isDetailsModalOpen) return; // Only observe when modal is open
+    if (!currentVideoRef || !isDetailsModalOpen) return; 
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -157,7 +139,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       }
       observer.disconnect();
     };
-  }, [isDetailsModalOpen, company.introVideoUrl]); // Re-run if modal opens or video URL changes
+  }, [isDetailsModalOpen, company.introVideoUrl]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const targetElement = e.target as HTMLElement;
@@ -165,22 +147,22 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) {
-          return;
+        if (e.clientY > rect.bottom - 40) { // Check if click is on controls area
+            return;
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return;
+        return; // Do not initiate drag if clicking interactive elements
       }
     }
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX);
+    setCurrentX(e.clientX); // Initialize currentX
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none';
+      cardContentRef.current.style.transition = 'none'; // No transition during drag
     }
-    document.body.style.userSelect = 'none';
+    document.body.style.userSelect = 'none'; // Prevent text selection during drag
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -190,34 +172,36 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
   const handleMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current) return;
-
-    const finalDeltaX = e.clientX - startX;
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    setCurrentX(startX);
+    
+    const finalDeltaX = e.clientX - startX; // Use clientX from the event
+    if (cardContentRef.current) {
+      cardContentRef.current.style.transition = 'transform 0.3s ease-out'; // Re-enable transition for snap back
+    }
+    setCurrentX(startX); // Reset for snap back effect
 
     if (Math.abs(finalDeltaX) > SWIPE_THRESHOLD) {
-      if (finalDeltaX < 0) {
+      if (finalDeltaX < 0) { 
         onSwipeAction(company.id, 'pass');
-      } else {
+      } else { 
         onSwipeAction(company.id, 'like');
       }
     } else {
       if (cardContentRef.current) {
-        cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
     }
-
+    
     setIsDragging(false);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = '';
+    document.body.style.userSelect = ''; // Re-enable text selection
   };
 
   const handleMouseLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isDragging && cardContentRef.current) {
       cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-      setCurrentX(startX);
+      setCurrentX(startX); // Reset for snap back
       if (cardContentRef.current) {
         cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
       }
@@ -226,11 +210,11 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       document.body.style.userSelect = '';
     }
   };
-
+  
   const getCardTransform = () => {
     if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
-    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); 
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
@@ -264,7 +248,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
 
   const handleShare = async () => {
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Fallback for SSR/build
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; 
 
     if (navigator.share) {
       try {
@@ -276,6 +260,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
         toast({ title: "Shared!", description: "Job opportunity shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
+         toast({ title: "Share Failed", description: "Could not share at this moment.", variant: "destructive" });
       }
     } else {
       try {
@@ -287,6 +272,17 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
       }
     }
   };
+
+  const toggleDescription = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowFullDescription(!showFullDescription);
+  };
+
+  const jobDescriptionText = jobOpening?.description || "No job description available.";
+  const displayedDescription = showFullDescription
+    ? jobDescriptionText
+    : jobDescriptionText.slice(0, MAX_DESCRIPTION_LENGTH) + (jobDescriptionText.length > MAX_DESCRIPTION_LENGTH ? "..." : "");
+
 
   return (
     <>
@@ -302,15 +298,16 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Collapsed Card View */}
-        <div className="relative w-full bg-muted shrink-0 h-[50%] md:h-[55%]">
+        {/* Main Collapsed Card View */}
+        <div className="relative w-full bg-muted shrink-0 h-[50%] md:h-[55%] max-h-[calc(100vh_-_400px)] sm:max-h-[calc(100vh_-_350px)]">
           {company.introVideoUrl ? (
             <video
               src={company.introVideoUrl}
               muted
+              autoPlay
               loop
               playsInline
-              className="w-full h-full object-cover bg-black pointer-events-none" // pointer-events-none for swipe
+              className="w-full h-full object-cover bg-black pointer-events-none"
               poster={company.logoUrl || `https://placehold.co/600x360.png?text=${encodeURIComponent(company.name)}`}
               data-ai-hint="company video"
             />
@@ -330,7 +327,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
           )}
         </div>
 
-        <div className="p-3 sm:p-4 flex-grow flex flex-col h-[50%] md:h-[45%]">
+        <div className="p-3 sm:p-4 flex-grow flex flex-col h-[50%] md:h-[45%] overflow-y-auto no-scrollbar overscroll-y-contain">
           <CardHeader className="p-0 mb-1.5 sm:mb-2">
             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
             <CardDescription className="text-xs sm:text-sm text-muted-foreground">{company.industry}</CardDescription>
@@ -346,20 +343,42 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
                 <span className="truncate">{jobOpening.location}</span>
               </div>
             )}
-            {(jobOpening?.salaryRange || company.salaryRange) && (
+            {(jobOpening?.salaryRange) && (
               <div className="flex items-center text-muted-foreground">
                 <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                <span className="truncate">{jobOpening?.salaryRange || company.salaryRange}</span>
+                <span className="truncate">{jobOpening?.salaryRange}</span>
               </div>
             )}
-            {(jobOpening?.jobType || company.jobType) && (
+            {(jobOpening?.jobType) && (
               <div className="flex items-center text-muted-foreground">
                 <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                <span className="truncate">{jobOpening?.jobType || company.jobType}</span>
+                <span className="truncate">{jobOpening?.jobType}</span>
               </div>
             )}
+             {/* Truncated Job Description for collapsed view - now removed as per user request */}
           </CardContent>
-          {/* Footer with action buttons is rendered by JobDiscoveryPage.tsx */}
+            
+          {/* Action Buttons moved inside CompanyCardContent */}
+          <CardFooter className="p-0 pt-2 mt-auto grid grid-cols-6 gap-1 sm:gap-2 shrink-0">
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => onSwipeAction(company.id, 'pass')} aria-label={`Pass on ${company.name}`}>
+              <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
+            </Button>
+            <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={handleDetailsButtonClick} aria-label={`View details for ${company.name}`}>
+              <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
+            </Button>
+            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-accent/10 ${isSuperLiked ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`} onClick={() => onSwipeAction(company.id, 'superlike')} aria-label={`Superlike ${company.name}`}>
+              <Star className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isSuperLiked ? 'fill-accent' : ''}`} /> <span className="text-xs">Superlike</span>
+            </Button>
+            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${isLiked && !isSuperLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => onSwipeAction(company.id, 'like')} aria-label={`Apply to ${company.name}`}>
+              <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isLiked && !isSuperLiked ? 'fill-green-500' : ''}`} /> <span className="text-xs">Apply</span>
+            </Button>
+            <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${isSaved ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => onSwipeAction(company.id, 'save')} aria-label={`Save ${company.name}`}>
+              <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${isSaved ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
+            </Button>
+             <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShare} aria-label={`Share ${company.name}`}>
+              <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
+            </Button>
+          </CardFooter>
         </div>
       </div>
 
@@ -377,7 +396,7 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
               {company.introVideoUrl && (
                 <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
                   <video
-                    ref={videoRef} // Use videoRef here for the modal's video
+                    ref={videoRef}
                     src={company.introVideoUrl}
                     controls
                     muted
@@ -399,7 +418,20 @@ export function CompanyCardContent({ company, onSwipeAction }: CompanyCardConten
               {jobOpening && (
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-1">Job Description: {jobOpening.title}</h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">{jobOpening.description}</p>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">
+                    {displayedDescription}
+                    {jobDescriptionText.length > MAX_DESCRIPTION_LENGTH && (
+                        <Button 
+                            variant="link" 
+                            size="sm" 
+                            onClick={toggleDescription} 
+                            className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                            data-no-drag="true"
+                        >
+                            {showFullDescription ? "Read less" : "Read more"}
+                        </Button>
+                    )}
+                  </p>
                   <div className="mt-3 space-y-1 text-sm">
                     {jobOpening.location && <p><MapPin className="inline h-4 w-4 mr-2 text-muted-foreground" />Location: {jobOpening.location}</p>}
                     {jobOpening.salaryRange && <p><DollarSign className="inline h-4 w-4 mr-2 text-muted-foreground" />Salary: {jobOpening.salaryRange}</p>}

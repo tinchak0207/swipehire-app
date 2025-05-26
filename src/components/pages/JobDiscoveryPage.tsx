@@ -3,13 +3,12 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Company, JobFilters } from '@/lib/types'; 
-import { WorkExperienceLevel, EducationLevel, LocationPreference, JobType } from '@/lib/types'; 
 import { mockCompanies as staticMockCompanies } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
-import { CardFooter } from '@/components/ui/card';
-import { ThumbsUp, ThumbsDown, Info, Star, Save, Loader2, SearchX, Filter, X, Share2 } from 'lucide-react';
+// CardFooter import is no longer needed here as buttons are moved to CompanyCardContent
+import { Loader2, SearchX, Filter } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"; 
 import { JobFilterPanel } from "@/components/filters/JobFilterPanel"; 
@@ -33,7 +32,7 @@ const initialJobFilters: JobFilters = {
 export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [masterJobFeed, setMasterJobFeed] = useState<Company[]>([]);
   const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Tracks index within filteredJobFeed
+  const [currentIndex, setCurrentIndex] = useState(0); 
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
@@ -46,29 +45,22 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [passedCompanies, setPassedCompanies] = useState<Set<string>>(new Set());
   const [savedCompanies, setSavedCompanies] = useState<Set<string>>(new Set());
 
-  const [nextPageCursor, setNextPageCursor] = useState<string | undefined>(undefined);
-
-
   const { toast } = useToast();
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
-
-  // Refs for CompanyCardContent instances to trigger their detail modals
-  const companyCardRefs = useRef<Record<string, { openDetailsModal: () => void }>>({});
-
 
   const loadAndSetInitialJobs = useCallback(async () => {
     setIsInitialLoading(true);
     setIsLoading(true); 
     try {
-      const { jobs: initialJobs, hasMore: initialHasMore, nextCursor: initialNextCursor } = await fetchJobsFromBackend();
+      const { jobs: initialJobs } = await fetchJobsFromBackend(); // Removed hasMore, nextCursor for now
       const combinedJobs = [
         ...initialJobs,
         ...staticMockCompanies.filter(mc => !initialJobs.find(upj => upj.id === mc.id))
       ];
       
       setMasterJobFeed(combinedJobs);
-      setNextPageCursor(initialNextCursor);
+      // setNextPageCursor(initialNextCursor); // Removed for simpler local pagination
     } catch (error) {
       console.error("Failed to load initial jobs:", error);
       setMasterJobFeed(staticMockCompanies); 
@@ -198,29 +190,14 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     const company = masterJobFeed.find(c => c.id === companyId);
     if (!company) return;
     
+    // The 'details' action is now handled within CompanyCardContent to open its modal
     if (action === 'details') {
-      const cardRef = companyCardRefs.current[companyId];
-      // @ts-ignore // Assuming CompanyCardContent exposes openDetailsModal via ref
-      if (cardRef && typeof cardRef.openDetailsModal === 'function') { 
-        // @ts-ignore
-        cardRef.openDetailsModal();
-      } else {
-         // Fallback or direct state manipulation if CompanyCardContent handles modal itself
-         // This relies on CompanyCardContent's internal logic to open its modal
-         // when its onSwipeAction prop is called with 'details'.
-         // We find the CompanyCardContent for this company and trigger its detail opening logic.
-         // This is a bit indirect, ideally a more direct prop or method call would be used.
-         // For now, we assume CompanyCardContent listens for the 'details' action.
-         const companyCardContentComponent = displayedCompanies.find(c => c.id === companyId);
-         if (companyCardContentComponent) {
-            // No direct method call here. The CompanyCardContent's own effect handling `onSwipeAction`
-            // will manage opening its modal if it receives the 'details' action.
-            // This part of the logic is now primarily inside CompanyCardContent.
-         }
-      }
-      return; // Details action is handled, no further state changes here for like/pass etc.
+        // The CompanyCardContent will manage opening its own modal.
+        // No direct state change here needed for JobDiscoveryPage regarding the modal.
+        // We might still log it or do other things if needed.
+        console.log("Details action triggered for company:", companyId);
+        return; 
     }
-
 
     let message = "";
     let toastVariant: "default" | "destructive" = "default";
@@ -229,9 +206,11 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     const newPassed = new Set(passedCompanies);
     const newSaved = new Set(savedCompanies);
 
+    // Reset other interaction types if a new one is made
     if (action !== 'pass') newPassed.delete(companyId);
     if (action !== 'like' && action !== 'superlike') newLiked.delete(companyId);
     if (action !== 'superlike') newSuperLiked.delete(companyId);
+    // 'save' is independent
 
     if (action === 'like') {
       newLiked.add(companyId);
@@ -254,7 +233,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       toast({ title: message, variant: toastVariant });
     } else if (action === 'superlike') {
       newSuperLiked.add(companyId);
-      newLiked.add(companyId);
+      newLiked.add(companyId); // Superlike also implies like
       message = `Super liked ${company.name}!`;
       if (Math.random() > 0.5) {
         toast({
@@ -275,7 +254,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       }
       toast({ title: message });
     } else if (action === 'share') {
-      // Share logic is inside CompanyCardContent
+      // Share logic is handled by CompanyCardContent
       return; 
     }
     setLikedCompanies(newLiked); updateLocalStorageSet('likedCompaniesDemo', newLiked);
@@ -315,7 +294,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   };
   const numActiveFilters = countActiveFilters();
 
-  const fixedElementsHeight = '160px'; // Adjust as needed
+  const fixedElementsHeight = '160px'; 
   const visibleCompanies = displayedCompanies.filter(c => !passedCompanies.has(c.id));
 
   if (isInitialLoading) {
@@ -375,35 +354,14 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
               className={`w-full max-w-xl h-full flex flex-col
                           ${superLikedCompanies.has(company.id) ? 'ring-2 ring-accent shadow-accent/30' : likedCompanies.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}
             >
-              {/* 
-                To explicitly control the modal from here, CompanyCardContent would need to expose a method via useImperativeHandle.
-                For now, CompanyCardContent itself listens to the 'details' action via its onSwipeAction prop.
-              */}
               <CompanyCardContent 
                 company={company} 
-                onSwipeAction={(id, action) => handleAction(id, action)} 
-                // ref={el => companyCardRefs.current[company.id] = el} // Example if using ref
+                onSwipeAction={handleAction}
+                isLiked={likedCompanies.has(company.id)}
+                isSuperLiked={superLikedCompanies.has(company.id)}
+                isSaved={savedCompanies.has(company.id)}
               />
-              <CardFooter className="p-2 sm:p-3 grid grid-cols-6 gap-1 sm:gap-2 border-t bg-card shrink-0">
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={() => handleAction(company.id, 'pass')} aria-label={`Pass on ${company.name}`}>
-                  <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Pass</span>
-                </Button>
-                <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={() => handleAction(company.id, 'details')} aria-label={`View details for ${company.name}`}>
-                  <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Details</span>
-                </Button>
-                <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-accent/10 ${superLikedCompanies.has(company.id) ? 'text-accent' : 'text-muted-foreground hover:text-accent'}`} onClick={() => handleAction(company.id, 'superlike')} aria-label={`Superlike ${company.name}`}>
-                  <Star className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${superLikedCompanies.has(company.id) ? 'fill-accent' : ''}`} /> <span className="text-xs">Superlike</span>
-                </Button>
-                <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-green-500/10 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'}`} onClick={() => handleAction(company.id, 'like')} aria-label={`Apply to ${company.name}`}>
-                  <ThumbsUp className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${likedCompanies.has(company.id) && !superLikedCompanies.has(company.id) ? 'fill-green-500' : ''}`} /> <span className="text-xs">Apply</span>
-                </Button>
-                <Button variant="ghost" size="sm" className={`flex-col h-auto py-1.5 sm:py-2 hover:bg-primary/10 ${savedCompanies.has(company.id) ? 'text-primary' : 'text-muted-foreground hover:text-primary'}`} onClick={() => handleAction(company.id, 'save')} aria-label={`Save ${company.name}`}>
-                  <Save className={`h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1 ${savedCompanies.has(company.id) ? 'fill-primary' : ''}`} /> <span className="text-xs">Save</span>
-                </Button>
-                 <Button variant="ghost" size="sm" className="flex-col h-auto py-1.5 sm:py-2 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={() => onSwipeAction(company.id, 'share')} aria-label={`Share ${company.name}`}>
-                  <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5 sm:mb-1" /> <span className="text-xs">Share</span>
-                </Button>
-              </CardFooter>
+              {/* Action buttons are now inside CompanyCardContent */}
             </SwipeCard>
           </div>
         ))}
