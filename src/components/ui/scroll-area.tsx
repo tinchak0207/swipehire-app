@@ -1,3 +1,4 @@
+
 "use client"
 
 import * as React from "react"
@@ -14,7 +15,15 @@ const ScrollArea = React.forwardRef<
     className={cn("relative overflow-hidden", className)}
     {...props}
   >
-    <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">
+    <ScrollAreaPrimitive.Viewport 
+      className={cn(
+        "h-full w-full rounded-[inherit] overscroll-y-contain",
+        // Check if the parent ScrollArea was passed a no-scrollbar class for consistency
+        // This is a bit of a workaround for direct class propagation. A more robust solution
+        // might involve context or direct prop passing if this pattern becomes common.
+        typeof className === 'string' && className.includes("no-scrollbar") ? "no-scrollbar" : ""
+      )}
+    >
       {children}
     </ScrollAreaPrimitive.Viewport>
     <ScrollBar />
