@@ -1,19 +1,18 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn, Compass } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithRedirect, type UserCredential, type FirebaseError } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
-  onLoginSuccess: (user: UserCredential['user']) => void;
+  // onLoginSuccess: (user: UserCredential['user']) => void; // No longer needed for signInWithRedirect
   onLoginBypass: () => void;
 }
 
-export function LoginPage({ onLoginSuccess, onLoginBypass }: LoginPageProps) {
+export function LoginPage({ onLoginBypass }: LoginPageProps) {
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
@@ -22,26 +21,30 @@ export function LoginPage({ onLoginSuccess, onLoginBypass }: LoginPageProps) {
       // Using signInWithRedirect instead of signInWithPopup
       await signInWithRedirect(auth, provider);
       // The result will be handled by getRedirectResult in HomePage after redirect.
-      // No immediate onLoginSuccess call here.
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error initiating Google Sign-In redirect:", firebaseError);
       let errorMessage = "Failed to initiate sign-in with Google.";
       if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
+      } else if (firebaseError.code === 'auth/popup-blocked') {
+        errorMessage = "Pop-up was blocked by the browser. Please allow pop-ups for this site.";
+      } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Sign-in cancelled. The pop-up was closed before completing the sign-in.";
+      } else if (firebaseError.code === 'auth/operation-not-allowed') {
+        errorMessage = "Sign-in method is not enabled. Please contact support.";
       }
-      // Other immediate errors from signInWithRedirect are less common than with popup
       
       toast({
         title: "Google Sign-In Initiation Failed",
-        description: `${errorMessage} You can try again or use the bypass for development.`,
+        description: `${errorMessage} For development, a bypass will be attempted.`,
         variant: "destructive",
-        duration: 5000,
+        duration: 7000, // Increased duration to read
       });
-       // Still offer bypass if initiation fails for some reason
+       // Still offer bypass if initiation fails
       setTimeout(() => {
         onLoginBypass();
-      }, 2000);
+      }, 2000); // Keep delay for bypass visibility
     }
   };
 
