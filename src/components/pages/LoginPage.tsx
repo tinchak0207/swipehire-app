@@ -5,12 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn, Compass } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError, type User } from "firebase/auth";
+import { GoogleAuthProvider, signInWithRedirect, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
   onLoginSuccess: (user: UserCredential['user']) => void;
-  onLoginBypass: () => void; // New prop for bypass
+  onLoginBypass: () => void;
 }
 
 export function LoginPage({ onLoginSuccess, onLoginBypass }: LoginPageProps) {
@@ -19,35 +19,29 @@ export function LoginPage({ onLoginSuccess, onLoginBypass }: LoginPageProps) {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-      console.log("Google Sign-In successful:", user);
-      toast({
-        title: "Signed In Successfully!",
-        description: `Welcome, ${user.displayName || user.email}!`,
-      });
-      onLoginSuccess(user);
+      // Using signInWithRedirect instead of signInWithPopup
+      await signInWithRedirect(auth, provider);
+      // The result will be handled by getRedirectResult in HomePage after redirect.
+      // No immediate onLoginSuccess call here.
     } catch (error) {
       const firebaseError = error as FirebaseError;
-      console.error("Error during Google Sign-In:", firebaseError);
-      let errorMessage = "Failed to sign in with Google.";
-      if (firebaseError.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in process was cancelled.";
-      } else if (firebaseError.code === 'auth/network-request-failed') {
+      console.error("Error initiating Google Sign-In redirect:", firebaseError);
+      let errorMessage = "Failed to initiate sign-in with Google.";
+      if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
       }
+      // Other immediate errors from signInWithRedirect are less common than with popup
       
       toast({
-        title: "Google Sign-In Failed",
-        description: `${errorMessage} Proceeding with a Dev User for testing.`,
+        title: "Google Sign-In Initiation Failed",
+        description: `${errorMessage} You can try again or use the bypass for development.`,
         variant: "destructive",
         duration: 5000,
       });
-
-      // Temporary bypass for development
+       // Still offer bypass if initiation fails for some reason
       setTimeout(() => {
         onLoginBypass();
-      }, 2000); // Short delay so user can see the error toast
+      }, 2000);
     }
   };
 

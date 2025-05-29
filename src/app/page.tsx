@@ -19,7 +19,7 @@ import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, signOut, type User, type UserCredential } from "firebase/auth";
+import { onAuthStateChanged, signOut, type User, type UserCredential, getRedirectResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 
@@ -39,35 +39,66 @@ export default function HomePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setCurrentUser(user);
-        setIsAuthenticated(true);
-        const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
-        if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-          setUserRole(storedRoleValue as UserRole);
-        } else {
-          setUserRole(null); 
-        }
-      } else {
-        setCurrentUser(null);
-        setIsAuthenticated(false);
-        setUserRole(null);
-        localStorage.removeItem(USER_ROLE_KEY);
-      }
-      
-      if (isInitialLoading) {
-        const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
-        if (hasSeenWelcome !== 'true') {
-          setShowWelcomePage(true);
-        }
-      }
-      setIsInitialLoading(false);
-    });
+    setIsInitialLoading(true);
 
-    return () => unsubscribe();
+    // Check for redirect result first
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // This means the user has just signed in via redirect.
+          const user = result.user;
+          toast({
+            title: "Signed In Successfully!",
+            description: `Welcome back, ${user.displayName || user.email}!`,
+          });
+          // onAuthStateChanged will handle setting currentUser and isAuthenticated
+        }
+      })
+      .catch((error) => {
+        console.error("Error getting redirect result:", error);
+        toast({
+          title: "Sign-In Issue",
+          description: error.message || "Could not complete sign-in after redirect.",
+          variant: "destructive",
+        });
+      })
+      .finally(() => {
+        // Now set up the onAuthStateChanged listener
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
+          if (user) {
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            setShowLoginPage(false); // User is authenticated, hide login page
+            const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
+            if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+              setUserRole(storedRoleValue as UserRole);
+            } else {
+              setUserRole(null); // No valid role found, prompt for role selection
+            }
+          } else {
+            setCurrentUser(null);
+            setIsAuthenticated(false);
+            setUserRole(null);
+            localStorage.removeItem(USER_ROLE_KEY);
+          }
+          
+          // Determine if welcome page should be shown, AFTER auth state is known
+          if (isInitialLoading) { // Only check for welcome page on initial load determination
+            const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
+            // Show welcome page if not seen AND (not authenticated OR no role selected yet)
+            if (hasSeenWelcome !== 'true' && (!user || (user && !userRole))) {
+              setShowWelcomePage(true);
+            } else {
+              setShowWelcomePage(false);
+            }
+          }
+          setIsInitialLoading(false);
+        });
+        return () => unsubscribe();
+      });
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []); // Empty dependency array ensures this runs once on mount
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -79,10 +110,14 @@ export default function HomePage() {
   const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
+    // After exploring, if not authenticated, we might want to show login or role selection.
+    // This logic is handled by the main useEffect now.
   };
 
   const handleLoginSuccess = (user: UserCredential['user']) => {
-    // onAuthStateChanged will handle setting currentUser and isAuthenticated
+    // This function is primarily for signInWithPopup, 
+    // but onAuthStateChanged will handle state updates for both methods.
+    // We can still ensure login page is hidden.
     setShowLoginPage(false);
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
@@ -113,7 +148,7 @@ export default function HomePage() {
         phoneNumber: null,
         photoURL: null,
       }],
-      providerId: 'firebase', // This is the providerId for the Firebase User object itself
+      providerId: 'firebase', 
       refreshToken: 'mock-refresh-token',
       tenantId: null,
       delete: () => Promise.resolve(),
@@ -133,7 +168,6 @@ export default function HomePage() {
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
     setShowLoginPage(false);
-    // Role logic after bypass
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
       setUserRole(storedRoleValue as UserRole);
@@ -158,16 +192,26 @@ export default function HomePage() {
     try {
       await signOut(auth);
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      // onAuthStateChanged will handle setting states to null
+      setShowLoginPage(false); 
+      // After logout, user might see WelcomePage again if they clear localStorage, or LoginPage.
+      // Or if they don't clear localStorage, they'll see WelcomePage if it was their first time.
+      // If they've seen welcome, and are now logged out, they should see LoginPage or RoleSelection
+      // if !isAuthenticated and !userRole. The main useEffect should handle this.
+      const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
+        if (hasSeenWelcome !== 'true') {
+          setShowWelcomePage(true);
+        }
+
     } catch (error) {
       console.error("Error signing out:", error);
       toast({ title: "Logout Failed", description: "Could not log out. Please try again.", variant: "destructive" });
     }
-    // onAuthStateChanged will handle setting currentUser to null, isAuthenticated to false, and userRole to null.
-    setShowLoginPage(false); // Ensure login page isn't stuck
   };
 
   const handleLoginRequest = () => {
     setShowLoginPage(true);
+    setShowWelcomePage(false); // Don't show welcome if user explicitly requests login
   };
 
   const baseTabItems = [
@@ -178,6 +222,7 @@ export default function HomePage() {
 
   const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} /> },
+    // The "Post a Job" tab definition for recruiters
     { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> },
     ...baseTabItems,
   ];
@@ -189,7 +234,7 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems;
+  let currentTabItems = jobseekerTabItems; // Default
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   }
@@ -205,7 +250,7 @@ export default function HomePage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated]); 
+  }, [userRole, isAuthenticated, activeTab]); // Added activeTab to deps to avoid stale closures if role changes and activeTab becomes invalid
 
 
   if (isInitialLoading) {
@@ -220,18 +265,19 @@ export default function HomePage() {
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
 
-  if (showLoginPage && !isAuthenticated) {
+  if (showLoginPage && !isAuthenticated) { // Explicitly show login page if requested and not authenticated
     return <LoginPage onLoginSuccess={handleLoginSuccess} onLoginBypass={handleLoginBypass} />;
   }
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated) { // If not showing welcome, and not explicitly login, and not auth -> show Login
      return <LoginPage onLoginSuccess={handleLoginSuccess} onLoginBypass={handleLoginBypass} />;
   }
 
-  if (!userRole) {
+  if (!userRole) { // If authenticated but no role selected
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
+  // If authenticated and role selected, show the main app
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
@@ -247,6 +293,7 @@ export default function HomePage() {
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
+             // The TabsList will be horizontal on desktop due to grid-cols-X
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
