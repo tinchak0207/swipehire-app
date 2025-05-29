@@ -3,26 +3,23 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Compass } from "lucide-react"; // Using Compass as a generic 'Google-like' icon
-import { auth } from "@/lib/firebase"; // Import the initialized auth instance
-import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
+import { LogIn, Compass } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError, type User } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
   onLoginSuccess: (user: UserCredential['user']) => void;
+  onLoginBypass: () => void; // New prop for bypass
 }
 
-export function LoginPage({ onLoginSuccess }: LoginPageProps) {
+export function LoginPage({ onLoginSuccess, onLoginBypass }: LoginPageProps) {
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      // This gives you a Google Access Token. You can use it to access the Google API.
-      // const credential = GoogleAuthProvider.credentialFromResult(result);
-      // const token = credential?.accessToken;
-      // The signed-in user info.
       const user = result.user;
       console.log("Google Sign-In successful:", user);
       toast({
@@ -33,17 +30,24 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In:", firebaseError);
-      let errorMessage = "Failed to sign in with Google. Please try again.";
+      let errorMessage = "Failed to sign in with Google.";
       if (firebaseError.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in process was cancelled.";
       } else if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
       }
+      
       toast({
-        title: "Sign-In Failed",
-        description: errorMessage,
+        title: "Google Sign-In Failed",
+        description: `${errorMessage} Proceeding with a Dev User for testing.`,
         variant: "destructive",
+        duration: 5000,
       });
+
+      // Temporary bypass for development
+      setTimeout(() => {
+        onLoginBypass();
+      }, 2000); // Short delay so user can see the error toast
     }
   };
 
@@ -64,7 +68,7 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
             className="w-full text-lg py-3 bg-accent hover:bg-accent/90 text-accent-foreground"
             aria-label="Sign in with Google"
           >
-            <Compass className="mr-2 h-5 w-5" /> {/* Placeholder for Google Icon */}
+            <Compass className="mr-2 h-5 w-5" />
             Sign in with Google
           </Button>
         </CardContent>

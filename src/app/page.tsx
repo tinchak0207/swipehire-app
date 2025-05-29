@@ -14,22 +14,22 @@ import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
 import { WelcomePage } from "@/components/pages/WelcomePage";
-import { MyProfilePage } from "@/components/pages/MyProfilePage"; // Added import
+import { MyProfilePage } from "@/components/pages/MyProfilePage";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/firebase"; // Import Firebase auth instance
-import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged, signOut, type User, type UserCredential } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
-const USER_ROLE_KEY = 'userRole'; // Consistent key for localStorage
+const USER_ROLE_KEY = 'userRole'; 
 
 export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Still useful for quick UI updates
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("findTalent");
@@ -41,26 +41,22 @@ export default function HomePage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        // User is signed in
         setCurrentUser(user);
         setIsAuthenticated(true);
         const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
         if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
           setUserRole(storedRoleValue as UserRole);
         } else {
-          setUserRole(null); // Prompt for role selection if not set or invalid
+          setUserRole(null); 
         }
       } else {
-        // User is signed out
         setCurrentUser(null);
         setIsAuthenticated(false);
-        setUserRole(null); // Clear role on logout
-        // Optionally clear other user-specific localStorage items here
+        setUserRole(null);
         localStorage.removeItem(USER_ROLE_KEY);
       }
       
-      // Only run welcome page logic after auth state is determined
-      if (isInitialLoading) { // ensure this runs only once initially
+      if (isInitialLoading) {
         const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
         if (hasSeenWelcome !== 'true') {
           setShowWelcomePage(true);
@@ -69,10 +65,9 @@ export default function HomePage() {
       setIsInitialLoading(false);
     });
 
-    // Cleanup subscription on unmount
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array to run only once on mount
+  }, []); 
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -84,14 +79,11 @@ export default function HomePage() {
   const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
-    // Auth state will determine if login is needed next, or role selection, or main app
   };
 
-  const handleLoginSuccess = (user: User) => {
+  const handleLoginSuccess = (user: UserCredential['user']) => {
     // onAuthStateChanged will handle setting currentUser and isAuthenticated
-    // We just need to hide the login page
     setShowLoginPage(false);
-    // If role is still null, RoleSelectionPage will be shown
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
       setUserRole(storedRoleValue as UserRole);
@@ -99,6 +91,58 @@ export default function HomePage() {
       setUserRole(null); 
     }
   };
+
+  const handleLoginBypass = () => {
+    const mockUser: User = {
+      uid: `mock-bypass-user-${Date.now()}`,
+      email: 'dev.user@example.com',
+      displayName: 'Dev User (Bypass)',
+      emailVerified: true,
+      isAnonymous: false,
+      metadata: {
+        creationTime: new Date().toISOString(),
+        lastSignInTime: new Date().toISOString(),
+      },
+      phoneNumber: null,
+      photoURL: null,
+      providerData: [{
+        providerId: 'google.com', 
+        uid: `mock-google-uid-${Date.now()}`,
+        displayName: 'Dev User (Bypass)',
+        email: 'dev.user@example.com',
+        phoneNumber: null,
+        photoURL: null,
+      }],
+      providerId: 'firebase', // This is the providerId for the Firebase User object itself
+      refreshToken: 'mock-refresh-token',
+      tenantId: null,
+      delete: () => Promise.resolve(),
+      getIdToken: (_forceRefresh?: boolean) => Promise.resolve('mock-id-token'),
+      getIdTokenResult: (_forceRefresh?: boolean) => Promise.resolve({
+        token: 'mock-id-token',
+        expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(),
+        authTime: new Date().toISOString(),
+        issuedAtTime: new Date().toISOString(),
+        signInProvider: 'google.com',
+        signInSecondFactor: null,
+        claims: {},
+      }),
+      reload: () => Promise.resolve(),
+      toJSON: () => ({ uid: `mock-bypass-user-${Date.now()}`, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }),
+    };
+    setCurrentUser(mockUser);
+    setIsAuthenticated(true);
+    setShowLoginPage(false);
+    // Role logic after bypass
+    const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
+    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+      setUserRole(storedRoleValue as UserRole);
+    } else {
+      setUserRole(null); 
+    }
+    toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
+  };
+
 
   const handleRoleSelect = (role: UserRole) => {
     localStorage.setItem(USER_ROLE_KEY, role);
@@ -113,18 +157,13 @@ export default function HomePage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // onAuthStateChanged will handle setting currentUser to null and isAuthenticated to false
-      // It will also clear userRole
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      // Explicitly clear local storage for role, in case onAuthStateChanged doesn't immediately propagate
-      localStorage.removeItem(USER_ROLE_KEY); 
-      setUserRole(null);
-      setIsAuthenticated(false); // Force UI update
-      setShowLoginPage(false); // Ensure login page isn't stuck
     } catch (error) {
       console.error("Error signing out:", error);
       toast({ title: "Logout Failed", description: "Could not log out. Please try again.", variant: "destructive" });
     }
+    // onAuthStateChanged will handle setting currentUser to null, isAuthenticated to false, and userRole to null.
+    setShowLoginPage(false); // Ensure login page isn't stuck
   };
 
   const handleLoginRequest = () => {
@@ -139,7 +178,7 @@ export default function HomePage() {
 
   const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} /> },
-    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> }, // Post a Job tab for recruiters
+    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> },
     ...baseTabItems,
   ];
 
@@ -150,12 +189,11 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems; // Default
+  let currentTabItems = jobseekerTabItems;
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   }
 
-  // Effect to ensure activeTab is valid for the current user role
   useEffect(() => {
     if (userRole && isAuthenticated) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
@@ -167,7 +205,7 @@ export default function HomePage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated]); // Re-run when role or auth status changes
+  }, [userRole, isAuthenticated]); 
 
 
   if (isInitialLoading) {
@@ -182,15 +220,15 @@ export default function HomePage() {
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
 
-  if (showLoginPage && !isAuthenticated) { // Only show login page if not authenticated
-    return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  if (showLoginPage && !isAuthenticated) {
+    return <LoginPage onLoginSuccess={handleLoginSuccess} onLoginBypass={handleLoginBypass} />;
   }
   
-  if (!isAuthenticated) { // If still not authenticated after welcome and not explicitly showing login page, show login.
-     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
+  if (!isAuthenticated) {
+     return <LoginPage onLoginSuccess={handleLoginSuccess} onLoginBypass={handleLoginBypass} />;
   }
 
-  if (!userRole) { // Authenticated, but no role selected
+  if (!userRole) {
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
@@ -209,8 +247,6 @@ export default function HomePage() {
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
-             // The following TabsList should always be horizontal on desktop.
-             // The number of columns is dynamically set based on the number of tabs for the current user role.
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
