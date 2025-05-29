@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect } from "react"; // Added React import
+import React, { useState, useEffect } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CandidateDiscoveryPage } from "@/components/pages/CandidateDiscoveryPage";
@@ -14,46 +14,67 @@ import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
 import { WelcomePage } from "@/components/pages/WelcomePage";
-import { MyProfilePage } from "@/components/pages/MyProfilePage";
+import { MyProfilePage } from "@/components/pages/MyProfilePage"; // Added import
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/firebase"; // Import Firebase auth instance
+import { onAuthStateChanged, signOut, type User } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
+
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
+const USER_ROLE_KEY = 'userRole'; // Consistent key for localStorage
 
 export default function HomePage() {
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false); // Still useful for quick UI updates
   const [showLoginPage, setShowLoginPage] = useState<boolean>(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("findTalent");
   const [isMobile, setIsMobile] = useState(false);
   const [showWelcomePage, setShowWelcomePage] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
-    if (hasSeenWelcome !== 'true') {
-      setShowWelcomePage(true);
-    } else {
-      const storedAuth = localStorage.getItem('isAuthenticated');
-      const storedRoleValue = localStorage.getItem('userRole');
-
-      if (storedAuth === 'true') {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        // User is signed in
+        setCurrentUser(user);
         setIsAuthenticated(true);
+        const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
+        if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+          setUserRole(storedRoleValue as UserRole);
+        } else {
+          setUserRole(null); // Prompt for role selection if not set or invalid
+        }
       } else {
+        // User is signed out
+        setCurrentUser(null);
         setIsAuthenticated(false);
+        setUserRole(null); // Clear role on logout
+        // Optionally clear other user-specific localStorage items here
+        localStorage.removeItem(USER_ROLE_KEY);
       }
-
-      if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
-        setUserRole(storedRoleValue as UserRole);
-      } else {
-        setUserRole(null);
-        localStorage.removeItem('userRole');
+      
+      // Only run welcome page logic after auth state is determined
+      if (isInitialLoading) { // ensure this runs only once initially
+        const hasSeenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
+        if (hasSeenWelcome !== 'true') {
+          setShowWelcomePage(true);
+        }
       }
-    }
-    setIsInitialLoading(false);
+      setIsInitialLoading(false);
+    });
 
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Empty dependency array to run only once on mount
+
+  useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -63,20 +84,24 @@ export default function HomePage() {
   const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
-    const storedAuth = localStorage.getItem('isAuthenticated');
-    const storedRoleValue = localStorage.getItem('userRole');
-    if (storedAuth === 'true') setIsAuthenticated(true); else setIsAuthenticated(false);
-    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') setUserRole(storedRoleValue as UserRole); else setUserRole(null);
+    // Auth state will determine if login is needed next, or role selection, or main app
   };
 
-  const handleLoginSuccess = () => {
-    localStorage.setItem('isAuthenticated', 'true');
-    setIsAuthenticated(true);
+  const handleLoginSuccess = (user: User) => {
+    // onAuthStateChanged will handle setting currentUser and isAuthenticated
+    // We just need to hide the login page
     setShowLoginPage(false);
+    // If role is still null, RoleSelectionPage will be shown
+    const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
+    if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
+      setUserRole(storedRoleValue as UserRole);
+    } else {
+      setUserRole(null); 
+    }
   };
 
   const handleRoleSelect = (role: UserRole) => {
-    localStorage.setItem('userRole', role);
+    localStorage.setItem(USER_ROLE_KEY, role);
     setUserRole(role);
     if (role === 'recruiter') {
       setActiveTab('findTalent');
@@ -85,12 +110,21 @@ export default function HomePage() {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    localStorage.removeItem('userRole');
-    setIsAuthenticated(false);
-    setUserRole(null);
-    setShowLoginPage(false); // Ensure login page isn't stuck open
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      // onAuthStateChanged will handle setting currentUser to null and isAuthenticated to false
+      // It will also clear userRole
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      // Explicitly clear local storage for role, in case onAuthStateChanged doesn't immediately propagate
+      localStorage.removeItem(USER_ROLE_KEY); 
+      setUserRole(null);
+      setIsAuthenticated(false); // Force UI update
+      setShowLoginPage(false); // Ensure login page isn't stuck
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({ title: "Logout Failed", description: "Could not log out. Please try again.", variant: "destructive" });
+    }
   };
 
   const handleLoginRequest = () => {
@@ -105,7 +139,7 @@ export default function HomePage() {
 
   const recruiterTabItems = [
     { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} /> },
-    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> }, // "Post a Job" tab for recruiters
+    { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage /> }, // Post a Job tab for recruiters
     ...baseTabItems,
   ];
 
@@ -116,25 +150,24 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems; // Default to job seeker
+  let currentTabItems = jobseekerTabItems; // Default
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   }
 
-  // Effect to manage active tab based on role changes or invalid states
+  // Effect to ensure activeTab is valid for the current user role
   useEffect(() => {
     if (userRole && isAuthenticated) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
       const defaultTabForCurrentRole = userRole === 'recruiter' ? "findTalent" : "findJobs";
 
-      // If current activeTab is not valid for the new role, reset it
       if (!validTabValues.includes(activeTab)) {
         setActiveTab(defaultTabForCurrentRole);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated]); // Removed activeTab from deps to avoid potential loops; it's an output of this effect
+  }, [userRole, isAuthenticated]); // Re-run when role or auth status changes
 
 
   if (isInitialLoading) {
@@ -149,21 +182,18 @@ export default function HomePage() {
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
 
-  if (showLoginPage) {
+  if (showLoginPage && !isAuthenticated) { // Only show login page if not authenticated
     return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
-
-  if (!isAuthenticated) {
+  
+  if (!isAuthenticated) { // If still not authenticated after welcome and not explicitly showing login page, show login.
      return <LoginPage onLoginSuccess={handleLoginSuccess} />;
   }
 
-  if (!userRole) {
+  if (!userRole) { // Authenticated, but no role selected
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
-  // This logic correctly renders tabs horizontally on desktop
-  // and uses a mobile menu on smaller screens.
-  // The `grid-cols-${currentTabItems.length}` ensures horizontal layout based on the number of tabs.
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
@@ -172,12 +202,15 @@ export default function HomePage() {
         onLogout={handleLogout}
         searchTerm={searchTerm}
         onSearchTermChange={setSearchTerm}
+        userName={currentUser?.displayName || currentUser?.email}
       />
       <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           {isMobile ? (
             <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
           ) : (
+             // The following TabsList should always be horizontal on desktop.
+             // The number of columns is dynamically set based on the number of tabs for the current user role.
             <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
               {currentTabItems.map(item => (
                 <TabsTrigger
@@ -192,7 +225,6 @@ export default function HomePage() {
             </TabsList>
           )}
 
-          {/* Render the component for the active tab, passing searchTerm if it's a discovery page */}
           {currentTabItems.map(item => (
             <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
               {React.cloneElement(item.component, (item.value === 'findTalent' || item.value === 'findJobs') ? { searchTerm } : {})}
@@ -253,3 +285,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+

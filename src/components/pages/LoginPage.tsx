@@ -4,19 +4,47 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn, Compass } from "lucide-react"; // Using Compass as a generic 'Google-like' icon
+import { auth } from "@/lib/firebase"; // Import the initialized auth instance
+import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
+import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess: (user: UserCredential['user']) => void;
 }
 
 export function LoginPage({ onLoginSuccess }: LoginPageProps) {
-  const handleGoogleSignIn = () => {
-    // Simulate Google Sign-In
-    console.log("Simulating Google Sign-In...");
-    // In a real app, you'd integrate Firebase Authentication or a similar OAuth provider here.
-    // This would involve redirecting to Google, handling the response, and getting user info.
-    // For this prototype, we just call onLoginSuccess directly.
-    onLoginSuccess(); 
+  const { toast } = useToast();
+
+  const handleGoogleSignIn = async () => {
+    const provider = new GoogleAuthProvider();
+    try {
+      const result = await signInWithPopup(auth, provider);
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      // const credential = GoogleAuthProvider.credentialFromResult(result);
+      // const token = credential?.accessToken;
+      // The signed-in user info.
+      const user = result.user;
+      console.log("Google Sign-In successful:", user);
+      toast({
+        title: "Signed In Successfully!",
+        description: `Welcome, ${user.displayName || user.email}!`,
+      });
+      onLoginSuccess(user);
+    } catch (error) {
+      const firebaseError = error as FirebaseError;
+      console.error("Error during Google Sign-In:", firebaseError);
+      let errorMessage = "Failed to sign in with Google. Please try again.";
+      if (firebaseError.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in process was cancelled.";
+      } else if (firebaseError.code === 'auth/network-request-failed') {
+        errorMessage = "Network error. Please check your connection.";
+      }
+      toast({
+        title: "Sign-In Failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -30,9 +58,9 @@ export function LoginPage({ onLoginSuccess }: LoginPageProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 py-8">
-          <Button 
-            onClick={handleGoogleSignIn} 
-            size="lg" 
+          <Button
+            onClick={handleGoogleSignIn}
+            size="lg"
             className="w-full text-lg py-3 bg-accent hover:bg-accent/90 text-accent-foreground"
             aria-label="Sign in with Google"
           >
