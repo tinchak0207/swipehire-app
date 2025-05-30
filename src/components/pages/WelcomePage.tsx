@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileVideo2, CheckCircle } from "lucide-react";
+import { FileVideo2, UserCircle, Briefcase, HeartHandshake, Building, Users, Zap, CheckCircle } from "lucide-react"; // Added more icons
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -17,23 +17,42 @@ export function WelcomePage({ onStartExploring }: WelcomePageProps) {
           <FileVideo2 className="mx-auto h-16 w-16 text-primary animate-bounce" />
           <CardTitle className="text-4xl font-bold">Welcome to SwipeHire!</CardTitle>
           <CardDescription className="text-lg text-muted-foreground px-4">
-            The smarter way to connect talent and opportunity through dynamic video resumes.
+            Discover Your Next Opportunity or Top Talent - The Smarter Way.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 py-8 text-center">
-            <div className="space-y-2 text-left px-6 text-sm text-foreground">
-                <p className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Discover top talent or your next dream job with engaging video profiles.</span></p>
-                <p className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Utilize AI-powered tools to create compelling video scripts and avatars.</span></p>
-                <p className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Experience an intuitive, swipe-based interface for quick decision-making.</span></p>
+        <CardContent className="space-y-6 py-8 text-left px-6 sm:px-8">
+            <div className="space-y-4">
+                <div>
+                    <h3 className="text-xl font-semibold text-primary mb-2 flex items-center">
+                        <UserCircle className="h-6 w-6 mr-2" /> For Job Seekers:
+                    </h3>
+                    <ul className="space-y-1.5 text-sm text-foreground list-none pl-0">
+                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Craft a stunning video resume & profile.</span></li>
+                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Swipe through companies that match your vibe.</span></li>
+                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Connect directly with interested recruiters.</span></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 className="text-xl font-semibold text-primary mb-2 flex items-center">
+                        <Building className="h-6 w-6 mr-2" /> For Recruiters:
+                    </h3>
+                    <ul className="space-y-1.5 text-sm text-foreground list-none pl-0">
+                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Showcase your unique company culture & open roles.</span></li>
+                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Discover top talent with engaging video profiles.</span></li>
+                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Fast-track hiring with mutual-interest matches.</span></li>
+                    </ul>
+                </div>
             </div>
-          <Button 
-            onClick={onStartExploring} 
-            size="lg" 
-            className="w-3/4 text-xl py-4 mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
-            aria-label="Start Exploring SwipeHire"
-          >
-            Start Exploring
-          </Button>
+          <div className="text-center">
+            <Button 
+              onClick={onStartExploring} 
+              size="lg" 
+              className="w-3/4 sm:w-1/2 text-xl py-4 mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+              aria-label="Start Exploring SwipeHire"
+            >
+              Start Exploring
+            </Button>
+          </div>
         </CardContent>
         <CardFooter className="pb-8 justify-center">
             <p className="text-xs text-muted-foreground">
