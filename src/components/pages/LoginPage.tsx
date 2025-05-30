@@ -1,14 +1,14 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn, Compass } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithRedirect, type FirebaseError } from "firebase/auth";
+import { GoogleAuthProvider, signInWithPopup, type FirebaseError, type UserCredential } from "firebase/auth"; // Changed to signInWithPopup
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
-  // onLoginSuccess: (user: UserCredential['user']) => void; // No longer needed for signInWithRedirect
   onLoginBypass: () => void;
 }
 
@@ -18,33 +18,49 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      // Using signInWithRedirect instead of signInWithPopup
-      await signInWithRedirect(auth, provider);
-      // The result will be handled by getRedirectResult in HomePage after redirect.
+      // Temporarily using signInWithPopup for diagnostics
+      const result: UserCredential = await signInWithPopup(auth, provider);
+      // If signInWithPopup is successful, onAuthStateChanged in HomePage should pick up the user.
+      // We don't need to explicitly call onLoginSuccess here as HomePage handles it.
+      console.log("LoginPage: signInWithPopup successful, user:", result.user);
+      toast({
+        title: "Sign-In Successful (Popup)",
+        description: `Welcome, ${result.user.displayName || result.user.email}!`,
+      });
+      // Note: HomePage's onAuthStateChanged listener will handle navigating away from LoginPage.
     } catch (error) {
       const firebaseError = error as FirebaseError;
-      console.error("Error initiating Google Sign-In redirect:", firebaseError);
-      let errorMessage = "Failed to initiate sign-in with Google.";
+      console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
+      let errorMessage = "Failed to sign in with Google using popup.";
       if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
       } else if (firebaseError.code === 'auth/popup-blocked') {
         errorMessage = "Pop-up was blocked by the browser. Please allow pop-ups for this site.";
-      } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+      } else if (firebaseError.code === 'auth/cancelled-popup-request' || firebaseError.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in cancelled. The pop-up was closed before completing the sign-in.";
+        // Don't necessarily show a destructive toast or bypass for user-cancelled popups
+        toast({
+          title: "Sign-In Cancelled",
+          description: "The Google Sign-In popup was closed.",
+          variant: "default", 
+        });
+        return; // Don't proceed to bypass if user explicitly closed popup
       } else if (firebaseError.code === 'auth/operation-not-allowed') {
         errorMessage = "Sign-in method is not enabled. Please contact support.";
+      } else if (firebaseError.code === 'auth/unauthorized-domain') {
+        errorMessage = "This domain is not authorized for Google Sign-In. Check Firebase console.";
       }
       
       toast({
-        title: "Google Sign-In Initiation Failed",
-        description: `${errorMessage} For development, a bypass will be attempted.`,
+        title: "Google Sign-In Failed (Popup)",
+        description: `${errorMessage} Code: ${firebaseError.code}. For development, a bypass will be attempted.`,
         variant: "destructive",
-        duration: 7000, // Increased duration to read
+        duration: 7000,
       });
-       // Still offer bypass if initiation fails
+      // Offer bypass if popup sign-in fails for reasons other than explicit user cancellation
       setTimeout(() => {
         onLoginBypass();
-      }, 2000); // Keep delay for bypass visibility
+      }, 2000);
     }
   };
 
