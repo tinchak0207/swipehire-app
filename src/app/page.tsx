@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye } from 'lucide-react'; // Added Eye for Guest
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
@@ -39,7 +39,7 @@ export default function HomePage() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<string>("findTalent"); 
+  const [activeTab, setActiveTab] = useState<string>("findTalent");
   const [isMobile, setIsMobile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -48,46 +48,47 @@ export default function HomePage() {
 
   useEffect(() => {
     console.log("HomePage useEffect: Starting auth check, setting isInitialLoading to true");
-    setIsInitialLoading(true); // Ensure it starts true
+    setIsInitialLoading(true);
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log("HomePage useEffect: onAuthStateChanged fired. User:", user);
       const guestActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
 
-      if (guestActive) {
-        console.log("HomePage useEffect: onAuthStateChanged - Guest mode is active from localStorage, handling guest state.");
-        setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User' } as User); // Mock guest user
-        setIsAuthenticated(false); // Guests are not authenticated
-        setUserRole(null); // Guests browse generally, no specific role initially
+      if (guestActive && !user) { // Prioritize guest mode if no actual user session
+        console.log("HomePage useEffect: onAuthStateChanged - Guest mode is active, no user session. Handling guest state.");
+        setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User' } as User);
+        setIsAuthenticated(false);
+        setUserRole(null);
         setIsGuestMode(true);
         setShowWelcomePage(false); // Guests bypass welcome
       } else if (user) {
         console.log("HomePage useEffect: onAuthStateChanged - User authenticated.");
         setCurrentUser(user);
         setIsAuthenticated(true);
-        setIsGuestMode(false);
+        setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY); // Clear guest mode if authenticated
+        
         const storedRole = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
         setUserRole(storedRole);
-        console.log("HomePage useEffect: onAuthStateChanged - Stored role:", storedRole);
+        console.log("HomePage useEffect: onAuthStateChanged - Stored role for authenticated user:", storedRole);
         
         const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
         if (hasSeenWelcomeStorage !== 'true') {
-            setShowWelcomePage(true);
+          setShowWelcomePage(true);
         } else {
-            setShowWelcomePage(false);
+          setShowWelcomePage(false);
         }
-      } else {
-        console.log("HomePage useEffect: onAuthStateChanged - No user authenticated, clearing active user state.");
+      } else { // No user and not explicitly in guest mode (or guest mode was cleared by login)
+        console.log("HomePage useEffect: onAuthStateChanged - No user authenticated, not guest. Clearing active user state.");
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
-        setIsGuestMode(false); // Ensure guest mode is off if no user and not explicitly in guest mode
-        // Welcome page logic for non-authenticated, non-guest users
+        setIsGuestMode(false);
+        
         const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
         if (hasSeenWelcomeStorage !== 'true') {
-            setShowWelcomePage(true);
+          setShowWelcomePage(true);
         } else {
-            setShowWelcomePage(false);
+          setShowWelcomePage(false);
         }
       }
 
@@ -102,13 +103,24 @@ export default function HomePage() {
       .then((result) => {
         console.log("HomePage useEffect: getRedirectResult result:", result);
         if (result?.user) {
+          // onAuthStateChanged will handle the main state updates.
+          // This is primarily for side-effects like toasts.
           toast({
             title: "Signed In Successfully!",
             description: `Welcome back, ${result.user.displayName || result.user.email}!`,
           });
-          // onAuthStateChanged will handle main state, but ensure guest mode is off
+          // Ensure guest mode is explicitly turned off if login via redirect was successful
           localStorage.removeItem(GUEST_MODE_KEY);
           setIsGuestMode(false);
+        }
+        // If initialAuthCheckDone is still false, it means onAuthStateChanged hasn't run yet
+        // or finished its first pass. We need to ensure loading state is managed.
+        if (!initialAuthCheckDone.current) {
+            console.log("HomePage useEffect: getRedirectResult - onAuthStateChanged likely hasn't completed initial check yet.");
+            // If there's no redirect result.user, and onAuthStateChanged hasn't run,
+            // we might need to manually trigger state finalization for a non-logged-in user.
+            // However, onAuthStateChanged should eventually fire with user:null.
+            // For now, we trust onAuthStateChanged to set initialAuthCheckDone.
         }
       })
       .catch((error) => {
@@ -120,15 +132,22 @@ export default function HomePage() {
         });
       })
       .finally(() => {
-        // Ensure loading is false if getRedirectResult was the first to finish and onAuthStateChanged hasn't run yet
+        // This finally block helps ensure loading is false if getRedirectResult finishes
+        // and onAuthStateChanged hasn't yet completed the *very first* check.
         if (!initialAuthCheckDone.current) {
-            initialAuthCheckDone.current = true;
-            setIsInitialLoading(false);
-            console.log("HomePage useEffect: getRedirectResult.finally - Forcing initial flags processing as a fallback.");
-             // Re-check welcome state based on current (likely null) user if onAuthStateChanged hasn't set it
-            if (localStorage.getItem(GUEST_MODE_KEY) !== 'true' && localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true') {
-                 setShowWelcomePage(true);
+            const guestStillActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
+            if (!guestStillActive && !auth.currentUser) { // Check live auth state
+                 // If no user and not in guest mode, and initial check is pending, trigger welcome logic
+                const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
+                if (hasSeenWelcomeStorage !== 'true') {
+                    setShowWelcomePage(true);
+                } else {
+                    setShowWelcomePage(false);
+                }
             }
+            // This is a fallback; onAuthStateChanged is the primary controller of initialAuthCheckDone
+            // setIsInitialLoading(false); 
+            // console.log("HomePage useEffect: getRedirectResult.finally - Fallback: initial flags processed.");
         }
       });
 
@@ -136,7 +155,7 @@ export default function HomePage() {
       console.log("HomePage useEffect: Cleaning up onAuthStateChanged listener.");
       unsubscribe();
     };
-  }, [toast]); 
+  }, [toast]);
 
 
   useEffect(() => {
@@ -169,17 +188,16 @@ export default function HomePage() {
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
 
-
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
-    setUserRole(storedRoleValue); 
+    setUserRole(storedRoleValue);
     console.log("HomePage: handleLoginBypass - Stored role:", storedRoleValue);
     
-    setShowWelcomePage(false); // Bypass welcome
+    setShowWelcomePage(false); 
 
     if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
-        console.log("HomePage: handleLoginBypass - Initial auth check forced complete, isInitialLoading set to false. ShowWelcomePage forced to false.");
+        console.log("HomePage: handleLoginBypass - Initial auth check forced complete.");
     }
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
@@ -188,44 +206,41 @@ export default function HomePage() {
     console.log("HomePage: handleGuestMode called");
     localStorage.setItem(GUEST_MODE_KEY, 'true');
     setIsGuestMode(true);
-    setIsAuthenticated(false); // Guests are not authenticated
-    setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({})} as User); // Mock guest user
-    setUserRole(null); // Guests browse generally, no specific role initially
-    setShowWelcomePage(false); // Guests bypass welcome directly to role selection or app
+    setIsAuthenticated(false);
+    setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({})} as User);
+    setUserRole(null);
+    setShowWelcomePage(false);
 
     if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
     }
-    toast({ title: "Guest Mode Activated", description: "You are browsing as a guest. Some features will be limited."});
+    toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
   };
-
 
   const handleRoleSelect = (role: UserRole) => {
     console.log("HomePage: handleRoleSelect called with role:", role);
     localStorage.setItem(USER_ROLE_KEY, role);
     setUserRole(role);
-    // Set default tab based on role
+    
     if (role === 'recruiter') {
       setActiveTab('findTalent');
     } else {
       setActiveTab('findJobs');
     }
-    // Welcome page would have already been handled or skipped.
-    // If guest mode was active, selecting a role implies they might want to log in next.
-    // However, actual login is a separate step.
+    // No direct management of showWelcomePage or isInitialLoading here;
+    // The main rendering logic will handle transitions.
   };
 
   const handleLogout = async () => {
     console.log("HomePage: handleLogout called");
     try {
       await signOut(auth);
-      // onAuthStateChanged will handle resetting: currentUser, isAuthenticated.
-      // It will also set isGuestMode to false if not already handled.
-      localStorage.removeItem(GUEST_MODE_KEY);
-      setIsGuestMode(false); 
-      // USER_ROLE_KEY is not cleared by default for convenience.
-      // HAS_SEEN_WELCOME_KEY is not cleared.
+      // onAuthStateChanged will set: currentUser=null, isAuthenticated=false.
+      localStorage.removeItem(GUEST_MODE_KEY); // Ensure guest mode is cleared
+      setIsGuestMode(false);
+      // USER_ROLE_KEY is often kept for convenience, but welcome page logic needs to be re-evaluated.
+      // The onAuthStateChanged listener will handle setShowWelcomePage if HAS_SEEN_WELCOME_KEY implies it.
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
       console.error("Error signing out:", error);
@@ -234,13 +249,12 @@ export default function HomePage() {
   };
 
   const handleLoginRequest = () => {
-    console.log("HomePage: handleLoginRequest called - This means Login page should be shown.");
-    // If guest mode is active, turn it off as user intends to login
+    console.log("HomePage: handleLoginRequest called - Login page should be shown.");
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
     }
-    // The rendering logic will show LoginPage if !isAuthenticated and other prerequisites are met.
+    // The main rendering logic will take over to show LoginPage if !isAuthenticated.
   };
 
   const baseTabItems = [
@@ -262,26 +276,23 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems; 
+  let currentTabItems = jobseekerTabItems;
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
-  } else if (isGuestMode) {
-    // For guests, provide a generic set of tabs, perhaps more limited or a combined view.
-    // For now, let's default to jobseeker view for browsing, but with restrictions.
-    // Or, choose a sensible default if no role implies guest too
-    currentTabItems = jobseekerTabItems; // Default for guest, individual pages will handle restrictions.
+  } else if (isGuestMode || !userRole) { // Guests or users without a role yet default to jobseeker view
+    currentTabItems = jobseekerTabItems;
   }
 
-
   useEffect(() => {
-    // Adjust active tab if current one is not available for the role/guest status
-    if (userRole || isGuestMode) { // Only run if role is set or guest mode is active
-      const itemsForCurrentContext = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems; // Guests default to jobseeker view items for now
+    if (!isInitialLoading) { // Only adjust tab after initial load
+      const itemsForCurrentContext = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentContext.map(item => item.value);
       
-      let defaultTabForCurrentContext = "findJobs"; // Default for jobseeker/guest
+      let defaultTabForCurrentContext = "findJobs"; 
       if (userRole === 'recruiter') {
         defaultTabForCurrentContext = "findTalent";
+      } else if (isGuestMode && !userRole) { // If guest and no specific role chosen yet
+         defaultTabForCurrentContext = "findJobs"; // Or perhaps a guest-specific landing tab
       }
 
       if (!validTabValues.includes(activeTab)) {
@@ -289,8 +300,7 @@ export default function HomePage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isGuestMode, activeTab]);
-
+  }, [userRole, isGuestMode, isInitialLoading]); // activeTab removed to prevent loop, default logic handles it.
 
   console.log("HomePage: Rendering - isInitialLoading:", isInitialLoading, "isAuthenticated:", isAuthenticated, "showWelcomePage:", showWelcomePage, "userRole:", userRole, "isGuestMode:", isGuestMode);
 
@@ -303,26 +313,24 @@ export default function HomePage() {
     );
   }
 
-  // Desired flow: Welcome -> Role Selection -> Login -> Main App (or Main App if Guest)
-  if (showWelcomePage && !isGuestMode) { // Guests skip welcome
-    console.log("HomePage: Rendering WelcomePage because showWelcomePage is true and not in guest mode.");
+  // New Flow: Welcome -> Role Selection -> Login -> Main App
+  if (showWelcomePage && !isGuestMode) {
+    console.log("HomePage: Rendering WelcomePage.");
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
 
-  if (!userRole && !isGuestMode) { // Role selection if not guest and no role
-    console.log("HomePage: Rendering RoleSelectionPage because !userRole and not in guest mode (and welcome page done).");
+  if (!isGuestMode && !userRole && !showWelcomePage) { // Welcome done, not guest, no role yet
+    console.log("HomePage: Rendering RoleSelectionPage.");
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
-
-  // If a role is selected (or guest mode is active, implies role selection can be skipped for browsing),
-  // but user is NOT authenticated AND NOT in guest mode, show Login.
-  if (!isAuthenticated && !isGuestMode) { 
-    console.log("HomePage: Rendering LoginPage because !isAuthenticated and not in guest mode (and role is selected or bypassed, welcome is done).");
+  
+  if (!isGuestMode && !isAuthenticated && !showWelcomePage && userRole) { // Welcome done, Role selected, Not guest, BUT NOT authenticated
+    console.log("HomePage: Rendering LoginPage.");
     return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
   }
 
-  // All prerequisites met (or in guest mode): Authenticated, or guest mode active. Role selected (or guest). Welcome seen (or guest).
-  console.log("HomePage: Rendering Main App Content because all prerequisite conditions met or in guest mode.");
+  // Authenticated users (or guests) with a role (or guests browsing generally) see the main app
+  console.log("HomePage: Rendering Main App Content.");
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
@@ -357,8 +365,7 @@ export default function HomePage() {
             <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
               {React.cloneElement(item.component, {
                 ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
-                isGuestMode, // Pass isGuestMode to all tab components
-                // For SettingsPage, ensure other necessary props are still passed
+                isGuestMode,
                 ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: handleRoleSelect })
               })}
             </TabsContent>
@@ -371,7 +378,6 @@ export default function HomePage() {
     </div>
   );
 }
-
 
 interface MobileNavMenuProps {
   activeTab: string;
@@ -418,4 +424,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-    

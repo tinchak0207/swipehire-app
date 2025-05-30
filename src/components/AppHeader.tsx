@@ -1,12 +1,14 @@
 
-import { FileVideo2, LogIn, LogOut, Search, UserCircle, X } from 'lucide-react';
+import { FileVideo2, LogIn, LogOut, Search, UserCircle, X, Eye } from 'lucide-react'; // Added Eye
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge'; // Added Badge
 import { useState } from 'react';
 
 interface AppHeaderProps {
   isAuthenticated: boolean;
+  isGuestMode: boolean; // Added isGuestMode
   onLoginRequest: () => void;
   onLogout: () => void;
   searchTerm: string;
@@ -14,7 +16,7 @@ interface AppHeaderProps {
   userName?: string | null;
 }
 
-export function AppHeader({ isAuthenticated, onLoginRequest, onLogout, searchTerm, onSearchTermChange, userName }: AppHeaderProps) {
+export function AppHeader({ isAuthenticated, isGuestMode, onLoginRequest, onLogout, searchTerm, onSearchTermChange, userName }: AppHeaderProps) {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
@@ -28,6 +30,11 @@ export function AppHeader({ isAuthenticated, onLoginRequest, onLogout, searchTer
               Recruit Smarter, Not Harder.
             </p>
           </div>
+           {isGuestMode && (
+            <Badge variant="secondary" className="ml-2 text-xs bg-blue-500 text-white border-blue-500">
+              <Eye className="h-3 w-3 mr-1" /> Guest Mode
+            </Badge>
+          )}
         </Link>
 
         {/* Desktop Search */}
@@ -53,13 +60,13 @@ export function AppHeader({ isAuthenticated, onLoginRequest, onLogout, searchTer
             <Search className="h-5 w-5" />
           </Button>
 
-          {isAuthenticated && userName && (
+          {isAuthenticated && userName && !isGuestMode && (
             <div className="hidden sm:flex items-center gap-2 text-sm text-primary-foreground/90">
               <UserCircle className="h-5 w-5" />
               <span className="truncate max-w-[100px]">{userName}</span>
             </div>
           )}
-          {isAuthenticated ? (
+          {isAuthenticated && !isGuestMode ? (
             <Button variant="ghost" onClick={onLogout} className="text-primary-foreground hover:bg-primary/80 hover:text-accent-foreground px-2 sm:px-3">
               <LogOut className="mr-0 sm:mr-2 h-5 w-5" />
               <span className="hidden sm:inline">Logout</span>
@@ -67,7 +74,7 @@ export function AppHeader({ isAuthenticated, onLoginRequest, onLogout, searchTer
           ) : (
             <Button variant="ghost" onClick={onLoginRequest} className="text-primary-foreground hover:bg-primary/80 hover:text-accent-foreground px-2 sm:px-3">
               <LogIn className="mr-0 sm:mr-2 h-5 w-5" />
-               <span className="hidden sm:inline">Login</span>
+               <span className="hidden sm:inline">{isGuestMode ? "Sign In / Register" : "Login"}</span>
             </Button>
           )}
         </div>

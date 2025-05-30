@@ -8,12 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save } from 'lucide-react';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock } from 'lucide-react'; // Added Lock
 
-export function MyProfilePage() {
+interface MyProfilePageProps {
+  isGuestMode?: boolean;
+}
+
+export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
-  const [skills, setSkills] = useState(''); // Comma-separated
+  const [skills, setSkills] = useState(''); 
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
@@ -21,7 +25,8 @@ export function MyProfilePage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load job seeker specific settings
+    if (isGuestMode) return;
+
     const savedHeadline = localStorage.getItem('jobSeekerProfileHeadline');
     const savedExpSummary = localStorage.getItem('jobSeekerExperienceSummary');
     const savedSkills = localStorage.getItem('jobSeekerSkills');
@@ -35,9 +40,13 @@ export function MyProfilePage() {
     if (savedWorkStyle) setDesiredWorkStyle(savedWorkStyle);
     if (savedPastProjects) setPastProjects(savedPastProjects);
     if (savedVideoLink) setVideoPortfolioLink(savedVideoLink);
-  }, []);
+  }, [isGuestMode]);
 
   const handleSaveProfile = () => {
+    if (isGuestMode) {
+      toast({ title: "Action Disabled", description: "Please sign in to save your profile.", variant: "default"});
+      return;
+    }
     localStorage.setItem('jobSeekerProfileHeadline', profileHeadline);
     localStorage.setItem('jobSeekerExperienceSummary', experienceSummary);
     localStorage.setItem('jobSeekerSkills', skills);
@@ -50,6 +59,18 @@ export function MyProfilePage() {
       description: 'Your profile is now visible to recruiters with the latest information.',
     });
   };
+
+  if (isGuestMode) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
+        <Lock className="h-16 w-16 text-red-400 mb-6" />
+        <h2 className="text-2xl font-semibold text-red-500 mb-3">Access Restricted</h2>
+        <p className="text-muted-foreground max-w-md">
+          Managing your profile is a feature for registered users. Please sign in using the Login button in the header to create or edit your profile.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">

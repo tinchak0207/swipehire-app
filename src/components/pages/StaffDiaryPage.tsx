@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import type { DiaryPost } from '@/lib/types';
-import { mockDiaryPosts } from '@/lib/mockData'; // Using mock data
+import { mockDiaryPosts } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -12,13 +12,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { BookOpenText, ImagePlus, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search } from 'lucide-react';
+import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock } from 'lucide-react'; // Added Lock
 import { useToast } from '@/hooks/use-toast';
 
 const DIARY_POSTS_STORAGE_KEY = 'swipeHireDiaryPosts';
 
-// Component for a single diary post
-function DiaryPostCard({ post }: { post: DiaryPost }) {
+function DiaryPostCard({ post, isGuestMode }: { post: DiaryPost, isGuestMode?: boolean }) {
   const [showFullContent, setShowFullContent] = useState(false);
   const MAX_CONTENT_LENGTH = 150;
 
@@ -55,7 +54,7 @@ function DiaryPostCard({ post }: { post: DiaryPost }) {
         <p className="text-sm text-foreground whitespace-pre-line">
           {displayContent}
           {post.content.length > MAX_CONTENT_LENGTH && (
-            <Button variant="link" size="sm" onClick={toggleContent} className="p-0 h-auto ml-1 text-primary">
+            <Button variant="link" size="sm" onClick={toggleContent} className="p-0 h-auto ml-1 text-primary" disabled={isGuestMode}>
               {showFullContent ? "Read Less" : "Read More"}
             </Button>
           )}
@@ -83,7 +82,6 @@ function DiaryPostCard({ post }: { post: DiaryPost }) {
   );
 }
 
-// Component for creating a new diary post
 function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated: (newPost: DiaryPost) => void; currentUserName: string }) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
@@ -99,9 +97,9 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
     }
     const newPost: DiaryPost = {
       id: `diary-${Date.now()}`,
-      authorId: 'currentUser', // In a real app, this would be the logged-in user's ID
-      authorName: currentUserName || 'Demo User', // Use name from settings or default
-      authorAvatarUrl: localStorage.getItem('userAvatarSettings') || undefined, // Placeholder for user's avatar
+      authorId: 'currentUser', 
+      authorName: currentUserName || 'Demo User', 
+      authorAvatarUrl: localStorage.getItem('userAvatarSettings') || undefined, 
       dataAiHint: 'person face',
       title,
       content,
@@ -147,12 +145,17 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
   );
 }
 
+interface StaffDiaryPageProps {
+  isGuestMode?: boolean;
+}
 
-export function StaffDiaryPage() {
+export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
   const [posts, setPosts] = useState<DiaryPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('Demo User');
+  const { toast } = useToast();
+
 
   useEffect(() => {
     const storedName = localStorage.getItem('userNameSettings');
@@ -171,7 +174,7 @@ export function StaffDiaryPage() {
       localStorage.setItem(DIARY_POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
       return updatedPosts;
     });
-    setIsCreatePostOpen(false); // Close dialog after posting
+    setIsCreatePostOpen(false);
   };
   
   const filteredPosts = useMemo(() => {
@@ -186,6 +189,30 @@ export function StaffDiaryPage() {
     );
   }, [posts, searchTerm]);
 
+  const handleCreatePostClick = () => {
+    if (isGuestMode) {
+        toast({
+            title: "Feature Locked",
+            description: "Please sign in to create diary posts.",
+            variant: "default"
+        });
+        return;
+    }
+    setIsCreatePostOpen(true);
+  }
+
+  if (isGuestMode) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
+        <Lock className="h-16 w-16 text-red-400 mb-6" />
+        <h2 className="text-2xl font-semibold text-red-500 mb-3">Access Restricted</h2>
+        <p className="text-muted-foreground max-w-md">
+          Creating and viewing staff diary entries is a feature for registered users. Please sign in using the Login button in the header to participate.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-6">
       <header className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -198,8 +225,9 @@ export function StaffDiaryPage() {
         </div>
         <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
           <DialogTrigger asChild>
-            <Button size="lg">
-              <PlusCircle className="mr-2 h-5 w-5" /> Create New Post
+            <Button size="lg" onClick={handleCreatePostClick} aria-disabled={isGuestMode}>
+              {isGuestMode ? <Lock className="mr-2 h-5 w-5" /> : <PlusCircle className="mr-2 h-5 w-5" />}
+              Create New Post
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
@@ -225,7 +253,6 @@ export function StaffDiaryPage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       </div>
 
-      {/* Placeholder for AI Curation/Sorting */}
       <Card className="border-dashed border-primary/50 bg-primary/5">
           <CardHeader>
               <CardTitle className="text-lg text-primary flex items-center">
@@ -249,7 +276,7 @@ export function StaffDiaryPage() {
       ) : (
         <div className="space-y-6">
           {filteredPosts.map(post => (
-            <DiaryPostCard key={post.id} post={post} />
+            <DiaryPostCard key={post.id} post={post} isGuestMode={isGuestMode} />
           ))}
         </div>
       )}

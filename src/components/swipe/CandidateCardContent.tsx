@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Save } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock } from 'lucide-react'; // Added Lock
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -16,13 +16,14 @@ interface CandidateCardContentProps {
   candidate: Candidate;
   onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
   isLiked: boolean;
+  isGuestMode?: boolean; // Added isGuestMode
 }
 
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10; // degrees
-const MAX_SUMMARY_LENGTH_CARD = 100; // Max characters for summary in card view
+const MAX_SUMMARY_LENGTH_CARD = 100;
 
-export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: CandidateCardContentProps) {
+export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGuestMode }: CandidateCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -37,7 +38,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
   const [showFullSummary, setShowFullSummary] = useState(false);
 
   const fetchAiRecruiterAnalysis = useCallback(async () => {
-    if (!candidate) return;
+    if (!candidate || isGuestMode) return; // Don't fetch for guests
     setIsLoadingAiAnalysis(true);
     setAiRecruiterMatchScore(null);
     setAiRecruiterReasoning(null);
@@ -82,13 +83,18 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  }, [candidate, toast]); 
+  }, [candidate, toast, isGuestMode]); 
 
   useEffect(() => {
-    setShowFullSummary(false); // Reset when candidate changes
-    fetchAiRecruiterAnalysis();
+    setShowFullSummary(false); 
+    if (!isGuestMode) {
+        fetchAiRecruiterAnalysis();
+    } else {
+        setAiRecruiterMatchScore(null);
+        setAiRecruiterReasoning("AI Assessment disabled in Guest Mode.");
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidate.id]); // Only re-run if candidate ID changes
+  }, [candidate.id, isGuestMode]); 
 
 
   useEffect(() => {
@@ -118,18 +124,17 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isGuestMode) return; // Disable swipe in guest mode
     const targetElement = e.target as HTMLElement;
-     // Allow interaction with video controls and buttons without triggering swipe
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
           const videoElement = targetElement as HTMLVideoElement;
           const rect = videoElement.getBoundingClientRect();
-          // Crude check if click is on controls area (usually bottom 40px)
           if (e.clientY > rect.bottom - 40) { 
-              return; // Don't start drag if clicking on video controls
+              return; 
           }
       } else if (targetElement.closest('button, a, [data-no-drag="true"]')) {
-        return; // Don't start drag if clicking on a button or explicitly marked no-drag area
+        return; 
       }
     }
     e.preventDefault(); 
@@ -144,19 +149,17 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current) return;
+    if (!isDragging || !cardContentRef.current || isGuestMode) return;
     setCurrentX(e.clientX);
   };
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { 
-    if (!isDragging || !cardContentRef.current) return;
+    if (!isDragging || !cardContentRef.current || isGuestMode) return;
     
     const deltaX = currentX - startX; 
     
     cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    // Reset visual state immediately, action will follow
     cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       if (deltaX < 0) { 
@@ -176,7 +179,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
   };
   
   const getCardTransform = () => {
-    if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
+    if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); 
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
@@ -197,9 +200,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
   };
 
   const handleShareClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card swipe
+    e.stopPropagation(); 
+    if (isGuestMode) return;
     const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Replace with actual URL structure
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com';
 
     if (navigator.share) {
       try {
@@ -229,8 +233,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     : candidate.experienceSummary;
 
   const handleDetailsClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent swipe
-    // Placeholder for future Candidate Details Modal/Page navigation
+    e.stopPropagation(); 
+    if (isGuestMode) return;
     onSwipeAction(candidate.id, 'details'); 
     toast({
       title: "Details View",
@@ -238,6 +242,51 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
     });
   };
 
+  const ActionButton = ({
+    action,
+    Icon,
+    label,
+    className: extraClassName,
+    activeClassName,
+    isSpecificActionLiked
+  }: {
+    action: 'like' | 'pass' | 'details' | 'share';
+    Icon: React.ElementType;
+    label: string;
+    className?: string;
+    activeClassName?: string;
+    isSpecificActionLiked?: boolean;
+  }) => {
+    const baseClasses = "flex-col h-auto py-1";
+    const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
+    const regularClasses = isSpecificActionLiked ? activeClassName : extraClassName;
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(baseClasses, isGuestMode ? guestClasses : regularClasses)}
+              onClick={(e) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(candidate.id, action); }}
+              disabled={isGuestMode}
+              aria-label={`${label} ${candidate.name}`}
+              data-no-drag="true"
+            >
+              {isGuestMode ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? "fill-green-500" : "")} />}
+              <span className="text-xs">{label}</span>
+            </Button>
+          </TooltipTrigger>
+          {isGuestMode && (
+            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
+              <p>Sign in to interact</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   return (
     <div
@@ -248,18 +297,17 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
       onMouseUp={handleMouseUpOrLeave}
       onMouseLeave={handleMouseUpOrLeave}
       style={{ 
-        cursor: 'grab',
+        cursor: isGuestMode ? 'default' : 'grab',
         transform: getCardTransform(),
         transition: isDragging ? 'none' : 'transform 0.3s ease-out', 
       }}
     >
-      {/* Video/Image Area - takes roughly 60% of height */}
-      <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100%-180px)]"> {/* Max height to ensure text area is visible */}
+      <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100%-180px)]">
         {candidate.videoResumeUrl ? (
           <video
             ref={videoRef}
             src={candidate.videoResumeUrl}
-            controls
+            controls={!isGuestMode}
             muted
             loop
             playsInline
@@ -267,9 +315,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
             data-ai-hint="candidate video resume"
             poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
             data-no-drag="true" 
-          >
-            Your browser does not support the video tag.
-          </video>
+          />
         ) : candidate.avatarUrl ? (
           <Image
             src={candidate.avatarUrl}
@@ -286,7 +332,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
         )}
       </div>
 
-      {/* Text Content Area - takes roughly 40% of height, internally scrollable */}
       <div className="p-3 sm:p-4 flex-grow flex flex-col h-[40%] overflow-y-auto overscroll-y-contain no-scrollbar"> 
         <CardHeader className="p-0 mb-2">
           <div className="flex items-start justify-between">
@@ -318,7 +363,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
           )}
         </CardHeader>
 
-        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm flex-grow min-h-0"> {/* Added min-h-0 for flex scroll */}
+        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm flex-grow min-h-0">
           <p className="text-muted-foreground">
             {summaryForDisplay}
             {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_CARD && (
@@ -328,6 +373,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
                 onClick={(e) => {e.stopPropagation(); setShowFullSummary(!showFullSummary);}}
                 className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
                 data-no-drag="true"
+                disabled={isGuestMode}
               >
                 {showFullSummary ? "Read less" : "Read more"}
               </Button>
@@ -357,13 +403,14 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
               <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
                   <Brain className="h-4 w-4 mr-1.5 text-primary" /> AI Assessment:
               </h4>
-              {isLoadingAiAnalysis && (
+              {isGuestMode ? (
+                 <p className="text-xs text-red-500 italic flex items-center"><Lock className="h-3 w-3 mr-1"/>Sign in to view AI Assessment.</p>
+              ) : isLoadingAiAnalysis ? (
                   <div className="flex items-center text-muted-foreground">
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                       <span>Analyzing...</span>
                   </div>
-              )}
-              {!isLoadingAiAnalysis && aiRecruiterMatchScore !== null && (
+              ) : aiRecruiterMatchScore !== null ? (
                   <div className="space-y-1">
                       <div className="text-sm text-foreground">
                           <span className="font-semibold">Match Score:</span>
@@ -381,8 +428,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
                           </p>
                       )}
                   </div>
-              )}
-              {!isLoadingAiAnalysis && aiRecruiterMatchScore === null && (
+              ) : (
                    <p className="text-xs text-muted-foreground italic">AI assessment unavailable.</p>
               )}
           </div>
@@ -392,7 +438,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
               <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
                 <Users className="h-4 w-4 mr-1.5 text-primary" /> Coworker Fit Profile:
               </h4>
-              {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 && (
+              {isGuestMode ? (
+                 <p className="text-xs text-red-500 italic flex items-center"><Lock className="h-3 w-3 mr-1"/>Sign in to view Fit Profile.</p>
+              ) : candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
                 <div className="mb-1 space-y-0.5">
                   <p className="font-medium text-foreground text-xs">Personality Insights:</p>
                   {candidate.personalityAssessment.slice(0,1).map((item, index) => ( 
@@ -405,8 +453,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
                     </div>
                   ))}
                 </div>
-              )}
-              {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 && (
+              ) : null}
+              {isGuestMode ? null : candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 && (
                 <div>
                   <p className="font-medium text-foreground text-xs">Optimal Work Style:</p>
                   <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5">
@@ -420,7 +468,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
           )}
         </CardContent>
 
-        {candidate.profileStrength && (
+        {candidate.profileStrength && !isGuestMode && (
           <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
             <div className="flex items-center text-xs text-primary font-medium">
               <Zap className="h-3.5 w-3.5 mr-1.5 text-accent shrink-0" />
@@ -431,18 +479,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked }: Cand
         )}
       </div>
       <CardFooter className="p-2 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
-        <Button variant="ghost" size="sm" className="flex-col h-auto py-1 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onSwipeAction(candidate.id, 'pass');}} aria-label={`Pass on ${candidate.name}`} data-no-drag="true">
-          <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> <span className="text-xs">Pass</span>
-        </Button>
-        <Button variant="ghost" size="sm" className="flex-col h-auto py-1 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={handleDetailsClick} aria-label={`View details for ${candidate.name}`} data-no-drag="true">
-          <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> <span className="text-xs">Details</span>
-        </Button>
-        <Button variant="ghost" size="sm" className={cn("flex-col h-auto py-1 hover:bg-green-500/10", isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600')} onClick={(e) => { e.stopPropagation(); onSwipeAction(candidate.id, 'like');}} aria-label={`Like ${candidate.name}`} data-no-drag="true">
-          <ThumbsUp className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isLiked ? 'fill-green-500' : '')} /> <span className="text-xs">Like</span>
-        </Button>
-        <Button variant="ghost" size="sm" className="flex-col h-auto py-1 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShareClick} aria-label={`Share ${candidate.name}`} data-no-drag="true">
-          <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> <span className="text-xs">Share</span>
-        </Button>
+        <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+        <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
+        <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'} activeClassName="text-green-600 hover:bg-green-500/10" isSpecificActionLiked={isLiked} />
+        <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
       </CardFooter>
     </div>
   );

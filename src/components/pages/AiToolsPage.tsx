@@ -6,9 +6,10 @@ import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
 import { VideoRecorderUI } from "@/components/video/VideoRecorderUI";
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem } from 'lucide-react'; // Added Gem icon
-import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card'; // Added CardHeader, CardDescription, CardFooter
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock } from 'lucide-react'; // Added Lock
+import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip
 import { cn } from '@/lib/utils';
 
 type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor';
@@ -70,11 +71,16 @@ const AnimatedToolBackground = ({ bgClass, show }: { bgClass: string; show: bool
   );
 };
 
-export function AiToolsPage() {
+interface AiToolsPageProps {
+  isGuestMode?: boolean;
+}
+
+export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
   const [selectedToolKey, setSelectedToolKey] = useState<ToolKey | null>(null);
   const [activeBackgroundClass, setActiveBackgroundClass] = useState<string>('');
 
   const handleToolSelect = (tool: AiTool) => {
+    if (isGuestMode) return; // Prevent selection in guest mode
     setSelectedToolKey(tool.key);
     setActiveBackgroundClass(tool.bgClass);
   };
@@ -86,41 +92,66 @@ export function AiToolsPage() {
 
   const SelectedComponent = selectedToolKey ? aiToolsData.find(tool => tool.key === selectedToolKey)?.Component : null;
 
+  const GuestLockOverlay = ({ message = "Sign in to unlock this tool" }: { message?: string }) => (
+    <div className="absolute inset-0 bg-red-500 bg-opacity-20 flex flex-col items-center justify-center rounded-xl z-20 backdrop-blur-sm">
+      <Lock className="h-12 w-12 text-red-600 mb-2" />
+      <span className="font-bold text-xl text-red-600">LOCKED</span>
+      <p className="text-sm text-red-500 mt-1">{message}</p>
+    </div>
+  );
+
   return (
     <div className={cn(
       "p-4 md:p-6 space-y-8 min-h-[calc(100vh-200px)] flex flex-col bg-background relative"
     )}>
-      {selectedToolKey && activeBackgroundClass && (
+      {selectedToolKey && activeBackgroundClass && !isGuestMode && (
         <AnimatedToolBackground bgClass={activeBackgroundClass} show={!!selectedToolKey} />
       )}
 
       <div className="relative z-10 flex flex-col flex-grow">
-        {!selectedToolKey ? (
+        {!selectedToolKey || (isGuestMode && selectedToolKey) ? ( // Show grid if no tool selected OR if guest and a tool was hypothetically selected (immediately lock it)
           <>
             <div className="text-center mb-6 md:mb-8">
               <Sparkles className="mx-auto h-12 w-12 text-primary mb-3" />
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Ask AI to...</h1>
+              {isGuestMode && (
+                <p className="text-md text-red-500 mt-2 font-semibold">
+                  AI Tools are locked in Guest Mode. Please sign in to use them.
+                </p>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-4xl mx-auto w-full">
               {aiToolsData.map((tool) => (
-                <Card
-                  key={tool.key}
-                  onClick={() => handleToolSelect(tool)}
-                  className={cn(
-                    "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-8 min-h-[280px] sm:min-h-[320px]",
-                    tool.bgClass
-                  )}
-                >
-                  <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-4 text-white/90 group-hover:scale-110 transition-transform" />
-                  <CardTitle className="text-2xl sm:text-3xl font-bold text-center">{tool.title}</CardTitle>
-                  <CardContent className="text-center p-0 mt-3">
-                    <p className="text-base sm:text-lg text-white/80">{tool.description}</p>
-                  </CardContent>
-                </Card>
+                <TooltipProvider key={tool.key}>
+                  <Tooltip delayDuration={isGuestMode ? 0 : 500}>
+                    <TooltipTrigger asChild>
+                      <Card
+                        onClick={() => handleToolSelect(tool)}
+                        className={cn(
+                          "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-8 min-h-[280px] sm:min-h-[320px] relative",
+                          tool.bgClass,
+                          isGuestMode && "opacity-60 border-2 border-red-400 cursor-not-allowed hover:transform-none"
+                        )}
+                        aria-disabled={isGuestMode}
+                      >
+                        {isGuestMode && <GuestLockOverlay />}
+                        <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-4 text-white/90 group-hover:scale-110 transition-transform" />
+                        <CardTitle className="text-2xl sm:text-3xl font-bold text-center">{tool.title}</CardTitle>
+                        <CardContent className="text-center p-0 mt-3">
+                          <p className="text-base sm:text-lg text-white/80">{tool.description}</p>
+                        </CardContent>
+                      </Card>
+                    </TooltipTrigger>
+                    {isGuestMode && (
+                      <TooltipContent side="top" className="bg-red-500 text-white border-red-600">
+                        <p>Sign in to unlock this tool</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
               ))}
             </div>
 
-            {/* New Card for Premium Video Services */}
             <Card className="mt-10 col-span-1 sm:col-span-2 shadow-lg max-w-4xl mx-auto w-full bg-card border">
               <CardHeader>
                 <CardTitle className="flex items-center text-2xl text-primary">
@@ -168,7 +199,6 @@ export function AiToolsPage() {
                 </Button>
               </CardFooter>
             </Card>
-
           </>
         ) : (
           <div className="w-full flex-grow flex flex-col">
@@ -183,7 +213,8 @@ export function AiToolsPage() {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to AI Tools
             </Button>
-            <div className="flex-grow">
+            <div className="flex-grow relative">
+              {isGuestMode && SelectedComponent && <GuestLockOverlay message="Sign in to use this AI tool." />}
               {SelectedComponent && <SelectedComponent />}
             </div>
           </div>
@@ -192,6 +223,3 @@ export function AiToolsPage() {
     </div>
   );
 }
-    
-
-    

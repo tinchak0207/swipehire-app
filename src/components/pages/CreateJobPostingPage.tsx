@@ -11,10 +11,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle } from 'lucide-react';
+import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock } from 'lucide-react'; // Added Lock
 import { useToast } from '@/hooks/use-toast';
 import type { Company, CompanyJobOpening } from '@/lib/types'; 
-import { postJobToBackend } from '@/services/jobService'; // Import the service function
+import { postJobToBackend } from '@/services/jobService';
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
@@ -33,18 +33,24 @@ const FormSchema = z.object({
 
 type FormValues = z.infer<typeof FormSchema>;
 
-export function CreateJobPostingPage() {
+interface CreateJobPostingPageProps {
+  isGuestMode?: boolean;
+}
+
+export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
   const [isPostingAllowed, setIsPostingAllowed] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !isGuestMode) {
       const profileComplete = localStorage.getItem('recruiterProfileComplete') === 'true';
       setIsPostingAllowed(profileComplete);
+    } else {
+      setIsPostingAllowed(false); // Guests cannot post
     }
-  }, []);
+  }, [isGuestMode]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -66,10 +72,18 @@ export function CreateJobPostingPage() {
   };
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (isGuestMode) {
+        toast({
+            title: "Feature Locked",
+            description: "Please sign in as a recruiter to post jobs.",
+            variant: "default",
+        });
+        return;
+    }
     if (!isPostingAllowed) {
         toast({
             title: "Profile Incomplete",
-            description: "Please complete your profile in Settings to post a job.",
+            description: "Please complete your recruiter profile in Settings to post a job.",
             variant: "destructive",
         });
         return;
@@ -82,15 +96,12 @@ export function CreateJobPostingPage() {
       description: data.description,
       salaryRange: data.compensation,
       tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
-      // In a real app, if data.mediaFile exists, you'd upload it to Firebase Storage here
-      // and get back a URL to store in videoOrImageUrl.
-      // For now, we'll just simulate this.
       videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? `https://placehold.co/600x400.png?text=${encodeURIComponent(data.mediaFile[0].name)}` : undefined,
     };
 
     const newCompanyForJob: Company = {
-      id: `temp-id-${Date.now()}`, // Backend will assign a real ID
-      name: localStorage.getItem('userNameSettings') || "A Recruiter", // Use recruiter's name if available
+      id: `temp-id-${Date.now()}`,
+      name: localStorage.getItem('userNameSettings') || "A Recruiter",
       industry: 'Various',
       description: `A new opportunity: ${data.title}. Posted by ${localStorage.getItem('userNameSettings') || "a recruiter"}.`,
       cultureHighlights: [],
@@ -100,14 +111,11 @@ export function CreateJobPostingPage() {
     };
     
     try {
-      // Replace localStorage with a call to the backend service
       await postJobToBackend(newCompanyForJob);
-
       toast({
         title: "Job Posted!",
         description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
-
       form.reset();
       setFileName(null);
     } catch (error) {
@@ -122,9 +130,21 @@ export function CreateJobPostingPage() {
     }
   };
 
+  if (isGuestMode) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
+        <Lock className="h-16 w-16 text-red-400 mb-6" />
+        <h2 className="text-2xl font-semibold text-red-500 mb-3">Access Restricted</h2>
+        <p className="text-muted-foreground max-w-md">
+          Posting jobs is a feature for registered recruiters. Please sign in or create a recruiter account to continue.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      {!isPostingAllowed && (
+      {!isPostingAllowed && !isGuestMode && ( // Show this only if not guest and posting not allowed
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-5 w-5" />
           <AlertTitle>Profile Incomplete to Post Jobs</AlertTitle>

@@ -1,12 +1,17 @@
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import type { Match, Candidate, Company } from '@/lib/types';
+import type { Match } from '@/lib/types'; // Candidate and Company types are implicitly used via Match
 import { mockCandidates, mockCompanies } from '@/lib/mockData';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
-import { HeartHandshake, Users, Briefcase } from 'lucide-react';
+import { HeartHandshake, Users, Briefcase, Lock } from 'lucide-react'; // Added Lock
+// import { Button } from '@/components/ui/button'; // Button for role switch removed
 
-// Simulate liked state persistence (in a real app, this would be from user context or backend)
+interface MatchesPageProps {
+  isGuestMode?: boolean;
+}
+
 const getInitialLikedState = () => {
   if (typeof window !== 'undefined') {
     const likedCand = localStorage.getItem('likedCandidatesDemo');
@@ -20,26 +25,30 @@ const getInitialLikedState = () => {
 };
 
 
-export function MatchesPage() {
+export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState<'recruiter' | 'jobseeker'>('recruiter'); // Simulate user role
+  // User role is now managed by HomePage and passed if needed, or inferred from context
+  // const [userRole, setUserRole] = useState<'recruiter' | 'jobseeker'>('recruiter'); // Removed simulated role
 
   useEffect(() => {
+    if (isGuestMode) {
+      setIsLoading(false);
+      setMatches([]);
+      return;
+    }
+
     setIsLoading(true);
-    // Simulate fetching matches based on liked states
     const { likedCandidates, likedCompanies } = getInitialLikedState();
     const foundMatches: Match[] = [];
+    
+    // Determine user role from localStorage (consistent with HomePage logic)
+    const currentRole = typeof window !== 'undefined' ? localStorage.getItem('userRole') : 'jobseeker';
 
-    // For simplicity, this simulation assumes any "liked" candidate by a "recruiter" user
-    // has also "liked" one of the mock companies, and vice-versa for a "jobseeker" user.
-    // A real app would have a more robust matching logic from a backend.
 
-    if (userRole === 'recruiter') {
+    if (currentRole === 'recruiter') {
       mockCandidates.forEach(candidate => {
-        // Simulate candidate liked a company if recruiter liked candidate
         if (likedCandidates.has(candidate.id) && mockCompanies.length > 0) {
-          // Pick a random company the candidate "liked" for demo
           const randomCompany = mockCompanies[Math.floor(Math.random() * mockCompanies.length)];
           foundMatches.push({
             id: `match-${candidate.id}-${randomCompany.id}`,
@@ -51,7 +60,7 @@ export function MatchesPage() {
           });
         }
       });
-    } else { // jobseeker
+    } else { // jobseeker or default
       mockCompanies.forEach(company => {
         if (likedCompanies.has(company.id) && mockCandidates.length > 0) {
           const randomCandidate = mockCandidates[Math.floor(Math.random() * mockCandidates.length)];
@@ -67,35 +76,45 @@ export function MatchesPage() {
       });
     }
     
-    // Filter out duplicates just in case (though unlikely with this simple logic)
     const uniqueMatches = Array.from(new Set(foundMatches.map(m => m.id)))
       .map(id => foundMatches.find(m => m.id === id)!);
 
     setMatches(uniqueMatches);
     setIsLoading(false);
-  }, [userRole]);
+  }, [isGuestMode]); // Re-run if guest mode changes or on initial load for authenticated users
   
-  // Dummy functions to simulate storing likes (would be part of swiping components)
-  // These are here to make the demo work if localStorage is empty initially
   const simulateLikes = () => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !isGuestMode) {
        if (!localStorage.getItem('likedCandidatesDemo') && mockCandidates.length > 0) {
          localStorage.setItem('likedCandidatesDemo', JSON.stringify([mockCandidates[0].id]));
        }
        if (!localStorage.getItem('likedCompaniesDemo') && mockCompanies.length > 0) {
          localStorage.setItem('likedCompaniesDemo', JSON.stringify([mockCompanies[0].id]));
        }
-       // Trigger re-fetch of matches
-       setUserRole(prev => prev === 'recruiter' ? 'jobseeker' : 'recruiter'); // Toggle to force re-render
-       setTimeout(() => setUserRole(prev => prev === 'recruiter' ? 'jobseeker' : 'recruiter'),0); // Toggle back
+       // This re-simulation logic might need adjustment or removal if it causes issues with useEffect dependencies.
+       // Forcing a re-render to pick up simulated likes if localStorage was empty.
+       // A more robust solution would involve state management that triggers re-evaluation.
+       // For now, let's assume the useEffect for matches handles it.
     }
   }
 
   useEffect(() => {
-    simulateLikes(); // Simulate some likes on initial load if none exist
+    simulateLikes();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // Run once on mount to ensure some likes exist for demo purposes
 
+
+  if (isGuestMode) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
+        <Lock className="h-16 w-16 text-red-400 mb-6" />
+        <h2 className="text-2xl font-semibold text-red-500 mb-3">Access Restricted</h2>
+        <p className="text-muted-foreground max-w-md">
+          Viewing matches and initiating conversations are features for registered users. Please sign in using the Login button in the header to see your matches.
+        </p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return <div className="text-center p-10">Loading matches...</div>;
@@ -111,20 +130,12 @@ export function MatchesPage() {
         </p>
       </div>
       
-      {/* Simulate role switch for demo */}
-      {/* <div className="mb-6 flex justify-center">
-        <Button onClick={() => setUserRole(userRole === 'recruiter' ? 'jobseeker' : 'recruiter')}>
-          Switch to {userRole === 'recruiter' ? 'Job Seeker View' : 'Recruiter View'}
-        </Button>
-      </div> */}
-
-
       {matches.length === 0 ? (
         <div className="text-center py-10 bg-card shadow-md rounded-lg">
-          {userRole === 'recruiter' ? <Users className="mx-auto h-16 w-16 text-muted-foreground mb-4" /> : <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />}
+          {localStorage.getItem('userRole') === 'recruiter' ? <Users className="mx-auto h-16 w-16 text-muted-foreground mb-4" /> : <Briefcase className="mx-auto h-16 w-16 text-muted-foreground mb-4" />}
           <h2 className="text-2xl font-semibold">No Matches Yet</h2>
           <p className="text-muted-foreground mt-2">
-            Keep swiping to find your perfect {userRole === 'recruiter' ? 'candidate' : 'opportunity'}!
+            Keep swiping to find your perfect {localStorage.getItem('userRole') === 'recruiter' ? 'candidate' : 'opportunity'}!
           </p>
         </div>
       ) : (

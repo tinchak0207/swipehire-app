@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Save } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock } from 'lucide-react'; // Added Lock
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,12 +14,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Added Tooltip
 import { cn } from '@/lib/utils';
 
 interface CompanyCardContentProps {
   company: Company;
   onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
   isLiked: boolean;
+  isGuestMode?: boolean; // Added isGuestMode
 }
 
 const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60;
@@ -27,7 +29,7 @@ const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250;
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10; // degrees
 
-export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyCardContentProps) {
+export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -48,18 +50,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setAiJobFitAnalysis(null); // Reset AI analysis when opening modal
-    setIsLoadingAiAnalysis(false); // Reset loading state
-    setUserQuestion(""); // Clear previous question
-    setAiAnswer(null); // Clear previous answer
+    if (isGuestMode) {
+        toast({ title: "Feature Locked", description: "Sign in to view company details and AI insights.", variant: "default"});
+        return;
+    }
+    setAiJobFitAnalysis(null);
+    setIsLoadingAiAnalysis(false);
+    setUserQuestion("");
+    setAiAnswer(null);
     setIsAskingQuestion(false);
-    setShowFullJobDescriptionInModal(false); // Reset description view
+    setShowFullJobDescriptionInModal(false);
     setIsDetailsModalOpen(true);
   };
 
   const fetchAiAnalysis = useCallback(async () => {
-    if (!company || !jobOpening) {
-      toast({ title: "Job details missing", description: "Cannot analyze fit without job details.", variant: "destructive" });
+    if (!company || !jobOpening || isGuestMode) { // Don't fetch for guests
+      if (isGuestMode) setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       return;
     }
     setIsLoadingAiAnalysis(true);
@@ -67,7 +73,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', // This should ideally be the actual logged-in user's ID
+        id: 'currentUserProfile',
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: (localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s)) || [],
@@ -135,7 +141,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company, jobOpening, toast, isDetailsModalOpen]); // Rerun if modal opens to ensure freshness or if job details change
+  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); 
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -163,6 +169,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   }, [isDetailsModalOpen, company.introVideoUrl]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
@@ -187,12 +194,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current) return;
+    if (!isDragging || !cardContentRef.current || isGuestMode) return;
     setCurrentX(e.clientX);
   };
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current) return;
+    if (!isDragging || !cardContentRef.current || isGuestMode) return;
     
     const deltaX = currentX - startX; 
     cardContentRef.current.style.transition = 'transform 0.3s ease-out'; 
@@ -216,7 +223,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   };
   
   const getCardTransform = () => {
-    if (!isDragging) return 'translateX(0px) rotateZ(0deg)';
+    if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); 
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
@@ -224,8 +231,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   };
 
   const handleAskQuestion = async () => {
-    if (!userQuestion.trim()) {
-      toast({ title: "Please enter a question", variant: "destructive" });
+    if (!userQuestion.trim() || isGuestMode) {
+      if (isGuestMode) toast({title: "Feature Locked", description: "Sign in to ask AI questions.", variant: "default"});
+      else toast({ title: "Please enter a question", variant: "destructive" });
       return;
     }
     setIsAskingQuestion(true);
@@ -251,7 +259,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
   };
   
   const handleShareClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card swipe
+    e.stopPropagation(); 
+    if (isGuestMode) return;
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; 
 
@@ -289,23 +298,70 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + (jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL ? "..." : "");
 
+  const ActionButton = ({
+    action,
+    Icon,
+    label,
+    className: extraClassName,
+    activeClassName,
+    isSpecificActionLiked
+  }: {
+    action: 'like' | 'pass' | 'details' | 'share';
+    Icon: React.ElementType;
+    label: string;
+    className?: string;
+    activeClassName?: string;
+    isSpecificActionLiked?: boolean;
+  }) => {
+    const baseClasses = "flex-col h-auto py-1";
+    const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
+    const regularClasses = isSpecificActionLiked ? activeClassName : extraClassName;
+    const effectiveOnClick = action === 'details' ? handleDetailsButtonClick : (e: React.MouseEvent) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(company.id, action); };
+
+
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn(baseClasses, isGuestMode ? guestClasses : regularClasses)}
+              onClick={effectiveOnClick}
+              disabled={isGuestMode && action !== 'details'} // Details button triggers modal with guest check inside
+              aria-label={`${label} ${company.name}`}
+              data-no-drag="true"
+            >
+              {isGuestMode ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500' : '')} />}
+              <span className="text-xs">{label}</span>
+            </Button>
+          </TooltipTrigger>
+          {isGuestMode && (
+            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
+              <p>Sign in to interact</p>
+            </TooltipContent>
+          )}
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
 
   return (
     <>
       <div
         ref={cardContentRef}
-        className="flex flex-col h-full overflow-hidden relative bg-card cursor-grab"
+        className="flex flex-col h-full overflow-hidden relative bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
         style={{
+          cursor: isGuestMode ? 'default' : 'grab',
           transform: getCardTransform(),
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Video/Image Area - takes roughly 50-60% of height */}
-        <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100%-200px)]"> {/* Max height to ensure text area is visible */}
+        <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100%-200px)]">
           {company.introVideoUrl ? (
             <video
               src={company.introVideoUrl}
@@ -313,17 +369,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
               autoPlay
               loop
               playsInline
-              className="w-full h-full object-cover bg-black pointer-events-none" // pointer-events-none to allow swipe over video
+              className="w-full h-full object-cover bg-black pointer-events-none"
               poster={company.logoUrl || `https://placehold.co/600x360.png?text=${encodeURIComponent(company.name)}`}
               data-ai-hint="company video"
-              data-no-drag="true" // Specifically mark video as no-drag to allow controls
+              data-no-drag="true"
             />
           ) : company.logoUrl ? (
             <Image
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4" // Use object-contain for logos
+              className="object-contain p-4" 
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -334,11 +390,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
           )}
         </div>
 
-        {/* Text Content Area - takes roughly 40-50% of height, internally scrollable if needed */}
         <div className="p-3 sm:p-4 flex-grow flex flex-col h-[40%] overflow-hidden"> 
           <CardHeader className="p-0 mb-1.5 sm:mb-2">
             <div className="flex items-start justify-between">
-                <div className="flex-grow min-w-0"> {/* Ensure title/description can truncate */}
+                <div className="flex-grow min-w-0">
                     <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
                     <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
                 </div>
@@ -348,7 +403,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
             )}
           </CardHeader>
 
-          <CardContent className="p-0 space-y-1 text-xs sm:text-sm flex-grow min-h-0 overflow-hidden"> {/* min-h-0 for flex scroll */}
+          <CardContent className="p-0 space-y-1 text-xs sm:text-sm flex-grow min-h-0 overflow-hidden">
             {jobOpening?.location && (
               <div className="flex items-center text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
@@ -375,18 +430,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
           </CardContent>
             
           <CardFooter className="p-2 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
-            <Button variant="ghost" size="sm" className="flex-col h-auto py-1 hover:bg-destructive/10 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onSwipeAction(company.id, 'pass');}} aria-label={`Pass on ${company.name}`} data-no-drag="true">
-              <ThumbsDown className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> <span className="text-xs">Pass</span>
-            </Button>
-            <Button variant="ghost" size="sm" className="flex-col h-auto py-1 hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" onClick={handleDetailsButtonClick} aria-label={`View details for ${company.name}`} data-no-drag="true">
-              <Info className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> <span className="text-xs">Details</span>
-            </Button>
-            <Button variant="ghost" size="sm" className={cn("flex-col h-auto py-1 hover:bg-green-500/10", isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600')} onClick={(e) => { e.stopPropagation(); onSwipeAction(company.id, 'like');}} aria-label={`Apply to ${company.name}`} data-no-drag="true">
-              <ThumbsUp className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isLiked ? 'fill-green-500' : '')} /> <span className="text-xs">Apply</span>
-            </Button>
-             <Button variant="ghost" size="sm" className="flex-col h-auto py-1 hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClick={handleShareClick} aria-label={`Share ${company.name}`} data-no-drag="true">
-              <Share2 className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> <span className="text-xs">Share</span>
-            </Button>
+            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+            <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
+            <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'} activeClassName="text-green-600 hover:bg-green-500/10" isSpecificActionLiked={isLiked} />
+            <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
           </CardFooter>
         </div>
       </div>
@@ -399,7 +446,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
             </DialogTitle>
             <CardDescription className="truncate">{company.industry}</CardDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 min-h-0 p-4 sm:p-6 overscroll-y-contain no-scrollbar"> {/* Added no-scrollbar here too */}
+          <ScrollArea className="flex-1 min-h-0 p-4 sm:p-6 overscroll-y-contain no-scrollbar">
             <div className="space-y-6">
               {company.introVideoUrl && (
                 <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
@@ -407,7 +454,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                     ref={videoRef}
                     src={company.introVideoUrl}
                     controls
-                    muted={false} // Allow sound in modal by default
+                    muted={false}
                     autoPlay={false} 
                     loop
                     playsInline
@@ -474,15 +521,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
                 </h3>
-                <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-3 w-full sm:w-auto">
-                  {isLoadingAiAnalysis ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Sparkles className="mr-2 h-4 w-4" />
-                  )}
-                  {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
+                <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis || isGuestMode} className="mb-3 w-full sm:w-auto">
+                  {isGuestMode ? <Lock className="mr-2 h-4 w-4" /> : isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                  {isGuestMode ? "Sign in for AI Analysis" : aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
                 </Button>
-                {isLoadingAiAnalysis && !aiJobFitAnalysis && (
+                {isLoadingAiAnalysis && !aiJobFitAnalysis && !isGuestMode &&(
                   <div className="flex items-center text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     <span>Assessing fit...</span>
@@ -526,20 +569,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked }: CompanyC
                     placeholder="e.g., What are the main products? What is the team size?"
                     value={userQuestion}
                     onChange={(e) => setUserQuestion(e.target.value)}
-                    disabled={isAskingQuestion}
+                    disabled={isAskingQuestion || isGuestMode}
                     className="min-h-[80px]"
                   />
-                  <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto">
-                    {isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
-                    Ask AI
+                  <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim() || isGuestMode} className="w-full sm:w-auto">
+                    {isGuestMode ? <Lock className="mr-2 h-4 w-4" /> : isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
+                    {isGuestMode ? "Sign in to Ask AI" : "Ask AI"}
                   </Button>
-                  {isAskingQuestion && (
+                  {isAskingQuestion && !isGuestMode && (
                     <div className="flex items-center text-sm text-muted-foreground py-2">
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       <span>Thinking...</span>
                     </div>
                   )}
-                  {aiAnswer && (
+                  {aiAnswer && !isGuestMode && (
                     <div className="pt-2">
                       <h4 className="font-semibold text-sm mb-1">AI's Answer:</h4>
                       <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line">
