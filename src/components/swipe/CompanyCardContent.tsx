@@ -56,8 +56,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Feature Locked", description: "Sign in to view company details and AI insights.", variant: "default"});
         return;
     }
+    // Reset states when modal opens for a fresh view
     setAiJobFitAnalysis(null);
-    setIsLoadingAiAnalysis(false);
+    setIsLoadingAiAnalysis(false); // Explicitly set to false, fetchAiAnalysis will set to true if needed
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
@@ -66,8 +67,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   };
 
   const fetchAiAnalysis = useCallback(async () => {
-    if (!company || !jobOpening || isGuestMode) {
-      if (isGuestMode) setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
+    if (!company || !jobOpening || isGuestMode || !isDetailsModalOpen) { // Only fetch if modal is open and not guest
+      if (isGuestMode) {
+        setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
+      }
       return;
     }
     setIsLoadingAiAnalysis(true);
@@ -75,7 +78,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile',
+        id: 'currentUserProfile', // Placeholder ID
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: (localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s)) || [],
@@ -142,7 +145,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); 
+  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); // Added isDetailsModalOpen
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -336,11 +339,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               aria-label={`${label} ${company.name}`}
               data-no-drag="true"
             >
-              {isGuestMode ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
+              {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
               <span className="text-xs">{label}</span>
             </Button>
           </TooltipTrigger>
-          {isGuestMode && (
+          {isGuestMode && action !== 'details' && (
             <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
               <p>Sign in to interact</p>
             </TooltipContent>
@@ -451,7 +454,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             <CardDescription className="truncate">{company.industry}</CardDescription>
           </DialogHeader>
           <ScrollArea className="flex-1 min-h-0 p-4 sm:p-6 overscroll-y-contain no-scrollbar">
-            <div className="space-y-6">
+            <div className="space-y-5">
               {company.introVideoUrl && (
                 <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
                   <video
@@ -478,6 +481,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
               {jobOpening && (
                 <>
+                  <Separator />
                   <div>
                     <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
                         <JobTypeIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
@@ -498,19 +502,19 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </p>
                   </div>
                   
-                  <div className="pt-3">
+                  <div>
                     <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                         <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
                     </h3>
-                    <div className="space-y-1 text-sm p-3 bg-muted/30 rounded-md">
+                    <div className="space-y-1.5 text-sm p-3 bg-muted/30 rounded-md">
                       {jobOpening.location && <p><MapPin className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Location:</strong> {jobOpening.location}</p>}
                       {jobOpening.salaryRange && <p><DollarSign className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Salary:</strong> {jobOpening.salaryRange}</p>}
                       {jobOpening.jobType && <p><JobTypeIcon className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Type:</strong> {jobOpening.jobType}</p>}
                       {jobOpening.tags && jobOpening.tags.length > 0 && (
                         <div className="flex items-start pt-1">
                             <Badge variant="outline" className="border-none p-0 mr-1 mt-0.5"><Sparkles className="inline h-4 w-4 mr-1 text-muted-foreground" /></Badge>
-                            <strong className="mr-1 self-start">Tags:</strong>
-                            <div className="flex flex-wrap gap-1">
+                            <strong className="mr-1.5 self-start">Tags:</strong>
+                            <div className="flex flex-wrap gap-1.5">
                                 {jobOpening.tags.map((tag) => (
                                 <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
                                 ))}
@@ -522,8 +526,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-4" />
-
+              <Separator />
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
@@ -576,7 +579,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <>
-                <Separator className="my-4" />
+                <Separator />
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                     <Sparkles className="mr-2 h-5 w-5 text-primary" /> Culture Highlights
@@ -590,7 +593,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-4" />
+              <Separator />
               <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <MessageSquare className="mr-2 h-5 w-5 text-primary" /> Ask AI About {company.name}
