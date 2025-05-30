@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn, Compass } from "lucide-react";
 import { auth } from "@/lib/firebase";
-import { GoogleAuthProvider, signInWithPopup, type FirebaseError, type UserCredential } from "firebase/auth"; // Changed to signInWithPopup
+import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
@@ -18,10 +18,8 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      // Temporarily using signInWithPopup for diagnostics
       const result: UserCredential = await signInWithPopup(auth, provider);
       // If signInWithPopup is successful, onAuthStateChanged in HomePage should pick up the user.
-      // We don't need to explicitly call onLoginSuccess here as HomePage handles it.
       console.log("LoginPage: signInWithPopup successful, user:", result.user);
       toast({
         title: "Sign-In Successful (Popup)",
@@ -32,35 +30,38 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
       let errorMessage = "Failed to sign in with Google using popup.";
+      let bypass = true; // Assume bypass unless it's a user cancellation
+
       if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
       } else if (firebaseError.code === 'auth/popup-blocked') {
         errorMessage = "Pop-up was blocked by the browser. Please allow pop-ups for this site.";
       } else if (firebaseError.code === 'auth/cancelled-popup-request' || firebaseError.code === 'auth/popup-closed-by-user') {
-        errorMessage = "Sign-in cancelled. The pop-up was closed before completing the sign-in.";
-        // Don't necessarily show a destructive toast or bypass for user-cancelled popups
+        errorMessage = "Sign-in cancelled. The Google Sign-In window was closed.";
+        bypass = false; // Don't bypass if user explicitly closed/cancelled
         toast({
           title: "Sign-In Cancelled",
-          description: "The Google Sign-In popup was closed.",
-          variant: "default", 
+          description: errorMessage,
+          variant: "default", // Not a destructive error if user cancelled
         });
-        return; // Don't proceed to bypass if user explicitly closed popup
       } else if (firebaseError.code === 'auth/operation-not-allowed') {
         errorMessage = "Sign-in method is not enabled. Please contact support.";
       } else if (firebaseError.code === 'auth/unauthorized-domain') {
         errorMessage = "This domain is not authorized for Google Sign-In. Check Firebase console.";
       }
       
-      toast({
-        title: "Google Sign-In Failed (Popup)",
-        description: `${errorMessage} Code: ${firebaseError.code}. For development, a bypass will be attempted.`,
-        variant: "destructive",
-        duration: 7000,
-      });
-      // Offer bypass if popup sign-in fails for reasons other than explicit user cancellation
-      setTimeout(() => {
-        onLoginBypass();
-      }, 2000);
+      if (bypass) { // Only show destructive toast and bypass if not a user cancellation
+        toast({
+          title: "Google Sign-In Failed (Popup)",
+          description: `${errorMessage} Code: ${firebaseError.code}. For development, a bypass will be attempted.`,
+          variant: "destructive",
+          duration: 7000,
+        });
+        // Offer bypass if popup sign-in fails for reasons other than explicit user cancellation
+        setTimeout(() => {
+          onLoginBypass();
+        }, 2000);
+      }
     }
   };
 
