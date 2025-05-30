@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileVideo2, UserCircle, Briefcase, HeartHandshake, Building, Users, Zap, CheckCircle, MessageSquareText, Star } from "lucide-react"; // Added MessageSquareText, Star
+import { FileVideo2, UserCircle, Briefcase, HeartHandshake, Building, Users, Zap, CheckCircle, Sparkles, BarChart3 } from "lucide-react";
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -17,7 +17,7 @@ export function WelcomePage({ onStartExploring }: WelcomePageProps) {
           <FileVideo2 className="mx-auto h-16 w-16 text-primary animate-bounce" />
           <CardTitle className="text-4xl font-bold">Welcome to SwipeHire!</CardTitle>
           <CardDescription className="text-lg text-muted-foreground px-4">
-            Discover Your Next Opportunity or Top Talent - The Smarter Way.
+            The Future of Hiring: Dynamic, Engaging, and AI-Powered.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 py-6 text-left px-6 sm:px-8">
@@ -27,9 +27,9 @@ export function WelcomePage({ onStartExploring }: WelcomePageProps) {
                         <UserCircle className="h-6 w-6 mr-2.5" /> For Job Seekers:
                     </h3>
                     <ul className="space-y-1.5 text-sm text-foreground list-none pl-1">
-                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Craft a stunning video resume & profile.</span></li>
-                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Swipe through companies that match your vibe.</span></li>
-                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Connect directly with interested recruiters.</span></li>
+                        <li className="flex items-start"><Sparkles className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Showcase Your Personality: Craft an AI-assisted video resume & dynamic profile.</span></li>
+                        <li className="flex items-start"><Briefcase className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Discover Your Ideal Workplace: Swipe through companies that genuinely match your vibe & values.</span></li>
+                        <li className="flex items-start"><HeartHandshake className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Meaningful Connections: Connect directly only with recruiters truly interested in *you*.</span></li>
                     </ul>
                 </div>
                  <div>
@@ -37,34 +37,27 @@ export function WelcomePage({ onStartExploring }: WelcomePageProps) {
                         <Building className="h-6 w-6 mr-2.5" /> For Recruiters:
                     </h3>
                     <ul className="space-y-1.5 text-sm text-foreground list-none pl-1">
-                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Showcase your unique company culture & open roles.</span></li>
-                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Discover top talent with engaging video profiles.</span></li>
-                        <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Fast-track hiring with mutual-interest matches.</span></li>
+                        <li className="flex items-start"><Zap className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Attract Top Talent: Showcase your unique company culture & roles with engaging video.</span></li>
+                        <li className="flex items-start"><Users className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>See Beyond the Paper: Discover top talent through dynamic video profiles, not just static text.</span></li>
+                        <li className="flex items-start"><BarChart3 className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Hire Smarter, Not Harder: Fast-track hiring with AI-powered insights & mutual-interest matches.</span></li>
                     </ul>
                 </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-border/50">
-                 <h3 className="text-xl font-semibold text-primary mb-3 flex items-center justify-center">
-                    <Star className="h-6 w-6 mr-2.5 text-yellow-400 fill-yellow-400" /> Making Connections That Count
+            <div className="pt-4 mt-4 border-t border-border/50 text-center">
+                 <h3 className="text-md font-semibold text-primary mb-2 flex items-center justify-center">
+                    <Sparkles className="h-5 w-5 mr-2 text-yellow-400 fill-yellow-400" /> Why SwipeHire?
                 </h3>
-                <div className="space-y-3 text-sm">
-                    <blockquote className="border-l-4 border-primary/70 pl-3 italic text-muted-foreground">
-                        <p>"SwipeHire's video resume helped me land my dream job! Recruiters saw my personality, not just a piece of paper."</p>
-                        <footer className="text-xs mt-1 not-italic">- Alex P., Software Engineer</footer>
-                    </blockquote>
-                    <blockquote className="border-l-4 border-accent/70 pl-3 italic text-muted-foreground">
-                        <p>"Finding the right cultural fit was so much easier with SwipeHire. We hired two amazing developers who are thriving in our team."</p>
-                        <footer className="text-xs mt-1 not-italic">- Sarah M., HR Manager at TechNova</footer>
-                    </blockquote>
-                </div>
+                <p className="text-sm text-muted-foreground italic">
+                    Move beyond static resumes. SwipeHire brings profiles and company cultures to life with AI-powered video and intelligent matching. Connect more authentically, hire more effectively.
+                </p>
             </div>
 
           <div className="text-center">
             <Button 
               onClick={onStartExploring} 
               size="lg" 
-              className="w-3/4 sm:w-1/2 text-xl py-4 mt-6 bg-primary hover:bg-primary/90 text-primary-foreground"
+              className="w-3/4 sm:w-1/2 text-xl py-4 mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
               aria-label="Start Exploring SwipeHire"
             >
               Start Exploring
@@ -73,7 +66,7 @@ export function WelcomePage({ onStartExploring }: WelcomePageProps) {
         </CardContent>
         <CardFooter className="pb-6 justify-center">
             <p className="text-xs text-muted-foreground">
-              Let's find your perfect match!
+              Join the hiring revolution!
             </p>
         </CardFooter>
       </Card>
