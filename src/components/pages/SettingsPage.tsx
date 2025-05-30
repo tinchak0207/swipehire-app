@@ -9,7 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2 } from 'lucide-react'; // Added Brain, Info, TrendingUp, Trash2
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion } from 'lucide-react'; // Added MessageCircleQuestion
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -53,6 +57,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [country, setCountry] = useState('');
   const [documentId, setDocumentId] = useState('');
   const [appStats, setAppStats] = useState<AppStats>(initialAppStats);
+
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [feedbackCategory, setFeedbackCategory] = useState('');
+  const [feedbackMessage, setFeedbackMessage] = useState('');
+
 
   const { toast } = useToast();
 
@@ -141,6 +150,30 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     }
   };
 
+  const handleFeedbackSubmit = () => {
+    if (isGuestMode) {
+        toast({ title: "Action Disabled", description: "Please sign in to submit feedback.", variant: "default" });
+        return;
+    }
+    if (!feedbackCategory || !feedbackMessage.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please select a category and enter your feedback message.",
+        variant: "destructive",
+      });
+      return;
+    }
+    // In a real app, you'd send this data to a backend.
+    console.log("Feedback Submitted:", { category: feedbackCategory, message: feedbackMessage });
+    toast({
+      title: "Feedback Received!",
+      description: "Thank you for sharing your thoughts with us.",
+    });
+    setFeedbackCategory('');
+    setFeedbackMessage('');
+    setIsFeedbackModalOpen(false);
+  };
+
 
   const saveButtonText = "Save Settings";
   const SaveButtonIcon = UserCog;
@@ -156,6 +189,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </p>
       </div>
 
+      {/* Role Selection Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -189,6 +223,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
 
+      {/* Personal Information Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -265,6 +300,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
 
+      {/* Identity Verification Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -294,7 +330,79 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </Button>
         </CardContent>
       </Card>
+
+      {/* App Feedback Card */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <MessageCircleQuestion className="mr-2 h-5 w-5 text-primary" />
+            Share Your Thoughts
+          </CardTitle>
+          <CardDescription>Help us improve SwipeHire! Share your feedback, suggestions, or report any issues.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Dialog open={isFeedbackModalOpen} onOpenChange={setIsFeedbackModalOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="w-full sm:w-auto" disabled={isGuestMode}>
+                Provide Feedback
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Submit Your Feedback</DialogTitle>
+                <DialogDescription>
+                  We value your input. Let us know how we can make SwipeHire better for you.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label htmlFor="feedbackCategory">Feedback Category</Label>
+                  <Select value={feedbackCategory} onValueChange={setFeedbackCategory}>
+                    <SelectTrigger id="feedbackCategory">
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="bug_report">Bug Report</SelectItem>
+                      <SelectItem value="feature_request">Feature Request</SelectItem>
+                      <SelectItem value="general_comment">General Comment</SelectItem>
+                      <SelectItem value="usability_issue">Usability Issue</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="feedbackMessage">Your Message</Label>
+                  <Textarea
+                    id="feedbackMessage"
+                    placeholder="Please describe your feedback in detail..."
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    rows={5}
+                    className="min-h-[100px]"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button type="button" variant="outline">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button type="button" onClick={handleFeedbackSubmit}>
+                  Submit Feedback
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+         {isGuestMode && (
+          <CardFooter>
+            <p className="text-xs text-destructive italic w-full text-center">Feedback submission is disabled in Guest Mode.</p>
+          </CardFooter>
+        )}
+      </Card>
       
+      {/* App Usage Insights Card */}
       {!isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
@@ -324,10 +432,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </Card>
       )}
 
+      {/* Data, Privacy & AI Ethics Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
-            <Info className="mr-2 h-5 w-5 text-primary" /> {/* Changed icon */}
+            <Info className="mr-2 h-5 w-5 text-primary" /> 
             Data, Privacy & AI Ethics
           </CardTitle>
           <CardDescription>Our commitment to responsible technology and protecting your information.</CardDescription>
@@ -376,10 +485,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
 
+      {/* Employee Evaluation System Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
-             <MessageSquare className="mr-2 h-5 w-5 text-primary" />
+             <MessageSquareText className="mr-2 h-5 w-5 text-primary" />
             Employee Evaluation System (Conceptual)
           </CardTitle>
           <CardDescription>Settings related to how company culture and work environments are reviewed (Future Feature).</CardDescription>
@@ -403,6 +513,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
 
+      {/* Subscription Plans for Recruiters Card */}
       {selectedRole === 'recruiter' && !isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
@@ -467,6 +578,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </Card>
       )}
 
+      {/* Value-Added Services for Job Seekers Card */}
       {selectedRole === 'jobseeker' && !isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
@@ -532,6 +644,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </Card>
       )}
 
+      {/* Save Settings Footer */}
       <CardFooter className="flex justify-end pt-6">
         <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode}>
           <SaveButtonIcon className="mr-2 h-5 w-5" />
@@ -541,3 +654,5 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
+
+    
