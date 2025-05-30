@@ -13,8 +13,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateAvatar, type AvatarGeneratorInput } from '@/ai/flows/avatar-generator';
 import Image from 'next/image';
-import { Loader2, UserSquare2, Smile, Briefcase, PersonStanding, ImageIcon, Palette, User } from 'lucide-react';
+import { Loader2, UserSquare2, Smile, Briefcase, PersonStanding, ImageIcon, Palette, User, Info } from 'lucide-react'; // Added Info
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip components
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -129,6 +131,13 @@ export function AvatarGenerator() {
         <CardDescription>
           Customize your professional virtual avatar using the options below.
         </CardDescription>
+        <Alert variant="default" className="mt-3 text-sm border-primary/30 bg-primary/5">
+          <Info className="h-4 w-4 text-primary/80" />
+          <AlertTitle className="font-medium text-primary/90 text-xs">How it Works</AlertTitle>
+          <AlertDescription className="text-xs text-foreground/70">
+            The AI generates an image based on your textual description and selected style options. Results can vary, and multiple attempts or refined descriptions might be needed for the desired outcome. This is an experimental feature.
+          </AlertDescription>
+        </Alert>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -283,14 +292,23 @@ export function AvatarGenerator() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
-              {isLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <UserSquare2 className="mr-2 h-5 w-5" />
-              )}
-              Generate Avatar
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <UserSquare2 className="mr-2 h-5 w-5" />
+                    )}
+                    Generate Avatar
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>AI will create an image. This process can take a few moments.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardFooter>
         </form>
       </Form>

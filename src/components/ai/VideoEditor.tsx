@@ -7,13 +7,14 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-// import { Textarea } from '@/components/ui/textarea'; // No longer using Textarea for display
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { editVideo, type EditVideoInput } from '@/ai/flows/video-editor';
-import { Loader2, Clapperboard } from 'lucide-react';
+import { Loader2, Clapperboard, Info } from 'lucide-react'; // Added Info
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip components
 
 const FormSchema = z.object({
   videoFile: z.custom<FileList>((val) => val instanceof FileList && val.length > 0, "Please upload a video file.")
@@ -108,6 +109,13 @@ export function VideoEditor() {
         <CardDescription>
           Upload your video resume, and our AI will analyze and suggest optimizations to make it more engaging and professional. (Demo: Max 10MB video)
         </CardDescription>
+        <Alert variant="default" className="mt-3 text-sm border-primary/30 bg-primary/5">
+          <Info className="h-4 w-4 text-primary/80" />
+          <AlertTitle className="font-medium text-primary/90 text-xs">How it Works</AlertTitle>
+          <AlertDescription className="text-xs text-foreground/70">
+            Our AI analyzes your video for aspects like speech clarity, visual presentation, and content flow, then provides suggestions for improvement. It does not automatically edit the video.
+          </AlertDescription>
+        </Alert>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -116,8 +124,6 @@ export function VideoEditor() {
               control={form.control}
               name="videoFile"
               render={({ field }) => {
-                // Destructure field to separate value from other props
-                // RHF's field.value for file inputs is the FileList, which should not be passed as 'value' prop to native input type="file"
                 const { value: _fieldValue, onChange: fieldOnChange, ...restOfField } = field;
                 return (
                   <FormItem>
@@ -126,10 +132,10 @@ export function VideoEditor() {
                       <Input
                         type="file"
                         accept="video/*"
-                        {...restOfField} // Spreads name, ref, onBlur
+                        {...restOfField}
                         onChange={(e) => {
-                          fieldOnChange(e.target.files); // Update RHF state with FileList
-                          handleFileChange(e); // Your custom handler for preview etc.
+                          fieldOnChange(e.target.files);
+                          handleFileChange(e);
                         }}
                         className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
                       />
@@ -174,18 +180,26 @@ export function VideoEditor() {
             )}
           </CardContent>
           <CardFooter>
-            <Button type="submit" disabled={isLoading || !form.formState.isValid} size="lg" className="w-full sm:w-auto">
-              {isLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Clapperboard className="mr-2 h-5 w-5" />
-              )}
-              Analyze Video
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type="submit" disabled={isLoading || !form.formState.isValid} size="lg" className="w-full sm:w-auto">
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Clapperboard className="mr-2 h-5 w-5" />
+                    )}
+                    Analyze Video
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>AI will review your video and provide feedback.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardFooter>
         </form>
       </Form>
     </Card>
   );
 }
-        

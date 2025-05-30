@@ -11,8 +11,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateVideoScript, type GenerateVideoScriptInput } from '@/ai/flows/video-script-generator';
-import { Loader2, Wand2, Palette, Building } from 'lucide-react';
+import { Loader2, Wand2, Palette, Building, Info } from 'lucide-react'; // Added Info
 import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip components
 
 const toneAndStyleOptions = [
   { value: "professional", label: "Professional & Formal" },
@@ -83,6 +85,13 @@ export function VideoScriptGenerator() {
         <CardDescription>
           Describe your experience, choose a tone and industry, and our AI will craft a compelling video script for you.
         </CardDescription>
+        <Alert variant="default" className="mt-3 text-sm border-primary/30 bg-primary/5">
+          <Info className="h-4 w-4 text-primary/80" />
+          <AlertTitle className="font-medium text-primary/90 text-xs">How it Works</AlertTitle>
+          <AlertDescription className="text-xs text-foreground/70">
+            Our AI uses the information you provide to structure a general video resume script with common sections. You can then customize it with your specific achievements and personal details.
+          </AlertDescription>
+        </Alert>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -177,14 +186,23 @@ export function VideoScriptGenerator() {
             />
           </CardContent>
           <CardFooter className="flex flex-col items-start space-y-4">
-            <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
-              {isLoading ? (
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              ) : (
-                <Wand2 className="mr-2 h-5 w-5" />
-              )}
-              Generate Script
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type="submit" disabled={isLoading} size="lg" className="w-full sm:w-auto">
+                    {isLoading ? (
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    ) : (
+                      <Wand2 className="mr-2 h-5 w-5" />
+                    )}
+                    Generate Script
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>AI will suggest a script structure and placeholder content.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {isLoading && !generatedScript && (
                 <div className="w-full pt-4 border-t mt-4 flex flex-col items-center">
                     <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
@@ -208,4 +226,3 @@ export function VideoScriptGenerator() {
     </Card>
   );
 }
-
