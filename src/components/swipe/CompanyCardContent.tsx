@@ -26,11 +26,13 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 70;
-const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250;
-const MAX_JOB_DESCRIPTION_LENGTH_MODAL = 250;
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60; // Shortened for card display
+const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
+const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
+
+type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardContentRef = useRef<HTMLDivElement>(null);
@@ -41,7 +43,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentX, setCurrentX] = useState(0);
 
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [aiJobFitAnalysis, setAiJobFitAnalysis] = useState<ProfileRecommenderOutput['candidateJobFitAnalysis'] | null>(null);
+  const [aiJobFitAnalysis, setAiJobFitAnalysis] = useState<CandidateJobFitAnalysis | null>(null);
   const [isLoadingAiAnalysis, setIsLoadingAiAnalysis] = useState(false);
   const [userQuestion, setUserQuestion] = useState("");
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
@@ -58,8 +60,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Feature Locked", description: "Sign in to view company details and AI insights.", variant: "default"});
         return;
     }
-    setAiJobFitAnalysis(null); 
-    setIsLoadingAiAnalysis(false); 
+    setAiJobFitAnalysis(null);
+    setIsLoadingAiAnalysis(false);
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
@@ -79,27 +81,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setAiJobFitAnalysis(null);
 
     try {
-      const candidateRole = localStorage.getItem('jobSeekerProfileHeadline') || 'Not specified';
-      const candidateExpSummary = localStorage.getItem('jobSeekerExperienceSummary') || 'Not specified';
-      const candidateSkillsString = localStorage.getItem('jobSeekerSkills') || '';
-      const candidateSkills = candidateSkillsString ? candidateSkillsString.split(',').map(s => s.trim()).filter(s => s) : [];
-      const candidateLocation = localStorage.getItem('userAddressSettings') || localStorage.getItem('userCountrySettings') || 'Not specified';
-      const candidateDesiredWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle') || 'Not specified';
-      const candidatePastProjects = localStorage.getItem('jobSeekerPastProjects') || 'Not specified';
-      const candidateWorkExpLevel = (localStorage.getItem('jobSeekerExperienceLevel') as WorkExperienceLevel) || WorkExperienceLevel.UNSPECIFIED;
-      const candidateEduLevel = (localStorage.getItem('jobSeekerEducationLevel') as EducationLevel) || EducationLevel.UNSPECIFIED;
-      const candidateLocPref = (localStorage.getItem('jobSeekerLocationPreference') as LocationPreference) || LocationPreference.UNSPECIFIED;
-      const candidateLanguagesString = localStorage.getItem('jobSeekerLanguages') || '';
-      const candidateLanguages = candidateLanguagesString ? candidateLanguagesString.split(',').map(s => s.trim()).filter(s => s) : [];
-      const candidateSalaryMinStr = localStorage.getItem('jobSeekerSalaryMin') || '0';
-      const candidateSalaryMaxStr = localStorage.getItem('jobSeekerSalaryMax') || '0';
-      const candidateSalaryMin = parseInt(candidateSalaryMinStr, 10) || undefined;
-      const candidateSalaryMax = parseInt(candidateSalaryMaxStr, 10) || undefined;
-      const candidateAvailability = (localStorage.getItem('jobSeekerAvailability') as Availability) || Availability.UNSPECIFIED;
-      const candidateJobTypePrefString = localStorage.getItem('jobSeekerJobTypePreference') || '';
-      const candidateJobTypePreference = candidateJobTypePrefString ? (candidateJobTypePrefString.split(',') as JobType[]) : [];
-      const candidatePersonalityAssessmentString = localStorage.getItem('jobSeekerPersonalityAssessment') || 'null';
-      const candidatePersonalityAssessment = JSON.parse(candidatePersonalityAssessmentString) || [];
+      // Simplified candidate profile for job fit analysis - in a real app, this would be the logged-in user's full profile
+      const candidateRole = localStorage.getItem('jobSeekerProfileHeadline') || 'Software Developer';
+      const candidateExpSummary = localStorage.getItem('jobSeekerExperienceSummary') || 'Experienced in web technologies.';
+      const candidateSkillsString = localStorage.getItem('jobSeekerSkills') || 'React,Node.js';
+      const candidateSkills = candidateSkillsString ? candidateSkillsString.split(',').map(s => s.trim()).filter(s => s) : ['React', 'Node.js'];
+      const candidateDesiredWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle') || 'Remote, Collaborative';
 
 
       const candidateForAI: CandidateProfileForAI = {
@@ -107,18 +94,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         role: candidateRole,
         experienceSummary: candidateExpSummary,
         skills: candidateSkills,
-        location: candidateLocation,
         desiredWorkStyle: candidateDesiredWorkStyle,
-        pastProjects: candidatePastProjects,
-        workExperienceLevel: candidateWorkExpLevel,
-        educationLevel: candidateEduLevel,
-        locationPreference: candidateLocPref,
-        languages: candidateLanguages,
-        salaryExpectationMin: candidateSalaryMin,
-        salaryExpectationMax: candidateSalaryMax,
-        availability: candidateAvailability,
-        jobTypePreference: candidateJobTypePreference,
-        personalityAssessment: candidatePersonalityAssessment,
+        workExperienceLevel: WorkExperienceLevel.MID_LEVEL, // Example default
+        educationLevel: EducationLevel.UNIVERSITY, // Example default
+        locationPreference: LocationPreference.REMOTE, // Example default
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -168,7 +147,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company.id, jobOpening?.title, isDetailsModalOpen, isGuestMode]); // Dependencies that trigger re-fetch
+
+  useEffect(() => {
+      if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
+          fetchAiAnalysis();
+      }
+  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
+
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
@@ -298,14 +285,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     : jobDescriptionForCard;
 
   const companyDescriptionForModal = company.description;
-  const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL
+  const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL
     ? companyDescriptionForModal
-    : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + "...";
+    : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
 
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
-  const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL
+  const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL
     ? jobDescriptionForModal
-    : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL) + "...";
+    : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
 
 
   const ActionButton = ({
@@ -338,6 +325,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               disabled={isGuestMode && action !== 'details'}
               aria-label={`${label} ${company.name}`}
               data-no-drag="true"
+              data-modal-trigger={action === 'details' ? "true" : undefined}
             >
               {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
               <span className="text-xs">{label}</span>
@@ -375,7 +363,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4" // Use object-contain for logos
+              className="object-contain p-4"
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -418,7 +406,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     {(jobOpening?.jobType) && (
                     <div className="flex items-center text-muted-foreground">
                         <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening?.jobType}</span>
+                        <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
                     </div>
                     )}
                     {jobOpening?.description && (
@@ -433,7 +421,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
-                <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500' : 'text-muted-foreground hover:text-green-600'} isSpecificActionLiked={isLiked} />
+                <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
                 <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
             </CardFooter>
         </div>
@@ -442,7 +430,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       {/* Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
-          <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10 pb-3"> {/* Reduced bottom padding */}
+           <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10 pb-3">
             <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
               {jobOpening?.title || "Opportunity Details"}
             </DialogTitle>
@@ -451,16 +439,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </CardDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 bg-background"> 
-            <div className="p-4 sm:p-6 space-y-3 pt-3"> {/* Further reduced top padding, space-y-3 for tighter sections */}
-
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="p-4 sm:p-6 space-y-4 pt-3">
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
                 </h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                   {displayedCompanyDescriptionInModal}
-                  {companyDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
+                  {companyDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL && (
                       <Button
                           variant="link"
                           size="sm"
@@ -473,7 +460,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   )}
                 </p>
               </section>
-              <Separator className="my-2.5" /> {/* Reduced margin */}
+              <Separator className="my-3" />
 
               {jobOpening && (
                 <>
@@ -483,7 +470,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                       {displayedJobDescriptionInModal}
-                      {jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL && (
+                      {jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL && (
                           <Button
                               variant="link"
                               size="sm"
@@ -496,20 +483,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       )}
                     </p>
                   </section>
-                  <Separator className="my-2.5" />
+                  <Separator className="my-3" />
 
                   <section>
                     <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                         <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
-                        {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-1.5 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
-                        {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-1.5 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
-                        {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-1.5 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType}</span></div>}
-                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><CalendarDays className="h-4 w-4 mr-1.5 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
+                        {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
+                        {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
+                        {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}
+                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><CalendarDays className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
                         {jobOpening.tags && jobOpening.tags.length > 0 && (
                         <div className="flex items-start sm:col-span-2">
-                            <Sparkles className="h-4 w-4 mr-1.5 mt-0.5 text-muted-foreground shrink-0" />
+                            <Sparkles className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
                             <span className="font-medium text-foreground mr-1 self-start">Skills/Tags:</span>
                             <div className="flex flex-wrap gap-1">
                                 {jobOpening.tags.map((tag) => (
@@ -520,7 +507,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       )}
                     </div>
                   </section>
-                  <Separator className="my-2.5" />
+                  <Separator className="my-3" />
 
                    <section>
                     <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
@@ -543,11 +530,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                           </div>
                         )}
                         {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                          <div className="space-y-1.5 p-3 border rounded-lg bg-muted/50 shadow-sm">
+                          <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
                             <div className="flex items-baseline">
                               <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
                               <span className={cn(
-                                "ml-1.5 font-bold text-xl", 
+                                "ml-1.5 font-bold text-xl",
                                 aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
                                 aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
                                 )}>
@@ -556,13 +543,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                             </div>
                             <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
                             {aiJobFitAnalysis.weightedScoresForCandidate && (
-                                <div className="text-xs pt-0.5">
-                                    <p className="font-medium text-foreground mb-0.5">Score Breakdown:</p>
-                                    <ul className="list-disc list-inside pl-1 text-muted-foreground space-y-0.5">
-                                        <li>Culture Fit: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
-                                        <li>Job Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
-                                        <li>Growth Opportunity: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
-                                        <li>Job Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
+                                <div className="pt-2 mt-2 border-t border-border/70">
+                                    <p className="font-medium text-foreground text-sm mb-1">Score Breakdown:</p>
+                                    <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
+                                        <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
+                                        <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
+                                        <li>Growth Opportunity: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
+                                        <li>Job Conditions: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
                                     </ul>
                                 </div>
                             )}
@@ -573,7 +560,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </section>
                 </>
               )}
-              <Separator className="my-2.5" />
+              <Separator className="my-3" />
 
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <section>
@@ -587,7 +574,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </div>
                 </section>
               )}
-              <Separator className="my-2.5" />
+              <Separator className="my-3" />
 
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
@@ -630,11 +617,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </section>
             </div>
           </ScrollArea>
-          {/* The default X button in DialogContent (from ui/dialog.tsx) will handle closing */}
+          {/* Default X button in DialogContent handles closing */}
         </DialogContent>
       </Dialog>
     </>
   );
 }
-
-      
