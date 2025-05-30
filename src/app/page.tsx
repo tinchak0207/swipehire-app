@@ -14,7 +14,7 @@ import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
 import { WelcomePage } from "@/components/pages/WelcomePage";
-import { MyProfilePage } from "@/components/pages/MyProfilePage"; // Ensured this import exists
+import { MyProfilePage } from "@/components/pages/MyProfilePage";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -32,9 +32,9 @@ export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [showWelcomePage, setShowWelcomePage] = useState(false);
+  const [showWelcomePage, setShowWelcomePage] = useState(false); // Default to false, useEffect will set it
 
-  const [activeTab, setActiveTab] = useState<string>("findTalent");
+  const [activeTab, setActiveTab] = useState<string>("findTalent"); // Default for recruiter
   const [isMobile, setIsMobile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -44,66 +44,56 @@ export default function HomePage() {
   useEffect(() => {
     console.log("HomePage useEffect: Starting auth check, setting isInitialLoading to true");
     setIsInitialLoading(true); // Explicitly set loading to true at the start of the effect.
-    initialAuthCheckDone.current = false; // Reset this ref on effect run
+    initialAuthCheckDone.current = false;
+
+    const processInitialFlags = () => {
+      if (!initialAuthCheckDone.current) {
+        initialAuthCheckDone.current = true;
+        setIsInitialLoading(false);
+        console.log("HomePage useEffect: Initial flags processed, isInitialLoading set to false.");
+
+        const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
+        if (!hasSeenWelcomeStorage) {
+            setShowWelcomePage(true);
+            console.log("HomePage useEffect: Welcome not seen in storage, setting showWelcomePage to true.");
+        } else {
+            setShowWelcomePage(false);
+            console.log("HomePage useEffect: Welcome seen in storage, setting showWelcomePage to false.");
+        }
+      }
+    };
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       console.log("HomePage useEffect: onAuthStateChanged fired. User:", user);
       if (user) {
         setCurrentUser(user);
         setIsAuthenticated(true);
-
         const storedRole = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
-        console.log("HomePage useEffect: onAuthStateChanged - Stored user role:", storedRole);
         setUserRole(storedRole);
-
-        const seenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-        console.log("HomePage useEffect: onAuthStateChanged - Seen welcome:", seenWelcome);
-        
-        // Show welcome only if role is set AND welcome not seen
-        if (!seenWelcome && storedRole) {
-          console.log("HomePage useEffect: onAuthStateChanged - Setting showWelcomePage to true because role is set and welcome not seen.");
-          setShowWelcomePage(true);
-        } else {
-          console.log("HomePage useEffect: onAuthStateChanged - Setting showWelcomePage to false.");
-          setShowWelcomePage(false);
-        }
+        console.log("HomePage useEffect: onAuthStateChanged - User authenticated. Stored role:", storedRole);
       } else {
-        console.log("HomePage useEffect: onAuthStateChanged - No user authenticated, clearing state.");
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
-        setShowWelcomePage(false);
-        localStorage.removeItem(USER_ROLE_KEY); // Also clear role from local storage
-        // We don't clear HAS_SEEN_WELCOME_KEY on logout, user might log back in.
+        // Don't clear USER_ROLE_KEY here, allow role selection even if logged out then back in.
+        // Welcome page state is determined by its own flag.
+        console.log("HomePage useEffect: onAuthStateChanged - No user authenticated, clearing active user state.");
       }
-
-      // This block ensures that isInitialLoading is set to false only after the *first*
-      // onAuthStateChanged event has been processed, establishing the initial auth state.
-      if (!initialAuthCheckDone.current) {
-        initialAuthCheckDone.current = true;
-        setIsInitialLoading(false);
-        console.log("HomePage useEffect: onAuthStateChanged - Initial auth check complete, isInitialLoading set to false");
-      }
+      processInitialFlags();
     });
 
     getRedirectResult(auth)
       .then((result) => {
         console.log("HomePage useEffect: getRedirectResult result:", result);
         if (result?.user) {
-          // onAuthStateChanged will also fire and handle the main state updates (currentUser, isAuthenticated).
-          // This block is primarily for side effects like a success toast.
           toast({
             title: "Signed In Successfully!",
             description: `Welcome back, ${result.user.displayName || result.user.email}!`,
           });
-          // If onAuthStateChanged has somehow not yet completed the initial check by the time
-          // getRedirectResult finishes (unlikely but a safeguard), ensure loading is false.
-          if (!initialAuthCheckDone.current) {
-             console.log("HomePage useEffect: getRedirectResult finished before first onAuthStateChanged, ensuring loading state is false.");
-             initialAuthCheckDone.current = true;
-             setIsInitialLoading(false);
-          }
+          // onAuthStateChanged will also fire and handle the main state updates.
         }
+        // Ensure initial flags are processed if getRedirectResult finishes before onAuthStateChanged completes the *first* check
+        processInitialFlags();
       })
       .catch((error) => {
         console.error("HomePage useEffect: Error during getRedirectResult:", error);
@@ -112,14 +102,14 @@ export default function HomePage() {
           description: error.message || "Could not complete sign-in after redirect.",
           variant: "destructive",
         });
+        processInitialFlags(); // Also ensure flags are processed on error
       })
       .finally(() => {
-        // Ensure initial loading is marked as done if getRedirectResult finishes
-        // and onAuthStateChanged hasn't yet. This is a fallback.
+        // Fallback: Ensure initial loading flags are processed if nothing else has by now.
+        // This is a safeguard.
         if (!initialAuthCheckDone.current) {
-          initialAuthCheckDone.current = true;
-          setIsInitialLoading(false);
-          console.log("HomePage useEffect: getRedirectResult.finally - Initial auth check forced complete, isInitialLoading set to false");
+            console.log("HomePage useEffect: getRedirectResult.finally - Forcing initial flags processing.");
+            processInitialFlags();
         }
       });
 
@@ -127,7 +117,7 @@ export default function HomePage() {
       console.log("HomePage useEffect: Cleaning up onAuthStateChanged listener.");
       unsubscribe();
     };
-  }, [toast]); // toast is stable, so this effect runs once on mount.
+  }, [toast]);
 
 
   useEffect(() => {
@@ -149,41 +139,32 @@ export default function HomePage() {
       uid: `mock-bypass-user-${Date.now()}`,
       email: 'dev.user@example.com',
       displayName: 'Dev User (Bypass)',
-      emailVerified: true,
-      isAnonymous: false,
-      metadata: { creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString() },
-      phoneNumber: null, photoURL: null, providerData: [{ providerId: 'google.com', uid: `mock-google-uid-${Date.now()}`, displayName: 'Dev User (Bypass)', email: 'dev.user@example.com', phoneNumber: null, photoURL: null, }],
+      emailVerified: true, isAnonymous: false, metadata: {}, phoneNumber: null, photoURL: null, providerData: [],
       providerId: 'firebase', refreshToken: 'mock-refresh-token', tenantId: null,
-      delete: () => Promise.resolve(), getIdToken: (_forceRefresh?: boolean) => Promise.resolve('mock-id-token'),
-      getIdTokenResult: (_forceRefresh?: boolean) => Promise.resolve({ token: 'mock-id-token', expirationTime: new Date(Date.now() + 3600 * 1000).toISOString(), authTime: new Date().toISOString(), issuedAtTime: new Date().toISOString(), signInProvider: 'google.com', signInSecondFactor: null, claims: {}, }),
+      delete: () => Promise.resolve(), getIdToken: () => Promise.resolve('mock-id-token'),
+      getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }),
       reload: () => Promise.resolve(), toJSON: () => ({ uid: `mock-bypass-user-${Date.now()}`, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }),
     };
 
-    // Simulate what onAuthStateChanged would do
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
 
+    // Check existing role, bypass doesn't select a role automatically
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
     setUserRole(storedRoleValue);
     console.log("HomePage: handleLoginBypass - Stored role:", storedRoleValue);
 
-    const seenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-    console.log("HomePage: handleLoginBypass - Seen welcome:", seenWelcome);
-    
-    if (!seenWelcome && storedRoleValue) {
-        console.log("HomePage: handleLoginBypass - Setting showWelcomePage to true");
-        setShowWelcomePage(true);
-    } else {
-        console.log("HomePage: handleLoginBypass - Setting showWelcomePage to false");
-        setShowWelcomePage(false);
-    }
-
+    // If initial auth check hasn't completed (e.g. bypass clicked very fast), ensure it's marked as done.
     if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
         console.log("HomePage: handleLoginBypass - Initial auth check forced complete, isInitialLoading set to false");
+        // And ensure welcome page logic runs if it hasn't
+        const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
+        if (!hasSeenWelcomeStorage) {
+            setShowWelcomePage(true);
+        }
     }
-
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
 
@@ -192,31 +173,25 @@ export default function HomePage() {
     console.log("HomePage: handleRoleSelect called with role:", role);
     localStorage.setItem(USER_ROLE_KEY, role);
     setUserRole(role);
+    // Set default tab based on role
     if (role === 'recruiter') {
       setActiveTab('findTalent');
     } else {
       setActiveTab('findJobs');
     }
-    // If selecting a role means they've "started", hide welcome page.
-    // If welcome is not yet seen, but now a role is selected, they should see welcome.
-    const seenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-    if (!seenWelcome) {
-        console.log("HomePage: handleRoleSelect - Role selected, welcome not seen, setting showWelcomePage to true.");
-        setShowWelcomePage(true); 
-    } else {
-        console.log("HomePage: handleRoleSelect - Role selected, welcome seen, setting showWelcomePage to false.");
-        setShowWelcomePage(false); 
-    }
+    // The rendering logic will now determine the next page (likely LoginPage if not authenticated)
   };
 
   const handleLogout = async () => {
     console.log("HomePage: handleLogout called");
     try {
       await signOut(auth);
-      // onAuthStateChanged will handle resetting:
-      // currentUser, isAuthenticated, userRole.
-      // showWelcomePage will also be false as per onAuthStateChanged logic for no user.
-      // USER_ROLE_KEY is cleared by onAuthStateChanged.
+      // onAuthStateChanged will handle resetting: currentUser, isAuthenticated.
+      // userRole remains from localStorage unless explicitly cleared or user changes it.
+      // HAS_SEEN_WELCOME_KEY is not cleared on logout.
+      // Explicitly clear userRole from localStorage if desired on logout.
+      // localStorage.removeItem(USER_ROLE_KEY);
+      // setUserRole(null); // if USER_ROLE_KEY is removed.
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
       console.error("Error signing out:", error);
@@ -225,12 +200,9 @@ export default function HomePage() {
   };
 
   const handleLoginRequest = () => {
-    console.log("HomePage: handleLoginRequest called - typically ensures login page is shown if needed");
-    // This primarily ensures that if a user somehow gets to a state where they need to log in
-    // and click a login button (e.g. in header if shown when !isAuthenticated), they are taken to LoginPage
-    // by ensuring other modal-like pages (welcome, role selection) are not shown.
-    setShowWelcomePage(false); 
-    // The main rendering logic will then show LoginPage if !isAuthenticated.
+    console.log("HomePage: handleLoginRequest called");
+    // Ensures other modal-like pages are not shown if a login is explicitly requested.
+    setShowWelcomePage(false);
   };
 
   const baseTabItems = [
@@ -252,13 +224,14 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems; // Default
+  let currentTabItems = jobseekerTabItems;
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   }
 
   useEffect(() => {
-    if (userRole && isAuthenticated) {
+    // This effect ensures the activeTab is valid for the current userRole.
+    if (userRole) { // Only run if userRole is determined
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
       const defaultTabForCurrentRole = userRole === 'recruiter' ? "findTalent" : "findJobs";
@@ -266,9 +239,12 @@ export default function HomePage() {
       if (!validTabValues.includes(activeTab)) {
         setActiveTab(defaultTabForCurrentRole);
       }
+    } else {
+        // If no role, maybe set a general default or ensure no tab is "active" if tabs aren't shown
+        // For now, we'll assume tabs are only shown when a role is set and user is authenticated.
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated, activeTab]);
+  }, [userRole, activeTab]); // Removed isAuthenticated from deps as role selection implies intent
 
 
   // ------ Page Rendering Logic ------
@@ -283,26 +259,26 @@ export default function HomePage() {
     );
   }
 
-  // Welcome page shown if authenticated, role selected, and welcome not seen.
-  if (isAuthenticated && userRole && showWelcomePage) {
-    console.log("HomePage: Rendering WelcomePage because isAuthenticated, userRole, and showWelcomePage are true.");
+  // Step 1: Show WelcomePage if it hasn't been seen.
+  if (showWelcomePage) {
+    console.log("HomePage: Rendering WelcomePage because showWelcomePage is true.");
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
 
-  // If not authenticated (and initial loading is complete, and welcome not applicable or done)
-  if (!isAuthenticated) {
-    console.log("HomePage: Rendering LoginPage because !isAuthenticated.");
-    return <LoginPage onLoginBypass={handleLoginBypass} />;
-  }
-
-  // If authenticated, welcome seen (or not applicable), but no role selected
-  if (!userRole) { // This implies isAuthenticated is true
-    console.log("HomePage: Rendering RoleSelectionPage because isAuthenticated is true but !userRole.");
+  // Step 2: If Welcome is done (or wasn't needed), and no role selected, show RoleSelectionPage.
+  if (!userRole) {
+    console.log("HomePage: Rendering RoleSelectionPage because !userRole and welcome page condition not met.");
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
-  // Authenticated, welcome seen (or not applicable), role selected -> Show main app
-  console.log("HomePage: Rendering Main App Content because authenticated, role selected, and welcome page condition not met.");
+  // Step 3: If Welcome is done, AND a role is selected, but user is not authenticated, show LoginPage.
+  if (!isAuthenticated) { // userRole is guaranteed to be set here
+    console.log("HomePage: Rendering LoginPage because !isAuthenticated, but role is selected and welcome is done.");
+    return <LoginPage onLoginBypass={handleLoginBypass} />;
+  }
+
+  // Step 4: Authenticated, welcome seen (or not applicable), role selected -> Show main app
+  console.log("HomePage: Rendering Main App Content because all prerequisite conditions met.");
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
