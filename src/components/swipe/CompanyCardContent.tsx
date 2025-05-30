@@ -10,7 +10,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // DialogClose might not be needed if using default X
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -58,8 +58,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Feature Locked", description: "Sign in to view company details and AI insights.", variant: "default"});
         return;
     }
-    setAiJobFitAnalysis(null);
-    setIsLoadingAiAnalysis(false);
+    setAiJobFitAnalysis(null); // Reset previous analysis
+    setIsLoadingAiAnalysis(false); // Reset loading state
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
@@ -79,23 +79,47 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setAiJobFitAnalysis(null);
 
     try {
+      // Attempt to get values from localStorage, providing defaults if null
+      const candidateRole = localStorage.getItem('jobSeekerProfileHeadline') || 'Not specified';
+      const candidateExpSummary = localStorage.getItem('jobSeekerExperienceSummary') || 'Not specified';
+      const candidateSkillsString = localStorage.getItem('jobSeekerSkills') || '';
+      const candidateSkills = candidateSkillsString ? candidateSkillsString.split(',').map(s => s.trim()).filter(s => s) : [];
+      const candidateLocation = localStorage.getItem('userAddressSettings') || localStorage.getItem('userCountrySettings') || 'Not specified';
+      const candidateDesiredWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle') || 'Not specified';
+      const candidatePastProjects = localStorage.getItem('jobSeekerPastProjects') || 'Not specified';
+      const candidateWorkExpLevel = (localStorage.getItem('jobSeekerExperienceLevel') as WorkExperienceLevel) || WorkExperienceLevel.UNSPECIFIED;
+      const candidateEduLevel = (localStorage.getItem('jobSeekerEducationLevel') as EducationLevel) || EducationLevel.UNSPECIFIED;
+      const candidateLocPref = (localStorage.getItem('jobSeekerLocationPreference') as LocationPreference) || LocationPreference.UNSPECIFIED;
+      const candidateLanguagesString = localStorage.getItem('jobSeekerLanguages') || '';
+      const candidateLanguages = candidateLanguagesString ? candidateLanguagesString.split(',').map(s => s.trim()).filter(s => s) : [];
+      const candidateSalaryMinStr = localStorage.getItem('jobSeekerSalaryMin') || '0';
+      const candidateSalaryMaxStr = localStorage.getItem('jobSeekerSalaryMax') || '0';
+      const candidateSalaryMin = parseInt(candidateSalaryMinStr, 10) || undefined;
+      const candidateSalaryMax = parseInt(candidateSalaryMaxStr, 10) || undefined;
+      const candidateAvailability = (localStorage.getItem('jobSeekerAvailability') as Availability) || Availability.UNSPECIFIED;
+      const candidateJobTypePrefString = localStorage.getItem('jobSeekerJobTypePreference') || '';
+      const candidateJobTypePreference = candidateJobTypePrefString ? (candidateJobTypePrefString.split(',') as JobType[]) : [];
+      const candidatePersonalityAssessmentString = localStorage.getItem('jobSeekerPersonalityAssessment') || 'null';
+      const candidatePersonalityAssessment = JSON.parse(candidatePersonalityAssessmentString) || [];
+
+
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', 
-        role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
-        experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
-        skills: (localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s)) || [],
-        location: localStorage.getItem('userAddressSettings') || localStorage.getItem('userCountrySettings') || undefined,
-        desiredWorkStyle: localStorage.getItem('jobSeekerDesiredWorkStyle') || undefined,
-        pastProjects: localStorage.getItem('jobSeekerPastProjects') || undefined,
-        workExperienceLevel: (localStorage.getItem('jobSeekerExperienceLevel') as WorkExperienceLevel) || WorkExperienceLevel.UNSPECIFIED,
-        educationLevel: (localStorage.getItem('jobSeekerEducationLevel') as EducationLevel) || EducationLevel.UNSPECIFIED,
-        locationPreference: (localStorage.getItem('jobSeekerLocationPreference') as LocationPreference) || LocationPreference.UNSPECIFIED,
-        languages: localStorage.getItem('jobSeekerLanguages')?.split(',').map(s => s.trim()).filter(s => s) || [],
-        salaryExpectationMin: parseInt(localStorage.getItem('jobSeekerSalaryMin') || '0') || undefined,
-        salaryExpectationMax: parseInt(localStorage.getItem('jobSeekerSalaryMax') || '0') || undefined,
-        availability: (localStorage.getItem('jobSeekerAvailability') as Availability) || Availability.UNSPECIFIED,
-        jobTypePreference: (localStorage.getItem('jobSeekerJobTypePreference')?.split(',') as JobType[]) || [],
-        personalityAssessment: JSON.parse(localStorage.getItem('jobSeekerPersonalityAssessment') || 'null') || [],
+        id: 'currentUserProfile',
+        role: candidateRole,
+        experienceSummary: candidateExpSummary,
+        skills: candidateSkills,
+        location: candidateLocation,
+        desiredWorkStyle: candidateDesiredWorkStyle,
+        pastProjects: candidatePastProjects,
+        workExperienceLevel: candidateWorkExpLevel,
+        educationLevel: candidateEduLevel,
+        locationPreference: candidateLocPref,
+        languages: candidateLanguages,
+        salaryExpectationMin: candidateSalaryMin,
+        salaryExpectationMax: candidateSalaryMax,
+        availability: candidateAvailability,
+        jobTypePreference: candidateJobTypePreference,
+        personalityAssessment: candidatePersonalityAssessment,
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -118,7 +142,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
       } else {
-        setAiJobFitAnalysis({ 
+        setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
             reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.",
             weightedScoresForCandidate: {
@@ -132,7 +156,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } catch (error: any) {
       console.error("Error fetching AI job fit analysis for company " + company.name + ":", error);
       toast({ title: "AI Analysis Error", description: `Failed to get AI insights. ${error.message || 'Ensure your profile is up to date.'}`, variant: "destructive" });
-       setAiJobFitAnalysis({ 
+       setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
             reasoningForCandidate: "Error during AI analysis.",
             weightedScoresForCandidate: {
@@ -145,7 +169,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); 
+  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
@@ -154,22 +178,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) { 
+        if (e.clientY > rect.bottom - 40) {
             return;
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return; 
+        return;
       }
     }
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
-    setCurrentX(e.clientX); 
+    setCurrentX(e.clientX);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none'; 
+      cardContentRef.current.style.transition = 'none';
     }
-    document.body.style.userSelect = 'none'; 
+    document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -179,32 +203,32 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardContentRef.current || isGuestMode) return;
-    
-    const deltaX = currentX - startX; 
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out'; 
+
+    const deltaX = currentX - startX;
+    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
     cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-      if (deltaX < 0) { 
+      if (deltaX < 0) {
         onSwipeAction(company.id, 'pass');
-      } else { 
+      } else {
         onSwipeAction(company.id, 'like');
       }
     }
-    
+
     setIsDragging(false);
     setStartX(0);
     setCurrentX(0);
     if (cardContentRef.current) {
       cardContentRef.current.style.cursor = 'grab';
     }
-    document.body.style.userSelect = ''; 
+    document.body.style.userSelect = '';
   };
-  
+
   const getCardTransform = () => {
     if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
-    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1); 
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
@@ -236,15 +260,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsAskingQuestion(false);
     }
   };
-  
+
   const handleShareClick = async (e: React.MouseEvent) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     if (isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default"});
       return;
     }
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; 
+    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com';
 
     if (navigator.share) {
       try {
@@ -270,7 +294,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   };
 
   const jobDescriptionForCard = jobOpening?.description || "";
-  const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH_CARD 
+  const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH_CARD
     ? jobDescriptionForCard.substring(0, MAX_JOB_DESCRIPTION_LENGTH_CARD) + "..."
     : jobDescriptionForCard;
 
@@ -278,7 +302,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL
     ? companyDescriptionForModal
     : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + "...";
-  
+
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL
     ? jobDescriptionForModal
@@ -351,7 +375,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4" 
+              className="object-contain p-4"
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -376,7 +400,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </CardHeader>
 
-                <div className="space-y-0.5"> 
+                <div className="space-y-0.5">
                     {jobOpening?.location && (
                     <div className="flex items-center text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
@@ -402,7 +426,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </div>
             </div>
-            
+
             <CardFooter className="p-2 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
@@ -412,9 +436,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
       </div>
 
+      {/* Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
-          <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10">
+          <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10 pb-3"> {/* Reduced bottom padding */}
             <DialogTitle className="text-2xl sm:text-3xl font-bold text-primary">
               {jobOpening?.title || "Opportunity"} at {company.name}
             </DialogTitle>
@@ -422,8 +447,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </DialogHeader>
 
           <ScrollArea className="flex-1 min-h-0 bg-background">
-            <div className="p-4 sm:p-6 space-y-4">
-              
+            <div className="p-4 sm:p-6 space-y-4 pt-3"> {/* Reduced top padding for first section */}
+
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
                     <Building className="mr-2 h-6 w-6 text-primary" /> About {company.name}
@@ -467,7 +492,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </p>
                   </section>
                   <Separator className="my-3" />
-                  
+
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                         <ListChecks className="mr-2 h-6 w-6 text-primary" /> Key Job Details
@@ -541,6 +566,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       </>
                     )}
                   </section>
+                  {/* The default X button in DialogContent will handle closing */}
                 </>
               )}
               <Separator className="my-3" />
@@ -558,7 +584,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </section>
               )}
               <Separator className="my-3" />
-              
+
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Ask AI About {company.name}
@@ -600,6 +626,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </section>
             </div>
           </ScrollArea>
+          {/* No explicit DialogFooter is needed if we rely on the default X in DialogContent header */}
         </DialogContent>
       </Dialog>
     </>
