@@ -12,8 +12,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock } from 'lucide-react'; // Added Lock
+import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock, Star, BadgeInfo } from 'lucide-react'; // Added Star, BadgeInfo
 import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge'; // Added Badge for featured posts
+import { Separator } from '@/components/ui/separator'; // Added Separator
 
 const DIARY_POSTS_STORAGE_KEY = 'swipeHireDiaryPosts';
 
@@ -32,17 +34,23 @@ function DiaryPostCard({ post, isGuestMode }: { post: DiaryPost, isGuestMode?: b
 
   return (
     <Card className="w-full shadow-lg overflow-hidden">
-      <CardHeader className="flex flex-row items-center space-x-3 p-4 bg-muted/30">
-        <Avatar>
+      <CardHeader className="flex flex-row items-start space-x-3 p-4 bg-muted/30">
+        <Avatar className="mt-1">
           <AvatarImage src={post.authorAvatarUrl || `https://placehold.co/100x100.png?text=${post.authorName.charAt(0)}`} alt={post.authorName} data-ai-hint={post.dataAiHint || 'person initial'}/>
           <AvatarFallback>{post.authorName.charAt(0)}</AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex-1">
           <CardTitle className="text-md font-semibold text-primary">{post.authorName}</CardTitle>
           <p className="text-xs text-muted-foreground">
             Posted {formatDistanceToNow(new Date(post.timestamp), { addSuffix: true })}
           </p>
         </div>
+        {post.isFeatured && (
+          <Badge variant="outline" className="ml-auto text-xs px-2 py-1 border-yellow-500 bg-yellow-400/20 text-yellow-700 font-semibold shrink-0">
+            <Star className="h-3.5 w-3.5 mr-1 fill-yellow-500 text-yellow-600" />
+            Featured
+          </Badge>
+        )}
       </CardHeader>
       <CardContent className="p-4 space-y-3">
         <h3 className="text-lg font-semibold">{post.title}</h3>
@@ -108,6 +116,7 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
       likes: 0,
       views: 0,
+      isFeatured: Math.random() < 0.2, // Randomly feature some new posts for demo
     };
     onPostCreated(newPost);
     setTitle('');
@@ -150,7 +159,7 @@ interface StaffDiaryPageProps {
 }
 
 export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
-  const [posts, setPosts] = useState<DiaryPost[]>([]);
+  const [allPosts, setAllPosts] = useState<DiaryPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('Demo User');
@@ -164,12 +173,15 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
     }
 
     const storedPosts = localStorage.getItem(DIARY_POSTS_STORAGE_KEY);
-    const initialPosts = storedPosts ? JSON.parse(storedPosts) : mockDiaryPosts;
-    setPosts(initialPosts.sort((a: DiaryPost, b: DiaryPost) => b.timestamp - a.timestamp));
+    let initialPosts = storedPosts ? JSON.parse(storedPosts) : mockDiaryPosts;
+    // Ensure mockData also has isFeatured potentially
+    initialPosts = initialPosts.map((p: DiaryPost) => ({ ...p, isFeatured: p.isFeatured || Math.random() < 0.15 })); 
+
+    setAllPosts(initialPosts.sort((a: DiaryPost, b: DiaryPost) => b.timestamp - a.timestamp));
   }, []);
 
   const handlePostCreated = (newPost: DiaryPost) => {
-    setPosts(prevPosts => {
+    setAllPosts(prevPosts => {
       const updatedPosts = [newPost, ...prevPosts].sort((a, b) => b.timestamp - a.timestamp);
       localStorage.setItem(DIARY_POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
       return updatedPosts;
@@ -177,17 +189,26 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
     setIsCreatePostOpen(false);
   };
   
-  const filteredPosts = useMemo(() => {
+  const postsMatchingSearch = useMemo(() => {
     if (!searchTerm.trim()) {
-      return posts;
+      return allPosts;
     }
-    return posts.filter(post => 
+    return allPosts.filter(post => 
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
     );
-  }, [posts, searchTerm]);
+  }, [allPosts, searchTerm]);
+
+  const featuredPosts = useMemo(() => {
+    return postsMatchingSearch.filter(post => post.isFeatured === true);
+  }, [postsMatchingSearch]);
+
+  const regularPostsToDisplay = useMemo(() => {
+    return postsMatchingSearch.filter(post => !post.isFeatured);
+  }, [postsMatchingSearch]);
+
 
   const handleCreatePostClick = () => {
     if (isGuestMode) {
@@ -253,33 +274,52 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       </div>
 
-      <Card className="border-dashed border-primary/50 bg-primary/5">
-          <CardHeader>
-              <CardTitle className="text-lg text-primary flex items-center">
-                  <BookOpenText className="mr-2 h-5 w-5" />
-                  AI Content Curation (Conceptual)
-              </CardTitle>
-          </CardHeader>
-          <CardContent>
-              <p className="text-sm text-muted-foreground">
-                  In a full implementation, this section might feature AI-selected quality posts, sort by engagement (readership, likes), or highlight posts based on specific criteria to ensure authenticity and positivity. For now, all posts are displayed chronologically.
-              </p>
-          </CardContent>
-      </Card>
-
-      {filteredPosts.length === 0 ? (
-        <div className="text-center py-10">
-          <p className="text-muted-foreground text-lg">
-            {searchTerm ? "No diary posts match your search." : "No diary posts yet. Be the first to share!"}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {filteredPosts.map(post => (
-            <DiaryPostCard key={post.id} post={post} isGuestMode={isGuestMode} />
-          ))}
-        </div>
+      {/* Featured Posts Section */}
+      {featuredPosts.length > 0 && (
+        <section className="space-y-4">
+          <h2 className="text-2xl font-semibold text-primary flex items-center">
+            <Star className="mr-2 h-6 w-6 text-yellow-500 fill-yellow-400" />
+            Featured Insights
+          </h2>
+          <div className="space-y-6">
+            {featuredPosts.map(post => (
+              <DiaryPostCard key={post.id} post={post} isGuestMode={isGuestMode} />
+            ))}
+          </div>
+          <Separator className="my-8" />
+        </section>
       )}
+      
+      {/* Regular Posts Section */}
+      <section className="space-y-4">
+        {featuredPosts.length > 0 && regularPostsToDisplay.length > 0 && ( // Only show "All Entries" header if there were featured posts AND there are regular posts
+            <h2 className="text-2xl font-semibold text-foreground">
+                All Diary Entries
+            </h2>
+        )}
+
+        {postsMatchingSearch.length === 0 ? (
+          <div className="text-center py-10 col-span-full">
+            <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground text-lg">
+              {searchTerm ? "No diary posts match your search." : "No diary posts yet. Be the first to share!"}
+            </p>
+          </div>
+        ) : regularPostsToDisplay.length === 0 && featuredPosts.length > 0 ? (
+            <div className="text-center py-10 col-span-full">
+                <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                <p className="text-muted-foreground text-lg">
+                    {searchTerm ? "No other entries match your search." : "No other entries yet beyond the featured ones."}
+                </p>
+            </div>
+        ) : (
+          <div className="space-y-6">
+            {regularPostsToDisplay.map(post => (
+              <DiaryPostCard key={post.id} post={post} isGuestMode={isGuestMode} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
