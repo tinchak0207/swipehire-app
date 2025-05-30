@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Compass, Eye } from "lucide-react";
+import { LogIn, Compass, Eye, Sparkles } from "lucide-react"; // Added Sparkles
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -19,19 +19,19 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
-      // Using signInWithPopup for easier debugging of popup issues
+      console.log("LoginPage: Attempting signInWithPopup...");
       const result: UserCredential = await signInWithPopup(auth, provider);
       console.log("LoginPage: signInWithPopup successful, user:", result.user);
       // onAuthStateChanged in HomePage will handle the main state updates.
       toast({
-        title: "Sign-In Successful (Popup)",
+        title: "Sign-In Successful!",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
       });
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
       let errorMessage = "Failed to sign in with Google using popup.";
-      let shouldBypass = true; // Assume bypass unless it's a user cancellation or specific non-bypass error
+      let shouldBypass = true; 
 
       if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
@@ -39,11 +39,11 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         errorMessage = "Pop-up was blocked by the browser. Please allow pop-ups for this site.";
       } else if (firebaseError.code === 'auth/cancelled-popup-request' || firebaseError.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in cancelled. The Google Sign-In window was closed.";
-        shouldBypass = false; // Don't bypass if user explicitly closed/cancelled
-         toast({
-          title: "Sign-In Cancelled",
+        shouldBypass = false; 
+        toast({
+          title: "Sign-In Cancelled or Popup Issue",
           description: errorMessage,
-          variant: "default", // Not a destructive error if user cancelled
+          variant: "default", 
         });
       } else if (firebaseError.code === 'auth/operation-not-allowed') {
         errorMessage = "Sign-in method is not enabled. Please contact support.";
@@ -51,14 +51,13 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         errorMessage = "This domain is not authorized for Google Sign-In. Check Firebase console.";
       }
       
-      if (shouldBypass) { // Only show destructive toast and bypass if not a user cancellation or specific error
+      if (shouldBypass) {
         toast({
           title: "Google Sign-In Failed (Popup)",
           description: `${errorMessage} Code: ${firebaseError.code}. For development, a bypass will be attempted.`,
           variant: "destructive",
           duration: 7000,
         });
-        // Offer bypass if popup sign-in fails for reasons other than explicit user cancellation
         setTimeout(() => {
           onLoginBypass();
         }, 2000);
@@ -75,8 +74,12 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           <CardDescription className="text-md text-muted-foreground pt-1">
             Sign in to discover your next opportunity or top talent.
           </CardDescription>
+          <p className="text-sm text-accent flex items-center justify-center pt-1">
+            <Sparkles className="h-4 w-4 mr-1.5 text-yellow-500" />
+            Unlock AI tools, personalized matches, & direct messaging!
+          </p>
         </CardHeader>
-        <CardContent className="space-y-4 py-8"> {/* Adjusted space-y for better button layout */}
+        <CardContent className="space-y-4 py-8">
           <Button
             onClick={handleGoogleSignIn}
             size="lg"
@@ -99,7 +102,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         </CardContent>
         <CardFooter className="pb-8">
             <p className="text-center text-xs text-muted-foreground w-full">
-              By signing in, you agree to our Terms of Service and Privacy Policy (not really, this is a demo!).
+              By signing in, you agree to our (conceptual) Terms of Service and Privacy Policy.
             </p>
         </CardFooter>
       </Card>

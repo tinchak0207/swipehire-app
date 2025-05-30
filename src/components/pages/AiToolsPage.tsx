@@ -1,16 +1,16 @@
 
 "use client";
 
-import { useState, useEffect } from 'react'; // Added useEffect
+import { useState, useEffect } from 'react';
 import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
 import { VideoRecorderUI } from "@/components/video/VideoRecorderUI";
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon } from 'lucide-react'; // Added Lock, Info, CloseIcon
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon } from 'lucide-react';
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from '@/lib/utils';
 
 type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor';
@@ -112,11 +112,10 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
 
   const SelectedComponent = selectedToolKey ? aiToolsData.find(tool => tool.key === selectedToolKey)?.Component : null;
 
-  const GuestLockOverlay = ({ message = "Sign in to unlock this tool" }: { message?: string }) => (
-    <div className="absolute inset-0 bg-red-500 bg-opacity-20 flex flex-col items-center justify-center rounded-xl z-20 backdrop-blur-sm">
-      <Lock className="h-12 w-12 text-red-600 mb-2" />
-      <span className="font-bold text-xl text-red-600">LOCKED</span>
-      <p className="text-sm text-red-500 mt-1">{message}</p>
+  const GuestLockOverlay = ({ message = "Sign In to Use This Tool" }: { message?: string }) => (
+    <div className="absolute inset-0 bg-red-500 bg-opacity-20 flex flex-col items-center justify-center rounded-xl z-20 backdrop-blur-sm p-4">
+      <Lock className="h-10 w-10 sm:h-12 sm:w-12 text-red-600 mb-2" />
+      <span className="font-bold text-lg sm:text-xl text-red-600 text-center">{message}</span>
     </div>
   );
 
@@ -162,35 +161,35 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
               <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Ask AI to...</h1>
               {isGuestMode && (
                 <p className="text-md text-red-500 mt-2 font-semibold">
-                  AI Tools are locked in Guest Mode. Please sign in to use them.
+                  AI Tools are locked in Guest Mode. Please sign in or register to use them.
                 </p>
               )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-4xl mx-auto w-full">
               {aiToolsData.map((tool) => (
                 <TooltipProvider key={tool.key}>
-                  <Tooltip delayDuration={isGuestMode ? 0 : 500}>
+                  <Tooltip delayDuration={isGuestMode ? 0 : 300}>
                     <TooltipTrigger asChild>
                       <Card
                         onClick={() => handleToolSelect(tool)}
                         className={cn(
-                          "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-8 min-h-[280px] sm:min-h-[320px] relative",
+                          "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] relative",
                           tool.bgClass,
                           isGuestMode && "opacity-60 border-2 border-red-400 cursor-not-allowed hover:transform-none"
                         )}
                         aria-disabled={isGuestMode}
                       >
                         {isGuestMode && <GuestLockOverlay />}
-                        <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-4 text-white/90 group-hover:scale-110 transition-transform" />
-                        <CardTitle className="text-2xl sm:text-3xl font-bold text-center">{tool.title}</CardTitle>
-                        <CardContent className="text-center p-0 mt-3">
-                          <p className="text-base sm:text-lg text-white/80">{tool.description}</p>
+                        <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
+                        <CardTitle className="text-xl sm:text-2xl font-bold text-center">{tool.title}</CardTitle>
+                        <CardContent className="text-center p-0 mt-2 sm:mt-3">
+                          <p className="text-sm sm:text-base text-white/80">{tool.description}</p>
                         </CardContent>
                       </Card>
                     </TooltipTrigger>
                     {isGuestMode && (
                       <TooltipContent side="top" className="bg-red-500 text-white border-red-600">
-                        <p>Sign in to unlock this tool</p>
+                        <p>Sign in to unlock this AI tool</p>
                       </TooltipContent>
                     )}
                   </Tooltip>
@@ -260,7 +259,7 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
               Back to AI Tools
             </Button>
             <div className="flex-grow relative">
-              {isGuestMode && SelectedComponent && <GuestLockOverlay message="Sign in to use this AI tool." />}
+              {isGuestMode && SelectedComponent && <GuestLockOverlay message="Sign In to Use This AI Tool." />}
               {SelectedComponent && <SelectedComponent />}
             </div>
           </div>
@@ -269,5 +268,3 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
     </div>
   );
 }
-
-    
