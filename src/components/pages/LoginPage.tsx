@@ -3,34 +3,35 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Compass } from "lucide-react";
+import { LogIn, Compass, Eye } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 
 interface LoginPageProps {
   onLoginBypass: () => void;
+  onGuestMode: () => void;
 }
 
-export function LoginPage({ onLoginBypass }: LoginPageProps) {
+export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   const { toast } = useToast();
 
   const handleGoogleSignIn = async () => {
     const provider = new GoogleAuthProvider();
     try {
+      // Using signInWithPopup for easier debugging of popup issues
       const result: UserCredential = await signInWithPopup(auth, provider);
-      // If signInWithPopup is successful, onAuthStateChanged in HomePage should pick up the user.
       console.log("LoginPage: signInWithPopup successful, user:", result.user);
+      // onAuthStateChanged in HomePage will handle the main state updates.
       toast({
         title: "Sign-In Successful (Popup)",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
       });
-      // Note: HomePage's onAuthStateChanged listener will handle navigating away from LoginPage.
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
       let errorMessage = "Failed to sign in with Google using popup.";
-      let bypass = true; // Assume bypass unless it's a user cancellation
+      let shouldBypass = true; // Assume bypass unless it's a user cancellation or specific non-bypass error
 
       if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
@@ -38,8 +39,8 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
         errorMessage = "Pop-up was blocked by the browser. Please allow pop-ups for this site.";
       } else if (firebaseError.code === 'auth/cancelled-popup-request' || firebaseError.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in cancelled. The Google Sign-In window was closed.";
-        bypass = false; // Don't bypass if user explicitly closed/cancelled
-        toast({
+        shouldBypass = false; // Don't bypass if user explicitly closed/cancelled
+         toast({
           title: "Sign-In Cancelled",
           description: errorMessage,
           variant: "default", // Not a destructive error if user cancelled
@@ -50,7 +51,7 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
         errorMessage = "This domain is not authorized for Google Sign-In. Check Firebase console.";
       }
       
-      if (bypass) { // Only show destructive toast and bypass if not a user cancellation
+      if (shouldBypass) { // Only show destructive toast and bypass if not a user cancellation or specific error
         toast({
           title: "Google Sign-In Failed (Popup)",
           description: `${errorMessage} Code: ${firebaseError.code}. For development, a bypass will be attempted.`,
@@ -75,7 +76,7 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
             Sign in to discover your next opportunity or top talent.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 py-8">
+        <CardContent className="space-y-4 py-8"> {/* Adjusted space-y for better button layout */}
           <Button
             onClick={handleGoogleSignIn}
             size="lg"
@@ -84,6 +85,16 @@ export function LoginPage({ onLoginBypass }: LoginPageProps) {
           >
             <Compass className="mr-2 h-5 w-5" />
             Sign in with Google
+          </Button>
+          <Button
+            onClick={onGuestMode}
+            variant="outline"
+            size="lg"
+            className="w-full text-lg py-3 border-primary text-primary hover:bg-primary/10"
+            aria-label="Continue as Guest"
+          >
+            <Eye className="mr-2 h-5 w-5" />
+            Continue as Guest
           </Button>
         </CardContent>
         <CardFooter className="pb-8">
