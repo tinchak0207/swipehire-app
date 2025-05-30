@@ -2,25 +2,28 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CandidateDiscoveryPage } from "@/components/pages/CandidateDiscoveryPage";
-import { JobDiscoveryPage } from "@/components/pages/JobDiscoveryPage";
-import { AiToolsPage } from "@/components/pages/AiToolsPage";
-import { MatchesPage } from "@/components/pages/MatchesPage";
-import { SettingsPage } from "@/components/pages/SettingsPage";
-import { RoleSelectionPage } from "@/components/pages/RoleSelectionPage";
-import { LoginPage } from "@/components/pages/LoginPage";
-import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
-import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
-import { WelcomePage } from "@/components/pages/WelcomePage";
-import { MyProfilePage } from "@/components/pages/MyProfilePage";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+
+// Lazy load components
+const CandidateDiscoveryPage = dynamic(() => import('@/components/pages/CandidateDiscoveryPage').then(mod => mod.CandidateDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const JobDiscoveryPage = dynamic(() => import('@/components/pages/JobDiscoveryPage').then(mod => mod.JobDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const AiToolsPage = dynamic(() => import('@/components/pages/AiToolsPage').then(mod => mod.AiToolsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const MatchesPage = dynamic(() => import('@/components/pages/MatchesPage').then(mod => mod.MatchesPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const SettingsPage = dynamic(() => import('@/components/pages/SettingsPage').then(mod => mod.SettingsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const RoleSelectionPage = dynamic(() => import('@/components/pages/RoleSelectionPage').then(mod => mod.RoleSelectionPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const LoginPage = dynamic(() => import('@/components/pages/LoginPage').then(mod => mod.LoginPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage').then(mod => mod.CreateJobPostingPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const StaffDiaryPage = dynamic(() => import('@/components/pages/StaffDiaryPage').then(mod => mod.StaffDiaryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(mod => mod.WelcomePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').then(mod => mod.MyProfilePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
@@ -32,7 +35,7 @@ export default function HomePage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [showWelcomePage, setShowWelcomePage] = useState(false); // Default to false, useEffect will set it
+  const [showWelcomePage, setShowWelcomePage] = useState(false);
 
   const [activeTab, setActiveTab] = useState<string>("findTalent"); // Default for recruiter
   const [isMobile, setIsMobile] = useState(false);
@@ -43,23 +46,26 @@ export default function HomePage() {
 
   useEffect(() => {
     console.log("HomePage useEffect: Starting auth check, setting isInitialLoading to true");
-    setIsInitialLoading(true); // Explicitly set loading to true at the start of the effect.
+    setIsInitialLoading(true);
     initialAuthCheckDone.current = false;
 
-    const processInitialFlags = () => {
+    const processInitialFlags = (user: User | null, roleForWelcomeCheck: UserRole | null) => {
       if (!initialAuthCheckDone.current) {
-        initialAuthCheckDone.current = true;
-        setIsInitialLoading(false);
-        console.log("HomePage useEffect: Initial flags processed, isInitialLoading set to false.");
-
-        const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-        if (!hasSeenWelcomeStorage) {
+        console.log("HomePage useEffect: processInitialFlags. User:", user, "Role for welcome check:", roleForWelcomeCheck);
+        
+        const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
+        console.log("HomePage useEffect: processInitialFlags. hasSeenWelcomeStorage:", hasSeenWelcomeStorage);
+        if (hasSeenWelcomeStorage !== 'true') {
             setShowWelcomePage(true);
-            console.log("HomePage useEffect: Welcome not seen in storage, setting showWelcomePage to true.");
+            console.log("HomePage useEffect: processInitialFlags. Welcome not seen, setting showWelcomePage to true.");
         } else {
             setShowWelcomePage(false);
-            console.log("HomePage useEffect: Welcome seen in storage, setting showWelcomePage to false.");
+            console.log("HomePage useEffect: processInitialFlags. Welcome seen, setting showWelcomePage to false.");
         }
+        
+        initialAuthCheckDone.current = true;
+        setIsInitialLoading(false);
+        console.log("HomePage useEffect: processInitialFlags. Initial flags processed, isInitialLoading set to false.");
       }
     };
 
@@ -71,15 +77,14 @@ export default function HomePage() {
         const storedRole = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
         setUserRole(storedRole);
         console.log("HomePage useEffect: onAuthStateChanged - User authenticated. Stored role:", storedRole);
+        processInitialFlags(user, storedRole);
       } else {
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
-        // Don't clear USER_ROLE_KEY here, allow role selection even if logged out then back in.
-        // Welcome page state is determined by its own flag.
         console.log("HomePage useEffect: onAuthStateChanged - No user authenticated, clearing active user state.");
+        processInitialFlags(null, null);
       }
-      processInitialFlags();
     });
 
     getRedirectResult(auth)
@@ -90,10 +95,17 @@ export default function HomePage() {
             title: "Signed In Successfully!",
             description: `Welcome back, ${result.user.displayName || result.user.email}!`,
           });
-          // onAuthStateChanged will also fire and handle the main state updates.
+          // onAuthStateChanged will likely fire and update state, but ensure flags are set if it's slower
+          if (!initialAuthCheckDone.current) {
+            const user = result.user;
+            const storedRole = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
+            processInitialFlags(user, storedRole); // Ensure flags are processed
+          }
+        } else if (!initialAuthCheckDone.current) {
+            // If getRedirectResult is null and onAuthStateChanged hasn't finished its first run
+            console.log("HomePage useEffect: getRedirectResult is null, onAuthStateChanged might be pending initial run, processing flags.");
+            processInitialFlags(null, null);
         }
-        // Ensure initial flags are processed if getRedirectResult finishes before onAuthStateChanged completes the *first* check
-        processInitialFlags();
       })
       .catch((error) => {
         console.error("HomePage useEffect: Error during getRedirectResult:", error);
@@ -102,14 +114,15 @@ export default function HomePage() {
           description: error.message || "Could not complete sign-in after redirect.",
           variant: "destructive",
         });
-        processInitialFlags(); // Also ensure flags are processed on error
+        if (!initialAuthCheckDone.current) {
+            processInitialFlags(null, null); 
+        }
       })
       .finally(() => {
         // Fallback: Ensure initial loading flags are processed if nothing else has by now.
-        // This is a safeguard.
         if (!initialAuthCheckDone.current) {
-            console.log("HomePage useEffect: getRedirectResult.finally - Forcing initial flags processing.");
-            processInitialFlags();
+            console.log("HomePage useEffect: getRedirectResult.finally - Forcing initial flags processing as a fallback.");
+            processInitialFlags(currentUser, userRole); // Use current state if available, or nulls
         }
       });
 
@@ -117,7 +130,8 @@ export default function HomePage() {
       console.log("HomePage useEffect: Cleaning up onAuthStateChanged listener.");
       unsubscribe();
     };
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // currentUser, userRole were removed to avoid re-running this complex logic on every render during their update
 
 
   useEffect(() => {
@@ -131,6 +145,8 @@ export default function HomePage() {
     console.log("HomePage: handleStartExploring called");
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
+    // After welcome, user might need to select a role or log in
+    // The main rendering logic will handle this progression
   };
 
   const handleLoginBypass = () => {
@@ -149,21 +165,27 @@ export default function HomePage() {
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
 
-    // Check existing role, bypass doesn't select a role automatically
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
-    setUserRole(storedRoleValue);
+    setUserRole(storedRoleValue); // Set role from storage
     console.log("HomePage: handleLoginBypass - Stored role:", storedRoleValue);
 
-    // If initial auth check hasn't completed (e.g. bypass clicked very fast), ensure it's marked as done.
+    // Explicitly handle initial flags if bypass happens very early
     if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
-        console.log("HomePage: handleLoginBypass - Initial auth check forced complete, isInitialLoading set to false");
-        // And ensure welcome page logic runs if it hasn't
         const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-        if (!hasSeenWelcomeStorage) {
+        if (!hasSeenWelcomeStorage) { // if welcome not seen
             setShowWelcomePage(true);
+        } else {
+            setShowWelcomePage(false); // welcome seen, ensure it's false
+            // if role is also not set, role selection should appear
         }
+        console.log("HomePage: handleLoginBypass - Initial auth check forced complete, isInitialLoading set to false. ShowWelcomePage:", !hasSeenWelcomeStorage);
+    } else {
+      // If initial check already done, just ensure welcome page is false if already seen
+      if (localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true') {
+        setShowWelcomePage(false);
+      }
     }
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
@@ -179,7 +201,8 @@ export default function HomePage() {
     } else {
       setActiveTab('findJobs');
     }
-    // The rendering logic will now determine the next page (likely LoginPage if not authenticated)
+    // After role selection, if user is not authenticated, LoginPage should appear
+    // No need to manage showWelcomePage here, as it's handled by its own state and rendering order
   };
 
   const handleLogout = async () => {
@@ -187,11 +210,9 @@ export default function HomePage() {
     try {
       await signOut(auth);
       // onAuthStateChanged will handle resetting: currentUser, isAuthenticated.
-      // userRole remains from localStorage unless explicitly cleared or user changes it.
-      // HAS_SEEN_WELCOME_KEY is not cleared on logout.
-      // Explicitly clear userRole from localStorage if desired on logout.
-      // localStorage.removeItem(USER_ROLE_KEY);
-      // setUserRole(null); // if USER_ROLE_KEY is removed.
+      // USER_ROLE_KEY is not cleared by default, allowing user to log back in with same role.
+      // HAS_SEEN_WELCOME_KEY is not cleared.
+      // No need to manually set userRole to null here, onAuthStateChanged does this.
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
       console.error("Error signing out:", error);
@@ -200,9 +221,11 @@ export default function HomePage() {
   };
 
   const handleLoginRequest = () => {
-    console.log("HomePage: handleLoginRequest called");
+    console.log("HomePage: handleLoginRequest called - This means Login page should be shown.");
     // Ensures other modal-like pages are not shown if a login is explicitly requested.
-    setShowWelcomePage(false);
+    // The main rendering logic will enforce showing LoginPage if role is set but not authenticated.
+    // If welcome not seen, and role not set, those will take precedence over direct login request from header.
+    // This function essentially signals intent, but the state-driven rendering determines the view.
   };
 
   const baseTabItems = [
@@ -224,14 +247,13 @@ export default function HomePage() {
     ...baseTabItems,
   ];
 
-  let currentTabItems = jobseekerTabItems;
+  let currentTabItems = jobseekerTabItems; // Default to jobseeker if role is somehow null but app shown
   if (userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   }
 
   useEffect(() => {
-    // This effect ensures the activeTab is valid for the current userRole.
-    if (userRole) { // Only run if userRole is determined
+    if (userRole) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
       const defaultTabForCurrentRole = userRole === 'recruiter' ? "findTalent" : "findJobs";
@@ -239,12 +261,9 @@ export default function HomePage() {
       if (!validTabValues.includes(activeTab)) {
         setActiveTab(defaultTabForCurrentRole);
       }
-    } else {
-        // If no role, maybe set a general default or ensure no tab is "active" if tabs aren't shown
-        // For now, we'll assume tabs are only shown when a role is set and user is authenticated.
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, activeTab]); // Removed isAuthenticated from deps as role selection implies intent
+  }, [userRole, activeTab]);
 
 
   // ------ Page Rendering Logic ------
@@ -259,25 +278,24 @@ export default function HomePage() {
     );
   }
 
-  // Step 1: Show WelcomePage if it hasn't been seen.
+  // Flow: Welcome -> Role Selection -> Login -> Main App
   if (showWelcomePage) {
     console.log("HomePage: Rendering WelcomePage because showWelcomePage is true.");
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
 
-  // Step 2: If Welcome is done (or wasn't needed), and no role selected, show RoleSelectionPage.
-  if (!userRole) {
-    console.log("HomePage: Rendering RoleSelectionPage because !userRole and welcome page condition not met.");
+  if (!userRole) { // Welcome is done, now check for role
+    console.log("HomePage: Rendering RoleSelectionPage because !userRole (and welcome page condition not met).");
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
-  // Step 3: If Welcome is done, AND a role is selected, but user is not authenticated, show LoginPage.
-  if (!isAuthenticated) { // userRole is guaranteed to be set here
-    console.log("HomePage: Rendering LoginPage because !isAuthenticated, but role is selected and welcome is done.");
+  // Welcome done, Role selected, now check for authentication
+  if (!isAuthenticated) { 
+    console.log("HomePage: Rendering LoginPage because !isAuthenticated (and role is selected, welcome is done).");
     return <LoginPage onLoginBypass={handleLoginBypass} />;
   }
 
-  // Step 4: Authenticated, welcome seen (or not applicable), role selected -> Show main app
+  // All prerequisites met: Authenticated, welcome seen, role selected -> Show main app
   console.log("HomePage: Rendering Main App Content because all prerequisite conditions met.");
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -369,3 +387,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
   );
 }
     
+
