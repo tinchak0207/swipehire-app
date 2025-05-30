@@ -1,15 +1,16 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Added useEffect
 import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
 import { VideoRecorderUI } from "@/components/video/VideoRecorderUI";
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock } from 'lucide-react'; // Added Lock
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon } from 'lucide-react'; // Added Lock, Info, CloseIcon
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
 import { cn } from '@/lib/utils';
 
 type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor';
@@ -75,12 +76,24 @@ interface AiToolsPageProps {
   isGuestMode?: boolean;
 }
 
+const AI_TOOLS_GUIDE_SEEN_KEY = 'swipehire_ai_tools_guide_seen';
+
 export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
   const [selectedToolKey, setSelectedToolKey] = useState<ToolKey | null>(null);
   const [activeBackgroundClass, setActiveBackgroundClass] = useState<string>('');
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !isGuestMode) {
+      const guideSeen = localStorage.getItem(AI_TOOLS_GUIDE_SEEN_KEY);
+      if (guideSeen !== 'true') {
+        setShowGuide(true);
+      }
+    }
+  }, [isGuestMode]);
 
   const handleToolSelect = (tool: AiTool) => {
-    if (isGuestMode) return; // Prevent selection in guest mode
+    if (isGuestMode) return; 
     setSelectedToolKey(tool.key);
     setActiveBackgroundClass(tool.bgClass);
   };
@@ -88,6 +101,13 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
   const handleBackToGrid = () => {
     setSelectedToolKey(null);
     setActiveBackgroundClass('');
+  };
+
+  const handleDismissGuide = () => {
+    setShowGuide(false);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(AI_TOOLS_GUIDE_SEEN_KEY, 'true');
+    }
   };
 
   const SelectedComponent = selectedToolKey ? aiToolsData.find(tool => tool.key === selectedToolKey)?.Component : null;
@@ -109,7 +129,33 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
       )}
 
       <div className="relative z-10 flex flex-col flex-grow">
-        {!selectedToolKey || (isGuestMode && selectedToolKey) ? ( // Show grid if no tool selected OR if guest and a tool was hypothetically selected (immediately lock it)
+        {showGuide && !isGuestMode && (
+          <Alert className="mb-6 border-primary/50 bg-primary/5 relative shadow-md">
+            <Info className="h-5 w-5 text-primary" />
+            <AlertTitle className="font-semibold text-lg text-primary">Welcome to Your AI Video Resume Toolkit!</AlertTitle>
+            <AlertDescription className="text-foreground/80 space-y-1.5">
+              <p>New to AI-powered resume tools? Here’s a quick guide to get you started:</p>
+              <ul className="list-disc list-inside pl-4 space-y-1 text-sm">
+                <li><strong>Write Script:</strong> Let AI help you craft a compelling video script.</li>
+                <li><strong>Generate Avatar:</strong> Create a professional virtual avatar if you prefer not to be on camera.</li>
+                <li><strong>Record Video:</strong> Easily record your video resume using our interface.</li>
+                <li><strong>Rate Video:</strong> Get AI feedback on your recorded video to improve its impact.</li>
+              </ul>
+              <p>Select any tool below to begin!</p>
+            </AlertDescription>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleDismissGuide}
+              className="absolute top-2 right-2 h-7 w-7 text-primary/70 hover:text-primary hover:bg-primary/10"
+              aria-label="Dismiss guide"
+            >
+              <CloseIcon className="h-4 w-4" />
+            </Button>
+          </Alert>
+        )}
+
+        {!selectedToolKey || (isGuestMode && selectedToolKey) ? ( 
           <>
             <div className="text-center mb-6 md:mb-8">
               <Sparkles className="mx-auto h-12 w-12 text-primary mb-3" />
@@ -223,3 +269,5 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
     </div>
   );
 }
+
+    
