@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -56,9 +56,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Feature Locked", description: "Sign in to view company details and AI insights.", variant: "default"});
         return;
     }
-    // Reset states when modal opens for a fresh view
     setAiJobFitAnalysis(null);
-    setIsLoadingAiAnalysis(false); // Explicitly set to false, fetchAiAnalysis will set to true if needed
+    setIsLoadingAiAnalysis(false);
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
@@ -67,7 +66,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   };
 
   const fetchAiAnalysis = useCallback(async () => {
-    if (!company || !jobOpening || isGuestMode || !isDetailsModalOpen) { // Only fetch if modal is open and not guest
+    if (!company || !jobOpening || isGuestMode || !isDetailsModalOpen) {
       if (isGuestMode) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       }
@@ -78,7 +77,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', // Placeholder ID
+        id: 'currentUserProfile',
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: (localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s)) || [],
@@ -145,7 +144,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); // Added isDetailsModalOpen
+  }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); 
 
   useEffect(() => {
     const currentVideoRef = videoRef.current;
@@ -281,7 +280,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Shared!", description: "Job opportunity shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
-        // toast({ title: "Share Failed", description: "Could not share this job.", variant: "destructive" });
       }
     } else {
       try {
@@ -333,7 +331,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             <Button
               variant="ghost"
               size="sm"
-              className={cn(baseClasses, isGuestMode ? guestClasses : regularClasses)}
+              className={cn(baseClasses, isGuestMode && action !== 'details' ? guestClasses : regularClasses)}
               onClick={action === 'share' && !isGuestMode ? handleShareClick : effectiveOnClick}
               disabled={isGuestMode && action !== 'details'}
               aria-label={`${label} ${company.name}`}
@@ -445,48 +443,55 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
       </div>
 
+      {/* Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0">
-          <DialogHeader className="p-4 sm:p-6 border-b">
-            <DialogTitle className="text-2xl text-primary">
-              {jobOpening?.title || "Company Details"} at {company.name}
+        <DialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] flex flex-col p-0 bg-background">
+          <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10">
+            <DialogTitle className="text-2xl sm:text-3xl font-bold text-primary">
+              {jobOpening?.title || "Opportunity"} at {company.name}
             </DialogTitle>
-            <CardDescription className="truncate">{company.industry}</CardDescription>
+            <CardDescription className="text-sm sm:text-base text-muted-foreground">{company.industry}</CardDescription>
           </DialogHeader>
-          <ScrollArea className="flex-1 min-h-0 p-4 sm:p-6 overscroll-y-contain no-scrollbar">
-            <div className="space-y-5">
+
+          <ScrollArea className="flex-1 min-h-0 bg-background">
+            <div className="p-4 sm:p-6 space-y-6">
               {company.introVideoUrl && (
-                <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
-                  <video
-                    ref={videoRef}
-                    src={company.introVideoUrl}
-                    controls={!isGuestMode}
-                    muted={false}
-                    autoPlay={false} 
-                    loop
-                    playsInline
-                    className="w-full h-full object-cover"
-                    poster={company.logoUrl || `https://placehold.co/600x360.png?text=${encodeURIComponent(company.name)}`}
-                    data-ai-hint="company introduction video"
-                  />
+                <div className="mb-4">
+                  <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
+                    <Video className="mr-2 h-6 w-6 text-primary" /> Company Introduction
+                  </h3>
+                  <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
+                    <video
+                      ref={videoRef}
+                      src={company.introVideoUrl}
+                      controls={!isGuestMode}
+                      muted={false}
+                      autoPlay={false}
+                      loop
+                      playsInline
+                      className="w-full h-full object-cover"
+                      poster={company.logoUrl || `https://placehold.co/600x360.png?text=${encodeURIComponent(company.name)}`}
+                      data-ai-hint="company introduction video"
+                    />
+                  </div>
                 </div>
               )}
 
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
-                    <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
+              <section>
+                <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
+                    <Building className="mr-2 h-6 w-6 text-primary" /> About {company.name}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">{company.description}</p>
-              </div>
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{company.description}</p>
+              </section>
 
               {jobOpening && (
                 <>
-                  <Separator />
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
-                        <JobTypeIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
+                  <Separator className="my-6" />
+                  <section>
+                    <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
+                        <JobTypeIcon className="mr-2 h-6 w-6 text-primary" /> Job Description: {jobOpening.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line">
+                    <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                       {displayedJobDescriptionInModal}
                       {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
                           <Button
@@ -500,20 +505,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                           </Button>
                       )}
                     </p>
-                  </div>
+                  </section>
                   
-                  <div>
-                    <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                        <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
+                  <Separator className="my-6" />
+                  <section>
+                    <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
+                        <ListChecks className="mr-2 h-6 w-6 text-primary" /> Key Job Details
                     </h3>
-                    <div className="space-y-1.5 text-sm p-3 bg-muted/30 rounded-md">
-                      {jobOpening.location && <p><MapPin className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Location:</strong> {jobOpening.location}</p>}
-                      {jobOpening.salaryRange && <p><DollarSign className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Salary:</strong> {jobOpening.salaryRange}</p>}
-                      {jobOpening.jobType && <p><JobTypeIcon className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Type:</strong> {jobOpening.jobType}</p>}
-                      {jobOpening.tags && jobOpening.tags.length > 0 && (
-                        <div className="flex items-start pt-1">
-                            <Badge variant="outline" className="border-none p-0 mr-1 mt-0.5"><Sparkles className="inline h-4 w-4 mr-1 text-muted-foreground" /></Badge>
-                            <strong className="mr-1.5 self-start">Tags:</strong>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm p-4 border rounded-lg bg-muted/30 shadow-sm">
+                        {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
+                        {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
+                        {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType}</span></div>}
+                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><ChevronsUpDown className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel}</span></div>}
+                        {jobOpening.tags && jobOpening.tags.length > 0 && (
+                        <div className="flex items-start sm:col-span-2">
+                            <Sparkles className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
+                            <span className="font-medium text-foreground mr-1 self-start">Skills/Tags:</span>
                             <div className="flex flex-wrap gap-1.5">
                                 {jobOpening.tags.map((tag) => (
                                 <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
@@ -522,17 +529,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                         </div>
                       )}
                     </div>
-                  </div>
+                  </section>
                 </>
               )}
 
-              <Separator />
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                  <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
+              <Separator className="my-6" />
+              <section>
+                <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
+                  <Brain className="mr-2 h-6 w-6 text-primary" /> AI: How This Job Fits You
                 </h3>
                 {isGuestMode ? (
-                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md">
+                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
                        <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
                    </div>
                 ) : (
@@ -548,26 +555,26 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       </div>
                     )}
                     {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                      <div className="space-y-1 p-3 bg-muted/50 rounded-md">
-                        <div className="text-md text-foreground">
-                          <span className="font-semibold">Your Fit Score:</span>
+                      <div className="space-y-2 p-4 border rounded-lg bg-muted/50 shadow-sm">
+                        <div className="flex items-baseline">
+                          <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
                           <span className={cn(
-                            "ml-1.5 font-bold text-lg",
+                            "ml-2 font-bold text-2xl",
                             aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
                             aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
                             )}>
                             {aiJobFitAnalysis.matchScoreForCandidate}%
                           </span>
                         </div>
-                        <p className="text-sm text-muted-foreground italic">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                        <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
                         {aiJobFitAnalysis.weightedScoresForCandidate && (
                             <div className="text-xs pt-2">
-                                <p><strong>Breakdown:</strong></p>
-                                <ul className="list-disc list-inside pl-1 text-muted-foreground">
-                                    <li>Culture: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
-                                    <li>Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
-                                    <li>Growth: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
-                                    <li>Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
+                                <p className="font-medium text-foreground mb-0.5">Score Breakdown:</p>
+                                <ul className="list-disc list-inside pl-1 text-muted-foreground space-y-0.5">
+                                    <li>Culture Fit: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
+                                    <li>Job Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
+                                    <li>Growth Opportunity: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
+                                    <li>Job Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
                                 </ul>
                             </div>
                         )}
@@ -575,48 +582,48 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                   </>
                 )}
-              </div>
+              </section>
               
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <>
-                <Separator />
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                    <Sparkles className="mr-2 h-5 w-5 text-primary" /> Culture Highlights
+                <Separator className="my-6" />
+                <section>
+                  <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
+                    <Sparkles className="mr-2 h-6 w-6 text-primary" /> Culture Highlights
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {company.cultureHighlights.map((highlight) => (
-                      <Badge key={highlight} variant="secondary" className="text-sm">{highlight}</Badge>
+                      <Badge key={highlight} variant="outline" className="text-sm border-primary/50 text-primary bg-primary/5">{highlight}</Badge>
                     ))}
                   </div>
-                </div>
+                </section>
                 </>
               )}
 
-              <Separator />
-              <div>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                  <MessageSquare className="mr-2 h-5 w-5 text-primary" /> Ask AI About {company.name}
+              <Separator className="my-6" />
+              <section>
+                <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
+                  <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Ask AI About {company.name}
                 </h3>
                 {isGuestMode ? (
-                    <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md">
+                    <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
                         <Lock className="h-4 w-4 mr-2"/>Sign in to ask the AI questions about this company.
                     </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Textarea
                       id="userCompanyQuestion"
-                      placeholder="e.g., What are the main products? What is the team size?"
+                      placeholder="e.g., What are the main products? What is the team size for this role?"
                       value={userQuestion}
                       onChange={(e) => setUserQuestion(e.target.value)}
                       disabled={isAskingQuestion}
-                      className="min-h-[80px]"
+                      className="min-h-[80px] text-sm"
                     />
                     <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto">
                       {isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
                       Ask AI
                     </Button>
-                    {isAskingQuestion && (
+                    {isAskingQuestion && !aiAnswer && (
                       <div className="flex items-center text-sm text-muted-foreground py-2">
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         <span>Thinking...</span>
@@ -624,18 +631,19 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                     {aiAnswer && (
                       <div className="pt-2">
-                        <h4 className="font-semibold text-sm mb-1">AI's Answer:</h4>
-                        <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line">
+                        <h4 className="font-semibold text-md text-foreground mb-1">AI's Answer:</h4>
+                        <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line leading-relaxed shadow-sm">
                           {aiAnswer}
                         </div>
                       </div>
                     )}
                   </div>
                 )}
-              </div>
+              </section>
             </div>
           </ScrollArea>
-          <DialogFooter className="p-4 sm:p-6 border-t">
+
+          <DialogFooter className="p-4 sm:p-6 border-t sticky bottom-0 bg-background z-10">
             <DialogClose asChild>
               <Button type="button" variant="outline">Close</Button>
             </DialogClose>
