@@ -2,11 +2,12 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import type { UserRole } from '@/lib/types'; // Import UserRole
 import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
 import { VideoRecorderUI } from "@/components/video/VideoRecorderUI";
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon } from 'lucide-react';
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, UserCircle, Briefcase } from 'lucide-react';
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -74,11 +75,12 @@ const AnimatedToolBackground = ({ bgClass, show }: { bgClass: string; show: bool
 
 interface AiToolsPageProps {
   isGuestMode?: boolean;
+  currentUserRole?: UserRole | null; // Add currentUserRole prop
 }
 
-const AI_TOOLS_GUIDE_SEEN_KEY = 'swipehire_ai_tools_guide_seen';
+const AI_TOOLS_GUIDE_SEEN_KEY = 'swipehire_ai_tools_guide_seen_v2'; // Changed key to reset guide for existing users
 
-export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
+export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) {
   const [selectedToolKey, setSelectedToolKey] = useState<ToolKey | null>(null);
   const [activeBackgroundClass, setActiveBackgroundClass] = useState<string>('');
   const [showGuide, setShowGuide] = useState(false);
@@ -119,6 +121,49 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
     </div>
   );
 
+  const getGuideContent = () => {
+    if (currentUserRole === 'jobseeker') {
+      return (
+        <>
+          <p>As a <strong className="text-primary">Job Seeker</strong>, these AI tools are your personal career co-pilot:</p>
+          <ul className="list-disc list-inside pl-4 space-y-1.5 text-sm">
+            <li><strong>Write Script:</strong> Overcome writer's block! Let AI help you craft a compelling script for your video resume, tailored to your experience and desired work style.</li>
+            <li><strong>Generate Avatar:</strong> Prefer not to be on camera, or want a unique professional look? Create a custom virtual avatar to represent you.</li>
+            <li><strong>Record Video:</strong> Our built-in recorder makes it easy to capture your video resume. Practice and re-record until you're happy.</li>
+            <li><strong>Rate Video:</strong> Get instant AI feedback on your recorded video. Improve your delivery, presentation, and overall impact.</li>
+          </ul>
+          <p className="mt-2">Select any tool below to begin crafting a standout video profile!</p>
+        </>
+      );
+    } else if (currentUserRole === 'recruiter') {
+      return (
+        <>
+          <p>As a <strong className="text-primary">Recruiter</strong>, explore these tools to understand what candidates can create:</p>
+          <ul className="list-disc list-inside pl-4 space-y-1.5 text-sm">
+            <li><strong>Video Script Writer:</strong> See how candidates can generate scripts for their introductions.</li>
+            <li><strong>Avatar Generator:</strong> Understand the virtual avatars candidates might use.</li>
+            <li><strong>Video Recorder & Rater:</strong> Familiarize yourself with the tools candidates use to produce and refine their video resumes.</li>
+          </ul>
+          <p className="mt-2">More AI-powered tools specifically for recruiters are planned for the future to help you find top talent even faster!</p>
+        </>
+      );
+    }
+    // Default or no role
+    return (
+      <>
+        <p>Explore our AI-powered tools to enhance your SwipeHire experience:</p>
+        <ul className="list-disc list-inside pl-4 space-y-1.5 text-sm">
+          <li><strong>Write Script:</strong> Get help crafting compelling video scripts.</li>
+          <li><strong>Generate Avatar:</strong> Create unique virtual avatars.</li>
+          <li><strong>Record Video:</strong> Easily record videos using our interface.</li>
+          <li><strong>Rate Video:</strong> Get AI feedback on your recordings.</li>
+        </ul>
+        <p className="mt-2">Select any tool below to begin!</p>
+      </>
+    );
+  };
+
+
   return (
     <div className={cn(
       "p-4 md:p-6 space-y-8 min-h-[calc(100vh-200px)] flex flex-col bg-background relative"
@@ -131,25 +176,20 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
         {showGuide && !isGuestMode && (
           <Alert className="mb-6 border-primary/50 bg-primary/5 relative shadow-md">
             <Info className="h-5 w-5 text-primary" />
-            <AlertTitle className="font-semibold text-lg text-primary">Welcome to Your AI Video Resume Toolkit!</AlertTitle>
+            <AlertTitle className="font-semibold text-lg text-primary">
+                Welcome to Your AI Toolkit, {currentUserRole === 'jobseeker' ? "Job Seeker" : currentUserRole === 'recruiter' ? "Recruiter" : "User"}!
+            </AlertTitle>
             <AlertDescription className="text-foreground/80 space-y-1.5">
-              <p>New to AI-powered resume tools? Here’s a quick guide to get you started:</p>
-              <ul className="list-disc list-inside pl-4 space-y-1 text-sm">
-                <li><strong>Write Script:</strong> Let AI help you craft a compelling video script.</li>
-                <li><strong>Generate Avatar:</strong> Create a professional virtual avatar if you prefer not to be on camera.</li>
-                <li><strong>Record Video:</strong> Easily record your video resume using our interface.</li>
-                <li><strong>Rate Video:</strong> Get AI feedback on your recorded video to improve its impact.</li>
-              </ul>
-              <p>Select any tool below to begin!</p>
+              {getGuideContent()}
             </AlertDescription>
             <Button
               variant="ghost"
-              size="icon"
+              size="sm" // Made button smaller
               onClick={handleDismissGuide}
-              className="absolute top-2 right-2 h-7 w-7 text-primary/70 hover:text-primary hover:bg-primary/10"
+              className="absolute top-3 right-3 h-8 w-auto px-3 text-primary/80 hover:text-primary hover:bg-primary/10"
               aria-label="Dismiss guide"
             >
-              <CloseIcon className="h-4 w-4" />
+              Got it! <CloseIcon className="h-4 w-4 ml-2" />
             </Button>
           </Alert>
         )}
@@ -158,7 +198,11 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
           <>
             <div className="text-center mb-6 md:mb-8">
               <Sparkles className="mx-auto h-12 w-12 text-primary mb-3" />
-              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">Ask AI to...</h1>
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground">
+                {currentUserRole === 'jobseeker' ? "Create Your Standout Video Profile" : 
+                 currentUserRole === 'recruiter' ? "Explore Candidate AI Tools" : 
+                 "AI Video & Profile Tools"}
+              </h1>
               {isGuestMode && (
                 <p className="text-md text-red-500 mt-2 font-semibold">
                   AI Tools are locked in Guest Mode. Please sign in or register to use them.
@@ -178,8 +222,9 @@ export function AiToolsPage({ isGuestMode }: AiToolsPageProps) {
                           isGuestMode && "opacity-60 border-2 border-red-400 cursor-not-allowed hover:transform-none"
                         )}
                         aria-disabled={isGuestMode}
+                        tabIndex={isGuestMode ? -1 : 0}
                       >
-                        {isGuestMode && <GuestLockOverlay />}
+                        {isGuestMode && <GuestLockOverlay message="Sign In to Use This Tool" />}
                         <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
                         <CardTitle className="text-xl sm:text-2xl font-bold text-center">{tool.title}</CardTitle>
                         <CardContent className="text-center p-0 mt-2 sm:mt-3">
