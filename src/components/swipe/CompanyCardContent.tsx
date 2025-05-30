@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
 interface CompanyCardContentProps {
@@ -26,7 +27,7 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60; // Shortened for card display
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60; 
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
@@ -81,7 +82,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setAiJobFitAnalysis(null);
 
     try {
-      // Simplified candidate profile for job fit analysis - in a real app, this would be the logged-in user's full profile
       const candidateRole = localStorage.getItem('jobSeekerProfileHeadline') || 'Software Developer';
       const candidateExpSummary = localStorage.getItem('jobSeekerExperienceSummary') || 'Experienced in web technologies.';
       const candidateSkillsString = localStorage.getItem('jobSeekerSkills') || 'React,Node.js';
@@ -90,14 +90,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
 
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile',
+        id: 'currentUserProfile', // Using a placeholder ID
         role: candidateRole,
         experienceSummary: candidateExpSummary,
         skills: candidateSkills,
         desiredWorkStyle: candidateDesiredWorkStyle,
-        workExperienceLevel: WorkExperienceLevel.MID_LEVEL, // Example default
-        educationLevel: EducationLevel.UNIVERSITY, // Example default
-        locationPreference: LocationPreference.REMOTE, // Example default
+        workExperienceLevel: WorkExperienceLevel.MID_LEVEL, 
+        educationLevel: EducationLevel.UNIVERSITY, 
+        locationPreference: LocationPreference.REMOTE, 
+        // Add other fields from local storage if available, otherwise use sensible defaults or omit
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -148,7 +149,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company.id, jobOpening?.title, isDetailsModalOpen, isGuestMode]); // Dependencies that trigger re-fetch
+  }, [company.id, company.name, company.industry, company.cultureHighlights, jobOpening, isDetailsModalOpen, isGuestMode, toast]);
 
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
@@ -164,11 +165,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) {
+        if (e.clientY > rect.bottom - 40) { 
             return;
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return;
+        return; 
       }
     }
     e.preventDefault();
@@ -247,35 +248,34 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
   };
 
-  const handleShareClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleShareAction = async (platform: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
-      toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default"});
-      return;
+        toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default"});
+        return;
     }
-    const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com';
+    const jobUrl = typeof window !== 'undefined' ? `${window.location.origin}/job/${company.id}/${jobOpening?.title.replace(/\s+/g, '-') || 'details'}` : `https://swipehire.example.com/job/${company.id}/details`;
+    const shareText = `Check out this job at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
+    const emailSubject = `Job Opportunity: ${jobOpening?.title || 'Exciting Role'} at ${company.name}`;
+    const emailBody = `${shareText}\n\nFind out more: ${jobUrl}`;
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `SwipeHire: ${company.name} - ${jobOpening?.title || 'Job'}`,
-          text: shareText,
-          url: shareUrl,
-        });
-        toast({ title: "Shared!", description: "Job opportunity shared successfully." });
-      } catch (error) {
-        console.error('Error sharing:', error);
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(`${shareText} See more at: ${shareUrl}`);
-        toast({ title: "Copied to Clipboard!", description: "Job link copied." });
-      } catch (err)
-      {
-        console.error('Failed to copy to clipboard: ', err);
-        toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
-      }
+    switch(platform) {
+        case 'copy':
+            try {
+                await navigator.clipboard.writeText(`${shareText} Link: ${jobUrl}`);
+                toast({ title: "Copied to Clipboard!", description: "Job link copied." });
+            } catch (err) {
+                toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" });
+            }
+            break;
+        case 'email':
+            window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            break;
+        case 'linkedin':
+             window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(jobUrl)}&title=${encodeURIComponent(shareText)}`, '_blank');
+            break;
+        case 'twitter':
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(jobUrl)}`, '_blank');
+            break;
     }
   };
 
@@ -300,18 +300,56 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     Icon,
     label,
     className: extraClassName,
-    isSpecificActionLiked
+    isSpecificActionLiked,
+    isDropdownTrigger = false,
   }: {
     action: 'like' | 'pass' | 'details' | 'share';
     Icon: React.ElementType;
     label: string;
     className?: string;
     isSpecificActionLiked?: boolean;
+    isDropdownTrigger?: boolean;
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
     const regularClasses = isSpecificActionLiked && action === 'like' ? cn('fill-green-500 text-green-500 hover:bg-green-500/10', extraClassName) : extraClassName;
     const effectiveOnClick = action === 'details' ? handleDetailsButtonClick : (e: React.MouseEvent) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(company.id, action); };
+
+    const buttonContent = (
+        <>
+            {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
+            <span className="text-xs">{label}</span>
+        </>
+    );
+
+    if (isDropdownTrigger) {
+        return (
+             <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild disabled={isGuestMode}>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(baseClasses, isGuestMode ? guestClasses : regularClasses)}
+                                aria-label={`${label} ${company.name}`}
+                                data-no-drag="true"
+                                onClick={(e) => e.stopPropagation()} 
+                            >
+                                {buttonContent}
+                            </Button>
+                        </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                     {isGuestMode && (
+                        <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
+                            <p>Sign in to share</p>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
+
 
     return (
       <TooltipProvider>
@@ -321,14 +359,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               variant="ghost"
               size="sm"
               className={cn(baseClasses, isGuestMode && action !== 'details' ? guestClasses : regularClasses)}
-              onClick={action === 'share' && !isGuestMode ? handleShareClick : effectiveOnClick}
+              onClick={effectiveOnClick}
               disabled={isGuestMode && action !== 'details'}
               aria-label={`${label} ${company.name}`}
               data-no-drag="true"
               data-modal-trigger={action === 'details' ? "true" : undefined}
             >
-              {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
-              <span className="text-xs">{label}</span>
+              {buttonContent}
             </Button>
           </TooltipTrigger>
           {isGuestMode && action !== 'details' && (
@@ -356,14 +393,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area (Logo for Company Card) */}
+        {/* Media Area */}
         <div className="relative w-full bg-muted shrink-0 h-[60%]">
           {company.logoUrl ? (
             <Image
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4"
+              className="object-contain p-4" // p-4 added to give some space around the logo
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -375,12 +412,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
 
         {/* Text Content & Actions Footer */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+        <div className="flex-1 min-h-0 flex flex-col"> {/* Main container for text and footer */}
             {/* Info section that takes available space and truncates */}
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
+            <div className="flex-1 min-h-0 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
                 <CardHeader className="p-0">
                     <div className="flex items-start justify-between">
-                        <div className="flex-grow min-w-0">
+                        <div className="flex-grow min-w-0"> {/* Allow text to truncate */}
                             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
                             <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
                         </div>
@@ -390,6 +427,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </CardHeader>
 
+                {/* Details that can be truncated */}
                 <div className="space-y-0.5">
                     {jobOpening?.location && (
                     <div className="flex items-center text-muted-foreground">
@@ -422,7 +460,23 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
                 <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-                <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+                <DropdownMenu>
+                     <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" isDropdownTrigger={true} />
+                    <DropdownMenuContent side="top" align="end" className="w-40" onClick={(e) => e.stopPropagation()} data-no-drag="true">
+                        <DropdownMenuItem onClick={() => handleShareAction('copy')} className="cursor-pointer">
+                            <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleShareAction('email')} className="cursor-pointer">
+                            <Mail className="mr-2 h-4 w-4" /> Email
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleShareAction('linkedin')} className="cursor-pointer">
+                            <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleShareAction('twitter')} className="cursor-pointer">
+                            <Twitter className="mr-2 h-4 w-4" /> X / Twitter
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </CardFooter>
         </div>
       </div>
@@ -441,6 +495,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
           <ScrollArea className="flex-1 min-h-0">
             <div className="p-4 sm:p-6 space-y-4 pt-3">
+               {/* Removed company.introVideoUrl section */}
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
@@ -617,7 +672,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </section>
             </div>
           </ScrollArea>
-          {/* Default X button in DialogContent handles closing */}
         </DialogContent>
       </Dialog>
     </>

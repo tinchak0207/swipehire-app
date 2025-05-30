@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,6 +14,8 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 
 interface CandidateCardContentProps {
   candidate: Candidate;
@@ -127,10 +129,10 @@ function CandidateDetailsModal({
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0">
-          <div className="p-4 sm:p-6 space-y-4">
+        <ScrollArea className="flex-1 min-h-0 bg-background"> {/* Added bg-background */}
+          <div className="p-4 sm:p-6 space-y-4 pt-3"> {/* Reduced top padding */}
             {candidate.videoResumeUrl && (
-              <section className="mb-4">
+              <section className="mb-3"> {/* Reduced margin */}
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Video className="mr-2 h-5 w-5 text-primary" /> Video Resume
                 </h3>
@@ -144,8 +146,8 @@ function CandidateDetailsModal({
                     loop
                     playsInline
                     className="w-full h-full object-cover bg-black"
-                    poster={candidate.avatarUrl || `https://placehold.co/600x400.png?text=${encodeURIComponent(candidate.name)}`}
-                    data-ai-hint="candidate video player"
+                    poster={candidate.avatarUrl || `https://placehold.co/600x400.png`}
+                    data-ai-hint="candidate video"
                   />
                 </div>
               </section>
@@ -198,7 +200,7 @@ function CandidateDetailsModal({
             <Separator className="my-3" />
 
             <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center"> {/* text-sm for consistency */}
                     <Brain className="mr-2 h-5 w-5 text-primary" /> AI Assessment (Recruiter Perspective)
                 </h3>
                 {isGuestMode ? (
@@ -246,7 +248,7 @@ function CandidateDetailsModal({
             <Separator className="my-3" />
 
             <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center"> {/* text-sm for consistency */}
                   <Users2 className="mr-2 h-5 w-5 text-primary" /> Coworker Fit Profile
                 </h3>
                 {isGuestMode ? (
@@ -286,7 +288,7 @@ function CandidateDetailsModal({
 
             {candidate.profileStrength && !isGuestMode && (
               <section>
-                <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
+                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center"> {/* text-sm for consistency */}
                     <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
                 </h3>
                 <div className="flex items-center text-md text-primary font-medium">
@@ -302,7 +304,6 @@ function CandidateDetailsModal({
             )}
           </div>
         </ScrollArea>
-        {/* DialogClose is handled by the default X button in DialogContent (from ui/dialog.tsx) */}
       </DialogContent>
     </Dialog>
   );
@@ -358,40 +359,46 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         personalityAssessment: candidate.personalityAssessment || [],
       };
 
+      // Using a generic job criteria for recruiter's perspective analysis
       const genericJobCriteria: JobCriteriaForAI = {
-        title: "General Talent Assessment",
-        description: "Assessing overall potential and fit for a variety of roles within a dynamic company. Consider the candidate's stated role and skills.",
-        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving", "adaptability"],
+        title: candidate.role || "General Role Assessment",
+        description: `Assessing overall potential and fit for a role similar to ${candidate.role || 'the candidate\'s stated preference'}. Considering their skills and experience level. Company culture emphasizes innovation and collaboration.`,
+        requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"],
         requiredExperienceLevel: candidate.workExperienceLevel || WorkExperienceLevel.MID_LEVEL,
-        requiredEducationLevel: candidate.educationLevel || EducationLevel.UNIVERSITY,
-        companyCultureKeywords: candidate.desiredWorkStyle?.split(',').map(s => s.trim()).filter(s => s.length > 0) || ["innovative", "collaborative", "driven"],
-        companyIndustry: "Technology",
+        companyCultureKeywords: ["innovative", "collaborative", "driven", "growth-oriented"],
+        companyIndustry: "Technology / General Business", // Generic industry
       };
 
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
       setAiRecruiterMatchScore(result.matchScore);
       setAiRecruiterReasoning(result.reasoning);
-      setAiRecruiterWeightedScores(result.weightedScores); // Store weighted scores
+      setAiRecruiterWeightedScores(result.weightedScores);
 
     } catch (error: any) {
       console.error("Error fetching AI recruiter analysis for candidate " + candidate.name + ":", error);
       toast({ title: "AI Analysis Error", description: `Could not get AI assessment for ${candidate.name}. ${error.message || ''}`, variant: "destructive", duration: 3000 });
+      setAiRecruiterMatchScore(0);
+      setAiRecruiterReasoning("AI analysis failed to complete.");
+      setAiRecruiterWeightedScores(null);
     } finally {
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidate.id, isGuestMode]); // candidate object might change, so include it. isGuestMode also relevant.
+  }, [candidate.id, candidate.name, candidate.role, candidate.skills, candidate.workExperienceLevel, candidate.experienceSummary, candidate.desiredWorkStyle, candidate.pastProjects, candidate.educationLevel, candidate.locationPreference, candidate.languages, candidate.salaryExpectationMin, candidate.salaryExpectationMax, candidate.availability, candidate.jobTypePreference, candidate.personalityAssessment, isGuestMode, toast]);
 
   useEffect(() => {
-    if (!isGuestMode) {
+    // Fetch AI analysis when the modal is about to open, if not already fetched or loading, and not in guest mode.
+    // This prevents fetching for every card initially.
+    if (isDetailsModalOpen && !isGuestMode && !aiRecruiterMatchScore && !isLoadingAiAnalysis) {
         fetchAiRecruiterAnalysis();
-    } else {
+    } else if (isGuestMode && isDetailsModalOpen) { // Handle guest mode when modal opens
         setAiRecruiterMatchScore(null);
         setAiRecruiterReasoning("AI Assessment disabled in Guest Mode.");
         setAiRecruiterWeightedScores(null);
         setIsLoadingAiAnalysis(false);
     }
-  }, [fetchAiRecruiterAnalysis, isGuestMode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetailsModalOpen, isGuestMode, fetchAiRecruiterAnalysis]);
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -401,11 +408,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) {
+        if (e.clientY > rect.bottom - 40) { // Ignore clicks on video controls area
             return;
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return;
+        return; // Don't start drag if clicking on interactive elements
       }
     }
     e.preventDefault();
@@ -457,36 +464,37 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
 
-  const handleShareClick = async (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleShareAction = async (platform: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
         toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default"});
         return;
     }
-    const shareText = `Check out this candidate profile on SwipeHire: ${candidate.name} - ${candidate.role}.`;
-    const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com';
+    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/candidate/${candidate.id}` : `https://swipehire.example.com/candidate/${candidate.id}`;
+    const shareText = `Check out this candidate on SwipeHire: ${candidate.name} - ${candidate.role || 'Talented Professional'}.`;
+    const emailSubject = `Interesting Candidate Profile: ${candidate.name}`;
+    const emailBody = `${shareText}\n\nView their profile here: ${profileUrl}`;
 
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `SwipeHire Candidate: ${candidate.name}`,
-          text: shareText,
-          url: shareUrl,
-        });
-        toast({ title: "Profile Shared!", description: "Candidate profile link shared successfully." });
-      } catch (error) {
-        console.error('Error sharing:', error);
-      }
-    } else {
-      try {
-        await navigator.clipboard.writeText(`${shareText} See more at: ${shareUrl}`);
-        toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
-      } catch (err) {
-        console.error('Failed to copy to clipboard: ', err);
-        toast({ title: "Copy Failed", description: "Could not copy link to clipboard.", variant: "destructive" });
-      }
+    switch(platform) {
+        case 'copy':
+            try {
+                await navigator.clipboard.writeText(`${shareText} Profile: ${profileUrl}`);
+                toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
+            } catch (err) {
+                toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" });
+            }
+            break;
+        case 'email':
+            window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+            break;
+        case 'linkedin':
+            window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank');
+            break;
+        case 'twitter':
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank');
+            break;
     }
   };
+
 
   const summaryForCardDisplay = candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_CARD
     ? `${candidate.experienceSummary.substring(0, MAX_SUMMARY_LENGTH_CARD)}...`
@@ -498,7 +506,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     label,
     className: extraClassName,
     isSpecificActionLiked,
-    onClickOverride
+    onClickOverride,
+    isDropdownTrigger = false,
   }: {
     action: 'like' | 'pass' | 'details' | 'share';
     Icon: React.ElementType;
@@ -506,11 +515,47 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     className?: string;
     isSpecificActionLiked?: boolean;
     onClickOverride?: (e: React.MouseEvent) => void;
+    isDropdownTrigger?: boolean;
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
     const regularClasses = extraClassName;
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(candidate.id, action); });
+    
+    const buttonContent = (
+        <>
+            {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? "fill-green-500 text-green-500" : "")} />}
+            <span className="text-xs">{label}</span>
+        </>
+    );
+
+    if (isDropdownTrigger) {
+        return (
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild disabled={isGuestMode}>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className={cn(baseClasses, isGuestMode ? guestClasses : regularClasses)}
+                                aria-label={`${label} ${candidate.name}`}
+                                data-no-drag="true"
+                                onClick={(e) => e.stopPropagation()} // Prevent card drag
+                            >
+                                {buttonContent}
+                            </Button>
+                        </DropdownMenuTrigger>
+                    </TooltipTrigger>
+                     {isGuestMode && (
+                        <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
+                            <p>Sign in to share</p>
+                        </TooltipContent>
+                    )}
+                </Tooltip>
+            </TooltipProvider>
+        );
+    }
 
     return (
       <TooltipProvider>
@@ -526,8 +571,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
               data-no-drag="true"
               data-modal-trigger={action === 'details' ? 'true' : undefined}
             >
-              {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? "fill-green-500 text-green-500" : "")} />}
-              <span className="text-xs">{label}</span>
+              {buttonContent}
             </Button>
           </TooltipTrigger>
           {isGuestMode && action !== 'details' && (
@@ -555,7 +599,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area (Image Only for Card Surface) */}
+        {/* Media Area */}
         <div className="relative w-full bg-muted shrink-0 h-[60%]">
           {candidate.avatarUrl ? (
             <Image
@@ -574,9 +618,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
 
          {/* Text Content & Actions Footer */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col"> {/* Removed outer text content wrapper for direct flex layout */}
             {/* Info section that takes available space and truncates */}
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
+            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm"> {/* This div will scroll if content overflows */}
                 <CardHeader className="p-0">
                     <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
@@ -607,7 +651,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                     )}
                 </CardHeader>
 
-                <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3"> {/* Limited lines for summary on card */}
+                <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
                     {summaryForCardDisplay}
                 </p>
 
@@ -632,23 +676,40 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
             {/* Action Buttons Footer - fixed at the bottom of this flex column */}
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
-            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
-            <ActionButton
-                action="details"
-                Icon={Info}
-                label="Details"
-                className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
-                onClickOverride={(e) => {
-                e.stopPropagation();
-                if (isGuestMode) {
-                    toast({ title: "Feature Locked", description: "Sign in to view full candidate details.", variant: "default"});
-                    return;
-                }
-                setIsDetailsModalOpen(true);
-                }}
-            />
-            <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-            <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" onClickOverride={handleShareClick} />
+              <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+              <ActionButton
+                  action="details"
+                  Icon={Info}
+                  label="Details"
+                  className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
+                  onClickOverride={(e) => {
+                  e.stopPropagation();
+                  if (isGuestMode) {
+                      toast({ title: "Feature Locked", description: "Sign in to view full candidate details.", variant: "default"});
+                      return;
+                  }
+                  setIsDetailsModalOpen(true);
+                  }}
+              />
+              <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
+              
+              <DropdownMenu>
+                 <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" isDropdownTrigger={true} />
+                <DropdownMenuContent side="top" align="end" className="w-40" onClick={(e) => e.stopPropagation()} data-no-drag="true">
+                    <DropdownMenuItem onClick={() => handleShareAction('copy')} className="cursor-pointer">
+                        <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('email')} className="cursor-pointer">
+                        <Mail className="mr-2 h-4 w-4" /> Email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('linkedin')} className="cursor-pointer">
+                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('twitter')} className="cursor-pointer">
+                        <Twitter className="mr-2 h-4 w-4" /> X / Twitter
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </CardFooter>
         </div>
       </div>
@@ -666,3 +727,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
