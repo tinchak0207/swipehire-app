@@ -20,14 +20,12 @@ const nextConfig: NextConfig = {
       // e.g. for actual avatar/logo storage
     ],
   },
-  webpack(config) {
-    config.module.rules.push({
-      test: /\.svg$/i,
-      issuer: /\.[jt]sx?$/,
-      use: ['@svgr/webpack'],
-    });
-    return config;
-  },
+  // The webpack function is removed as it's not compatible with Turbopack.
+  // Turbopack handles SVGs differently. If you were using SVGs as React components
+  // (e.g., import MyIcon from './my-icon.svg'; <MyIcon />),
+  // this should generally work with Turbopack out-of-the-box.
+  // If specific @svgr/webpack transformations were critical,
+  // you might need to adjust SVG usage or remove the --turbopack flag from your dev script.
 };
 
 export default nextConfig;
