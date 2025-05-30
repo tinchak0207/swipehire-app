@@ -1,7 +1,6 @@
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
-// Add other Firebase services as needed, e.g., getFirestore, getStorage
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"; // Added setPersistence and browserLocalPersistence
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -10,10 +9,10 @@ const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY || "AIzaSyD7QbZ5y-WAPK6EI5dwyun2E0DE6HUFI-Y",
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || "swipehire-3bscz.firebaseapp.com",
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || "swipehire-3bscz",
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "swipehire-3bscz",
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "swipehire-3bscz.appspot.com", // Corrected this line
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "651970541195",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:651970541195:web:02b8393984dc48972e068e",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "YOUR_MEASUREMENT_ID" // Optional
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-XXXXXXXXXX" // Optional, ensure this is correct or remove if not used
 };
 
 // Initialize Firebase
@@ -25,6 +24,18 @@ if (!getApps().length) {
 }
 
 const auth = getAuth(app);
+
+// Set authentication persistence
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    // Persistence set to local. User should persist across browser sessions/tabs.
+    console.log("Firebase auth persistence set to browserLocalPersistence.");
+  })
+  .catch((error) => {
+    // Handle errors here.
+    console.error("Error setting Firebase auth persistence:", error);
+  });
+
 // const db = getFirestore(app); // Example if you use Firestore
 // const storage = getStorage(app); // Example if you use Storage
 
