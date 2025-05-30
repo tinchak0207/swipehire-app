@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2 } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -26,10 +26,11 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 70; // Adjusted for card surface
-const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250; // For "Read more" in modal
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 70;
+const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250;
+const MAX_JOB_DESCRIPTION_LENGTH_MODAL = 250;
 const SWIPE_THRESHOLD = 75;
-const MAX_ROTATION = 10; // degrees
+const MAX_ROTATION = 10;
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardContentRef = useRef<HTMLDivElement>(null);
@@ -79,7 +80,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', // Placeholder ID
+        id: 'currentUserProfile', 
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: (localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s)) || [],
@@ -116,9 +117,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
-        // toast({ title: "AI Fit Analysis Complete!", description: "Your personalized fit score is ready." });
       } else {
-        // toast({ title: "AI Analysis Note", description: "Could not generate a detailed job fit analysis for this job.", variant: "default" });
         setAiJobFitAnalysis({ 
             matchScoreForCandidate: 0,
             reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.",
@@ -283,7 +282,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal 
     ? jobDescriptionForModal
-    : jobDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + (jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL ? "..." : "");
+    : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL) + (jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL ? "..." : "");
 
 
   const ActionButton = ({
@@ -383,7 +382,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </CardHeader>
 
-                <div className="space-y-0.5"> {/* Reduced space-y here for tighter packing on card */}
+                <div className="space-y-0.5"> 
                     {jobOpening?.location && (
                     <div className="flex items-center text-muted-foreground">
                         <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
@@ -431,7 +430,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </DialogHeader>
 
           <ScrollArea className="flex-1 min-h-0 bg-background">
-            <div className="p-4 sm:p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-4"> {/* Reduced space-y */}
               
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
@@ -455,14 +454,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
               {jobOpening && (
                 <>
-                  <Separator className="my-4" />
+                  <Separator className="my-3" /> {/* Reduced margin */}
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
                         <JobTypeIcon className="mr-2 h-6 w-6 text-primary" /> Job Description: {jobOpening.title}
                     </h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                       {displayedJobDescriptionInModal}
-                      {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
+                      {jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL && (
                           <Button
                               variant="link"
                               size="sm"
@@ -476,16 +475,16 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </p>
                   </section>
                   
-                  <Separator className="my-4" />
+                  <Separator className="my-3" /> {/* Reduced margin */}
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                         <ListChecks className="mr-2 h-6 w-6 text-primary" /> Key Job Details
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm p-4 border rounded-lg bg-muted/30 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm"> {/* Reduced gap-y and p */}
                         {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
                         {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
                         {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType}</span></div>}
-                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><ChevronsUpDown className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
+                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><CalendarDays className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
                         {jobOpening.tags && jobOpening.tags.length > 0 && (
                         <div className="flex items-start sm:col-span-2">
                             <Sparkles className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
@@ -502,7 +501,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-4" />
+              <Separator className="my-3" /> {/* Reduced margin */}
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <Brain className="mr-2 h-6 w-6 text-primary" /> AI: How This Job Fits You
@@ -524,7 +523,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       </div>
                     )}
                     {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                      <div className="space-y-2 p-4 border rounded-lg bg-muted/50 shadow-sm">
+                      <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm"> {/* Reduced p */}
                         <div className="flex items-baseline">
                           <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
                           <span className={cn(
@@ -537,7 +536,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                         </div>
                         <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
                         {aiJobFitAnalysis.weightedScoresForCandidate && (
-                            <div className="text-xs pt-2">
+                            <div className="text-xs pt-1"> {/* Reduced pt */}
                                 <p className="font-medium text-foreground mb-0.5">Score Breakdown:</p>
                                 <ul className="list-disc list-inside pl-1 text-muted-foreground space-y-0.5">
                                     <li>Culture Fit: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
@@ -553,9 +552,16 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 )}
               </section>
               
+              {/* Moved Close Button Here */}
+              <div className="pt-4 text-center"> {/* Added pt-4 for spacing from AI section */}
+                  <DialogClose asChild>
+                      <Button type="button" variant="outline" className="w-full sm:w-auto">Close</Button>
+                  </DialogClose>
+              </div>
+
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <>
-                <Separator className="my-4" />
+                <Separator className="my-3" /> {/* Reduced margin */}
                 <section>
                   <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                     <Users2 className="mr-2 h-6 w-6 text-primary" /> Culture Highlights
@@ -569,7 +575,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-4" />
+              <Separator className="my-3" /> {/* Reduced margin */}
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Ask AI About {company.name}
@@ -611,15 +617,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </section>
             </div>
           </ScrollArea>
-
-          <DialogFooter className="p-4 sm:p-6 border-t sticky bottom-0 bg-background z-10">
-            <DialogClose asChild>
-              <Button type="button" variant="outline">Close</Button>
-            </DialogClose>
-          </DialogFooter>
+          {/* DialogFooter is removed as the Close button is repositioned */}
         </DialogContent>
       </Dialog>
     </>
   );
 }
-
