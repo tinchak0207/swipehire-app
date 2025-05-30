@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Compass, Eye, Sparkles } from "lucide-react"; // Added Sparkles
+import { LogIn, Compass, Eye, Sparkles, CheckCircle } from "lucide-react"; // Added Sparkles, CheckCircle
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +22,6 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
       console.log("LoginPage: Attempting signInWithPopup...");
       const result: UserCredential = await signInWithPopup(auth, provider);
       console.log("LoginPage: signInWithPopup successful, user:", result.user);
-      // onAuthStateChanged in HomePage will handle the main state updates.
       toast({
         title: "Sign-In Successful!",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
@@ -68,18 +67,26 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   return (
     <div className="flex min-h-screen items-center justify-center p-4 dynamic-bg">
       <Card className="w-full max-w-md shadow-2xl bg-card/90 backdrop-blur-sm">
-        <CardHeader className="text-center space-y-3 pt-8">
-          <LogIn className="mx-auto h-14 w-14 text-primary" />
+        <CardHeader className="text-center space-y-2 pt-8">
+          <LogIn className="mx-auto h-12 w-12 text-primary" />
           <CardTitle className="text-3xl font-bold">Welcome to SwipeHire</CardTitle>
           <CardDescription className="text-md text-muted-foreground pt-1">
             Sign in to discover your next opportunity or top talent.
           </CardDescription>
-          <p className="text-sm text-accent flex items-center justify-center pt-1">
-            <Sparkles className="h-4 w-4 mr-1.5 text-yellow-500" />
-            Unlock AI tools, personalized matches, & direct messaging!
-          </p>
         </CardHeader>
-        <CardContent className="space-y-4 py-8">
+        <CardContent className="space-y-6 py-6">
+          <div className="text-left px-2 space-y-2 mb-4">
+            <h3 className="text-lg font-semibold text-primary flex items-center">
+              <Sparkles className="h-5 w-5 mr-2 text-yellow-400" />
+              Sign In or Register to:
+            </h3>
+            <ul className="space-y-1.5 text-sm text-foreground list-none pl-1">
+              <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Access powerful AI Profile Tools.</span></li>
+              <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Discover personalized matches.</span></li>
+              <li className="flex items-start"><CheckCircle className="h-5 w-5 text-green-500 mr-2 shrink-0 mt-0.5" /> <span>Engage in direct messaging & build connections.</span></li>
+            </ul>
+          </div>
+
           <Button
             onClick={handleGoogleSignIn}
             size="lg"
