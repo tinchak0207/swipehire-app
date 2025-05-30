@@ -31,7 +31,7 @@ export function VideoRecorderUI() {
   }, []);
 
   const requestCameraPermission = useCallback(async () => {
-    setHasCameraPermission(null); // Reset while requesting
+    setHasCameraPermission(null); 
     setRecordedVideoUrl(null);
     setIsRecordingComplete(false);
 
@@ -50,7 +50,7 @@ export function VideoRecorderUI() {
       setHasCameraPermission(true);
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        videoRef.current.muted = true; // Mute preview to prevent feedback loop
+        videoRef.current.muted = true; 
         videoRef.current.play().catch(e => console.error("Error playing preview:", e));
       }
       return true;
@@ -111,6 +111,7 @@ export function VideoRecorderUI() {
       toast({ title: "Recording Finished", description: "Time limit reached." });
     }
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRecording, elapsedTime, recordingDuration, toast]);
 
 
@@ -121,7 +122,7 @@ export function VideoRecorderUI() {
         toast({ title: "Camera Permission Needed", description: "Cannot start recording without camera access. Please check guidance.", variant: "destructive" });
         return;
       }
-      // Wait a brief moment for stream to initialize if permission was just granted
+      
       await new Promise(resolve => setTimeout(resolve, 300));
       if (!videoRef.current?.srcObject) {
          toast({ title: "Camera Stream Error", description: "Could not initialize camera stream. Please try again.", variant: "destructive" });
@@ -136,20 +137,17 @@ export function VideoRecorderUI() {
 
     try {
       const stream = videoRef.current!.srcObject as MediaStream;
-      // Ensure audio tracks are enabled
+      
       const audioTracks = stream.getAudioTracks();
       if (audioTracks.length === 0) {
           toast({title: "No Audio Track", description: "Microphone not detected or not providing audio.", variant: "destructive"});
-          // Optionally, you could try to re-request with audio: true or alert user to check mic
       }
       audioTracks.forEach(track => track.enabled = true);
 
 
-      const options = { mimeType: 'video/webm; codecs=vp9,opus' }; // Preferred for quality and compatibility
+      const options = { mimeType: 'video/webm; codecs=vp9,opus' }; 
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
           console.warn(`${options.mimeType} is not supported, trying default.`);
-          // Fallback to default or another common type if needed
-          // options.mimeType = 'video/webm'; // Simpler fallback
       }
       mediaRecorderRef.current = new MediaRecorder(stream, options);
 
@@ -164,11 +162,11 @@ export function VideoRecorderUI() {
         const videoUrl = URL.createObjectURL(videoBlob);
         setRecordedVideoUrl(videoUrl);
         setIsRecordingComplete(true);
-        // stopCameraStream(); // Stop camera after recording is done and blob created.
-        if (videoRef.current) { // Show preview of recorded video
-            videoRef.current.srcObject = null; // Clear live stream
+        
+        if (videoRef.current) { 
+            videoRef.current.srcObject = null; 
             videoRef.current.src = videoUrl;
-            videoRef.current.muted = false; // Unmute for preview
+            videoRef.current.muted = false; 
             videoRef.current.controls = true;
             videoRef.current.loop = false;
         }
@@ -188,8 +186,8 @@ export function VideoRecorderUI() {
       mediaRecorderRef.current.stop();
     }
     setIsRecording(false);
-    // Stop the timer immediately, actual processing happens in onstop
-    setElapsedTime(prev => prev); // Keep current time for display
+    
+    setElapsedTime(prev => prev); 
     toast({ title: "Recording Stopped", description: "Processing video..." });
   };
   
@@ -200,11 +198,11 @@ export function VideoRecorderUI() {
     setRecordedVideoUrl(null);
     setElapsedTime(0);
     if (videoRef.current) {
-        videoRef.current.controls = false; // Hide controls for live preview
+        videoRef.current.controls = false; 
         videoRef.current.loop = false;
     }
-    stopCameraStream(); // Stop any existing stream first
-    await requestCameraPermission(); // Re-request to ensure stream is fresh
+    stopCameraStream(); 
+    await requestCameraPermission(); 
     toast({ title: "Ready to Re-record", description: "Camera reset. Click Start Recording." });
   };
 
@@ -216,7 +214,7 @@ export function VideoRecorderUI() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(recordedVideoUrl); // Clean up
+      URL.revokeObjectURL(recordedVideoUrl); 
       toast({ title: "Download Started", description: "Your video is downloading." });
     } else {
       toast({ title: "No Recording Found", description: "Please record a video first.", variant: "destructive"});
@@ -247,8 +245,8 @@ export function VideoRecorderUI() {
             <video
               ref={videoRef}
               className="w-full h-full object-cover"
-              playsInline // Important for iOS
-              data-ai-hint="camera feed preview"
+              playsInline 
+              data-ai-hint="camera preview"
             />
             {hasCameraPermission === null && ( 
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/50 text-white p-4 text-center">

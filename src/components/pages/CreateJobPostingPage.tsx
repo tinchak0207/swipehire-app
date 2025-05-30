@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock } from 'lucide-react'; // Added Lock
+import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Company, CompanyJobOpening } from '@/lib/types'; 
 import { postJobToBackend } from '@/services/jobService';
@@ -48,7 +48,7 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
       const profileComplete = localStorage.getItem('recruiterProfileComplete') === 'true';
       setIsPostingAllowed(profileComplete);
     } else {
-      setIsPostingAllowed(false); // Guests cannot post
+      setIsPostingAllowed(false); 
     }
   }, [isGuestMode]);
 
@@ -96,7 +96,8 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
       description: data.description,
       salaryRange: data.compensation,
       tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
-      videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? `https://placehold.co/600x400.png?text=${encodeURIComponent(data.mediaFile[0].name)}` : undefined,
+      videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? 'https://placehold.co/600x400.png' : undefined,
+      dataAiHint: data.mediaFile && data.mediaFile.length > 0 ? 'job media' : undefined,
     };
 
     const newCompanyForJob: Company = {
@@ -105,8 +106,8 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
       industry: 'Various',
       description: `A new opportunity: ${data.title}. Posted by ${localStorage.getItem('userNameSettings') || "a recruiter"}.`,
       cultureHighlights: [],
-      logoUrl: 'https://placehold.co/300x200.png?text=New+Post',
-      dataAiHint: 'job post',
+      logoUrl: 'https://placehold.co/300x200.png',
+      dataAiHint: 'company logo',
       jobOpenings: [newJobOpening],
     };
     
@@ -144,7 +145,7 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      {!isPostingAllowed && !isGuestMode && ( // Show this only if not guest and posting not allowed
+      {!isPostingAllowed && !isGuestMode && ( 
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-5 w-5" />
           <AlertTitle>Profile Incomplete to Post Jobs</AlertTitle>

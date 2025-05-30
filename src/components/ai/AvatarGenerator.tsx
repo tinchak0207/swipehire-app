@@ -57,7 +57,6 @@ const backgroundEnvironmentOptions = [
   { value: "outdoor_nature", label: "Outdoor Nature Setting" },
 ];
 
-// Define Zod enums for validation, matching the backend
 const GenderEnum = z.enum(["male", "female", "non-binary", "unspecified"]);
 const AgeRangeEnum = z.enum(["young_adult", "adult", "middle_aged", "unspecified"]);
 const ProfessionalImageStyleEnum = z.enum(["business_formal", "casual_business", "creative_trend", "tech_geek", "general_professional"]);
@@ -97,7 +96,6 @@ export function AvatarGenerator() {
     setIsLoading(true);
     setAvatarDataUri(null);
     try {
-      // Ensure optional fields that are "unspecified" are not sent or handled as such by the backend
       const payload: AvatarGeneratorInput = {
         ...data,
         gender: data.gender === "unspecified" ? undefined : data.gender,
@@ -278,7 +276,7 @@ export function AvatarGenerator() {
                     alt="Generated Avatar" 
                     fill
                     style={{objectFit: 'cover'}}
-                    data-ai-hint="generated avatar professional"
+                    data-ai-hint="professional avatar"
                   />
                 </div>
               </div>
@@ -299,4 +297,3 @@ export function AvatarGenerator() {
     </Card>
   );
 }
-

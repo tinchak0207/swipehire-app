@@ -19,9 +19,9 @@ export const mockCandidates: Candidate[] = [
     role: 'Senior Software Engineer',
     experienceSummary: '5 years of Python development, loves remote work and agile teams. Passionate about AI and machine learning applications. Proven track record of delivering high-quality code and leading project teams to success in fast-paced environments.',
     skills: ['Python', 'Django', 'React', 'AWS', 'Docker', 'AI', 'Machine Learning'],
-    avatarUrl: 'https://placehold.co/500x700.png', // Taller image
-    dataAiHint: 'professional woman',
-    videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', // Actual video URL placeholder
+    avatarUrl: 'https://placehold.co/500x700.png',
+    dataAiHint: 'woman portrait',
+    videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', 
     profileStrength: 90,
     location: "San Francisco, CA",
     desiredWorkStyle: "Fully Remote, Flexible Hours, Collaborative projects",
@@ -54,7 +54,7 @@ export const mockCandidates: Candidate[] = [
     experienceSummary: 'Creative designer with 3 years of experience in mobile and web application design. Proficient in Figma and Adobe Suite. User-centric approach with a strong portfolio of intuitive and visually appealing designs.',
     skills: ['UX Design', 'UI Design', 'Figma', 'Adobe XD', 'Prototyping', 'User Research'],
     avatarUrl: 'https://placehold.co/500x700.png',
-    dataAiHint: 'creative man',
+    dataAiHint: 'man portrait',
     profileStrength: 85,
     location: "New York, NY",
     desiredWorkStyle: "Hybrid, Collaborative Environment, User-focused projects",
@@ -85,7 +85,7 @@ export const mockCandidates: Candidate[] = [
     experienceSummary: 'Results-driven PM with a knack for launching successful SaaS products. 7 years in product strategy and roadmap execution. Excellent communication and leadership skills, adept at cross-functional team collaboration.',
     skills: ['Product Management', 'Agile', 'Scrum', 'Roadmapping', 'Market Analysis', 'JIRA'],
     avatarUrl: 'https://placehold.co/500x700.png',
-    dataAiHint: 'focused person',
+    dataAiHint: 'person thinking',
     videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
     profileStrength: 95,
     location: "Austin, TX",
@@ -93,7 +93,7 @@ export const mockCandidates: Candidate[] = [
     pastProjects: "Launched three new SaaS products from concept to market, Grew user base by 200% for a B2B platform",
     workExperienceLevel: WorkExperienceLevel.SENIOR,
     educationLevel: EducationLevel.UNIVERSITY,
-    locationPreference: LocationPreference.SPECIFIC_CITY, // Example: Austin, TX
+    locationPreference: LocationPreference.SPECIFIC_CITY, 
     languages: ['English', 'Spanish'],
     salaryExpectationMin: 130000,
     salaryExpectationMax: 170000,
@@ -109,7 +109,7 @@ export const mockCandidates: Candidate[] = [
     experienceSummary: 'Expert in statistical modeling and machine learning with 4 years experience. Eager to solve complex problems with data. Strong analytical abilities and experience with big data technologies.',
     skills: ['Machine Learning', 'Data Analysis', 'Python', 'R', 'SQL', 'TensorFlow'],
     avatarUrl: 'https://placehold.co/500x700.png',
-    dataAiHint: 'intelligent woman',
+    dataAiHint: 'woman thinking',
     profileStrength: 88,
     location: "Boston, MA", 
     desiredWorkStyle: "Remote, Research-Oriented, Problem-solving focus",
@@ -130,7 +130,7 @@ export const mockCandidates: Candidate[] = [
     experienceSummary: 'Visionary creative director with 12 years of experience in branding, advertising, and digital media. Known for innovative campaigns and artistic excellence.',
     skills: ['Branding', 'Art Direction', 'Campaign Strategy', 'Adobe Creative Suite', 'Team Leadership'],
     avatarUrl: 'https://placehold.co/500x700.png',
-    dataAiHint: 'artistic director',
+    dataAiHint: 'director portrait',
     videoResumeUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
     profileStrength: 92,
     location: "Los Angeles, CA",
@@ -138,13 +138,13 @@ export const mockCandidates: Candidate[] = [
     pastProjects: "Led global rebranding for a major consumer product, Won multiple awards for advertising campaigns.",
     workExperienceLevel: WorkExperienceLevel.EXPERT,
     educationLevel: EducationLevel.MASTER,
-    locationPreference: LocationPreference.SPECIFIC_CITY, // Example: Los Angeles, CA
+    locationPreference: LocationPreference.SPECIFIC_CITY, 
     languages: ['English'],
     salaryExpectationMin: 150000,
     salaryExpectationMax: 200000,
     availability: Availability.NEGOTIABLE,
     jobTypePreference: [JobType.FULL_TIME, JobType.CONSULTANT],
-    isUnderestimatedTalent: false, // Explicitly false for testing
+    isUnderestimatedTalent: false, 
   },
 ];
 
@@ -299,7 +299,7 @@ export const mockCompanies: Company[] = [
     description: 'Cutting-edge software solutions for a brighter future. We value innovation, collaboration, and impact. Join us to work on challenging projects with a talented team.',
     cultureHighlights: ['Remote-First', 'Unlimited PTO', 'Weekly Tech Talks', 'Health & Wellness', 'work-life balance'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'modern logo tech company',
+    dataAiHint: 'tech logo',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
     companyNeeds: "We need to optimize our payment processing system and enhance user experience on our e-commerce platform.",
     jobOpenings: mockJobOpeningsComp1,
@@ -311,7 +311,7 @@ export const mockCompanies: Company[] = [
     description: 'We ignite brands with creative campaigns and data-driven strategies. Looking for passionate creators to join our vibrant and dynamic team.',
     cultureHighlights: ['Pet-Friendly Office', 'Flexible Hours', 'Creative Workshops', 'Team Outings', 'team-oriented'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'creative agency logo',
+    dataAiHint: 'creative logo',
     companyNeeds: "We are looking to expand our design team to handle new client projects requiring innovative branding and digital experiences.",
     jobOpenings: mockJobOpeningsComp2,
   },
@@ -322,7 +322,7 @@ export const mockCompanies: Company[] = [
     description: 'Dedicated to building a sustainable future through innovative green technologies. Join our mission-driven team and make a real difference in the world.',
     cultureHighlights: ['Impactful Work', 'Collaborative Environment', 'Eco-Conscious', 'Learning Budget', 'field-work'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'eco friendly logo',
+    dataAiHint: 'eco logo',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
     companyNeeds: "Seeking data scientists to analyze environmental data and improve our green tech solutions.",
     jobOpenings: mockJobOpeningsComp3,
@@ -334,7 +334,7 @@ export const mockCompanies: Company[] = [
     description: 'Creating immersive and fun gaming experiences for players worldwide. We are a team of passionate gamers and developers.',
     cultureHighlights: ['Game Nights', 'Latest Hardware', 'Flexible Work', 'Stock Options', 'creative'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'gaming company logo controller',
+    dataAiHint: 'gaming logo',
     introVideoUrl: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
     companyNeeds: "We are looking for experienced game developers and artists to join our growing team for an exciting new IP.",
     jobOpenings: mockJobOpeningsComp4,
@@ -346,7 +346,7 @@ export const mockCompanies: Company[] = [
     description: 'Providing actionable insights through comprehensive market research and data analysis. Helping businesses make informed decisions.',
     cultureHighlights: ['Data-Driven', 'Continuous Learning', 'Client-Focused', 'Supportive Team', 'analytical'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'analytics chart logo',
+    dataAiHint: 'chart logo',
     companyNeeds: "Expanding our team of analysts to cover new industries and research methodologies.",
     jobOpenings: mockJobOpeningsComp5,
   },
@@ -360,7 +360,7 @@ const additionalMockCompanies: Company[] = [
     description: 'Pioneering AI-driven diagnostic tools to improve patient outcomes. We are a fast-growing startup with a mission to revolutionize healthcare.',
     cultureHighlights: ['Impactful Work', 'Stock Options', 'Modern Tech Stack', 'Collaborative Research', 'cutting-edge'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'healthcare tech logo',
+    dataAiHint: 'healthcare logo',
     companyNeeds: "Looking for machine learning engineers and full-stack developers passionate about healthcare.",
     jobOpenings: [
       {
@@ -388,7 +388,7 @@ const additionalMockCompanies: Company[] = [
     description: 'Providing accessible and engaging online learning platforms for K-12 and lifelong learners. Join us to shape the future of education.',
     cultureHighlights: ['Remote-First', 'Mission-Driven', 'Continuous Feedback', 'Professional Development', 'learning'],
     logoUrl: 'https://placehold.co/500x350.png',
-    dataAiHint: 'education online logo',
+    dataAiHint: 'education logo',
     companyNeeds: "Hiring instructional designers, full-stack developers, and customer success managers.",
     jobOpenings: [
       {
@@ -423,7 +423,7 @@ export const mockDiaryPosts: DiaryPost[] = [
     dataAiHint: 'woman face',
     title: 'My First Week with a New AI Project!',
     content: 'Just wrapped up my first week diving deep into a new machine learning project. The learning curve is steep, but the potential impact is huge. Spent most of my time setting up the environment and preprocessing data. Already learned so much about TensorFlow Extended (TFX)! Excited for what\'s next. #AI #MachineLearning #NewBeginnings',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png', // data-ai-hint for this will be "diary post image" in component
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
     tags: ['ai', 'learning', 'tensorflow'],
     likes: 15,
@@ -451,7 +451,7 @@ export const mockDiaryPosts: DiaryPost[] = [
     dataAiHint: 'woman face',
     title: 'Overcoming a Coding Challenge',
     content: 'Spent the entire day debugging a tricky Python script. It was frustrating, but that moment when you finally find the bug and everything works is just priceless! Persistence pays off. #Python #CodingLife #ProblemSolving',
-    imageUrl: 'https://placehold.co/600x400.png',
+    imageUrl: 'https://placehold.co/600x400.png', // data-ai-hint for this will be "diary post image" in component
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 5, // 5 days ago
     tags: ['python', 'debugging', 'development'],
     likes: 30,
