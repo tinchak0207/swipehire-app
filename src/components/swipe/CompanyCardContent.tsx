@@ -2,8 +2,8 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown } from 'lucide-react';
-import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2 } from 'lucide-react';
+import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
@@ -26,13 +26,12 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60;
-const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250;
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 70; // Adjusted for card surface
+const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL = 250; // For "Read more" in modal
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10; // degrees
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
   const cardContentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -47,6 +46,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [aiAnswer, setAiAnswer] = useState<string | null>(null);
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
   const [showFullJobDescriptionInModal, setShowFullJobDescriptionInModal] = useState(false);
+  const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
+
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
@@ -62,6 +63,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setAiAnswer(null);
     setIsAskingQuestion(false);
     setShowFullJobDescriptionInModal(false);
+    setShowFullCompanyDescriptionInModal(false);
     setIsDetailsModalOpen(true);
   };
 
@@ -77,7 +79,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
     try {
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile',
+        id: 'currentUserProfile', // Placeholder ID
         role: localStorage.getItem('jobSeekerProfileHeadline') || undefined,
         experienceSummary: localStorage.getItem('jobSeekerExperienceSummary') || undefined,
         skills: (localStorage.getItem('jobSeekerSkills')?.split(',').map(s => s.trim()).filter(s => s)) || [],
@@ -114,9 +116,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
-        toast({ title: "AI Fit Analysis Complete!", description: "Your personalized fit score is ready." });
+        // toast({ title: "AI Fit Analysis Complete!", description: "Your personalized fit score is ready." });
       } else {
-        toast({ title: "AI Analysis Note", description: "Could not generate a detailed job fit analysis for this job.", variant: "default" });
+        // toast({ title: "AI Analysis Note", description: "Could not generate a detailed job fit analysis for this job.", variant: "default" });
         setAiJobFitAnalysis({ 
             matchScoreForCandidate: 0,
             reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.",
@@ -145,31 +147,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsLoadingAiAnalysis(false);
     }
   }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); 
-
-  useEffect(() => {
-    const currentVideoRef = videoRef.current;
-    if (!currentVideoRef || !isDetailsModalOpen) return; 
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          currentVideoRef.play().catch(error => console.log("Autoplay prevented for company video:", error.name, error.message));
-        } else {
-          currentVideoRef.pause();
-        }
-      },
-      { threshold: 0.5 }
-    );
-
-    observer.observe(currentVideoRef);
-
-    return () => {
-      if (currentVideoRef) {
-        observer.unobserve(currentVideoRef);
-      }
-      observer.disconnect();
-    };
-  }, [isDetailsModalOpen, company.introVideoUrl]);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
@@ -298,10 +275,16 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     ? jobDescriptionForCard.substring(0, MAX_JOB_DESCRIPTION_LENGTH_CARD) + "..."
     : jobDescriptionForCard;
 
+  const companyDescriptionForModal = company.description;
+  const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal
+    ? companyDescriptionForModal
+    : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + (companyDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL ? "..." : "");
+  
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal 
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + (jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL ? "..." : "");
+
 
   const ActionButton = ({
     action,
@@ -318,7 +301,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     activeClassName?: string;
     isSpecificActionLiked?: boolean;
   }) => {
-    const baseClasses = "flex-col h-auto py-1";
+    const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
     const regularClasses = isSpecificActionLiked && action === 'like' ? cn(activeClassName, 'fill-green-500 text-green-500') : extraClassName;
     const effectiveOnClick = action === 'details' ? handleDetailsButtonClick : (e: React.MouseEvent) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(company.id, action); };
@@ -366,20 +349,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100%-200px)]">
-          {company.introVideoUrl ? (
-            <video
-              src={company.introVideoUrl}
-              muted
-              autoPlay
-              loop
-              playsInline
-              className="w-full h-full object-cover bg-black pointer-events-none"
-              poster={company.logoUrl || `https://placehold.co/600x360.png?text=${encodeURIComponent(company.name)}`}
-              data-ai-hint="company video"
-              data-no-drag="true"
-            />
-          ) : company.logoUrl ? (
+        {/* Media Area (Image Only for Card Surface) */}
+        <div className="relative w-full bg-muted shrink-0 h-[60%]">
+          {company.logoUrl ? (
             <Image
               src={company.logoUrl}
               alt={company.name + " logo"}
@@ -395,51 +367,56 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           )}
         </div>
 
-        <div className="p-3 sm:p-4 flex-grow flex flex-col h-[40%] overflow-hidden"> 
-          <CardHeader className="p-0 mb-1.5 sm:mb-2">
-            <div className="flex items-start justify-between">
-                <div className="flex-grow min-w-0">
-                    <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
-                    <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
+        {/* Text Content and Footer Area */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+            {/* Upper Text Content (Name, Role, Description) */}
+            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
+                <CardHeader className="p-0">
+                    <div className="flex items-start justify-between">
+                        <div className="flex-grow min-w-0">
+                            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
+                        </div>
+                    </div>
+                    {jobOpening && (
+                        <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
+                    )}
+                </CardHeader>
+
+                <div className="space-y-0.5"> {/* Reduced space-y here for tighter packing on card */}
+                    {jobOpening?.location && (
+                    <div className="flex items-center text-muted-foreground">
+                        <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                        <span className="truncate">{jobOpening.location}</span>
+                    </div>
+                    )}
+                    {(jobOpening?.salaryRange) && (
+                    <div className="flex items-center text-muted-foreground">
+                        <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                        <span className="truncate">{jobOpening?.salaryRange}</span>
+                    </div>
+                    )}
+                    {(jobOpening?.jobType) && (
+                    <div className="flex items-center text-muted-foreground">
+                        <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                        <span className="truncate">{jobOpening?.jobType}</span>
+                    </div>
+                    )}
+                    {jobOpening?.description && (
+                        <p className="text-muted-foreground text-xs pt-0.5 line-clamp-2">
+                            {truncatedJobDescriptionForCard}
+                        </p>
+                    )}
                 </div>
             </div>
-            {jobOpening && (
-              <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
-            )}
-          </CardHeader>
-
-          <CardContent className="p-0 space-y-1 text-xs sm:text-sm flex-grow min-h-0 overflow-hidden">
-            {jobOpening?.location && (
-              <div className="flex items-center text-muted-foreground">
-                <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                <span className="truncate">{jobOpening.location}</span>
-              </div>
-            )}
-            {(jobOpening?.salaryRange) && (
-              <div className="flex items-center text-muted-foreground">
-                <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                <span className="truncate">{jobOpening?.salaryRange}</span>
-              </div>
-            )}
-            {(jobOpening?.jobType) && (
-              <div className="flex items-center text-muted-foreground">
-                <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                <span className="truncate">{jobOpening?.jobType}</span>
-              </div>
-            )}
-             {jobOpening?.description && (
-                <p className="text-muted-foreground text-xs mt-1 line-clamp-2">
-                    {truncatedJobDescriptionForCard}
-                </p>
-            )}
-          </CardContent>
             
-          <CardFooter className="p-2 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
-            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
-            <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
-            <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'} activeClassName="text-green-600 hover:bg-green-500/10" isSpecificActionLiked={isLiked} />
-            <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
-          </CardFooter>
+            {/* Action Buttons Footer */}
+            <CardFooter className="p-2 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
+                <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+                <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
+                <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'} activeClassName="text-green-600 hover:bg-green-500/10" isSpecificActionLiked={isLiked} />
+                <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+            </CardFooter>
         </div>
       </div>
 
@@ -455,38 +432,30 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
           <ScrollArea className="flex-1 min-h-0 bg-background">
             <div className="p-4 sm:p-6 space-y-6">
-              {company.introVideoUrl && (
-                <div className="mb-4">
-                  <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
-                    <Video className="mr-2 h-6 w-6 text-primary" /> Company Introduction
-                  </h3>
-                  <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
-                    <video
-                      ref={videoRef}
-                      src={company.introVideoUrl}
-                      controls={!isGuestMode}
-                      muted={false}
-                      autoPlay={false}
-                      loop
-                      playsInline
-                      className="w-full h-full object-cover"
-                      poster={company.logoUrl || `https://placehold.co/600x360.png?text=${encodeURIComponent(company.name)}`}
-                      data-ai-hint="company introduction video"
-                    />
-                  </div>
-                </div>
-              )}
-
+              
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
                     <Building className="mr-2 h-6 w-6 text-primary" /> About {company.name}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">{company.description}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                  {displayedCompanyDescriptionInModal}
+                  {companyDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
+                      <Button
+                          variant="link"
+                          size="sm"
+                          onClick={(e) => {e.stopPropagation(); setShowFullCompanyDescriptionInModal(!showFullCompanyDescriptionInModal);}}
+                          className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                          data-no-drag="true"
+                      >
+                          {showFullCompanyDescriptionInModal ? "Read less" : "Read more"}
+                      </Button>
+                  )}
+                </p>
               </section>
 
               {jobOpening && (
                 <>
-                  <Separator className="my-6" />
+                  <Separator className="my-4" />
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
                         <JobTypeIcon className="mr-2 h-6 w-6 text-primary" /> Job Description: {jobOpening.title}
@@ -507,7 +476,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </p>
                   </section>
                   
-                  <Separator className="my-6" />
+                  <Separator className="my-4" />
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                         <ListChecks className="mr-2 h-6 w-6 text-primary" /> Key Job Details
@@ -516,7 +485,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                         {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
                         {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
                         {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType}</span></div>}
-                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><ChevronsUpDown className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel}</span></div>}
+                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><ChevronsUpDown className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
                         {jobOpening.tags && jobOpening.tags.length > 0 && (
                         <div className="flex items-start sm:col-span-2">
                             <Sparkles className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
@@ -533,7 +502,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-6" />
+              <Separator className="my-4" />
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <Brain className="mr-2 h-6 w-6 text-primary" /> AI: How This Job Fits You
@@ -586,10 +555,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <>
-                <Separator className="my-6" />
+                <Separator className="my-4" />
                 <section>
                   <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
-                    <Sparkles className="mr-2 h-6 w-6 text-primary" /> Culture Highlights
+                    <Users2 className="mr-2 h-6 w-6 text-primary" /> Culture Highlights
                   </h3>
                   <div className="flex flex-wrap gap-2">
                     {company.cultureHighlights.map((highlight) => (
@@ -600,7 +569,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-6" />
+              <Separator className="my-4" />
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Ask AI About {company.name}
@@ -653,3 +622,4 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
+
