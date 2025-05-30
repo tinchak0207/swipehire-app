@@ -423,10 +423,11 @@ export const mockDiaryPosts: DiaryPost[] = [
     dataAiHint: 'woman face',
     title: 'My First Week with a New AI Project!',
     content: 'Just wrapped up my first week diving deep into a new machine learning project. The learning curve is steep, but the potential impact is huge. Spent most of my time setting up the environment and preprocessing data. Already learned so much about TensorFlow Extended (TFX)! Excited for what\'s next. #AI #MachineLearning #NewBeginnings',
-    imageUrl: 'https://placehold.co/600x400.png', // data-ai-hint for this will be "diary post image" in component
+    imageUrl: 'https://placehold.co/600x400.png',
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
     tags: ['ai', 'learning', 'tensorflow'],
     likes: 15,
+    comments: 3,
     views: 120,
     isFeatured: true,
   },
@@ -441,7 +442,9 @@ export const mockDiaryPosts: DiaryPost[] = [
     timestamp: Date.now() - 1000 * 60 * 60 * 10, // 10 hours ago
     tags: ['ux', 'design', 'collaboration'],
     likes: 22,
+    comments: 5,
     views: 95,
+    isFeatured: false,
   },
   {
     id: 'diary3',
@@ -451,10 +454,11 @@ export const mockDiaryPosts: DiaryPost[] = [
     dataAiHint: 'woman face',
     title: 'Overcoming a Coding Challenge',
     content: 'Spent the entire day debugging a tricky Python script. It was frustrating, but that moment when you finally find the bug and everything works is just priceless! Persistence pays off. #Python #CodingLife #ProblemSolving',
-    imageUrl: 'https://placehold.co/600x400.png', // data-ai-hint for this will be "diary post image" in component
+    imageUrl: 'https://placehold.co/600x400.png',
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 5, // 5 days ago
     tags: ['python', 'debugging', 'development'],
     likes: 30,
+    comments: 7,
     views: 250,
     isFeatured: true,
   },
@@ -469,6 +473,15 @@ export const mockDiaryPosts: DiaryPost[] = [
     timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
     tags: ['product', 'strategy', 'planning'],
     likes: 8,
+    comments: 1,
     views: 40,
+    isFeatured: false,
   }
 ];
+
+// Ensure all mock posts have default interaction counts if not specified
+mockDiaryPosts.forEach(post => {
+  if (post.likes === undefined) post.likes = Math.floor(Math.random() * 50);
+  if (post.comments === undefined) post.comments = Math.floor(Math.random() * 10);
+  if (post.views === undefined) post.views = Math.floor(Math.random() * 300);
+});

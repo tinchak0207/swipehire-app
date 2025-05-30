@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
 import type { DiaryPost } from '@/lib/types';
 import { mockDiaryPosts } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
@@ -12,18 +12,44 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock, Star, BadgeInfo } from 'lucide-react'; // Added Star, BadgeInfo
+import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock, Star, BadgeInfo } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Badge } from '@/components/ui/badge'; // Added Badge for featured posts
-import { Separator } from '@/components/ui/separator'; // Added Separator
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils'; // Added cn
 
 const DIARY_POSTS_STORAGE_KEY = 'swipeHireDiaryPosts';
+const LIKED_DIARY_POSTS_KEY = 'swipeHireLikedDiaryPosts';
 
-function DiaryPostCard({ post, isGuestMode }: { post: DiaryPost, isGuestMode?: boolean }) {
+
+interface DiaryPostCardProps {
+  post: DiaryPost;
+  onLikePost: (postId: string) => void;
+  isLikedByCurrentUser: boolean;
+  isGuestMode?: boolean;
+}
+
+function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: DiaryPostCardProps) {
   const [showFullContent, setShowFullContent] = useState(false);
   const MAX_CONTENT_LENGTH = 150;
+  const { toast } = useToast(); // Added toast for guest mode interaction
 
-  const toggleContent = () => setShowFullContent(!showFullContent);
+  const toggleContent = () => {
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Please sign in to read full posts.", variant: "default" });
+      return;
+    }
+    setShowFullContent(!showFullContent);
+  };
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click or other underlying events
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Please sign in to like posts.", variant: "default" });
+      return;
+    }
+    onLikePost(post.id);
+  };
 
   const displayContent = useMemo(() => {
     if (post.content.length <= MAX_CONTENT_LENGTH || showFullContent) {
@@ -36,7 +62,7 @@ function DiaryPostCard({ post, isGuestMode }: { post: DiaryPost, isGuestMode?: b
     <Card className="w-full shadow-lg overflow-hidden">
       <CardHeader className="flex flex-row items-start space-x-3 p-4 bg-muted/30">
         <Avatar className="mt-1">
-          <AvatarImage src={post.authorAvatarUrl || `https://placehold.co/100x100.png?text=${post.authorName.charAt(0)}`} alt={post.authorName} data-ai-hint={post.dataAiHint || 'person initial'}/>
+          <AvatarImage src={post.authorAvatarUrl || `https://placehold.co/100x100.png`} alt={post.authorName} data-ai-hint={post.dataAiHint || 'person initial'}/>
           <AvatarFallback>{post.authorName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="flex-1">
@@ -62,7 +88,7 @@ function DiaryPostCard({ post, isGuestMode }: { post: DiaryPost, isGuestMode?: b
         <p className="text-sm text-foreground whitespace-pre-line">
           {displayContent}
           {post.content.length > MAX_CONTENT_LENGTH && (
-            <Button variant="link" size="sm" onClick={toggleContent} className="p-0 h-auto ml-1 text-primary" disabled={isGuestMode}>
+            <Button variant="link" size="sm" onClick={toggleContent} className="p-0 h-auto ml-1 text-primary">
               {showFullContent ? "Read Less" : "Read More"}
             </Button>
           )}
@@ -75,10 +101,22 @@ function DiaryPostCard({ post, isGuestMode }: { post: DiaryPost, isGuestMode?: b
           </div>
         )}
       </CardContent>
-      <CardFooter className="p-4 bg-muted/30 border-t flex justify-start space-x-4 text-xs text-muted-foreground">
-        <div className="flex items-center">
-          <ThumbsUp className="h-3.5 w-3.5 mr-1" /> {post.likes || 0} Likes
-        </div>
+      <CardFooter className="p-4 bg-muted/30 border-t flex justify-start items-center space-x-4 text-xs text-muted-foreground">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleLikeClick}
+          disabled={isGuestMode}
+          className={cn(
+            "flex items-center p-1 h-auto hover:bg-accent/50", 
+            isLikedByCurrentUser && !isGuestMode && "text-primary",
+            isGuestMode && "cursor-not-allowed opacity-70"
+          )}
+          aria-label={`Like post titled ${post.title}`}
+        >
+          {isGuestMode ? <Lock className="h-3.5 w-3.5 mr-1" /> : <ThumbsUp className={cn("h-3.5 w-3.5 mr-1", isLikedByCurrentUser && !isGuestMode && "fill-primary")} />}
+           {post.likes || 0}
+        </Button>
         <div className="flex items-center">
           <MessageSquare className="h-3.5 w-3.5 mr-1" /> {post.comments || 0} Comments
         </div>
@@ -115,8 +153,9 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
       timestamp: Date.now(),
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
       likes: 0,
+      comments: 0,
       views: 0,
-      isFeatured: Math.random() < 0.2, // Randomly feature some new posts for demo
+      isFeatured: Math.random() < 0.2, 
     };
     onPostCreated(newPost);
     setTitle('');
@@ -138,7 +177,7 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
       </div>
       <div>
         <label htmlFor="postImageUrl" className="block text-sm font-medium text-foreground">Image URL (Optional)</label>
-        <Input id="postImageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.png" />
+        <Input id="postImageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://placehold.co/600x400.png" />
       </div>
        <div>
         <label htmlFor="postTags" className="block text-sm font-medium text-foreground">Tags (comma-separated, optional)</label>
@@ -163,6 +202,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [currentUserName, setCurrentUserName] = useState('Demo User');
+  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
 
@@ -173,11 +213,22 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
     }
 
     const storedPosts = localStorage.getItem(DIARY_POSTS_STORAGE_KEY);
-    let initialPosts = storedPosts ? JSON.parse(storedPosts) : mockDiaryPosts;
-    // Ensure mockData also has isFeatured potentially
-    initialPosts = initialPosts.map((p: DiaryPost) => ({ ...p, isFeatured: p.isFeatured || Math.random() < 0.15 })); 
+    let initialPosts: DiaryPost[] = storedPosts ? JSON.parse(storedPosts) : mockDiaryPosts;
+    
+    initialPosts = initialPosts.map(p => ({ 
+      ...p, 
+      isFeatured: p.isFeatured || Math.random() < 0.15,
+      likes: p.likes || 0,
+      comments: p.comments || 0,
+      views: p.views || 0,
+    })); 
 
-    setAllPosts(initialPosts.sort((a: DiaryPost, b: DiaryPost) => b.timestamp - a.timestamp));
+    setAllPosts(initialPosts.sort((a, b) => b.timestamp - a.timestamp));
+
+    const storedLikedPosts = localStorage.getItem(LIKED_DIARY_POSTS_KEY);
+    if (storedLikedPosts) {
+      setLikedPostIds(new Set(JSON.parse(storedLikedPosts)));
+    }
   }, []);
 
   const handlePostCreated = (newPost: DiaryPost) => {
@@ -188,6 +239,36 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
     });
     setIsCreatePostOpen(false);
   };
+  
+  const handleLikePost = useCallback((postId: string) => {
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Please sign in to like posts.", variant: "default" });
+      return;
+    }
+
+    setAllPosts(prevPosts => {
+      const updatedPosts = prevPosts.map(post => {
+        if (post.id === postId) {
+          const alreadyLiked = likedPostIds.has(postId);
+          return { ...post, likes: (post.likes || 0) + (alreadyLiked ? -1 : 1) };
+        }
+        return post;
+      });
+      localStorage.setItem(DIARY_POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
+      return updatedPosts;
+    });
+
+    setLikedPostIds(prevLikedIds => {
+      const newLikedIds = new Set(prevLikedIds);
+      if (newLikedIds.has(postId)) {
+        newLikedIds.delete(postId);
+      } else {
+        newLikedIds.add(postId);
+      }
+      localStorage.setItem(LIKED_DIARY_POSTS_KEY, JSON.stringify(Array.from(newLikedIds)));
+      return newLikedIds;
+    });
+  }, [isGuestMode, toast, likedPostIds]);
   
   const postsMatchingSearch = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -222,7 +303,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
     setIsCreatePostOpen(true);
   }
 
-  if (isGuestMode) {
+  if (isGuestMode && !allPosts.length) { // Show locked state if guest and no posts loaded (or initial state)
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
         <Lock className="h-16 w-16 text-red-400 mb-6" />
@@ -240,7 +321,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         <div className="text-center sm:text-left">
           <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center">
             <BookOpenText className="mr-3 h-8 w-8 text-primary" />
-            My Staff Diary
+            Staff Diary
           </h1>
           <p className="text-muted-foreground mt-1">Share your work experiences, learnings, and stories.</p>
         </div>
@@ -283,7 +364,13 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
           </h2>
           <div className="space-y-6">
             {featuredPosts.map(post => (
-              <DiaryPostCard key={post.id} post={post} isGuestMode={isGuestMode} />
+              <DiaryPostCard 
+                key={post.id} 
+                post={post} 
+                onLikePost={handleLikePost}
+                isLikedByCurrentUser={likedPostIds.has(post.id)}
+                isGuestMode={isGuestMode} 
+              />
             ))}
           </div>
           <Separator className="my-8" />
@@ -292,7 +379,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
       
       {/* Regular Posts Section */}
       <section className="space-y-4">
-        {featuredPosts.length > 0 && regularPostsToDisplay.length > 0 && ( // Only show "All Entries" header if there were featured posts AND there are regular posts
+        {featuredPosts.length > 0 && regularPostsToDisplay.length > 0 && (
             <h2 className="text-2xl font-semibold text-foreground">
                 All Diary Entries
             </h2>
@@ -302,7 +389,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
           <div className="text-center py-10 col-span-full">
             <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground text-lg">
-              {searchTerm ? "No diary posts match your search." : "No diary posts yet. Be the first to share!"}
+              {searchTerm ? "No diary posts match your search." : (isGuestMode ? "Sign in to view and create diary posts." : "No diary posts yet. Be the first to share!")}
             </p>
           </div>
         ) : regularPostsToDisplay.length === 0 && featuredPosts.length > 0 ? (
@@ -315,7 +402,13 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         ) : (
           <div className="space-y-6">
             {regularPostsToDisplay.map(post => (
-              <DiaryPostCard key={post.id} post={post} isGuestMode={isGuestMode} />
+              <DiaryPostCard 
+                key={post.id} 
+                post={post} 
+                onLikePost={handleLikePost}
+                isLikedByCurrentUser={likedPostIds.has(post.id)}
+                isGuestMode={isGuestMode}
+              />
             ))}
           </div>
         )}
