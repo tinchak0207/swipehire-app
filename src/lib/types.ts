@@ -181,6 +181,7 @@ export interface DiaryPost {
   // Conceptual fields for AI curation (not fully implemented in prototype)
   likes?: number;
   views?: number;
+  comments?: number; // Added comments
   isFeatured?: boolean;
 }
 
@@ -221,16 +222,38 @@ export interface JobCriteriaForAI {
     companyIndustry?: string;
 }
 
+// --- User Customizable AI Weights ---
+export interface RecruiterPerspectiveWeights {
+  skillsMatchScore: number; // percentage 0-100
+  experienceRelevanceScore: number;
+  cultureFitScore: number;
+  growthPotentialScore: number;
+}
+
+export interface JobSeekerPerspectiveWeights {
+  cultureFitScore: number; // percentage 0-100
+  jobRelevanceScore: number;
+  growthOpportunityScore: number;
+  jobConditionFitScore: number;
+}
+
+export interface UserAIWeights {
+  recruiterPerspective?: RecruiterPerspectiveWeights;
+  jobSeekerPerspective?: JobSeekerPerspectiveWeights;
+}
+// --- End User Customizable AI Weights ---
+
 export interface ProfileRecommenderInput {
     candidateProfile: CandidateProfileForAI;
     jobCriteria: JobCriteriaForAI;
+    userAIWeights?: UserAIWeights; // Added for customizable weights
 }
 
 export interface ProfileRecommenderOutput {
     candidateId: string;
-    matchScore: number;
+    matchScore: number; // This will be calculated in TypeScript using effective weights
     reasoning: string;
-    weightedScores: {
+    weightedScores: { // These are the raw scores from the LLM for each category
         skillsMatchScore: number;
         experienceRelevanceScore: number;
         cultureFitScore: number;
@@ -241,9 +264,9 @@ export interface ProfileRecommenderOutput {
     personalityAssessment?: PersonalityTraitAssessment[];
     optimalWorkStyles?: string[];
     candidateJobFitAnalysis?: { // This part assesses job fit for the candidate
-        matchScoreForCandidate: number;
+        matchScoreForCandidate: number; // Calculated in TypeScript
         reasoningForCandidate: string;
-        weightedScoresForCandidate: {
+        weightedScoresForCandidate: { // Raw scores from LLM
             cultureFitScore: number;
             jobRelevanceScore: number;
             growthOpportunityScore: number;

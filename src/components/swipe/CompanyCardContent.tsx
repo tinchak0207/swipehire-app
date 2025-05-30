@@ -1,5 +1,5 @@
 
-import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
+import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin } from 'lucide-react';
@@ -60,7 +60,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
   const [showFullJobDescriptionInModal, setShowFullJobDescriptionInModal] = useState(false);
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // Not strictly needed for dropdown
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false); 
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
@@ -121,8 +121,24 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         companyCultureKeywords: jobOpening.companyCultureKeywords || company.cultureHighlights || [],
         companyIndustry: company.industry || undefined,
       };
+      
+      let userAIWeights: UserAIWeights | undefined = undefined;
+      const storedWeights = localStorage.getItem('userJobSeekerAIWeights');
+      if (storedWeights) {
+        try {
+          const parsedJobSeekerWeights: JobSeekerPerspectiveWeights = JSON.parse(storedWeights);
+          if (Object.values(parsedJobSeekerWeights).reduce((sum, val) => sum + val, 0) === 100) {
+            userAIWeights = { jobSeekerPerspective: parsedJobSeekerWeights };
+          }
+        } catch (e) { console.warn("Could not parse userJobSeekerAIWeights from localStorage", e); }
+      }
 
-      const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria });
+
+      const result = await recommendProfile({ 
+          candidateProfile: candidateForAI, 
+          jobCriteria: jobCriteria,
+          userAIWeights: userAIWeights 
+      });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
       } else {
@@ -593,7 +609,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
                 </h3>
                  <p className="text-xs text-muted-foreground italic mb-2">
-                  Our AI considers how this job aligns with your profile by looking at factors like: skill and experience match, desired work style vs. company culture, growth opportunities, and job condition alignment (salary, location).
+                  Our AI considers how this job aligns with your profile by looking at factors like: skill and experience match, desired work style vs. company culture, growth opportunities, and job condition alignment (salary, location). The final score reflects weights you can customize in Settings.
                 </p>
                 {isGuestMode ? (
                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
@@ -626,7 +642,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                         <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
                         {aiJobFitAnalysis.weightedScoresForCandidate && (
                             <div className="pt-2 mt-2 border-t border-border/70">
-                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown:</p>
+                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
                                 <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
                                     <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
                                     <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>

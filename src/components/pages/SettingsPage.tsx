@@ -2,14 +2,14 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import type { UserRole } from '@/lib/types';
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion } from 'lucide-react'; // Added MessageCircleQuestion
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle } from 'lucide-react'; // Added Settings2, AlertCircle
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -48,6 +48,19 @@ const analyticsKeys: (keyof AppStats)[] = [
   'matchesViewedCount',
 ];
 
+const defaultRecruiterWeights: RecruiterPerspectiveWeights = {
+  skillsMatchScore: 40,
+  experienceRelevanceScore: 30,
+  cultureFitScore: 20,
+  growthPotentialScore: 10,
+};
+
+const defaultJobSeekerWeights: JobSeekerPerspectiveWeights = {
+  cultureFitScore: 35,
+  jobRelevanceScore: 30,
+  growthOpportunityScore: 20,
+  jobConditionFitScore: 15,
+};
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(currentUserRole);
@@ -62,8 +75,46 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [feedbackCategory, setFeedbackCategory] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
 
+  const [recruiterWeights, setRecruiterWeights] = useState<RecruiterPerspectiveWeights>(defaultRecruiterWeights);
+  const [jobSeekerWeights, setJobSeekerWeights] = useState<JobSeekerPerspectiveWeights>(defaultJobSeekerWeights);
+  const [recruiterWeightsError, setRecruiterWeightsError] = useState<string | null>(null);
+  const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
 
   const { toast } = useToast();
+
+  const validateWeights = (weights: RecruiterPerspectiveWeights | JobSeekerPerspectiveWeights): boolean => {
+    const sum = Object.values(weights).reduce((acc, weight) => acc + Number(weight || 0), 0);
+    return sum === 100;
+  };
+
+  useEffect(() => {
+    if (!isGuestMode) {
+      const savedRecruiterWeights = localStorage.getItem('userRecruiterAIWeights');
+      if (savedRecruiterWeights) {
+        try {
+          const parsed = JSON.parse(savedRecruiterWeights);
+          if (validateWeights(parsed)) setRecruiterWeights(parsed);
+        } catch (e) { console.error("Error parsing recruiter weights from localStorage", e); }
+      }
+      const savedJobSeekerWeights = localStorage.getItem('userJobSeekerAIWeights');
+      if (savedJobSeekerWeights) {
+        try {
+          const parsed = JSON.parse(savedJobSeekerWeights);
+          if (validateWeights(parsed)) setJobSeekerWeights(parsed);
+        } catch (e) { console.error("Error parsing job seeker weights from localStorage", e); }
+      }
+    }
+  }, [isGuestMode]);
+
+
+  useEffect(() => {
+    setRecruiterWeightsError(validateWeights(recruiterWeights) ? null : "Weights must sum to 100%.");
+  }, [recruiterWeights]);
+
+  useEffect(() => {
+    setJobSeekerWeightsError(validateWeights(jobSeekerWeights) ? null : "Weights must sum to 100%.");
+  }, [jobSeekerWeights]);
+
 
   const loadAppStats = () => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -86,6 +137,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setCountry('');
       setDocumentId('');
       setAppStats(initialAppStats); // Clear stats for guest
+      setRecruiterWeights(defaultRecruiterWeights);
+      setJobSeekerWeights(defaultJobSeekerWeights);
       return;
     }
 
@@ -110,6 +163,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode.", variant: "default" });
       return;
     }
+    if (recruiterWeightsError || jobSeekerWeightsError) {
+      toast({ title: "Invalid Weights", description: "Please ensure all AI recommendation weights sum to 100% for each perspective.", variant: "destructive" });
+      return;
+    }
 
     if (selectedRole && selectedRole !== currentUserRole) {
       onRoleChange(selectedRole);
@@ -126,6 +183,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     } else {
         localStorage.removeItem('recruiterProfileComplete');
     }
+
+    localStorage.setItem('userRecruiterAIWeights', JSON.stringify(recruiterWeights));
+    localStorage.setItem('userJobSeekerAIWeights', JSON.stringify(jobSeekerWeights));
 
     toast({
       title: 'Settings Saved',
@@ -172,6 +232,21 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     setFeedbackCategory('');
     setFeedbackMessage('');
     setIsFeedbackModalOpen(false);
+  };
+
+  const handleWeightChange = (
+    perspective: 'recruiter' | 'jobSeeker',
+    field: keyof RecruiterPerspectiveWeights | keyof JobSeekerPerspectiveWeights,
+    value: string
+  ) => {
+    const numValue = parseInt(value, 10);
+    const val = isNaN(numValue) ? 0 : Math.max(0, Math.min(100, numValue));
+
+    if (perspective === 'recruiter') {
+      setRecruiterWeights(prev => ({ ...prev, [field]: val }));
+    } else {
+      setJobSeekerWeights(prev => ({ ...prev, [field]: val }));
+    }
   };
 
 
@@ -299,6 +374,63 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </div>
         </CardContent>
       </Card>
+      
+      {/* AI Recommendation Customization Card */}
+      {!isGuestMode && (
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <Settings2 className="mr-2 h-5 w-5 text-primary" />
+            AI Recommendation Customization
+          </CardTitle>
+          <CardDescription>
+            Adjust how our AI weighs different factors when matching candidates to jobs (for recruiters) or jobs to you (for job seekers). Ensure weights for each perspective sum to 100%.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h4 className="font-semibold text-md mb-2 text-foreground">Recruiter Perspective (Candidate to Job Fit)</h4>
+            <div className="grid grid-cols-2 gap-4">
+              {(Object.keys(recruiterWeights) as Array<keyof RecruiterPerspectiveWeights>).map((key) => (
+                <div key={key} className="space-y-1">
+                  <Label htmlFor={`recruiter-${key}`} className="text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').replace(' Score', '')}</Label>
+                  <Input
+                    id={`recruiter-${key}`}
+                    type="number"
+                    min="0" max="100" step="5"
+                    value={recruiterWeights[key]}
+                    onChange={(e) => handleWeightChange('recruiter', key, e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+            {recruiterWeightsError && <p className="text-xs text-destructive mt-2 flex items-center"><AlertCircle size={14} className="mr-1"/> {recruiterWeightsError}</p>}
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-md mb-2 text-foreground">Job Seeker Perspective (Job to Candidate Fit)</h4>
+            <div className="grid grid-cols-2 gap-4">
+              {(Object.keys(jobSeekerWeights) as Array<keyof JobSeekerPerspectiveWeights>).map((key) => (
+                <div key={key} className="space-y-1">
+                  <Label htmlFor={`jobseeker-${key}`} className="text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').replace(' Score', '')}</Label>
+                  <Input
+                    id={`jobseeker-${key}`}
+                    type="number"
+                    min="0" max="100" step="5"
+                    value={jobSeekerWeights[key]}
+                    onChange={(e) => handleWeightChange('jobSeeker', key, e.target.value)}
+                    className="text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+            {jobSeekerWeightsError && <p className="text-xs text-destructive mt-2 flex items-center"><AlertCircle size={14} className="mr-1"/> {jobSeekerWeightsError}</p>}
+          </div>
+        </CardContent>
+      </Card>
+      )}
+
 
       {/* Identity Verification Card */}
       <Card className="shadow-lg">
@@ -646,7 +778,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
 
       {/* Save Settings Footer */}
       <CardFooter className="flex justify-end pt-6">
-        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode}>
+        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError}>
           <SaveButtonIcon className="mr-2 h-5 w-5" />
           {saveButtonText}
         </Button>
@@ -654,5 +786,3 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
-
-    

@@ -1,5 +1,5 @@
 
-import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput } from '@/lib/types';
+import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput, UserAIWeights, RecruiterPerspectiveWeights } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Lightbulb, MapPin, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays } from 'lucide-react';
@@ -208,10 +208,10 @@ function CandidateDetailsModal({
 
             <section>
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                    <Brain className="mr-2 h-5 w-5 text-primary" /> AI Assessment (Recruiter Perspective)
+                  <Brain className="mr-2 h-5 w-5 text-primary" /> AI Assessment (Recruiter Perspective)
                 </h3>
                 <p className="text-xs text-muted-foreground italic mb-2">
-                  Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity.
+                  Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
                 </p>
                 {isGuestMode ? (
                    <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
@@ -241,7 +241,7 @@ function CandidateDetailsModal({
                         )}
                         {aiRecruiterWeightedScores && (
                             <div className="pt-2 mt-2 border-t border-border/70">
-                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown:</p>
+                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
                                 <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
                                     <li>Skills Match: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
                                     <li>Experience Relevance: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
@@ -333,7 +333,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [aiRecruiterMatchScore, setAiRecruiterMatchScore] = useState<number | null>(null);
   const [aiRecruiterReasoning, setAiRecruiterReasoning] = useState<string | null>(null);
   const [aiRecruiterWeightedScores, setAiRecruiterWeightedScores] = useState<RecruiterWeightedScores | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // This state might not be needed if dropdown handles open state internally
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
 
   const fetchAiRecruiterAnalysis = useCallback(async () => {
@@ -378,8 +378,24 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         companyCultureKeywords: ["innovative", "collaborative", "driven", "growth-oriented"],
         companyIndustry: "Technology / General Business",
       };
+      
+      let userAIWeights: UserAIWeights | undefined = undefined;
+      const storedWeights = localStorage.getItem('userRecruiterAIWeights');
+      if (storedWeights) {
+        try {
+          const parsedRecruiterWeights: RecruiterPerspectiveWeights = JSON.parse(storedWeights);
+          // Basic validation, more robust validation in settings and flow
+          if (Object.values(parsedRecruiterWeights).reduce((sum, val) => sum + val, 0) === 100) {
+             userAIWeights = { recruiterPerspective: parsedRecruiterWeights };
+          }
+        } catch (e) { console.warn("Could not parse userRecruiterAIWeights from localStorage", e); }
+      }
 
-      const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
+      const result = await recommendProfile({ 
+          candidateProfile: candidateForAI, 
+          jobCriteria: genericJobCriteria,
+          userAIWeights: userAIWeights 
+      });
       setAiRecruiterMatchScore(result.matchScore);
       setAiRecruiterReasoning(result.reasoning);
       setAiRecruiterWeightedScores(result.weightedScores);
@@ -745,4 +761,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
