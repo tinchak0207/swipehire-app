@@ -275,14 +275,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     : jobDescriptionForCard;
 
   const companyDescriptionForModal = company.description;
-  const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal
+  const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL
     ? companyDescriptionForModal
-    : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + (companyDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL ? "..." : "");
+    : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL) + "...";
   
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
-  const displayedJobDescriptionInModal = showFullJobDescriptionInModal 
+  const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL
     ? jobDescriptionForModal
-    : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL) + (jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL ? "..." : "");
+    : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL) + "...";
 
 
   const ActionButton = ({
@@ -290,21 +290,18 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     Icon,
     label,
     className: extraClassName,
-    activeClassName,
     isSpecificActionLiked
   }: {
     action: 'like' | 'pass' | 'details' | 'share';
     Icon: React.ElementType;
     label: string;
     className?: string;
-    activeClassName?: string;
     isSpecificActionLiked?: boolean;
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
-    const regularClasses = isSpecificActionLiked && action === 'like' ? cn(activeClassName, 'fill-green-500 text-green-500') : extraClassName;
+    const regularClasses = isSpecificActionLiked && action === 'like' ? cn('fill-green-500 text-green-500 hover:bg-green-500/10', extraClassName) : extraClassName;
     const effectiveOnClick = action === 'details' ? handleDetailsButtonClick : (e: React.MouseEvent) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(company.id, action); };
-
 
     return (
       <TooltipProvider>
@@ -348,7 +345,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area (Image Only for Card Surface) */}
         <div className="relative w-full bg-muted shrink-0 h-[60%]">
           {company.logoUrl ? (
             <Image
@@ -366,9 +362,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           )}
         </div>
 
-        {/* Text Content and Footer Area */}
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-            {/* Upper Text Content (Name, Role, Description) */}
             <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
                 <CardHeader className="p-0">
                     <div className="flex items-start justify-between">
@@ -409,19 +403,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </div>
             </div>
             
-            {/* Action Buttons Footer */}
             <CardFooter className="p-2 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
-                <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600' : 'text-muted-foreground hover:text-green-600'} activeClassName="text-green-600 hover:bg-green-500/10" isSpecificActionLiked={isLiked} />
+                <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500' : 'text-muted-foreground hover:text-green-600'} isSpecificActionLiked={isLiked} />
                 <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
             </CardFooter>
         </div>
       </div>
 
-      {/* Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] flex flex-col p-0 bg-background">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
           <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10">
             <DialogTitle className="text-2xl sm:text-3xl font-bold text-primary">
               {jobOpening?.title || "Opportunity"} at {company.name}
@@ -451,10 +443,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   )}
                 </p>
               </section>
+              <Separator className="my-3" />
 
               {jobOpening && (
                 <>
-                  <Separator className="my-3" />
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
                         <JobTypeIcon className="mr-2 h-6 w-6 text-primary" /> Job Description: {jobOpening.title}
@@ -474,8 +466,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       )}
                     </p>
                   </section>
-                  
                   <Separator className="my-3" />
+                  
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                         <ListChecks className="mr-2 h-6 w-6 text-primary" /> Key Job Details
@@ -499,6 +491,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </div>
                   </section>
                   <Separator className="my-3" />
+
                    <section>
                     <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                       <Brain className="mr-2 h-6 w-6 text-primary" /> AI: How This Job Fits You
@@ -550,10 +543,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </section>
                 </>
               )}
+              <Separator className="my-3" />
 
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
-                <>
-                <Separator className="my-3" />
                 <section>
                   <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                     <Users2 className="mr-2 h-6 w-6 text-primary" /> Culture Highlights
@@ -564,10 +556,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     ))}
                   </div>
                 </section>
-                </>
               )}
-
               <Separator className="my-3" />
+              
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Ask AI About {company.name}
@@ -609,7 +600,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </section>
             </div>
           </ScrollArea>
-          {/* The default "X" close button is part of DialogContent and positioned top-right */}
         </DialogContent>
       </Dialog>
     </>
