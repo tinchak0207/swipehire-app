@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock } from 'lucide-react'; // Added Lock
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks } from 'lucide-react';
 import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -14,14 +14,16 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Added Tooltip
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+
 
 interface CompanyCardContentProps {
   company: Company;
   onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
   isLiked: boolean;
-  isGuestMode?: boolean; // Added isGuestMode
+  isGuestMode?: boolean;
 }
 
 const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60;
@@ -64,7 +66,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   };
 
   const fetchAiAnalysis = useCallback(async () => {
-    if (!company || !jobOpening || isGuestMode) { // Don't fetch for guests
+    if (!company || !jobOpening || isGuestMode) {
       if (isGuestMode) setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       return;
     }
@@ -140,7 +142,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company, jobOpening, toast, isDetailsModalOpen, isGuestMode]); 
 
   useEffect(() => {
@@ -260,7 +261,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   
   const handleShareClick = async (e: React.MouseEvent) => {
     e.stopPropagation(); 
-    if (isGuestMode) return;
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default"});
+      return;
+    }
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
     const shareUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; 
 
@@ -274,7 +278,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Shared!", description: "Job opportunity shared successfully." });
       } catch (error) {
         console.error('Error sharing:', error);
-        toast({ title: "Share Failed", description: "Could not share this job.", variant: "destructive" });
+        // toast({ title: "Share Failed", description: "Could not share this job.", variant: "destructive" });
       }
     } else {
       try {
@@ -315,7 +319,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   }) => {
     const baseClasses = "flex-col h-auto py-1";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
-    const regularClasses = isSpecificActionLiked ? activeClassName : extraClassName;
+    const regularClasses = isSpecificActionLiked && action === 'like' ? cn(activeClassName, 'fill-green-500 text-green-500') : extraClassName;
     const effectiveOnClick = action === 'details' ? handleDetailsButtonClick : (e: React.MouseEvent) => { e.stopPropagation(); if (!isGuestMode) onSwipeAction(company.id, action); };
 
 
@@ -327,12 +331,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               variant="ghost"
               size="sm"
               className={cn(baseClasses, isGuestMode ? guestClasses : regularClasses)}
-              onClick={effectiveOnClick}
-              disabled={isGuestMode && action !== 'details'} // Details button triggers modal with guest check inside
+              onClick={action === 'share' && !isGuestMode ? handleShareClick : effectiveOnClick}
+              disabled={isGuestMode && action !== 'details'}
               aria-label={`${label} ${company.name}`}
               data-no-drag="true"
             >
-              {isGuestMode ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500' : '')} />}
+              {isGuestMode ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
               <span className="text-xs">{label}</span>
             </Button>
           </TooltipTrigger>
@@ -453,7 +457,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   <video
                     ref={videoRef}
                     src={company.introVideoUrl}
-                    controls
+                    controls={!isGuestMode}
                     muted={false}
                     autoPlay={false} 
                     loop
@@ -466,131 +470,165 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               )}
 
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-1">About {company.name}</h3>
+                <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
+                    <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
+                </h3>
                 <p className="text-sm text-muted-foreground whitespace-pre-line">{company.description}</p>
               </div>
 
               {jobOpening && (
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">Job Description: {jobOpening.title}</h3>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">
-                    {displayedJobDescriptionInModal}
-                    {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
-                        <Button
-                            variant="link"
-                            size="sm"
-                            onClick={(e) => {e.stopPropagation(); setShowFullJobDescriptionInModal(!showFullJobDescriptionInModal);}}
-                            className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
-                            data-no-drag="true"
-                        >
-                            {showFullJobDescriptionInModal ? "Read less" : "Read more"}
-                        </Button>
-                    )}
-                  </p>
-                  <div className="mt-3 space-y-1 text-sm">
-                    {jobOpening.location && <p><MapPin className="inline h-4 w-4 mr-2 text-muted-foreground" />Location: {jobOpening.location}</p>}
-                    {jobOpening.salaryRange && <p><DollarSign className="inline h-4 w-4 mr-2 text-muted-foreground" />Salary: {jobOpening.salaryRange}</p>}
-                    {jobOpening.jobType && <p><JobTypeIcon className="inline h-4 w-4 mr-2 text-muted-foreground" />Type: {jobOpening.jobType}</p>}
+                <>
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
+                        <JobTypeIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground whitespace-pre-line">
+                      {displayedJobDescriptionInModal}
+                      {jobDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL && (
+                          <Button
+                              variant="link"
+                              size="sm"
+                              onClick={(e) => {e.stopPropagation(); setShowFullJobDescriptionInModal(!showFullJobDescriptionInModal);}}
+                              className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                              data-no-drag="true"
+                          >
+                              {showFullJobDescriptionInModal ? "Read less" : "Read more"}
+                          </Button>
+                      )}
+                    </p>
                   </div>
-                </div>
+                  
+                  <div className="pt-3">
+                    <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
+                        <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
+                    </h3>
+                    <div className="space-y-1 text-sm p-3 bg-muted/30 rounded-md">
+                      {jobOpening.location && <p><MapPin className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Location:</strong> {jobOpening.location}</p>}
+                      {jobOpening.salaryRange && <p><DollarSign className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Salary:</strong> {jobOpening.salaryRange}</p>}
+                      {jobOpening.jobType && <p><JobTypeIcon className="inline h-4 w-4 mr-2 text-muted-foreground" /><strong>Type:</strong> {jobOpening.jobType}</p>}
+                      {jobOpening.tags && jobOpening.tags.length > 0 && (
+                        <div className="flex items-start pt-1">
+                            <Badge variant="outline" className="border-none p-0 mr-1 mt-0.5"><Sparkles className="inline h-4 w-4 mr-1 text-muted-foreground" /></Badge>
+                            <strong className="mr-1 self-start">Tags:</strong>
+                            <div className="flex flex-wrap gap-1">
+                                {jobOpening.tags.map((tag) => (
+                                <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                                ))}
+                            </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
               )}
 
-              {company.cultureHighlights && company.cultureHighlights.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Culture Highlights</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {company.cultureHighlights.map((highlight) => (
-                      <Badge key={highlight} variant="secondary">{highlight}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <Separator className="my-4" />
 
-              {jobOpening?.tags && jobOpening.tags.length > 0 && (
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Job Tags</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {jobOpening.tags.map((tag) => (
-                      <Badge key={tag} variant="outline">{tag}</Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-4 border-t">
+              <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
                 </h3>
-                <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis || isGuestMode} className="mb-3 w-full sm:w-auto">
-                  {isGuestMode ? <Lock className="mr-2 h-4 w-4" /> : isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                  {isGuestMode ? "Sign in for AI Analysis" : aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
-                </Button>
-                {isLoadingAiAnalysis && !aiJobFitAnalysis && !isGuestMode &&(
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span>Assessing fit...</span>
-                  </div>
-                )}
-                {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                  <div className="space-y-1 p-3 bg-muted/50 rounded-md">
-                    <div className="text-md text-foreground">
-                      <span className="font-semibold">Your Fit Score:</span>
-                      <span className={cn(
-                        "ml-1.5 font-bold text-lg",
-                        aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
-                        aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                        )}>
-                        {aiJobFitAnalysis.matchScoreForCandidate}%
-                      </span>
-                    </div>
-                    <p className="text-sm text-muted-foreground italic">{aiJobFitAnalysis.reasoningForCandidate}</p>
-                    {aiJobFitAnalysis.weightedScoresForCandidate && (
-                        <div className="text-xs pt-2">
-                            <p><strong>Breakdown:</strong></p>
-                            <ul className="list-disc list-inside pl-1 text-muted-foreground">
-                                <li>Culture: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
-                                <li>Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
-                                <li>Growth: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
-                                <li>Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
-                            </ul>
-                        </div>
+                {isGuestMode ? (
+                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md">
+                       <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
+                   </div>
+                ) : (
+                  <>
+                    <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-3 w-full sm:w-auto">
+                      {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                      {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
+                    </Button>
+                    {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <span>Assessing fit...</span>
+                      </div>
                     )}
-                  </div>
+                    {aiJobFitAnalysis && !isLoadingAiAnalysis && (
+                      <div className="space-y-1 p-3 bg-muted/50 rounded-md">
+                        <div className="text-md text-foreground">
+                          <span className="font-semibold">Your Fit Score:</span>
+                          <span className={cn(
+                            "ml-1.5 font-bold text-lg",
+                            aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
+                            aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                            )}>
+                            {aiJobFitAnalysis.matchScoreForCandidate}%
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground italic">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                        {aiJobFitAnalysis.weightedScoresForCandidate && (
+                            <div className="text-xs pt-2">
+                                <p><strong>Breakdown:</strong></p>
+                                <ul className="list-disc list-inside pl-1 text-muted-foreground">
+                                    <li>Culture: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
+                                    <li>Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
+                                    <li>Growth: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
+                                    <li>Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
+                                </ul>
+                            </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
+              
+              {company.cultureHighlights && company.cultureHighlights.length > 0 && (
+                <>
+                <Separator className="my-4" />
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
+                    <Sparkles className="mr-2 h-5 w-5 text-primary" /> Culture Highlights
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    {company.cultureHighlights.map((highlight) => (
+                      <Badge key={highlight} variant="secondary" className="text-sm">{highlight}</Badge>
+                    ))}
+                  </div>
+                </div>
+                </>
+              )}
 
-              <div className="pt-4 border-t">
+              <Separator className="my-4" />
+              <div>
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <MessageSquare className="mr-2 h-5 w-5 text-primary" /> Ask AI About {company.name}
                 </h3>
-                <div className="space-y-2">
-                  <Textarea
-                    id="userCompanyQuestion"
-                    placeholder="e.g., What are the main products? What is the team size?"
-                    value={userQuestion}
-                    onChange={(e) => setUserQuestion(e.target.value)}
-                    disabled={isAskingQuestion || isGuestMode}
-                    className="min-h-[80px]"
-                  />
-                  <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim() || isGuestMode} className="w-full sm:w-auto">
-                    {isGuestMode ? <Lock className="mr-2 h-4 w-4" /> : isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
-                    {isGuestMode ? "Sign in to Ask AI" : "Ask AI"}
-                  </Button>
-                  {isAskingQuestion && !isGuestMode && (
-                    <div className="flex items-center text-sm text-muted-foreground py-2">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span>Thinking...</span>
+                {isGuestMode ? (
+                    <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md">
+                        <Lock className="h-4 w-4 mr-2"/>Sign in to ask the AI questions about this company.
                     </div>
-                  )}
-                  {aiAnswer && !isGuestMode && (
-                    <div className="pt-2">
-                      <h4 className="font-semibold text-sm mb-1">AI's Answer:</h4>
-                      <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line">
-                        {aiAnswer}
+                ) : (
+                  <div className="space-y-2">
+                    <Textarea
+                      id="userCompanyQuestion"
+                      placeholder="e.g., What are the main products? What is the team size?"
+                      value={userQuestion}
+                      onChange={(e) => setUserQuestion(e.target.value)}
+                      disabled={isAskingQuestion}
+                      className="min-h-[80px]"
+                    />
+                    <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto">
+                      {isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
+                      Ask AI
+                    </Button>
+                    {isAskingQuestion && (
+                      <div className="flex items-center text-sm text-muted-foreground py-2">
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        <span>Thinking...</span>
                       </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                    {aiAnswer && (
+                      <div className="pt-2">
+                        <h4 className="font-semibold text-sm mb-1">AI's Answer:</h4>
+                        <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line">
+                          {aiAnswer}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </ScrollArea>
