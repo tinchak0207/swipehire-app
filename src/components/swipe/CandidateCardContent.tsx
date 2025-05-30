@@ -2,8 +2,8 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock } from 'lucide-react'; // Added Lock
-import { CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
+import { Briefcase, Lightbulb, MapPin, Zap, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock } from 'lucide-react';
+import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card'; // Removed CardContent as we'll use divs for sections
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -11,12 +11,13 @@ import { useToast } from '@/hooks/use-toast';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator'; // Added Separator
 
 interface CandidateCardContentProps {
   candidate: Candidate;
   onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
   isLiked: boolean;
-  isGuestMode?: boolean; // Added isGuestMode
+  isGuestMode?: boolean;
 }
 
 const SWIPE_THRESHOLD = 75;
@@ -38,7 +39,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [showFullSummary, setShowFullSummary] = useState(false);
 
   const fetchAiRecruiterAnalysis = useCallback(async () => {
-    if (!candidate || isGuestMode) return; // Don't fetch for guests
+    if (!candidate || isGuestMode) return;
     setIsLoadingAiAnalysis(true);
     setAiRecruiterMatchScore(null);
     setAiRecruiterReasoning(null);
@@ -124,7 +125,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isGuestMode) return; // Disable swipe in guest mode
+    if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area')) {
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
@@ -232,16 +233,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     ? `${candidate.experienceSummary.substring(0, MAX_SUMMARY_LENGTH_CARD)}...`
     : candidate.experienceSummary;
 
-  const handleDetailsClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); 
-    if (isGuestMode) return;
-    onSwipeAction(candidate.id, 'details'); 
-    toast({
-      title: "Details View",
-      description: `Showing more details for ${candidate.name} (conceptual). Full modal/page view to be implemented.`,
-    });
-  };
-
   const ActionButton = ({
     action,
     Icon,
@@ -289,7 +280,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   };
 
   return (
-    <div
+    <div // Main CandidateCardContent container
       ref={cardContentRef}
       className="flex flex-col h-full overflow-hidden relative bg-card"
       onMouseDown={handleMouseDown}
@@ -302,7 +293,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         transition: isDragging ? 'none' : 'transform 0.3s ease-out', 
       }}
     >
-      <div className="relative w-full bg-muted shrink-0 h-[60%] max-h-[calc(100%-180px)]">
+      {/* Media Area (Video/Image) */}
+      <div className="relative w-full bg-muted shrink-0 h-[60%]"> {/* Kept h-[60%] for media proportion */}
         {candidate.videoResumeUrl ? (
           <video
             ref={videoRef}
@@ -332,8 +324,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         )}
       </div>
 
-      <div className="p-3 sm:p-4 flex-grow flex flex-col h-[40%] overflow-y-auto overscroll-y-contain no-scrollbar"> 
-        <CardHeader className="p-0 mb-2">
+      {/* Scrollable Text Content Area */}
+      <div className="flex-1 min-h-0 overflow-y-auto overscroll-y-contain no-scrollbar p-3 sm:p-4 space-y-3 text-xs sm:text-sm">
+        <CardHeader className="p-0">
           <div className="flex items-start justify-between">
             <div className="flex-grow min-w-0"> 
                 <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -363,114 +356,121 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </CardHeader>
 
-        <CardContent className="p-0 mb-2 sm:mb-3 space-y-1.5 text-xs sm:text-sm flex-grow min-h-0">
-          <p className="text-muted-foreground">
-            {summaryForDisplay}
-            {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_CARD && (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={(e) => {e.stopPropagation(); setShowFullSummary(!showFullSummary);}}
-                className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
-                data-no-drag="true"
-                disabled={isGuestMode}
-              >
-                {showFullSummary ? "Read less" : "Read more"}
-              </Button>
-            )}
-          </p>
-
-          {candidate.desiredWorkStyle && (
-              <div className="flex items-center text-muted-foreground">
-                  <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
-                  <span className="line-clamp-1">{candidate.desiredWorkStyle}</span>
-              </div>
+        <p className="text-muted-foreground">
+          {summaryForDisplay}
+          {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_CARD && (
+            <Button
+              variant="link"
+              size="sm"
+              onClick={(e) => {e.stopPropagation(); setShowFullSummary(!showFullSummary);}}
+              className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+              data-no-drag="true"
+              disabled={isGuestMode}
+            >
+              {showFullSummary ? "Read less" : "Read more"}
+            </Button>
           )}
+        </p>
 
-          {candidate.skills && candidate.skills.length > 0 && (
-            <div className="mt-1.5 sm:mt-2">
-              <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1">Skills:</h4>
-              <div className="flex flex-wrap gap-1">
-                {candidate.skills.slice(0, 3).map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">{skill}</Badge>
-                ))}
-                {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">+{candidate.skills.length-3} more</Badge>}
-              </div>
+        {candidate.desiredWorkStyle && (
+            <div className="flex items-center text-muted-foreground">
+                <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
+                <span className="line-clamp-1">{candidate.desiredWorkStyle}</span>
             </div>
-          )}
-       
-          <div className="pt-2 border-t border-border/50 text-xs overflow-hidden">
-              <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
-                  <Brain className="h-4 w-4 mr-1.5 text-primary" /> AI Assessment:
-              </h4>
-              {isGuestMode ? (
-                 <p className="text-xs text-red-500 italic flex items-center"><Lock className="h-3 w-3 mr-1"/>Sign in to view AI Assessment.</p>
-              ) : isLoadingAiAnalysis ? (
-                  <div className="flex items-center text-muted-foreground">
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      <span>Analyzing...</span>
-                  </div>
-              ) : aiRecruiterMatchScore !== null ? (
-                  <div className="space-y-1">
-                      <div className="text-sm text-foreground">
-                          <span className="font-semibold">Match Score:</span>
-                          <span className={cn(
-                              "ml-1 font-bold",
-                              aiRecruiterMatchScore >= 75 ? 'text-green-600' : 
-                              aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
-                          )}>
-                              {aiRecruiterMatchScore}%
-                          </span>
-                      </div>
-                      {aiRecruiterReasoning && (
-                          <p className="text-xs text-muted-foreground italic line-clamp-2">
-                              {aiRecruiterReasoning}
-                          </p>
-                      )}
-                  </div>
-              ) : (
-                   <p className="text-xs text-muted-foreground italic">AI assessment unavailable.</p>
-              )}
+        )}
+
+        {candidate.skills && candidate.skills.length > 0 && (
+          <div> {/* Section Wrapper */}
+            <h4 className="text-xs font-semibold uppercase text-muted-foreground mb-1">Skills:</h4>
+            <div className="flex flex-wrap gap-1">
+              {candidate.skills.slice(0, 3).map((skill) => (
+                <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">{skill}</Badge>
+              ))}
+              {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5 sm:px-2 sm:py-0.5">+{candidate.skills.length-3} more</Badge>}
+            </div>
           </div>
-
-          {(candidate.personalityAssessment || candidate.optimalWorkStyles) && (
-            <div className="mt-2 pt-2 border-t border-border/50 text-xs overflow-hidden">
-              <h4 className="font-semibold text-muted-foreground mb-1.5 flex items-center">
-                <Users className="h-4 w-4 mr-1.5 text-primary" /> Coworker Fit Profile:
-              </h4>
-              {isGuestMode ? (
-                 <p className="text-xs text-red-500 italic flex items-center"><Lock className="h-3 w-3 mr-1"/>Sign in to view Fit Profile.</p>
-              ) : candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
-                <div className="mb-1 space-y-0.5">
-                  <p className="font-medium text-foreground text-xs">Personality Insights:</p>
-                  {candidate.personalityAssessment.slice(0,1).map((item, index) => ( 
-                    <div key={index} className="flex items-start">
-                      {renderPersonalityFitIcon(item.fit)}
-                      <div className="min-w-0">
-                        <span className="font-semibold line-clamp-1">{item.trait}:</span>
-                        <span className="text-muted-foreground ml-1 line-clamp-1">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
-                      </div>
+        )}
+     
+        {/* AI Assessment Section */}
+        {(!isGuestMode || (aiRecruiterMatchScore !== null || aiRecruiterReasoning !== null)) && (
+          <div className="pt-2 mt-2 border-t border-border/50"> {/* Added mt-2 for spacing */}
+            <h4 className="font-semibold text-muted-foreground mb-1 flex items-center text-sm"> {/* Consistent heading style */}
+                <Brain className="h-4 w-4 mr-1.5 text-primary" /> AI Assessment:
+            </h4>
+            {isGuestMode && !(aiRecruiterMatchScore !== null || aiRecruiterReasoning !== null) ? (
+               <p className="text-xs text-red-500 italic flex items-center"><Lock className="h-3 w-3 mr-1"/>Sign in to view AI Assessment.</p>
+            ) : isLoadingAiAnalysis ? (
+                <div className="flex items-center text-muted-foreground">
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Analyzing...</span>
+                </div>
+            ) : aiRecruiterMatchScore !== null ? (
+                <div className="space-y-1">
+                    <div className="text-sm text-foreground">
+                        <span className="font-semibold">Match Score:</span>
+                        <span className={cn(
+                            "ml-1 font-bold",
+                            aiRecruiterMatchScore >= 75 ? 'text-green-600' : 
+                            aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
+                        )}>
+                            {aiRecruiterMatchScore}%
+                        </span>
                     </div>
-                  ))}
+                    {aiRecruiterReasoning && (
+                        <p className="text-xs text-muted-foreground italic line-clamp-2">
+                            {aiRecruiterReasoning}
+                        </p>
+                    )}
                 </div>
-              ) : null}
-              {isGuestMode ? null : candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 && (
-                <div>
-                  <p className="font-medium text-foreground text-xs">Optimal Work Style:</p>
-                  <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5">
-                    {candidate.optimalWorkStyles.slice(0, 1).map((style, index) => ( 
-                      <li key={index} className="line-clamp-1">{style}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-        </CardContent>
+            ) : (
+                 <p className="text-xs text-muted-foreground italic">AI assessment unavailable.</p>
+            )}
+          </div>
+        )}
 
+        {/* Coworker Fit Section */}
+        {(!isGuestMode || (candidate.personalityAssessment && candidate.personalityAssessment.length > 0) || (candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0)) && (
+          <div className="pt-2 mt-2 border-t border-border/50"> {/* Added mt-2 */}
+            <h4 className="font-semibold text-muted-foreground mb-1 flex items-center text-sm">
+              <Users className="h-4 w-4 mr-1.5 text-primary" /> Coworker Fit Profile:
+            </h4>
+            {isGuestMode && !(candidate.personalityAssessment && candidate.personalityAssessment.length > 0) && !(candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0) ? (
+               <p className="text-xs text-red-500 italic flex items-center"><Lock className="h-3 w-3 mr-1"/>Sign in to view Fit Profile.</p>
+            ) : (
+              <>
+                {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 && (
+                  <div className="mb-1 space-y-0.5">
+                    <p className="font-medium text-foreground text-xs">Personality Insights:</p>
+                    {candidate.personalityAssessment.slice(0,1).map((item, index) => ( 
+                      <div key={index} className="flex items-start">
+                        {renderPersonalityFitIcon(item.fit)}
+                        <div className="min-w-0">
+                          <span className="font-semibold line-clamp-1">{item.trait}:</span>
+                          <span className="text-muted-foreground ml-1 line-clamp-1">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 && (
+                  <div>
+                    <p className="font-medium text-foreground text-xs">Optimal Work Style:</p>
+                    <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5">
+                      {candidate.optimalWorkStyles.slice(0, 1).map((style, index) => ( 
+                        <li key={index} className="line-clamp-1">{style}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        )}
+        
+        {/* Profile Strength Section */}
         {candidate.profileStrength && !isGuestMode && (
-          <div className="mt-auto pt-1.5 sm:pt-2 border-t border-border/50">
-            <div className="flex items-center text-xs text-primary font-medium">
+          <div className="pt-2 mt-2 border-t border-border/50"> {/* Added mt-2 */}
+            <div className="flex items-center text-sm text-primary font-medium"> {/* Consistent font size */}
               <Zap className="h-3.5 w-3.5 mr-1.5 text-accent shrink-0" />
               Profile Strength: {candidate.profileStrength}%
               {candidate.profileStrength > 89 && <Badge variant="default" className="ml-2 text-xs px-1.5 py-0.5 bg-green-500 hover:bg-green-600 text-white">Top Talent</Badge>}
@@ -478,6 +478,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           </div>
         )}
       </div>
+
+      {/* Action Buttons Footer */}
       <CardFooter className="p-2 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
         <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
         <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
