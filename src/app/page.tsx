@@ -14,7 +14,7 @@ import { LoginPage } from "@/components/pages/LoginPage";
 import { CreateJobPostingPage } from "@/components/pages/CreateJobPostingPage";
 import { StaffDiaryPage } from "@/components/pages/StaffDiaryPage";
 import { WelcomePage } from "@/components/pages/WelcomePage";
-import { MyProfilePage } from "@/components/pages/MyProfilePage"; // Added import
+import { MyProfilePage } from "@/components/pages/MyProfilePage";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -27,67 +27,68 @@ const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
 const USER_ROLE_KEY = 'userRole'; 
 
 export default function HomePage() {
+  // Core state variables based on user's provided example
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // Start true
-  const [activeTab, setActiveTab] = useState<string>("findTalent");
-  const [isMobile, setIsMobile] = useState(false);
-  const [showWelcomePage, setShowWelcomePage] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [showWelcomePage, setShowWelcomePage] = useState(false); // Initialized to false, useEffect will set it
+  
+  const [activeTab, setActiveTab] = useState<string>("findTalent"); // Existing state
+  const [isMobile, setIsMobile] = useState(false); // Existing state
+  const [searchTerm, setSearchTerm] = useState(""); // Existing state
+  
   const { toast } = useToast();
-  const initialAuthCheckDone = useRef(false); 
+  const initialAuthCheckDone = useRef(false); // From user's example
 
   useEffect(() => {
-    setIsInitialLoading(true); // Explicitly start in loading state
+    // setIsInitialLoading(true); // This is already the initial state via useState.
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
         setCurrentUser(user);
-        const authenticated = !!user;
-        setIsAuthenticated(authenticated);
+        setIsAuthenticated(true);
 
         const storedRole = localStorage.getItem(USER_ROLE_KEY) as UserRole | null;
-        setUserRole(authenticated ? storedRole : null); // If user is authenticated, use storedRole, otherwise clear role.
+        setUserRole(storedRole);
 
         const seenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-        if (!seenWelcome) {
-            setShowWelcomePage(true);
-        } else {
-            setShowWelcomePage(false);
-        }
-        
-        // This is the most critical part: ensure initial loading stops
-        // only after the first onAuthStateChanged event has processed.
-        if (!initialAuthCheckDone.current) {
-            initialAuthCheckDone.current = true;
-            setIsInitialLoading(false);
-        }
+        setShowWelcomePage(!seenWelcome); // If authenticated and not seen welcome, flag to show it.
+      } else {
+        setCurrentUser(null);
+        setIsAuthenticated(false);
+        setUserRole(null);
+        setShowWelcomePage(false); // If not authenticated, don't show welcome page.
+      }
+
+      if (!initialAuthCheckDone.current) {
+        initialAuthCheckDone.current = true;
+        setIsInitialLoading(false);
+      }
     });
 
-    // Process redirect result for side effects like toasts.
-    // onAuthStateChanged is the primary source for state that drives UI changes.
     getRedirectResult(auth)
-        .then((result) => {
-            if (result?.user) {
-                // User signed in via redirect.
-                toast({
-                    title: "Signed In Successfully!",
-                    description: `Welcome back, ${result.user.displayName || result.user.email}!`,
-                });
-            }
-        })
-        .catch((error) => {
-            console.error("Error processing redirect result:", error);
-            toast({
-                title: "Sign-In Issue During Redirect",
-                description: error.message || "Could not complete sign-in after redirect.",
-                variant: "destructive",
-            });
+      .then((result) => {
+        if (result?.user) {
+          toast({
+            title: "Signed In Successfully!",
+            description: `Welcome back, ${result.user.displayName || result.user.email}!`,
+          });
+          // onAuthStateChanged will handle the state updates from the redirect result.
+        }
+      })
+      .catch((error) => {
+        console.error("Error processing redirect result:", error);
+        toast({
+          title: "Sign-In Issue During Redirect",
+          description: error.message || "Could not complete sign-in after redirect.",
+          variant: "destructive",
         });
+      });
 
     return () => unsubscribe();
-// eslint-disable-next-line react-hooks/exhaustive-deps
-}, []); // Empty dependency array is correct for this setup.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toast]); // toast is stable, but good to include if used in effect.
 
 
   useEffect(() => {
@@ -117,18 +118,19 @@ export default function HomePage() {
       reload: () => Promise.resolve(), toJSON: () => ({ uid: `mock-bypass-user-${Date.now()}`, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }),
     };
     
+    // Manually trigger the auth state updates as if onAuthStateChanged fired
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
     
-    const seenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-    setShowWelcomePage(!seenWelcome);
-
     const storedRoleValue = localStorage.getItem(USER_ROLE_KEY);
     if (storedRoleValue === 'recruiter' || storedRoleValue === 'jobseeker') {
       setUserRole(storedRoleValue as UserRole);
     } else {
       setUserRole(null); 
     }
+
+    const seenWelcome = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
+    setShowWelcomePage(!seenWelcome);
     
     if (!initialAuthCheckDone.current) { 
         initialAuthCheckDone.current = true;
@@ -162,7 +164,7 @@ export default function HomePage() {
   };
 
   const handleLoginRequest = () => {
-    // This mainly ensures welcome is false if trying to log in explicitly.
+    // This might be redundant if welcome page logic is solid, but ensures welcome isn't shown if login is explicitly clicked
     setShowWelcomePage(false); 
   };
 
@@ -191,6 +193,7 @@ export default function HomePage() {
   }
 
   useEffect(() => {
+    // This effect ensures the active tab is valid for the current role.
     if (userRole && isAuthenticated) {
       const itemsForCurrentRole = userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems;
       const validTabValues = itemsForCurrentRole.map(item => item.value);
@@ -201,7 +204,7 @@ export default function HomePage() {
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isAuthenticated]);
+  }, [userRole, isAuthenticated, activeTab]); // Added activeTab to dependencies
 
 
   // ------ Page Rendering Logic ------
@@ -213,19 +216,22 @@ export default function HomePage() {
     );
   }
 
-  if (showWelcomePage) {
+  // If user is authenticated and welcome page should be shown (and it's not been dismissed yet)
+  if (isAuthenticated && showWelcomePage) {
     return <WelcomePage onStartExploring={handleStartExploring} />;
   }
   
+  // If not authenticated (and by implication, welcome page process is done or not applicable)
   if (!isAuthenticated) { 
-    return <LoginPage onLoginBypass={handleLoginBypass} />;
+    return <LoginPage onLoginBypass={handleLoginBypass} onLoginRequest={handleLoginRequest} />;
   }
   
+  // If authenticated, welcome seen (or not applicable), but no role selected
   if (!userRole) { 
     return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
   }
 
-  // Authenticated, welcome seen, role selected -> Show main app
+  // Authenticated, welcome seen (or not applicable), role selected -> Show main app
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <AppHeader
