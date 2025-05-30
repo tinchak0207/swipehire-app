@@ -90,7 +90,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
 
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', // Using a placeholder ID
+        id: 'currentUserProfile', 
         role: candidateRole,
         experienceSummary: candidateExpSummary,
         skills: candidateSkills,
@@ -98,7 +98,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         workExperienceLevel: WorkExperienceLevel.MID_LEVEL, 
         educationLevel: EducationLevel.UNIVERSITY, 
         locationPreference: LocationPreference.REMOTE, 
-        // Add other fields from local storage if available, otherwise use sensible defaults or omit
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -154,6 +153,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
           fetchAiAnalysis();
+      } else if (isGuestMode && isDetailsModalOpen) {
+        setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
+        setIsLoadingAiAnalysis(false);
       }
   }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
@@ -253,7 +255,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default"});
         return;
     }
-    const jobUrl = typeof window !== 'undefined' ? `${window.location.origin}/job/${company.id}/${jobOpening?.title.replace(/\s+/g, '-') || 'details'}` : `https://swipehire.example.com/job/${company.id}/details`;
+    const jobUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Points to app root
     const shareText = `Check out this job at ${company.name}: ${jobOpening?.title || 'Exciting Role'} on SwipeHire!`;
     const emailSubject = `Job Opportunity: ${jobOpening?.title || 'Exciting Role'} at ${company.name}`;
     const emailBody = `${shareText}\n\nFind out more: ${jobUrl}`;
@@ -393,14 +395,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area */}
         <div className="relative w-full bg-muted shrink-0 h-[60%]">
           {company.logoUrl ? (
             <Image
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4" // p-4 added to give some space around the logo
+              className="object-contain p-4"
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -411,13 +412,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           )}
         </div>
 
-        {/* Text Content & Actions Footer */}
-        <div className="flex-1 min-h-0 flex flex-col"> {/* Main container for text and footer */}
-            {/* Info section that takes available space and truncates */}
-            <div className="flex-1 min-h-0 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
                 <CardHeader className="p-0">
                     <div className="flex items-start justify-between">
-                        <div className="flex-grow min-w-0"> {/* Allow text to truncate */}
+                        <div className="flex-grow min-w-0">
                             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
                             <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
                         </div>
@@ -427,7 +426,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </CardHeader>
 
-                {/* Details that can be truncated */}
                 <div className="space-y-0.5">
                     {jobOpening?.location && (
                     <div className="flex items-center text-muted-foreground">
@@ -455,7 +453,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </div>
             </div>
 
-            {/* Action Buttons Footer - fixed at the bottom of this flex column */}
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
@@ -481,21 +478,19 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
       </div>
 
-      {/* Details Modal */}
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
            <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10 pb-3">
             <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
-              {jobOpening?.title || "Opportunity Details"}
+              {jobOpening?.title || "Opportunity Details"} at {company.name}
             </DialogTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              {company.name} - {company.industry}
+               {company.industry}
             </CardDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0">
+          <ScrollArea className="flex-1 min-h-0 bg-background">
             <div className="p-4 sm:p-6 space-y-4 pt-3">
-               {/* Removed company.introVideoUrl section */}
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
@@ -544,7 +539,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                         <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
                         {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
                         {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
                         {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}

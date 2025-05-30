@@ -71,7 +71,7 @@ function CandidateDetailsModal({
     observer.observe(currentVideoRef);
     return () => {
       if (currentVideoRef) observer.unobserve(currentVideoRef);
-      observer.disconnect();
+      // No need to disconnect here, it's part of useEffect's cleanup
     };
   }, [isOpen, candidate.videoResumeUrl]);
 
@@ -129,10 +129,10 @@ function CandidateDetailsModal({
           )}
         </DialogHeader>
 
-        <ScrollArea className="flex-1 min-h-0 bg-background"> {/* Added bg-background */}
-          <div className="p-4 sm:p-6 space-y-4 pt-3"> {/* Reduced top padding */}
+        <ScrollArea className="flex-1 min-h-0 bg-background">
+          <div className="p-4 sm:p-6 space-y-4 pt-3">
             {candidate.videoResumeUrl && (
-              <section className="mb-3"> {/* Reduced margin */}
+              <section className="mb-3">
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Video className="mr-2 h-5 w-5 text-primary" /> Video Resume
                 </h3>
@@ -200,7 +200,7 @@ function CandidateDetailsModal({
             <Separator className="my-3" />
 
             <section>
-                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center"> {/* text-sm for consistency */}
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center">
                     <Brain className="mr-2 h-5 w-5 text-primary" /> AI Assessment (Recruiter Perspective)
                 </h3>
                 {isGuestMode ? (
@@ -248,7 +248,7 @@ function CandidateDetailsModal({
             <Separator className="my-3" />
 
             <section>
-                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center"> {/* text-sm for consistency */}
+                <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center">
                   <Users2 className="mr-2 h-5 w-5 text-primary" /> Coworker Fit Profile
                 </h3>
                 {isGuestMode ? (
@@ -288,7 +288,7 @@ function CandidateDetailsModal({
 
             {candidate.profileStrength && !isGuestMode && (
               <section>
-                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center"> {/* text-sm for consistency */}
+                <h3 className="text-sm font-semibold text-foreground mb-1 flex items-center">
                     <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
                 </h3>
                 <div className="flex items-center text-md text-primary font-medium">
@@ -359,14 +359,13 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         personalityAssessment: candidate.personalityAssessment || [],
       };
 
-      // Using a generic job criteria for recruiter's perspective analysis
       const genericJobCriteria: JobCriteriaForAI = {
         title: candidate.role || "General Role Assessment",
         description: `Assessing overall potential and fit for a role similar to ${candidate.role || 'the candidate\'s stated preference'}. Considering their skills and experience level. Company culture emphasizes innovation and collaboration.`,
         requiredSkills: candidate.skills?.slice(0,3) || ["communication", "problem-solving"],
         requiredExperienceLevel: candidate.workExperienceLevel || WorkExperienceLevel.MID_LEVEL,
         companyCultureKeywords: ["innovative", "collaborative", "driven", "growth-oriented"],
-        companyIndustry: "Technology / General Business", // Generic industry
+        companyIndustry: "Technology / General Business",
       };
 
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria });
@@ -387,33 +386,31 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   }, [candidate.id, candidate.name, candidate.role, candidate.skills, candidate.workExperienceLevel, candidate.experienceSummary, candidate.desiredWorkStyle, candidate.pastProjects, candidate.educationLevel, candidate.locationPreference, candidate.languages, candidate.salaryExpectationMin, candidate.salaryExpectationMax, candidate.availability, candidate.jobTypePreference, candidate.personalityAssessment, isGuestMode, toast]);
 
   useEffect(() => {
-    // Fetch AI analysis when the modal is about to open, if not already fetched or loading, and not in guest mode.
-    // This prevents fetching for every card initially.
     if (isDetailsModalOpen && !isGuestMode && !aiRecruiterMatchScore && !isLoadingAiAnalysis) {
         fetchAiRecruiterAnalysis();
-    } else if (isGuestMode && isDetailsModalOpen) { // Handle guest mode when modal opens
+    } else if (isGuestMode && isDetailsModalOpen) {
         setAiRecruiterMatchScore(null);
         setAiRecruiterReasoning("AI Assessment disabled in Guest Mode.");
         setAiRecruiterWeightedScores(null);
         setIsLoadingAiAnalysis(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDetailsModalOpen, isGuestMode, fetchAiRecruiterAnalysis]);
+  }, [isDetailsModalOpen, isGuestMode, aiRecruiterMatchScore, isLoadingAiAnalysis, fetchAiRecruiterAnalysis]);
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
-    if (targetElement.closest('button[data-modal-trigger="true"], a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-      if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
-        const video = targetElement as HTMLVideoElement;
-        const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) { // Ignore clicks on video controls area
-            return;
+    if (targetElement.closest('button[data-modal-trigger="true"], a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], video[controls]') || (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls'))) {
+        if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
+            const video = targetElement as HTMLVideoElement;
+            const rect = video.getBoundingClientRect();
+            // A simple check if the click is within the bottom ~40px of the video, where controls usually are.
+            if (e.clientY > rect.bottom - 40) {
+                return; // Ignore clicks on video controls area
+            }
+        } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
+           return; // Don't start drag if clicking on interactive elements
         }
-      } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return; // Don't start drag if clicking on interactive elements
-      }
     }
     e.preventDefault();
     setIsDragging(true);
@@ -469,15 +466,15 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default"});
         return;
     }
-    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/candidate/${candidate.id}` : `https://swipehire.example.com/candidate/${candidate.id}`;
+    const profileUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire.example.com'; // Points to app root
     const shareText = `Check out this candidate on SwipeHire: ${candidate.name} - ${candidate.role || 'Talented Professional'}.`;
     const emailSubject = `Interesting Candidate Profile: ${candidate.name}`;
-    const emailBody = `${shareText}\n\nView their profile here: ${profileUrl}`;
+    const emailBody = `${shareText}\n\nExplore more at: ${profileUrl}`;
 
     switch(platform) {
         case 'copy':
             try {
-                await navigator.clipboard.writeText(`${shareText} Profile: ${profileUrl}`);
+                await navigator.clipboard.writeText(`${shareText} Find them on SwipeHire: ${profileUrl}`);
                 toast({ title: "Copied to Clipboard!", description: "Candidate profile link copied." });
             } catch (err) {
                 toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" });
@@ -599,7 +596,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area */}
         <div className="relative w-full bg-muted shrink-0 h-[60%]">
           {candidate.avatarUrl ? (
             <Image
@@ -617,31 +613,29 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-         {/* Text Content & Actions Footer */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col"> {/* Removed outer text content wrapper for direct flex layout */}
-            {/* Info section that takes available space and truncates */}
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm"> {/* This div will scroll if content overflows */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
                 <CardHeader className="p-0">
                     <div className="flex items-start justify-between">
-                    <div className="flex-grow min-w-0">
-                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
-                    </div>
-                    {candidate.isUnderestimatedTalent && (
-                        <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                            <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
-                                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
-                                Gem
-                            </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs">
-                            <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        </TooltipProvider>
-                    )}
+                        <div className="flex-grow min-w-0">
+                            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+                            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
+                        </div>
+                        {candidate.isUnderestimatedTalent && (
+                            <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
+                                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
+                                    Gem
+                                </Badge>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-xs">
+                                <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                            </TooltipProvider>
+                        )}
                     </div>
                     {candidate.location && (
                     <div className="flex items-center text-xs text-muted-foreground mt-0.5">
@@ -674,7 +668,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 )}
             </div>
 
-            {/* Action Buttons Footer - fixed at the bottom of this flex column */}
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
               <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
               <ActionButton
@@ -727,4 +720,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
