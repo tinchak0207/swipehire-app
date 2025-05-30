@@ -10,7 +10,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog"; // Renamed DialogDescription
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -60,7 +60,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
   const [showFullJobDescriptionInModal, setShowFullJobDescriptionInModal] = useState(false);
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false); // Not strictly needed for dropdown
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
@@ -154,7 +154,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company.id, isDetailsModalOpen, isGuestMode, toast]); // Simplified dependencies
+  }, [company.id, company.name, company.industry, company.description, company.cultureHighlights, jobOpening?.title, jobOpening?.description, jobOpening?.tags, jobOpening?.requiredExperienceLevel, jobOpening?.requiredEducationLevel, jobOpening?.workLocationType, jobOpening?.location, jobOpening?.requiredLanguages, jobOpening?.salaryMin, jobOpening?.salaryMax, jobOpening?.jobType, isDetailsModalOpen, isGuestMode, toast]);
 
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
@@ -265,12 +265,21 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
   };
 
+  const handleShareClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default" });
+      return;
+    }
+    // DropdownMenuTrigger handles opening
+  };
+  
   const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default" });
       return;
     }
-    const jobUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; // Fallback URL
+    const jobUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; 
     const jobTitle = jobOpening?.title || 'Opportunity';
     const shareText = `Check out this job opening at ${company.name}: ${jobTitle}. Visit ${jobUrl}`;
     const emailSubject = `Job Opportunity at ${company.name}: ${jobTitle}`;
@@ -292,7 +301,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(jobUrl)}`, '_blank', 'noopener,noreferrer');
         break;
     }
-    setIsShareModalOpen(false); // Close dropdown after action
+    // DropdownMenu handles closing
   };
 
 
@@ -327,7 +336,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
-    const regularClasses = isSpecificActionLiked && action === 'like' ? cn('fill-green-500 text-green-500 hover:bg-green-500/10', extraClassName) : extraClassName;
     
     const effectiveOnClick = action === 'details' 
         ? handleDetailsButtonClick 
@@ -337,11 +345,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 if (action !== 'share_trigger') {
                     handleLocalSwipeAction(action as 'like' | 'pass' | 'details');
                 }
-                // Share trigger is handled by DropdownMenuTrigger
             } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
                 toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
             } else if (isGuestMode && action === 'details') {
-                 handleDetailsButtonClick(e); // Guests can open limited details
+                 handleDetailsButtonClick(e); 
             }
         };
 
@@ -351,7 +358,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           size="sm"
           className={cn(
             baseClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : regularClasses
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : extraClassName
             )}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
           disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
@@ -382,16 +389,16 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </Tooltip>
                 </TooltipProvider>
                 <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
-                    <DropdownMenuItem onClick={() => handleShareAction('copy')} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} data-no-drag="true">
                         <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShareAction('email')} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} data-no-drag="true">
                         <Mail className="mr-2 h-4 w-4" /> Email
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShareAction('linkedin')} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} data-no-drag="true">
                         <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleShareAction('twitter')} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} data-no-drag="true">
                         <Twitter className="mr-2 h-4 w-4" /> X / Twitter
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -436,7 +443,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4"
+              className="object-contain p-4" // Ensure logo is contained
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -508,7 +515,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </ShadDialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0">
+          <ScrollArea className="flex-1 min-h-0 bg-background">
             <div className="p-4 sm:p-6 space-y-4 pt-3">
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
@@ -585,6 +592,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
                 </h3>
+                 <p className="text-xs text-muted-foreground italic mb-2">
+                  Our AI considers how this job aligns with your profile by looking at factors like: skill and experience match, desired work style vs. company culture, growth opportunities, and job condition alignment (salary, location).
+                </p>
                 {isGuestMode ? (
                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
                       <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
@@ -689,7 +699,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </ScrollArea>
         </DialogContent>
       </Dialog>
-      {/* ShareModal is no longer used directly here as dropdown handles it */}
     </>
   );
 }
