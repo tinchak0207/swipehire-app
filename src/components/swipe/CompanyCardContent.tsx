@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -430,7 +430,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </DialogHeader>
 
           <ScrollArea className="flex-1 min-h-0 bg-background">
-            <div className="p-4 sm:p-6 space-y-4"> {/* Reduced space-y */}
+            <div className="p-4 sm:p-6 space-y-4">
               
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
@@ -454,7 +454,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
               {jobOpening && (
                 <>
-                  <Separator className="my-3" /> {/* Reduced margin */}
+                  <Separator className="my-3" />
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-2 flex items-center">
                         <JobTypeIcon className="mr-2 h-6 w-6 text-primary" /> Job Description: {jobOpening.title}
@@ -475,12 +475,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     </p>
                   </section>
                   
-                  <Separator className="my-3" /> {/* Reduced margin */}
+                  <Separator className="my-3" />
                   <section>
                     <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                         <ListChecks className="mr-2 h-6 w-6 text-primary" /> Key Job Details
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm"> {/* Reduced gap-y and p */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
                         {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
                         {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
                         {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType}</span></div>}
@@ -498,70 +498,62 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       )}
                     </div>
                   </section>
+                  <Separator className="my-3" />
+                   <section>
+                    <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
+                      <Brain className="mr-2 h-6 w-6 text-primary" /> AI: How This Job Fits You
+                    </h3>
+                    {isGuestMode ? (
+                      <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                          <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
+                      </div>
+                    ) : (
+                      <>
+                        <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-3 w-full sm:w-auto">
+                          {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                          {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
+                        </Button>
+                        {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <span>Assessing fit...</span>
+                          </div>
+                        )}
+                        {aiJobFitAnalysis && !isLoadingAiAnalysis && (
+                          <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
+                            <div className="flex items-baseline">
+                              <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
+                              <span className={cn(
+                                "ml-2 font-bold text-2xl",
+                                aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
+                                aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                                )}>
+                                {aiJobFitAnalysis.matchScoreForCandidate}%
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                            {aiJobFitAnalysis.weightedScoresForCandidate && (
+                                <div className="text-xs pt-1">
+                                    <p className="font-medium text-foreground mb-0.5">Score Breakdown:</p>
+                                    <ul className="list-disc list-inside pl-1 text-muted-foreground space-y-0.5">
+                                        <li>Culture Fit: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
+                                        <li>Job Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
+                                        <li>Growth Opportunity: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
+                                        <li>Job Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
+                                    </ul>
+                                </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </section>
                 </>
               )}
 
-              <Separator className="my-3" /> {/* Reduced margin */}
-              <section>
-                <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
-                  <Brain className="mr-2 h-6 w-6 text-primary" /> AI: How This Job Fits You
-                </h3>
-                {isGuestMode ? (
-                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                       <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
-                   </div>
-                ) : (
-                  <>
-                    <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-3 w-full sm:w-auto">
-                      {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                      {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
-                    </Button>
-                    {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        <span>Assessing fit...</span>
-                      </div>
-                    )}
-                    {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                      <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm"> {/* Reduced p */}
-                        <div className="flex items-baseline">
-                          <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
-                          <span className={cn(
-                            "ml-2 font-bold text-2xl",
-                            aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
-                            aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                            )}>
-                            {aiJobFitAnalysis.matchScoreForCandidate}%
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
-                        {aiJobFitAnalysis.weightedScoresForCandidate && (
-                            <div className="text-xs pt-1"> {/* Reduced pt */}
-                                <p className="font-medium text-foreground mb-0.5">Score Breakdown:</p>
-                                <ul className="list-disc list-inside pl-1 text-muted-foreground space-y-0.5">
-                                    <li>Culture Fit: {aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</li>
-                                    <li>Job Relevance: {aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</li>
-                                    <li>Growth Opportunity: {aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</li>
-                                    <li>Job Conditions: {aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</li>
-                                </ul>
-                            </div>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </section>
-              
-              {/* Moved Close Button Here */}
-              <div className="pt-4 text-center"> {/* Added pt-4 for spacing from AI section */}
-                  <DialogClose asChild>
-                      <Button type="button" variant="outline" className="w-full sm:w-auto">Close</Button>
-                  </DialogClose>
-              </div>
-
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <>
-                <Separator className="my-3" /> {/* Reduced margin */}
+                <Separator className="my-3" />
                 <section>
                   <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                     <Users2 className="mr-2 h-6 w-6 text-primary" /> Culture Highlights
@@ -575,7 +567,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
 
-              <Separator className="my-3" /> {/* Reduced margin */}
+              <Separator className="my-3" />
               <section>
                 <h3 className="text-xl font-semibold text-foreground mb-3 flex items-center">
                   <MessageSquare className="mr-2 h-6 w-6 text-primary" /> Ask AI About {company.name}
@@ -617,7 +609,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </section>
             </div>
           </ScrollArea>
-          {/* DialogFooter is removed as the Close button is repositioned */}
+          {/* The default "X" close button is part of DialogContent and positioned top-right */}
         </DialogContent>
       </Dialog>
     </>
