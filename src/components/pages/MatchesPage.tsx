@@ -12,6 +12,14 @@ interface MatchesPageProps {
   isGuestMode?: boolean;
 }
 
+// Conceptual analytics helper
+const setAnalytic = (key: string, value: number) => {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(key, value.toString());
+  }
+};
+
+
 const getInitialLikedState = () => {
   if (typeof window !== 'undefined') {
     const likedCand = localStorage.getItem('likedCandidatesDemo');
@@ -49,6 +57,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     if (currentRole === 'recruiter') {
       mockCandidates.forEach(candidate => {
         if (likedCandidates.has(candidate.id) && mockCompanies.length > 0) {
+          // Simulate company also liking candidate for a match
           const randomCompany = mockCompanies[Math.floor(Math.random() * mockCompanies.length)];
           foundMatches.push({
             id: `match-${candidate.id}-${randomCompany.id}`,
@@ -63,6 +72,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     } else { // jobseeker or default
       mockCompanies.forEach(company => {
         if (likedCompanies.has(company.id) && mockCandidates.length > 0) {
+          // Simulate candidate also liking company for a match
           const randomCandidate = mockCandidates[Math.floor(Math.random() * mockCandidates.length)];
           foundMatches.push({
             id: `match-${randomCandidate.id}-${company.id}`,
@@ -80,6 +90,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
       .map(id => foundMatches.find(m => m.id === id)!);
 
     setMatches(uniqueMatches);
+    setAnalytic('analytics_matches_viewed_count', uniqueMatches.length); // Track matches displayed
     setIsLoading(false);
   }, [isGuestMode]); // Re-run if guest mode changes or on initial load for authenticated users
   

@@ -19,6 +19,14 @@ interface IcebreakerCardProps {
   match: Match;
 }
 
+// Conceptual analytics helper
+const incrementAnalytic = (key: string) => {
+  if (typeof window !== 'undefined') {
+    const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
+    localStorage.setItem(key, (currentCount + 1).toString());
+  }
+};
+
 export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const [icebreaker, setIcebreaker] = useState<string | null>(null);
   const [isLoadingIcebreaker, setIsLoadingIcebreaker] = useState(false);
@@ -64,6 +72,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
 
       const result = await generateIcebreakerQuestion(requestData);
       setIcebreaker(result.icebreakerQuestion);
+      incrementAnalytic('analytics_icebreakers_generated'); // Track AI icebreaker generation
       toast({
         title: "Icebreaker Generated!",
         description: "Ready to start the conversation.",

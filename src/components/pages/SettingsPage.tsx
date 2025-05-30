@@ -9,13 +9,41 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info } from 'lucide-react'; // Added Brain, Info
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2 } from 'lucide-react'; // Added Brain, Info, TrendingUp, Trash2
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
   onRoleChange: (newRole: UserRole) => void;
-  isGuestMode?: boolean; // Added for consistency, though settings are typically locked for guests
+  isGuestMode?: boolean;
 }
+
+interface AppStats {
+  candidateLikes: number;
+  candidatePasses: number;
+  companyLikes: number;
+  companyPasses: number;
+  icebreakersGenerated: number;
+  matchesViewedCount: number;
+}
+
+const initialAppStats: AppStats = {
+  candidateLikes: 0,
+  candidatePasses: 0,
+  companyLikes: 0,
+  companyPasses: 0,
+  icebreakersGenerated: 0,
+  matchesViewedCount: 0,
+};
+
+const analyticsKeys: (keyof AppStats)[] = [
+  'candidateLikes',
+  'candidatePasses',
+  'companyLikes',
+  'companyPasses',
+  'icebreakersGenerated',
+  'matchesViewedCount',
+];
+
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(currentUserRole);
@@ -24,16 +52,31 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [address, setAddress] = useState('');
   const [country, setCountry] = useState('');
   const [documentId, setDocumentId] = useState('');
+  const [appStats, setAppStats] = useState<AppStats>(initialAppStats);
 
   const { toast } = useToast();
 
+  const loadAppStats = () => {
+    if (typeof window !== 'undefined' && !isGuestMode) {
+      const stats: Partial<AppStats> = {};
+      analyticsKeys.forEach(key => {
+        stats[key] = parseInt(localStorage.getItem(`analytics_${key}`) || '0', 10);
+      });
+      setAppStats(stats as AppStats);
+    } else {
+      setAppStats(initialAppStats);
+    }
+  };
+
   useEffect(() => {
     if (isGuestMode) {
-      // Optionally clear fields or set defaults if guest mode affects settings display
       setSelectedRole(null);
       setUserName('Guest User');
       setUserEmail('');
-      // ... clear other fields
+      setAddress('');
+      setCountry('');
+      setDocumentId('');
+      setAppStats(initialAppStats); // Clear stats for guest
       return;
     }
 
@@ -49,6 +92,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     if (savedAddress) setAddress(savedAddress);
     if (savedCountry) setCountry(savedCountry);
     if (savedDocumentId) setDocumentId(savedDocumentId);
+
+    loadAppStats();
   }, [currentUserRole, isGuestMode]);
 
   const handleSaveSettings = () => {
@@ -78,6 +123,24 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       description: 'Your preferences and general information have been updated.',
     });
   };
+
+  const handleResetStats = () => {
+    if (isGuestMode) {
+      toast({ title: "Action Disabled", description: "Stats are not applicable in Guest Mode.", variant: "default" });
+      return;
+    }
+    if (typeof window !== 'undefined') {
+      analyticsKeys.forEach(key => {
+        localStorage.removeItem(`analytics_${key}`);
+      });
+      loadAppStats(); // Reload stats to show zeros
+      toast({
+        title: 'App Usage Stats Reset',
+        description: 'The conceptual analytics have been cleared from local storage.',
+      });
+    }
+  };
+
 
   const saveButtonText = "Save Settings";
   const SaveButtonIcon = UserCog;
@@ -231,6 +294,35 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </Button>
         </CardContent>
       </Card>
+      
+      {!isGuestMode && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+              <TrendingUp className="mr-2 h-5 w-5 text-primary" />
+              App Usage Insights (Conceptual)
+            </CardTitle>
+            <CardDescription>
+              Basic usage statistics tracked locally. These are for demonstration purposes.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+              <p>Candidate Likes:</p><p className="font-medium text-right">{appStats.candidateLikes}</p>
+              <p>Candidate Passes:</p><p className="font-medium text-right">{appStats.candidatePasses}</p>
+              <p>Company Likes (Applies):</p><p className="font-medium text-right">{appStats.companyLikes}</p>
+              <p>Company Passes:</p><p className="font-medium text-right">{appStats.companyPasses}</p>
+              <p>AI Icebreakers Generated:</p><p className="font-medium text-right">{appStats.icebreakersGenerated}</p>
+              <p>Simulated Matches Viewed:</p><p className="font-medium text-right">{appStats.matchesViewedCount}</p>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button variant="outline" onClick={handleResetStats} className="w-full sm:w-auto text-destructive hover:text-destructive-foreground hover:bg-destructive/90">
+              <Trash2 className="mr-2 h-4 w-4" /> Reset Conceptual Stats
+            </Button>
+          </CardFooter>
+        </Card>
+      )}
 
       <Card className="shadow-lg">
         <CardHeader>

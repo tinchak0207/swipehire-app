@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, Users, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -12,13 +12,15 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ShareModal } from '@/components/share/ShareModal'; // Added import
+import { ShareModal } from '@/components/share/ShareModal';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+
 
 interface CandidateCardContentProps {
   candidate: Candidate;
-  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details') => void; // Removed 'share' from here
+  onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details') => void;
   isLiked: boolean;
   isGuestMode?: boolean;
 }
@@ -29,6 +31,14 @@ const MAX_SUMMARY_LENGTH_CARD = 60;
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
+
+// Conceptual analytics helper
+const incrementAnalytic = (key: string) => {
+  if (typeof window !== 'undefined') {
+    const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
+    localStorage.setItem(key, (currentCount + 1).toString());
+  }
+};
 
 
 function CandidateDetailsModal({
@@ -80,7 +90,7 @@ function CandidateDetailsModal({
   const renderPersonalityFitIcon = (fit: PersonalityTraitAssessment['fit']) => {
     switch (fit) {
       case 'positive': return <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 shrink-0" />;
-      case 'neutral': return <AlertTriangle className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />;
+      case 'neutral': return <Info className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />; // Changed from AlertTriangle for neutrality
       case 'negative': return <XCircle className="h-4 w-4 text-red-500 mr-1.5 shrink-0" />;
       default: return null;
     }
@@ -102,7 +112,7 @@ function CandidateDetailsModal({
           )}
           <div className="flex-grow">
             <DialogTitle className="text-xl sm:text-2xl text-primary">{candidate.name}</DialogTitle>
-            <CardDescription className="truncate text-sm">{candidate.role}</CardDescription>
+            <DialogDescription className="truncate text-sm text-muted-foreground">{candidate.role}</DialogDescription>
             {candidate.location && (
                 <div className="flex items-center text-xs text-muted-foreground mt-0.5">
                     <MapPin className="h-3 w-3 mr-1 shrink-0" />
@@ -128,7 +138,7 @@ function CandidateDetailsModal({
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0 bg-background">
-          <div className="p-4 sm:p-6 space-y-4 pt-3">
+          <div className="p-4 sm:p-6 space-y-3 pt-3">
             {candidate.videoResumeUrl && (
               <section className="mb-3">
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
@@ -171,7 +181,7 @@ function CandidateDetailsModal({
                 )}
               </p>
             </section>
-            <Separator className="my-3" />
+             <Separator className="my-3" />
 
             {candidate.desiredWorkStyle && (
                 <section>
@@ -282,7 +292,7 @@ function CandidateDetailsModal({
                   </div>
                 )}
             </section>
-            <Separator className="my-3" />
+             <Separator className="my-3" />
 
             {candidate.profileStrength && !isGuestMode && (
               <section>
@@ -382,7 +392,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [candidate.id, candidate.name, candidate.role, candidate.skills, candidate.workExperienceLevel, candidate.experienceSummary, candidate.desiredWorkStyle, candidate.pastProjects, candidate.educationLevel, candidate.locationPreference, candidate.languages, candidate.salaryExpectationMin, candidate.salaryExpectationMax, candidate.availability, candidate.jobTypePreference, candidate.personalityAssessment, isGuestMode, toast]);
+  }, [candidate.id, isGuestMode, toast]); // Dependencies re-evaluated
 
   useEffect(() => {
     if (isDetailsModalOpen && !isGuestMode && !aiRecruiterMatchScore && !isLoadingAiAnalysis) {
@@ -396,18 +406,30 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   }, [isDetailsModalOpen, isGuestMode, aiRecruiterMatchScore, isLoadingAiAnalysis, fetchAiRecruiterAnalysis]);
 
 
+  const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
+    if (actionType === 'like') {
+      incrementAnalytic('analytics_candidate_likes');
+    } else if (actionType === 'pass') {
+      incrementAnalytic('analytics_candidate_passes');
+    }
+    onSwipeAction(candidate.id, actionType);
+  };
+
+
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
-    if (targetElement.closest('button[data-modal-trigger="true"], a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], video[controls]') || (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls'))) {
+    // Expanded check to prevent drag on buttons, links, modal triggers, and video controls
+    if (targetElement.closest('button, a, [data-modal-trigger="true"], [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], video[controls]') || (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls'))) {
         if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
             const video = targetElement as HTMLVideoElement;
             const rect = video.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) {
-                return;
+            // Check if the click is on the control bar area (approximated)
+            if (e.clientY > rect.bottom - 40) { // 40px is a common control bar height
+                return; // Do not initiate drag
             }
-        } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-           return;
+        } else if (targetElement.closest('button, a, [data-modal-trigger="true"], [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
+           return; // Do not initiate drag
         }
     }
     e.preventDefault();
@@ -436,9 +458,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       if (deltaX < 0) {
-        onSwipeAction(candidate.id, 'pass');
+        handleLocalSwipeAction('pass');
       } else {
-        onSwipeAction(candidate.id, 'like');
+        handleLocalSwipeAction('like');
       }
     }
 
@@ -459,13 +481,33 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
 
-  const handleShareClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
-    setIsShareModalOpen(true);
+    const profileUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; // Fallback URL
+    const shareText = `Check out this profile on SwipeHire: ${candidate.name} - ${candidate.role}. Visit ${profileUrl}`;
+    const emailSubject = `Interesting Profile on SwipeHire: ${candidate.name}`;
+    const emailBody = `I found this profile on SwipeHire and thought you might be interested:\n\nName: ${candidate.name}\nRole: ${candidate.role}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
+
+    switch (action) {
+      case 'copy':
+        navigator.clipboard.writeText(profileUrl)
+          .then(() => toast({ title: "Link Copied!", description: "Profile link copied to clipboard." }))
+          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
+        break;
+      case 'email':
+        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
+        break;
+    }
+    setIsShareModalOpen(false); // Close dropdown after action
   };
 
 
@@ -481,7 +523,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     isSpecificActionLiked,
     onClickOverride,
   }: {
-    action: 'like' | 'pass' | 'details' | 'share';
+    action: 'like' | 'pass' | 'details' | 'share_trigger';
     Icon: React.ElementType;
     label: string;
     className?: string;
@@ -491,36 +533,82 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
     const regularClasses = extraClassName;
+    
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { 
         e.stopPropagation(); 
         if (!isGuestMode) {
-            if (action === 'share') {
-                handleShareClick(e);
-            } else {
-                onSwipeAction(candidate.id, action as 'like' | 'pass' | 'details');
+            if (action !== 'share_trigger') {
+                handleLocalSwipeAction(action as 'like' | 'pass' | 'details');
             }
+            // Share trigger is handled by DropdownMenuTrigger
+        } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
+            toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
+        } else if (isGuestMode && action === 'details') {
+            setIsDetailsModalOpen(true); // Guests can view limited details
         }
     });
     
+    const buttonElement = (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            baseClasses, 
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : regularClasses
+            )}
+          onClick={action !== 'share_trigger' ? effectiveOnClick : undefined} // Let DropdownMenuTrigger handle its own click
+          disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
+          aria-label={`${label} ${candidate.name}`}
+          data-no-drag="true"
+          data-modal-trigger={action === 'details' ? 'true' : undefined}
+        >
+          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? "fill-green-500 text-green-500" : "")} />}
+          <span className="text-xs">{label}</span>
+        </Button>
+    );
+
+    if (action === 'share_trigger') {
+        return (
+            <DropdownMenu onOpenChange={setIsShareModalOpen}>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                                {buttonElement}
+                            </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                        {isGuestMode && (
+                            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
+                                <p>Sign in to share</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
+                    <DropdownMenuItem onClick={() => handleShareAction('copy')} data-no-drag="true">
+                        <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('email')} data-no-drag="true">
+                        <Mail className="mr-2 h-4 w-4" /> Email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('linkedin')} data-no-drag="true">
+                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('twitter')} data-no-drag="true">
+                        <Twitter className="mr-2 h-4 w-4" /> X / Twitter
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        );
+    }
+
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(baseClasses, isGuestMode && action !== 'details' ? guestClasses : regularClasses)}
-              onClick={effectiveOnClick}
-              disabled={isGuestMode && action !== 'details' && action !== 'share'}
-              aria-label={`${label} ${candidate.name}`}
-              data-no-drag="true"
-              data-modal-trigger={action === 'details' ? 'true' : undefined}
-            >
-              {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? "fill-green-500 text-green-500" : "")} />}
-              <span className="text-xs">{label}</span>
-            </Button>
+            {buttonElement}
           </TooltipTrigger>
-          {isGuestMode && action !== 'details' && (
+          {isGuestMode && (action === 'like' || action === 'pass') && (
             <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
               <p>Sign in to interact</p>
             </TooltipContent>
@@ -564,7 +652,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
             <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
-                <CardHeader className="p-0">
+                <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
                             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -617,7 +705,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 )}
             </div>
 
-            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
+            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
               <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
               <ActionButton
                   action="details"
@@ -625,16 +713,12 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                   label="Details"
                   className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
                   onClickOverride={(e) => {
-                  e.stopPropagation();
-                  if (isGuestMode) {
-                      toast({ title: "Feature Locked", description: "Sign in to view full candidate details.", variant: "default"});
-                      return;
-                  }
-                  setIsDetailsModalOpen(true);
+                    e.stopPropagation();
+                    setIsDetailsModalOpen(true); // Guests can open modal to see limited info
                   }}
               />
               <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-              <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+              <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
             </CardFooter>
         </div>
       </div>
@@ -649,14 +733,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         isLoadingAiAnalysis={isLoadingAiAnalysis}
         isGuestMode={isGuestMode}
       />
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onOpenChange={setIsShareModalOpen}
-        title="Share Candidate Profile"
-        itemName={candidate.name}
-        itemType="profile"
-        shareUrl={typeof window !== 'undefined' ? window.location.origin : ''}
-      />
+      {/* ShareModal is no longer used directly here as dropdown handles it */}
     </>
   );
 }

@@ -10,30 +10,39 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog"; // Renamed DialogDescription
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { ShareModal } from '@/components/share/ShareModal'; // Added import
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
 interface CompanyCardContentProps {
   company: Company;
-  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details') => void; // Removed 'share'
+  onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details') => void;
   isLiked: boolean;
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60; 
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60;
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
 
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
+
+// Conceptual analytics helper
+const incrementAnalytic = (key: string) => {
+  if (typeof window !== 'undefined') {
+    const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
+    localStorage.setItem(key, (currentCount + 1).toString());
+  }
+};
+
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardContentRef = useRef<HTMLDivElement>(null);
@@ -58,10 +67,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isGuestMode) {
-        toast({ title: "Feature Locked", description: "Sign in to view company details and AI insights.", variant: "default"});
-        return;
-    }
     setAiJobFitAnalysis(null);
     setIsLoadingAiAnalysis(false);
     setUserQuestion("");
@@ -91,14 +96,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
 
       const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile', 
+        id: 'currentUserProfile',
         role: candidateRole,
         experienceSummary: candidateExpSummary,
         skills: candidateSkills,
         desiredWorkStyle: candidateDesiredWorkStyle,
-        workExperienceLevel: WorkExperienceLevel.MID_LEVEL, 
-        educationLevel: EducationLevel.UNIVERSITY, 
-        locationPreference: LocationPreference.REMOTE, 
+        workExperienceLevel: WorkExperienceLevel.MID_LEVEL,
+        educationLevel: EducationLevel.UNIVERSITY,
+        locationPreference: LocationPreference.REMOTE,
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -149,7 +154,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company.id, company.name, company.industry, company.cultureHighlights, jobOpening, isDetailsModalOpen, isGuestMode, toast]);
+  }, [company.id, isDetailsModalOpen, isGuestMode, toast]); // Simplified dependencies
 
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
@@ -160,6 +165,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       }
   }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
+  const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
+    if (actionType === 'like') {
+      incrementAnalytic('analytics_company_likes');
+    } else if (actionType === 'pass') {
+      incrementAnalytic('analytics_company_passes');
+    }
+    onSwipeAction(company.id, actionType);
+  };
+
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
@@ -168,11 +182,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) { 
+        if (e.clientY > rect.bottom - 40) {
             return;
         }
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
-        return; 
+        return;
       }
     }
     e.preventDefault();
@@ -200,9 +214,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       if (deltaX < 0) {
-        onSwipeAction(company.id, 'pass');
+        handleLocalSwipeAction('pass');
       } else {
-        onSwipeAction(company.id, 'like');
+        handleLocalSwipeAction('like');
       }
     }
 
@@ -251,14 +265,36 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
   };
 
-  const handleShareClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default" });
       return;
     }
-    setIsShareModalOpen(true);
+    const jobUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; // Fallback URL
+    const jobTitle = jobOpening?.title || 'Opportunity';
+    const shareText = `Check out this job opening at ${company.name}: ${jobTitle}. Visit ${jobUrl}`;
+    const emailSubject = `Job Opportunity at ${company.name}: ${jobTitle}`;
+    const emailBody = `I found this job opportunity on SwipeHire and thought you might be interested:\n\nCompany: ${company.name}\nJob: ${jobTitle}\n\nLearn more at: ${jobUrl}\n\nShared from SwipeHire.`;
+
+    switch (action) {
+      case 'copy':
+        navigator.clipboard.writeText(jobUrl)
+          .then(() => toast({ title: "Link Copied!", description: "Job link copied to clipboard." }))
+          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
+        break;
+      case 'email':
+        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(jobUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(jobUrl)}`, '_blank', 'noopener,noreferrer');
+        break;
+    }
+    setIsShareModalOpen(false); // Close dropdown after action
   };
+
 
   const jobDescriptionForCard = jobOpening?.description || "";
   const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH_CARD
@@ -283,7 +319,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     className: extraClassName,
     isSpecificActionLiked,
   }: {
-    action: 'like' | 'pass' | 'details' | 'share';
+    action: 'like' | 'pass' | 'details' | 'share_trigger';
     Icon: React.ElementType;
     label: string;
     className?: string;
@@ -298,33 +334,78 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         : (e: React.MouseEvent) => { 
             e.stopPropagation(); 
             if (!isGuestMode) {
-                if (action === 'share') {
-                    handleShareClick(e);
-                } else {
-                    onSwipeAction(company.id, action as 'like' | 'pass' | 'details');
+                if (action !== 'share_trigger') {
+                    handleLocalSwipeAction(action as 'like' | 'pass' | 'details');
                 }
+                // Share trigger is handled by DropdownMenuTrigger
+            } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
+                toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
+            } else if (isGuestMode && action === 'details') {
+                 handleDetailsButtonClick(e); // Guests can open limited details
             }
         };
+
+    const buttonElement = (
+        <Button
+          variant="ghost"
+          size="sm"
+          className={cn(
+            baseClasses, 
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : regularClasses
+            )}
+          onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
+          disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
+          aria-label={`${label} ${company.name}`}
+          data-no-drag="true"
+          data-modal-trigger={action === 'details' ? "true" : undefined}
+        >
+          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
+          <span className="text-xs">{label}</span>
+        </Button>
+    );
+
+    if (action === 'share_trigger') {
+        return (
+            <DropdownMenu onOpenChange={setIsShareModalOpen}>
+                 <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <DropdownMenuTrigger asChild>
+                                {buttonElement}
+                            </DropdownMenuTrigger>
+                        </TooltipTrigger>
+                         {isGuestMode && (
+                            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
+                                <p>Sign in to share</p>
+                            </TooltipContent>
+                        )}
+                    </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
+                    <DropdownMenuItem onClick={() => handleShareAction('copy')} data-no-drag="true">
+                        <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('email')} data-no-drag="true">
+                        <Mail className="mr-2 h-4 w-4" /> Email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('linkedin')} data-no-drag="true">
+                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleShareAction('twitter')} data-no-drag="true">
+                        <Twitter className="mr-2 h-4 w-4" /> X / Twitter
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        );
+    }
 
     return (
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className={cn(baseClasses, isGuestMode && action !== 'details' ? guestClasses : regularClasses)}
-              onClick={effectiveOnClick}
-              disabled={isGuestMode && action !== 'details' && action !== 'share'}
-              aria-label={`${label} ${company.name}`}
-              data-no-drag="true"
-              data-modal-trigger={action === 'details' ? "true" : undefined}
-            >
-              {isGuestMode && action !== 'details' ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? 'fill-green-500 text-green-500' : '')} />}
-              <span className="text-xs">{label}</span>
-            </Button>
+            {buttonElement}
           </TooltipTrigger>
-          {isGuestMode && action !== 'details' && (
+          {isGuestMode && (action === 'like' || action === 'pass') && (
             <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
               <p>Sign in to interact</p>
             </TooltipContent>
@@ -368,7 +449,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
             <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
-                <CardHeader className="p-0">
+                <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
                             <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
@@ -407,11 +488,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </div>
             </div>
 
-            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-2 sm:mt-3">
+            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
                 <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-                <ActionButton action="share" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+                <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
             </CardFooter>
         </div>
       </div>
@@ -422,14 +503,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
               {jobOpening?.title || "Opportunity Details"} at {company.name}
             </DialogTitle>
-            <CardDescription className="text-sm text-muted-foreground">
+            <ShadDialogDescription className="text-sm text-muted-foreground">
                {company.industry}
-            </CardDescription>
+            </ShadDialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 bg-background">
+          <ScrollArea className="flex-1 min-h-0">
             <div className="p-4 sm:p-6 space-y-4 pt-3">
-             
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
@@ -478,7 +558,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                         <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
                         {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
                         {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
                         {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}
@@ -496,59 +576,60 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       )}
                     </div>
                   </section>
-                  <Separator className="my-3" />
-
-                   <section>
-                    <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                      <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
-                    </h3>
-                    {isGuestMode ? (
-                      <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                          <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
-                      </div>
-                    ) : (
-                      <>
-                        <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto">
-                          {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                          {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
-                        </Button>
-                        {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
-                          <div className="flex items-center text-sm text-muted-foreground">
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            <span>Assessing fit...</span>
-                          </div>
-                        )}
-                        {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                          <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
-                            <div className="flex items-baseline">
-                              <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
-                              <span className={cn(
-                                "ml-1.5 font-bold text-xl",
-                                aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
-                                aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                                )}>
-                                {aiJobFitAnalysis.matchScoreForCandidate}%
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
-                            {aiJobFitAnalysis.weightedScoresForCandidate && (
-                                <div className="pt-2 mt-2 border-t border-border/70">
-                                    <p className="font-medium text-foreground text-sm mb-1">Score Breakdown:</p>
-                                    <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
-                                        <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
-                                        <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
-                                        <li>Growth Opportunity: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
-                                        <li>Job Conditions: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
-                                    </ul>
-                                </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </section>
+                   <Separator className="my-3" />
                 </>
               )}
+
+
+              <section>
+                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
+                  <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
+                </h3>
+                {isGuestMode ? (
+                  <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                      <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
+                  </div>
+                ) : (
+                  <>
+                    <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto">
+                      {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                      {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
+                    </Button>
+                    {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
+                      <div className="flex items-center text-sm text-muted-foreground">
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        <span>Assessing fit...</span>
+                      </div>
+                    )}
+                    {aiJobFitAnalysis && !isLoadingAiAnalysis && (
+                      <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
+                        <div className="flex items-baseline">
+                          <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
+                          <span className={cn(
+                            "ml-1.5 font-bold text-xl",
+                            aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
+                            aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                            )}>
+                            {aiJobFitAnalysis.matchScoreForCandidate}%
+                          </span>
+                        </div>
+                        <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                        {aiJobFitAnalysis.weightedScoresForCandidate && (
+                            <div className="pt-2 mt-2 border-t border-border/70">
+                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown:</p>
+                                <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
+                                    <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
+                                    <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
+                                    <li>Growth Opportunity: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
+                                    <li>Job Conditions: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
+                                </ul>
+                            </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                )}
+              </section>
               <Separator className="my-3" />
 
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
@@ -608,14 +689,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </ScrollArea>
         </DialogContent>
       </Dialog>
-      <ShareModal
-        isOpen={isShareModalOpen}
-        onOpenChange={setIsShareModalOpen}
-        title={`Share ${jobOpening?.title || 'Job'} at ${company.name}`}
-        itemName={jobOpening?.title || company.name}
-        itemType="job opportunity"
-        shareUrl={typeof window !== 'undefined' ? window.location.origin : ''}
-      />
+      {/* ShareModal is no longer used directly here as dropdown handles it */}
     </>
   );
 }
