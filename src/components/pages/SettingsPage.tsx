@@ -6,18 +6,18 @@ import type { UserRole } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-// import { Textarea } from '@/components/ui/textarea'; // Textarea specific to job seeker profile now in MyProfilePage
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Edit3, Star, Link as LinkIcon, TrendingUp, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction, UserCircle } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquare, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info } from 'lucide-react'; // Added Brain, Info
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
   onRoleChange: (newRole: UserRole) => void;
+  isGuestMode?: boolean; // Added for consistency, though settings are typically locked for guests
 }
 
-export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProps) {
+export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -25,19 +25,19 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
   const [country, setCountry] = useState('');
   const [documentId, setDocumentId] = useState('');
 
-  // Job Seeker Specific Fields - MOVED TO MyProfilePage.tsx
-  // const [profileHeadline, setProfileHeadline] = useState('');
-  // const [experienceSummary, setExperienceSummary] = useState('');
-  // const [skills, setSkills] = useState(''); // Comma-separated
-  // const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
-  // const [pastProjects, setPastProjects] = useState('');
-  // const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
-
   const { toast } = useToast();
 
   useEffect(() => {
+    if (isGuestMode) {
+      // Optionally clear fields or set defaults if guest mode affects settings display
+      setSelectedRole(null);
+      setUserName('Guest User');
+      setUserEmail('');
+      // ... clear other fields
+      return;
+    }
+
     setSelectedRole(currentUserRole);
-    // Load general settings
     const savedName = localStorage.getItem('userNameSettings');
     const savedEmail = localStorage.getItem('userEmailSettings');
     const savedAddress = localStorage.getItem('userAddressSettings');
@@ -49,15 +49,17 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     if (savedAddress) setAddress(savedAddress);
     if (savedCountry) setCountry(savedCountry);
     if (savedDocumentId) setDocumentId(savedDocumentId);
-
-    // Job seeker specific settings are now handled in MyProfilePage.tsx
-  }, [currentUserRole]);
+  }, [currentUserRole, isGuestMode]);
 
   const handleSaveSettings = () => {
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode.", variant: "default" });
+      return;
+    }
+
     if (selectedRole && selectedRole !== currentUserRole) {
       onRoleChange(selectedRole);
     }
-    // Save general settings
     localStorage.setItem('userNameSettings', userName);
     localStorage.setItem('userEmailSettings', userEmail);
     localStorage.setItem('userAddressSettings', address);
@@ -70,8 +72,6 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
     } else {
         localStorage.removeItem('recruiterProfileComplete');
     }
-
-    // Job seeker specific settings are saved in MyProfilePage.tsx
 
     toast({
       title: 'Settings Saved',
@@ -106,6 +106,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
             value={selectedRole ?? undefined}
             onValueChange={(value: UserRole) => setSelectedRole(value)}
             className="space-y-2"
+            disabled={isGuestMode}
           >
             <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors">
               <RadioGroupItem value="recruiter" id="role-recruiter" />
@@ -146,6 +147,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               placeholder="Enter your full name" 
               value={userName} 
               onChange={(e) => setUserName(e.target.value)} 
+              disabled={isGuestMode}
             />
           </div>
           <div className="space-y-1">
@@ -158,6 +160,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               placeholder="Enter your email address" 
               value={userEmail} 
               onChange={(e) => setUserEmail(e.target.value)} 
+              disabled={isGuestMode}
             />
           </div>
           <div className="space-y-1">
@@ -169,6 +172,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               placeholder="Enter your street address" 
               value={address} 
               onChange={(e) => setAddress(e.target.value)} 
+              disabled={isGuestMode}
             />
           </div>
           <div className="space-y-1">
@@ -180,6 +184,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               placeholder="Enter your country" 
               value={country} 
               onChange={(e) => setCountry(e.target.value)} 
+              disabled={isGuestMode}
             />
           </div>
           <div className="space-y-1">
@@ -191,6 +196,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
               placeholder="Enter your document ID number" 
               value={documentId} 
               onChange={(e) => setDocumentId(e.target.value)} 
+              disabled={isGuestMode}
             />
           </div>
         </CardContent>
@@ -229,6 +235,58 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
+            <Info className="mr-2 h-5 w-5 text-primary" /> {/* Changed icon */}
+            Data, Privacy & AI Ethics
+          </CardTitle>
+          <CardDescription>Our commitment to responsible technology and protecting your information.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <p className="text-muted-foreground">
+            At SwipeHire, we take data privacy, platform usage, and the ethical implications of AI seriously. Below are resources to understand our policies (details coming soon in a full production app):
+          </p>
+          <div className="space-y-3">
+            <div>
+              <Label className="flex items-center text-base font-medium text-foreground">
+                <FileText className="mr-2 h-4 w-4 text-muted-foreground" /> Platform Usage Policy
+              </Label>
+              <p className="text-xs text-muted-foreground pl-6">
+                Learn about the terms and conditions for using SwipeHire. <span className="italic text-primary/80">(Full policy coming soon)</span>
+              </p>
+            </div>
+            <div>
+              <Label className="flex items-center text-base font-medium text-foreground">
+                <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" /> Data Protection & Privacy
+              </Label>
+              <p className="text-xs text-muted-foreground pl-6">
+                Understand how we collect, use, and protect your personal information and video content. <span className="italic text-primary/80">(Full policy coming soon)</span>
+              </p>
+            </div>
+            <div>
+              <Label className="flex items-center text-base font-medium text-foreground">
+                <Brain className="mr-2 h-4 w-4 text-muted-foreground" /> AI & Your Data
+              </Label>
+              <p className="text-xs text-muted-foreground pl-6">
+                How AI uses data to provide recommendations and how you can manage your preferences. We are committed to transparency. <span className="italic text-primary/80">(More details coming soon)</span>
+              </p>
+            </div>
+            <div>
+              <Label className="flex items-center text-base font-medium text-foreground">
+                <Sparkles className="mr-2 h-4 w-4 text-muted-foreground" /> AI Bias Mitigation
+              </Label>
+              <p className="text-xs text-muted-foreground pl-6">
+                Our commitment to fairness and ongoing efforts to identify and mitigate potential biases in AI recommendations and tools. <span className="italic text-primary/80">(Learn more coming soon)</span>
+              </p>
+            </div>
+          </div>
+           <Button variant="outline" disabled className="w-full mt-4">
+            View Full Policies (Coming Soon)
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
              <MessageSquare className="mr-2 h-5 w-5 text-primary" />
             Employee Evaluation System (Conceptual)
           </CardTitle>
@@ -253,7 +311,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         </CardContent>
       </Card>
 
-      {selectedRole === 'recruiter' && (
+      {selectedRole === 'recruiter' && !isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
@@ -317,7 +375,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
         </Card>
       )}
 
-      {selectedRole === 'jobseeker' && (
+      {selectedRole === 'jobseeker' && !isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center text-xl">
@@ -383,7 +441,7 @@ export function SettingsPage({ currentUserRole, onRoleChange }: SettingsPageProp
       )}
 
       <CardFooter className="flex justify-end pt-6">
-        <Button onClick={handleSaveSettings} size="lg">
+        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode}>
           <SaveButtonIcon className="mr-2 h-5 w-5" />
           {saveButtonText}
         </Button>
