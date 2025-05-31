@@ -445,7 +445,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col overflow-hidden relative bg-card" // Removed h-full
+        className="flex flex-col overflow-hidden h-full relative bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -457,8 +457,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full shrink-0 pt-[100px]"> {/* Outer wrapper for padding */}
-          <div className="relative w-full aspect-video px-4 pb-4"> {/* Inner wrapper for aspect ratio & other padding */}
+        <div className="relative w-full shrink-0 pt-[70px]"> 
+          <div className="relative w-full aspect-video px-4 pb-4"> 
             {company.logoUrl ? (
               <Image
                 src={company.logoUrl}
@@ -477,45 +477,43 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
         
         {/* Text Content Area */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto">
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm pr-1">
-                <CardHeader className="p-0 mb-1">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-grow min-w-0">
-                            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
-                            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
-                        </div>
+        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
+            <CardHeader className="p-0 mb-1">
+                <div className="flex items-start justify-between">
+                    <div className="flex-grow min-w-0">
+                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
                     </div>
-                    {jobOpening && (
-                        <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
-                    )}
-                </CardHeader>
-
-                <div className="space-y-0.5">
-                    {jobOpening?.location && (
-                    <div className="flex items-center text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening.location}</span>
-                    </div>
-                    )}
-                    {(jobOpening?.salaryRange) && (
-                    <div className="flex items-center text-muted-foreground">
-                        <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening?.salaryRange}</span>
-                    </div>
-                    )}
-                    {(jobOpening?.jobType) && (
-                    <div className="flex items-center text-muted-foreground">
-                        <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
-                    </div>
-                    )}
-                    {jobOpening?.description && (
-                        <p className="text-muted-foreground text-xs pt-0.5 line-clamp-2">
-                            {truncatedJobDescriptionForCard}
-                        </p>
-                    )}
                 </div>
+                {jobOpening && (
+                    <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
+                )}
+            </CardHeader>
+
+            <div className="space-y-0.5">
+                {jobOpening?.location && (
+                <div className="flex items-center text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{jobOpening.location}</span>
+                </div>
+                )}
+                {(jobOpening?.salaryRange) && (
+                <div className="flex items-center text-muted-foreground">
+                    <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{jobOpening?.salaryRange}</span>
+                </div>
+                )}
+                {(jobOpening?.jobType) && (
+                <div className="flex items-center text-muted-foreground">
+                    <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
+                </div>
+                )}
+                {jobOpening?.description && (
+                    <p className="text-muted-foreground text-xs pt-0.5 line-clamp-2">
+                        {truncatedJobDescriptionForCard}
+                    </p>
+                )}
             </div>
         </div>
             
@@ -734,3 +732,4 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
+

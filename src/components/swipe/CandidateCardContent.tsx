@@ -661,7 +661,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col overflow-hidden relative bg-card" // Removed h-full
+        className="flex flex-col overflow-hidden h-full"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -673,7 +673,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full aspect-[3/4] shrink-0"> {/* Removed pt-4 for now */}
+        <div className="relative w-full aspect-[3/4] shrink-0 bg-muted">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
@@ -681,70 +681,69 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
               fill
               className="object-cover"
               data-ai-hint={candidate.dataAiHint || "person"}
-              priority
+              priority // Added priority for potentially better LCP
             />
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
+            <div className="w-full h-full flex items-center justify-center" data-ai-hint="profile avatar placeholder">
+              {/* Using a generic icon if avatar is missing, as the placeholder might be the issue */}
               <Briefcase className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
         </div>
 
         {/* Text Content Area */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto">
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm pr-1">
-                <CardHeader className="p-0 mb-1">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-grow min-w-0">
-                            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
-                            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
-                        </div>
-                        {candidate.isUnderestimatedTalent && (
-                            <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
-                                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
-                                    Gem
-                                </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-xs">
-                                <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            </TooltipProvider>
-                        )}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm">
+            <CardHeader className="p-0 mb-1">
+                <div className="flex items-start justify-between">
+                    <div className="flex-grow min-w-0">
+                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
                     </div>
-                    {candidate.location && (
-                    <div className="flex items-center text-xs text-muted-foreground mt-0.5">
-                        <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{candidate.location}</span>
-                    </div>
+                    {candidate.isUnderestimatedTalent && (
+                        <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                            <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
+                                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
+                                Gem
+                            </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-xs">
+                            <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                        </TooltipProvider>
                     )}
-                </CardHeader>
-
-                <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
-                    {summaryForCardDisplay}
-                </p>
-
-                {candidate.desiredWorkStyle && (
-                    <div className="flex items-center text-muted-foreground pt-1">
-                        <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
-                        <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
-                    </div>
+                </div>
+                {candidate.location && (
+                <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+                    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{candidate.location}</span>
+                </div>
                 )}
+            </CardHeader>
 
-                {candidate.skills && candidate.skills.length > 0 && (
-                    <div className="pt-1">
-                    <div className="flex flex-wrap gap-1">
-                        {candidate.skills.slice(0, 2).map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
-                        ))}
-                        {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
-                    </div>
-                    </div>
-                )}
-            </div>
+            <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
+                {summaryForCardDisplay}
+            </p>
+
+            {candidate.desiredWorkStyle && (
+                <div className="flex items-center text-muted-foreground pt-1">
+                    <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
+                    <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
+                </div>
+            )}
+
+            {candidate.skills && candidate.skills.length > 0 && (
+                <div className="pt-1">
+                <div className="flex flex-wrap gap-1">
+                    {candidate.skills.slice(0, 2).map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
+                    ))}
+                    {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
+                </div>
+                </div>
+            )}
         </div>
 
 
@@ -782,3 +781,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
