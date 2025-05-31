@@ -22,14 +22,13 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: [
-    // Add the specific preview URL from your Firebase Studio/IDX environment
-    // This specific URL was seen in logs when port 9005 was active
-    'https://9005-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // It's good practice to also include your local development origin for the intended port
-    'http://localhost:9005',
-    // Fallback if IDX forces port 9002
+    // IDX preview URL for port 9002
     'https://9002-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    'http://localhost:9002'
+    // Localhost for port 9002
+    'http://localhost:9002',
+    // Kept 9005 entries just in case, though we are now targeting 9002. Can be removed if 9002 is stable.
+    'https://9005-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    'http://localhost:9005'
   ],
 };
 
