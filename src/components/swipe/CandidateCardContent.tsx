@@ -334,7 +334,7 @@ function CandidateDetailsModal({
 
 
 export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGuestMode }: CandidateCardContentProps) {
-  const cardContentRef = useRef<HTMLDivElement>(null);
+  const cardRootRef = useRef<HTMLDivElement>(null); // Changed from cardContentRef to cardRootRef
   const { toast } = useToast();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -412,7 +412,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       setAiRecruiterMatchScore(result.matchScore);
       setAiRecruiterReasoning(result.reasoning);
       setAiRecruiterWeightedScores(result.weightedScores);
-      setActiveAccordionItemModal("ai-assessment"); // Open accordion on successful analysis
+      setActiveAccordionItemModal("ai-assessment"); 
 
     } catch (error: any) {
       console.error("Error fetching AI recruiter analysis for candidate " + candidate.name + ":", error);
@@ -434,7 +434,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         setAiRecruiterReasoning("AI Assessment disabled in Guest Mode.");
         setAiRecruiterWeightedScores(null);
         setIsLoadingAiAnalysis(false);
-        setActiveAccordionItemModal(undefined); // Ensure accordion is not open by default
+        setActiveAccordionItemModal(undefined); 
     }
   }, [isDetailsModalOpen, isGuestMode, aiRecruiterMatchScore, isLoadingAiAnalysis, fetchAiRecruiterAnalysis]);
 
@@ -452,47 +452,41 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
-    if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"]') || (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls'))) {
+    if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
         if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
             const video = targetElement as HTMLVideoElement;
             const rect = video.getBoundingClientRect();
             if (e.clientY > rect.bottom - 40) { 
                 return; 
             }
-        } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
+        } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
            return; 
         }
     }
-    if (targetElement.closest('[data-radix-scroll-area-viewport] > [data-radix-scroll-area-scrollbar]')) {
-        return;
-    }
-    const scrollableContent = cardContentRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    if (scrollableContent && scrollableContent.scrollHeight > scrollableContent.clientHeight && targetElement.closest('[data-radix-scroll-area-viewport]')) {
-    }
-
+    
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
     setCurrentX(e.clientX);
-    if (cardContentRef.current) {
-      cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none';
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = 'grabbing';
+      cardRootRef.current.style.transition = 'none';
     }
     document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
     setCurrentX(e.clientX);
   };
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
 
     const deltaX = currentX - startX;
 
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+    cardRootRef.current.style.transition = 'transform 0.3s ease-out';
+    cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       if (deltaX < 0) {
@@ -505,8 +499,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     setIsDragging(false);
     setStartX(0);
     setCurrentX(0);
-    if (cardContentRef.current) {
-      cardContentRef.current.style.cursor = 'grab';
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = 'grab';
     }
     document.body.style.userSelect = '';
   };
@@ -559,7 +553,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
             toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
         } else if (isGuestMode && action === 'details') {
-            setActiveAccordionItemModal(undefined); // Reset accordion for guest modal
+            setActiveAccordionItemModal(undefined);
             setIsDetailsModalOpen(true); 
         }
     });
@@ -666,7 +660,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   return (
     <>
       <div
-        ref={cardContentRef}
+        ref={cardRootRef} // Use the new ref for the root div
         className="flex flex-col h-full overflow-hidden relative bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -678,98 +672,98 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0">
+        {/* Media Area */}
+        <div className="relative w-full aspect-[3/4] shrink-0">
           {candidate.avatarUrl ? (
-            <div className="aspect-[3/4] w-full relative">
-              <Image
-                src={candidate.avatarUrl}
-                alt={candidate.name}
-                fill
-                className="object-cover"
-                data-ai-hint={candidate.dataAiHint || "person"}
-                priority
-              />
-            </div>
+            <Image
+              src={candidate.avatarUrl}
+              alt={candidate.name}
+              fill
+              className="object-cover"
+              data-ai-hint={candidate.dataAiHint || "person"}
+              priority
+            />
           ) : (
-            <div className="aspect-[3/4] w-full bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
+            <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
               <Briefcase className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
         </div>
 
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-            <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true">
-              <div className="space-y-1 text-xs sm:text-sm pr-1">
-                  <CardHeader className="p-0 mb-1">
-                      <div className="flex items-start justify-between">
-                          <div className="flex-grow min-w-0">
-                              <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
-                              <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
-                          </div>
-                          {candidate.isUnderestimatedTalent && (
-                              <TooltipProvider>
-                              <Tooltip>
-                                  <TooltipTrigger asChild>
-                                  <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
-                                      <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
-                                      Gem
-                                  </Badge>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className="max-w-xs">
-                                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                                  </TooltipContent>
-                              </Tooltip>
-                              </TooltipProvider>
-                          )}
+        {/* Content Area below media */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col" data-no-drag="true">
+            {/* Scrollable inner content */}
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 text-xs sm:text-sm"> {/* Added space-y-1 for consistency */}
+              <CardHeader className="p-0 mb-1">
+                  <div className="flex items-start justify-between">
+                      <div className="flex-grow min-w-0">
+                          <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+                          <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
                       </div>
-                      {candidate.location && (
-                      <div className="flex items-center text-xs text-muted-foreground mt-0.5">
-                          <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
-                          <span className="truncate">{candidate.location}</span>
-                      </div>
+                      {candidate.isUnderestimatedTalent && (
+                          <TooltipProvider>
+                          <Tooltip>
+                              <TooltipTrigger asChild>
+                              <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
+                                  <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
+                                  Gem
+                              </Badge>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-xs">
+                              <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                              </TooltipContent>
+                          </Tooltip>
+                          </TooltipProvider>
                       )}
-                  </CardHeader>
-
-                  <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
-                      {summaryForCardDisplay}
-                  </p>
-
-                  {candidate.desiredWorkStyle && (
-                      <div className="flex items-center text-muted-foreground pt-1">
-                          <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
-                          <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
-                      </div>
+                  </div>
+                  {candidate.location && (
+                  <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+                      <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
+                      <span className="truncate">{candidate.location}</span>
+                  </div>
                   )}
+              </CardHeader>
 
-                  {candidate.skills && candidate.skills.length > 0 && (
-                      <div className="pt-1">
-                      <div className="flex flex-wrap gap-1">
-                          {candidate.skills.slice(0, 2).map((skill) => (
-                          <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
-                          ))}
-                          {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
-                      </div>
-                      </div>
-                  )}
-              </div>
-            </div>
+              <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
+                  {summaryForCardDisplay}
+              </p>
 
-            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
-              <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
-              <ActionButton
-                  action="details"
-                  Icon={Info}
-                  label="Details"
-                  className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
-                  onClickOverride={(e) => {
-                    e.stopPropagation();
-                    setActiveAccordionItemModal(undefined); // Reset accordion before opening
-                    setIsDetailsModalOpen(true); 
-                  }}
-              />
-              <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-              <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
-            </CardFooter>
+              {candidate.desiredWorkStyle && (
+                  <div className="flex items-center text-muted-foreground pt-1">
+                      <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
+                      <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
+                  </div>
+              )}
+
+              {candidate.skills && candidate.skills.length > 0 && (
+                  <div className="pt-1">
+                  <div className="flex flex-wrap gap-1">
+                      {candidate.skills.slice(0, 2).map((skill) => (
+                      <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
+                      ))}
+                      {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
+                  </div>
+                  </div>
+              )}
+          </div>
+
+          {/* Footer with actions */}
+          <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
+            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+            <ActionButton
+                action="details"
+                Icon={Info}
+                label="Details"
+                className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
+                onClickOverride={(e) => {
+                  e.stopPropagation();
+                  setActiveAccordionItemModal(undefined);
+                  setIsDetailsModalOpen(true); 
+                }}
+            />
+            <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
+            <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+          </CardFooter>
         </div>
       </div>
 

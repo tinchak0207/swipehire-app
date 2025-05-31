@@ -45,7 +45,7 @@ const incrementAnalytic = (key: string) => {
 
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
-  const cardContentRef = useRef<HTMLDivElement>(null);
+  const cardRootRef = useRef<HTMLDivElement>(null); // Changed from cardContentRef to cardRootRef
   const { toast } = useToast();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -75,7 +75,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setIsAskingQuestion(false);
     setShowFullJobDescriptionInModal(false);
     setShowFullCompanyDescriptionInModal(false);
-    setActiveAccordionItem(undefined); // Reset accordion
+    setActiveAccordionItem(undefined); 
     setIsDetailsModalOpen(true);
   };
 
@@ -143,7 +143,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
-        setActiveAccordionItem("ai-fit-analysis"); // Open accordion on successful analysis
+        setActiveAccordionItem("ai-fit-analysis"); 
       } else {
         setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
@@ -181,7 +181,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       } else if (isGuestMode && isDetailsModalOpen) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
         setIsLoadingAiAnalysis(false);
-        setActiveAccordionItem(undefined); // Ensure accordion is not open by default in guest mode
+        setActiveAccordionItem(undefined); 
       }
   }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
@@ -198,43 +198,40 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
-    if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
+    if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
         if (e.clientY > rect.bottom - 40) {
             return;
         }
-      } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"]')) {
+      } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
         return;
       }
-    }
-    if (targetElement.closest('[data-radix-scroll-area-viewport] > [data-radix-scroll-area-scrollbar]')) {
-        return;
     }
 
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
     setCurrentX(e.clientX);
-    if (cardContentRef.current) {
-      cardContentRef.current.style.cursor = 'grabbing';
-      cardContentRef.current.style.transition = 'none';
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = 'grabbing';
+      cardRootRef.current.style.transition = 'none';
     }
     document.body.style.userSelect = 'none';
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
     setCurrentX(e.clientX);
   };
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardContentRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
 
     const deltaX = currentX - startX;
-    cardContentRef.current.style.transition = 'transform 0.3s ease-out';
-    cardContentRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+    cardRootRef.current.style.transition = 'transform 0.3s ease-out';
+    cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
 
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
       if (deltaX < 0) {
@@ -247,8 +244,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setIsDragging(false);
     setStartX(0);
     setCurrentX(0);
-    if (cardContentRef.current) {
-      cardContentRef.current.style.cursor = 'grab';
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = 'grab';
     }
     document.body.style.userSelect = '';
   };
@@ -447,7 +444,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   return (
     <>
       <div
-        ref={cardContentRef}
+        ref={cardRootRef} // Use the new ref for the root div
         className="flex flex-col h-full overflow-hidden relative bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -459,28 +456,28 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0">
+        {/* Media Area */}
+        <div className="relative w-full aspect-video p-4 shrink-0">
           {company.logoUrl ? (
-            <div className="aspect-video w-full p-4 relative">
-              <Image
-                src={company.logoUrl}
-                alt={company.name + " logo"}
-                fill
-                className="object-contain"
-                data-ai-hint={company.dataAiHint || "company logo"}
-                priority
-              />
-            </div>
+            <Image
+              src={company.logoUrl}
+              alt={company.name + " logo"}
+              fill
+              className="object-contain"
+              data-ai-hint={company.dataAiHint || "company logo"}
+              priority
+            />
           ) : (
-            <div className="aspect-video w-full bg-muted flex items-center justify-center" data-ai-hint="company building">
+            <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="company building">
               <Building className="w-20 h-20 text-muted-foreground" />
             </div>
           )}
         </div>
-
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true">
-            <div className="space-y-1 text-xs sm:text-sm pr-1">
+        
+        {/* Content Area below media */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col" data-no-drag="true">
+            {/* Scrollable inner content */}
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 text-xs sm:text-sm"> {/* Added space-y-1 for consistency */}
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
@@ -519,7 +516,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </div>
             </div>
-          </div>
+            
+            {/* Footer with actions */}
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
