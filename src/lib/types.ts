@@ -1,4 +1,3 @@
-
 // src/lib/types.ts
 
 export type UserRole = 'recruiter' | 'jobseeker';
@@ -60,27 +59,49 @@ export interface UserPreferences {
   enableExperimentalFeatures?: boolean;
 }
 
-export interface Candidate {
-  id: string; // This will be MongoDB _id if fetched from backend
+// Representing User data from MongoDB, including new fields for likes and profile representation
+export interface BackendUser {
+  _id: string; // MongoDB ID
   name: string;
-  role: string; 
+  email: string;
+  firebaseUid?: string;
+  selectedRole: UserRole | null;
+  address?: string;
+  country?: string;
+  documentId?: string;
+  recruiterAIWeights?: RecruiterPerspectiveWeights;
+  jobSeekerAIWeights?: JobSeekerPerspectiveWeights;
+  preferences?: UserPreferences;
+  likedCandidateIds?: string[]; // Array of Candidate profile IDs (e.g., 'cand1')
+  likedCompanyIds?: string[];   // Array of Company profile IDs (e.g., 'comp1')
+  representedCandidateProfileId?: string; // For job seeker, their profile ID from mockData e.g. 'cand1'
+  representedCompanyProfileId?: string;   // For recruiter, company profile ID they represent e.g. 'comp1'
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+
+export interface Candidate { // This remains as the structure for mockData.ts candidates
+  id: string; // This is 'cand1', 'cand2' etc. from mockData
+  name: string;
+  role: string;
   experienceSummary: string;
   skills: string[];
-  avatarUrl?: string; 
-  dataAiHint?: string; 
-  videoResumeUrl?: string; 
-  profileStrength?: number; 
-  location?: string; 
-  desiredWorkStyle?: string; 
-  pastProjects?: string; 
+  avatarUrl?: string;
+  dataAiHint?: string;
+  videoResumeUrl?: string;
+  profileStrength?: number;
+  location?: string;
+  desiredWorkStyle?: string;
+  pastProjects?: string;
   workExperienceLevel?: WorkExperienceLevel;
   educationLevel?: EducationLevel;
-  locationPreference?: LocationPreference; 
-  languages?: string[]; 
+  locationPreference?: LocationPreference;
+  languages?: string[];
   salaryExpectationMin?: number;
   salaryExpectationMax?: number;
-  availability?: Availability; 
-  jobTypePreference?: JobType[]; 
+  availability?: Availability;
+  jobTypePreference?: JobType[];
   personalityAssessment?: PersonalityTraitAssessment[];
   optimalWorkStyles?: string[];
   isUnderestimatedTalent?: boolean;
@@ -90,45 +111,53 @@ export interface Candidate {
 export interface CompanyJobOpening {
   title: string;
   description: string;
-  location?: string; 
-  salaryRange?: string; 
-  jobType?: JobType; 
+  location?: string;
+  salaryRange?: string;
+  jobType?: JobType;
   tags?: string[];
-  videoOrImageUrl?: string; 
-  dataAiHint?: string; 
+  videoOrImageUrl?: string;
+  dataAiHint?: string;
   requiredExperienceLevel?: WorkExperienceLevel;
   requiredEducationLevel?: EducationLevel;
-  workLocationType?: LocationPreference; 
+  workLocationType?: LocationPreference;
   requiredLanguages?: string[];
-  salaryMin?: number; 
-  salaryMax?: number; 
-  companyCultureKeywords?: string[]; 
-  companyIndustry?: string; 
+  salaryMin?: number;
+  salaryMax?: number;
+  companyCultureKeywords?: string[];
+  companyIndustry?: string;
 }
 
-export interface Company {
-  id: string; // This will be MongoDB _id if fetched from backend
+export interface Company { // This remains as the structure for mockData.ts companies
+  id: string; // This is 'comp1', 'comp2' etc. from mockData
   name: string;
   industry: string;
   description: string;
   cultureHighlights: string[];
-  logoUrl?: string; 
-  dataAiHint?: string; 
-  introVideoUrl?: string; 
+  logoUrl?: string;
+  dataAiHint?: string;
+  introVideoUrl?: string;
   jobOpenings?: CompanyJobOpening[];
-  companyNeeds?: string; 
+  companyNeeds?: string;
   salaryRange?: string; 
   jobType?: JobType; 
 }
 
+// Updated Match interface to align with backend Match model
 export interface Match {
-  id: string;
-  candidateId: string;
-  companyId: string;
-  matchedAt: Date;
-  candidate: Candidate;
-  company: Company;
+  _id: string; // MongoDB ID for the match document itself
+  userA_Id: string; // MongoDB User ID (e.g., recruiter)
+  userB_Id: string; // MongoDB User ID (e.g., job seeker)
+  candidateProfileIdForDisplay: string; // e.g., 'cand1' (from mockData)
+  companyProfileIdForDisplay: string; // e.g., 'comp1' (from mockData)
+  jobOpeningTitle?: string;
+  matchedAt: string; // ISO Date string from backend
+  status: 'active' | 'archived_by_A' | 'archived_by_B' | 'archived_by_both';
+  uniqueMatchKey: string;
+  // For frontend display, these will be populated by looking up IDs in mockCandidates/mockCompanies
+  candidate?: Candidate;
+  company?: Company;
 }
+
 
 export interface VideoScriptRequest {
   experience: string;
@@ -140,7 +169,7 @@ export interface AvatarRequest {
 }
 
 export interface VideoEditRequest {
-  videoDataUri: string; 
+  videoDataUri: string;
 }
 
 export interface IcebreakerRequest {
@@ -158,38 +187,37 @@ export interface JobPosting {
   compensation: string;
   tags: string[];
   mediaUrl?: string;
-  companyId: string; 
+  companyId: string;
   postedAt: Date;
 }
 
 export interface ChatMessage {
   id: string;
-  sender: 'user' | 'ai' | 'contact'; 
+  sender: 'user' | 'ai' | 'contact';
   text: string;
   timestamp: Date;
 }
 
-// Updated DiaryPost to reflect backend model
 export interface DiaryPost {
-  _id?: string; // From MongoDB
-  id?: string; // Could be used on frontend if needed before _id is assigned
-  authorId: string; // User's MongoDB _id
+  _id?: string;
+  id?: string;
+  authorId: string;
   authorName: string;
-  authorAvatarUrl?: string; 
-  dataAiHint?: string; 
+  authorAvatarUrl?: string;
+  dataAiHint?: string;
   title: string;
   content: string;
-  imageUrl?: string; 
-  diaryImageHint?: string; 
-  timestamp?: number; // Keep for frontend display if needed, backend uses createdAt
+  imageUrl?: string;
+  diaryImageHint?: string;
+  timestamp?: number;
   tags?: string[];
   likes: number;
-  likedBy?: string[]; // Array of User MongoDB _ids
+  likedBy?: string[];
   views?: number;
-  commentsCount?: number; // Renamed to match backend
+  commentsCount?: number;
   isFeatured?: boolean;
-  createdAt?: string; // From MongoDB
-  updatedAt?: string; // From MongoDB
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 
@@ -209,7 +237,7 @@ export interface CandidateProfileForAI {
     salaryExpectationMax?: number;
     availability?: Availability;
     jobTypePreference?: JobType[];
-    personalityAssessment?: PersonalityTraitAssessment[]; 
+    personalityAssessment?: PersonalityTraitAssessment[];
 }
 
 export interface JobCriteriaForAI {
@@ -229,14 +257,14 @@ export interface JobCriteriaForAI {
 }
 
 export interface RecruiterPerspectiveWeights {
-  skillsMatchScore: number; 
+  skillsMatchScore: number;
   experienceRelevanceScore: number;
   cultureFitScore: number;
   growthPotentialScore: number;
 }
 
 export interface JobSeekerPerspectiveWeights {
-  cultureFitScore: number; 
+  cultureFitScore: number;
   jobRelevanceScore: number;
   growthOpportunityScore: number;
   jobConditionFitScore: number;
@@ -250,14 +278,14 @@ export interface UserAIWeights {
 export interface ProfileRecommenderInput {
     candidateProfile: CandidateProfileForAI;
     jobCriteria: JobCriteriaForAI;
-    userAIWeights?: UserAIWeights; 
+    userAIWeights?: UserAIWeights;
 }
 
 export interface ProfileRecommenderOutput {
     candidateId: string;
-    matchScore: number; 
+    matchScore: number;
     reasoning: string;
-    weightedScores: { 
+    weightedScores: {
         skillsMatchScore: number;
         experienceRelevanceScore: number;
         cultureFitScore: number;
@@ -267,10 +295,10 @@ export interface ProfileRecommenderOutput {
     underestimatedReasoning?: string;
     personalityAssessment?: PersonalityTraitAssessment[];
     optimalWorkStyles?: string[];
-    candidateJobFitAnalysis?: { 
-        matchScoreForCandidate: number; 
+    candidateJobFitAnalysis?: {
+        matchScoreForCandidate: number;
         reasoningForCandidate: string;
-        weightedScoresForCandidate: { 
+        weightedScoresForCandidate: {
             cultureFitScore: number;
             jobRelevanceScore: number;
             growthOpportunityScore: number;
@@ -298,10 +326,28 @@ export interface CompanyQAInput {
   companyDescription: string;
   companyIndustry?: string;
   companyCultureHighlights?: string[];
-  jobOpeningsSummary?: string; 
+  jobOpeningsSummary?: string;
   userQuestion: string;
 }
 
 export interface CompanyQAOutput {
   aiAnswer: string;
+}
+
+// For the new like interaction endpoint
+export interface RecordLikePayload {
+  likingUserId: string; // MongoDB _id of the user performing the like
+  likedProfileId: string; // e.g., 'cand1' or 'comp1'
+  likedProfileType: 'candidate' | 'company';
+  likingUserRole: UserRole; // Role of the liking user
+  // These are hints for the backend to find the "other user" based on mock profile IDs
+  likingUserRepresentsCandidateId?: string; // If jobseeker, their 'candX' ID from mockData
+  likingUserRepresentsCompanyId?: string;   // If recruiter, their 'compX' ID from mockData
+}
+
+export interface RecordLikeResponse {
+  success: boolean;
+  message: string;
+  matchMade?: boolean;
+  matchDetails?: Match; // Full match details if one was created
 }

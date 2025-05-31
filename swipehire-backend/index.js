@@ -5,7 +5,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const User = require('./User');
-const DiaryPost = require('./DiaryPost'); // Import the new DiaryPost model
+const DiaryPost = require('./DiaryPost');
+const Match = require('./Match'); // Import the new Match model
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,24 +20,22 @@ app.options('*', (req, res, next) => {
   const requestPath = req.originalUrl;
   console.log(`[Global OPTIONS Handler] <<< Received OPTIONS request for: ${requestPath} from origin: ${origin}`);
   
+  const headersToSet = {
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Max-Age': '86400'
+  };
+
   if (origin === FRONTEND_URL) {
-    const headersToSet = {
-      'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-      'Access-Control-Allow-Credentials': 'true',
-      'Access-Control-Max-Age': '86400'
-    };
+    headersToSet['Access-Control-Allow-Origin'] = origin;
     console.log('[Global OPTIONS Handler] >>> Setting response headers for ALLOWED origin:', JSON.stringify(headersToSet));
     res.header(headersToSet);
     res.sendStatus(204);
     console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${origin} for ${requestPath} with reflected ACAO.`);
   } else {
-    console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204.`);
-    // For disallowed origins, still acknowledge the OPTIONS method but don't reflect ACAO.
-    // The main cors middleware will handle the actual request denial.
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204 (no ACAO).`);
+    res.header(headersToSet); // Still send other headers, ACAO is handled by main cors middleware.
     res.sendStatus(204);
     console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${origin} (actual request may be blocked by browser)`);
   }
@@ -67,10 +66,10 @@ app.get('/', (req, res) => {
     res.send('Welcome to SwipeHire Backend API!');
 });
 
-// User API Endpoints (existing)
+// User API Endpoints
 app.post('/api/users', async (req, res) => {
     try {
-        const { name, email, preferences, firebaseUid } = req.body;
+        const { name, email, preferences, firebaseUid, selectedRole, representedCandidateProfileId, representedCompanyProfileId } = req.body;
         if (!name || !email || !firebaseUid) {
  return res.status(400).json({ message: 'Name, email, and firebaseUid are required' });
         }
@@ -78,7 +77,28 @@ app.post('/api/users', async (req, res) => {
         if (existingUser) {
  return res.status(409).json({ message: 'User already exists with this email or Firebase UID' });
         }
-        const newUser = new User({ name, email, preferences, firebaseUid });
+        // For new users, assign a mock represented ID if not provided, for demo matching.
+        // This is a placeholder for a real profile creation/linking step.
+        let finalRepCandidateId = representedCandidateProfileId;
+        let finalRepCompanyId = representedCompanyProfileId;
+
+        if (selectedRole === 'jobseeker' && !representedCandidateProfileId) {
+            finalRepCandidateId = `cand-user-${firebaseUid.slice(0,5)}`; // Assign a conceptual ID
+            console.log(`[DB Action] New jobseeker user, assigned conceptual representedCandidateProfileId: ${finalRepCandidateId}`);
+        } else if (selectedRole === 'recruiter' && !representedCompanyProfileId) {
+            finalRepCompanyId = `comp-user-${firebaseUid.slice(0,5)}`; // Assign a conceptual ID
+            console.log(`[DB Action] New recruiter user, assigned conceptual representedCompanyProfileId: ${finalRepCompanyId}`);
+        }
+
+        const newUser = new User({
+          name,
+          email,
+          preferences,
+          firebaseUid,
+          selectedRole,
+          representedCandidateProfileId: finalRepCandidateId,
+          representedCompanyProfileId: finalRepCompanyId,
+        });
         await newUser.save();
         console.log(`[DB Action] User created: ${newUser._id} for firebaseUid: ${firebaseUid}`);
         res.status(201).json({ message: 'User created!', user: newUser });
@@ -118,12 +138,18 @@ app.put('/api/users/:identifier', async (req, res) => {
         const update = req.body;
         let updatedUser;
         console.log(`[DB Action - Original PUT /api/users/] Attempting to update user with identifier: ${identifier}. Update data:`, JSON.stringify(update).substring(0, 200) + "...");
+        
+        const updatePayload = { ...update };
+        if (updatePayload.firebaseUid === undefined) delete updatePayload.firebaseUid;
+        if (updatePayload.email === undefined) delete updatePayload.email;
+
+
         if (mongoose.Types.ObjectId.isValid(identifier)) {
-            updatedUser = await User.findByIdAndUpdate(identifier, update, { new: true, runValidators: true });
+            updatedUser = await User.findByIdAndUpdate(identifier, updatePayload, { new: true, runValidators: true });
              if (updatedUser) console.log(`[DB Action - Original PUT /api/users/] Updated user by ObjectId: ${updatedUser._id}`);
         }
         if (!updatedUser) {
-            updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, update, { new: true, runValidators: true });
+            updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, updatePayload, { new: true, runValidators: true });
             if (updatedUser) console.log(`[DB Action - Original PUT /api/users/] Updated user by firebaseUid: ${updatedUser.firebaseUid}, ObjectId: ${updatedUser._id}`);
         }
         if (!updatedUser) {
@@ -137,6 +163,7 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
+// Proxy Endpoints
 app.post('/api/proxy/users/:identifier/role', async (req, res) => {
   const { identifier } = req.params;
   const requestBody = req.body;
@@ -188,40 +215,21 @@ app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
 });
 
 
-// --- New Diary Post API Endpoints ---
-
-// Create a new diary post
+// --- Diary Post API Endpoints ---
 app.post('/api/diary-posts', async (req, res) => {
     try {
         const { title, content, authorId, authorName, authorAvatarUrl, imageUrl, diaryImageHint, tags, isFeatured } = req.body;
-
         if (!title || !content || !authorId || !authorName) {
             return res.status(400).json({ message: 'Title, content, authorId, and authorName are required for a diary post.' });
         }
-
-        // Validate authorId is a valid ObjectId (optional but good practice)
         if (!mongoose.Types.ObjectId.isValid(authorId)) {
             return res.status(400).json({ message: 'Invalid authorId format.' });
         }
-        // Check if the user (author) exists (optional)
         const authorExists = await User.findById(authorId);
         if (!authorExists) {
             return res.status(404).json({ message: `User with ID ${authorId} not found.` });
         }
-
-        const newPost = new DiaryPost({
-            title,
-            content,
-            authorId,
-            authorName,
-            authorAvatarUrl: authorAvatarUrl || undefined, // Use provided or default from schema
-            imageUrl,
-            diaryImageHint,
-            tags,
-            isFeatured,
-            // likes, likedBy, views, commentsCount will default
-        });
-
+        const newPost = new DiaryPost({ title, content, authorId, authorName, authorAvatarUrl, imageUrl, diaryImageHint, tags, isFeatured });
         await newPost.save();
         console.log(`[DB Action] Diary post created: ${newPost._id} by author: ${authorId}`);
         res.status(201).json(newPost);
@@ -231,10 +239,9 @@ app.post('/api/diary-posts', async (req, res) => {
     }
 });
 
-// Get all diary posts
 app.get('/api/diary-posts', async (req, res) => {
     try {
-        const posts = await DiaryPost.find().sort({ createdAt: -1 }); // Sort by newest first
+        const posts = await DiaryPost.find().sort({ createdAt: -1 });
         console.log(`[DB Action] Fetched ${posts.length} diary posts.`);
         res.json(posts);
     } catch (error) {
@@ -243,43 +250,156 @@ app.get('/api/diary-posts', async (req, res) => {
     }
 });
 
-// Like/Unlike a diary post
 app.post('/api/diary-posts/:postId/like', async (req, res) => {
     try {
         const { postId } = req.params;
-        const { userId } = req.body; // MongoDB _id of the user liking the post
-
-        if (!userId) {
-            return res.status(400).json({ message: 'userId is required to like a post.' });
-        }
+        const { userId } = req.body;
+        if (!userId) { return res.status(400).json({ message: 'userId is required to like a post.' }); }
         if (!mongoose.Types.ObjectId.isValid(postId) || !mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'Invalid postId or userId format.' });
         }
-
         const post = await DiaryPost.findById(postId);
-        if (!post) {
-            return res.status(404).json({ message: 'Diary post not found.' });
-        }
-
+        if (!post) { return res.status(404).json({ message: 'Diary post not found.' }); }
         const userObjectId = new mongoose.Types.ObjectId(userId);
         const likedIndex = post.likedBy.findIndex(id => id.equals(userObjectId));
-
         if (likedIndex > -1) {
-            // User already liked, so unlike
             post.likedBy.splice(likedIndex, 1);
-            post.likes = Math.max(0, post.likes - 1); // Ensure likes don't go below 0
+            post.likes = Math.max(0, post.likes - 1);
         } else {
-            // User hasn't liked, so like
             post.likedBy.push(userObjectId);
             post.likes += 1;
         }
-
         await post.save();
         console.log(`[DB Action] Post ${postId} like toggled by user ${userId}. New like count: ${post.likes}`);
         res.json(post);
     } catch (error) {
         console.error('Error toggling like on diary post:', error);
         res.status(500).json({ message: 'Server error while liking post', error: error.message });
+    }
+});
+
+// --- New Like and Match API Endpoints ---
+app.post('/api/interactions/like', async (req, res) => {
+    try {
+        const { likingUserId, likedProfileId, likedProfileType, likingUserRole, likingUserRepresentsCandidateId, likingUserRepresentsCompanyId } = req.body;
+
+        console.log('[Like Interaction] Received:', req.body);
+
+        if (!likingUserId || !likedProfileId || !likedProfileType || !likingUserRole) {
+            return res.status(400).json({ message: "Missing required fields for like interaction." });
+        }
+        if (!mongoose.Types.ObjectId.isValid(likingUserId)) {
+            return res.status(400).json({ message: "Invalid likingUserId." });
+        }
+
+        const likingUser = await User.findById(likingUserId);
+        if (!likingUser) {
+            return res.status(404).json({ message: "Liking user not found." });
+        }
+
+        let matchMade = false;
+        let newMatchDetails = null;
+        let otherUser = null;
+
+        if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
+            // Recruiter likes a candidate profile
+            if (!likingUser.likedCandidateIds.includes(likedProfileId)) {
+                likingUser.likedCandidateIds.push(likedProfileId);
+            }
+            // Check for mutual match: Find job seeker user who IS this candidate AND has liked the recruiter's company
+            otherUser = await User.findOne({ selectedRole: 'jobseeker', representedCandidateProfileId: likedProfileId });
+            if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) {
+                matchMade = true;
+            }
+        } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
+            // Job seeker likes a company profile
+            if (!likingUser.likedCompanyIds.includes(likedProfileId)) {
+                likingUser.likedCompanyIds.push(likedProfileId);
+            }
+            // Check for mutual match: Find recruiter user who REPRESENTS this company AND has liked this job seeker's candidate profile
+            otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
+            if (otherUser && likingUser.representedCandidateProfileId && otherUser.likedCandidateIds.includes(likingUser.representedCandidateProfileId)) {
+                matchMade = true;
+            }
+        } else {
+            return res.status(400).json({ message: "Invalid role/profile type combination." });
+        }
+
+        await likingUser.save();
+        console.log(`[DB Action] Like recorded for user ${likingUser._id} (${likingUserRole}). Target: ${likedProfileId} (${likedProfileType}).`);
+
+        if (matchMade && otherUser) {
+            // Ensure consistent order for user IDs in uniqueMatchKey
+            const userA_Id = likingUser._id.toString() < otherUser._id.toString() ? likingUser._id : otherUser._id;
+            const userB_Id = likingUser._id.toString() < otherUser._id.toString() ? otherUser._id : likingUser._id;
+            const uniqueKey = `${userA_Id.toString()}-${userB_Id.toString()}`;
+
+            const existingMatch = await Match.findOne({ uniqueMatchKey: uniqueKey });
+
+            if (!existingMatch) {
+                let candidateDisplayId, companyDisplayId, finalUserA, finalUserB;
+                if (likingUserRole === 'recruiter') { // Recruiter (likingUser) liked Candidate (otherUser represents this candidate)
+                    finalUserA = likingUser._id; // Recruiter
+                    finalUserB = otherUser._id; // Job Seeker
+                    candidateDisplayId = likedProfileId; // This is the candidate profile ID
+                    companyDisplayId = likingUser.representedCompanyProfileId;
+                } else { // Jobseeker (likingUser) liked Company (otherUser represents this company)
+                    finalUserA = otherUser._id; // Recruiter
+                    finalUserB = likingUser._id; // Job Seeker
+                    candidateDisplayId = likingUser.representedCandidateProfileId;
+                    companyDisplayId = likedProfileId; // This is the company profile ID
+                }
+                
+                if (!candidateDisplayId || !companyDisplayId) {
+                    console.error("[Match Creation] Critical error: Missing represented profile ID for match detection.", {likingUser, otherUser, likedProfileId, likingUserRole});
+                    // Potentially don't create match or respond with error
+                } else {
+                    const newMatch = new Match({
+                        userA_Id: finalUserA,
+                        userB_Id: finalUserB,
+                        candidateProfileIdForDisplay: candidateDisplayId,
+                        companyProfileIdForDisplay: companyDisplayId,
+                        uniqueMatchKey: uniqueKey,
+                    });
+                    await newMatch.save();
+                    newMatchDetails = newMatch;
+                    console.log(`[DB Action] Mutual match CREATED between ${finalUserA} and ${finalUserB}. Match ID: ${newMatch._id}`);
+                }
+            } else {
+                console.log(`[DB Action] Mutual match ALREADY EXISTS between ${userA_Id} and ${userB_Id}. Match ID: ${existingMatch._id}`);
+                matchMade = true; // It was already a match or just became one.
+                newMatchDetails = existingMatch;
+            }
+        }
+        res.status(200).json({ success: true, message: "Like recorded.", matchMade, matchDetails: newMatchDetails });
+
+    } catch (error) {
+        console.error("Error recording like:", error);
+        res.status(500).json({ message: "Server error while recording like.", error: error.message });
+    }
+});
+
+app.get('/api/matches/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: "Invalid userId." });
+        }
+
+        const userObjectId = new mongoose.Types.ObjectId(userId);
+
+        const matches = await Match.find({
+            $or: [{ userA_Id: userObjectId }, { userB_Id: userObjectId }],
+            status: 'active'
+        })
+        .sort({ matchedAt: -1 });
+
+        console.log(`[DB Action] Fetched ${matches.length} matches for user ${userId}.`);
+        res.status(200).json(matches);
+
+    } catch (error) {
+        console.error("Error fetching matches:", error);
+        res.status(500).json({ message: "Server error while fetching matches.", error: error.message });
     }
 });
 
