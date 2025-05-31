@@ -21,18 +21,15 @@ const nextConfig: NextConfig = {
       // e.g. for actual avatar/logo storage
     ],
   },
-  // The webpack function is removed as it's not compatible with Turbopack.
-  // Turbopack handles SVGs differently. If you were using SVGs as React components
-  // (e.g., import MyIcon from './my-icon.svg'; <MyIcon />),
-  // this should generally work with Turbopack out-of-the-box.
-  // If specific @svgr/webpack transformations were critical,
-  // you might need to adjust SVG usage or remove the --turbopack flag from your dev script.
   allowedDevOrigins: [
     // Add the specific preview URL from your Firebase Studio/IDX environment
-    // It's important to use the correct protocol (http or https)
+    // This specific URL was seen in logs when port 9005 was active
     'https://9005-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // It's good practice to also include your local development origin if you ever run it directly
+    // It's good practice to also include your local development origin for the intended port
     'http://localhost:9005',
+    // Fallback if IDX forces port 9002
+    'https://9002-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    'http://localhost:9002'
   ],
 };
 
