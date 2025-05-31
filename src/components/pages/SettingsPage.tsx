@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle } from 'lucide-react'; // Added Settings2, AlertCircle
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, BadgeCheck, FileText, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Construction, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, ListChecks, Rocket } from 'lucide-react'; // Added ListChecks, Rocket
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -431,6 +431,50 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       </Card>
       )}
 
+      {/* Roadmap & Updates Card */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <Rocket className="mr-2 h-5 w-5 text-primary" />
+            Our Journey & Your Voice: Roadmap & Updates
+          </CardTitle>
+          <CardDescription>
+            We believe in building SwipeHire with our community. Here's a glimpse of what we're working on and features recently launched. 
+            <span className="italic text-muted-foreground/80"> (Full changelog and interactive roadmap coming soon!)</span>
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm">
+          <div>
+            <h4 className="font-semibold text-md mb-1.5 text-foreground flex items-center">
+              <ListChecks className="mr-2 h-4 w-4 text-green-500" /> Recently Launched (Conceptual):
+            </h4>
+            <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-1">
+              <li>**Guest Mode & Enhanced Onboarding:** Explore SwipeHire before signing up! New role-specific guides for AI tools.</li>
+              <li>**AI Fit Score Insights:** Deeper understanding of *why* you match, with customizable AI weights.</li>
+              <li>**Shareable Profile/Job Cards:** Downloadable images with QR codes for easy sharing.</li>
+              <li>**Interactive Staff Diary:** Like posts and see more engagement.</li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-semibold text-md mb-1.5 text-foreground flex items-center">
+              <Construction className="mr-2 h-4 w-4 text-orange-500" /> What's Next (Conceptual):
+            </h4>
+            <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-1">
+              <li>Advanced AI Video Editing Suite: More tools to polish your video resumes.</li>
+              <li>Recruiter-Specific AI Tools: Enhanced candidate sourcing and screening.</li>
+              <li>Robust Identity Verification: Building more trust within the community.</li>
+              <li>Premium Subscription Tiers: Unlocking more powerful features for dedicated users.</li>
+              <li>Your Feedback in Action: We're always listening and incorporating your suggestions!</li>
+            </ul>
+          </div>
+        </CardContent>
+        <CardFooter>
+           <Button variant="link" disabled className="text-xs text-primary/80">
+              View Detailed Roadmap (Coming Soon)
+            </Button>
+        </CardFooter>
+      </Card>
+
 
       {/* Identity Verification Card */}
       <Card className="shadow-lg">
@@ -786,3 +830,5 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
+
+    
