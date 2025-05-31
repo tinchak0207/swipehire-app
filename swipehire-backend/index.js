@@ -33,10 +33,8 @@ app.options('*', (req, res, next) => {
     res.sendStatus(204);
     console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${origin} for ${req.originalUrl} with reflected ACAO.`);
   } else {
-    // For disallowed origins or if no origin is present
     console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204.`);
-    // Respond minimally for disallowed origins; browser will block based on main CORS config.
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'); // Still inform about generally available methods
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.sendStatus(204);
     console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${origin} (actual request may be blocked by browser)`);
@@ -50,7 +48,6 @@ app.use(express.json());
 // CORS configuration for actual requests (non-preflight)
 const corsOptions = {
   origin: function (origin, callback) {
-    // This check is now primarily for non-preflight requests.
     const requestPath = this.path; 
     console.log(`[Actual Request CORS] Origin check. Request from: ${origin}, Path: ${requestPath}`);
     if (!origin || origin === FRONTEND_URL) {
@@ -122,53 +119,50 @@ app.get('/api/users/:identifier', async (req, res) => {
     }
 });
 
-// ORIGINAL Update user features/preferences
+// ORIGINAL Update user features/preferences (direct PUT)
 app.put('/api/users/:identifier', async (req, res) => {
     try {
         const identifier = req.params.identifier;
         const update = req.body;
         let updatedUser;
-        console.log(`[DB Action - Original PUT] Attempting to update user with identifier: ${identifier}. Update data:`, JSON.stringify(update).substring(0, 200) + "...");
+        console.log(`[DB Action - Original PUT /api/users/] Attempting to update user with identifier: ${identifier}. Update data:`, JSON.stringify(update).substring(0, 200) + "...");
 
         if (mongoose.Types.ObjectId.isValid(identifier)) {
             updatedUser = await User.findByIdAndUpdate(identifier, update, { new: true, runValidators: true });
-             if (updatedUser) console.log(`[DB Action - Original PUT] Updated user by ObjectId: ${updatedUser._id}`);
+             if (updatedUser) console.log(`[DB Action - Original PUT /api/users/] Updated user by ObjectId: ${updatedUser._id}`);
         }
         
         if (!updatedUser) {
             updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, update, { new: true, runValidators: true });
-            if (updatedUser) console.log(`[DB Action - Original PUT] Updated user by firebaseUid: ${updatedUser.firebaseUid}, ObjectId: ${updatedUser._id}`);
+            if (updatedUser) console.log(`[DB Action - Original PUT /api/users/] Updated user by firebaseUid: ${updatedUser.firebaseUid}, ObjectId: ${updatedUser._id}`);
         }
 
         if (!updatedUser) {
-            console.log(`[DB Action - Original PUT] User not found for update with identifier: ${identifier}`);
+            console.log(`[DB Action - Original PUT /api/users/] User not found for update with identifier: ${identifier}`);
             return res.status(404).json({ message: 'User not found' });
         }
         res.json({ message: 'User updated!', user: updatedUser });
     } catch (error) {
-        console.error('Error updating user (Original PUT):', error);
+        console.error('Error updating user (Original PUT /api/users/):', error);
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
-// Proxy endpoint for updating user role (or other sensitive fields), NOW USING POST
+// Proxy endpoint for updating user role (using POST from frontend)
 app.post('/api/proxy/users/:identifier/role', async (req, res) => {
   const { identifier } = req.params;
-  const requestBody = req.body; // This body will be forwarded
+  const requestBody = req.body; 
 
   console.log(`[Proxy POST /role] Received request for identifier: ${identifier} with body:`, JSON.stringify(requestBody).substring(0,200) + "...");
 
   try {
-    // The internal request is still a PUT to the original endpoint
     const internalUrl = `http://localhost:${PORT}/api/users/${identifier}`;
     console.log(`[Proxy POST /role] Making internal PUT request to: ${internalUrl}`);
 
     const internalResponse = await fetch(internalUrl, {
-      method: 'PUT', // Internal call remains PUT
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody), // Forward the received body
+      method: 'PUT', 
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody), 
     });
 
     const responseData = await internalResponse.json();
@@ -184,6 +178,39 @@ app.post('/api/proxy/users/:identifier/role', async (req, res) => {
   } catch (error) {
     console.error('[Proxy POST /role] Error during internal fetch or processing:', error);
     res.status(500).json({ message: 'Proxy error while updating user role', error: error.message || 'Unknown proxy error' });
+  }
+});
+
+// New Proxy endpoint for updating user settings (using POST from frontend)
+app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
+  const { identifier } = req.params;
+  const requestBody = req.body;
+
+  console.log(`[Proxy POST /settings] Received request for identifier: ${identifier} with body:`, JSON.stringify(requestBody).substring(0,200) + "...");
+
+  try {
+    const internalUrl = `http://localhost:${PORT}/api/users/${identifier}`;
+    console.log(`[Proxy POST /settings] Making internal PUT request to: ${internalUrl}`);
+
+    const internalResponse = await fetch(internalUrl, {
+      method: 'PUT', // Internal call remains PUT to the original endpoint
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody), // Forward the received body
+    });
+
+    const responseData = await internalResponse.json();
+
+    if (!internalResponse.ok) {
+      console.error(`[Proxy POST /settings] Internal PUT request failed with status ${internalResponse.status}:`, responseData);
+      return res.status(internalResponse.status).json(responseData);
+    }
+
+    console.log(`[Proxy POST /settings] Internal PUT request successful. Forwarding response to client.`);
+    res.status(internalResponse.status).json(responseData);
+
+  } catch (error) {
+    console.error('[Proxy POST /settings] Error during internal fetch or processing:', error);
+    res.status(500).json({ message: 'Proxy error while updating user settings', error: error.message || 'Unknown proxy error' });
   }
 });
 

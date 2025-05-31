@@ -98,6 +98,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [recruiterWeightsError, setRecruiterWeightsError] = useState<string | null>(null);
   const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true); // For loading name, email, etc.
+  const [isSaving, setIsSaving] = useState(false); // For save button loading state
 
   // State for new preferences
   const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(contextPreferences.theme);
@@ -221,7 +222,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       toast({ title: "Invalid Weights", description: "Please ensure all AI recommendation weights sum to 100% for each perspective.", variant: "destructive" });
       return;
     }
-
+    setIsSaving(true);
     const user = auth.currentUser; 
     if (user && mongoDbUserId) { 
       
@@ -246,8 +247,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       };
       
       try {
-        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`, {
-          method: 'PUT',
+        // Use the new POST proxy endpoint
+        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${mongoDbUserId}/settings`, {
+          method: 'POST', // Changed from PUT to POST
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(settingsData),
         });
@@ -279,7 +281,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         let description = "Could not save your settings.";
         if (error.message) { description = error.message; }
         toast({ title: "Error Saving Settings", description, variant: "destructive" });
+      } finally {
+        setIsSaving(false);
       }
+    } else {
+        setIsSaving(false);
     }
   };
 
@@ -343,8 +349,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   };
 
 
-  const saveButtonText = "Save Settings";
-  const SaveButtonIcon = UserCog;
+  const saveButtonText = isSaving ? "Saving..." : "Save Settings";
+  const SaveButtonIcon = isSaving ? Loader2 : UserCog;
 
   if ((isLoadingSettings || contextLoading) && !isGuestMode) {
     return (
@@ -741,9 +747,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         <Button 
           onClick={handleSaveSettings} 
           size="lg" 
-          disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode)}
+          disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode) || isSaving}
         >
-          {(isLoadingSettings || contextLoading) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <SaveButtonIcon className="mr-2 h-5 w-5" />}
+          <SaveButtonIcon className={isSaving ? "mr-2 h-5 w-5 animate-spin" : "mr-2 h-5 w-5"} />
           {saveButtonText}
         </Button>
       </CardFooter>
