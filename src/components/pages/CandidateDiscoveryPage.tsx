@@ -4,19 +4,36 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Candidate, CandidateFilters, UserRole } from '@/lib/types';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, JobType } from '@/lib/types';
-import { mockCandidates, mockCompanies } from '@/lib/mockData'; // Keep mockCompanies for recruiter's company context
+import { mockCandidates, mockCompanies } from '@/lib/mockData';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, X } from 'lucide-react';
+import { Loader2, SearchX, Filter, X, RotateCcw, Info } from 'lucide-react'; // Added RotateCcw
 import { useToast } from '@/hooks/use-toast';
-import { Sheet, SheetContent, SheetTrigger, SheetClose } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
 import { Badge } from '@/components/ui/badge';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { recordLike } from '@/services/matchService';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import Image from 'next/image';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const ITEMS_PER_BATCH = 3;
+const LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX = 'passedCandidates_';
+const LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX = 'trashBinCandidates_';
+
+// Simple Trash icon as Lucide might not have a perfect one
+const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M3 6h18" />
+    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    <line x1="10" y1="11" x2="10" y2="17" />
+    <line x1="14" y1="11" x2="14" y2="17" />
+  </svg>
+);
+
 
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
@@ -30,13 +47,15 @@ const initialFilters: CandidateFilters = {
 };
 
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
-  const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates); // Start with mock data
+  const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates);
   const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
+  const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
+  const [trashBinCandidates, setTrashBinCandidates] = useState<Candidate[]>([]);
 
   const [activeFilters, setActiveFilters] = useState<CandidateFilters>(initialFilters);
 
@@ -45,31 +64,31 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
 
   const { toast } = useToast();
   const { mongoDbUserId, preferences } = useUserPreferences();
-  // Get the recruiter's represented company profile ID from UserPreferences or localStorage as a fallback
   const [recruiterRepresentedCompanyId, setRecruiterRepresentedCompanyId] = useState<string | null>(null);
+
+  const getPassedKey = useCallback(() => `${LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
+  const getTrashBinKey = useCallback(() => `${LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
 
   useEffect(() => {
     if (mongoDbUserId) {
-        // This would ideally come from the fetched User object via context
-        // For now, using localStorage as a placeholder if user sets it.
         const storedCompanyId = localStorage.getItem(`user_${mongoDbUserId}_representedCompanyId`);
         setRecruiterRepresentedCompanyId(storedCompanyId || (mockCompanies.length > 0 ? mockCompanies[0].id : 'comp-placeholder-recruiter'));
     }
   }, [mongoDbUserId]);
 
+  useEffect(() => {
+    const storedPassed = localStorage.getItem(getPassedKey());
+    if (storedPassed) setPassedCandidateProfileIds(new Set(JSON.parse(storedPassed)));
+
+    const storedTrash = localStorage.getItem(getTrashBinKey());
+    if (storedTrash) {
+        const trashIds: string[] = JSON.parse(storedTrash);
+        setTrashBinCandidates(allCandidates.filter(c => trashIds.includes(c.id)));
+    }
+  }, [mongoDbUserId, allCandidates, getPassedKey, getTrashBinKey]);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    // Initialize passed candidates from localStorage
-    const storedPassed = localStorage.getItem(`passedCandidates_${mongoDbUserId || 'guest'}`);
-    if (storedPassed) setPassedCandidateProfileIds(new Set(JSON.parse(storedPassed)));
-
-    // TODO: Fetch actual likedCandidateIds from backend if needed for initial UI state
-    // For now, `likedCandidateProfileIds` is updated optimistically on like action.
-  }, [mongoDbUserId]);
-
 
   const localFilteredCandidates = useMemo(() => {
     let candidates = [...allCandidates];
@@ -83,14 +102,16 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     if (activeFilters.locationPreferences.size > 0) {
       candidates = candidates.filter(c => c.locationPreference && activeFilters.locationPreferences.has(c.locationPreference));
     }
-    // ... other filters
+    if (activeFilters.jobTypes.size > 0) {
+        candidates = candidates.filter(c => c.jobTypePreference && c.jobTypePreference.some(jt => activeFilters.jobTypes.has(jt)));
+    }
 
     const lowerSearchTerm = searchTerm.toLowerCase();
     if (searchTerm.trim()) {
       candidates = candidates.filter(candidate =>
         candidate.name.toLowerCase().includes(lowerSearchTerm) ||
-        (candidate.role && candidate.role.toLowerCase().includes(lowerSearchTerm))
-        // ... other search criteria
+        (candidate.role && candidate.role.toLowerCase().includes(lowerSearchTerm)) ||
+        (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
     return candidates.filter(c => !passedCandidateProfileIds.has(c.id));
@@ -99,7 +120,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   useEffect(() => {
     setFilteredCandidates(localFilteredCandidates);
   }, [localFilteredCandidates]);
-
 
   const loadMoreCandidates = useCallback(() => {
     if (isLoading || !hasMore || currentIndex >= filteredCandidates.length) {
@@ -123,10 +143,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     const hasFilteredItems = filteredCandidates.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
-      loadMoreCandidates(); // Load initial batch
+      loadMoreCandidates();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates]); // Rerun when filteredCandidates change, loadMoreCandidates is stable
+  }, [filteredCandidates]);
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -139,12 +159,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     return () => { if (observer.current) observer.current.disconnect(); };
   }, [hasMore, isLoading, loadMoreCandidates]);
 
-
   const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => {
-    if (!mongoDbUserId) {
-      toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
-      return;
-    }
     if (action === 'share' || action === 'details') {
         console.log(`${action} action for candidate ${candidateId}`);
         return;
@@ -154,6 +169,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     if (!candidate) return;
 
     if (action === 'like') {
+      if (!mongoDbUserId) {
+        toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
+        return;
+      }
       if (!recruiterRepresentedCompanyId) {
         toast({ title: "Profile Incomplete", description: "Your recruiter profile needs to be associated with a company to make matches.", variant: "destructive" });
         return;
@@ -165,7 +184,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           likedProfileId: candidateId,
           likedProfileType: 'candidate',
           likingUserRole: 'recruiter',
-          likingUserRepresentsCompanyId: recruiterRepresentedCompanyId, // Recruiter provides their company ID
+          likingUserRepresentsCompanyId: recruiterRepresentedCompanyId,
         });
         if (response.success) {
           toast({ title: `Liked ${candidate.name}` });
@@ -187,13 +206,38 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     } else if (action === 'pass') {
       setPassedCandidateProfileIds(prev => {
         const newSet = new Set(prev).add(candidateId);
-        localStorage.setItem(`passedCandidates_${mongoDbUserId || 'guest'}`, JSON.stringify(Array.from(newSet)));
+        localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newSet)));
         return newSet;
       });
-      // Optimistically remove from displayed candidates
+      setTrashBinCandidates(prevTrash => {
+        const updatedTrash = [candidate, ...prevTrash.filter(tc => tc.id !== candidate.id)];
+        localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
+        return updatedTrash;
+      });
       setDisplayedCandidates(prev => prev.filter(c => c.id !== candidateId));
-      toast({ title: `Passed on ${candidate.name}`, variant: "default" });
+      toast({ title: `Moved ${candidate.name} to Trash Bin`, variant: "default" });
     }
+  };
+
+  const handleRetrieveCandidate = (candidateId: string) => {
+    setTrashBinCandidates(prevTrash => {
+        const updatedTrash = prevTrash.filter(c => c.id !== candidateId);
+        localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
+        return updatedTrash;
+    });
+    setPassedCandidateProfileIds(prevPassed => {
+        const newPassed = new Set(prevPassed);
+        newPassed.delete(candidateId);
+        localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
+        return newPassed;
+    });
+    // Force re-evaluation of filteredCandidates by triggering a state update it depends on
+    // This is a bit of a hack; ideally, filteredCandidates would recompute automatically.
+    // For simplicity, we can refetch/reset the displayed list.
+    setCurrentIndex(0); // This will trigger a reload via useEffect dependencies
+    setDisplayedCandidates([]); // Clear displayed to ensure fresh load
+    toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
+    setIsTrashBinOpen(false);
   };
 
   const handleFilterChange = <K extends keyof CandidateFilters>(
@@ -209,14 +253,18 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     });
   };
 
-  const handleClearFilters = () => setActiveFilters(initialFilters);
-  const handleApplyFilters = () => setIsSheetOpen(false);
+  const handleClearFilters = () => {
+      setActiveFilters(initialFilters);
+      setIsFilterSheetOpen(false);
+  };
+  const handleApplyFilters = () => setIsFilterSheetOpen(false);
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
-  const fixedElementsHeight = '120px';
+  const fixedElementsHeight = '120px'; // Approx height of header + any top bars
 
   return (
     <div className="flex flex-col h-full relative">
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      {/* Filter Button */}
+      <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
         <SheetTrigger asChild>
           <Button variant="default" size="icon" className="fixed bottom-20 right-4 z-20 rounded-full w-14 h-14 shadow-lg sm:bottom-6 sm:right-6" aria-label="Open filters">
             <Filter className="h-6 w-6" />
@@ -227,6 +275,67 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           <CandidateFilterPanel activeFilters={activeFilters} onFilterChange={handleFilterChange} onClearFilters={handleClearFilters} onApplyFilters={handleApplyFilters} />
         </SheetContent>
       </Sheet>
+
+      {/* Trash Bin Button */}
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed bottom-36 right-4 z-20 rounded-full w-14 h-14 shadow-lg sm:bottom-24 sm:right-6 border-muted-foreground/50"
+        onClick={() => setIsTrashBinOpen(true)}
+        aria-label="Open Trash Bin"
+      >
+        <TrashIcon className="h-6 w-6 text-muted-foreground" />
+        {trashBinCandidates.length > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">{trashBinCandidates.length}</Badge>}
+      </Button>
+
+      {/* Trash Bin Dialog */}
+      <Dialog open={isTrashBinOpen} onOpenChange={setIsTrashBinOpen}>
+        <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col p-0">
+          <DialogHeader className="p-4 sm:p-6 border-b">
+            <DialogTitle className="text-xl text-primary flex items-center">
+              <TrashIcon className="mr-2 h-5 w-5" /> Trash Bin - Passed Candidates
+            </DialogTitle>
+            <DialogDescription>
+              Candidates you've passed on. You can retrieve them here.
+            </DialogDescription>
+          </DialogHeader>
+          <ScrollArea className="flex-1 min-h-0">
+            <div className="p-4 sm:p-6 space-y-3">
+              {trashBinCandidates.length === 0 ? (
+                <p className="text-muted-foreground text-center py-4">Your trash bin is empty.</p>
+              ) : (
+                trashBinCandidates.map(candidate => (
+                  <Card key={candidate.id} className="flex items-center p-3 space-x-3 shadow-sm">
+                    {candidate.avatarUrl && (
+                        <Image
+                            src={candidate.avatarUrl}
+                            alt={candidate.name}
+                            width={48}
+                            height={48}
+                            className="rounded-full object-cover"
+                            data-ai-hint={candidate.dataAiHint || "person"}
+                        />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold truncate text-sm text-foreground">{candidate.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{candidate.role}</p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={() => handleRetrieveCandidate(candidate.id)} className="text-primary hover:bg-primary/10 border-primary/50">
+                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Retrieve
+                    </Button>
+                  </Card>
+                ))
+              )}
+            </div>
+          </ScrollArea>
+          <DialogFooter className="p-4 border-t">
+            <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
@@ -242,10 +351,13 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
             <h2 className="text-2xl font-semibold mb-3 text-foreground">{searchTerm || numActiveFilters > 0 ? "No Candidates Found" : "No More Candidates"}</h2>
-            <p className="text-muted-foreground">{searchTerm || numActiveFilters > 0 ? "Try adjusting your search or filters." : "You've seen everyone for now."}</p>
+            <p className="text-muted-foreground">{searchTerm || numActiveFilters > 0 ? "Try adjusting your search or filters." : "You've seen everyone for now, or check your Trash Bin."}</p>
           </div>
         )}
       </div>
     </div>
   );
 }
+
+
+    
