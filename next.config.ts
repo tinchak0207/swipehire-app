@@ -22,14 +22,14 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: [
-    // IDX preview URL for port 6000 (new target)
-    'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // Localhost for port 6000 (new target)
-    'http://localhost:6000',
-    // IDX preview URL for port 3000 (previous target)
+    // IDX preview URL for port 3000
     'https://3000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // Localhost for port 3000 (previous target)
+    // Localhost for port 3000
     'http://localhost:3000',
+    // IDX preview URL for port 6000 (kept for reference, but frontend not using it)
+    'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    // Localhost for port 6000 (kept for reference)
+    'http://localhost:6000',
     // Fallback/previously attempted ports
     'https://9007-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
     'http://localhost:9007',
