@@ -7,7 +7,7 @@ import { mockCompanies as staticMockCompanies, mockCandidates } from '@/lib/mock
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, RotateCcw } from 'lucide-react'; // Added RotateCcw
+import { Loader2, SearchX, Filter, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { JobFilterPanel } from "@/components/filters/JobFilterPanel";
@@ -367,8 +367,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
 
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCompanies.map(company => (
-          <div key={company.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 bg-background">
-            <SwipeCard className={`w-full max-w-xl h-full flex flex-col ${likedCompanyProfileIds.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}>
+          <div key={company.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
+            <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCompanyProfileIds.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}>
               <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.id)} />
             </SwipeCard>
           </div>
@@ -387,3 +387,4 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   );
 }
 
+    

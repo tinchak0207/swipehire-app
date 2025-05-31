@@ -45,7 +45,7 @@ const incrementAnalytic = (key: string) => {
 
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
-  const cardRootRef = useRef<HTMLDivElement>(null); // Changed from cardContentRef to cardRootRef
+  const cardRootRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -444,7 +444,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   return (
     <>
       <div
-        ref={cardRootRef} // Use the new ref for the root div
+        ref={cardRootRef}
         className="flex flex-col h-full overflow-hidden relative bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -457,7 +457,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full aspect-video p-4 shrink-0">
+        <div className="relative w-full aspect-video p-4">
           {company.logoUrl ? (
             <Image
               src={company.logoUrl}
@@ -474,57 +474,54 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           )}
         </div>
         
-        {/* Content Area below media */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col" data-no-drag="true">
-            {/* Scrollable inner content */}
-            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 text-xs sm:text-sm"> {/* Added space-y-1 for consistency */}
-                <CardHeader className="p-0 mb-1">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-grow min-w-0">
-                            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
-                            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
-                        </div>
+        {/* Text Content Area below media - This div will scroll */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm" data-no-drag="true">
+            <CardHeader className="p-0 mb-1">
+                <div className="flex items-start justify-between">
+                    <div className="flex-grow min-w-0">
+                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
                     </div>
-                    {jobOpening && (
-                        <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
-                    )}
-                </CardHeader>
-
-                <div className="space-y-0.5">
-                    {jobOpening?.location && (
-                    <div className="flex items-center text-muted-foreground">
-                        <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening.location}</span>
-                    </div>
-                    )}
-                    {(jobOpening?.salaryRange) && (
-                    <div className="flex items-center text-muted-foreground">
-                        <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening?.salaryRange}</span>
-                    </div>
-                    )}
-                    {(jobOpening?.jobType) && (
-                    <div className="flex items-center text-muted-foreground">
-                        <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
-                    </div>
-                    )}
-                    {jobOpening?.description && (
-                        <p className="text-muted-foreground text-xs pt-0.5 line-clamp-2">
-                            {truncatedJobDescriptionForCard}
-                        </p>
-                    )}
                 </div>
+                {jobOpening && (
+                    <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
+                )}
+            </CardHeader>
+
+            <div className="space-y-0.5">
+                {jobOpening?.location && (
+                <div className="flex items-center text-muted-foreground">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{jobOpening.location}</span>
+                </div>
+                )}
+                {(jobOpening?.salaryRange) && (
+                <div className="flex items-center text-muted-foreground">
+                    <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{jobOpening?.salaryRange}</span>
+                </div>
+                )}
+                {(jobOpening?.jobType) && (
+                <div className="flex items-center text-muted-foreground">
+                    <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
+                </div>
+                )}
+                {jobOpening?.description && (
+                    <p className="text-muted-foreground text-xs pt-0.5 line-clamp-2">
+                        {truncatedJobDescriptionForCard}
+                    </p>
+                )}
             </div>
-            
-            {/* Footer with actions */}
-            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
-                <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
-                <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
-                <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-                <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
-            </CardFooter>
         </div>
+            
+        {/* Footer with actions - Fixed at the bottom */}
+        <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
+            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+            <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
+            <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
+            <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+        </CardFooter>
       </div>
 
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
@@ -733,3 +730,5 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
+
+    
