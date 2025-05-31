@@ -10,7 +10,6 @@ import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, 
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase"; 
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
-// Firestore imports removed: import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore"; 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UserPreferencesProvider, useUserPreferences } from "@/contexts/UserPreferencesContext"; 
@@ -43,7 +42,6 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-  // const [mongoDbUserId, setMongoDbUserIdInternal] = useState<string | null>(null); // Managed by context
 
   const [activeTab, setActiveTab] = useState<string>("findJobs");
   const [isMobile, setIsMobile] = useState(false);
@@ -52,13 +50,10 @@ function AppContent() {
   const { toast } = useToast();
   const initialAuthCheckDone = useRef(false);
 
-  // Use context for mongoDbUserId and its setter
   const { mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences } = useUserPreferences();
 
   const fetchUserFromMongo = async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
     try {
-      // First, try to get user by Firebase UID (assuming backend supports this or :id can be firebaseUid)
-      // This is a placeholder. A robust solution may need a dedicated endpoint like /api/users/by-firebase-uid/:firebaseUid
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`); 
       
       if (response.ok) {
@@ -69,7 +64,6 @@ function AppContent() {
         localStorage.setItem('recruiterProfileComplete', (userData.selectedRole === 'recruiter' && userData.name && userData.email) ? 'true' : 'false');
         return userData._id;
       } else if (response.status === 404) {
-        // User not found in MongoDB, attempt to create
         console.log("User not found in MongoDB, attempting to create...");
         const createUserResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users`, {
           method: 'POST',
@@ -77,19 +71,27 @@ function AppContent() {
           body: JSON.stringify({
             name: firebaseDisplayName || firebaseEmail || 'New User',
             email: firebaseEmail,
-            firebaseUid: firebaseUid, // Backend needs to be adapted to store this
-            preferences: { theme: 'light', featureFlags: {} } // Default preferences
+            firebaseUid: firebaseUid, 
+            preferences: { theme: 'light', featureFlags: {} } 
           }),
         });
+
         if (createUserResponse.ok) {
-          const newUserData = await createUserResponse.json();
-          if (newUserData.user) {
-            setUserRole(newUserData.user.selectedRole || null);
-            setUserName(newUserData.user.name);
-            setMongoDbUserId(newUserData.user._id);
-            localStorage.setItem('recruiterProfileComplete', (newUserData.user.selectedRole === 'recruiter' && newUserData.user.name && newUserData.user.email) ? 'true' : 'false');
+          const responseData = await createUserResponse.json();
+          // Backend should return { message: 'User created!', user: newUser } where newUser has _id
+          // Or potentially just the newUser object directly. This handles both.
+          const createdUser = responseData.user || responseData; 
+
+          if (createdUser && createdUser._id) {
+            setUserRole(createdUser.selectedRole || null);
+            setUserName(createdUser.name);
+            setMongoDbUserId(createdUser._id); // Store MongoDB _id in context
+            localStorage.setItem('recruiterProfileComplete', (createdUser.selectedRole === 'recruiter' && createdUser.name && createdUser.email) ? 'true' : 'false');
             toast({ title: "Profile Initialized", description: "Your basic profile has been set up."});
-            return newUserData.user._id;
+            return createdUser._id; // Return MongoDB _id
+          } else {
+            console.error("Failed to create user in MongoDB: User object or _id missing in response", responseData);
+            toast({ title: "Profile Creation Failed", description: "Could not initialize your profile: unexpected response from backend.", variant: "destructive"});
           }
         } else {
           const errorData = await createUserResponse.json().catch(()=>({}));
@@ -101,14 +103,20 @@ function AppContent() {
         console.error("Error fetching user data from MongoDB:", errorData.message || response.statusText);
         toast({ title: "Error Loading Profile", description: "Could not load your profile data.", variant: "destructive"});
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in fetchUserFromMongo:", error);
-      toast({ title: "Network Error", description: "Could not connect to backend to load profile.", variant: "destructive"});
+      let description = "Could not connect to backend to load profile.";
+      if (error.message && error.message.includes('Failed to fetch')) {
+        description = "Network error: Could not connect to the backend server. Please ensure it's running and accessible.";
+      } else if (error.message) {
+        description = error.message;
+      }
+      toast({ title: "Network or Backend Error", description, variant: "destructive"});
     }
     // Fallback if fetch or create fails
     setUserRole(null);
-    setUserName(firebaseDisplayName || firebaseEmail);
-    setMongoDbUserId(null);
+    setUserName(firebaseDisplayName || firebaseEmail); // Use Firebase details as temporary display
+    setMongoDbUserId(null); // Ensure mongoDbUserId is null on failure
     localStorage.removeItem('recruiterProfileComplete');
     return null;
   };
@@ -128,7 +136,7 @@ function AppContent() {
 
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
         if (fetchedMongoId) {
-          fetchAndSetUserPreferences(fetchedMongoId); // Fetch preferences using mongoDbId
+          fetchAndSetUserPreferences(fetchedMongoId); 
         }
         
         if (hasSeenWelcomeStorage !== 'true') setShowWelcomePage(true);
@@ -140,7 +148,7 @@ function AppContent() {
         setUserRole(null); 
         setUserName('Guest User');
         setIsGuestMode(true);
-        setMongoDbUserId(null); // Clear mongoDbUserId for guest
+        setMongoDbUserId(null); 
         setShowWelcomePage(false); 
         localStorage.removeItem('recruiterProfileComplete');
       } else { 
@@ -192,7 +200,7 @@ function AppContent() {
       });
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // mongoDbUserId removed from deps to avoid re-triggering auth flow excessively
+  }, []); 
 
 
   useEffect(() => {
@@ -221,17 +229,16 @@ function AppContent() {
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
     
-    // Simulate fetch/create for bypass user with MongoDB
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
       fetchAndSetUserPreferences(fetchedMongoId);
-      // For bypass, explicitly set a role if not set by fetchUserFromMongo
-      if (!userRole) {
-         const defaultRole = 'jobseeker';
-         await handleRoleSelect(defaultRole, fetchedMongoId); // Pass mongoId
+      if (!userRole) { // If fetchUserFromMongo didn't set a role (e.g., for a new bypass user)
+         const defaultRole = 'jobseeker'; // Or determine based on bypass needs
+         await handleRoleSelect(defaultRole, fetchedMongoId); 
       }
     } else {
-      setUserRole('jobseeker'); // Fallback if mongo interaction fails during bypass
+      // Fallback if mongo interaction completely fails even for bypass user
+      setUserRole('jobseeker'); 
       setUserName(mockUser.displayName);
     }
     
@@ -250,27 +257,27 @@ function AppContent() {
     setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
     setUserRole(null); setUserName('Guest User');
     setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
-    setMongoDbUserId(null); // Clear mongoDbUserId for guest
+    setMongoDbUserId(null); 
     if (!initialAuthCheckDone.current) { initialAuthCheckDone.current = true; setIsInitialLoading(false); }
     toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
   };
 
   const handleRoleSelect = async (role: UserRole, currentMongoId?: string | null) => {
-    const idToUse = currentMongoId || mongoDbUserId; // Prefer passed ID, then context ID
-    if (currentUser && isAuthenticated && idToUse) {
+    const idToUse = currentMongoId || mongoDbUserId; 
+    if (!isGuestMode && isAuthenticated && currentUser && idToUse) {
       try {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${idToUse}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ selectedRole: role, name: userName, email: currentUser.email }), // Send name/email too
+          body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), 
         });
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`}));
           throw new Error(errorData.message);
         }
-        setUserRole(role); // Update local state
+        setUserRole(role); 
         toast({ title: "Role Selected", description: `You are now a ${role}.` });
-        if (role === 'recruiter' && userName && currentUser.email) {
+        if (role === 'recruiter' && (userName || currentUser.displayName) && currentUser.email) {
           localStorage.setItem('recruiterProfileComplete', 'true');
         } else if (role === 'recruiter') {
           localStorage.setItem('recruiterProfileComplete', 'false');
@@ -282,9 +289,12 @@ function AppContent() {
         toast({ title: "Error Saving Role", description: error.message || "Could not save role selection.", variant: "destructive" });
       }
     } else {
-      console.warn("handleRoleSelect called without authenticated user or MongoDB ID.");
+      console.warn("handleRoleSelect called without authenticated user, MongoDB ID, or while in guest mode.");
+      if (isGuestMode) {
+         toast({ title: "Action Disabled", description: "Role selection is not available in Guest Mode.", variant: "default"});
+      }
     }
-    setUserRole(role); 
+    if (!isGuestMode) setUserRole(role); 
     setShowWelcomePage(false); 
   };
 
@@ -294,8 +304,8 @@ function AppContent() {
       await signOut(auth);
       localStorage.removeItem(GUEST_MODE_KEY); 
       localStorage.removeItem('recruiterProfileComplete');
-      localStorage.removeItem('mongoDbUserId'); // Clear stored MongoDB ID
-      setMongoDbUserId(null); // Clear context MongoDB ID
+      localStorage.removeItem('mongoDbUserId'); 
+      setMongoDbUserId(null); 
       setIsGuestMode(false);
       const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
       setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
@@ -336,13 +346,13 @@ function AppContent() {
     ...baseTabItems,
   ];
   
-  let currentTabItems = jobseekerTabItems; // Default for guests or unauthenticated
+  let currentTabItems = jobseekerTabItems; 
   if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   } else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   } else if (isGuestMode) {
-    currentTabItems = jobseekerTabItems; // Guests see job seeker view
+    currentTabItems = jobseekerTabItems; 
   }
 
   useEffect(() => {
@@ -442,7 +452,6 @@ function AppContent() {
 
 export default function HomePage() {
   const [currentUserForProvider, setCurrentUserForProvider] = useState<User | null>(null);
-  // Listen to auth changes at the top level to pass to provider
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUserForProvider(user);
@@ -503,3 +512,5 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
+    
