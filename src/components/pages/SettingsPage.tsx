@@ -11,7 +11,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from "@/lib/firebase"; // Import db for Firestore
 import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore functions
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Rocket, ListChecks, Construction } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -148,7 +148,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       });
     }
     loadAppStats();
-  }, [isGuestMode, toast, currentUserRole]); // currentUserRole in dep array to re-fetch if it changes from HomePage
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isGuestMode, currentUserRole]);
 
 
   useEffect(() => {
@@ -187,7 +188,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       const userDocRef = doc(db, "users", user.uid);
       const settingsData: any = {
         name: userName,
-        email: userEmail, // Email might be primarily managed by Auth, but good to have a display copy
+        // Email is primarily managed by Firebase Auth; only update if different from Auth email and user explicitly changes it.
+        // However, if an extension syncs Auth email, this Firestore field might be overwritten.
+        // For this prototype, we'll save what's in the form.
+        email: userEmail, 
         selectedRole: selectedRoleInSettings,
         address,
         country,
@@ -204,15 +208,14 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           description: 'Your preferences and general information have been updated in Firestore.',
         });
         if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
-          onRoleChange(selectedRoleInSettings); // Notify HomePage to update its state if role changed
+          onRoleChange(selectedRoleInSettings); 
         }
-         // Update recruiterProfileComplete in localStorage based on saved settings
         if (selectedRoleInSettings === 'recruiter' && userName.trim() !== '' && userEmail.trim() !== '') {
             localStorage.setItem('recruiterProfileComplete', 'true');
         } else if (selectedRoleInSettings === 'recruiter') {
             localStorage.setItem('recruiterProfileComplete', 'false');
         } else {
-            localStorage.removeItem('recruiterProfileComplete');
+             localStorage.removeItem('recruiterProfileComplete');
         }
 
       } catch (error) {
@@ -287,6 +290,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       </div>
     );
   }
+
+  const isAuthEmail = auth.currentUser && auth.currentUser.email === userEmail;
 
 
   return (
@@ -366,10 +371,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               placeholder="Enter your email address" 
               value={userEmail} 
               onChange={(e) => setUserEmail(e.target.value)} 
-              disabled={isGuestMode || (auth.currentUser && auth.currentUser.email === userEmail)} // Prevent editing primary email if it's from Auth
+              disabled={isGuestMode || isAuthEmail}
             />
-             {auth.currentUser && auth.currentUser.email === userEmail && (
-              <p className="text-xs text-muted-foreground">Your primary email is managed by Firebase Authentication.</p>
+             {isAuthEmail && !isGuestMode && (
+              <p className="text-xs text-muted-foreground">Your primary email is managed by Firebase Authentication and synced by the User Document extension. To change it, please use Firebase Auth methods.</p>
             )}
           </div>
           <div className="space-y-1">
