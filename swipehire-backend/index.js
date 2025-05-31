@@ -10,22 +10,41 @@ const app = express();
 const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000
 const FRONTEND_URL = process.env.FRONTEND_URL; // Get frontend URL from .env
 
+// Log FRONTEND_URL at the point of use for CORS configuration
+console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}`);
+
 // Middleware to parse JSON
 app.use(express.json());
 
-// CORS Middleware - Allow requests from your frontend
+// Global preflight OPTIONS handler
+// This should come BEFORE any other general CORS middleware or routes
+app.options('*', (req, res) => {
+  console.log(`[CORS Preflight] Handling OPTIONS request for ${req.path} from origin: ${req.headers.origin}`);
+  
+  // Validate origin for preflight
+  if (req.headers.origin === FRONTEND_URL) {
+    res.header('Access-Control-Allow-Origin', FRONTEND_URL);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Ensure this matches client request headers
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(204); // HTTP 204 No Content for successful preflight
+  } else {
+    // If origin does not match, Express will typically send a 403 or let it fall through.
+    // For clarity, we can log it.
+    console.warn(`[CORS Preflight] Origin mismatch. Expected: ${FRONTEND_URL}, Received: ${req.headers.origin}. Sending 403.`);
+    res.sendStatus(403); // Forbidden
+  }
+});
+
+// General CORS Middleware for actual requests (GET, POST, PUT etc.)
+// This will apply after the OPTIONS request has been handled by app.options('*', ...)
 const corsOptions = {
   origin: FRONTEND_URL,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Explicitly list allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly list allowed headers
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled by app.options now
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true,
-  optionsSuccessStatus: 204 // For legacy browser compatibility
 };
 app.use(cors(corsOptions));
-
-// It's good practice to also handle OPTIONS requests explicitly for all routes
-// if you encounter further issues, though the above usually suffices.
-// You can add this if needed: app.options('*', cors(corsOptions));
 
 
 // Connect to MongoDB
@@ -61,7 +80,7 @@ app.post('/api/users', async (req, res) => {
         // Create a new User document
         const newUser = new User({ name, email, preferences, firebaseUid });
         await newUser.save();
-
+        console.log(`[DB Action] User created: ${newUser._id} for firebaseUid: ${firebaseUid}`);
         res.status(201).json({ message: 'User created!', user: newUser });
     } catch (error) {
         console.error('Error creating user:', error);
@@ -70,24 +89,26 @@ app.post('/api/users', async (req, res) => {
 });
 
 // Get a user by ID (for tailored experience)
-// This endpoint can now handle either MongoDB ObjectId or Firebase UID
 app.get('/api/users/:identifier', async (req, res) => {
     try {
         const identifier = req.params.identifier;
         let user;
+        console.log(`[DB Action] Attempting to find user with identifier: ${identifier}`);
 
-        // Try to find by MongoDB ObjectId first if it's a valid format
         if (mongoose.Types.ObjectId.isValid(identifier)) {
             user = await User.findById(identifier);
+            if (user) console.log(`[DB Action] Found user by ObjectId: ${user._id}`);
         }
         
-        // If not found by ObjectId or if it wasn't a valid ObjectId, try by firebaseUid
         if (!user) {
             user = await User.findOne({ firebaseUid: identifier });
+            if (user) console.log(`[DB Action] Found user by firebaseUid: ${user.firebaseUid}, ObjectId: ${user._id}`);
         }
 
-        if (!user) return res.status(404).json({ message: 'User not found' });
-
+        if (!user) {
+            console.log(`[DB Action] User not found with identifier: ${identifier}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
         res.json(user);
     } catch (error) {
         console.error('Error fetching user:', error);
@@ -96,22 +117,28 @@ app.get('/api/users/:identifier', async (req, res) => {
 });
 
 // Update user features/preferences
-// This endpoint can now handle either MongoDB ObjectId or Firebase UID
 app.put('/api/users/:identifier', async (req, res) => {
     try {
         const identifier = req.params.identifier;
-        const update = req.body; // e.g., { "preferences": { "theme": "dark" } } or { "name": "New Name"}
+        const update = req.body;
         let updatedUser;
+        console.log(`[DB Action] Attempting to update user with identifier: ${identifier}. Update data:`, JSON.stringify(update).substring(0, 200) + "...");
+
 
         if (mongoose.Types.ObjectId.isValid(identifier)) {
             updatedUser = await User.findByIdAndUpdate(identifier, update, { new: true, runValidators: true });
+             if (updatedUser) console.log(`[DB Action] Updated user by ObjectId: ${updatedUser._id}`);
         }
         
         if (!updatedUser) {
             updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, update, { new: true, runValidators: true });
+            if (updatedUser) console.log(`[DB Action] Updated user by firebaseUid: ${updatedUser.firebaseUid}, ObjectId: ${updatedUser._id}`);
         }
 
-        if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+        if (!updatedUser) {
+            console.log(`[DB Action] User not found for update with identifier: ${identifier}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
         res.json({ message: 'User updated!', user: updatedUser });
     } catch (error) {
         console.error('Error updating user:', error);
@@ -125,5 +152,6 @@ app.put('/api/users/:identifier', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
-    console.log(`Frontend URL allowed by CORS: ${FRONTEND_URL}`);
+    // This log uses the FRONTEND_URL variable that was defined at the top.
+    console.log(`Frontend URL allowed by CORS: ${FRONTEND_URL}`); 
 });
