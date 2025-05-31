@@ -10,9 +10,15 @@ const Match = require('./Match'); // Import the new Match model
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-const FRONTEND_URL = process.env.FRONTEND_URL;
 
-console.log(`[CORS Config] Effective FRONTEND_URL for CORS: ${FRONTEND_URL}`);
+// Define allowed frontend origins
+const ALLOWED_ORIGINS = [
+  process.env.FRONTEND_URL, // Your existing test/dev frontend URL from .env
+  'https://studio--swipehire-3bscz.us-central1.hosted.app', // Your new production frontend URL
+  // Add any other specific origins you need to allow
+].filter(Boolean); // Filter out undefined/null values if FRONTEND_URL isn't set
+
+console.log(`[CORS Config] Effective ALLOWED_ORIGINS for CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 
 // Global OPTIONS preflight handler
 app.options('*', (req, res, next) => {
@@ -27,17 +33,19 @@ app.options('*', (req, res, next) => {
     'Access-Control-Max-Age': '86400'
   };
 
-  if (origin === FRONTEND_URL) {
+  if (ALLOWED_ORIGINS.includes(origin)) {
     headersToSet['Access-Control-Allow-Origin'] = origin;
     console.log('[Global OPTIONS Handler] >>> Setting response headers for ALLOWED origin:', JSON.stringify(headersToSet));
     res.header(headersToSet);
     res.sendStatus(204);
     console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${origin} for ${requestPath} with reflected ACAO.`);
   } else {
-    console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204 (no ACAO).`);
-    res.header(headersToSet); // Still send other headers, ACAO is handled by main cors middleware.
+    console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT in ALLOWED_ORIGINS. Responding with minimal 204 (no ACAO reflection).`);
+    // For origins not in the explicit allow list, we still send generic CORS headers.
+    // The main cors middleware will handle the actual enforcement.
+    res.header(headersToSet);
     res.sendStatus(204);
-    console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${origin} (actual request may be blocked by browser)`);
+    console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${origin} (actual request may be blocked by browser if not allowed by main CORS config)`);
   }
 });
 
@@ -46,12 +54,12 @@ app.use(express.json());
 // CORS configuration for actual requests
 const corsOptions = {
   origin: function (requestOrigin, callback) {
-    console.log(`[Actual Request CORS] Checking origin. Request Origin: "${requestOrigin}" Configured FRONTEND_URL: "${FRONTEND_URL}"`);
-    if (!requestOrigin || requestOrigin === FRONTEND_URL) {
+    console.log(`[Actual Request CORS] Checking origin. Request Origin: "${requestOrigin}" Configured ALLOWED_ORIGINS: "${JSON.stringify(ALLOWED_ORIGINS)}"`);
+    if (!requestOrigin || ALLOWED_ORIGINS.includes(requestOrigin)) {
       console.log(`[Actual Request CORS] Origin ALLOWED.`);
       callback(null, true);
     } else {
-      console.warn(`[Actual Request CORS] Origin DISALLOWED. Request Origin: "${requestOrigin}" vs FRONTEND_URL: "${FRONTEND_URL}"`);
+      console.warn(`[Actual Request CORS] Origin DISALLOWED. Request Origin: "${requestOrigin}" not in ALLOWED_ORIGINS.`);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -417,6 +425,6 @@ mongoose.connect(MONGO_URI)
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
-    console.log(`Frontend URL allowed by CORS (from env for server log): ${process.env.FRONTEND_URL}`);
+    console.log(`Frontend URLs allowed by CORS (from env and hardcoded): ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
 
