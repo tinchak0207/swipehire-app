@@ -459,18 +459,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]">
+        <div className="relative w-full bg-muted shrink-0">
           {company.logoUrl ? (
-            <Image
-              src={company.logoUrl}
-              alt={company.name + " logo"}
-              fill
-              className="object-contain p-4"
-              data-ai-hint={company.dataAiHint || "company logo"}
-              priority
-            />
+            <div className="aspect-video w-full p-4 relative">
+              <Image
+                src={company.logoUrl}
+                alt={company.name + " logo"}
+                fill
+                className="object-contain"
+                data-ai-hint={company.dataAiHint || "company logo"}
+                priority
+              />
+            </div>
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="company building">
+            <div className="aspect-video w-full bg-muted flex items-center justify-center" data-ai-hint="company building">
               <Building className="w-20 h-20 text-muted-foreground" />
             </div>
           )}
@@ -733,4 +735,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-

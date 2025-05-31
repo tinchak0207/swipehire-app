@@ -678,18 +678,20 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]">
+        <div className="relative w-full bg-muted shrink-0">
           {candidate.avatarUrl ? (
-            <Image
-              src={candidate.avatarUrl}
-              alt={candidate.name}
-              fill
-              className="object-cover"
-              data-ai-hint={candidate.dataAiHint || "person"}
-              priority
-            />
+            <div className="aspect-[3/4] w-full relative">
+              <Image
+                src={candidate.avatarUrl}
+                alt={candidate.name}
+                fill
+                className="object-cover"
+                data-ai-hint={candidate.dataAiHint || "person"}
+                priority
+              />
+            </div>
           ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
+            <div className="aspect-[3/4] w-full bg-muted flex items-center justify-center" data-ai-hint="profile avatar placeholder">
               <Briefcase className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
@@ -786,4 +788,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
