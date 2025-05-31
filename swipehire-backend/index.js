@@ -1,60 +1,65 @@
 
-// custom-backend-example/index.js
+// swipehire-backend/index.js
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors =require('cors'); // Import CORS
-const User = require('./User'); // Our user model
+const cors = require('cors'); // Still useful for non-preflight
+const User = require('./User');
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000
+const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL;
 
-// Log FRONTEND_URL at the point of use for CORS configuration
-console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}`);
+console.log(`[CORS Config] Effective FRONTEND_URL for CORS: ${FRONTEND_URL}`);
 
-// Global OPTIONS preflight handler - Must be one of the first middleware
-app.options('*', (req, res, next) => {
-  console.log(`[Global OPTIONS] Received OPTIONS request for: ${req.originalUrl} from origin: ${req.headers.origin}`);
-  // Check if the origin is allowed
+// ABSOLUTELY FIRST: Global OPTIONS preflight handler
+app.options('*', (req, res) => {
+  console.log(`[Global OPTIONS Handler] <<< Received OPTIONS request for: ${req.originalUrl} from origin: ${req.headers.origin}`);
+
   if (req.headers.origin === FRONTEND_URL) {
-    res.header('Access-Control-Allow-Origin', req.headers.origin); // Reflect the request's origin
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'); // Explicitly list PUT
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With'); // Add common headers
-    res.header('Access-Control-Allow-Credentials', 'true');
-    console.log(`[Global OPTIONS] Responding 204 to allowed origin: ${req.headers.origin} for ${req.originalUrl} with reflected ACAO.`);
-    res.sendStatus(204); // No Content for successful preflight
+    const headersToSet = {
+      'Access-Control-Allow-Origin': FRONTEND_URL, // Reflect the specific allowed origin
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400' // Cache preflight for 1 day
+    };
+    // Log exactly what headers are being set
+    console.log('[Global OPTIONS Handler] >>> Setting response headers:', JSON.stringify(headersToSet));
+    res.header(headersToSet);
+    res.sendStatus(204); // No Content
+    console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${req.headers.origin}`);
   } else {
-    console.warn(`[Global OPTIONS] Disallowed origin: ${req.headers.origin} for ${req.originalUrl}. Allowed: ${FRONTEND_URL}. Sending 204 without ACAO match.`);
-    // For disallowed origins, send 204 without specific ACAO. Browser will block based on lack of matching origin.
+    console.warn(`[Global OPTIONS Handler] XXX Disallowed origin for OPTIONS: ${req.headers.origin}. Allowed: ${FRONTEND_URL}. Sending 204 without specific CORS headers for this origin.`);
+    // For disallowed origins, sending 204 makes the browser responsible for the origin check.
+    // If we sent 403, some browsers might not report the underlying CORS issue clearly.
     res.sendStatus(204);
   }
 });
 
-// Middleware to parse JSON
+// Then other middleware
 app.use(express.json());
 
-// CORS Configuration for actual requests (non-preflight)
+// CORS configuration for actual requests (non-preflight)
 const corsOptions = {
   origin: function (origin, callback) {
-    // This check is now primarily for non-preflight requests.
-    // The origin here is of the actual request, not the preflight.
-    console.log(`[CORS Origin Check - Actual Request] Request origin: ${origin}, Path: ${this.path}`);
+    // Note: Using req.path here will be undefined as req is not in this scope.
+    // The logging for actual request path/method should be inside a middleware or route.
+    // For now, this log will just show the origin being checked by this specific cors instance.
+    console.log(`[Actual Request CORS] Origin check. Request from: ${origin}`);
     if (!origin || origin === FRONTEND_URL) {
-      console.log(`[CORS Origin Check - Actual Request] Allowed origin: ${origin}`);
+      // console.log(`[Actual Request CORS] Allowed origin: ${origin}`);
       callback(null, true);
     } else {
-      console.warn(`[CORS Origin Check - Actual Request] Disallowed origin: ${origin}. Allowed: ${FRONTEND_URL}`);
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`[Actual Request CORS] Disallowed origin: ${origin}. Allowed: ${FRONTEND_URL}`);
+      callback(new Error('Not allowed by CORS for actual request'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled globally above
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled globally
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
 };
-
 app.use(cors(corsOptions));
-
 
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://tinchak0207:cfchan%407117@swipehire.fwxspbu.mongodb.net/?retryWrites=true&w=majority&appName=swipehire';
@@ -63,10 +68,8 @@ mongoose.connect(MONGO_URI)
 .catch((err) => {
     console.error('MongoDB connection error. Make sure MongoDB is running and the URI is correct.');
     console.error(err);
-    process.exit(1); // Exit if DB connection fails
+    process.exit(1);
 });
-
-// --- Routes ---
 
 // Welcome Route
 app.get('/', (req, res) => {
@@ -86,7 +89,6 @@ app.post('/api/users', async (req, res) => {
  return res.status(409).json({ message: 'User already exists with this email or Firebase UID' });
         }
 
-        // Create a new User document
         const newUser = new User({ name, email, preferences, firebaseUid });
         await newUser.save();
         console.log(`[DB Action] User created: ${newUser._id} for firebaseUid: ${firebaseUid}`);
@@ -133,7 +135,6 @@ app.put('/api/users/:identifier', async (req, res) => {
         let updatedUser;
         console.log(`[DB Action] Attempting to update user with identifier: ${identifier}. Update data:`, JSON.stringify(update).substring(0, 200) + "...");
 
-
         if (mongoose.Types.ObjectId.isValid(identifier)) {
             updatedUser = await User.findByIdAndUpdate(identifier, update, { new: true, runValidators: true });
              if (updatedUser) console.log(`[DB Action] Updated user by ObjectId: ${updatedUser._id}`);
@@ -155,12 +156,9 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
-// --- End Routes ---
-
-// Start the server
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
-    console.log(`Frontend URL allowed by CORS: ${FRONTEND_URL}`); 
+    console.log(`Frontend URL allowed by CORS (from env for server log): ${process.env.FRONTEND_URL}`);
 });
     
