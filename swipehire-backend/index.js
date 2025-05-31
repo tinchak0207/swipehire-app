@@ -8,13 +8,25 @@ const User = require('./User'); // Our user model
 
 const app = express();
 const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:9002'; // Get frontend URL from .env
+const FRONTEND_URL = process.env.FRONTEND_URL; // Get frontend URL from .env
 
 // Middleware to parse JSON
 app.use(express.json());
 
 // CORS Middleware - Allow requests from your frontend
-app.use(cors({ origin: FRONTEND_URL }));
+const corsOptions = {
+  origin: FRONTEND_URL,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Explicitly list allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly list allowed headers
+  credentials: true,
+  optionsSuccessStatus: 204 // For legacy browser compatibility
+};
+app.use(cors(corsOptions));
+
+// It's good practice to also handle OPTIONS requests explicitly for all routes
+// if you encounter further issues, though the above usually suffices.
+// You can add this if needed: app.options('*', cors(corsOptions));
+
 
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://tinchak0207:cfchan%407117@swipehire.fwxspbu.mongodb.net/?retryWrites=true&w=majority&appName=swipehire';
@@ -58,17 +70,22 @@ app.post('/api/users', async (req, res) => {
 });
 
 // Get a user by ID (for tailored experience)
-app.get('/api/users/:id', async (req, res) => {
+// This endpoint can now handle either MongoDB ObjectId or Firebase UID
+app.get('/api/users/:identifier', async (req, res) => {
     try {
-        const userId = req.params.id;
+        const identifier = req.params.identifier;
         let user;
 
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            // If not a valid ObjectId, try to find by firebaseUid
-            user = await User.findOne({ firebaseUid: userId });
-        } else {
-            user = await User.findById(userId);
+        // Try to find by MongoDB ObjectId first if it's a valid format
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            user = await User.findById(identifier);
         }
+        
+        // If not found by ObjectId or if it wasn't a valid ObjectId, try by firebaseUid
+        if (!user) {
+            user = await User.findOne({ firebaseUid: identifier });
+        }
+
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         res.json(user);
@@ -79,17 +96,19 @@ app.get('/api/users/:id', async (req, res) => {
 });
 
 // Update user features/preferences
-app.put('/api/users/:id', async (req, res) => {
+// This endpoint can now handle either MongoDB ObjectId or Firebase UID
+app.put('/api/users/:identifier', async (req, res) => {
     try {
-        const userId = req.params.id;
+        const identifier = req.params.identifier;
         const update = req.body; // e.g., { "preferences": { "theme": "dark" } } or { "name": "New Name"}
         let updatedUser;
 
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            // If not a valid ObjectId, try to find and update by firebaseUid
-            updatedUser = await User.findOneAndUpdate({ firebaseUid: userId }, update, { new: true, runValidators: true });
-        } else {
-            updatedUser = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            updatedUser = await User.findByIdAndUpdate(identifier, update, { new: true, runValidators: true });
+        }
+        
+        if (!updatedUser) {
+            updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, update, { new: true, runValidators: true });
         }
 
         if (!updatedUser) return res.status(404).json({ message: 'User not found' });
@@ -106,4 +125,5 @@ app.put('/api/users/:id', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
+    console.log(`Frontend URL allowed by CORS: ${FRONTEND_URL}`);
 });
