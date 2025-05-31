@@ -13,28 +13,65 @@ const FRONTEND_URL = process.env.FRONTEND_URL;
 // Log FRONTEND_URL at the point of use for CORS configuration
 console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}`);
 
+// Global OPTIONS preflight handler - Must be one of the first middleware
+app.options('*', (req, res, next) => {
+  console.log(`[Global OPTIONS] Received OPTIONS request for: ${req.originalUrl} from origin: ${req.headers.origin}`);
+  // Check if the origin is allowed
+  if (req.headers.origin === FRONTEND_URL) {
+    res.header('Access-Control-Allow-Origin', FRONTEND_URL);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'); // Explicitly list PUT
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With'); // Add X-Requested-With and other common headers
+    res.header('Access-Control-Allow-Credentials', 'true');
+    console.log(`[Global OPTIONS] Responding 204 to allowed origin: ${req.headers.origin} for ${req.originalUrl}`);
+    res.sendStatus(204); // No Content for successful preflight
+  } else {
+    // If origin is not allowed, or no origin (e.g. server-to-server)
+    console.warn(`[Global OPTIONS] Origin: ${req.headers.origin} not matching FRONTEND_URL: ${FRONTEND_URL} for ${req.originalUrl}. Sending 204 without specific Allow-Origin for non-matched origins or allowing all for testing.`);
+    // Option 1: Send 204 without specific ACAO (browser will then block based on lack of matching origin)
+    // res.sendStatus(204);
+
+    // Option 2: Or, for broader testing if specific origin matching is problematic (less secure for prod)
+    // Allow any origin for OPTIONS for now to see if it's an origin matching issue or something else
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*'); // Reflect origin or allow all
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(204);
+
+    // Option 3: Send 403 if origin is present and not allowed (more restrictive)
+    // if (req.headers.origin) {
+    //   console.warn(`[Global OPTIONS] Disallowed origin: ${req.headers.origin} for ${req.originalUrl}. Allowed: ${FRONTEND_URL}`);
+    //   res.status(403).send('Origin not allowed');
+    // } else {
+    //   // No origin, could be server-to-server, or manipulated request.
+    //   // For simplicity in dev, might still send 204, but in prod, scrutinize.
+    //   res.sendStatus(204);
+    // }
+  }
+});
+
 // Middleware to parse JSON
 app.use(express.json());
 
-// CORS Configuration
+// CORS Configuration for actual requests (non-preflight)
 const corsOptions = {
   origin: function (origin, callback) {
-    // Log the origin the cors middleware received from the request
-    console.log(`[CORS Origin Check] Request origin: ${origin}, Allowed origin (FRONTEND_URL env var): ${FRONTEND_URL}`);
-    if (!origin || origin === FRONTEND_URL) { // Allow if no origin (e.g. curl, server-to-server) or if it matches your FRONTEND_URL
+    // This check is now primarily for non-preflight requests.
+    // The origin here is of the actual request, not the preflight.
+    console.log(`[CORS Origin Check - Actual Request] Request origin: ${origin}, Path: ${this.path}`);
+    if (!origin || origin === FRONTEND_URL) {
+      console.log(`[CORS Origin Check - Actual Request] Allowed origin: ${origin}`);
       callback(null, true);
     } else {
-      console.warn(`[CORS Origin Check] Disallowed origin: ${origin}. Configured FRONTEND_URL is: ${FRONTEND_URL}`);
+      console.warn(`[CORS Origin Check - Actual Request] Disallowed origin: ${origin}. Allowed: ${FRONTEND_URL}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Explicitly list allowed methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly list allowed headers
-  credentials: true, // If you need to support cookies/authorization headers
-  // optionsSuccessStatus: 204 // For legacy browser compatibility, but 204 is default for most
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled globally above
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
 };
 
-// Use the CORS middleware
 app.use(cors(corsOptions));
 
 
@@ -143,6 +180,5 @@ app.put('/api/users/:identifier', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
-    // This log uses the FRONTEND_URL variable that was defined at the top.
     console.log(`Frontend URL allowed by CORS: ${FRONTEND_URL}`); 
 });
