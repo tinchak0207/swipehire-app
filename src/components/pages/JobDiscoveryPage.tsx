@@ -386,3 +386,4 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     </div>
   );
 }
+

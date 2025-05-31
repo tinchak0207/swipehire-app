@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput, UserAIWeights, RecruiterPerspectiveWeights } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays, UserCircle as UserCircleIcon } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -661,7 +661,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden bg-card"
+        className="flex flex-col h-full overflow-hidden relative bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -672,27 +672,27 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area - Explicit 50% height of the card */}
-        <div className="relative w-full h-1/2 shrink-0 bg-muted">
+        {/* Media Area */}
+        <div className="relative w-full aspect-[3/4] shrink-0 bg-muted p-2 sm:p-3">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
               fill
-              className="object-cover"
+              className="object-cover rounded-md"
               data-ai-hint={candidate.dataAiHint || "person"}
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200" data-ai-hint="profile avatar placeholder">
-              <Briefcase className="w-24 h-24 text-muted-foreground" />
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md" data-ai-hint="profile avatar placeholder">
+              <UserCircleIcon className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
         </div>
 
-        {/* Scrollable Text Content Area */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
-            <CardHeader className="p-0 mb-1"> {/* Reduced padding */}
+        {/* Text Content Area */}
+        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
+            <CardHeader className="p-0 mb-1">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
                         <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -781,4 +781,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   );
 }
 
-    
