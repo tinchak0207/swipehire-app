@@ -16,6 +16,12 @@ const UserSchema = new mongoose.Schema({
         lowercase: true,
         trim: true, 
     },
+    firebaseUid: {
+        type: String,
+        required: false, // Or true, depending on your needs
+        unique: true,
+        sparse: true, // sparse index allows multiple documents to have a null value for the indexed field.
+    },
     // preferences for tailored experience (for instance, theme, feature flags, etc.)
     preferences: {
         theme: {

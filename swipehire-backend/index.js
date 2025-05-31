@@ -36,18 +36,18 @@ app.get('/', (req, res) => {
 // Create a new user (Signup)
 app.post('/api/users', async (req, res) => {
     try {
-        const { name, email, preferences } = req.body;
+        const { name, email, preferences, firebaseUid } = req.body;
 
-        if (!name || !email) {
-            return res.status(400).json({ message: 'Name and email are required' });
+        if (!name || !email || !firebaseUid) {
+ return res.status(400).json({ message: 'Name, email, and firebaseUid are required' });
         }
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ $or: [{ email }, { firebaseUid }] });
         if (existingUser) {
-            return res.status(409).json({ message: 'User already exists with this email' });
+ return res.status(409).json({ message: 'User already exists with this email or Firebase UID' });
         }
 
         // Create a new User document
-        const newUser = new User({ name, email, preferences });
+        const newUser = new User({ name, email, preferences, firebaseUid });
         await newUser.save();
 
         res.status(201).json({ message: 'User created!', user: newUser });
@@ -61,10 +61,14 @@ app.post('/api/users', async (req, res) => {
 app.get('/api/users/:id', async (req, res) => {
     try {
         const userId = req.params.id;
+        let user;
+
         if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: 'Invalid User ID format' });
+            // If not a valid ObjectId, try to find by firebaseUid
+            user = await User.findOne({ firebaseUid: userId });
+        } else {
+            user = await User.findById(userId);
         }
-        const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
 
         res.json(user);
@@ -78,12 +82,15 @@ app.get('/api/users/:id', async (req, res) => {
 app.put('/api/users/:id', async (req, res) => {
     try {
         const userId = req.params.id;
-        if (!mongoose.Types.ObjectId.isValid(userId)) {
-            return res.status(400).json({ message: 'Invalid User ID format' });
-        }
         const update = req.body; // e.g., { "preferences": { "theme": "dark" } } or { "name": "New Name"}
+        let updatedUser;
 
-        const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            // If not a valid ObjectId, try to find and update by firebaseUid
+            updatedUser = await User.findOneAndUpdate({ firebaseUid: userId }, update, { new: true, runValidators: true });
+        } else {
+            updatedUser = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
+        }
 
         if (!updatedUser) return res.status(404).json({ message: 'User not found' });
         res.json({ message: 'User updated!', user: updatedUser });
