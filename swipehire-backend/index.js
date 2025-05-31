@@ -3,12 +3,11 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // Still useful for non-preflight
+const cors = require('cors');
 const User = require('./User');
 // Node.js built-in fetch for Node 18+
 // If using an older Node version, you might need a package like 'node-fetch'
 // const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -19,18 +18,34 @@ console.log(`[CORS Config] Effective FRONTEND_URL for CORS: ${FRONTEND_URL}`);
 // Global OPTIONS preflight handler - Must be one of the first middleware
 app.options('*', (req, res, next) => {
   console.log(`[Global OPTIONS Handler] <<< Received OPTIONS request for: ${req.originalUrl} from origin: ${req.headers.origin}`);
-  const headersToSet = {
-    'Access-Control-Allow-Origin': req.headers.origin || FRONTEND_URL, // Reflect origin or use configured
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Max-Age': '86400' // Cache preflight for 1 day
-  };
-  // Log exactly what headers are being set
-  console.log('[Global OPTIONS Handler] >>> Setting response headers:', JSON.stringify(headersToSet));
-  res.header(headersToSet);
-  res.sendStatus(204); // No Content for successful preflight
-  console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${req.headers.origin} to request: ${req.originalUrl}`);
+  
+  // Check if the origin is allowed
+  if (req.headers.origin === FRONTEND_URL) {
+    const headersToSet = {
+      'Access-Control-Allow-Origin': req.headers.origin, // Reflect the specific, allowed origin
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
+      'Access-Control-Allow-Credentials': 'true',
+      'Access-Control-Max-Age': '86400' // Cache preflight for 1 day
+    };
+    console.log('[Global OPTIONS Handler] >>> Setting response headers for ALLOWED origin:', JSON.stringify(headersToSet));
+    res.header(headersToSet);
+    res.sendStatus(204);
+    console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${req.headers.origin} to request: ${req.originalUrl}`);
+  } else {
+    // For disallowed origins, or if no origin is present
+    // Send a minimal 204. The browser will block the subsequent actual request if origin matching fails.
+    console.warn(`[Global OPTIONS Handler] Origin: ${req.headers.origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204. Browser will block actual request if not allowed by main CORS config.`);
+    // We don't set Access-Control-Allow-Origin here for the mismatched origin.
+    // We can still indicate generally supported methods/headers if we want, or be completely minimal.
+    // Let's be minimal: just send 204. The browser will figure it out on the actual request.
+    // Or, to be slightly more informative to tools like curl but still safe for browsers:
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'); // General methods your server might support
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With'); // General headers
+    // DO NOT set Access-Control-Allow-Origin to the req.headers.origin if it's not FRONTEND_URL
+    res.sendStatus(204);
+    console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${req.headers.origin} (actual request may be blocked by browser)`);
+  }
 });
 
 
@@ -41,15 +56,16 @@ app.use(express.json());
 const corsOptions = {
   origin: function (origin, callback) {
     const requestPath = this.path; // 'this' context here refers to the request itself
-    console.log(`[CORS Origin Check - Actual Request] Request origin: ${origin}, Path: ${requestPath}, Allowed origin (FRONTEND_URL env var): ${FRONTEND_URL}`);
+    // Log the origin the cors middleware received from the request for non-preflight requests
+    console.log(`[Actual Request CORS] Origin check. Request from: ${origin}, Path: ${requestPath}`);
     if (!origin || origin === FRONTEND_URL) {
-      callback(null, true);
+      callback(null, true); // Origin is allowed (includes server-side requests where origin might be undefined)
     } else {
-      console.warn(`[CORS Origin Check - Actual Request] Disallowed origin: ${origin} for path ${requestPath}. Allowed: ${FRONTEND_URL}`);
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`[Actual Request CORS] Disallowed origin: ${origin}. Allowed: ${FRONTEND_URL}`);
+      callback(new Error('Not allowed by CORS')); // Origin is not allowed
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled globally
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled globally by app.options
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
 };
@@ -150,10 +166,10 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
-// NEW Proxy endpoint for updating user role
+// Proxy endpoint for updating user role (or other sensitive fields needing PUT)
 app.put('/api/proxy/users/:identifier/role', async (req, res) => {
   const { identifier } = req.params;
-  const requestBody = req.body; // This will contain { selectedRole, name, email } from frontend
+  const requestBody = req.body;
 
   console.log(`[Proxy PUT /role] Received request for identifier: ${identifier} with body:`, JSON.stringify(requestBody));
 
@@ -161,13 +177,13 @@ app.put('/api/proxy/users/:identifier/role', async (req, res) => {
     const internalUrl = `http://localhost:${PORT}/api/users/${identifier}`;
     console.log(`[Proxy PUT /role] Making internal PUT request to: ${internalUrl}`);
 
+    // Using Node's built-in fetch (available in Node 18+)
     const internalResponse = await fetch(internalUrl, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        // Add any other headers your original endpoint might expect,
-        // though for internal calls this is often simpler.
-        // 'Authorization': req.headers.authorization || undefined // Example if you needed to forward auth
+        // Add any other headers your original endpoint might expect.
+        // For internal calls, this is often simpler.
       },
       body: JSON.stringify(requestBody),
     });
@@ -176,7 +192,6 @@ app.put('/api/proxy/users/:identifier/role', async (req, res) => {
 
     if (!internalResponse.ok) {
       console.error(`[Proxy PUT /role] Internal request failed with status ${internalResponse.status}:`, responseData);
-      // Forward the status and message from the internal call
       return res.status(internalResponse.status).json(responseData);
     }
 
@@ -185,7 +200,7 @@ app.put('/api/proxy/users/:identifier/role', async (req, res) => {
 
   } catch (error) {
     console.error('[Proxy PUT /role] Error during internal fetch or processing:', error);
-    res.status(500).json({ message: 'Proxy error while updating user role', error: error.message });
+    res.status(500).json({ message: 'Proxy error while updating user role', error: error.message || 'Unknown proxy error' });
   }
 });
 
