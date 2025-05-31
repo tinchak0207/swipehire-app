@@ -29,8 +29,8 @@ export const ai = genkit({
   plugins: [
     googleAI({ apiKey: apiKey }) // Explicitly pass the API key
   ],
-  // You can still set a default model here if desired,
-  // but individual generate calls can also specify models.
-  // model: 'googleai/gemini-2.0-flash', // Example, can be overridden
+  // Set a default model for text generation.
+  // Flows like image generation will override this with their specific model.
+  model: 'googleai/gemini-1.5-flash-latest',
 });
 
