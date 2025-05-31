@@ -218,9 +218,15 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
              localStorage.removeItem('recruiterProfileComplete');
         }
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error saving settings to Firestore:", error);
-        toast({ title: "Error Saving Settings", description: "Could not save your settings.", variant: "destructive" });
+        let description = "Could not save your settings.";
+        if (error.code) {
+            description += ` (Error: ${error.code})`;
+        } else if (error.message) {
+            description += ` (Message: ${error.message})`;
+        }
+        toast({ title: "Error Saving Settings", description, variant: "destructive" });
       }
     }
   };
@@ -579,6 +585,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
+    
+
     
 
     

@@ -312,9 +312,15 @@ export default function HomePage() {
         } else {
              localStorage.removeItem('recruiterProfileComplete');
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error saving role to Firestore:", error);
-        toast({ title: "Error Saving Role", description: "Could not save your role selection. Please try again.", variant: "destructive" });
+        let description = "Could not save your role selection. Please try again.";
+        if (error.code) {
+            description += ` (Error: ${error.code})`;
+        } else if (error.message) {
+            description += ` (Message: ${error.message})`;
+        }
+        toast({ title: "Error Saving Role", description, variant: "destructive" });
       }
     } else {
       // Should not happen if role selection page is shown only for authenticated users without a role
@@ -540,3 +546,5 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
+    
