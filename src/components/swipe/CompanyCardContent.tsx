@@ -458,7 +458,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0 h-[60%]">
+        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]"> {/* Responsive height */}
           {company.logoUrl ? (
             <Image
               src={company.logoUrl}
