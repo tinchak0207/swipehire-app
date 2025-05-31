@@ -7,7 +7,7 @@ const cors = require('cors'); // Import CORS
 const User = require('./User'); // Our user model
 
 const app = express();
-const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000 (as per user's guide)
+const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:9002'; // Get frontend URL from .env
 
 // Middleware to parse JSON
@@ -18,10 +18,7 @@ app.use(cors({ origin: FRONTEND_URL }));
 
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/swipehiredb';
-mongoose.connect(MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-})
+mongoose.connect(MONGO_URI)
 .then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
 .catch((err) => {
     console.error('MongoDB connection error. Make sure MongoDB is running and the URI is correct.');
@@ -101,5 +98,5 @@ app.put('/api/users/:id', async (req, res) => {
 // Start the server
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
-    console.log(`Make sure your Next.js app is configured to send requests to this address.`); // Corrected template literal
+    console.log(`Make sure your Next.js app is configured to send requests to this address.`);
 });
