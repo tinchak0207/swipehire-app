@@ -58,6 +58,8 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: 
     return `${post.content.substring(0, MAX_CONTENT_LENGTH)}...`;
   }, [post.content, showFullContent]);
 
+  const imageHint = post.diaryImageHint || post.tags?.[0] || 'diary image';
+
   return (
     <Card className="w-full shadow-lg overflow-hidden">
       <CardHeader className="flex flex-row items-start space-x-3 p-4 bg-muted/30">
@@ -82,7 +84,7 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: 
         <h3 className="text-lg font-semibold">{post.title}</h3>
         {post.imageUrl && (
           <div className="relative aspect-video w-full rounded-md overflow-hidden my-2">
-            <Image src={post.imageUrl} alt={post.title} fill style={{ objectFit: 'cover' }} data-ai-hint="diary post image" />
+            <Image src={post.imageUrl} alt={post.title} fill style={{ objectFit: 'cover' }} data-ai-hint={imageHint} />
           </div>
         )}
         <p className="text-sm text-foreground whitespace-pre-line">
@@ -132,6 +134,7 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [diaryImageHint, setDiaryImageHint] = useState('');
   const [tags, setTags] = useState('');
   const { toast } = useToast();
 
@@ -150,6 +153,7 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
       title,
       content,
       imageUrl: imageUrl.trim() || undefined,
+      diaryImageHint: diaryImageHint.trim() || undefined,
       timestamp: Date.now(),
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
       likes: 0,
@@ -161,6 +165,7 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
     setTitle('');
     setContent('');
     setImageUrl('');
+    setDiaryImageHint('');
     setTags('');
     toast({ title: "Diary Post Created!", description: "Your new entry has been added." });
   };
@@ -178,6 +183,10 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
       <div>
         <label htmlFor="postImageUrl" className="block text-sm font-medium text-foreground">Image URL (Optional)</label>
         <Input id="postImageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://placehold.co/600x400.png" />
+      </div>
+      <div>
+        <label htmlFor="postImageHint" className="block text-sm font-medium text-foreground">Image Keywords (Optional, for AI)</label>
+        <Input id="postImageHint" value={diaryImageHint} onChange={(e) => setDiaryImageHint(e.target.value)} placeholder="e.g., 'team meeting', 'laptop screen'" />
       </div>
        <div>
         <label htmlFor="postTags" className="block text-sm font-medium text-foreground">Tags (comma-separated, optional)</label>

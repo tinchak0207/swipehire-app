@@ -176,6 +176,7 @@ export interface DiaryPost {
   title: string;
   content: string;
   imageUrl?: string; // Optional image for the post
+  diaryImageHint?: string; // Specific hint for the imageUrl
   timestamp: number; // Use number for easy sorting (Date.now())
   tags?: string[];
   // Conceptual fields for AI curation (not fully implemented in prototype)

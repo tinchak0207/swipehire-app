@@ -424,6 +424,7 @@ export const mockDiaryPosts: DiaryPost[] = [
     title: 'My First Week with a New AI Project!',
     content: 'Just wrapped up my first week diving deep into a new machine learning project. The learning curve is steep, but the potential impact is huge. Spent most of my time setting up the environment and preprocessing data. Already learned so much about TensorFlow Extended (TFX)! Excited for what\'s next. #AI #MachineLearning #NewBeginnings',
     imageUrl: 'https://placehold.co/600x400.png',
+    diaryImageHint: 'ai project concept',
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
     tags: ['ai', 'learning', 'tensorflow'],
     likes: 15,
@@ -439,6 +440,7 @@ export const mockDiaryPosts: DiaryPost[] = [
     dataAiHint: 'man face',
     title: 'Brainstorming Session: Redesigning a Mobile App',
     content: 'Had an amazing brainstorming session with the team today for the new mobile app redesign. So many creative ideas flowing! We focused on user journey mapping and identifying pain points in the current app. Feeling inspired by the collaborative energy. #UXDesign #Teamwork #Creativity',
+    diaryImageHint: 'team brainstorming', // Example, even if no imageUrl for now
     timestamp: Date.now() - 1000 * 60 * 60 * 10, // 10 hours ago
     tags: ['ux', 'design', 'collaboration'],
     likes: 22,
@@ -455,6 +457,7 @@ export const mockDiaryPosts: DiaryPost[] = [
     title: 'Overcoming a Coding Challenge',
     content: 'Spent the entire day debugging a tricky Python script. It was frustrating, but that moment when you finally find the bug and everything works is just priceless! Persistence pays off. #Python #CodingLife #ProblemSolving',
     imageUrl: 'https://placehold.co/600x400.png',
+    diaryImageHint: 'coding screen abstract',
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 5, // 5 days ago
     tags: ['python', 'debugging', 'development'],
     likes: 30,
@@ -470,6 +473,7 @@ export const mockDiaryPosts: DiaryPost[] = [
     dataAiHint: 'person face',
     title: 'Reflecting on Q3 Product Strategy',
     content: 'Just finished a deep dive into our Q3 product strategy. Lots of market research and data analysis involved. It\'s crucial to stay agile and adapt to customer needs. Feeling confident about the roadmap ahead. #ProductManagement #Strategy #SaaS',
+    diaryImageHint: 'strategy planning board', // Example
     timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
     tags: ['product', 'strategy', 'planning'],
     likes: 8,
