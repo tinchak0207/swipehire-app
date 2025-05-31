@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye } from 'lucide-react';
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
@@ -252,13 +252,13 @@ export default function HomePage() {
   ];
 
   const recruiterTabItems = [
-    { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} isGuestMode={isGuestMode} /> },
+    { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} /> },
     { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage isGuestMode={isGuestMode} /> },
     ...baseTabItems,
   ];
 
   const jobseekerTabItems = [
-    { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} isGuestMode={isGuestMode} /> },
+    { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} /> },
     { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage isGuestMode={isGuestMode} /> },
     { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestMode} /> },
     ...baseTabItems,
@@ -332,8 +332,6 @@ export default function HomePage() {
 
   console.log("HomePage: Rendering Main App Content for user/guest.");
   
-  // Removed dynamic role-based background, reverting to a more neutral app background.
-  // Individual pages like WelcomePage, RoleSelectionPage, LoginPage handle their own full-screen backgrounds.
   const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
 
   return (
@@ -379,7 +377,14 @@ export default function HomePage() {
         </Tabs>
       </main>
       <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-        © {new Date().getFullYear()} SwipeHire. All rights reserved.
+        <div className="flex justify-center items-center gap-x-4 mb-1">
+            <span className="hover:text-primary cursor-pointer">Privacy Policy</span>
+            <span className="hover:text-primary cursor-pointer">Terms of Service</span>
+            <span className="hover:text-primary cursor-pointer">AI Ethics</span>
+        </div>
+        <div>
+          © {new Date().getFullYear()} SwipeHire. All rights reserved.
+        </div>
       </footer>
     </div>
   );

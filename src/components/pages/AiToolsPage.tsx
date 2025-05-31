@@ -7,7 +7,7 @@ import { VideoScriptGenerator } from "@/components/ai/VideoScriptGenerator";
 import { AvatarGenerator } from "@/components/ai/AvatarGenerator";
 import { VideoEditor } from "@/components/ai/VideoEditor";
 import { VideoRecorderUI } from "@/components/video/VideoRecorderUI";
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, UserCircle, Briefcase } from 'lucide-react';
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, UserCircle, Briefcase, Construction } from 'lucide-react'; // Added Construction
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -75,10 +75,10 @@ const AnimatedToolBackground = ({ bgClass, show }: { bgClass: string; show: bool
 
 interface AiToolsPageProps {
   isGuestMode?: boolean;
-  currentUserRole?: UserRole | null; // Add currentUserRole prop
+  currentUserRole?: UserRole | null; 
 }
 
-const AI_TOOLS_GUIDE_SEEN_KEY = 'swipehire_ai_tools_guide_seen_v2'; // Changed key to reset guide for existing users
+const AI_TOOLS_GUIDE_SEEN_KEY = 'swipehire_ai_tools_guide_seen_v2'; 
 
 export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) {
   const [selectedToolKey, setSelectedToolKey] = useState<ToolKey | null>(null);
@@ -184,7 +184,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
             </AlertDescription>
             <Button
               variant="ghost"
-              size="sm" // Made button smaller
+              size="sm" 
               onClick={handleDismissGuide}
               className="absolute top-3 right-3 h-8 w-auto px-3 text-primary/80 hover:text-primary hover:bg-primary/10"
               aria-label="Dismiss guide"
@@ -246,46 +246,42 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
               <CardHeader>
                 <CardTitle className="flex items-center text-2xl text-primary">
                   <Gem className="mr-3 h-6 w-6" />
-                  Premium AI Video Optimization Services
+                  Premium AI Services (Future Offerings)
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Elevate your video resumes with our professional AI-powered optimization packages. (Future Offering)
+                  Elevate your video resumes and profiles with our upcoming professional AI-powered optimization packages.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-6">
-                <div>
-                  <h4 className="font-semibold text-lg text-foreground">Basic Optimization Package ($199/time)</h4>
-                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1 pl-4">
-                    <li>Automatic editing and rhythm adjustment</li>
+              <CardContent className="space-y-4 text-sm text-muted-foreground">
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <h4 className="font-semibold text-md text-foreground mb-1">Basic Optimization Package</h4>
+                  <ul className="list-disc list-inside pl-2 space-y-0.5">
+                    <li>Automatic editing & rhythm adjustment</li>
                     <li>Basic visual beautification (lighting, color)</li>
-                    <li>Standard subtitle generation</li>
-                    <li>Basic quality scoring</li>
+                    <li>Standard subtitle generation & quality scoring</li>
                   </ul>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-lg text-foreground">Professional Optimization Package ($499/session)</h4>
-                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1 pl-4">
-                    <li>Advanced editing and effects</li>
-                    <li>Professional voice-overs and background music</li>
+                <div className="p-3 border rounded-md bg-muted/30">
+                  <h4 className="font-semibold text-md text-foreground mb-1">Professional Enhancement Package</h4>
+                  <ul className="list-disc list-inside pl-2 space-y-0.5">
+                    <li>Advanced editing effects & transitions</li>
+                    <li>Professional voice-over options & background music</li>
                     <li>Multi-language subtitle support</li>
                     <li>Industry-specific template application</li>
-                    <li>A/B testing of different versions</li>
                   </ul>
                 </div>
-                <div>
-                  <h4 className="font-semibold text-lg text-foreground">Enterprise Customization Package ($1,299/time)</h4>
-                  <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1 mt-1 pl-4">
-                    <li>Fully customized production</li>
-                    <li>Professional photography guidance</li>
-                    <li>Branding elements integration</li>
-                    <li>Multi-platform format output</li>
-                    <li>Professional production team support</li>
+                 <div className="p-3 border rounded-md bg-muted/30">
+                  <h4 className="font-semibold text-md text-foreground mb-1">Enterprise Customization</h4>
+                  <ul className="list-disc list-inside pl-2 space-y-0.5">
+                    <li>Fully customized production & branding</li>
+                    <li>Professional coaching & photography guidance</li>
+                    <li>Multi-platform output & A/B testing</li>
                   </ul>
                 </div>
               </CardContent>
               <CardFooter>
                 <Button disabled className="w-full sm:w-auto">
-                  Contact Sales for Premium Services (Coming Soon)
+                  <Construction className="mr-2 h-4 w-4" /> Stay Tuned for Updates!
                 </Button>
               </CardFooter>
             </Card>

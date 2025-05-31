@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileVideo2, UserCircle, Briefcase, HeartHandshake, Building, Users, Zap, CheckCircle, Sparkles, BarChart3 } from "lucide-react";
+import { FileVideo2, UserCircle, Briefcase, HeartHandshake, Building, Users, Zap, Sparkles, BarChart3, ListChecks, Construction } from "lucide-react"; // Added ListChecks, Construction
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -52,6 +52,22 @@ export function WelcomePage({ onStartExploring }: WelcomePageProps) {
                     Move beyond static resumes. SwipeHire brings profiles and company cultures to life with AI-powered video and intelligent matching. Connect more authentically, hire more effectively.
                 </p>
             </div>
+
+            <div className="pt-4 mt-2 border-t border-border/50">
+                 <h3 className="text-md font-semibold text-primary mb-2 flex items-center">
+                    <Construction className="h-5 w-5 mr-2 text-accent" /> Our Vision & What's Next (Conceptual)
+                </h3>
+                <p className="text-sm text-muted-foreground mb-1">
+                    We're committed to evolving SwipeHire into the most intuitive and effective platform for talent connection. Your feedback is vital as we build:
+                </p>
+                <ul className="list-disc list-inside text-xs text-muted-foreground space-y-0.5 pl-4">
+                    <li>Advanced AI Video Coaching & Feedback</li>
+                    <li>Enhanced Recruiter Tools for Candidate Management</li>
+                    <li>Community Features & Industry Insights</li>
+                    <li>More Powerful Personalization Options</li>
+                </ul>
+            </div>
+
 
           <div className="text-center">
             <Button 
