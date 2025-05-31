@@ -1,17 +1,19 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
-import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights } from '@/lib/types';
+import { useState, useEffect, ChangeEvent } from 'react';
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db } from "@/lib/firebase"; // Import db for Firestore
-import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore functions
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket } from 'lucide-react';
+import { auth, db } from "@/lib/firebase"; 
+import { doc, getDoc, setDoc } from "firebase/firestore"; 
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Import the context hook
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
-  onRoleChange: (newRole: UserRole) => void; // This will now primarily trigger Firestore update via HomePage
+  onRoleChange: (newRole: UserRole) => void; 
   isGuestMode?: boolean;
 }
 
@@ -64,7 +66,16 @@ const defaultJobSeekerWeights: JobSeekerPerspectiveWeights = {
   jobConditionFitScore: 15,
 };
 
+const defaultLocalPreferences: UserPreferences = {
+  theme: 'system',
+  featureFlags: {
+    showExperimentalFeature: false,
+  }
+};
+
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
+  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading } = useUserPreferences();
+  
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -83,6 +94,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
+  // Local state for UI, synced with context
+  const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(defaultLocalPreferences.theme);
+  const [localFeatureFlags, setLocalFeatureFlags] = useState<Record<string, boolean>>(defaultLocalPreferences.featureFlags || {});
+
+
   const { toast } = useToast();
 
   const validateWeights = (weights: RecruiterPerspectiveWeights | JobSeekerPerspectiveWeights): boolean => {
@@ -90,7 +106,13 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     return sum === 100;
   };
 
-  // Load settings from Firestore
+  useEffect(() => {
+    if (!contextLoading && contextPreferences) {
+      setLocalTheme(contextPreferences.theme);
+      setLocalFeatureFlags(contextPreferences.featureFlags || {});
+    }
+  }, [contextPreferences, contextLoading]);
+  
   useEffect(() => {
     if (isGuestMode || !auth.currentUser) {
       setUserName('Guest User');
@@ -101,6 +123,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setDocumentId('');
       setRecruiterWeights(defaultRecruiterWeights);
       setJobSeekerWeights(defaultJobSeekerWeights);
+      setLocalTheme(defaultLocalPreferences.theme);
+      setLocalFeatureFlags(defaultLocalPreferences.featureFlags || {});
       setIsLoadingSettings(false);
       return;
     }
@@ -114,7 +138,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           const data = docSnap.data();
           setUserName(data.name || user.displayName || '');
           setUserEmail(data.email || user.email || '');
-          setSelectedRoleInSettings(data.selectedRole || null);
+          setSelectedRoleInSettings(data.selectedRole || currentUserRole || null);
           setAddress(data.address || '');
           setCountry(data.country || '');
           setDocumentId(data.documentId || '');
@@ -129,18 +153,24 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           } else {
             setJobSeekerWeights(defaultJobSeekerWeights);
           }
+          // Preferences (theme, feature flags) are now primarily loaded by UserPreferencesContext
+          // but we can set initial local state from Firestore here if context isn't ready
+          const firestorePrefs = data.preferences as UserPreferences | undefined;
+          setLocalTheme(firestorePrefs?.theme || defaultLocalPreferences.theme);
+          setLocalFeatureFlags(firestorePrefs?.featureFlags || defaultLocalPreferences.featureFlags || {});
+
         } else {
-          // Doc doesn't exist, use Auth info as defaults
           setUserName(user.displayName || '');
           setUserEmail(user.email || '');
-          setSelectedRoleInSettings(null); // No role set yet
+          setSelectedRoleInSettings(currentUserRole || null);
           setRecruiterWeights(defaultRecruiterWeights);
           setJobSeekerWeights(defaultJobSeekerWeights);
+          setLocalTheme(defaultLocalPreferences.theme);
+          setLocalFeatureFlags(defaultLocalPreferences.featureFlags || {});
         }
       }).catch(error => {
         console.error("Error fetching user settings from Firestore:", error);
         toast({ title: "Error Loading Settings", description: "Could not load your saved settings.", variant: "destructive" });
-        // Fallback to Auth info
         setUserName(user.displayName || '');
         setUserEmail(user.email || '');
       }).finally(() => {
@@ -149,7 +179,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     }
     loadAppStats();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGuestMode, currentUserRole]);
+  }, [isGuestMode, currentUserRole]); // contextPreferences removed as it might cause loops. Rely on context to load itself.
 
 
   useEffect(() => {
@@ -186,11 +216,14 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     const user = auth.currentUser;
     if (user) {
       const userDocRef = doc(db, "users", user.uid);
+      
+      const currentPreferencesToSave: UserPreferences = {
+        theme: localTheme,
+        featureFlags: localFeatureFlags,
+      };
+
       const settingsData: any = {
         name: userName,
-        // Email is primarily managed by Firebase Auth; only update if different from Auth email and user explicitly changes it.
-        // However, if an extension syncs Auth email, this Firestore field might be overwritten.
-        // For this prototype, we'll save what's in the form.
         email: userEmail, 
         selectedRole: selectedRoleInSettings,
         address,
@@ -198,14 +231,17 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         documentId,
         recruiterAIWeights: recruiterWeights,
         jobSeekerAIWeights: jobSeekerWeights,
+        preferences: currentPreferencesToSave, // Save updated preferences
         updatedAt: new Date().toISOString(),
       };
 
       try {
         await setDoc(userDocRef, settingsData, { merge: true });
+        await setContextPreferences(currentPreferencesToSave); // Update context state
+        
         toast({
           title: 'Settings Saved',
-          description: 'Your preferences and general information have been updated in Firestore.',
+          description: 'Your preferences and general information have been updated.',
         });
         if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
           onRoleChange(selectedRoleInSettings); 
@@ -221,11 +257,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       } catch (error: any) {
         console.error("Error saving settings to Firestore:", error);
         let description = "Could not save your settings.";
-        if (error.code) {
-            description += ` (Error: ${error.code})`;
-        } else if (error.message) {
-            description += ` (Message: ${error.message})`;
-        }
+        if (error.code) { description += ` (Error: ${error.code})`; }
+        else if (error.message) { description += ` (Message: ${error.message})`;}
         toast({ title: "Error Saving Settings", description, variant: "destructive" });
       }
     }
@@ -285,11 +318,16 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setJobSeekerWeights(prev => ({ ...prev, [field]: val }));
     }
   };
+  
+  const handleFeatureFlagChange = (flagName: string, checked: boolean) => {
+    setLocalFeatureFlags(prev => ({...prev, [flagName]: checked }));
+  };
+
 
   const saveButtonText = "Save Settings";
   const SaveButtonIcon = UserCog;
 
-  if (isLoadingSettings && !isGuestMode) {
+  if ((isLoadingSettings || contextLoading) && !isGuestMode) {
     return (
       <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -416,6 +454,54 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               placeholder="Enter your document ID number" 
               value={documentId} 
               onChange={(e) => setDocumentId(e.target.value)} 
+              disabled={isGuestMode}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <Palette className="mr-2 h-5 w-5 text-primary" />
+            Appearance
+          </CardTitle>
+          <CardDescription>Customize the look and feel of the application.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-base">Theme</Label>
+            <RadioGroup
+              value={localTheme}
+              onValueChange={(value: UserPreferences['theme']) => setLocalTheme(value)}
+              className="flex flex-col sm:flex-row gap-2"
+              disabled={isGuestMode}
+            >
+              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors flex-1">
+                <RadioGroupItem value="light" id="theme-light" />
+                <Label htmlFor="theme-light" className="flex items-center cursor-pointer"><Sun className="mr-2 h-4 w-4 text-yellow-500" /> Light</Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors flex-1">
+                <RadioGroupItem value="dark" id="theme-dark" />
+                <Label htmlFor="theme-dark" className="flex items-center cursor-pointer"><Moon className="mr-2 h-4 w-4 text-blue-400" /> Dark</Label>
+              </div>
+              <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors flex-1">
+                <RadioGroupItem value="system" id="theme-system" />
+                <Label htmlFor="theme-system" className="flex items-center cursor-pointer"><Laptop className="mr-2 h-4 w-4 text-gray-500" /> System</Label>
+              </div>
+            </RadioGroup>
+          </div>
+           <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+            <div className="space-y-0.5">
+              <Label htmlFor="experimental-feature" className="text-base">Enable Experimental Features</Label>
+              <p className="text-xs text-muted-foreground">
+                Try out new features that are still in development. (Conceptual)
+              </p>
+            </div>
+            <Switch
+              id="experimental-feature"
+              checked={localFeatureFlags.showExperimentalFeature || false}
+              onCheckedChange={(checked) => handleFeatureFlagChange('showExperimentalFeature', checked)}
               disabled={isGuestMode}
             />
           </div>
@@ -577,8 +663,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       )}
 
       <CardFooter className="flex justify-end pt-6">
-        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings}>
-          {isLoadingSettings ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <SaveButtonIcon className="mr-2 h-5 w-5" />}
+        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings || contextLoading}>
+          {(isLoadingSettings || contextLoading) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <SaveButtonIcon className="mr-2 h-5 w-5" />}
           {saveButtonText}
         </Button>
       </CardFooter>

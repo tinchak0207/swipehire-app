@@ -48,6 +48,11 @@ export interface PersonalityTraitAssessment {
   reason?: string;
 }
 
+export interface UserPreferences {
+  theme: 'light' | 'dark' | 'system';
+  featureFlags?: Record<string, boolean>;
+}
+
 export interface Candidate {
   id: string;
   name: string;
@@ -304,3 +309,4 @@ export interface CompanyQAInput {
 export interface CompanyQAOutput {
   aiAnswer: string;
 }
+

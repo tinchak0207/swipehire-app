@@ -13,6 +13,7 @@ import { onAuthStateChanged, signOut, type User, getRedirectResult } from "fireb
 import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore"; // Firestore functions
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { UserPreferencesProvider } from "@/contexts/UserPreferencesContext"; // Import the provider
 
 // Lazy load components
 const CandidateDiscoveryPage = dynamic(() => import('@/components/pages/CandidateDiscoveryPage').then(mod => mod.CandidateDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
@@ -417,87 +418,93 @@ export default function HomePage() {
   if (isInitialLoading) {
     console.log("HomePage: Rendering Loader2 because isInitialLoading is true.");
     return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
+      <UserPreferencesProvider currentUser={currentUser}>
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+      </UserPreferencesProvider>
     );
   }
-
-  if (showWelcomePage && !isGuestMode) { 
-    console.log("HomePage: Rendering WelcomePage.");
-    return <WelcomePage onStartExploring={handleStartExploring} />;
-  }
   
-  // If authenticated but no role is set in Firestore (and not guest, welcome done)
-  if (isAuthenticated && !isGuestMode && !userRole && !showWelcomePage) { 
-    console.log("HomePage: Rendering RoleSelectionPage (authenticated, no role, welcome done, not guest).");
-    return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
-  }
+  const mainContent = () => {
+    if (showWelcomePage && !isGuestMode) { 
+      console.log("HomePage: Rendering WelcomePage.");
+      return <WelcomePage onStartExploring={handleStartExploring} />;
+    }
+    
+    if (isAuthenticated && !isGuestMode && !userRole && !showWelcomePage) { 
+      console.log("HomePage: Rendering RoleSelectionPage (authenticated, no role, welcome done, not guest).");
+      return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
+    }
+    
+    if (!isAuthenticated && !isGuestMode && !showWelcomePage) { 
+      console.log("HomePage: Rendering LoginPage (not authenticated, not guest, welcome done).");
+      return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
+    }
+
+    console.log("HomePage: Rendering Main App Content for user/guest.");
+    const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
+
+    return (
+      <div className={mainAppContainerClasses}>
+        <AppHeader
+          isAuthenticated={isAuthenticated}
+          isGuestMode={isGuestMode}
+          onLoginRequest={handleLoginRequest}
+          onLogout={handleLogout}
+          searchTerm={searchTerm}
+          onSearchTermChange={setSearchTerm}
+          userName={userName}
+        />
+        <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {isMobile ? (
+              <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
+            ) : (
+              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
+                {currentTabItems.map(item => (
+                  <TabsTrigger
+                    key={item.value}
+                    value={item.value}
+                    className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
+                  >
+                    <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            )}
+
+            {currentTabItems.map(item => (
+              <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
+                {React.cloneElement(item.component, {
+                  ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
+                  isGuestMode,
+                  ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: handleRoleSelect }),
+                  ...(item.value === 'aiTools' && { currentUserRole: userRole }) 
+                })}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </main>
+        <footer className="text-center p-4 text-sm text-muted-foreground border-t">
+          <div className="flex justify-center items-center gap-x-4 mb-1">
+              <span className="hover:text-primary cursor-pointer">Privacy Policy</span>
+              <span className="hover:text-primary cursor-pointer">Terms of Service</span>
+              <span className="hover:text-primary cursor-pointer">AI Ethics</span>
+          </div>
+          <div>
+            © {new Date().getFullYear()} SwipeHire. All rights reserved.
+          </div>
+        </footer>
+      </div>
+    );
+  };
   
-  // If not authenticated (and not guest, welcome done)
-  if (!isAuthenticated && !isGuestMode && !showWelcomePage) { 
-    console.log("HomePage: Rendering LoginPage (not authenticated, not guest, welcome done).");
-    return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
-  }
-
-
-  console.log("HomePage: Rendering Main App Content for user/guest.");
-  
-  const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
-
   return (
-    <div className={mainAppContainerClasses}>
-      <AppHeader
-        isAuthenticated={isAuthenticated}
-        isGuestMode={isGuestMode}
-        onLoginRequest={handleLoginRequest}
-        onLogout={handleLogout}
-        searchTerm={searchTerm}
-        onSearchTermChange={setSearchTerm}
-        userName={userName}
-      />
-      <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          {isMobile ? (
-            <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
-          ) : (
-            <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
-              {currentTabItems.map(item => (
-                <TabsTrigger
-                  key={item.value}
-                  value={item.value}
-                  className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
-                >
-                  <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          )}
-
-          {currentTabItems.map(item => (
-            <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
-              {React.cloneElement(item.component, {
-                ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
-                isGuestMode,
-                ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: handleRoleSelect }),
-                ...(item.value === 'aiTools' && { currentUserRole: userRole }) 
-              })}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </main>
-      <footer className="text-center p-4 text-sm text-muted-foreground border-t">
-        <div className="flex justify-center items-center gap-x-4 mb-1">
-            <span className="hover:text-primary cursor-pointer">Privacy Policy</span>
-            <span className="hover:text-primary cursor-pointer">Terms of Service</span>
-            <span className="hover:text-primary cursor-pointer">AI Ethics</span>
-        </div>
-        <div>
-          © {new Date().getFullYear()} SwipeHire. All rights reserved.
-        </div>
-      </footer>
-    </div>
+    <UserPreferencesProvider currentUser={currentUser}>
+      {mainContent()}
+    </UserPreferencesProvider>
   );
 }
 
