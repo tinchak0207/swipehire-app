@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL }));
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/swipehiredb';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://tinchak0207:cfchan%407117@swipehire.fwxspbu.mongodb.net/?retryWrites=true&w=majority&appName=swipehire';
 mongoose.connect(MONGO_URI)
 .then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
 .catch((err) => {
