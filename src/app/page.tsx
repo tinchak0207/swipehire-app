@@ -78,17 +78,15 @@ function AppContent() {
 
         if (createUserResponse.ok) {
           const responseData = await createUserResponse.json();
-          // Backend should return { message: 'User created!', user: newUser } where newUser has _id
-          // Or potentially just the newUser object directly. This handles both.
           const createdUser = responseData.user || responseData; 
 
           if (createdUser && createdUser._id) {
             setUserRole(createdUser.selectedRole || null);
             setUserName(createdUser.name);
-            setMongoDbUserId(createdUser._id); // Store MongoDB _id in context
+            setMongoDbUserId(createdUser._id); 
             localStorage.setItem('recruiterProfileComplete', (createdUser.selectedRole === 'recruiter' && createdUser.name && createdUser.email) ? 'true' : 'false');
             toast({ title: "Profile Initialized", description: "Your basic profile has been set up."});
-            return createdUser._id; // Return MongoDB _id
+            return createdUser._id; 
           } else {
             console.error("Failed to create user in MongoDB: User object or _id missing in response", responseData);
             toast({ title: "Profile Creation Failed", description: "Could not initialize your profile: unexpected response from backend.", variant: "destructive"});
@@ -113,10 +111,9 @@ function AppContent() {
       }
       toast({ title: "Network or Backend Error", description, variant: "destructive"});
     }
-    // Fallback if fetch or create fails
     setUserRole(null);
-    setUserName(firebaseDisplayName || firebaseEmail); // Use Firebase details as temporary display
-    setMongoDbUserId(null); // Ensure mongoDbUserId is null on failure
+    setUserName(firebaseDisplayName || firebaseEmail); 
+    setMongoDbUserId(null); 
     localStorage.removeItem('recruiterProfileComplete');
     return null;
   };
@@ -232,12 +229,11 @@ function AppContent() {
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
       fetchAndSetUserPreferences(fetchedMongoId);
-      if (!userRole) { // If fetchUserFromMongo didn't set a role (e.g., for a new bypass user)
-         const defaultRole = 'jobseeker'; // Or determine based on bypass needs
+      if (!userRole) { 
+         const defaultRole = 'jobseeker'; 
          await handleRoleSelect(defaultRole, fetchedMongoId); 
       }
     } else {
-      // Fallback if mongo interaction completely fails even for bypass user
       setUserRole('jobseeker'); 
       setUserName(mockUser.displayName);
     }
@@ -266,14 +262,9 @@ function AppContent() {
     const idToUse = currentMongoId || mongoDbUserId; 
     if (!isGuestMode && isAuthenticated && currentUser && idToUse) {
       try {
-        // Use the new proxy endpoint
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, {
-          method: 'PUT',
+          method: 'POST', // Changed from PUT to POST
           headers: { 'Content-Type': 'application/json' },
-          // The body should contain only the fields the original /api/users/:identifier PUT expects for role update
-          // For example, if it only needs 'selectedRole':
-          // body: JSON.stringify({ selectedRole: role }),
-          // Or if it expects a fuller object that includes the role:
           body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), 
         });
         if (!response.ok) {

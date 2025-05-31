@@ -17,13 +17,13 @@ console.log(`[CORS Config] Effective FRONTEND_URL for CORS: ${FRONTEND_URL}`);
 
 // Global OPTIONS preflight handler - Must be one of the first middleware
 app.options('*', (req, res, next) => {
-  console.log(`[Global OPTIONS Handler] <<< Received OPTIONS request for: ${req.originalUrl} from origin: ${req.headers.origin}`);
+  const origin = req.headers.origin;
+  console.log(`[Global OPTIONS Handler] <<< Received OPTIONS request for: ${req.originalUrl} from origin: ${origin}`);
   
-  // Check if the origin is allowed
-  if (req.headers.origin === FRONTEND_URL) {
+  if (origin === FRONTEND_URL) {
     const headersToSet = {
-      'Access-Control-Allow-Origin': req.headers.origin, // Reflect the specific, allowed origin
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Origin': origin, // Reflect the specific, allowed origin
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS', // Explicitly list methods
       'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Requested-With',
       'Access-Control-Allow-Credentials': 'true',
       'Access-Control-Max-Age': '86400' // Cache preflight for 1 day
@@ -31,20 +31,15 @@ app.options('*', (req, res, next) => {
     console.log('[Global OPTIONS Handler] >>> Setting response headers for ALLOWED origin:', JSON.stringify(headersToSet));
     res.header(headersToSet);
     res.sendStatus(204);
-    console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${req.headers.origin} to request: ${req.originalUrl}`);
+    console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${origin} for ${req.originalUrl} with reflected ACAO.`);
   } else {
-    // For disallowed origins, or if no origin is present
-    // Send a minimal 204. The browser will block the subsequent actual request if origin matching fails.
-    console.warn(`[Global OPTIONS Handler] Origin: ${req.headers.origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204. Browser will block actual request if not allowed by main CORS config.`);
-    // We don't set Access-Control-Allow-Origin here for the mismatched origin.
-    // We can still indicate generally supported methods/headers if we want, or be completely minimal.
-    // Let's be minimal: just send 204. The browser will figure it out on the actual request.
-    // Or, to be slightly more informative to tools like curl but still safe for browsers:
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'); // General methods your server might support
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With'); // General headers
-    // DO NOT set Access-Control-Allow-Origin to the req.headers.origin if it's not FRONTEND_URL
+    // For disallowed origins or if no origin is present
+    console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT FRONTEND_URL (${FRONTEND_URL}). Responding with minimal 204.`);
+    // Respond minimally for disallowed origins; browser will block based on main CORS config.
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.sendStatus(204);
-    console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${req.headers.origin} (actual request may be blocked by browser)`);
+    console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${origin} (actual request may be blocked by browser)`);
   }
 });
 
@@ -55,31 +50,21 @@ app.use(express.json());
 // CORS configuration for actual requests (non-preflight)
 const corsOptions = {
   origin: function (origin, callback) {
-    const requestPath = this.path; // 'this' context here refers to the request itself
-    // Log the origin the cors middleware received from the request for non-preflight requests
+    // This check is now primarily for non-preflight requests.
+    const requestPath = this.path; 
     console.log(`[Actual Request CORS] Origin check. Request from: ${origin}, Path: ${requestPath}`);
     if (!origin || origin === FRONTEND_URL) {
-      callback(null, true); // Origin is allowed (includes server-side requests where origin might be undefined)
+      callback(null, true); 
     } else {
       console.warn(`[Actual Request CORS] Disallowed origin: ${origin}. Allowed: ${FRONTEND_URL}`);
-      callback(new Error('Not allowed by CORS')); // Origin is not allowed
+      callback(new Error('Not allowed by CORS')); 
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled globally by app.options
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
 };
 app.use(cors(corsOptions));
-
-// Connect to MongoDB
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://tinchak0207:cfchan%407117@swipehire.fwxspbu.mongodb.net/?retryWrites=true&w=majority&appName=swipehire';
-mongoose.connect(MONGO_URI)
-.then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
-.catch((err) => {
-    console.error('MongoDB connection error. Make sure MongoDB is running and the URI is correct.');
-    console.error(err);
-    process.exit(1);
-});
 
 // Welcome Route
 app.get('/', (req, res) => {
@@ -166,42 +151,51 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
-// Proxy endpoint for updating user role (or other sensitive fields needing PUT)
-app.put('/api/proxy/users/:identifier/role', async (req, res) => {
+// Proxy endpoint for updating user role (or other sensitive fields), NOW USING POST
+app.post('/api/proxy/users/:identifier/role', async (req, res) => {
   const { identifier } = req.params;
-  const requestBody = req.body;
+  const requestBody = req.body; // This body will be forwarded
 
-  console.log(`[Proxy PUT /role] Received request for identifier: ${identifier} with body:`, JSON.stringify(requestBody));
+  console.log(`[Proxy POST /role] Received request for identifier: ${identifier} with body:`, JSON.stringify(requestBody).substring(0,200) + "...");
 
   try {
+    // The internal request is still a PUT to the original endpoint
     const internalUrl = `http://localhost:${PORT}/api/users/${identifier}`;
-    console.log(`[Proxy PUT /role] Making internal PUT request to: ${internalUrl}`);
+    console.log(`[Proxy POST /role] Making internal PUT request to: ${internalUrl}`);
 
-    // Using Node's built-in fetch (available in Node 18+)
     const internalResponse = await fetch(internalUrl, {
-      method: 'PUT',
+      method: 'PUT', // Internal call remains PUT
       headers: {
         'Content-Type': 'application/json',
-        // Add any other headers your original endpoint might expect.
-        // For internal calls, this is often simpler.
       },
-      body: JSON.stringify(requestBody),
+      body: JSON.stringify(requestBody), // Forward the received body
     });
 
     const responseData = await internalResponse.json();
 
     if (!internalResponse.ok) {
-      console.error(`[Proxy PUT /role] Internal request failed with status ${internalResponse.status}:`, responseData);
+      console.error(`[Proxy POST /role] Internal PUT request failed with status ${internalResponse.status}:`, responseData);
       return res.status(internalResponse.status).json(responseData);
     }
 
-    console.log(`[Proxy PUT /role] Internal request successful. Forwarding response to client.`);
+    console.log(`[Proxy POST /role] Internal PUT request successful. Forwarding response to client.`);
     res.status(internalResponse.status).json(responseData);
 
   } catch (error) {
-    console.error('[Proxy PUT /role] Error during internal fetch or processing:', error);
+    console.error('[Proxy POST /role] Error during internal fetch or processing:', error);
     res.status(500).json({ message: 'Proxy error while updating user role', error: error.message || 'Unknown proxy error' });
   }
+});
+
+
+// Connect to MongoDB
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://tinchak0207:cfchan%407117@swipehire.fwxspbu.mongodb.net/?retryWrites=true&w=majority&appName=swipehire';
+mongoose.connect(MONGO_URI)
+.then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
+.catch((err) => {
+    console.error('MongoDB connection error. Make sure MongoDB is running and the URI is correct.');
+    console.error(err);
+    process.exit(1);
 });
 
 
