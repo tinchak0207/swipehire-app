@@ -661,7 +661,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col overflow-hidden h-full" // h-full is important for flex children to take up space
+        className="flex flex-col h-full overflow-hidden bg-card"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -672,14 +672,13 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area */}
-        {/* Ensure this div has a defined height or its content (Image with fill) will not render predictably */}
-        <div className="relative w-full h-[60%] shrink-0 bg-muted"> {/* Example: Media takes 60% of card height */}
+        {/* Media Area - Explicit 50% height of the card */}
+        <div className="relative w-full h-1/2 shrink-0 bg-muted">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
-              fill // fill requires parent to have position: relative (which it does) and defined dimensions
+              fill
               className="object-cover"
               data-ai-hint={candidate.dataAiHint || "person"}
               priority
@@ -691,10 +690,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area */}
-        {/* This div should take up the remaining space and scroll if necessary */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm">
-            <CardHeader className="p-0 mb-1">
+        {/* Scrollable Text Content Area */}
+        <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
+            <CardHeader className="p-0 mb-1"> {/* Reduced padding */}
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
                         <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -782,3 +780,5 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
+    
