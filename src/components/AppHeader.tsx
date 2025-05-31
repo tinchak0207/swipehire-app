@@ -1,22 +1,24 @@
 
 import { FileVideo2, LogIn, LogOut, Search, UserCircle, X, Eye } from 'lucide-react'; // Added Eye
 import Link from 'next/link';
+import Image from 'next/image'; // Import next/image
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge'; // Added Badge
+import { Badge } from '@/components/ui/badge'; 
 import { useState } from 'react';
 
 interface AppHeaderProps {
   isAuthenticated: boolean;
-  isGuestMode: boolean; // Added isGuestMode
+  isGuestMode: boolean; 
   onLoginRequest: () => void;
   onLogout: () => void;
   searchTerm: string;
   onSearchTermChange: (term: string) => void;
   userName?: string | null;
+  userPhotoURL?: string | null; // Added prop for PFP URL
 }
 
-export function AppHeader({ isAuthenticated, isGuestMode, onLoginRequest, onLogout, searchTerm, onSearchTermChange, userName }: AppHeaderProps) {
+export function AppHeader({ isAuthenticated, isGuestMode, onLoginRequest, onLogout, searchTerm, onSearchTermChange, userName, userPhotoURL }: AppHeaderProps) {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
 
   return (
@@ -62,7 +64,18 @@ export function AppHeader({ isAuthenticated, isGuestMode, onLoginRequest, onLogo
 
           {isAuthenticated && userName && !isGuestMode && (
             <div className="hidden sm:flex items-center gap-2 text-sm text-primary-foreground/90">
-              <UserCircle className="h-5 w-5" />
+              {userPhotoURL ? (
+                <Image 
+                  src={userPhotoURL} 
+                  alt={userName || "User"} 
+                  width={24} 
+                  height={24} 
+                  className="rounded-full" 
+                  data-ai-hint="profile picture"
+                />
+              ) : (
+                <UserCircle className="h-5 w-5" />
+              )}
               <span className="truncate max-w-[100px]">{userName}</span>
             </div>
           )}

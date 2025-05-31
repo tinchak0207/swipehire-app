@@ -42,6 +42,7 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
+  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null); // Added for PFP
 
   const [activeTab, setActiveTab] = useState<string>("findJobs");
   const [isMobile, setIsMobile] = useState(false);
@@ -129,6 +130,7 @@ function AppContent() {
         setCurrentUser(user);
         setIsAuthenticated(true);
         setIsGuestMode(false);
+        setUserPhotoURL(user.photoURL); // Set PFP URL
         localStorage.removeItem(GUEST_MODE_KEY);
 
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
@@ -144,6 +146,7 @@ function AppContent() {
         setIsAuthenticated(false);
         setUserRole(null); 
         setUserName('Guest User');
+        setUserPhotoURL(null); // Clear PFP for guest
         setIsGuestMode(true);
         setMongoDbUserId(null); 
         setShowWelcomePage(false); 
@@ -153,6 +156,7 @@ function AppContent() {
         setIsAuthenticated(false);
         setUserRole(null);
         setUserName(null);
+        setUserPhotoURL(null); // Clear PFP for no user
         setIsGuestMode(false);
         setMongoDbUserId(null);
         localStorage.removeItem('recruiterProfileComplete');
@@ -171,6 +175,7 @@ function AppContent() {
           const user = result.user;
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${user.displayName || user.email}!` });
           localStorage.removeItem(GUEST_MODE_KEY);
+          setUserPhotoURL(user.photoURL); // Set PFP on redirect
           setIsGuestMode(false);
           const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
            if (fetchedMongoId) {
@@ -225,6 +230,7 @@ function AppContent() {
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
+    setUserPhotoURL(mockUser.photoURL); // Set PFP for bypass user
     
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
@@ -251,7 +257,7 @@ function AppContent() {
     setIsGuestMode(true);
     setIsAuthenticated(false); 
     setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
-    setUserRole(null); setUserName('Guest User');
+    setUserRole(null); setUserName('Guest User'); setUserPhotoURL(null);
     setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
     setMongoDbUserId(null); 
     if (!initialAuthCheckDone.current) { initialAuthCheckDone.current = true; setIsInitialLoading(false); }
@@ -303,6 +309,7 @@ function AppContent() {
       localStorage.removeItem('mongoDbUserId'); 
       setMongoDbUserId(null); 
       setIsGuestMode(false);
+      setUserPhotoURL(null); // Clear PFP on logout
       const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
       setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
       setActiveTab('findJobs'); 
@@ -317,6 +324,7 @@ function AppContent() {
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
+        setUserPhotoURL(null);
         setMongoDbUserId(null);
         const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
         setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
@@ -401,6 +409,7 @@ function AppContent() {
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
           userName={userName}
+          userPhotoURL={userPhotoURL} // Pass PFP URL
         />
         <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

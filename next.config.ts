@@ -17,6 +17,18 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      { // Added for Google Profile Pictures
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+        port: '',
+        pathname: '/**',
+      },
+      { // Added for GTV videos bucket (mock video URLs)
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+        port: '',
+        pathname: '/gtv-videos-bucket/**',
+      }
       // Add other image source hostnames here if needed
       // e.g. for actual avatar/logo storage
     ],
