@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import Image from 'next/image';
+import Image from 'next/image'; // Keep next/image import
 import { formatDistanceToNow } from 'date-fns';
 import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock, Star, BadgeInfo, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,12 +18,36 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { fetchDiaryPosts, createDiaryPost, toggleLikeDiaryPost } from '@/services/diaryService';
 
+// Helper to check if a URL's hostname is likely configured for next/image
+// This list should ideally be kept in sync with next.config.js remotePatterns
+const CONFIGURED_IMAGE_HOSTNAMES = [
+  'placehold.co',
+  'lh3.googleusercontent.com',
+  'storage.googleapis.com', // Note: next.config might have path constraints for this
+  'upload.wikimedia.org',
+  // Add other frequently used and configured hostnames here
+];
+
+const isUrlProcessableByNextImage = (imageUrl?: string): boolean => {
+  if (!imageUrl) return false;
+  try {
+    const url = new URL(imageUrl);
+    // Simple check: is the hostname in our known list?
+    // A more robust check might involve regex if patterns are used in next.config.js
+    return CONFIGURED_IMAGE_HOSTNAMES.includes(url.hostname);
+  } catch (e) {
+    // Invalid URL
+    return false;
+  }
+};
+
+
 interface DiaryPostCardProps {
   post: DiaryPost;
   onLikePost: (postId: string) => void;
   isLikedByCurrentUser: boolean;
   isGuestMode?: boolean;
-  currentUserId?: string | null; // Added to check if guest for like action
+  currentUserId?: string | null;
 }
 
 function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode, currentUserId }: DiaryPostCardProps) {
@@ -41,11 +65,11 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode, cu
 
   const handleLikeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (isGuestMode || !currentUserId) { // Also check currentUserId for non-guest but unauth-like scenarios
+    if (isGuestMode || !currentUserId) {
       toast({ title: "Feature Locked", description: "Please sign in to like posts.", variant: "default" });
       return;
     }
-    onLikePost(post._id!); // Use _id as it's guaranteed from backend
+    onLikePost(post._id!);
   };
 
   const displayContent = useMemo(() => {
@@ -56,6 +80,7 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode, cu
   }, [post.content, showFullContent]);
 
   const imageHint = post.diaryImageHint || post.tags?.[0] || 'diary image';
+  const useNextImage = isUrlProcessableByNextImage(post.imageUrl);
 
   return (
     <Card className="w-full shadow-lg overflow-hidden">
@@ -81,7 +106,12 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode, cu
         <h3 className="text-lg font-semibold">{post.title}</h3>
         {post.imageUrl && (
           <div className="relative aspect-video w-full rounded-md overflow-hidden my-2">
-            <Image src={post.imageUrl} alt={post.title} fill style={{ objectFit: 'cover' }} data-ai-hint={imageHint} />
+            {useNextImage ? (
+              <Image src={post.imageUrl} alt={post.title} fill style={{ objectFit: 'cover' }} data-ai-hint={imageHint} priority={post.isFeatured} />
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} data-ai-hint={imageHint} />
+            )}
           </div>
         )}
         <p className="text-sm text-foreground whitespace-pre-line">
@@ -161,10 +191,15 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUserMongoI
       imageUrl: imageUrl.trim() || undefined,
       diaryImageHint: diaryImageHint.trim() || undefined,
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      isFeatured: Math.random() < 0.1, // Example: 10% chance of being featured
+      isFeatured: Math.random() < 0.1,
     };
-    onPostCreated(newPostData); // Let parent handle actual creation via service
-    // Clear form in parent after successful submission
+    onPostCreated(newPostData);
+    // Clear form fields after attempting to create the post
+    setTitle('');
+    setContent('');
+    setImageUrl('');
+    setDiaryImageHint('');
+    setTags('');
   };
 
   return (
@@ -179,7 +214,7 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUserMongoI
       </div>
       <div>
         <label htmlFor="postImageUrl" className="block text-sm font-medium text-foreground">Image URL (Optional)</label>
-        <Input id="postImageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://placehold.co/600x400.png" />
+        <Input id="postImageUrl" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://example.com/image.png" />
       </div>
       <div>
         <label htmlFor="postImageHint" className="block text-sm font-medium text-foreground">Image Keywords (Optional, for AI)</label>
@@ -230,7 +265,7 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
     if (!isGuestMode) {
       loadPosts();
     } else {
-      setAllPosts([]); // Clear posts if guest mode
+      setAllPosts([]); 
       setIsLoadingPosts(false);
     }
   }, [isGuestMode, loadPosts]);
@@ -240,9 +275,7 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
       await createDiaryPost(newPostData);
       toast({ title: "Diary Post Created!", description: "Your new entry has been added." });
       setIsCreatePostOpen(false);
-      // Clear form in CreateDiaryPostForm - this needs to be handled by resetting state within CreateDiaryPostForm itself after onPostCreated.
-      // For simplicity, we'll rely on re-fetching for now, or the form component can clear itself.
-      loadPosts(); // Re-fetch posts to include the new one
+      loadPosts(); 
     } catch (error) {
       console.error("Failed to create post:", error);
       toast({ title: "Error Creating Post", description: "Could not save your diary entry.", variant: "destructive" });
@@ -426,3 +459,4 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
     </div>
   );
 }
+
