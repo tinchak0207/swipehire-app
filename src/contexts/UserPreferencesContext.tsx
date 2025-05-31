@@ -5,13 +5,16 @@ import React, { createContext, useContext, useState, useEffect, useCallback, typ
 import type { User } from 'firebase/auth';
 // Firestore imports removed: import { doc, getDoc, setDoc } from 'firebase/firestore';
 // Firestore db import removed: import { db } from '@/lib/firebase';
-import type { UserPreferences } from '@/lib/types';
+import type { UserPreferences, AIScriptTone } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 const defaultPreferences: UserPreferences = {
   theme: 'light', // Default theme set to light
   featureFlags: {},
+  defaultAIScriptTone: 'professional',
+  discoveryItemsPerPage: 10,
+  enableExperimentalFeatures: false,
 };
 
 interface UserPreferencesContextType {
@@ -88,7 +91,13 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
       if (response.ok) {
         const userData = await response.json();
-        const loadedPrefs = { ...defaultPreferences, ...userData.preferences };
+        // Merge fetched preferences with defaults to ensure all keys exist
+        const loadedPrefs = { 
+          ...defaultPreferences, 
+          ...userData.preferences,
+          // Ensure featureFlags is an object even if not present in userData.preferences
+          featureFlags: { ...(defaultPreferences.featureFlags || {}), ...(userData.preferences?.featureFlags || {}) } 
+        };
         setPreferencesState(loadedPrefs);
         applyTheme(loadedPrefs.theme);
       } else {
@@ -164,3 +173,4 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     </UserPreferencesContext.Provider>
   );
 };
+

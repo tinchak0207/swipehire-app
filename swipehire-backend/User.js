@@ -22,21 +22,56 @@ const UserSchema = new mongoose.Schema({
         unique: true,
         sparse: true, // sparse index allows multiple documents to have a null value for the indexed field.
     },
-    // preferences for tailored experience (for instance, theme, feature flags, etc.)
+    selectedRole: { // Added selectedRole based on frontend logic
+        type: String,
+        enum: ['recruiter', 'jobseeker', null],
+        default: null,
+    },
+    address: String, // Added optional address
+    country: String, // Added optional country
+    documentId: String, // Added optional documentId
+    recruiterAIWeights: { // Added AI weights
+        skillsMatchScore: Number,
+        experienceRelevanceScore: Number,
+        cultureFitScore: Number,
+        growthPotentialScore: Number,
+    },
+    jobSeekerAIWeights: { // Added AI weights
+        cultureFitScore: Number,
+        jobRelevanceScore: Number,
+        growthOpportunityScore: Number,
+        jobConditionFitScore: Number,
+    },
     preferences: {
         theme: {
             type: String,
-            enum: ['light', 'dark'],
+            enum: ['light', 'dark', 'system'],
             default: 'light',
         },
-        // Add any other properties you require for the unique experience
         featureFlags: {
             type: Map,
             of: Boolean,
             default: {}, // e.g., { newFeatureX: true }
         },
+        // New tailored experience fields
+        defaultAIScriptTone: {
+            type: String,
+            enum: ['professional', 'friendly', 'technical', 'sales', 'general'],
+            default: 'professional',
+        },
+        discoveryItemsPerPage: {
+            type: Number,
+            default: 10, // Example default
+            min: 3,
+            max: 20,
+        },
+        enableExperimentalFeatures: { // More explicit than just a feature flag
+            type: Boolean,
+            default: false,
+        },
     },
 }, { timestamps: true }); // Enable timestamps for createdAt and updatedAt
 
 // Export the model
-module.exports = mongoose.model('User', UserSchema); // Corrected: UserSchema instead of User
+module.exports = mongoose.model('User', UserSchema);
+

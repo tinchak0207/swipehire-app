@@ -1,4 +1,5 @@
 
+
 export type UserRole = 'recruiter' | 'jobseeker';
 
 export enum WorkExperienceLevel {
@@ -48,9 +49,15 @@ export interface PersonalityTraitAssessment {
   reason?: string;
 }
 
+export type AIScriptTone = 'professional' | 'friendly' | 'technical' | 'sales' | 'general';
+
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   featureFlags?: Record<string, boolean>;
+  // New tailored experience fields
+  defaultAIScriptTone?: AIScriptTone;
+  discoveryItemsPerPage?: number;
+  enableExperimentalFeatures?: boolean;
 }
 
 export interface Candidate {

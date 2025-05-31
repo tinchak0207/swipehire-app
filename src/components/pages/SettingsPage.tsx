@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences } from '@/lib/types';
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase"; 
 // Firestore imports removed
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -67,13 +67,15 @@ const defaultJobSeekerWeights: JobSeekerPerspectiveWeights = {
   jobConditionFitScore: 15,
 };
 
-// Default local preferences were here, now primarily handled by context
-// const defaultLocalPreferences: UserPreferences = {
-//   theme: 'light', // Default to light
-//   featureFlags: {
-//     showExperimentalFeature: false,
-//   }
-// };
+const defaultAIScriptToneOptions: { value: AIScriptTone; label: string }[] = [
+  { value: 'professional', label: 'Professional' },
+  { value: 'friendly', label: 'Friendly' },
+  { value: 'technical', label: 'Technical' },
+  { value: 'sales', label: 'Sales-Oriented' },
+  { value: 'general', label: 'General' },
+];
+
+const discoveryItemsPerPageOptions = [5, 10, 15, 20];
 
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
@@ -97,8 +99,12 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
   const [isLoadingSettings, setIsLoadingSettings] = useState(true); // For loading name, email, etc.
 
+  // State for new preferences
   const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(contextPreferences.theme);
   const [localFeatureFlags, setLocalFeatureFlags] = useState<Record<string, boolean>>(contextPreferences.featureFlags || {});
+  const [defaultAIScriptTone, setDefaultAIScriptTone] = useState<AIScriptTone>(contextPreferences.defaultAIScriptTone || 'professional');
+  const [discoveryItemsPerPage, setDiscoveryItemsPerPage] = useState<number>(contextPreferences.discoveryItemsPerPage || 10);
+  const [enableExperimentalFeatures, setEnableExperimentalFeatures] = useState<boolean>(contextPreferences.enableExperimentalFeatures || false);
 
 
   const { toast } = useToast();
@@ -112,6 +118,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     if (!contextLoading) {
       setLocalTheme(contextPreferences.theme);
       setLocalFeatureFlags(contextPreferences.featureFlags || {});
+      setDefaultAIScriptTone(contextPreferences.defaultAIScriptTone || 'professional');
+      setDiscoveryItemsPerPage(contextPreferences.discoveryItemsPerPage || 10);
+      setEnableExperimentalFeatures(contextPreferences.enableExperimentalFeatures || false);
     }
   }, [contextPreferences, contextLoading]);
   
@@ -156,33 +165,30 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           } else {
             setJobSeekerWeights(defaultJobSeekerWeights);
           }
-          // Preferences (theme, feature flags) are loaded by UserPreferencesContext
+          // Preferences (theme, feature flags, and new tailored ones) are loaded by UserPreferencesContext and synced to local state
         })
         .catch(error => {
           console.error("Error fetching user settings from MongoDB backend:", error);
           toast({ title: "Error Loading Settings", description: "Could not load your saved settings. Please ensure your profile is complete.", variant: "destructive" });
-          // Fallback to Firebase Auth info if backend fetch fails for name/email
           setUserName(user.displayName || '');
           setUserEmail(user.email || '');
-          setSelectedRoleInSettings(currentUserRole || null); // Use role from HomePage if backend fails
+          setSelectedRoleInSettings(currentUserRole || null); 
         })
         .finally(() => {
           setIsLoadingSettings(false);
         });
     } else if (user && !mongoDbUserId) {
-      // Still waiting for mongoDbUserId from context, or it means user is not in MongoDB yet.
-      // Fallback to Firebase Auth for basic display, settings save will be disabled or prompt creation.
       setUserName(user.displayName || '');
       setUserEmail(user.email || '');
       setSelectedRoleInSettings(currentUserRole || null);
-      setIsLoadingSettings(false); // No backend data to load yet
+      setIsLoadingSettings(false); 
        toast({ title: "Profile Sync Pending", description: "Your profile data is being synced. Some settings might be unavailable until sync is complete.", variant: "default", duration: 7000 });
     } else {
-      setIsLoadingSettings(false); // No user
+      setIsLoadingSettings(false); 
     }
     loadAppStats();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGuestMode, currentUserRole, mongoDbUserId]); // mongoDbUserId is crucial here
+  }, [isGuestMode, currentUserRole, mongoDbUserId]); 
 
 
   useEffect(() => {
@@ -216,18 +222,20 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       return;
     }
 
-    const user = auth.currentUser; // Firebase user
-    if (user && mongoDbUserId) { // Check mongoDbUserId again
+    const user = auth.currentUser; 
+    if (user && mongoDbUserId) { 
       
       const currentPreferencesToSave: UserPreferences = {
         theme: localTheme,
         featureFlags: localFeatureFlags,
+        defaultAIScriptTone: defaultAIScriptTone,
+        discoveryItemsPerPage: discoveryItemsPerPage,
+        enableExperimentalFeatures: enableExperimentalFeatures,
       };
 
-      // This data will be sent to PUT /api/users/:mongoDbUserId
       const settingsData: any = { 
         name: userName,
-        email: userEmail, // Backend might ignore this if it's tied to Firebase auth email
+        email: userEmail, 
         selectedRole: selectedRoleInSettings,
         address,
         country,
@@ -235,11 +243,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         recruiterAIWeights: recruiterWeights,
         jobSeekerAIWeights: jobSeekerWeights,
         preferences: currentPreferencesToSave,
-        // firebaseUid: user.uid, // The backend should ideally store and index by Firebase UID
       };
-      // Note: The backend PUT /api/users/:id expects the full user object or fields to update.
-      // It will merge these.
-
+      
       try {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`, {
           method: 'PUT',
@@ -261,7 +266,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
           onRoleChange(selectedRoleInSettings); 
         }
-        // Update recruiterProfileComplete based on new name/email
         if (selectedRoleInSettings === 'recruiter' && userName.trim() !== '' && userEmail.trim() !== '') {
             localStorage.setItem('recruiterProfileComplete', 'true');
         } else if (selectedRoleInSettings === 'recruiter') {
@@ -269,9 +273,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         } else {
              localStorage.removeItem('recruiterProfileComplete');
         }
-        // Optionally re-fetch user data from backend to ensure UI consistency if backend modifies data
-        // fetchAndSetUserPreferences(mongoDbUserId); // If context needs full refresh from backend
-        // For now, local state updates should suffice for immediate UI feedback.
 
       } catch (error: any) {
         console.error("Error saving settings to MongoDB backend:", error);
@@ -509,17 +510,73 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               </div>
             </RadioGroup>
           </div>
-           <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+        </CardContent>
+      </Card>
+
+       <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <SlidersHorizontal className="mr-2 h-5 w-5 text-primary" />
+            Personalized Experience
+          </CardTitle>
+          <CardDescription>Fine-tune how the app works for you.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="defaultAIScriptTone" className="text-base flex items-center">
+              <Bot className="mr-2 h-4 w-4 text-muted-foreground" /> Default AI Script Tone
+            </Label>
+            <Select
+              value={defaultAIScriptTone}
+              onValueChange={(value: AIScriptTone) => setDefaultAIScriptTone(value)}
+              disabled={isGuestMode}
+            >
+              <SelectTrigger id="defaultAIScriptTone">
+                <SelectValue placeholder="Select default AI script tone" />
+              </SelectTrigger>
+              <SelectContent>
+                {defaultAIScriptToneOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="discoveryItemsPerPage" className="text-base flex items-center">
+              <BookOpen className="mr-2 h-4 w-4 text-muted-foreground" /> Discovery Items Per Page
+            </Label>
+            <Select
+              value={String(discoveryItemsPerPage)}
+              onValueChange={(value) => setDiscoveryItemsPerPage(Number(value))}
+              disabled={isGuestMode}
+            >
+              <SelectTrigger id="discoveryItemsPerPage">
+                <SelectValue placeholder="Select items per page" />
+              </SelectTrigger>
+              <SelectContent>
+                {discoveryItemsPerPageOptions.map(option => (
+                  <SelectItem key={option} value={String(option)}>
+                    {option} items
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
             <div className="space-y-0.5">
-              <Label htmlFor="experimental-feature" className="text-base">Enable Experimental Features</Label>
+              <Label htmlFor="enableExperimentalFeatures" className="text-base flex items-center">
+                <Rocket className="mr-2 h-4 w-4 text-muted-foreground" /> Enable Experimental Features
+              </Label>
               <p className="text-xs text-muted-foreground">
-                Try out new features that are still in development. (Conceptual)
+                Try out new features that are still in development.
               </p>
             </div>
             <Switch
-              id="experimental-feature"
-              checked={localFeatureFlags.showExperimentalFeature || false}
-              onCheckedChange={(checked) => handleFeatureFlagChange('showExperimentalFeature', checked)}
+              id="enableExperimentalFeatures"
+              checked={enableExperimentalFeatures}
+              onCheckedChange={setEnableExperimentalFeatures}
               disabled={isGuestMode}
             />
           </div>
@@ -693,3 +750,4 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
+
