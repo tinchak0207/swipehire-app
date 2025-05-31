@@ -4,11 +4,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; // Input is not used, can be removed if not planned for future.
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Mail, Linkedin, Twitter, Share2, Download, QrCode, ExternalLink } from "lucide-react";
+import { Copy, Mail, Linkedin, Twitter, Share2, Download, QrCode, ExternalLink, FileVideo2 } from "lucide-react"; // Added FileVideo2
 import { cn } from '@/lib/utils';
-import QRCodeStylized from 'qrcode.react'; // Using a different import name to avoid conflict if 'QRCode' is used elsewhere
+import QRCodeStylized from 'qrcode.react';
 import html2canvas from 'html2canvas';
 
 interface ShareModalProps {
@@ -40,8 +40,8 @@ export function ShareModal({
     }
   }, []);
 
-  const urlToShare = appOrigin || `https://[your-app-domain.com]`; // Fallback
-  const qrCodeValue = appOrigin || "https://swipehire-app.com"; // Ensure QR always has a valid URL
+  const urlToShare = appOrigin || `https://swipehire-app.com`; // Fallback
+  const qrCodeValue = urlToShare;
 
   const shareTextGeneric = `Check out this ${itemType} on SwipeHire: ${itemName}${itemDescription ? ` (${itemDescription})` : ''}. Visit ${BITLY_URL} or scan the QR code.`;
   const emailSubject = `Interesting ${itemType} on SwipeHire: ${itemName}`;
@@ -77,9 +77,9 @@ export function ShareModal({
     if (shareCardRef.current) {
       try {
         const canvas = await html2canvas(shareCardRef.current, {
-          useCORS: true, // Important if any images are from other domains
-          backgroundColor: '#ffffff', // Set a background color for transparency handling
-          scale: 2, // Increase scale for better resolution
+          useCORS: true,
+          backgroundColor: '#ffffff',
+          scale: 2,
         });
         const image = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -113,14 +113,13 @@ export function ShareModal({
         </DialogHeader>
 
         <div className="p-6 space-y-6">
-          {/* Area to be captured as image */}
           <div
             ref={shareCardRef}
             id="shareCardContent"
             className="p-6 rounded-lg border bg-background shadow-md overflow-hidden text-center space-y-3"
-            style={{ width: '380px', margin: '0 auto' }} // Fixed width for consistent image generation
+            style={{ width: '380px', margin: '0 auto' }}
           >
-            <Share2 className="h-10 w-10 text-primary mx-auto mb-1" />
+            <FileVideo2 className="h-12 w-12 text-primary mx-auto mb-2" /> {/* App Icon */}
             <h3 className="text-xl font-bold text-foreground truncate" title={itemName}>{itemName}</h3>
             {itemDescription && <p className="text-sm text-muted-foreground truncate" title={itemDescription}>{itemDescription}</p>}
             
@@ -128,11 +127,11 @@ export function ShareModal({
               <QRCodeStylized
                 value={qrCodeValue}
                 size={120}
-                level="M" // Error correction level
+                level="M"
                 bgColor="#ffffff"
                 fgColor="#000000"
-                imageSettings={qrCodeValue ? { // Only add imageSettings if qrCodeValue is not empty
-                    src: "/assets/logo-favicon.png", // Path to your small logo in public/assets
+                imageSettings={qrCodeValue ? {
+                    src: "/assets/logo-favicon.png", // Conceptual path to small app logo
                     height: 28,
                     width: 28,
                     excavate: true,
@@ -177,3 +176,5 @@ export function ShareModal({
     </Dialog>
   );
 }
+
+    
