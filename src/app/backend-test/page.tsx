@@ -107,7 +107,7 @@ export default function BackendTestPage() {
         const errorData = await response.json().catch(() => ({ message: `Error: ${response.status} - ${response.statusText}` }));
         throw new Error(errorData.message);
       }
-      const { user: createdUser }: { user: User } = await response.json();
+      const { user: createdUser }: { user: User } = await response.json(); // Assuming backend returns { message: string, user: User }
       toast({ title: "User Created!", description: `${createdUser.name} (ID: ${createdUser._id}) has been added.` });
       setCreatedUserId(createdUser._id);
       setUserIdToFetch(createdUser._id); // Pre-fill for easy fetching
@@ -309,4 +309,9 @@ export default function BackendTestPage() {
           <p>6. **Error Handling & Security:** This is an illustrative example. Real applications require robust error handling, input validation, and security measures (like authentication/authorization for API endpoints).</p>
         </CardContent>
         <CardFooter>
-          <p className="text-xs text-muted-foreground">This setup demonstrates how a Next.js frontend can interact with a custom backend to manage user-specific data for
+          <p className="text-xs text-muted-foreground">This setup demonstrates how a Next.js frontend can interact with a custom backend to manage user-specific data.</p>
+        </CardFooter>
+      </Card>
+    </div>
+  );
+}

@@ -14,7 +14,7 @@ const UserSchema = new mongoose.Schema({
         required: true,
         unique: true,
         lowercase: true,
-        trim: true, // Added trim as good practice
+        trim: true, 
     },
     // preferences for tailored experience (for instance, theme, feature flags, etc.)
     preferences: {
@@ -33,4 +33,4 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true }); // Enable timestamps for createdAt and updatedAt
 
 // Export the model
-module.exports = mongoose.model('User', User
+module.exports = mongoose.model('User', UserSchema); // Corrected: UserSchema instead of User

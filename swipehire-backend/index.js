@@ -4,10 +4,10 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors'); // Import CORS
-const User = require('./models/User'); // Our user model
+const User = require('./User'); // Our user model
 
 const app = express();
-const PORT = process.env.BACKEND_PORT || 5000; // Use BACKEND_PORT from .env or default to 5000
+const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000 (as per user's guide)
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:9002'; // Get frontend URL from .env
 
 // Middleware to parse JSON
@@ -17,7 +17,7 @@ app.use(express.json());
 app.use(cors({ origin: FRONTEND_URL }));
 
 // Connect to MongoDB
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/swipehiredb';
+const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/swipehiredb';
 mongoose.connect(MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
@@ -86,13 +86,6 @@ app.put('/api/users/:id', async (req, res) => {
         }
         const update = req.body; // e.g., { "preferences": { "theme": "dark" } } or { "name": "New Name"}
 
-        // For nested updates like preferences, ensure Mongoose understands to update the subdocument
-        // If you're sending the whole preferences object: { preferences: { theme: 'new', featureFlags: { ... } } }
-        // Mongoose's findByIdAndUpdate should handle this correctly.
-        // For partial updates to preferences, you might use dot notation in the update object if you construct it carefully.
-        // e.g. { "preferences.theme": "new_theme" }
-        // However, sending the full 'preferences' object in the body is simpler for the frontend for now.
-
         const updatedUser = await User.findByIdAndUpdate(userId, update, { new: true, runValidators: true });
 
         if (!updatedUser) return res.status(404).json({ message: 'User not found' });
@@ -108,4 +101,5 @@ app.put('/api/users/:id', async (req, res) => {
 // Start the server
 app.listen(PORT, () => {
     console.log(`Custom Backend Server running on http://localhost:${PORT}`);
-    console.log(`Make sure your Next.js app is configured to send requests to this address
+    console.log(`Make sure your Next.js app is configured to send requests to this address.`); // Corrected template literal
+});
