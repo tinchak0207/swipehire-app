@@ -91,6 +91,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const localFilteredCandidates = useMemo(() => {
+    console.log('[CandidateDiscovery] Recalculating localFilteredCandidates...');
+    console.log(`[CandidateDiscovery] Initial allCandidates count: ${allCandidates.length}`);
     let candidates = [...allCandidates];
 
     if (activeFilters.experienceLevels.size > 0) {
@@ -114,44 +116,63 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    return candidates.filter(c => !passedCandidateProfileIds.has(c.id));
+    const candidatesBeforePassFilter = candidates.length;
+    const finalFiltered = candidates.filter(c => !passedCandidateProfileIds.has(c.id));
+    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidatesBeforePassFilter}, Passed IDs count: ${passedCandidateProfileIds.size}, Final filtered count: ${finalFiltered.length}`);
+    return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds]);
 
   useEffect(() => {
+    console.log('[CandidateDiscovery] filteredCandidates updated, new length:', localFilteredCandidates.length);
     setFilteredCandidates(localFilteredCandidates);
   }, [localFilteredCandidates]);
 
   const loadMoreCandidates = useCallback(() => {
+    console.log('[CandidateDiscovery] loadMoreCandidates called.');
     if (isLoading || !hasMore || currentIndex >= filteredCandidates.length) {
-      if (currentIndex >= filteredCandidates.length) setHasMore(false);
+      if (currentIndex >= filteredCandidates.length) {
+        console.log('[CandidateDiscovery] No more candidates to load (currentIndex >= filteredCandidates.length).');
+        setHasMore(false);
+      }
       return;
     }
     setIsLoading(true);
+    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}`);
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredCandidates.slice(currentIndex, newLoadIndex);
-      setDisplayedCandidates(prev => [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))]);
+      setDisplayedCandidates(prev => {
+        const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
+        console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
+        return updatedDisplay;
+      });
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredCandidates.length);
       setIsLoading(false);
+      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidates.length}`);
     }, 700);
   }, [isLoading, hasMore, currentIndex, filteredCandidates]);
 
   useEffect(() => {
+    console.log('[CandidateDiscovery] filteredCandidates dependency changed. Resetting display.');
     setDisplayedCandidates([]);
     setCurrentIndex(0);
     const hasFilteredItems = filteredCandidates.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
+      console.log('[CandidateDiscovery] Has filtered items, calling loadMoreCandidates.');
       loadMoreCandidates();
+    } else {
+      console.log('[CandidateDiscovery] No filtered items to display.');
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates]);
+  }, [filteredCandidates]); // loadMoreCandidates removed from deps as it's stable with useCallback
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
+        console.log('[CandidateDiscovery] IntersectionObserver triggered loadMoreCandidates.');
         loadMoreCandidates();
       }
     }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
@@ -305,7 +326,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                 <p className="text-muted-foreground text-center py-4">Your trash bin is empty.</p>
               ) : (
                 trashBinCandidates.map(candidate => (
-                  <Card key={candidate.id} className="flex items-center p-3 space-x-3 shadow-sm">
+                  <div key={candidate.id} className="flex items-center p-3 space-x-3 shadow-sm border rounded-md">
                     {candidate.avatarUrl && (
                         <Image
                             src={candidate.avatarUrl}
@@ -323,7 +344,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                     <Button variant="outline" size="sm" onClick={() => handleRetrieveCandidate(candidate.id)} className="text-primary hover:bg-primary/10 border-primary/50">
                       <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Retrieve
                     </Button>
-                  </Card>
+                  </div>
                 ))
               )}
             </div>

@@ -661,7 +661,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col overflow-hidden h-full"
+        className="flex flex-col overflow-hidden h-full" // h-full is important for flex children to take up space
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -673,25 +673,26 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full aspect-[3/4] shrink-0 bg-muted">
+        {/* Ensure this div has a defined height or its content (Image with fill) will not render predictably */}
+        <div className="relative w-full h-[60%] shrink-0 bg-muted"> {/* Example: Media takes 60% of card height */}
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
-              fill
+              fill // fill requires parent to have position: relative (which it does) and defined dimensions
               className="object-cover"
               data-ai-hint={candidate.dataAiHint || "person"}
-              priority // Added priority for potentially better LCP
+              priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center" data-ai-hint="profile avatar placeholder">
-              {/* Using a generic icon if avatar is missing, as the placeholder might be the issue */}
+            <div className="w-full h-full flex items-center justify-center bg-gray-200" data-ai-hint="profile avatar placeholder">
               <Briefcase className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
         </div>
 
         {/* Text Content Area */}
+        {/* This div should take up the remaining space and scroll if necessary */}
         <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm">
             <CardHeader className="p-0 mb-1">
                 <div className="flex items-start justify-between">
@@ -781,4 +782,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
