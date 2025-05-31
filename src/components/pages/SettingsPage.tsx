@@ -9,7 +9,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle } from 'lucide-react';
+import { auth, db } from "@/lib/firebase"; // Import db for Firestore
+import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore functions
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Rocket, ListChecks, Construction } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
-  onRoleChange: (newRole: UserRole) => void;
+  onRoleChange: (newRole: UserRole) => void; // This will now primarily trigger Firestore update via HomePage
   isGuestMode?: boolean;
 }
 
@@ -63,7 +65,7 @@ const defaultJobSeekerWeights: JobSeekerPerspectiveWeights = {
 };
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(currentUserRole);
+  const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
   const [address, setAddress] = useState('');
@@ -79,6 +81,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [jobSeekerWeights, setJobSeekerWeights] = useState<JobSeekerPerspectiveWeights>(defaultJobSeekerWeights);
   const [recruiterWeightsError, setRecruiterWeightsError] = useState<string | null>(null);
   const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
 
   const { toast } = useToast();
 
@@ -87,24 +90,65 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     return sum === 100;
   };
 
+  // Load settings from Firestore
   useEffect(() => {
-    if (!isGuestMode) {
-      const savedRecruiterWeights = localStorage.getItem('userRecruiterAIWeights');
-      if (savedRecruiterWeights) {
-        try {
-          const parsed = JSON.parse(savedRecruiterWeights);
-          if (validateWeights(parsed)) setRecruiterWeights(parsed);
-        } catch (e) { console.error("Error parsing recruiter weights from localStorage", e); }
-      }
-      const savedJobSeekerWeights = localStorage.getItem('userJobSeekerAIWeights');
-      if (savedJobSeekerWeights) {
-        try {
-          const parsed = JSON.parse(savedJobSeekerWeights);
-          if (validateWeights(parsed)) setJobSeekerWeights(parsed);
-        } catch (e) { console.error("Error parsing job seeker weights from localStorage", e); }
-      }
+    if (isGuestMode || !auth.currentUser) {
+      setUserName('Guest User');
+      setUserEmail('');
+      setSelectedRoleInSettings(null);
+      setAddress('');
+      setCountry('');
+      setDocumentId('');
+      setRecruiterWeights(defaultRecruiterWeights);
+      setJobSeekerWeights(defaultJobSeekerWeights);
+      setIsLoadingSettings(false);
+      return;
     }
-  }, [isGuestMode]);
+
+    setIsLoadingSettings(true);
+    const user = auth.currentUser;
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      getDoc(userDocRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setUserName(data.name || user.displayName || '');
+          setUserEmail(data.email || user.email || '');
+          setSelectedRoleInSettings(data.selectedRole || null);
+          setAddress(data.address || '');
+          setCountry(data.country || '');
+          setDocumentId(data.documentId || '');
+
+          if (data.recruiterAIWeights && validateWeights(data.recruiterAIWeights)) {
+            setRecruiterWeights(data.recruiterAIWeights);
+          } else {
+            setRecruiterWeights(defaultRecruiterWeights);
+          }
+          if (data.jobSeekerAIWeights && validateWeights(data.jobSeekerAIWeights)) {
+            setJobSeekerWeights(data.jobSeekerAIWeights);
+          } else {
+            setJobSeekerWeights(defaultJobSeekerWeights);
+          }
+        } else {
+          // Doc doesn't exist, use Auth info as defaults
+          setUserName(user.displayName || '');
+          setUserEmail(user.email || '');
+          setSelectedRoleInSettings(null); // No role set yet
+          setRecruiterWeights(defaultRecruiterWeights);
+          setJobSeekerWeights(defaultJobSeekerWeights);
+        }
+      }).catch(error => {
+        console.error("Error fetching user settings from Firestore:", error);
+        toast({ title: "Error Loading Settings", description: "Could not load your saved settings.", variant: "destructive" });
+        // Fallback to Auth info
+        setUserName(user.displayName || '');
+        setUserEmail(user.email || '');
+      }).finally(() => {
+        setIsLoadingSettings(false);
+      });
+    }
+    loadAppStats();
+  }, [isGuestMode, toast, currentUserRole]); // currentUserRole in dep array to re-fetch if it changes from HomePage
 
 
   useEffect(() => {
@@ -128,38 +172,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     }
   };
 
-  useEffect(() => {
-    if (isGuestMode) {
-      setSelectedRole(null);
-      setUserName('Guest User');
-      setUserEmail('');
-      setAddress('');
-      setCountry('');
-      setDocumentId('');
-      setAppStats(initialAppStats); // Clear stats for guest
-      setRecruiterWeights(defaultRecruiterWeights);
-      setJobSeekerWeights(defaultJobSeekerWeights);
-      return;
-    }
-
-    setSelectedRole(currentUserRole);
-    const savedName = localStorage.getItem('userNameSettings');
-    const savedEmail = localStorage.getItem('userEmailSettings');
-    const savedAddress = localStorage.getItem('userAddressSettings');
-    const savedCountry = localStorage.getItem('userCountrySettings');
-    const savedDocumentId = localStorage.getItem('userDocumentIdSettings');
-
-    if (savedName) setUserName(savedName);
-    if (savedEmail) setUserEmail(savedEmail);
-    if (savedAddress) setAddress(savedAddress);
-    if (savedCountry) setCountry(savedCountry);
-    if (savedDocumentId) setDocumentId(savedDocumentId);
-
-    loadAppStats();
-  }, [currentUserRole, isGuestMode]);
-
-  const handleSaveSettings = () => {
-    if (isGuestMode) {
+  const handleSaveSettings = async () => {
+    if (isGuestMode || !auth.currentUser) {
       toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode.", variant: "default" });
       return;
     }
@@ -168,29 +182,44 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       return;
     }
 
-    if (selectedRole && selectedRole !== currentUserRole) {
-      onRoleChange(selectedRole);
+    const user = auth.currentUser;
+    if (user) {
+      const userDocRef = doc(db, "users", user.uid);
+      const settingsData: any = {
+        name: userName,
+        email: userEmail, // Email might be primarily managed by Auth, but good to have a display copy
+        selectedRole: selectedRoleInSettings,
+        address,
+        country,
+        documentId,
+        recruiterAIWeights: recruiterWeights,
+        jobSeekerAIWeights: jobSeekerWeights,
+        updatedAt: new Date().toISOString(),
+      };
+
+      try {
+        await setDoc(userDocRef, settingsData, { merge: true });
+        toast({
+          title: 'Settings Saved',
+          description: 'Your preferences and general information have been updated in Firestore.',
+        });
+        if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
+          onRoleChange(selectedRoleInSettings); // Notify HomePage to update its state if role changed
+        }
+         // Update recruiterProfileComplete in localStorage based on saved settings
+        if (selectedRoleInSettings === 'recruiter' && userName.trim() !== '' && userEmail.trim() !== '') {
+            localStorage.setItem('recruiterProfileComplete', 'true');
+        } else if (selectedRoleInSettings === 'recruiter') {
+            localStorage.setItem('recruiterProfileComplete', 'false');
+        } else {
+            localStorage.removeItem('recruiterProfileComplete');
+        }
+
+      } catch (error) {
+        console.error("Error saving settings to Firestore:", error);
+        toast({ title: "Error Saving Settings", description: "Could not save your settings.", variant: "destructive" });
+      }
     }
-    localStorage.setItem('userNameSettings', userName);
-    localStorage.setItem('userEmailSettings', userEmail);
-    localStorage.setItem('userAddressSettings', address);
-    localStorage.setItem('userCountrySettings', country);
-    localStorage.setItem('userDocumentIdSettings', documentId);
-
-    if (selectedRole === 'recruiter') {
-        const profileComplete = userName.trim() !== '' && userEmail.trim() !== '';
-        localStorage.setItem('recruiterProfileComplete', JSON.stringify(profileComplete));
-    } else {
-        localStorage.removeItem('recruiterProfileComplete');
-    }
-
-    localStorage.setItem('userRecruiterAIWeights', JSON.stringify(recruiterWeights));
-    localStorage.setItem('userJobSeekerAIWeights', JSON.stringify(jobSeekerWeights));
-
-    toast({
-      title: 'Settings Saved',
-      description: 'Your preferences and general information have been updated.',
-    });
   };
 
   const handleResetStats = () => {
@@ -202,7 +231,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       analyticsKeys.forEach(key => {
         localStorage.removeItem(`analytics_${key}`);
       });
-      loadAppStats(); // Reload stats to show zeros
+      loadAppStats(); 
       toast({
         title: 'App Usage Stats Reset',
         description: 'The conceptual analytics have been cleared from local storage.',
@@ -223,7 +252,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       });
       return;
     }
-    // In a real app, you'd send this data to a backend.
     console.log("Feedback Submitted:", { category: feedbackCategory, message: feedbackMessage });
     toast({
       title: "Feedback Received!",
@@ -249,9 +277,16 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     }
   };
 
-
   const saveButtonText = "Save Settings";
   const SaveButtonIcon = UserCog;
+
+  if (isLoadingSettings && !isGuestMode) {
+    return (
+      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      </div>
+    );
+  }
 
 
   return (
@@ -264,7 +299,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </p>
       </div>
 
-      {/* Role Selection Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -275,8 +309,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardHeader>
         <CardContent>
           <RadioGroup
-            value={selectedRole ?? undefined}
-            onValueChange={(value: UserRole) => setSelectedRole(value)}
+            value={selectedRoleInSettings ?? undefined}
+            onValueChange={(value: UserRole) => setSelectedRoleInSettings(value)}
             className="space-y-2"
             disabled={isGuestMode}
           >
@@ -298,7 +332,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
 
-      {/* Personal Information Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -306,8 +339,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             Personal Information
           </CardTitle>
           <CardDescription>
-            Update your contact and personal details. 
-            {selectedRole === 'recruiter' && " Recruiters: Name and Email are required to post jobs."}
+            Update your contact and personal details. These will be stored in your Firestore user document.
+            {selectedRoleInSettings === 'recruiter' && " Recruiters: Name and Email are required to post jobs."}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -333,12 +366,15 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               placeholder="Enter your email address" 
               value={userEmail} 
               onChange={(e) => setUserEmail(e.target.value)} 
-              disabled={isGuestMode}
+              disabled={isGuestMode || (auth.currentUser && auth.currentUser.email === userEmail)} // Prevent editing primary email if it's from Auth
             />
+             {auth.currentUser && auth.currentUser.email === userEmail && (
+              <p className="text-xs text-muted-foreground">Your primary email is managed by Firebase Authentication.</p>
+            )}
           </div>
           <div className="space-y-1">
             <Label htmlFor="address" className="text-base flex items-center">
-              <Home className="mr-2 h-4 w-4 text-muted-foreground" /> Street Address
+              <Home className="mr-2 h-4 w-4 text-muted-foreground" /> Street Address (Optional)
             </Label>
             <Input 
               id="address" 
@@ -350,7 +386,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </div>
           <div className="space-y-1">
             <Label htmlFor="country" className="text-base flex items-center">
-              <Globe className="mr-2 h-4 w-4 text-muted-foreground" /> Country
+              <Globe className="mr-2 h-4 w-4 text-muted-foreground" /> Country (Optional)
             </Label>
             <Input 
               id="country" 
@@ -362,7 +398,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </div>
           <div className="space-y-1">
             <Label htmlFor="documentId" className="text-base flex items-center">
-              <ScanLine className="mr-2 h-4 w-4 text-muted-foreground" /> Document ID (e.g., National ID, Passport)
+              <ScanLine className="mr-2 h-4 w-4 text-muted-foreground" /> Document ID (Optional, for verification concept)
             </Label>
             <Input 
               id="documentId" 
@@ -375,7 +411,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
       
-      {/* AI Recommendation Customization Card */}
       {!isGuestMode && (
       <Card className="shadow-lg">
         <CardHeader>
@@ -431,7 +466,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       </Card>
       )}
 
-      {/* App Feedback Card */}
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -502,7 +536,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         )}
       </Card>
       
-      {/* App Usage Insights Card */}
       {!isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
@@ -532,10 +565,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </Card>
       )}
 
-      {/* Save Settings Footer */}
       <CardFooter className="flex justify-end pt-6">
-        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError}>
-          <SaveButtonIcon className="mr-2 h-5 w-5" />
+        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings}>
+          {isLoadingSettings ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <SaveButtonIcon className="mr-2 h-5 w-5" />}
           {saveButtonText}
         </Button>
       </CardFooter>

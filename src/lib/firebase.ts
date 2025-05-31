@@ -1,6 +1,7 @@
 // src/lib/firebase.ts
 import { initializeApp, getApp, getApps, type FirebaseApp } from "firebase/app";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth"; // Added setPersistence and browserLocalPersistence
+import { getFirestore } from "firebase/firestore"; // Added Firestore
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -24,6 +25,7 @@ if (!getApps().length) {
 }
 
 const auth = getAuth(app);
+const db = getFirestore(app); // Initialize Firestore
 
 // Set authentication persistence
 setPersistence(auth, browserLocalPersistence)
@@ -36,7 +38,6 @@ setPersistence(auth, browserLocalPersistence)
     console.error("Error setting Firebase auth persistence:", error);
   });
 
-// const db = getFirestore(app); // Example if you use Firestore
 // const storage = getStorage(app); // Example if you use Storage
 
-export { app, auth /*, db, storage */ };
+export { app, auth, db /*, storage */ };
