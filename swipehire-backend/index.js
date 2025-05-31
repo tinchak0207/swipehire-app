@@ -15,7 +15,9 @@ const PORT = process.env.PORT || 5000;
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL, // Your existing test/dev frontend URL from .env
   'https://studio--swipehire-3bscz.us-central1.hosted.app', // Your new production frontend URL
-  // Add any other specific origins you need to allow
+  // Add any other specific origins you need to allow, e.g., IDX preview URLs
+  'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+  'https://9002-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
 ].filter(Boolean); // Filter out undefined/null values if FRONTEND_URL isn't set
 
 console.log(`[CORS Config] Effective ALLOWED_ORIGINS for CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
@@ -41,9 +43,7 @@ app.options('*', (req, res, next) => {
     console.log(`[Global OPTIONS Handler] --- Responded 204 for allowed origin: ${origin} for ${requestPath} with reflected ACAO.`);
   } else {
     console.warn(`[Global OPTIONS Handler] Origin: ${origin} is NOT in ALLOWED_ORIGINS. Responding with minimal 204 (no ACAO reflection).`);
-    // For origins not in the explicit allow list, we still send generic CORS headers.
-    // The main cors middleware will handle the actual enforcement.
-    res.header(headersToSet);
+    res.header(headersToSet); // Still send generic headers, main cors middleware will enforce
     res.sendStatus(204);
     console.log(`[Global OPTIONS Handler] --- Responded 204 for origin: ${origin} (actual request may be blocked by browser if not allowed by main CORS config)`);
   }
@@ -85,16 +85,15 @@ app.post('/api/users', async (req, res) => {
         if (existingUser) {
  return res.status(409).json({ message: 'User already exists with this email or Firebase UID' });
         }
-        // For new users, assign a mock represented ID if not provided, for demo matching.
-        // This is a placeholder for a real profile creation/linking step.
+        
         let finalRepCandidateId = representedCandidateProfileId;
         let finalRepCompanyId = representedCompanyProfileId;
 
         if (selectedRole === 'jobseeker' && !representedCandidateProfileId) {
-            finalRepCandidateId = `cand-user-${firebaseUid.slice(0,5)}`; // Assign a conceptual ID
+            finalRepCandidateId = `cand-user-${firebaseUid.slice(0,5)}`; 
             console.log(`[DB Action] New jobseeker user, assigned conceptual representedCandidateProfileId: ${finalRepCandidateId}`);
         } else if (selectedRole === 'recruiter' && !representedCompanyProfileId) {
-            finalRepCompanyId = `comp-user-${firebaseUid.slice(0,5)}`; // Assign a conceptual ID
+            finalRepCompanyId = `comp-user-${firebaseUid.slice(0,5)}`;
             console.log(`[DB Action] New recruiter user, assigned conceptual representedCompanyProfileId: ${finalRepCompanyId}`);
         }
 
@@ -310,21 +309,17 @@ app.post('/api/interactions/like', async (req, res) => {
         let otherUser = null;
 
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
-            // Recruiter likes a candidate profile
             if (!likingUser.likedCandidateIds.includes(likedProfileId)) {
                 likingUser.likedCandidateIds.push(likedProfileId);
             }
-            // Check for mutual match: Find job seeker user who IS this candidate AND has liked the recruiter's company
             otherUser = await User.findOne({ selectedRole: 'jobseeker', representedCandidateProfileId: likedProfileId });
             if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) {
                 matchMade = true;
             }
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
-            // Job seeker likes a company profile
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) {
                 likingUser.likedCompanyIds.push(likedProfileId);
             }
-            // Check for mutual match: Find recruiter user who REPRESENTS this company AND has liked this job seeker's candidate profile
             otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
             if (otherUser && likingUser.representedCandidateProfileId && otherUser.likedCandidateIds.includes(likingUser.representedCandidateProfileId)) {
                 matchMade = true;
@@ -337,7 +332,6 @@ app.post('/api/interactions/like', async (req, res) => {
         console.log(`[DB Action] Like recorded for user ${likingUser._id} (${likingUserRole}). Target: ${likedProfileId} (${likedProfileType}).`);
 
         if (matchMade && otherUser) {
-            // Ensure consistent order for user IDs in uniqueMatchKey
             const userA_Id = likingUser._id.toString() < otherUser._id.toString() ? likingUser._id : otherUser._id;
             const userB_Id = likingUser._id.toString() < otherUser._id.toString() ? otherUser._id : likingUser._id;
             const uniqueKey = `${userA_Id.toString()}-${userB_Id.toString()}`;
@@ -346,21 +340,20 @@ app.post('/api/interactions/like', async (req, res) => {
 
             if (!existingMatch) {
                 let candidateDisplayId, companyDisplayId, finalUserA, finalUserB;
-                if (likingUserRole === 'recruiter') { // Recruiter (likingUser) liked Candidate (otherUser represents this candidate)
-                    finalUserA = likingUser._id; // Recruiter
-                    finalUserB = otherUser._id; // Job Seeker
-                    candidateDisplayId = likedProfileId; // This is the candidate profile ID
+                if (likingUserRole === 'recruiter') { 
+                    finalUserA = likingUser._id; 
+                    finalUserB = otherUser._id; 
+                    candidateDisplayId = likedProfileId; 
                     companyDisplayId = likingUser.representedCompanyProfileId;
-                } else { // Jobseeker (likingUser) liked Company (otherUser represents this company)
-                    finalUserA = otherUser._id; // Recruiter
-                    finalUserB = likingUser._id; // Job Seeker
+                } else { 
+                    finalUserA = otherUser._id; 
+                    finalUserB = likingUser._id; 
                     candidateDisplayId = likingUser.representedCandidateProfileId;
-                    companyDisplayId = likedProfileId; // This is the company profile ID
+                    companyDisplayId = likedProfileId; 
                 }
                 
                 if (!candidateDisplayId || !companyDisplayId) {
                     console.error("[Match Creation] Critical error: Missing represented profile ID for match detection.", {likingUser, otherUser, likedProfileId, likingUserRole});
-                    // Potentially don't create match or respond with error
                 } else {
                     const newMatch = new Match({
                         userA_Id: finalUserA,
@@ -375,7 +368,7 @@ app.post('/api/interactions/like', async (req, res) => {
                 }
             } else {
                 console.log(`[DB Action] Mutual match ALREADY EXISTS between ${userA_Id} and ${userB_Id}. Match ID: ${existingMatch._id}`);
-                matchMade = true; // It was already a match or just became one.
+                matchMade = true; 
                 newMatchDetails = existingMatch;
             }
         }

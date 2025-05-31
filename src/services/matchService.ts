@@ -17,46 +17,49 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
       body: JSON.stringify(payload),
     });
 
-    // Check if the response is okay and if it's JSON
+    const contentType = response.headers.get("content-type");
+
     if (response.ok) {
-      const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         const responseData = await response.json();
         console.log("Frontend: recordLike service success response:", responseData);
         return responseData as RecordLikeResponse;
       } else {
-        // It's a 2xx response but not JSON. This is unusual but possible.
         const textResponse = await response.text();
         console.warn("Frontend: recordLike service success response was not JSON. Received text:", textResponse.substring(0, 200) + "...");
-        // Depending on backend behavior, this might still be a success, or an error.
-        // For now, let's assume if it's not JSON, it's an unexpected success format or an issue.
         throw new Error(`Unexpected response format from server. Status: ${response.status}. Response: ${textResponse.substring(0,100)}...`);
       }
     } else {
       // Handle non-ok responses (4xx, 5xx)
       let errorData;
-      const contentType = response.headers.get("content-type");
+      let errorMessage = `Failed to record like. Status: ${response.status}.`;
+
       if (contentType && contentType.includes("application/json")) {
         errorData = await response.json();
         console.error("Frontend: recordLike service error (JSON response):", errorData);
-        throw new Error(errorData.message || `Failed to record like. Status: ${response.status}`);
+        errorMessage = errorData.message || errorMessage;
       } else {
-        // If not JSON, it's likely an HTML error page or plain text
         const textError = await response.text();
         console.error("Frontend: recordLike service error (Non-JSON response). Status:", response.status, "Body:", textError.substring(0, 500) + "...");
-        // Try to extract a meaningful message from common HTML error pages
+        
         const titleMatch = textError.match(/<title>(.*?)<\/title>/i);
         const h1Match = textError.match(/<h1>(.*?)<\/h1>/i);
+        const preMatch = textError.match(/<pre>(.*?)<\/pre>/is); // Check for <pre> tag content
+
         let extractedMessage = "Server returned non-JSON error.";
-        if (titleMatch && titleMatch[1]) extractedMessage = titleMatch[1];
-        else if (h1Match && h1Match[1]) extractedMessage = h1Match[1];
-        
-        throw new Error(`Failed to record like. Status: ${response.status}. Server Message: ${extractedMessage}. Full response (first 200 chars): ${textError.substring(0,200)}...`);
+        if (preMatch && preMatch[1]) { // Prefer <pre> content as it often contains the direct Express error
+            extractedMessage = preMatch[1].trim();
+        } else if (titleMatch && titleMatch[1]) {
+            extractedMessage = titleMatch[1].trim();
+        } else if (h1Match && h1Match[1]) {
+            extractedMessage = h1Match[1].trim();
+        }
+        errorMessage = `${errorMessage} Server Message: ${extractedMessage}. Full response (first 200 chars): ${textError.substring(0,200)}...`;
       }
+      throw new Error(errorMessage);
     }
   } catch (error) {
     console.error("Error in recordLike service (catch block):", error);
-    // Ensure error is an instance of Error to have a message property
     if (error instanceof Error) {
       throw error;
     } else {
@@ -77,10 +80,10 @@ export async function fetchMatches(userId: string): Promise<Match[]> {
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', // Ensure fresh data for matches
+      cache: 'no-store', 
     });
 
-    const responseData = await response.json(); // Always try to parse JSON
+    const responseData = await response.json(); 
 
     if (!response.ok) {
       console.error("Frontend: fetchMatches service error response:", responseData);
