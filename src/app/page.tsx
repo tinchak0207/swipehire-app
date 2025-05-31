@@ -266,9 +266,14 @@ function AppContent() {
     const idToUse = currentMongoId || mongoDbUserId; 
     if (!isGuestMode && isAuthenticated && currentUser && idToUse) {
       try {
-        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${idToUse}`, {
+        // Use the new proxy endpoint
+        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
+          // The body should contain only the fields the original /api/users/:identifier PUT expects for role update
+          // For example, if it only needs 'selectedRole':
+          // body: JSON.stringify({ selectedRole: role }),
+          // Or if it expects a fuller object that includes the role:
           body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), 
         });
         if (!response.ok) {
@@ -512,5 +517,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
-    
