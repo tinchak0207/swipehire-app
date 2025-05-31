@@ -3,7 +3,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors'); // Import CORS
+const cors =require('cors'); // Import CORS
 const User = require('./User'); // Our user model
 
 const app = express();
@@ -18,35 +18,16 @@ app.options('*', (req, res, next) => {
   console.log(`[Global OPTIONS] Received OPTIONS request for: ${req.originalUrl} from origin: ${req.headers.origin}`);
   // Check if the origin is allowed
   if (req.headers.origin === FRONTEND_URL) {
-    res.header('Access-Control-Allow-Origin', FRONTEND_URL);
+    res.header('Access-Control-Allow-Origin', req.headers.origin); // Reflect the request's origin
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS'); // Explicitly list PUT
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With'); // Add X-Requested-With and other common headers
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With'); // Add common headers
     res.header('Access-Control-Allow-Credentials', 'true');
-    console.log(`[Global OPTIONS] Responding 204 to allowed origin: ${req.headers.origin} for ${req.originalUrl}`);
+    console.log(`[Global OPTIONS] Responding 204 to allowed origin: ${req.headers.origin} for ${req.originalUrl} with reflected ACAO.`);
     res.sendStatus(204); // No Content for successful preflight
   } else {
-    // If origin is not allowed, or no origin (e.g. server-to-server)
-    console.warn(`[Global OPTIONS] Origin: ${req.headers.origin} not matching FRONTEND_URL: ${FRONTEND_URL} for ${req.originalUrl}. Sending 204 without specific Allow-Origin for non-matched origins or allowing all for testing.`);
-    // Option 1: Send 204 without specific ACAO (browser will then block based on lack of matching origin)
-    // res.sendStatus(204);
-
-    // Option 2: Or, for broader testing if specific origin matching is problematic (less secure for prod)
-    // Allow any origin for OPTIONS for now to see if it's an origin matching issue or something else
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*'); // Reflect origin or allow all
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    console.warn(`[Global OPTIONS] Disallowed origin: ${req.headers.origin} for ${req.originalUrl}. Allowed: ${FRONTEND_URL}. Sending 204 without ACAO match.`);
+    // For disallowed origins, send 204 without specific ACAO. Browser will block based on lack of matching origin.
     res.sendStatus(204);
-
-    // Option 3: Send 403 if origin is present and not allowed (more restrictive)
-    // if (req.headers.origin) {
-    //   console.warn(`[Global OPTIONS] Disallowed origin: ${req.headers.origin} for ${req.originalUrl}. Allowed: ${FRONTEND_URL}`);
-    //   res.status(403).send('Origin not allowed');
-    // } else {
-    //   // No origin, could be server-to-server, or manipulated request.
-    //   // For simplicity in dev, might still send 204, but in prod, scrutinize.
-    //   res.sendStatus(204);
-    // }
   }
 });
 
@@ -182,3 +163,4 @@ app.listen(PORT, () => {
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
     console.log(`Frontend URL allowed by CORS: ${FRONTEND_URL}`); 
 });
+    
