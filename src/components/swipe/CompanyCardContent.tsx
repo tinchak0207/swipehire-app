@@ -445,7 +445,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-card"
+        className="flex flex-col overflow-hidden relative bg-card" // Removed h-full
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -457,26 +457,28 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full aspect-video px-4 pb-4 pt-[100px] shrink-0">
-          {company.logoUrl ? (
-            <Image
-              src={company.logoUrl}
-              alt={company.name + " logo"}
-              fill
-              className="object-contain"
-              data-ai-hint={company.dataAiHint || "company logo"}
-              priority
-            />
-          ) : (
-            <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="company building">
-              <Building className="w-20 h-20 text-muted-foreground" />
-            </div>
-          )}
+        <div className="relative w-full shrink-0 pt-[100px]"> {/* Outer wrapper for padding */}
+          <div className="relative w-full aspect-video px-4 pb-4"> {/* Inner wrapper for aspect ratio & other padding */}
+            {company.logoUrl ? (
+              <Image
+                src={company.logoUrl}
+                alt={company.name + " logo"}
+                fill
+                className="object-contain"
+                data-ai-hint={company.dataAiHint || "company logo"}
+                priority
+              />
+            ) : (
+              <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="company building">
+                <Building className="w-20 h-20 text-muted-foreground" />
+              </div>
+            )}
+          </div>
         </div>
         
-        {/* Text Content Area below media - This div will scroll */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 text-xs sm:text-sm">
+        {/* Text Content Area */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto">
+            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm pr-1">
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
@@ -517,7 +519,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </div>
         </div>
             
-        {/* Footer with actions - Fixed at the bottom */}
+        {/* Footer with actions */}
         <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
             <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
             <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
@@ -732,5 +734,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
-    

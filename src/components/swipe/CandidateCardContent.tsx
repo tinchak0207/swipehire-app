@@ -661,7 +661,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-card"
+        className="flex flex-col overflow-hidden relative bg-card" // Removed h-full
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -673,7 +673,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full aspect-[3/4] shrink-0 pt-4"> {/* Added pt-4 */}
+        <div className="relative w-full aspect-[3/4] shrink-0"> {/* Removed pt-4 for now */}
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
@@ -690,9 +690,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area below media - This div will scroll */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col overflow-y-auto" data-no-drag="true"> {/* Changed to flex flex-col and added overflow-y-auto directly here */}
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm pr-1"> {/* Inner scrollable content */}
+        {/* Text Content Area */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto">
+            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm pr-1">
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
@@ -748,7 +748,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
 
 
-        {/* Footer with actions - Fixed at the bottom */}
+        {/* Footer with actions */}
         <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
           <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
           <ActionButton
@@ -782,5 +782,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
-    
