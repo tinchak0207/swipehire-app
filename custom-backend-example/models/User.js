@@ -2,42 +2,35 @@
 // custom-backend-example/models/User.js
 const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    lowercase: true,
-    trim: true,
-  },
-  // Example for unique settings (flexible structure)
-  uniqueSettings: {
-    type: mongoose.Schema.Types.Mixed, // Allows for any structure
-    default: {},
-  },
-  // Example for feature flags
-  featureFlags: {
-    type: mongoose.Schema.Types.Mixed,
-    default: {},
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  }
-});
+// Define a schema for user data. You can customize it with the fields you need.
+const UserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true,
+        trim: true, // Added trim as good practice
+    },
+    // preferences for tailored experience (for instance, theme, feature flags, etc.)
+    preferences: {
+        theme: {
+            type: String,
+            enum: ['light', 'dark'],
+            default: 'light',
+        },
+        // Add any other properties you require for the unique experience
+        featureFlags: {
+            type: Map,
+            of: Boolean,
+            default: {}, // e.g., { newFeatureX: true }
+        },
+    },
+}, { timestamps: true }); // Enable timestamps for createdAt and updatedAt
 
-// Update `updatedAt` field before saving
-userSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-module.exports = mongoose.model('User', userSchema);
+// Export the model
+module.exports = mongoose.model('User', User
