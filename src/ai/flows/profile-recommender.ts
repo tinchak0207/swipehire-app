@@ -278,8 +278,8 @@ const profileRecommenderFlow = ai.defineFlow(
     });
 
     if (!llmOutputPartial || !llmOutputPartial.weightedScores || !llmOutputPartial.candidateJobFitAnalysis?.weightedScoresForCandidate) {
-      console.error("AI analysis failed to return complete structured output for profileRecommenderFlow. Input:", JSON.stringify(input).substring(0,500) + "...");
-      console.error("LLM Output Partial:", JSON.stringify(llmOutputPartial).substring(0,500) + "...");
+      console.error("AI analysis failed to return complete structured output for profileRecommenderFlow. Input (first 500 chars):", JSON.stringify(input).substring(0,500) + "...");
+      console.error("LLM Output Partial (first 500 chars):", JSON.stringify(llmOutputPartial).substring(0,500) + "...");
       return {
         candidateId: input.candidateProfile.id || 'unknown-candidate',
         matchScore: 0,
@@ -341,3 +341,4 @@ const profileRecommenderFlow = ai.defineFlow(
     };
   }
 );
+

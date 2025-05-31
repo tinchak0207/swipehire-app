@@ -5,12 +5,11 @@ import {googleAI} from '@genkit-ai/googleai';
 // Explicitly load .env variables. Next.js also does this for its server environment,
 // but this ensures it's loaded if this module is imported in other contexts too.
 import { config as dotenvConfig } from 'dotenv';
-dotenvConfig();
+dotenvConfig(); // This line ensures .env is loaded
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
-// The logging here might not appear in the Next.js server console if this module
-// is only initialized lazily. More targeted logging within flows is added for diagnosis.
+// Log the status of the API key AT THE TIME OF MODULE INITIALIZATION
 if (!apiKey) {
   console.error(
     "CRITICAL ERROR (from genkit.ts on initial load/import): GOOGLE_API_KEY environment variable is NOT SET or is EMPTY. " +
@@ -34,3 +33,4 @@ export const ai = genkit({
   // but individual generate calls can also specify models.
   // model: 'googleai/gemini-2.0-flash', // Example, can be overridden
 });
+
