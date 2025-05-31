@@ -205,6 +205,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         return;
       }
     }
+    // Check if the click is on the ScrollArea's scrollbar
+    if (targetElement.closest('[data-radix-scroll-area-viewport] > [data-radix-scroll-area-scrollbar]')) {
+        return;
+    }
+
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
@@ -471,7 +476,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
+          <ScrollArea className="flex-1 min-h-0" data-no-drag="true">
+            <div className="space-y-1 text-xs sm:text-sm pr-3"> {/* Added pr-3 for scrollbar */}
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
@@ -510,7 +516,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </div>
             </div>
-
+          </ScrollArea>
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
@@ -561,6 +567,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                         <JobTypeIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
                     </h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                      When analyzing your fit for this job, our AI considers aspects like the alignment between your skills and experience versus the job's requirements, how your desired work style matches the company culture, potential growth opportunities, and how job conditions (like location and salary) meet your preferences. The final score reflects weights you can customize in Settings.
                       {displayedJobDescriptionInModal}
                       {jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL && (
                           <Button

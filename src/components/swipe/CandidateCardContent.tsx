@@ -166,6 +166,7 @@ function CandidateDetailsModal({
                 <Briefcase className="mr-2 h-5 w-5 text-primary" /> Experience Summary
               </h3>
               <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity.
                 {summaryForModalDisplay}
                 {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && (
                     <Button
@@ -448,6 +449,19 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
            return; 
         }
     }
+    // Check if the click is on the ScrollArea's scrollbar
+    if (targetElement.closest('[data-radix-scroll-area-viewport] > [data-radix-scroll-area-scrollbar]')) {
+        return;
+    }
+    // Or if the click is within the scrollable content and content is actually scrollable
+    const scrollableContent = cardContentRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    if (scrollableContent && scrollableContent.scrollHeight > scrollableContent.clientHeight && targetElement.closest('[data-radix-scroll-area-viewport]')) {
+        // If the intention is to scroll vertically, don't start drag. This is a bit tricky to perfect.
+        // For simplicity, let's assume if it's inside scrollArea and scrollable, it might be scroll attempt.
+        // A more robust solution might check initial deltaY vs deltaX.
+        // For now, let's allow dragging unless specifically on scrollbar.
+    }
+
     e.preventDefault();
     setIsDragging(true);
     setStartX(e.clientX);
@@ -676,59 +690,61 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm">
-                <CardHeader className="p-0 mb-1">
-                    <div className="flex items-start justify-between">
-                        <div className="flex-grow min-w-0">
-                            <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
-                            <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
-                        </div>
-                        {candidate.isUnderestimatedTalent && (
-                            <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
-                                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
-                                    Gem
-                                </Badge>
-                                </TooltipTrigger>
-                                <TooltipContent side="top" className="max-w-xs">
-                                <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                            </TooltipProvider>
-                        )}
-                    </div>
-                    {candidate.location && (
-                    <div className="flex items-center text-xs text-muted-foreground mt-0.5">
-                        <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
-                        <span className="truncate">{candidate.location}</span>
-                    </div>
-                    )}
-                </CardHeader>
+            <ScrollArea className="flex-1 min-h-0" data-no-drag="true">
+              <div className="space-y-1 text-xs sm:text-sm pr-3"> {/* Added pr-3 for scrollbar */}
+                  <CardHeader className="p-0 mb-1">
+                      <div className="flex items-start justify-between">
+                          <div className="flex-grow min-w-0">
+                              <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
+                              <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
+                          </div>
+                          {candidate.isUnderestimatedTalent && (
+                              <TooltipProvider>
+                              <Tooltip>
+                                  <TooltipTrigger asChild>
+                                  <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
+                                      <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
+                                      Gem
+                                  </Badge>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-xs">
+                                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                                  </TooltipContent>
+                              </Tooltip>
+                              </TooltipProvider>
+                          )}
+                      </div>
+                      {candidate.location && (
+                      <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+                          <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
+                          <span className="truncate">{candidate.location}</span>
+                      </div>
+                      )}
+                  </CardHeader>
 
-                <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
-                    {summaryForCardDisplay}
-                </p>
+                  <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
+                      {summaryForCardDisplay}
+                  </p>
 
-                {candidate.desiredWorkStyle && (
-                    <div className="flex items-center text-muted-foreground pt-1">
-                        <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
-                        <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
-                    </div>
-                )}
+                  {candidate.desiredWorkStyle && (
+                      <div className="flex items-center text-muted-foreground pt-1">
+                          <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
+                          <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
+                      </div>
+                  )}
 
-                {candidate.skills && candidate.skills.length > 0 && (
-                    <div className="pt-1">
-                    <div className="flex flex-wrap gap-1">
-                        {candidate.skills.slice(0, 2).map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
-                        ))}
-                        {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
-                    </div>
-                    </div>
-                )}
-            </div>
+                  {candidate.skills && candidate.skills.length > 0 && (
+                      <div className="pt-1">
+                      <div className="flex flex-wrap gap-1">
+                          {candidate.skills.slice(0, 2).map((skill) => (
+                          <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
+                          ))}
+                          {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
+                      </div>
+                      </div>
+                  )}
+              </div>
+            </ScrollArea>
 
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
               <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
