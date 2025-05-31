@@ -9,20 +9,20 @@ dotenvConfig();
 
 const apiKey = process.env.GOOGLE_API_KEY;
 
+// The logging here might not appear in the Next.js server console if this module
+// is only initialized lazily. More targeted logging within flows is added for diagnosis.
 if (!apiKey) {
-  console.error( // Changed to console.error for more visibility
-    "CRITICAL ERROR: GOOGLE_API_KEY environment variable is NOT SET or is EMPTY. " +
+  console.error(
+    "CRITICAL ERROR (from genkit.ts on initial load/import): GOOGLE_API_KEY environment variable is NOT SET or is EMPTY. " +
     "Genkit Google AI plugin will FAIL. " +
     "1. Check your .env file for GOOGLE_API_KEY=YOUR_ACTUAL_KEY. " +
     "2. Ensure the .env file is in the root of your Next.js project. " +
     "3. FULLY RESTART your Next.js development server after changes to .env."
   );
-  // Log the value if it's undefined or empty to help diagnose
-  console.log("Current value of GOOGLE_API_KEY (should not be undefined/empty):", apiKey);
+  console.log("Current value of GOOGLE_API_KEY (from genkit.ts initial load):", apiKey);
 } else {
-  // Log success and a part of the key for verification (be careful not to log the whole key in production logs)
   console.log(
-    "SUCCESS: GOOGLE_API_KEY found by src/ai/genkit.ts. Initializing Google AI plugin with key ending in: ..." + apiKey.slice(-4)
+    "SUCCESS (from genkit.ts on initial load/import): GOOGLE_API_KEY found. Initializing Google AI plugin with key ending in: ..." + apiKey.slice(-4)
   );
 }
 
@@ -34,4 +34,3 @@ export const ai = genkit({
   // but individual generate calls can also specify models.
   // model: 'googleai/gemini-2.0-flash', // Example, can be overridden
 });
-

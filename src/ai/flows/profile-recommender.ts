@@ -38,7 +38,7 @@ const CandidateProfileSchema = z.object({
   salaryExpectationMax: z.number().optional().describe("Candidate's maximum salary expectation."),
   availability: ZodAvailability.optional().describe("Candidate's availability to start a new role."),
   jobTypePreference: z.array(ZodJobType).optional().describe("Candidate's preferred job types."),
-  personalityAssessment: z.array(z.object({ 
+  personalityAssessment: z.array(z.object({
     trait: z.string(),
     fit: z.enum(['positive', 'neutral', 'negative']),
     reason: z.string().optional(),
@@ -121,7 +121,7 @@ const ProfileRecommenderOutputSchema = z.object({
   weightedScores: z.object({ // Raw scores from LLM
     skillsMatchScore: z.number().min(0).max(100),
     experienceRelevanceScore: z.number().min(0).max(100),
-    cultureFitScore: z.number().min(0).max(100), 
+    cultureFitScore: z.number().min(0).max(100),
     growthPotentialScore: z.number().min(0).max(100),
   }).describe("Breakdown of raw scores (0-100) for each category from the Recruiter's Perspective."),
   isUnderestimatedTalent: z.boolean().describe("Indicates if this candidate might be an underestimated talent or hidden gem based on their profile relative to the job criteria."),
@@ -241,6 +241,18 @@ const profileRecommenderFlow = ai.defineFlow(
     outputSchema: ProfileRecommenderOutputSchema,
   },
   async (input: ProfileRecommenderInput): Promise<ProfileRecommenderOutput> => {
+    // API Key Check within the flow
+    const apiKeyFlowCheck = process.env.GOOGLE_API_KEY;
+    if (!apiKeyFlowCheck) {
+      console.error(
+        "CRITICAL ERROR (from profileRecommenderFlow): GOOGLE_API_KEY environment variable is NOT SET or is EMPTY when flow is executed. Genkit Google AI plugin will FAIL."
+      );
+    } else {
+      console.log(
+        "SUCCESS (from profileRecommenderFlow): GOOGLE_API_KEY found. Key ending in: ..." + apiKeyFlowCheck.slice(-4)
+      );
+    }
+
     const candidateProfileWithDefaults: CandidateProfileForAI = {
       id: input.candidateProfile.id || 'unknown-candidate',
       role: input.candidateProfile.role || 'Not specified',
@@ -266,6 +278,8 @@ const profileRecommenderFlow = ai.defineFlow(
     });
 
     if (!llmOutputPartial || !llmOutputPartial.weightedScores || !llmOutputPartial.candidateJobFitAnalysis?.weightedScoresForCandidate) {
+      console.error("AI analysis failed to return complete structured output for profileRecommenderFlow. Input:", JSON.stringify(input).substring(0,500) + "...");
+      console.error("LLM Output Partial:", JSON.stringify(llmOutputPartial).substring(0,500) + "...");
       return {
         candidateId: input.candidateProfile.id || 'unknown-candidate',
         matchScore: 0,
