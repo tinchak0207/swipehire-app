@@ -8,7 +8,7 @@ const User = require('./User'); // Our user model
 
 const app = express();
 const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000
-const FRONTEND_URL = process.env.FRONTEND_URL; 
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 // Log FRONTEND_URL at the point of use for CORS configuration
 console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}`);
@@ -16,16 +16,25 @@ console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}
 // Middleware to parse JSON
 app.use(express.json());
 
-// General CORS Middleware for actual requests (GET, POST, PUT etc.)
-// The `cors` middleware will handle preflight (OPTIONS) requests automatically.
+// CORS Configuration
 const corsOptions = {
-  origin: FRONTEND_URL,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Ensure PUT and OPTIONS are listed
-  allowedHeaders: ['Content-Type', 'Authorization'], // Ensure this matches client request headers
-  credentials: true,
-  // preflightContinue: false, // Default is false, which is what we want - cors handles the OPTIONS response
-  // optionsSuccessStatus: 204 // Default is 204
+  origin: function (origin, callback) {
+    // Log the origin the cors middleware received from the request
+    console.log(`[CORS Origin Check] Request origin: ${origin}, Allowed origin (FRONTEND_URL env var): ${FRONTEND_URL}`);
+    if (!origin || origin === FRONTEND_URL) { // Allow if no origin (e.g. curl, server-to-server) or if it matches your FRONTEND_URL
+      callback(null, true);
+    } else {
+      console.warn(`[CORS Origin Check] Disallowed origin: ${origin}. Configured FRONTEND_URL is: ${FRONTEND_URL}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Explicitly list allowed methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Explicitly list allowed headers
+  credentials: true, // If you need to support cookies/authorization headers
+  // optionsSuccessStatus: 204 // For legacy browser compatibility, but 204 is default for most
 };
+
+// Use the CORS middleware
 app.use(cors(corsOptions));
 
 
