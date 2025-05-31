@@ -13,7 +13,7 @@ import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea } from '@/components/ui/scroll-area';
+// ScrollArea import removed
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -476,8 +476,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-          <ScrollArea className="flex-1 min-h-0" data-no-drag="true">
-            <div className="space-y-1 text-xs sm:text-sm pr-3"> {/* Added pr-3 for scrollbar */}
+          <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true"> {/* Native scroll for content */}
+            <div className="space-y-1 text-xs sm:text-sm pr-1"> {/* Padding for content, pr-1 for scrollbar */}
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
@@ -516,7 +516,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                 </div>
             </div>
-          </ScrollArea>
+          </div>
             <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area mt-auto">
                 <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
                 <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
@@ -537,7 +537,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </ShadDialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 min-h-0 bg-background">
+          <div className="flex-1 min-h-0 overflow-y-auto bg-background">
             <div className="p-4 sm:p-6 space-y-4 pt-3">
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
@@ -567,7 +567,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                         <JobTypeIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
                     </h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                      When analyzing your fit for this job, our AI considers aspects like the alignment between your skills and experience versus the job's requirements, how your desired work style matches the company culture, potential growth opportunities, and how job conditions (like location and salary) meet your preferences. The final score reflects weights you can customize in Settings.
                       {displayedJobDescriptionInModal}
                       {jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL && (
                           <Button
@@ -719,9 +718,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 )}
               </section>
             </div>
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
