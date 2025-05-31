@@ -457,7 +457,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Media Area */}
-        <div className="relative w-full aspect-video p-4 shrink-0 pt-4"> {/* Added pt-4 */}
+        <div className="relative w-full aspect-video px-4 pb-4 pt-[100px] shrink-0">
           {company.logoUrl ? (
             <Image
               src={company.logoUrl}
@@ -475,8 +475,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
         
         {/* Text Content Area below media - This div will scroll */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col overflow-y-auto" data-no-drag="true"> {/* Changed to flex flex-col and added overflow-y-auto directly here */}
-            <div className="flex-1 min-h-0 space-y-1 text-xs sm:text-sm pr-1"> {/* Inner scrollable content */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 space-y-1 text-xs sm:text-sm">
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
