@@ -13,10 +13,10 @@ import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-// ScrollArea import removed
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
@@ -60,7 +60,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [isAskingQuestion, setIsAskingQuestion] = useState(false);
   const [showFullJobDescriptionInModal, setShowFullJobDescriptionInModal] = useState(false);
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false); 
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
@@ -74,6 +75,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setIsAskingQuestion(false);
     setShowFullJobDescriptionInModal(false);
     setShowFullCompanyDescriptionInModal(false);
+    setActiveAccordionItem(undefined); // Reset accordion
     setIsDetailsModalOpen(true);
   };
 
@@ -141,6 +143,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
+        setActiveAccordionItem("ai-fit-analysis"); // Open accordion on successful analysis
       } else {
         setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
@@ -178,6 +181,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       } else if (isGuestMode && isDetailsModalOpen) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
         setIsLoadingAiAnalysis(false);
+        setActiveAccordionItem(undefined); // Ensure accordion is not open by default in guest mode
       }
   }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
@@ -205,7 +209,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         return;
       }
     }
-    // Check if the click is on the ScrollArea's scrollbar
     if (targetElement.closest('[data-radix-scroll-area-viewport] > [data-radix-scroll-area-scrollbar]')) {
         return;
     }
@@ -292,7 +295,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default" });
       return;
     }
-    // DropdownMenuTrigger handles opening
   };
   
   const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
@@ -322,7 +324,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(jobUrl)}`, '_blank', 'noopener,noreferrer');
         break;
     }
-    // DropdownMenu handles closing
   };
 
 
@@ -458,13 +459,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]"> {/* Responsive height */}
+        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]">
           {company.logoUrl ? (
             <Image
               src={company.logoUrl}
               alt={company.name + " logo"}
               fill
-              className="object-contain p-4" // Ensure logo is contained
+              className="object-contain p-4"
               data-ai-hint={company.dataAiHint || "company logo"}
               priority
             />
@@ -476,8 +477,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-          <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true"> {/* Native scroll for content */}
-            <div className="space-y-1 text-xs sm:text-sm pr-1"> {/* Padding for content, pr-1 for scrollbar */}
+          <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true">
+            <div className="space-y-1 text-xs sm:text-sm pr-1">
                 <CardHeader className="p-0 mb-1">
                     <div className="flex items-start justify-between">
                         <div className="flex-grow min-w-0">
@@ -538,7 +539,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </DialogHeader>
 
           <div className="flex-1 min-h-0 overflow-y-auto bg-background">
-            <div className="p-4 sm:p-6 space-y-4 pt-3">
+            <div className="p-4 sm:p-6 space-y-3 pt-3">
               <section>
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
@@ -608,60 +609,109 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                    <Separator className="my-3" />
                 </>
               )}
-
-
-              <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                  <Brain className="mr-2 h-5 w-5 text-primary" /> AI: How This Job Fits You
-                </h3>
-                 <p className="text-xs text-muted-foreground italic mb-2">
-                  Our AI considers how this job aligns with your profile by looking at factors like: skill and experience match, desired work style vs. company culture, growth opportunities, and job condition alignment (salary, location). The final score reflects weights you can customize in Settings.
-                </p>
-                {isGuestMode ? (
-                  <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                      <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
-                  </div>
-                ) : (
-                  <>
-                    <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto">
-                      {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
-                      {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
-                    </Button>
-                    {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
-                      <div className="flex items-center text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        <span>Assessing fit...</span>
+              
+              <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
+                <AccordionItem value="ai-fit-analysis">
+                  <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
+                    <div className="flex items-center">
+                      <Brain className="mr-2 h-5 w-5" /> AI: How This Job Fits You
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-1 pb-3">
+                    <p className="text-xs text-muted-foreground italic mb-2">
+                      Our AI considers how this job aligns with your profile by looking at factors like: skill and experience match, desired work style vs. company culture, growth opportunities, and job condition alignment (salary, location). The final score reflects weights you can customize in Settings.
+                    </p>
+                    {isGuestMode ? (
+                      <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                          <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
                       </div>
-                    )}
-                    {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                      <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
-                        <div className="flex items-baseline">
-                          <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
-                          <span className={cn(
-                            "ml-1.5 font-bold text-xl",
-                            aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
-                            aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
-                            )}>
-                            {aiJobFitAnalysis.matchScoreForCandidate}%
-                          </span>
-                        </div>
-                        <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
-                        {aiJobFitAnalysis.weightedScoresForCandidate && (
-                            <div className="pt-2 mt-2 border-t border-border/70">
-                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
-                                <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
-                                    <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
-                                    <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
-                                    <li>Growth Opportunity: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
-                                    <li>Job Conditions: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
-                                </ul>
+                    ) : (
+                      <>
+                        <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto">
+                          {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                          {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
+                        </Button>
+                        {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
+                          <div className="flex items-center text-sm text-muted-foreground">
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            <span>Assessing fit...</span>
+                          </div>
+                        )}
+                        {aiJobFitAnalysis && !isLoadingAiAnalysis && (
+                          <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
+                            <div className="flex items-baseline">
+                              <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
+                              <span className={cn(
+                                "ml-1.5 font-bold text-xl",
+                                aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
+                                aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                                )}>
+                                {aiJobFitAnalysis.matchScoreForCandidate}%
+                              </span>
                             </div>
+                            <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                            {aiJobFitAnalysis.weightedScoresForCandidate && (
+                                <div className="pt-2 mt-2 border-t border-border/70">
+                                    <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
+                                    <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
+                                        <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
+                                        <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
+                                        <li>Growth Opportunity: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
+                                        <li>Job Conditions: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
+                                    </ul>
+                                </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+                <Separator className="my-3" />
+                <AccordionItem value="company-qa">
+                  <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
+                    <div className="flex items-center">
+                       <MessageSquare className="mr-2 h-5 w-5" /> Ask AI About {company.name}
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-1 pb-3">
+                    {isGuestMode ? (
+                        <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                            <Lock className="h-4 w-4 mr-2"/>Sign in to ask the AI questions about this company.
+                        </div>
+                    ) : (
+                      <div className="space-y-2.5">
+                        <Textarea
+                          id="userCompanyQuestion"
+                          placeholder="e.g., What are the main products? What is the team size for this role?"
+                          value={userQuestion}
+                          onChange={(e) => setUserQuestion(e.target.value)}
+                          disabled={isAskingQuestion}
+                          className="min-h-[80px] text-sm"
+                        />
+                        <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto">
+                          {isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
+                          Ask AI
+                        </Button>
+                        {isAskingQuestion && !aiAnswer && (
+                          <div className="flex items-center text-sm text-muted-foreground py-1.5">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <span>Thinking...</span>
+                          </div>
+                        )}
+                        {aiAnswer && (
+                          <div className="pt-1.5">
+                            <h4 className="font-semibold text-md text-foreground mb-1">AI's Answer:</h4>
+                            <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line leading-relaxed shadow-sm">
+                              {aiAnswer}
+                            </div>
+                          </div>
                         )}
                       </div>
                     )}
-                  </>
-                )}
-              </section>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
               <Separator className="my-3" />
 
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
@@ -676,47 +726,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </div>
                 </section>
               )}
-              <Separator className="my-3" />
-
-              <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                  <MessageSquare className="mr-2 h-5 w-5 text-primary" /> Ask AI About {company.name}
-                </h3>
-                {isGuestMode ? (
-                    <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                        <Lock className="h-4 w-4 mr-2"/>Sign in to ask the AI questions about this company.
-                    </div>
-                ) : (
-                  <div className="space-y-2.5">
-                    <Textarea
-                      id="userCompanyQuestion"
-                      placeholder="e.g., What are the main products? What is the team size for this role?"
-                      value={userQuestion}
-                      onChange={(e) => setUserQuestion(e.target.value)}
-                      disabled={isAskingQuestion}
-                      className="min-h-[80px] text-sm"
-                    />
-                    <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto">
-                      {isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
-                      Ask AI
-                    </Button>
-                    {isAskingQuestion && !aiAnswer && (
-                      <div className="flex items-center text-sm text-muted-foreground py-1.5">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>Thinking...</span>
-                      </div>
-                    )}
-                    {aiAnswer && (
-                      <div className="pt-1.5">
-                        <h4 className="font-semibold text-md text-foreground mb-1">AI's Answer:</h4>
-                        <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line leading-relaxed shadow-sm">
-                          {aiAnswer}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </section>
             </div>
           </div>
         </DialogContent>

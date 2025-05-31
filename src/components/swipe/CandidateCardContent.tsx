@@ -12,8 +12,8 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog"; // ShadDialogDescription removed as it's not used
-// ScrollArea import removed
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
@@ -48,7 +48,9 @@ function CandidateDetailsModal({
     aiRecruiterReasoning,
     aiRecruiterWeightedScores,
     isLoadingAiAnalysis,
-    isGuestMode
+    isGuestMode,
+    activeAccordionItem,
+    setActiveAccordionItem
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -58,6 +60,8 @@ function CandidateDetailsModal({
     aiRecruiterWeightedScores: RecruiterWeightedScores | null;
     isLoadingAiAnalysis: boolean;
     isGuestMode?: boolean;
+    activeAccordionItem: string | undefined;
+    setActiveAccordionItem: (value: string | undefined) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
@@ -137,7 +141,7 @@ function CandidateDetailsModal({
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto bg-background">
-          <div className="p-4 sm:p-6 space-y-4 pt-3">
+          <div className="p-4 sm:p-6 space-y-3 pt-3">
             {candidate.videoResumeUrl && (
               <section className="mb-3">
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
@@ -205,95 +209,104 @@ function CandidateDetailsModal({
               </section>
             )}
             <Separator className="my-3" />
-
-            <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                  <Brain className="mr-2 h-5 w-5 text-primary" /> AI Assessment (Recruiter Perspective)
-                </h3>
-                <p className="text-xs text-muted-foreground italic mb-2">
-                  Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
-                </p>
-                {isGuestMode ? (
-                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                       <Lock className="h-4 w-4 mr-2"/>Sign in to view AI Assessment and detailed insights.
-                   </div>
-                ) : isLoadingAiAnalysis ? (
-                    <div className="flex items-center text-muted-foreground text-sm">
-                        <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                        <span>Analyzing fit...</span>
-                    </div>
-                ) : aiRecruiterMatchScore !== null ? (
-                    <div className="space-y-2 p-3 bg-muted/30 rounded-md shadow-sm">
-                        <div className="text-md text-foreground">
-                            <span className="font-semibold">Overall Match Score:</span>
-                            <span className={cn(
-                                "ml-1.5 font-bold text-lg",
-                                aiRecruiterMatchScore >= 75 ? 'text-green-600' :
-                                aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
-                            )}>
-                                {aiRecruiterMatchScore}%
-                            </span>
-                        </div>
-                        {aiRecruiterReasoning && (
-                            <p className="text-sm text-muted-foreground italic leading-relaxed">
-                                {aiRecruiterReasoning}
-                            </p>
-                        )}
-                        {aiRecruiterWeightedScores && (
-                            <div className="pt-2 mt-2 border-t border-border/70">
-                                <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
-                                <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
-                                    <li>Skills Match: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
-                                    <li>Experience Relevance: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
-                                    <li>Culture Fit: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.cultureFitScore}%</span></li>
-                                    <li>Growth Potential: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.growthPotentialScore}%</span></li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                ) : (
-                     <p className="text-sm text-muted-foreground italic">AI assessment currently unavailable for this candidate.</p>
-                )}
-            </section>
-            <Separator className="my-3" />
-
-            <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                  <Users2 className="mr-2 h-5 w-5 text-primary" /> Coworker Fit Profile
-                </h3>
-                {isGuestMode ? (
-                   <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                       <Lock className="h-4 w-4 mr-2"/>Sign in to view detailed Coworker Fit Profile.
-                   </div>
-                ) : (
-                  <div className="space-y-2 p-3 bg-muted/30 rounded-md shadow-sm">
-                    {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
-                      <div className="mb-2 space-y-1">
-                        <p className="font-medium text-foreground text-sm">Personality Insights:</p>
-                        {candidate.personalityAssessment.map((item, index) => (
-                          <div key={index} className="flex items-start text-sm">
-                            {renderPersonalityFitIcon(item.fit)}
-                            <div className="min-w-0">
-                              <span className="font-semibold">{item.trait}:</span>
-                              <span className="text-muted-foreground ml-1">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : <p className="text-sm text-muted-foreground italic">No personality insights available.</p>}
-                    {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 ? (
-                      <div>
-                        <p className="font-medium text-foreground text-sm">Optimal Work Style:</p>
-                        <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5 text-sm">
-                          {candidate.optimalWorkStyles.map((style, index) => (
-                            <li key={index}>{style}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    ) : <p className="text-sm text-muted-foreground italic">No optimal work styles defined.</p>}
+            
+            <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
+              <AccordionItem value="ai-assessment">
+                <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
+                  <div className="flex items-center">
+                    <Brain className="mr-2 h-5 w-5" /> AI Assessment (Recruiter Perspective)
                   </div>
-                )}
-            </section>
+                </AccordionTrigger>
+                <AccordionContent className="pt-1 pb-3">
+                  <p className="text-xs text-muted-foreground italic mb-2">
+                    Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
+                  </p>
+                  {isGuestMode ? (
+                     <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                         <Lock className="h-4 w-4 mr-2"/>Sign in to view AI Assessment and detailed insights.
+                     </div>
+                  ) : isLoadingAiAnalysis ? (
+                      <div className="flex items-center text-muted-foreground text-sm">
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          <span>Analyzing fit...</span>
+                      </div>
+                  ) : aiRecruiterMatchScore !== null ? (
+                      <div className="space-y-2 p-3 bg-muted/30 rounded-md shadow-sm">
+                          <div className="text-md text-foreground">
+                              <span className="font-semibold">Overall Match Score:</span>
+                              <span className={cn(
+                                  "ml-1.5 font-bold text-lg",
+                                  aiRecruiterMatchScore >= 75 ? 'text-green-600' :
+                                  aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
+                              )}>
+                                  {aiRecruiterMatchScore}%
+                              </span>
+                          </div>
+                          {aiRecruiterReasoning && (
+                              <p className="text-sm text-muted-foreground italic leading-relaxed">
+                                  {aiRecruiterReasoning}
+                              </p>
+                          )}
+                          {aiRecruiterWeightedScores && (
+                              <div className="pt-2 mt-2 border-t border-border/70">
+                                  <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
+                                  <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
+                                      <li>Skills Match: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
+                                      <li>Experience Relevance: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
+                                      <li>Culture Fit: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.cultureFitScore}%</span></li>
+                                      <li>Growth Potential: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.growthPotentialScore}%</span></li>
+                                  </ul>
+                              </div>
+                          )}
+                      </div>
+                  ) : (
+                       <p className="text-sm text-muted-foreground italic">AI assessment currently unavailable for this candidate.</p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              <Separator className="my-3" />
+              <AccordionItem value="coworker-fit">
+                <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
+                  <div className="flex items-center">
+                    <Users2 className="mr-2 h-5 w-5" /> Coworker Fit Profile
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-1 pb-3">
+                  {isGuestMode ? (
+                     <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                         <Lock className="h-4 w-4 mr-2"/>Sign in to view detailed Coworker Fit Profile.
+                     </div>
+                  ) : (
+                    <div className="space-y-2 p-3 bg-muted/30 rounded-md shadow-sm">
+                      {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
+                        <div className="mb-2 space-y-1">
+                          <p className="font-medium text-foreground text-sm">Personality Insights:</p>
+                          {candidate.personalityAssessment.map((item, index) => (
+                            <div key={index} className="flex items-start text-sm">
+                              {renderPersonalityFitIcon(item.fit)}
+                              <div className="min-w-0">
+                                <span className="font-semibold">{item.trait}:</span>
+                                <span className="text-muted-foreground ml-1">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground italic">No personality insights available.</p>}
+                      {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 ? (
+                        <div>
+                          <p className="font-medium text-foreground text-sm">Optimal Work Style:</p>
+                          <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5 text-sm">
+                            {candidate.optimalWorkStyles.map((style, index) => (
+                              <li key={index}>{style}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground italic">No optimal work styles defined.</p>}
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
              <Separator className="my-3" />
 
             {candidate.profileStrength && !isGuestMode && (
@@ -334,6 +347,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [aiRecruiterReasoning, setAiRecruiterReasoning] = useState<string | null>(null);
   const [aiRecruiterWeightedScores, setAiRecruiterWeightedScores] = useState<RecruiterWeightedScores | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
 
 
   const fetchAiRecruiterAnalysis = useCallback(async () => {
@@ -384,7 +398,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       if (storedWeights) {
         try {
           const parsedRecruiterWeights: RecruiterPerspectiveWeights = JSON.parse(storedWeights);
-          // Basic validation, more robust validation in settings and flow
           if (Object.values(parsedRecruiterWeights).reduce((sum, val) => sum + val, 0) === 100) {
              userAIWeights = { recruiterPerspective: parsedRecruiterWeights };
           }
@@ -399,6 +412,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       setAiRecruiterMatchScore(result.matchScore);
       setAiRecruiterReasoning(result.reasoning);
       setAiRecruiterWeightedScores(result.weightedScores);
+      setActiveAccordionItemModal("ai-assessment"); // Open accordion on successful analysis
 
     } catch (error: any) {
       console.error("Error fetching AI recruiter analysis for candidate " + candidate.name + ":", error);
@@ -420,6 +434,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         setAiRecruiterReasoning("AI Assessment disabled in Guest Mode.");
         setAiRecruiterWeightedScores(null);
         setIsLoadingAiAnalysis(false);
+        setActiveAccordionItemModal(undefined); // Ensure accordion is not open by default
     }
   }, [isDetailsModalOpen, isGuestMode, aiRecruiterMatchScore, isLoadingAiAnalysis, fetchAiRecruiterAnalysis]);
 
@@ -448,16 +463,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
            return; 
         }
     }
-    // Check if the click is on the ScrollArea's scrollbar
     if (targetElement.closest('[data-radix-scroll-area-viewport] > [data-radix-scroll-area-scrollbar]')) {
         return;
     }
-    // Or if the click is within the scrollable content and content is actually scrollable
     const scrollableContent = cardContentRef.current?.querySelector('[data-radix-scroll-area-viewport]');
     if (scrollableContent && scrollableContent.scrollHeight > scrollableContent.clientHeight && targetElement.closest('[data-radix-scroll-area-viewport]')) {
-        // If the intention is to scroll vertically, don't start drag. This is a bit tricky to perfect.
-        // For simplicity, let's assume if it's inside scrollArea and scrollable, it might be scroll attempt.
-        // For now, let's allow dragging unless specifically on scrollbar.
     }
 
     e.preventDefault();
@@ -515,8 +525,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
-    // The DropdownMenuTrigger will handle opening the menu
-    // setIsShareModalOpen(true) is not needed if not using a separate ShareModal component for the dropdown items
   };
 
 
@@ -551,6 +559,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
             toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
         } else if (isGuestMode && action === 'details') {
+            setActiveAccordionItemModal(undefined); // Reset accordion for guest modal
             setIsDetailsModalOpen(true); 
         }
     });
@@ -651,7 +660,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
         break;
     }
-    // setIsShareModalOpen(false); // Not needed if dropdown menu handles its own closing
   };
 
 
@@ -670,7 +678,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]"> {/* Responsive height */}
+        <div className="relative w-full bg-muted shrink-0 h-[45%] sm:h-[50%] md:h-[60%]">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
@@ -688,8 +696,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
 
         <div className="flex-1 min-h-0 p-3 sm:p-4 flex flex-col">
-            <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true"> {/* Native scroll for content */}
-              <div className="space-y-1 text-xs sm:text-sm pr-1"> {/* Padding for content, pr-1 for scrollbar */}
+            <div className="flex-1 min-h-0 overflow-y-auto" data-no-drag="true">
+              <div className="space-y-1 text-xs sm:text-sm pr-1">
                   <CardHeader className="p-0 mb-1">
                       <div className="flex items-start justify-between">
                           <div className="flex-grow min-w-0">
@@ -753,6 +761,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                   className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
                   onClickOverride={(e) => {
                     e.stopPropagation();
+                    setActiveAccordionItemModal(undefined); // Reset accordion before opening
                     setIsDetailsModalOpen(true); 
                   }}
               />
@@ -771,6 +780,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         aiRecruiterWeightedScores={aiRecruiterWeightedScores}
         isLoadingAiAnalysis={isLoadingAiAnalysis}
         isGuestMode={isGuestMode}
+        activeAccordionItem={activeAccordionItemModal}
+        setActiveAccordionItem={setActiveAccordionItemModal}
       />
     </>
   );
