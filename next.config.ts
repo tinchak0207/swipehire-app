@@ -22,28 +22,21 @@ const nextConfig: NextConfig = {
     ],
   },
   allowedDevOrigins: [
-    // IDX preview URL for port 3000 (Primary Frontend URL)
-    'https://3000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // Localhost for port 3000 (Kept for local testing scenarios if any)
-    'http://localhost:3000',
-
-    // IDX preview URL for port 6000 (Keep if still relevant for any IDX internal proxying)
-    'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // Localhost for port 6000
-    'http://localhost:6000',
-    
-    // IDX preview URL for port 5000 (Backend URL, for completeness if direct browser interactions are needed, though unlikely)
-    'https://5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    // Localhost for port 5000
-    'http://localhost:5000',
-
-    // Previously attempted ports, can be cleaned up if confirmed unused
-    'https://9007-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    'http://localhost:9007',
+    // Frontend is now on port 9002
     'https://9002-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
     'http://localhost:9002',
-    'https://9005-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-    'http://localhost:9005'
+    
+    // Origins from which requests were blocked
+    'https://9000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+
+    // Keeping port 3000 just in case, but 9002 is the current target
+    'https://3000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    'http://localhost:3000',
+    
+    // Backend URL (port 5000), for completeness if direct browser interactions are needed, though unlikely for allowedDevOrigins
+    'https://5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    'http://localhost:5000',
   ],
 };
 
