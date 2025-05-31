@@ -1,4 +1,5 @@
 
+// src/lib/types.ts
 
 export type UserRole = 'recruiter' | 'jobseeker';
 
@@ -39,7 +40,7 @@ export enum JobType {
   PART_TIME = 'Part-time',
   CONTRACT = 'Contract',
   INTERNSHIP = 'Internship',
-  CONSULTANT = 'Consultant', // Added based on user prompt
+  CONSULTANT = 'Consultant',
   UNSPECIFIED = 'Unspecified',
 }
 
@@ -54,41 +55,34 @@ export type AIScriptTone = 'professional' | 'friendly' | 'technical' | 'sales' |
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   featureFlags?: Record<string, boolean>;
-  // New tailored experience fields
   defaultAIScriptTone?: AIScriptTone;
   discoveryItemsPerPage?: number;
   enableExperimentalFeatures?: boolean;
 }
 
 export interface Candidate {
-  id: string;
+  id: string; // This will be MongoDB _id if fetched from backend
   name: string;
-  role: string; // e.g., "Senior Software Engineer"
+  role: string; 
   experienceSummary: string;
   skills: string[];
-  avatarUrl?: string; // URL or data URI
-  dataAiHint?: string; // For avatarUrl
-  videoResumeUrl?: string; // URL or data URI for placeholder
-  profileStrength?: number; // 0-100 for AI recommendation hint
-  location?: string; // Current location or preferred city if locationPreference is specific_city
-  desiredWorkStyle?: string; // General description
-  pastProjects?: string; // For icebreaker context
-
-  // New fields for filtering
+  avatarUrl?: string; 
+  dataAiHint?: string; 
+  videoResumeUrl?: string; 
+  profileStrength?: number; 
+  location?: string; 
+  desiredWorkStyle?: string; 
+  pastProjects?: string; 
   workExperienceLevel?: WorkExperienceLevel;
   educationLevel?: EducationLevel;
-  locationPreference?: LocationPreference; // Remote, Hybrid, Specific City (city in `location` field)
-  languages?: string[]; // e.g., ['English', 'Spanish']
+  locationPreference?: LocationPreference; 
+  languages?: string[]; 
   salaryExpectationMin?: number;
   salaryExpectationMax?: number;
-  availability?: Availability; // e.g., immediate, within 1 month
-  jobTypePreference?: JobType[]; // Candidate can prefer multiple job types
-
-  // Fields for Coworker Fit Label
+  availability?: Availability; 
+  jobTypePreference?: JobType[]; 
   personalityAssessment?: PersonalityTraitAssessment[];
   optimalWorkStyles?: string[];
-
-  // Field for Underestimated Talent
   isUnderestimatedTalent?: boolean;
   underestimatedReasoning?: string;
 }
@@ -96,38 +90,35 @@ export interface Candidate {
 export interface CompanyJobOpening {
   title: string;
   description: string;
-  location?: string; // Specific city/area for the job
-  salaryRange?: string; // Could be a string like "$100k - $120k" or "Competitive"
-  jobType?: JobType; // Full-time, Part-time etc.
+  location?: string; 
+  salaryRange?: string; 
+  jobType?: JobType; 
   tags?: string[];
-  videoOrImageUrl?: string; // Optional video/image for the job posting
-  dataAiHint?: string; // For videoOrImageUrl
-
-  // New fields for filtering
+  videoOrImageUrl?: string; 
+  dataAiHint?: string; 
   requiredExperienceLevel?: WorkExperienceLevel;
   requiredEducationLevel?: EducationLevel;
-  workLocationType?: LocationPreference; // e.g., On-site (use 'location'), Remote, Hybrid
+  workLocationType?: LocationPreference; 
   requiredLanguages?: string[];
-  salaryMin?: number; // For more precise filtering
-  salaryMax?: number; // For more precise filtering
-  companyCultureKeywords?: string[]; // Added for AI profile recommender
-  companyIndustry?: string; // Added for AI profile recommender
+  salaryMin?: number; 
+  salaryMax?: number; 
+  companyCultureKeywords?: string[]; 
+  companyIndustry?: string; 
 }
 
 export interface Company {
-  id: string;
+  id: string; // This will be MongoDB _id if fetched from backend
   name: string;
   industry: string;
   description: string;
   cultureHighlights: string[];
-  logoUrl?: string; // URL or data URI
-  dataAiHint?: string; // For logoUrl
-  // introVideoUrl?: string; // URL for a company culture video (e.g., office tour, team life, daily work record).
-  introVideoUrl?: string; // URL for a company culture video. Content can include office environment, team culture, daily work record.
+  logoUrl?: string; 
+  dataAiHint?: string; 
+  introVideoUrl?: string; 
   jobOpenings?: CompanyJobOpening[];
-  companyNeeds?: string; // For icebreaker context
-  salaryRange?: string; // Company-wide typical salary info (less common, usually per-job)
-  jobType?: JobType; // Predominant job type if applicable at company level (less common)
+  companyNeeds?: string; 
+  salaryRange?: string; 
+  jobType?: JobType; 
 }
 
 export interface Match {
@@ -149,7 +140,7 @@ export interface AvatarRequest {
 }
 
 export interface VideoEditRequest {
-  videoDataUri: string; // Assuming video is handled as a data URI
+  videoDataUri: string; 
 }
 
 export interface IcebreakerRequest {
@@ -160,7 +151,6 @@ export interface IcebreakerRequest {
   pastProjects: string;
 }
 
-// New type for user-created job postings (already used by CreateJobPostingPage logic)
 export interface JobPosting {
   id: string;
   title: string;
@@ -168,38 +158,41 @@ export interface JobPosting {
   compensation: string;
   tags: string[];
   mediaUrl?: string;
-  companyId: string; // Could be the ID of the recruiter's company or the recruiter's user ID
+  companyId: string; 
   postedAt: Date;
 }
 
 export interface ChatMessage {
   id: string;
-  sender: 'user' | 'ai' | 'contact'; // 'contact' represents the other person in the match
+  sender: 'user' | 'ai' | 'contact'; 
   text: string;
   timestamp: Date;
 }
 
+// Updated DiaryPost to reflect backend model
 export interface DiaryPost {
-  id: string;
-  authorId: string; // Could be linked to a fuller User object later
+  _id?: string; // From MongoDB
+  id?: string; // Could be used on frontend if needed before _id is assigned
+  authorId: string; // User's MongoDB _id
   authorName: string;
-  authorAvatarUrl?: string; // Optional
-  dataAiHint?: string; // For authorAvatarUrl
+  authorAvatarUrl?: string; 
+  dataAiHint?: string; 
   title: string;
   content: string;
-  imageUrl?: string; // Optional image for the post
-  diaryImageHint?: string; // Specific hint for the imageUrl
-  timestamp: number; // Use number for easy sorting (Date.now())
+  imageUrl?: string; 
+  diaryImageHint?: string; 
+  timestamp?: number; // Keep for frontend display if needed, backend uses createdAt
   tags?: string[];
-  // Conceptual fields for AI curation (not fully implemented in prototype)
-  likes?: number;
+  likes: number;
+  likedBy?: string[]; // Array of User MongoDB _ids
   views?: number;
-  comments?: number; // Added comments
+  commentsCount?: number; // Renamed to match backend
   isFeatured?: boolean;
+  createdAt?: string; // From MongoDB
+  updatedAt?: string; // From MongoDB
 }
 
 
-// Types for AI Profile Recommender Flow
 export interface CandidateProfileForAI {
     id: string;
     role?: string;
@@ -216,7 +209,7 @@ export interface CandidateProfileForAI {
     salaryExpectationMax?: number;
     availability?: Availability;
     jobTypePreference?: JobType[];
-    personalityAssessment?: PersonalityTraitAssessment[]; // For context in candidateJobFitAnalysis
+    personalityAssessment?: PersonalityTraitAssessment[]; 
 }
 
 export interface JobCriteriaForAI {
@@ -235,16 +228,15 @@ export interface JobCriteriaForAI {
     companyIndustry?: string;
 }
 
-// --- User Customizable AI Weights ---
 export interface RecruiterPerspectiveWeights {
-  skillsMatchScore: number; // percentage 0-100
+  skillsMatchScore: number; 
   experienceRelevanceScore: number;
   cultureFitScore: number;
   growthPotentialScore: number;
 }
 
 export interface JobSeekerPerspectiveWeights {
-  cultureFitScore: number; // percentage 0-100
+  cultureFitScore: number; 
   jobRelevanceScore: number;
   growthOpportunityScore: number;
   jobConditionFitScore: number;
@@ -254,19 +246,18 @@ export interface UserAIWeights {
   recruiterPerspective?: RecruiterPerspectiveWeights;
   jobSeekerPerspective?: JobSeekerPerspectiveWeights;
 }
-// --- End User Customizable AI Weights ---
 
 export interface ProfileRecommenderInput {
     candidateProfile: CandidateProfileForAI;
     jobCriteria: JobCriteriaForAI;
-    userAIWeights?: UserAIWeights; // Added for customizable weights
+    userAIWeights?: UserAIWeights; 
 }
 
 export interface ProfileRecommenderOutput {
     candidateId: string;
-    matchScore: number; // This will be calculated in TypeScript using effective weights
+    matchScore: number; 
     reasoning: string;
-    weightedScores: { // These are the raw scores from the LLM for each category
+    weightedScores: { 
         skillsMatchScore: number;
         experienceRelevanceScore: number;
         cultureFitScore: number;
@@ -276,10 +267,10 @@ export interface ProfileRecommenderOutput {
     underestimatedReasoning?: string;
     personalityAssessment?: PersonalityTraitAssessment[];
     optimalWorkStyles?: string[];
-    candidateJobFitAnalysis?: { // This part assesses job fit for the candidate
-        matchScoreForCandidate: number; // Calculated in TypeScript
+    candidateJobFitAnalysis?: { 
+        matchScoreForCandidate: number; 
         reasoningForCandidate: string;
-        weightedScoresForCandidate: { // Raw scores from LLM
+        weightedScoresForCandidate: { 
             cultureFitScore: number;
             jobRelevanceScore: number;
             growthOpportunityScore: number;
@@ -288,7 +279,6 @@ export interface ProfileRecommenderOutput {
     };
 }
 
-// Filter types for Discovery Pages
 export interface CandidateFilters {
   experienceLevels: Set<WorkExperienceLevel>;
   educationLevels: Set<EducationLevel>;
@@ -303,17 +293,15 @@ export interface JobFilters {
   jobTypes: Set<JobType>;
 }
 
-// Types for Company Q&A Flow
 export interface CompanyQAInput {
   companyName: string;
   companyDescription: string;
   companyIndustry?: string;
   companyCultureHighlights?: string[];
-  jobOpeningsSummary?: string; // A summary of job openings
+  jobOpeningsSummary?: string; 
   userQuestion: string;
 }
 
 export interface CompanyQAOutput {
   aiAnswer: string;
 }
-

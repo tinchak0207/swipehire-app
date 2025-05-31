@@ -1,38 +1,35 @@
 
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Added useCallback
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import type { DiaryPost } from '@/lib/types';
-import { mockDiaryPosts } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
 import { formatDistanceToNow } from 'date-fns';
-import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock, Star, BadgeInfo } from 'lucide-react';
+import { BookOpenText, PlusCircle, MessageSquare, ThumbsUp, Eye, Edit3, Search, Lock, Star, BadgeInfo, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils'; // Added cn
-
-const DIARY_POSTS_STORAGE_KEY = 'swipeHireDiaryPosts';
-const LIKED_DIARY_POSTS_KEY = 'swipeHireLikedDiaryPosts';
-
+import { cn } from '@/lib/utils';
+import { fetchDiaryPosts, createDiaryPost, toggleLikeDiaryPost } from '@/services/diaryService';
 
 interface DiaryPostCardProps {
   post: DiaryPost;
   onLikePost: (postId: string) => void;
   isLikedByCurrentUser: boolean;
   isGuestMode?: boolean;
+  currentUserId?: string | null; // Added to check if guest for like action
 }
 
-function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: DiaryPostCardProps) {
+function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode, currentUserId }: DiaryPostCardProps) {
   const [showFullContent, setShowFullContent] = useState(false);
   const MAX_CONTENT_LENGTH = 150;
-  const { toast } = useToast(); // Added toast for guest mode interaction
+  const { toast } = useToast();
 
   const toggleContent = () => {
     if (isGuestMode) {
@@ -43,12 +40,12 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: 
   };
 
   const handleLikeClick = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click or other underlying events
-    if (isGuestMode) {
+    e.stopPropagation();
+    if (isGuestMode || !currentUserId) { // Also check currentUserId for non-guest but unauth-like scenarios
       toast({ title: "Feature Locked", description: "Please sign in to like posts.", variant: "default" });
       return;
     }
-    onLikePost(post.id);
+    onLikePost(post._id!); // Use _id as it's guaranteed from backend
   };
 
   const displayContent = useMemo(() => {
@@ -70,7 +67,7 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: 
         <div className="flex-1">
           <CardTitle className="text-md font-semibold text-primary">{post.authorName}</CardTitle>
           <p className="text-xs text-muted-foreground">
-            Posted {formatDistanceToNow(new Date(post.timestamp), { addSuffix: true })}
+            Posted {formatDistanceToNow(new Date(post.createdAt || Date.now()), { addSuffix: true })}
           </p>
         </div>
         {post.isFeatured && (
@@ -108,19 +105,19 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: 
           variant="ghost" 
           size="sm" 
           onClick={handleLikeClick}
-          disabled={isGuestMode}
+          disabled={isGuestMode || !currentUserId}
           className={cn(
             "flex items-center p-1 h-auto hover:bg-accent/50", 
             isLikedByCurrentUser && !isGuestMode && "text-primary",
-            isGuestMode && "cursor-not-allowed opacity-70"
+            (isGuestMode || !currentUserId) && "cursor-not-allowed opacity-70"
           )}
           aria-label={`Like post titled ${post.title}`}
         >
-          {isGuestMode ? <Lock className="h-3.5 w-3.5 mr-1" /> : <ThumbsUp className={cn("h-3.5 w-3.5 mr-1", isLikedByCurrentUser && !isGuestMode && "fill-primary")} />}
+          {(isGuestMode || !currentUserId) ? <Lock className="h-3.5 w-3.5 mr-1" /> : <ThumbsUp className={cn("h-3.5 w-3.5 mr-1", isLikedByCurrentUser && !isGuestMode && "fill-primary")} />}
            {post.likes || 0}
         </Button>
         <div className="flex items-center">
-          <MessageSquare className="h-3.5 w-3.5 mr-1" /> {post.comments || 0} Comments
+          <MessageSquare className="h-3.5 w-3.5 mr-1" /> {post.commentsCount || 0} Comments
         </div>
         <div className="flex items-center">
           <Eye className="h-3.5 w-3.5 mr-1" /> {post.views || 0} Views
@@ -130,7 +127,14 @@ function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode }: 
   );
 }
 
-function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated: (newPost: DiaryPost) => void; currentUserName: string }) {
+interface CreateDiaryPostFormProps {
+  onPostCreated: (newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>) => void;
+  currentUserName: string | null;
+  currentUserMongoId: string | null;
+  currentUserAvatarUrl: string | null;
+}
+
+function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUserMongoId, currentUserAvatarUrl }: CreateDiaryPostFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -138,36 +142,29 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
   const [tags, setTags] = useState('');
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentUserMongoId || !currentUserName) {
+      toast({ title: "Authentication Error", description: "User information is missing. Please re-login.", variant: "destructive" });
+      return;
+    }
     if (!title.trim() || !content.trim()) {
       toast({ title: "Missing fields", description: "Title and content are required.", variant: "destructive" });
       return;
     }
-    const newPost: DiaryPost = {
-      id: `diary-${Date.now()}`,
-      authorId: 'currentUser', 
-      authorName: currentUserName || 'Demo User', 
-      authorAvatarUrl: localStorage.getItem('userAvatarSettings') || undefined, 
-      dataAiHint: 'person face',
+    const newPostData = {
       title,
       content,
+      authorId: currentUserMongoId,
+      authorName: currentUserName,
+      authorAvatarUrl: currentUserAvatarUrl || undefined,
       imageUrl: imageUrl.trim() || undefined,
       diaryImageHint: diaryImageHint.trim() || undefined,
-      timestamp: Date.now(),
       tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-      likes: 0,
-      comments: 0,
-      views: 0,
-      isFeatured: Math.random() < 0.2, 
+      isFeatured: Math.random() < 0.1, // Example: 10% chance of being featured
     };
-    onPostCreated(newPost);
-    setTitle('');
-    setContent('');
-    setImageUrl('');
-    setDiaryImageHint('');
-    setTags('');
-    toast({ title: "Diary Post Created!", description: "Your new entry has been added." });
+    onPostCreated(newPostData); // Let parent handle actual creation via service
+    // Clear form in parent after successful submission
   };
 
   return (
@@ -204,80 +201,70 @@ function CreateDiaryPostForm({ onPostCreated, currentUserName }: { onPostCreated
 
 interface StaffDiaryPageProps {
   isGuestMode?: boolean;
+  currentUserName: string | null;
+  currentUserMongoId: string | null;
+  currentUserAvatarUrl: string | null;
 }
 
-export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
+export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoId, currentUserAvatarUrl }: StaffDiaryPageProps) {
   const [allPosts, setAllPosts] = useState<DiaryPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
-  const [currentUserName, setCurrentUserName] = useState('Demo User');
-  const [likedPostIds, setLikedPostIds] = useState<Set<string>>(new Set());
+  const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const { toast } = useToast();
 
+  const loadPosts = useCallback(async () => {
+    setIsLoadingPosts(true);
+    try {
+      const fetchedPosts = await fetchDiaryPosts();
+      setAllPosts(fetchedPosts.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()));
+    } catch (error) {
+      console.error("Failed to load diary posts:", error);
+      toast({ title: "Error Loading Diary", description: "Could not fetch diary entries.", variant: "destructive" });
+    } finally {
+      setIsLoadingPosts(false);
+    }
+  }, [toast]);
 
   useEffect(() => {
-    const storedName = localStorage.getItem('userNameSettings');
-    if (storedName) {
-      setCurrentUserName(storedName);
+    if (!isGuestMode) {
+      loadPosts();
+    } else {
+      setAllPosts([]); // Clear posts if guest mode
+      setIsLoadingPosts(false);
     }
+  }, [isGuestMode, loadPosts]);
 
-    const storedPosts = localStorage.getItem(DIARY_POSTS_STORAGE_KEY);
-    let initialPosts: DiaryPost[] = storedPosts ? JSON.parse(storedPosts) : mockDiaryPosts;
-    
-    initialPosts = initialPosts.map(p => ({ 
-      ...p, 
-      isFeatured: p.isFeatured || Math.random() < 0.15,
-      likes: p.likes || 0,
-      comments: p.comments || 0,
-      views: p.views || 0,
-    })); 
-
-    setAllPosts(initialPosts.sort((a, b) => b.timestamp - a.timestamp));
-
-    const storedLikedPosts = localStorage.getItem(LIKED_DIARY_POSTS_KEY);
-    if (storedLikedPosts) {
-      setLikedPostIds(new Set(JSON.parse(storedLikedPosts)));
+  const handlePostCreated = async (newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>) => {
+    try {
+      await createDiaryPost(newPostData);
+      toast({ title: "Diary Post Created!", description: "Your new entry has been added." });
+      setIsCreatePostOpen(false);
+      // Clear form in CreateDiaryPostForm - this needs to be handled by resetting state within CreateDiaryPostForm itself after onPostCreated.
+      // For simplicity, we'll rely on re-fetching for now, or the form component can clear itself.
+      loadPosts(); // Re-fetch posts to include the new one
+    } catch (error) {
+      console.error("Failed to create post:", error);
+      toast({ title: "Error Creating Post", description: "Could not save your diary entry.", variant: "destructive" });
     }
-  }, []);
-
-  const handlePostCreated = (newPost: DiaryPost) => {
-    setAllPosts(prevPosts => {
-      const updatedPosts = [newPost, ...prevPosts].sort((a, b) => b.timestamp - a.timestamp);
-      localStorage.setItem(DIARY_POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
-      return updatedPosts;
-    });
-    setIsCreatePostOpen(false);
   };
   
-  const handleLikePost = useCallback((postId: string) => {
-    if (isGuestMode) {
+  const handleLikePost = useCallback(async (postId: string) => {
+    if (isGuestMode || !currentUserMongoId) {
       toast({ title: "Feature Locked", description: "Please sign in to like posts.", variant: "default" });
       return;
     }
-
-    setAllPosts(prevPosts => {
-      const updatedPosts = prevPosts.map(post => {
-        if (post.id === postId) {
-          const alreadyLiked = likedPostIds.has(postId);
-          return { ...post, likes: (post.likes || 0) + (alreadyLiked ? -1 : 1) };
-        }
-        return post;
-      });
-      localStorage.setItem(DIARY_POSTS_STORAGE_KEY, JSON.stringify(updatedPosts));
-      return updatedPosts;
-    });
-
-    setLikedPostIds(prevLikedIds => {
-      const newLikedIds = new Set(prevLikedIds);
-      if (newLikedIds.has(postId)) {
-        newLikedIds.delete(postId);
-      } else {
-        newLikedIds.add(postId);
-      }
-      localStorage.setItem(LIKED_DIARY_POSTS_KEY, JSON.stringify(Array.from(newLikedIds)));
-      return newLikedIds;
-    });
-  }, [isGuestMode, toast, likedPostIds]);
+    try {
+      const updatedPost = await toggleLikeDiaryPost(postId, currentUserMongoId);
+      setAllPosts(prevPosts => 
+        prevPosts.map(p => (p._id === postId ? updatedPost : p))
+                 .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+      );
+    } catch (error) {
+      console.error("Failed to like post:", error);
+      toast({ title: "Error Liking Post", description: "Could not update like status.", variant: "destructive" });
+    }
+  }, [isGuestMode, currentUserMongoId, toast]);
   
   const postsMatchingSearch = useMemo(() => {
     if (!searchTerm.trim()) {
@@ -301,7 +288,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
 
 
   const handleCreatePostClick = () => {
-    if (isGuestMode) {
+    if (isGuestMode || !currentUserMongoId) {
         toast({
             title: "Feature Locked",
             description: "Please sign in to create diary posts.",
@@ -312,7 +299,7 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
     setIsCreatePostOpen(true);
   }
 
-  if (isGuestMode && !allPosts.length) { // Show locked state if guest and no posts loaded (or initial state)
+  if (isGuestMode && !isLoadingPosts && !allPosts.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
         <Lock className="h-16 w-16 text-red-400 mb-6" />
@@ -320,6 +307,15 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         <p className="text-muted-foreground max-w-md">
           Creating and viewing staff diary entries is a feature for registered users. Please sign in using the Login button in the header to participate.
         </p>
+      </div>
+    );
+  }
+  
+  if (isLoadingPosts) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading diary entries...</p>
       </div>
     );
   }
@@ -336,8 +332,8 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         </div>
         <Dialog open={isCreatePostOpen} onOpenChange={setIsCreatePostOpen}>
           <DialogTrigger asChild>
-            <Button size="lg" onClick={handleCreatePostClick} aria-disabled={isGuestMode}>
-              {isGuestMode ? <Lock className="mr-2 h-5 w-5" /> : <PlusCircle className="mr-2 h-5 w-5" />}
+            <Button size="lg" onClick={handleCreatePostClick} aria-disabled={isGuestMode || !currentUserMongoId}>
+              {(isGuestMode || !currentUserMongoId) ? <Lock className="mr-2 h-5 w-5" /> : <PlusCircle className="mr-2 h-5 w-5" />}
               Create New Post
             </Button>
           </DialogTrigger>
@@ -348,7 +344,12 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
                 Create New Diary Entry
               </DialogTitle>
             </DialogHeader>
-            <CreateDiaryPostForm onPostCreated={handlePostCreated} currentUserName={currentUserName} />
+            <CreateDiaryPostForm 
+              onPostCreated={handlePostCreated} 
+              currentUserName={currentUserName}
+              currentUserMongoId={currentUserMongoId}
+              currentUserAvatarUrl={currentUserAvatarUrl}
+            />
           </DialogContent>
         </Dialog>
       </header>
@@ -364,7 +365,6 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
       </div>
 
-      {/* Featured Posts Section */}
       {featuredPosts.length > 0 && (
         <section className="space-y-4">
           <h2 className="text-2xl font-semibold text-primary flex items-center">
@@ -374,11 +374,12 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
           <div className="space-y-6">
             {featuredPosts.map(post => (
               <DiaryPostCard 
-                key={post.id} 
+                key={post._id} 
                 post={post} 
                 onLikePost={handleLikePost}
-                isLikedByCurrentUser={likedPostIds.has(post.id)}
+                isLikedByCurrentUser={currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false}
                 isGuestMode={isGuestMode} 
+                currentUserId={currentUserMongoId}
               />
             ))}
           </div>
@@ -386,7 +387,6 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
         </section>
       )}
       
-      {/* Regular Posts Section */}
       <section className="space-y-4">
         {featuredPosts.length > 0 && regularPostsToDisplay.length > 0 && (
             <h2 className="text-2xl font-semibold text-foreground">
@@ -394,14 +394,14 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
             </h2>
         )}
 
-        {postsMatchingSearch.length === 0 ? (
+        {postsMatchingSearch.length === 0 && !isLoadingPosts ? (
           <div className="text-center py-10 col-span-full">
             <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground text-lg">
               {searchTerm ? "No diary posts match your search." : (isGuestMode ? "Sign in to view and create diary posts." : "No diary posts yet. Be the first to share!")}
             </p>
           </div>
-        ) : regularPostsToDisplay.length === 0 && featuredPosts.length > 0 ? (
+        ) : regularPostsToDisplay.length === 0 && featuredPosts.length > 0 && !isLoadingPosts ? (
             <div className="text-center py-10 col-span-full">
                 <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground text-lg">
@@ -412,11 +412,12 @@ export function StaffDiaryPage({ isGuestMode }: StaffDiaryPageProps) {
           <div className="space-y-6">
             {regularPostsToDisplay.map(post => (
               <DiaryPostCard 
-                key={post.id} 
+                key={post._id} 
                 post={post} 
                 onLikePost={handleLikePost}
-                isLikedByCurrentUser={likedPostIds.has(post.id)}
+                isLikedByCurrentUser={currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false}
                 isGuestMode={isGuestMode}
+                currentUserId={currentUserMongoId}
               />
             ))}
           </div>

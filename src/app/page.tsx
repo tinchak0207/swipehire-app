@@ -42,7 +42,7 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null); // Added for PFP
+  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null); 
 
   const [activeTab, setActiveTab] = useState<string>("findJobs");
   const [isMobile, setIsMobile] = useState(false);
@@ -61,7 +61,7 @@ function AppContent() {
         const userData = await response.json();
         setUserRole(userData.selectedRole || null);
         setUserName(userData.name || firebaseDisplayName || firebaseEmail);
-        setMongoDbUserId(userData._id); // Store MongoDB _id
+        setMongoDbUserId(userData._id); 
         localStorage.setItem('recruiterProfileComplete', (userData.selectedRole === 'recruiter' && userData.name && userData.email) ? 'true' : 'false');
         return userData._id;
       } else if (response.status === 404) {
@@ -130,7 +130,7 @@ function AppContent() {
         setCurrentUser(user);
         setIsAuthenticated(true);
         setIsGuestMode(false);
-        setUserPhotoURL(user.photoURL); // Set PFP URL
+        setUserPhotoURL(user.photoURL); 
         localStorage.removeItem(GUEST_MODE_KEY);
 
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
@@ -146,7 +146,7 @@ function AppContent() {
         setIsAuthenticated(false);
         setUserRole(null); 
         setUserName('Guest User');
-        setUserPhotoURL(null); // Clear PFP for guest
+        setUserPhotoURL(null); 
         setIsGuestMode(true);
         setMongoDbUserId(null); 
         setShowWelcomePage(false); 
@@ -156,7 +156,7 @@ function AppContent() {
         setIsAuthenticated(false);
         setUserRole(null);
         setUserName(null);
-        setUserPhotoURL(null); // Clear PFP for no user
+        setUserPhotoURL(null); 
         setIsGuestMode(false);
         setMongoDbUserId(null);
         localStorage.removeItem('recruiterProfileComplete');
@@ -175,7 +175,7 @@ function AppContent() {
           const user = result.user;
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${user.displayName || user.email}!` });
           localStorage.removeItem(GUEST_MODE_KEY);
-          setUserPhotoURL(user.photoURL); // Set PFP on redirect
+          setUserPhotoURL(user.photoURL); 
           setIsGuestMode(false);
           const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
            if (fetchedMongoId) {
@@ -230,7 +230,7 @@ function AppContent() {
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
-    setUserPhotoURL(mockUser.photoURL); // Set PFP for bypass user
+    setUserPhotoURL(mockUser.photoURL); 
     
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
@@ -269,7 +269,7 @@ function AppContent() {
     if (!isGuestMode && isAuthenticated && currentUser && idToUse) {
       try {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, {
-          method: 'POST', // Changed from PUT to POST
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), 
         });
@@ -309,7 +309,7 @@ function AppContent() {
       localStorage.removeItem('mongoDbUserId'); 
       setMongoDbUserId(null); 
       setIsGuestMode(false);
-      setUserPhotoURL(null); // Clear PFP on logout
+      setUserPhotoURL(null); 
       const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
       setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
       setActiveTab('findJobs'); 
@@ -346,7 +346,7 @@ function AppContent() {
   const jobseekerTabItems = [
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} /> },
     { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage isGuestMode={isGuestMode} /> },
-    { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestMode} /> },
+    { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestMode} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} /> },
     ...baseTabItems,
   ];
   
@@ -409,7 +409,7 @@ function AppContent() {
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
           userName={userName}
-          userPhotoURL={userPhotoURL} // Pass PFP URL
+          userPhotoURL={userPhotoURL} 
         />
         <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -435,7 +435,8 @@ function AppContent() {
                   ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
                   isGuestMode,
                   ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }),
-                  ...(item.value === 'aiTools' && { currentUserRole: userRole }) 
+                  ...(item.value === 'aiTools' && { currentUserRole: userRole }),
+                  ...(item.value === 'myDiary' && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
                 })}
               </TabsContent>
             ))}
