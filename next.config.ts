@@ -28,6 +28,12 @@ const nextConfig: NextConfig = {
         hostname: 'storage.googleapis.com',
         port: '',
         pathname: '/gtv-videos-bucket/**',
+      },
+      { // Added for Wikimedia Commons
+        protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+        port: '',
+        pathname: '/**',
       }
       // Add other image source hostnames here if needed
       // e.g. for actual avatar/logo storage
