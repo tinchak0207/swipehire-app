@@ -8,7 +8,7 @@ const User = require('./User'); // Our user model
 
 const app = express();
 const PORT = process.env.PORT || 5000; // Use PORT from .env or default to 5000
-const FRONTEND_URL = process.env.FRONTEND_URL; // Get frontend URL from .env
+const FRONTEND_URL = process.env.FRONTEND_URL; 
 
 // Log FRONTEND_URL at the point of use for CORS configuration
 console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}`);
@@ -16,33 +16,15 @@ console.log(`[CORS Config] FRONTEND_URL from .env at CORS setup: ${FRONTEND_URL}
 // Middleware to parse JSON
 app.use(express.json());
 
-// Global preflight OPTIONS handler
-// This should come BEFORE any other general CORS middleware or routes
-app.options('*', (req, res) => {
-  console.log(`[CORS Preflight] Handling OPTIONS request for ${req.path} from origin: ${req.headers.origin}`);
-  
-  // Validate origin for preflight
-  if (req.headers.origin === FRONTEND_URL) {
-    res.header('Access-Control-Allow-Origin', FRONTEND_URL);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization'); // Ensure this matches client request headers
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.sendStatus(204); // HTTP 204 No Content for successful preflight
-  } else {
-    // If origin does not match, Express will typically send a 403 or let it fall through.
-    // For clarity, we can log it.
-    console.warn(`[CORS Preflight] Origin mismatch. Expected: ${FRONTEND_URL}, Received: ${req.headers.origin}. Sending 403.`);
-    res.sendStatus(403); // Forbidden
-  }
-});
-
 // General CORS Middleware for actual requests (GET, POST, PUT etc.)
-// This will apply after the OPTIONS request has been handled by app.options('*', ...)
+// The `cors` middleware will handle preflight (OPTIONS) requests automatically.
 const corsOptions = {
   origin: FRONTEND_URL,
-  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // OPTIONS is handled by app.options now
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // Ensure PUT and OPTIONS are listed
+  allowedHeaders: ['Content-Type', 'Authorization'], // Ensure this matches client request headers
   credentials: true,
+  // preflightContinue: false, // Default is false, which is what we want - cors handles the OPTIONS response
+  // optionsSuccessStatus: 204 // Default is 204
 };
 app.use(cors(corsOptions));
 
