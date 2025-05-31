@@ -10,17 +10,18 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db } from "@/lib/firebase"; 
-import { doc, getDoc, setDoc } from "firebase/firestore"; 
-import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Import the context hook
+import { auth } from "@/lib/firebase"; 
+// Firestore imports removed
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface SettingsPageProps {
-  currentUserRole: UserRole | null;
+  currentUserRole: UserRole | null; // This is the role from HomePage (derived from Firebase or backend)
   onRoleChange: (newRole: UserRole) => void; 
   isGuestMode?: boolean;
 }
@@ -66,15 +67,17 @@ const defaultJobSeekerWeights: JobSeekerPerspectiveWeights = {
   jobConditionFitScore: 15,
 };
 
-const defaultLocalPreferences: UserPreferences = {
-  theme: 'system',
-  featureFlags: {
-    showExperimentalFeature: false,
-  }
-};
+// Default local preferences were here, now primarily handled by context
+// const defaultLocalPreferences: UserPreferences = {
+//   theme: 'light', // Default to light
+//   featureFlags: {
+//     showExperimentalFeature: false,
+//   }
+// };
+
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
-  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading } = useUserPreferences();
+  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId, fetchAndSetUserPreferences } = useUserPreferences();
   
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
@@ -92,11 +95,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [jobSeekerWeights, setJobSeekerWeights] = useState<JobSeekerPerspectiveWeights>(defaultJobSeekerWeights);
   const [recruiterWeightsError, setRecruiterWeightsError] = useState<string | null>(null);
   const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
-  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true); // For loading name, email, etc.
 
-  // Local state for UI, synced with context
-  const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(defaultLocalPreferences.theme);
-  const [localFeatureFlags, setLocalFeatureFlags] = useState<Record<string, boolean>>(defaultLocalPreferences.featureFlags || {});
+  const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(contextPreferences.theme);
+  const [localFeatureFlags, setLocalFeatureFlags] = useState<Record<string, boolean>>(contextPreferences.featureFlags || {});
 
 
   const { toast } = useToast();
@@ -107,7 +109,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   };
 
   useEffect(() => {
-    if (!contextLoading && contextPreferences) {
+    if (!contextLoading) {
       setLocalTheme(contextPreferences.theme);
       setLocalFeatureFlags(contextPreferences.featureFlags || {});
     }
@@ -123,19 +125,20 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setDocumentId('');
       setRecruiterWeights(defaultRecruiterWeights);
       setJobSeekerWeights(defaultJobSeekerWeights);
-      setLocalTheme(defaultLocalPreferences.theme);
-      setLocalFeatureFlags(defaultLocalPreferences.featureFlags || {});
       setIsLoadingSettings(false);
       return;
     }
 
     setIsLoadingSettings(true);
-    const user = auth.currentUser;
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
-      getDoc(userDocRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+    const user = auth.currentUser; // Firebase user
+
+    if (user && mongoDbUserId) { // Ensure we have MongoDB ID to fetch
+      fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`)
+        .then(res => {
+          if (!res.ok) throw new Error(`User not found in MongoDB or backend error: ${res.status}`);
+          return res.json();
+        })
+        .then(data => {
           setUserName(data.name || user.displayName || '');
           setUserEmail(data.email || user.email || '');
           setSelectedRoleInSettings(data.selectedRole || currentUserRole || null);
@@ -153,33 +156,33 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           } else {
             setJobSeekerWeights(defaultJobSeekerWeights);
           }
-          // Preferences (theme, feature flags) are now primarily loaded by UserPreferencesContext
-          // but we can set initial local state from Firestore here if context isn't ready
-          const firestorePrefs = data.preferences as UserPreferences | undefined;
-          setLocalTheme(firestorePrefs?.theme || defaultLocalPreferences.theme);
-          setLocalFeatureFlags(firestorePrefs?.featureFlags || defaultLocalPreferences.featureFlags || {});
-
-        } else {
+          // Preferences (theme, feature flags) are loaded by UserPreferencesContext
+        })
+        .catch(error => {
+          console.error("Error fetching user settings from MongoDB backend:", error);
+          toast({ title: "Error Loading Settings", description: "Could not load your saved settings. Please ensure your profile is complete.", variant: "destructive" });
+          // Fallback to Firebase Auth info if backend fetch fails for name/email
           setUserName(user.displayName || '');
           setUserEmail(user.email || '');
-          setSelectedRoleInSettings(currentUserRole || null);
-          setRecruiterWeights(defaultRecruiterWeights);
-          setJobSeekerWeights(defaultJobSeekerWeights);
-          setLocalTheme(defaultLocalPreferences.theme);
-          setLocalFeatureFlags(defaultLocalPreferences.featureFlags || {});
-        }
-      }).catch(error => {
-        console.error("Error fetching user settings from Firestore:", error);
-        toast({ title: "Error Loading Settings", description: "Could not load your saved settings.", variant: "destructive" });
-        setUserName(user.displayName || '');
-        setUserEmail(user.email || '');
-      }).finally(() => {
-        setIsLoadingSettings(false);
-      });
+          setSelectedRoleInSettings(currentUserRole || null); // Use role from HomePage if backend fails
+        })
+        .finally(() => {
+          setIsLoadingSettings(false);
+        });
+    } else if (user && !mongoDbUserId) {
+      // Still waiting for mongoDbUserId from context, or it means user is not in MongoDB yet.
+      // Fallback to Firebase Auth for basic display, settings save will be disabled or prompt creation.
+      setUserName(user.displayName || '');
+      setUserEmail(user.email || '');
+      setSelectedRoleInSettings(currentUserRole || null);
+      setIsLoadingSettings(false); // No backend data to load yet
+       toast({ title: "Profile Sync Pending", description: "Your profile data is being synced. Some settings might be unavailable until sync is complete.", variant: "default", duration: 7000 });
+    } else {
+      setIsLoadingSettings(false); // No user
     }
     loadAppStats();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGuestMode, currentUserRole]); // contextPreferences removed as it might cause loops. Rely on context to load itself.
+  }, [isGuestMode, currentUserRole, mongoDbUserId]); // mongoDbUserId is crucial here
 
 
   useEffect(() => {
@@ -204,8 +207,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   };
 
   const handleSaveSettings = async () => {
-    if (isGuestMode || !auth.currentUser) {
-      toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode.", variant: "default" });
+    if (isGuestMode || !auth.currentUser || !mongoDbUserId) {
+      toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode or if profile is not synced.", variant: "default" });
       return;
     }
     if (recruiterWeightsError || jobSeekerWeightsError) {
@@ -213,31 +216,43 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       return;
     }
 
-    const user = auth.currentUser;
-    if (user) {
-      const userDocRef = doc(db, "users", user.uid);
+    const user = auth.currentUser; // Firebase user
+    if (user && mongoDbUserId) { // Check mongoDbUserId again
       
       const currentPreferencesToSave: UserPreferences = {
         theme: localTheme,
         featureFlags: localFeatureFlags,
       };
 
-      const settingsData: any = {
+      // This data will be sent to PUT /api/users/:mongoDbUserId
+      const settingsData: any = { 
         name: userName,
-        email: userEmail, 
+        email: userEmail, // Backend might ignore this if it's tied to Firebase auth email
         selectedRole: selectedRoleInSettings,
         address,
         country,
         documentId,
         recruiterAIWeights: recruiterWeights,
         jobSeekerAIWeights: jobSeekerWeights,
-        preferences: currentPreferencesToSave, // Save updated preferences
-        updatedAt: new Date().toISOString(),
+        preferences: currentPreferencesToSave,
+        // firebaseUid: user.uid, // The backend should ideally store and index by Firebase UID
       };
+      // Note: The backend PUT /api/users/:id expects the full user object or fields to update.
+      // It will merge these.
 
       try {
-        await setDoc(userDocRef, settingsData, { merge: true });
-        await setContextPreferences(currentPreferencesToSave); // Update context state
+        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settingsData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: `Failed to save settings. Status: ${response.status}` }));
+          throw new Error(errorData.message);
+        }
+        
+        await setContextPreferences(currentPreferencesToSave); 
         
         toast({
           title: 'Settings Saved',
@@ -246,6 +261,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
           onRoleChange(selectedRoleInSettings); 
         }
+        // Update recruiterProfileComplete based on new name/email
         if (selectedRoleInSettings === 'recruiter' && userName.trim() !== '' && userEmail.trim() !== '') {
             localStorage.setItem('recruiterProfileComplete', 'true');
         } else if (selectedRoleInSettings === 'recruiter') {
@@ -253,12 +269,14 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         } else {
              localStorage.removeItem('recruiterProfileComplete');
         }
+        // Optionally re-fetch user data from backend to ensure UI consistency if backend modifies data
+        // fetchAndSetUserPreferences(mongoDbUserId); // If context needs full refresh from backend
+        // For now, local state updates should suffice for immediate UI feedback.
 
       } catch (error: any) {
-        console.error("Error saving settings to Firestore:", error);
+        console.error("Error saving settings to MongoDB backend:", error);
         let description = "Could not save your settings.";
-        if (error.code) { description += ` (Error: ${error.code})`; }
-        else if (error.message) { description += ` (Message: ${error.message})`;}
+        if (error.message) { description = error.message; }
         toast({ title: "Error Saving Settings", description, variant: "destructive" });
       }
     }
@@ -388,7 +406,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             Personal Information
           </CardTitle>
           <CardDescription>
-            Update your contact and personal details. These will be stored in your Firestore user document.
+            Update your contact and personal details. These will be stored in your user profile on our backend.
             {selectedRoleInSettings === 'recruiter' && " Recruiters: Name and Email are required to post jobs."}
           </CardDescription>
         </CardHeader>
@@ -415,10 +433,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               placeholder="Enter your email address" 
               value={userEmail} 
               onChange={(e) => setUserEmail(e.target.value)} 
-              disabled={isGuestMode || isAuthEmail}
+              disabled={isGuestMode || isAuthEmail} 
             />
              {isAuthEmail && !isGuestMode && (
-              <p className="text-xs text-muted-foreground">Your primary email is managed by Firebase Authentication and synced by the User Document extension. To change it, please use Firebase Auth methods.</p>
+              <p className="text-xs text-muted-foreground">Your primary email is managed by your authentication provider. To change it, please update it there.</p>
             )}
           </div>
           <div className="space-y-1">
@@ -663,7 +681,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       )}
 
       <CardFooter className="flex justify-end pt-6">
-        <Button onClick={handleSaveSettings} size="lg" disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings || contextLoading}>
+        <Button 
+          onClick={handleSaveSettings} 
+          size="lg" 
+          disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode)}
+        >
           {(isLoadingSettings || contextLoading) ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <SaveButtonIcon className="mr-2 h-5 w-5" />}
           {saveButtonText}
         </Button>
@@ -671,8 +693,3 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
-    
-
-    
-
-    

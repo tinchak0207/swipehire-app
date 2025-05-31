@@ -8,12 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { auth, db } from "@/lib/firebase"; // Import db for Firestore
+import { auth } from "@/lib/firebase"; 
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore"; // Firestore functions
+// Firestore imports removed: import { doc, getDoc, setDoc, updateDoc } from "firebase/firestore"; 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { UserPreferencesProvider } from "@/contexts/UserPreferencesContext"; // Import the provider
+import { UserPreferencesProvider, useUserPreferences } from "@/contexts/UserPreferencesContext"; 
+
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 // Lazy load components
 const CandidateDiscoveryPage = dynamic(() => import('@/components/pages/CandidateDiscoveryPage').then(mod => mod.CandidateDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
@@ -30,11 +32,10 @@ const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').t
 
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
-// const USER_ROLE_KEY = 'userRole'; // Will be primarily managed in Firestore
 const GUEST_MODE_KEY = 'isGuestModeActive';
 
-export default function HomePage() {
-  // Core state variables
+// Inner component to access UserPreferencesContext
+function AppContent() {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -42,7 +43,7 @@ export default function HomePage() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-
+  // const [mongoDbUserId, setMongoDbUserIdInternal] = useState<string | null>(null); // Managed by context
 
   const [activeTab, setActiveTab] = useState<string>("findJobs");
   const [isMobile, setIsMobile] = useState(false);
@@ -51,166 +52,147 @@ export default function HomePage() {
   const { toast } = useToast();
   const initialAuthCheckDone = useRef(false);
 
-  useEffect(() => {
-    console.log("HomePage useEffect: Starting auth check, setting isInitialLoading to true");
-    setIsInitialLoading(true);
+  // Use context for mongoDbUserId and its setter
+  const { mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences } = useUserPreferences();
 
+  const fetchUserFromMongo = async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
+    try {
+      // First, try to get user by Firebase UID (assuming backend supports this or :id can be firebaseUid)
+      // This is a placeholder. A robust solution may need a dedicated endpoint like /api/users/by-firebase-uid/:firebaseUid
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`); 
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUserRole(userData.selectedRole || null);
+        setUserName(userData.name || firebaseDisplayName || firebaseEmail);
+        setMongoDbUserId(userData._id); // Store MongoDB _id
+        localStorage.setItem('recruiterProfileComplete', (userData.selectedRole === 'recruiter' && userData.name && userData.email) ? 'true' : 'false');
+        return userData._id;
+      } else if (response.status === 404) {
+        // User not found in MongoDB, attempt to create
+        console.log("User not found in MongoDB, attempting to create...");
+        const createUserResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: firebaseDisplayName || firebaseEmail || 'New User',
+            email: firebaseEmail,
+            firebaseUid: firebaseUid, // Backend needs to be adapted to store this
+            preferences: { theme: 'light', featureFlags: {} } // Default preferences
+          }),
+        });
+        if (createUserResponse.ok) {
+          const newUserData = await createUserResponse.json();
+          if (newUserData.user) {
+            setUserRole(newUserData.user.selectedRole || null);
+            setUserName(newUserData.user.name);
+            setMongoDbUserId(newUserData.user._id);
+            localStorage.setItem('recruiterProfileComplete', (newUserData.user.selectedRole === 'recruiter' && newUserData.user.name && newUserData.user.email) ? 'true' : 'false');
+            toast({ title: "Profile Initialized", description: "Your basic profile has been set up."});
+            return newUserData.user._id;
+          }
+        } else {
+          const errorData = await createUserResponse.json().catch(()=>({}));
+          console.error("Failed to create user in MongoDB:", errorData.message || createUserResponse.statusText);
+          toast({ title: "Profile Creation Failed", description: `Could not initialize your profile: ${errorData.message || 'Please try again.'}`, variant: "destructive"});
+        }
+      } else {
+        const errorData = await response.json().catch(()=>({}));
+        console.error("Error fetching user data from MongoDB:", errorData.message || response.statusText);
+        toast({ title: "Error Loading Profile", description: "Could not load your profile data.", variant: "destructive"});
+      }
+    } catch (error) {
+      console.error("Error in fetchUserFromMongo:", error);
+      toast({ title: "Network Error", description: "Could not connect to backend to load profile.", variant: "destructive"});
+    }
+    // Fallback if fetch or create fails
+    setUserRole(null);
+    setUserName(firebaseDisplayName || firebaseEmail);
+    setMongoDbUserId(null);
+    localStorage.removeItem('recruiterProfileComplete');
+    return null;
+  };
+
+
+  useEffect(() => {
+    setIsInitialLoading(true);
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log("HomePage useEffect: onAuthStateChanged fired. User:", user);
       const guestActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
       const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
 
       if (user) {
-        console.log("HomePage useEffect: onAuthStateChanged - User authenticated.");
         setCurrentUser(user);
         setIsAuthenticated(true);
         setIsGuestMode(false);
         localStorage.removeItem(GUEST_MODE_KEY);
 
-        // Fetch user data from Firestore
-        try {
-          const userDocRef = doc(db, "users", user.uid);
-          const userDocSnap = await getDoc(userDocRef);
-          if (userDocSnap.exists()) {
-            const userData = userDocSnap.data();
-            setUserRole(userData.selectedRole || null);
-            setUserName(userData.name || user.displayName || user.email);
-            console.log("HomePage useEffect: Firestore data for user:", userData);
-             // Update recruiterProfileComplete in localStorage based on Firestore
-            if (userData.selectedRole === 'recruiter' && userData.name && userData.email) {
-              localStorage.setItem('recruiterProfileComplete', 'true');
-            } else if (userData.selectedRole === 'recruiter') {
-              localStorage.setItem('recruiterProfileComplete', 'false');
-            } else {
-              localStorage.removeItem('recruiterProfileComplete');
-            }
-          } else {
-            // Document doesn't exist, might be a brand new user. Role will be null.
-            // Extension should create basic doc. App might create custom fields on role selection.
-            setUserRole(null);
-            setUserName(user.displayName || user.email);
-            localStorage.removeItem('recruiterProfileComplete'); // New user, profile not complete
-            console.log("HomePage useEffect: No Firestore document for user yet.");
-          }
-        } catch (error) {
-          console.error("Error fetching user data from Firestore:", error);
-          setUserRole(null); // Fallback if Firestore fetch fails
-          setUserName(user.displayName || user.email);
-          localStorage.removeItem('recruiterProfileComplete');
+        const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
+        if (fetchedMongoId) {
+          fetchAndSetUserPreferences(fetchedMongoId); // Fetch preferences using mongoDbId
         }
         
-        if (hasSeenWelcomeStorage !== 'true') {
-          setShowWelcomePage(true);
-        } else {
-          setShowWelcomePage(false);
-        }
+        if (hasSeenWelcomeStorage !== 'true') setShowWelcomePage(true);
+        else setShowWelcomePage(false);
+
       } else if (guestActive) {
-        console.log("HomePage useEffect: onAuthStateChanged - Guest mode is active, no user session.");
         setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
         setIsAuthenticated(false);
         setUserRole(null); 
         setUserName('Guest User');
         setIsGuestMode(true);
+        setMongoDbUserId(null); // Clear mongoDbUserId for guest
         setShowWelcomePage(false); 
         localStorage.removeItem('recruiterProfileComplete');
-      } else { // No user and not guest
-        console.log("HomePage useEffect: onAuthStateChanged - No user authenticated, not guest.");
+      } else { 
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
         setUserName(null);
         setIsGuestMode(false);
+        setMongoDbUserId(null);
         localStorage.removeItem('recruiterProfileComplete');
-        
-        if (hasSeenWelcomeStorage !== 'true') {
-          setShowWelcomePage(true);
-        } else {
-          setShowWelcomePage(false);
-        }
+        if (hasSeenWelcomeStorage !== 'true') setShowWelcomePage(true);
+        else setShowWelcomePage(false);
       }
-
       if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
-        console.log("HomePage useEffect: onAuthStateChanged - Initial auth check complete, isInitialLoading set to false");
       }
     });
 
     getRedirectResult(auth)
-      .then(async (result) => { // make async to handle potential Firestore operations
-        console.log("HomePage useEffect: getRedirectResult result:", result);
+      .then(async (result) => { 
         if (result?.user) {
           const user = result.user;
-          toast({
-            title: "Signed In Successfully!",
-            description: `Welcome back, ${user.displayName || user.email}!`,
-          });
+          toast({ title: "Signed In Successfully!", description: `Welcome back, ${user.displayName || user.email}!` });
           localStorage.removeItem(GUEST_MODE_KEY);
           setIsGuestMode(false);
-          // User object is available here, could also fetch/update Firestore doc if needed
-          // For instance, Rowy extension would have created the basic doc.
-          // You might want to check if `selectedRole` exists and prompt if not.
-          try {
-            const userDocRef = doc(db, "users", user.uid);
-            const userDocSnap = await getDoc(userDocRef);
-            if (userDocSnap.exists()) {
-              const userData = userDocSnap.data();
-              setUserRole(userData.selectedRole || null);
-              setUserName(userData.name || user.displayName || user.email);
-              if (userData.selectedRole === 'recruiter' && userData.name && userData.email) {
-                localStorage.setItem('recruiterProfileComplete', 'true');
-              } else if (userData.selectedRole === 'recruiter') {
-                localStorage.setItem('recruiterProfileComplete', 'false');
-              } else {
-                localStorage.removeItem('recruiterProfileComplete');
-              }
-            } else {
-              // Role selection page will handle this for new users after welcome
-              setUserRole(null);
-              setUserName(user.displayName || user.email);
-              localStorage.removeItem('recruiterProfileComplete');
-            }
-          } catch (error) {
-            console.error("Error fetching user data from Firestore post-redirect:", error);
-            setUserRole(null);
-            setUserName(user.displayName || user.email);
-            localStorage.removeItem('recruiterProfileComplete');
-          }
+          const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
+           if (fetchedMongoId) {
+             fetchAndSetUserPreferences(fetchedMongoId);
+           }
         }
       })
       .catch((error) => {
         console.error("HomePage useEffect: Error during getRedirectResult:", error);
-        toast({
-          title: "Sign-In Issue During Redirect",
-          description: error.message || "Could not complete sign-in after redirect.",
-          variant: "destructive",
-        });
+        toast({ title: "Sign-In Issue During Redirect", description: error.message || "Could not complete sign-in after redirect.", variant: "destructive"});
       })
       .finally(() => {
         if (!initialAuthCheckDone.current) {
-            console.log("HomePage useEffect: getRedirectResult.finally - Fallback for initial flags.");
             const guestStillActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
-            if (guestStillActive && !auth.currentUser) {
-                if(!isGuestMode) handleGuestMode(); 
-            } else if (!auth.currentUser && !guestStillActive) {
+            if (guestStillActive && !auth.currentUser) { if(!isGuestMode) handleGuestMode(); }
+            else if (!auth.currentUser && !guestStillActive) {
                 const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
-                 if (hasSeenWelcomeStorage !== 'true') {
-                    if(!showWelcomePage) setShowWelcomePage(true);
-                } else {
-                    if(showWelcomePage) setShowWelcomePage(false);
-                }
+                 if (hasSeenWelcomeStorage !== 'true') { if(!showWelcomePage) setShowWelcomePage(true); }
+                 else { if(showWelcomePage) setShowWelcomePage(false); }
             }
             initialAuthCheckDone.current = true;
             setIsInitialLoading(false);
         }
       });
-
-    return () => {
-      console.log("HomePage useEffect: Cleaning up onAuthStateChanged listener.");
-      unsubscribe();
-    };
+    return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // mongoDbUserId removed from deps to avoid re-triggering auth flow excessively
 
 
   useEffect(() => {
@@ -221,126 +203,100 @@ export default function HomePage() {
   }, []);
 
   const handleStartExploring = () => {
-    console.log("HomePage: handleStartExploring called");
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
   };
 
   const handleLoginBypass = async () => {
-    console.log("HomePage: handleLoginBypass called");
     const mockUid = `mock-bypass-user-${Date.now()}`;
     const mockUser: User = {
-      uid: mockUid,
-      email: 'dev.user@example.com',
-      displayName: 'Dev User (Bypass)',
+      uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)',
       emailVerified: true, isAnonymous: false, metadata: {creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber: null, photoURL: null, providerData: [],
       providerId: 'firebase', refreshToken: 'mock-refresh-token', tenantId: null,
       delete: () => Promise.resolve(), getIdToken: () => Promise.resolve('mock-id-token'),
       getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }),
       reload: () => Promise.resolve(), toJSON: () => ({ uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }),
     };
-
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
     
-    // Simulate Firestore interaction for bypass user
-    try {
-        const userDocRef = doc(db, "users", mockUid);
-        const userDocSnap = await getDoc(userDocRef);
-        if (userDocSnap.exists() && userDocSnap.data().selectedRole) {
-            setUserRole(userDocSnap.data().selectedRole);
-            setUserName(userDocSnap.data().name || mockUser.displayName);
-            if (userDocSnap.data().selectedRole === 'recruiter' && userDocSnap.data().name && userDocSnap.data().email) {
-                localStorage.setItem('recruiterProfileComplete', 'true');
-            } else if (userDocSnap.data().selectedRole === 'recruiter') {
-                localStorage.setItem('recruiterProfileComplete', 'false');
-            }
-        } else {
-            // Set a default role for bypass if not in Firestore, e.g., jobseeker
-            setUserRole('jobseeker'); // Or prompt for role
-            setUserName(mockUser.displayName);
-            // No need to write to Firestore for a bypass, but RoleSelectionPage would normally handle this.
-        }
-    } catch (error) {
-        console.error("Firestore error during bypass login, defaulting role:", error);
-        setUserRole('jobseeker');
-        setUserName(mockUser.displayName);
+    // Simulate fetch/create for bypass user with MongoDB
+    const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
+    if (fetchedMongoId) {
+      fetchAndSetUserPreferences(fetchedMongoId);
+      // For bypass, explicitly set a role if not set by fetchUserFromMongo
+      if (!userRole) {
+         const defaultRole = 'jobseeker';
+         await handleRoleSelect(defaultRole, fetchedMongoId); // Pass mongoId
+      }
+    } else {
+      setUserRole('jobseeker'); // Fallback if mongo interaction fails during bypass
+      setUserName(mockUser.displayName);
     }
     
-    setShowWelcomePage(false); 
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-
+    setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
-        console.log("HomePage: handleLoginBypass - Initial auth check forced complete.");
     }
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
 
   const handleGuestMode = () => {
-    console.log("HomePage: handleGuestMode called");
     localStorage.setItem(GUEST_MODE_KEY, 'true');
     setIsGuestMode(true);
     setIsAuthenticated(false); 
     setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
-    setUserRole(null); 
-    setUserName('Guest User');
-    setShowWelcomePage(false); 
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
-
-    if (!initialAuthCheckDone.current) {
-        initialAuthCheckDone.current = true;
-        setIsInitialLoading(false);
-    }
+    setUserRole(null); setUserName('Guest User');
+    setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
+    setMongoDbUserId(null); // Clear mongoDbUserId for guest
+    if (!initialAuthCheckDone.current) { initialAuthCheckDone.current = true; setIsInitialLoading(false); }
     toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
   };
 
-  const handleRoleSelect = async (role: UserRole) => {
-    console.log("HomePage: handleRoleSelect called with role:", role);
-    if (currentUser && isAuthenticated) {
+  const handleRoleSelect = async (role: UserRole, currentMongoId?: string | null) => {
+    const idToUse = currentMongoId || mongoDbUserId; // Prefer passed ID, then context ID
+    if (currentUser && isAuthenticated && idToUse) {
       try {
-        const userDocRef = doc(db, "users", currentUser.uid);
-        // Using setDoc with merge: true will create or update the document.
-        await setDoc(userDocRef, { selectedRole: role, uid: currentUser.uid, email: currentUser.email, name: userName || currentUser.displayName }, { merge: true });
-        setUserRole(role);
+        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${idToUse}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ selectedRole: role, name: userName, email: currentUser.email }), // Send name/email too
+        });
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`}));
+          throw new Error(errorData.message);
+        }
+        setUserRole(role); // Update local state
         toast({ title: "Role Selected", description: `You are now a ${role}.` });
-         if (role === 'recruiter' && userName && currentUser.email) {
-            localStorage.setItem('recruiterProfileComplete', 'true');
+        if (role === 'recruiter' && userName && currentUser.email) {
+          localStorage.setItem('recruiterProfileComplete', 'true');
         } else if (role === 'recruiter') {
-            localStorage.setItem('recruiterProfileComplete', 'false');
+          localStorage.setItem('recruiterProfileComplete', 'false');
         } else {
-             localStorage.removeItem('recruiterProfileComplete');
+          localStorage.removeItem('recruiterProfileComplete');
         }
       } catch (error: any) {
-        console.error("Error saving role to Firestore:", error);
-        let description = "Could not save your role selection. Please try again.";
-        if (error.code) {
-            description += ` (Error: ${error.code})`;
-        } else if (error.message) {
-            description += ` (Message: ${error.message})`;
-        }
-        toast({ title: "Error Saving Role", description, variant: "destructive" });
+        console.error("Error saving role to MongoDB backend:", error);
+        toast({ title: "Error Saving Role", description: error.message || "Could not save role selection.", variant: "destructive" });
       }
     } else {
-      // Should not happen if role selection page is shown only for authenticated users without a role
-      console.warn("handleRoleSelect called without an authenticated user.");
-      // localStorage.setItem(USER_ROLE_KEY, role); // Fallback to localStorage if no user (should be rare)
+      console.warn("handleRoleSelect called without authenticated user or MongoDB ID.");
     }
-    setUserRole(role); // Optimistic update
+    setUserRole(role); 
     setShowWelcomePage(false); 
   };
 
+
   const handleLogout = async () => {
-    console.log("HomePage: handleLogout called");
     try {
       await signOut(auth);
       localStorage.removeItem(GUEST_MODE_KEY); 
       localStorage.removeItem('recruiterProfileComplete');
+      localStorage.removeItem('mongoDbUserId'); // Clear stored MongoDB ID
+      setMongoDbUserId(null); // Clear context MongoDB ID
       setIsGuestMode(false);
-      // USER_ROLE_KEY is removed from localStorage as Firestore is source of truth
-      // User related state (currentUser, isAuthenticated, userRole, userName) will be reset by onAuthStateChanged
       const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
       setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
       setActiveTab('findJobs'); 
@@ -352,10 +308,10 @@ export default function HomePage() {
   };
 
   const handleLoginRequest = () => {
-    console.log("HomePage: handleLoginRequest called - Login page should be shown.");
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
+        setMongoDbUserId(null);
         const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
         setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
     }
@@ -380,29 +336,25 @@ export default function HomePage() {
     ...baseTabItems,
   ];
   
-  let currentTabItems = jobseekerTabItems;
+  let currentTabItems = jobseekerTabItems; // Default for guests or unauthenticated
   if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   } else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   } else if (isGuestMode) {
-    currentTabItems = jobseekerTabItems; 
+    currentTabItems = jobseekerTabItems; // Guests see job seeker view
   }
-
 
   useEffect(() => {
     if (!isInitialLoading && initialAuthCheckDone.current) {
       const itemsForCurrentContext = isGuestMode 
         ? jobseekerTabItems 
         : (isAuthenticated && userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
-      
       const validTabValues = itemsForCurrentContext.map(item => item.value);
-      
       let defaultTabForCurrentContext = "findJobs"; 
       if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
         defaultTabForCurrentContext = "findTalent";
       }
-
       if (!validTabValues.includes(activeTab) || 
           (userRole === 'recruiter' && activeTab === 'findJobs') || 
           (userRole === 'jobseeker' && activeTab === 'findTalent') ||
@@ -413,38 +365,26 @@ export default function HomePage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userRole, isGuestMode, isAuthenticated, isInitialLoading]); 
 
-  console.log("HomePage: Rendering - isInitialLoading:", isInitialLoading, "isAuthenticated:", isAuthenticated, "showWelcomePage:", showWelcomePage, "userRole:", userRole, "isGuestMode:", isGuestMode, "activeTab:", activeTab);
-
   if (isInitialLoading) {
-    console.log("HomePage: Rendering Loader2 because isInitialLoading is true.");
     return (
-      <UserPreferencesProvider currentUser={currentUser}>
-        <div className="flex min-h-screen items-center justify-center bg-background">
-          <Loader2 className="h-16 w-16 animate-spin text-primary" />
-        </div>
-      </UserPreferencesProvider>
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
+      </div>
     );
   }
   
-  const mainContent = () => {
+  const mainContentRender = () => {
     if (showWelcomePage && !isGuestMode) { 
-      console.log("HomePage: Rendering WelcomePage.");
       return <WelcomePage onStartExploring={handleStartExploring} />;
     }
-    
-    if (isAuthenticated && !isGuestMode && !userRole && !showWelcomePage) { 
-      console.log("HomePage: Rendering RoleSelectionPage (authenticated, no role, welcome done, not guest).");
-      return <RoleSelectionPage onRoleSelect={handleRoleSelect} />;
+    if (isAuthenticated && !isGuestMode && !userRole && !showWelcomePage && mongoDbUserId) { 
+      return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
     }
-    
     if (!isAuthenticated && !isGuestMode && !showWelcomePage) { 
-      console.log("HomePage: Rendering LoginPage (not authenticated, not guest, welcome done).");
       return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
     }
 
-    console.log("HomePage: Rendering Main App Content for user/guest.");
     const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
-
     return (
       <div className={mainAppContainerClasses}>
         <AppHeader
@@ -474,13 +414,12 @@ export default function HomePage() {
                 ))}
               </TabsList>
             )}
-
             {currentTabItems.map(item => (
               <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
                 {React.cloneElement(item.component, {
                   ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
                   isGuestMode,
-                  ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: handleRoleSelect }),
+                  ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }),
                   ...(item.value === 'aiTools' && { currentUserRole: userRole }) 
                 })}
               </TabsContent>
@@ -493,20 +432,31 @@ export default function HomePage() {
               <span className="hover:text-primary cursor-pointer">Terms of Service</span>
               <span className="hover:text-primary cursor-pointer">AI Ethics</span>
           </div>
-          <div>
-            © {new Date().getFullYear()} SwipeHire. All rights reserved.
-          </div>
+          <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
         </footer>
       </div>
     );
   };
-  
+  return mainContentRender();
+}
+
+export default function HomePage() {
+  const [currentUserForProvider, setCurrentUserForProvider] = useState<User | null>(null);
+  // Listen to auth changes at the top level to pass to provider
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUserForProvider(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <UserPreferencesProvider currentUser={currentUser}>
-      {mainContent()}
+    <UserPreferencesProvider currentUser={currentUserForProvider}>
+      <AppContent />
     </UserPreferencesProvider>
   );
 }
+
 
 interface MobileNavMenuProps {
   activeTab: string;
@@ -553,5 +503,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
-    

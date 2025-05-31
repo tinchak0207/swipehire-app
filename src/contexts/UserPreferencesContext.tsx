@@ -3,20 +3,24 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db, auth } from '@/lib/firebase';
+// Firestore imports removed: import { doc, getDoc, setDoc } from 'firebase/firestore';
+// Firestore db import removed: import { db } from '@/lib/firebase';
 import type { UserPreferences } from '@/lib/types';
 
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+
 const defaultPreferences: UserPreferences = {
-  theme: 'system', // Default to system preference
+  theme: 'light', // Default theme set to light
   featureFlags: {},
 };
 
 interface UserPreferencesContextType {
   preferences: UserPreferences;
   loadingPreferences: boolean;
-  setPreferences: (newPrefs: Partial<UserPreferences>) => Promise<void>; // For SettingsPage to call
-  // updatePreferenceOnBackend: (key: keyof UserPreferences, value: any) => Promise<void>; // More granular update
+  mongoDbUserId: string | null; // To store MongoDB _id
+  setMongoDbUserId: (id: string | null) => void;
+  fetchAndSetUserPreferences: (userId: string) => Promise<void>; // Takes MongoDB _id
+  setPreferences: (newPrefs: Partial<UserPreferences>) => Promise<void>;
 }
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
@@ -31,60 +35,92 @@ export const useUserPreferences = () => {
 
 interface UserPreferencesProviderProps {
   children: ReactNode;
-  currentUser: User | null; // Pass current Firebase user
+  currentUser: User | null; 
 }
 
 export const UserPreferencesProvider = ({ children, currentUser }: UserPreferencesProviderProps) => {
   const [preferences, setPreferencesState] = useState<UserPreferences>(defaultPreferences);
   const [loadingPreferences, setLoadingPreferences] = useState(true);
+  const [mongoDbUserId, setMongoDbUserIdState] = useState<string | null>(null);
+
+  const setMongoDbUserId = (id: string | null) => {
+    setMongoDbUserIdState(id);
+    if (id) {
+      localStorage.setItem('mongoDbUserId', id);
+    } else {
+      localStorage.removeItem('mongoDbUserId');
+    }
+  };
+
+  useEffect(() => {
+    const storedMongoId = localStorage.getItem('mongoDbUserId');
+    if (storedMongoId) {
+      setMongoDbUserIdState(storedMongoId);
+    }
+  }, []);
+
 
   const applyTheme = useCallback((themeSetting: UserPreferences['theme']) => {
+    document.documentElement.classList.remove('dark', 'light'); // Remove both first
     if (themeSetting === 'dark') {
       document.documentElement.classList.add('dark');
     } else if (themeSetting === 'light') {
-      document.documentElement.classList.remove('dark');
+      document.documentElement.classList.add('light');
     } else { // system
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (systemPrefersDark) {
         document.documentElement.classList.add('dark');
       } else {
-        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light'); // Default to light if system isn't dark
       }
     }
   }, []);
 
-  // Fetch preferences from Firestore
-  useEffect(() => {
-    if (currentUser?.uid) {
-      setLoadingPreferences(true);
-      const userDocRef = doc(db, "users", currentUser.uid);
-      getDoc(userDocRef).then(docSnap => {
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          const loadedPrefs = { ...defaultPreferences, ...data.preferences };
-          setPreferencesState(loadedPrefs);
-          applyTheme(loadedPrefs.theme);
-        } else {
-          // No preferences saved yet, use defaults
-          setPreferencesState(defaultPreferences);
-          applyTheme(defaultPreferences.theme);
-        }
-      }).catch(error => {
-        console.error("Error fetching user preferences from Firestore:", error);
-        setPreferencesState(defaultPreferences); // Fallback to defaults
+  const fetchAndSetUserPreferences = useCallback(async (userIdToFetch: string) => { // Expects MongoDB _id
+    if (!userIdToFetch) {
+      setPreferencesState(defaultPreferences);
+      applyTheme(defaultPreferences.theme);
+      setLoadingPreferences(false);
+      return;
+    }
+    setLoadingPreferences(true);
+    try {
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
+      if (response.ok) {
+        const userData = await response.json();
+        const loadedPrefs = { ...defaultPreferences, ...userData.preferences };
+        setPreferencesState(loadedPrefs);
+        applyTheme(loadedPrefs.theme);
+      } else {
+        console.warn(`Failed to fetch preferences for user ${userIdToFetch}, status: ${response.status}. Using defaults.`);
+        setPreferencesState(defaultPreferences);
         applyTheme(defaultPreferences.theme);
-      }).finally(() => {
-        setLoadingPreferences(false);
-      });
-    } else {
-      // No user / Guest mode
+        if (response.status === 404) {
+          setMongoDbUserId(null); // Clear invalid mongoDbUserId if user not found
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching user preferences from MongoDB backend:", error);
+      setPreferencesState(defaultPreferences);
+      applyTheme(defaultPreferences.theme);
+    } finally {
+      setLoadingPreferences(false);
+    }
+  }, [applyTheme]);
+  
+  // Automatically fetch preferences if mongoDbUserId is available
+  useEffect(() => {
+    if (mongoDbUserId) {
+      fetchAndSetUserPreferences(mongoDbUserId);
+    } else if (!currentUser) { // Guest mode or no user
       setPreferencesState(defaultPreferences);
       applyTheme(defaultPreferences.theme);
       setLoadingPreferences(false);
     }
-  }, [currentUser, applyTheme]);
+    // If mongoDbUserId is null but currentUser exists, HomePage will try to fetch/create it
+  }, [mongoDbUserId, currentUser, fetchAndSetUserPreferences, applyTheme]);
 
-  // Listen to system theme changes if 'system' is selected
+
   useEffect(() => {
     if (preferences.theme === 'system') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
@@ -94,41 +130,36 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     }
   }, [preferences.theme, applyTheme]);
 
-  // Function for SettingsPage to call to update and persist preferences
   const setPreferences = async (newPrefsPartial: Partial<UserPreferences>) => {
-    if (!currentUser?.uid) {
-      // Handle guest or no user case (e.g., save to localStorage or do nothing)
-      // For now, just update local state for guests if desired, but won't persist
-      const updatedLocalPrefs = { ...preferences, ...newPrefsPartial };
-      setPreferencesState(updatedLocalPrefs);
-      if (newPrefsPartial.theme) {
-        applyTheme(newPrefsPartial.theme);
-      }
-      console.log("Preferences updated locally for guest/no user.");
+    if (!mongoDbUserId) {
+      const localUpdatedPrefs = { ...preferences, ...newPrefsPartial };
+      setPreferencesState(localUpdatedPrefs);
+      if (newPrefsPartial.theme) applyTheme(newPrefsPartial.theme);
+      console.log("Preferences updated locally for guest/unidentified user.");
       return;
     }
 
     const updatedPreferences = { ...preferences, ...newPrefsPartial };
-    setPreferencesState(updatedPreferences); // Optimistic update
-    if (newPrefsPartial.theme) {
-      applyTheme(newPrefsPartial.theme);
-    }
+    setPreferencesState(updatedPreferences); 
+    if (newPrefsPartial.theme) applyTheme(newPrefsPartial.theme);
 
     try {
-      const userDocRef = doc(db, "users", currentUser.uid);
-      // We merge with existing document, specifically updating the 'preferences' field
-      await setDoc(userDocRef, { preferences: updatedPreferences }, { merge: true });
-      console.log("Preferences saved to Firestore for user:", currentUser.uid);
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: updatedPreferences }), 
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to save preferences: ${response.statusText}`);
+      }
+      console.log("Preferences saved to MongoDB backend for user:", mongoDbUserId);
     } catch (error) {
-      console.error("Error saving preferences to Firestore:", error);
-      // Optionally revert optimistic update or show error to user
-      // For now, we'll keep the optimistic update on the client
+      console.error("Error saving preferences to MongoDB backend:", error);
     }
   };
 
-
   return (
-    <UserPreferencesContext.Provider value={{ preferences, loadingPreferences, setPreferences }}>
+    <UserPreferencesContext.Provider value={{ preferences, loadingPreferences, mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences, setPreferences }}>
       {children}
     </UserPreferencesContext.Provider>
   );
