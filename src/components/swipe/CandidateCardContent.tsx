@@ -646,7 +646,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full bg-card overflow-hidden"
+        className="flex flex-col h-full bg-card overflow-hidden rounded-xl shadow-lg"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -657,80 +657,79 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area: Defines proportion of card height, content fills it */}
-        <div className="relative w-full max-h-[60%] h-3/5 shrink-0 bg-muted">
-          {(!candidate.avatarUrl || candidate.avatarUrl === 'https://placehold.co/500x700.png') ? (
-            <div className="w-full h-full flex items-center justify-center rounded-t-md">
-              <UserCircleIcon className="w-1/2 h-1/2 max-w-[150px] max-h-[150px] text-muted-foreground opacity-50" />
-            </div>
-          ) : (
-            <Image
-              src={candidate.avatarUrl}
-              alt={candidate.name}
-              fill
-              className="object-cover rounded-t-md"
-              data-ai-hint={candidate.dataAiHint || "person professional"}
-              priority
-            />
-          )}
+        {/* Top Media/Avatar Section */}
+        <div className="relative w-full h-2/5 shrink-0 bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center p-3">
+          <div className="relative">
+            {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
+              <Image
+                src={candidate.avatarUrl}
+                alt={candidate.name}
+                width={96} 
+                height={96}
+                className="rounded-full object-cover border-4 border-white shadow-md"
+                data-ai-hint={candidate.dataAiHint || "person professional"}
+                priority
+              />
+            ) : (
+              <UserCircleIcon className="w-24 h-24 text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md" />
+            )}
+          </div>
+
           {candidate.isUnderestimatedTalent && (
-              <TooltipProvider>
+            <TooltipProvider>
               <Tooltip>
-                  <TooltipTrigger asChild>
-                      <Badge variant="default" className="absolute top-2 right-2 bg-yellow-500 hover:bg-yellow-600 text-white shadow-md cursor-default">
-                          <Sparkles className="h-3 w-3 mr-1" />
-                          Hidden Gem
-                      </Badge>
-                  </TooltipTrigger>
-                  <TooltipContent side="left" className="max-w-xs">
-                      <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential that might be overlooked by standard filters."}</p>
-                  </TooltipContent>
+                <TooltipTrigger asChild>
+                  <Badge variant="default" className="absolute top-2 right-2 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-1">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Hidden Gem
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="left" className="max-w-xs bg-black text-white">
+                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                </TooltipContent>
               </Tooltip>
-              </TooltipProvider>
+            </TooltipProvider>
           )}
         </div>
 
-        {/* Text Content Area: Takes remaining space, content may be clipped if too long */}
-        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm overflow-hidden">
-            <CardHeader className="p-0 mb-1"> 
-                <div className="flex items-start justify-between">
-                    <div className="flex-grow min-w-0">
-                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate" title={candidate.name}>{candidate.name}</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate" title={candidate.role}>{candidate.role}</CardDescription>
-                    </div>
-                </div>
-                {candidate.location && (
-                <div className="flex items-center text-xs text-muted-foreground mt-0.5">
-                    <MapPin className="h-3 w-3 sm:h-3.5 sm:w-3.5 mr-1.5 shrink-0" />
-                    <span className="truncate">{candidate.location}</span>
-                </div>
-                )}
-            </CardHeader>
+        {/* Separator Line */}
+        <div className="w-full border-t-4 border-yellow-400"></div>
 
-            <p className="text-muted-foreground line-clamp-1 sm:line-clamp-2" title={candidate.experienceSummary}>
-                {candidate.experienceSummary}
+        {/* Text Content Section */}
+        <div className="flex-1 min-h-0 p-4 space-y-2 text-sm overflow-y-auto"> {/* Added overflow-y-auto */}
+          <div className="text-center mb-2">
+            <h2 className="text-xl font-bold text-primary">{candidate.name}</h2>
+            <p className="text-md text-muted-foreground">{candidate.role}</p>
+          </div>
+          
+          {/* Removed separator here, as the yellow line serves this purpose */}
+
+          <div className="mt-1 space-y-1.5">
+            {candidate.location && (
+              <div className="flex items-center text-muted-foreground text-xs">
+                <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                <span>{candidate.location}</span>
+              </div>
+            )}
+
+            <p className="text-foreground line-clamp-3" title={candidate.experienceSummary}>
+              {candidate.experienceSummary}
             </p>
 
-            {candidate.desiredWorkStyle && (
-                <div className="flex items-center text-muted-foreground pt-1">
-                    <Lightbulb className="h-3.5 w-3.5 mr-1.5 sm:mr-2 shrink-0" />
-                    <span className="line-clamp-1">Prefers: {candidate.desiredWorkStyle}</span>
-                </div>
-            )}
-
             {candidate.skills && candidate.skills.length > 0 && (
-                <div className="pt-1">
+              <div className="pt-1">
                 <div className="flex flex-wrap gap-1">
-                    {candidate.skills.slice(0, 3).map((skill) => (
+                  {candidate.skills.slice(0, 3).map((skill) => (
                     <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
-                    ))}
-                    {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-3} more</Badge>}
+                  ))}
+                  {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length - 3} more</Badge>}
                 </div>
-                </div>
+              </div>
             )}
+          </div>
         </div>
-
-        {/* Footer with actions - shrink-0 */}
+            
+        {/* Footer with actions */}
         <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
           <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
           <ActionButton
@@ -764,3 +763,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
