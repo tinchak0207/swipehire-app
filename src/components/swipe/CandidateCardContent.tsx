@@ -25,7 +25,6 @@ interface CandidateCardContentProps {
 
 const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10; // degrees
-const MAX_SUMMARY_LENGTH_CARD = 60;
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
@@ -102,7 +101,7 @@ function CandidateDetailsModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
         <DialogHeader className="p-4 sm:p-6 border-b flex-row items-center space-x-3 sticky top-0 bg-background z-10 pb-3">
-          {candidate.avatarUrl && (
+          {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
@@ -111,6 +110,8 @@ function CandidateDetailsModal({
               className="object-cover rounded-full border-2 border-primary"
               data-ai-hint={candidate.dataAiHint || "person"}
             />
+          ) : (
+             <UserCircleIcon className="w-16 h-16 text-muted-foreground border-2 border-primary rounded-full p-1" />
           )}
           <div className="flex-grow">
             <DialogTitle className="text-xl sm:text-2xl text-primary">{candidate.name}</DialogTitle>
@@ -664,12 +665,12 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
               alt={candidate.name}
               fill
               className="object-cover rounded-md" 
-              data-ai-hint={candidate.dataAiHint || "person"}
+              data-ai-hint={candidate.dataAiHint || "person professional"}
               priority
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md" data-ai-hint="profile avatar placeholder">
-              <UserCircleIcon className="w-24 h-24 text-muted-foreground" />
+              <UserCircleIcon className="w-24 h-24 text-muted-foreground opacity-50" />
             </div>
           )}
           {candidate.isUnderestimatedTalent && (
@@ -706,7 +707,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 )}
             </CardHeader>
 
-            <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
+            <p className="text-muted-foreground line-clamp-1 sm:line-clamp-2">
                 {candidate.experienceSummary}
             </p>
 
@@ -735,8 +736,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
           <ActionButton
               action="details"
-              Icon={Info}
-              label="Details"
+              Icon={Eye} 
+              label="View Profile" 
               className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
               onClickOverride={(e) => {
                 e.stopPropagation();
@@ -764,7 +765,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
-    
-
-    
