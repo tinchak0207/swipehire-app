@@ -2,8 +2,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Company, JobFilters, UserRole, CompanyJobOpening } from '@/lib/types'; // Added CompanyJobOpening
-import { mockCandidates } from '@/lib/mockData'; // mockCompanies removed, data comes from backend
+import type { Company, JobFilters, UserRole, CompanyJobOpening } from '@/lib/types';
+import { mockCompanies } from '@/lib/mockData'; // Ensure mockCompanies is imported
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
@@ -19,15 +19,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
+import { mockCandidates } from '@/lib/mockData';
 
 
-const ITEMS_PER_BATCH = 3; // This will be used for client-side display limiting if backend sends all
+const ITEMS_PER_BATCH = 3;
 const LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX = 'passedCompanies_';
 const LOCAL_STORAGE_TRASH_BIN_COMPANIES_KEY_PREFIX = 'trashBinCompanies_';
 
-// Extend Company type for frontend use if backend adds recruiterUserId
 interface CompanyWithRecruiterId extends Company {
-  recruiterUserId?: string; 
+  recruiterUserId?: string;
 }
 
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -57,15 +57,15 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true); // Will be mostly true initially, then false after all are loaded
+  const [hasMore, setHasMore] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
   const [trashBinCompanies, setTrashBinCompanies] = useState<CompanyWithRecruiterId[]>([]);
 
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
-  const [likedCompanyProfileIds, setLikedCompanyProfileIds] = useState<Set<string>>(new Set()); // Stores recruiterUserIds of liked jobs
-  const [passedCompanyProfileIds, setPassedCompanyProfileIds] = useState<Set<string>>(new Set()); // Stores composite company.id of passed jobs
+  const [likedCompanyProfileIds, setLikedCompanyProfileIds] = useState<Set<string>>(new Set());
+  const [passedCompanyProfileIds, setPassedCompanyProfileIds] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
   const { mongoDbUserId } = useUserPreferences();
@@ -76,9 +76,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
 
   useEffect(() => {
      if (mongoDbUserId) {
-        // Attempt to get stored ID from MyProfilePage or fallback
-        const storedCandidateId = localStorage.getItem(`currentUserJobSeekerProfile`) 
-          ? JSON.parse(localStorage.getItem(`currentUserJobSeekerProfile`)!).id // Assuming 'id' field exists in stored profile
+        const storedCandidateId = localStorage.getItem(`currentUserJobSeekerProfile`)
+          ? JSON.parse(localStorage.getItem(`currentUserJobSeekerProfile`)!).id
           : null;
         setJobSeekerRepresentedCandidateId(storedCandidateId || (mockCandidates.length > 0 ? mockCandidates[0].id : `cand-user-${mongoDbUserId.slice(0,5)}`));
     }
@@ -90,28 +89,40 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const loadAndSetInitialJobs = useCallback(async () => {
     setIsInitialLoading(true);
     setIsLoading(true);
+    let errorOccurred = false;
+    let fetchedJobs: Company[] = [];
+
     try {
-      const { jobs: fetchedJobs } = await fetchJobsFromBackend(); // Fetches all jobs now
-      setMasterJobFeed(fetchedJobs as CompanyWithRecruiterId[]);
-
-      const storedPassed = localStorage.getItem(getPassedKey());
-      if (storedPassed) setPassedCompanyProfileIds(new Set(JSON.parse(storedPassed)));
-
-      const storedTrash = localStorage.getItem(getTrashBinKey());
-      if (storedTrash && fetchedJobs.length > 0) {
-          const trashIds: string[] = JSON.parse(storedTrash);
-          setTrashBinCompanies(fetchedJobs.filter(c => trashIds.includes(c.id)) as CompanyWithRecruiterId[]);
-      }
-
+      const backendResponse = await fetchJobsFromBackend();
+      fetchedJobs = backendResponse.jobs;
     } catch (error) {
-      console.error("Failed to load initial jobs:", error);
-      setMasterJobFeed([]); 
-      toast({ title: "Error Loading Jobs", description: "Could not load job listings from the backend.", variant: "destructive" });
-    } finally {
-      setIsInitialLoading(false);
-      setIsLoading(false);
+      console.error("Failed to load initial jobs from backend:", error);
+      toast({ title: "Error Loading Jobs", description: "Could not load job listings from the backend. Using mock data as fallback.", variant: "destructive" });
+      errorOccurred = true;
     }
+
+    const jobsToSet = (fetchedJobs.length === 0 || errorOccurred)
+      ? mockCompanies.map(mc => ({
+          ...mc,
+          recruiterUserId: mc.recruiterUserId || `mock-recruiter-${mc.id}` // Ensure mock companies have a placeholder
+        })) as CompanyWithRecruiterId[]
+      : fetchedJobs as CompanyWithRecruiterId[];
+
+    setMasterJobFeed(jobsToSet);
+
+    const storedPassed = localStorage.getItem(getPassedKey());
+    if (storedPassed) setPassedCompanyProfileIds(new Set(JSON.parse(storedPassed)));
+
+    const storedTrash = localStorage.getItem(getTrashBinKey());
+    if (storedTrash && jobsToSet.length > 0) {
+        const trashIds: string[] = JSON.parse(storedTrash);
+        setTrashBinCompanies(jobsToSet.filter(c => trashIds.includes(c.id)) as CompanyWithRecruiterId[]);
+    }
+
+    setIsInitialLoading(false);
+    setIsLoading(false);
   }, [toast, getPassedKey, getTrashBinKey]);
+
 
   useEffect(() => {
     loadAndSetInitialJobs();
@@ -121,7 +132,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const filteredJobFeed = useMemo(() => {
     if (isInitialLoading) return [];
     let companies = [...masterJobFeed];
-    
+
     const lowerSearchTerm = searchTerm.toLowerCase();
     if (activeFilters.experienceLevels.size > 0) {
       companies = companies.filter(c => c.jobOpenings?.some(job => job.requiredExperienceLevel && activeFilters.experienceLevels.has(job.requiredExperienceLevel)));
@@ -164,7 +175,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredJobFeed.length);
       setIsLoading(false);
-    }, 300); // Reduced delay as it's local filtering
+    }, 300);
   }, [isLoading, hasMore, currentIndex, filteredJobFeed]);
 
   useEffect(() => {
@@ -174,10 +185,10 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     const hasFilteredItems = filteredJobFeed.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
-        loadMoreCompaniesFromLocal(); 
+        loadMoreCompaniesFromLocal();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredJobFeed, isInitialLoading]); 
+  }, [filteredJobFeed, isInitialLoading]);
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -214,14 +225,14 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         toast({ title: "Profile Incomplete", description: "Your job seeker profile needs to be set up to make matches. Please complete it in 'My Profile'.", variant: "destructive" });
         return;
       }
-      setLikedCompanyProfileIds(prev => new Set(prev).add(recruiterOwnerId)); // Store recruiter's ID as liked
+      setLikedCompanyProfileIds(prev => new Set(prev).add(recruiterOwnerId));
       try {
         const response = await recordLike({
           likingUserId: mongoDbUserId,
-          likedProfileId: recruiterOwnerId, // This is the recruiter's User ID
-          likedProfileType: 'company', // The 'company' is represented by the recruiter user
+          likedProfileId: recruiterOwnerId,
+          likedProfileType: 'company',
           likingUserRole: 'jobseeker',
-          likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId, // The job seeker's own display ID
+          likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId,
         });
         if (response.success) {
           toast({ title: `Interested in job at ${companyJob.name}` });
@@ -241,7 +252,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         setLikedCompanyProfileIds(prev => { const newSet = new Set(prev); newSet.delete(recruiterOwnerId); return newSet; });
       }
     } else if (action === 'pass') {
-      setPassedCompanyProfileIds(prev => { // Store the composite ID for pass tracking
+      setPassedCompanyProfileIds(prev => {
         const newSet = new Set(prev).add(compositeCompanyJobId);
         localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newSet)));
         return newSet;
@@ -262,16 +273,16 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
         return updatedTrash;
     });
-    setPassedCompanyProfileIds(prevPassed => { // Remove composite ID from passed
+    setPassedCompanyProfileIds(prevPassed => {
         const newPassed = new Set(prevPassed);
         newPassed.delete(compositeCompanyJobId);
         localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
         return newPassed;
     });
-    
-    setCurrentIndex(0); 
-    setDisplayedCompanies([]); 
-    setHasMore(true); 
+
+    setCurrentIndex(0);
+    setDisplayedCompanies([]);
+    setHasMore(true);
     toast({ title: "Job Retrieved", description: `${masterJobFeed.find(c=>c.id === compositeCompanyJobId)?.name || 'Job'} is back in the discovery feed.` });
     setIsTrashBinOpen(false);
   };
@@ -382,8 +393,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
           </div>
         ))}
         {isLoading && !isInitialLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-        {hasMore && !isLoading && !isInitialLoading && filteredJobFeed.length > 0 && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
-        {!isLoading && displayedCompanies.length === 0 && (
+        {hasMore && !isLoading && !isInitialLoading && filteredJobFeed.length > 0 && displayedCompanies.length < filteredJobFeed.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
+        {!isLoading && !isInitialLoading && displayedCompanies.length === 0 && (
             <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
                 <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
                 <h2 className="text-2xl font-semibold mb-3 text-foreground">{searchTerm || numActiveFilters > 0 ? "No Jobs Found" : "No More Jobs"}</h2>
