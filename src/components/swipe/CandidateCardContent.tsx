@@ -512,19 +512,34 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
-
-  const handleShareClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  
+  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
+    const profileUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; 
+    const shareText = `Check out this profile on SwipeHire: ${candidate.name} - ${candidate.role}. Visit ${profileUrl}`;
+    const emailSubject = `Interesting Profile on SwipeHire: ${candidate.name}`;
+    const emailBody = `I found this profile on SwipeHire and thought you might be interested:\n\nName: ${candidate.name}\nRole: ${candidate.role}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
+
+    switch (action) {
+      case 'copy':
+        navigator.clipboard.writeText(profileUrl)
+          .then(() => toast({ title: "Link Copied!", description: "Profile link copied to clipboard." }))
+          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
+        break;
+      case 'email':
+        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
+        break;
+    }
   };
-
-
-  const summaryForCardDisplay = candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_CARD
-    ? `${candidate.experienceSummary.substring(0, MAX_SUMMARY_LENGTH_CARD)}...`
-    : candidate.experienceSummary;
 
   const ActionButton = ({
     action,
@@ -628,34 +643,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     );
   };
 
-  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
-    if (isGuestMode) {
-      toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
-      return;
-    }
-    const profileUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; 
-    const shareText = `Check out this profile on SwipeHire: ${candidate.name} - ${candidate.role}. Visit ${profileUrl}`;
-    const emailSubject = `Interesting Profile on SwipeHire: ${candidate.name}`;
-    const emailBody = `I found this profile on SwipeHire and thought you might be interested:\n\nName: ${candidate.name}\nRole: ${candidate.role}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
-
-    switch (action) {
-      case 'copy':
-        navigator.clipboard.writeText(profileUrl)
-          .then(() => toast({ title: "Link Copied!", description: "Profile link copied to clipboard." }))
-          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
-        break;
-      case 'email':
-        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        break;
-      case 'linkedin':
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
-        break;
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
-        break;
-    }
-  };
-
 
   return (
     <>
@@ -706,7 +693,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
 
         {/* Text Content Area */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 space-y-1 text-xs sm:text-sm overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
             <CardHeader className="p-0 mb-1">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
@@ -723,7 +710,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             </CardHeader>
 
             <p className="text-muted-foreground line-clamp-2 sm:line-clamp-3">
-                {summaryForCardDisplay}
+                {candidate.experienceSummary}
             </p>
 
             {candidate.desiredWorkStyle && (
