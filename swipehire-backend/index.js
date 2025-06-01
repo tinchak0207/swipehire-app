@@ -170,7 +170,7 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
-// Changed from PUT to POST
+
 app.post('/api/users/:identifier/profile', async (req, res) => {
     console.log(`[Backend Route] HIT: POST /api/users/${req.params.identifier}/profile with body:`, JSON.stringify(req.body).substring(0, 200) + "...");
     try {
@@ -294,28 +294,45 @@ app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
 
 // --- New Endpoint to Fetch Jobseeker Profiles ---
 app.get('/api/users/profiles/jobseekers', async (req, res) => {
-    console.log(`[Backend Route] HIT: GET /api/users/profiles/jobseekers`); 
+    console.log(`[Backend Route] HIT: GET /api/users/profiles/jobseekers`);
     try {
         const jobSeekerUsers = await User.find({
             selectedRole: 'jobseeker',
         });
+        
         console.log(`[DB Action GET /jobseekers] Found ${jobSeekerUsers.length} raw user documents with selectedRole: 'jobseeker'.`);
+        if (jobSeekerUsers.length > 0) {
+          // Log crucial fields for the first few users to help diagnose mapping issues
+          console.log('[DB Action GET /jobseekers] First few raw jobseeker users (selected fields):',
+            jobSeekerUsers.slice(0, 3).map(u => ({
+              _id: u._id,
+              name: u.name,
+              email: u.email, // Added for debugging context
+              selectedRole: u.selectedRole,
+              profileHeadline: u.profileHeadline,
+              profileExperienceSummaryLength: u.profileExperienceSummary?.length,
+              profileSkills: u.profileSkills,
+              profileAvatarUrl: u.profileAvatarUrl,
+              representedCandidateProfileId: u.representedCandidateProfileId // Important for matching
+            }))
+          );
+        }
 
         if (!jobSeekerUsers || jobSeekerUsers.length === 0) {
-            console.log('[DB Action GET /jobseekers] No jobseeker profiles found in DB.');
-            return res.json([]); 
+            console.log('[DB Action GET /jobseekers] No jobseeker profiles found in DB, returning empty array.');
+            return res.json([]);
         }
 
         const candidates = jobSeekerUsers.map(user => ({
-            id: user._id.toString(), 
+            id: user._id.toString(), // Use MongoDB _id as the candidate's primary ID
             name: user.name || 'N/A',
             role: user.profileHeadline || 'Role not specified',
-            experienceSummary: user.profileExperienceSummary || 'No summary.',
+            experienceSummary: user.profileExperienceSummary || 'No summary available.',
             skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
             avatarUrl: user.profileAvatarUrl || `https://placehold.co/100x100.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
-            dataAiHint: 'person portrait', 
-            videoResumeUrl: user.profileVideoPortfolioLink || undefined,
-            profileStrength: Math.floor(Math.random() * 40) + 60, 
+            dataAiHint: 'person portrait',
+            videoResumeUrl: user.profileVideoPortfolioLink || undefined, // Use actual link if available
+            profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder strength
             location: user.country || 'Location not specified',
             desiredWorkStyle: user.profileDesiredWorkStyle || 'Not specified',
             pastProjects: user.profilePastProjects || 'Not specified',
@@ -327,13 +344,22 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             jobTypePreference: user.profileJobTypePreference ? user.profileJobTypePreference.split(',').map(s => s.trim()).filter(s => s) : ['Unspecified'],
             salaryExpectationMin: user.profileSalaryExpectationMin,
             salaryExpectationMax: user.profileSalaryExpectationMax,
-            personalityAssessment: [], 
-            optimalWorkStyles: [],     
-            isUnderestimatedTalent: Math.random() < 0.15, 
-            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential.' : undefined,
+            personalityAssessment: [], // Placeholder
+            optimalWorkStyles: [],     // Placeholder
+            isUnderestimatedTalent: Math.random() < 0.15, // Placeholder
+            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential based on raw data.' : undefined, // Placeholder
         }));
         
-        console.log(`[DB Action GET /jobseekers] Fetched and transformed ${candidates.length} jobseeker profiles.`);
+        console.log(`[DB Action GET /jobseekers] Transformed ${candidates.length} jobseeker profiles to send to frontend.`);
+        if (candidates.length > 0) {
+            console.log('[DB Action GET /jobseekers] First transformed candidate to send (selected fields):', {
+                id: candidates[0].id,
+                name: candidates[0].name,
+                role: candidates[0].role,
+                skills: candidates[0].skills,
+                avatarUrl: candidates[0].avatarUrl
+            });
+        }
         res.json(candidates);
     } catch (error) {
         console.error('Error fetching jobseeker profiles:', error);
@@ -447,7 +473,8 @@ app.post('/api/interactions/like', async (req, res) => {
             // Find the recruiter user who represents this company profile
             otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
             // Check if that recruiter (otherUser) has liked this jobseeker's profile
-            if (otherUser && likingUser.representedCandidateProfileId && otherUser.likedCandidateIds.includes(likingUser.representedCandidateProfileId)) {
+            // Here, likingUser.id is the User._id of the jobseeker, which is equivalent to their 'candidate ID' in this context
+            if (otherUser && otherUser.likedCandidateIds.includes(likingUser._id.toString())) {
                 matchMade = true;
             }
         } else {
