@@ -22,6 +22,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 const ITEMS_PER_BATCH = 3;
 const LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX = 'passedCandidates_';
 const LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX = 'trashBinCandidates_';
+const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
 
 // Simple Trash icon as Lucide might not have a perfect one
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
@@ -47,7 +48,35 @@ const initialFilters: CandidateFilters = {
 };
 
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
-  const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates);
+  const [allCandidates, setAllCandidates] = useState<Candidate[]>(() => {
+    // Initialize allCandidates with potential override from local storage
+    const baseCandidates = [...mockCandidates]; // Make a mutable copy
+    const savedProfileString = typeof window !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY) : null;
+    if (savedProfileString) {
+      try {
+        const savedProfile = JSON.parse(savedProfileString);
+        const targetCandidateIndex = baseCandidates.findIndex(c => c.id === 'cand1'); // Target "Alice Wonderland"
+
+        if (targetCandidateIndex !== -1 && savedProfile) {
+          const originalCandidate = baseCandidates[targetCandidateIndex];
+          baseCandidates[targetCandidateIndex] = {
+            ...originalCandidate, // Keep ID, avatar, location, etc. from mock
+            role: savedProfile.profileHeadline || originalCandidate.role,
+            experienceSummary: savedProfile.experienceSummary || originalCandidate.experienceSummary,
+            skills: savedProfile.skills ? savedProfile.skills.split(',').map((s: string) => s.trim()).filter((s: string) => s) : originalCandidate.skills,
+            desiredWorkStyle: savedProfile.desiredWorkStyle || originalCandidate.desiredWorkStyle,
+            pastProjects: savedProfile.pastProjects || originalCandidate.pastProjects,
+            videoResumeUrl: savedProfile.videoPortfolioLink || originalCandidate.videoResumeUrl,
+            // You can add more fields here if MyProfilePage saves them
+          };
+          console.log("[CandidateDiscovery] Initialized: Overrode cand1 with data from MyProfilePage localStorage.");
+        }
+      } catch (e) {
+        console.error("[CandidateDiscovery] Error parsing saved profile from localStorage:", e);
+      }
+    }
+    return baseCandidates;
+  });
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -91,7 +120,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
 
   const filteredCandidatesMemo = useMemo(() => {
     console.log("[CandidateDiscovery] Recalculating filteredCandidatesMemo...");
-    let candidates = [...allCandidates];
+    let candidates = [...allCandidates]; // Use the state that might have been updated
 
     if (activeFilters.experienceLevels.size > 0) {
       candidates = candidates.filter(c => c.workExperienceLevel && activeFilters.experienceLevels.has(c.workExperienceLevel));
@@ -377,3 +406,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     
 
 
+
+
+    

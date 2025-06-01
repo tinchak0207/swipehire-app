@@ -14,6 +14,9 @@ interface MyProfilePageProps {
   isGuestMode?: boolean;
 }
 
+// Define the key for localStorage
+const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
+
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
@@ -25,21 +28,24 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isGuestMode) return;
+    if (isGuestMode || typeof window === 'undefined') return;
 
-    const savedHeadline = localStorage.getItem('jobSeekerProfileHeadline');
-    const savedExpSummary = localStorage.getItem('jobSeekerExperienceSummary');
-    const savedSkills = localStorage.getItem('jobSeekerSkills');
-    const savedWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle');
-    const savedPastProjects = localStorage.getItem('jobSeekerPastProjects');
-    const savedVideoLink = localStorage.getItem('jobSeekerVideoPortfolioLink');
-
-    if (savedHeadline) setProfileHeadline(savedHeadline);
-    if (savedExpSummary) setExperienceSummary(savedExpSummary);
-    if (savedSkills) setSkills(savedSkills);
-    if (savedWorkStyle) setDesiredWorkStyle(savedWorkStyle);
-    if (savedPastProjects) setPastProjects(savedPastProjects);
-    if (savedVideoLink) setVideoPortfolioLink(savedVideoLink);
+    const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
+    if (savedProfileString) {
+      try {
+        const savedProfile = JSON.parse(savedProfileString);
+        if (savedProfile.profileHeadline) setProfileHeadline(savedProfile.profileHeadline);
+        if (savedProfile.experienceSummary) setExperienceSummary(savedProfile.experienceSummary);
+        if (savedProfile.skills) setSkills(savedProfile.skills); // Keep as string
+        if (savedProfile.desiredWorkStyle) setDesiredWorkStyle(savedProfile.desiredWorkStyle);
+        if (savedProfile.pastProjects) setPastProjects(savedProfile.pastProjects);
+        if (savedProfile.videoPortfolioLink) setVideoPortfolioLink(savedProfile.videoPortfolioLink);
+      } catch (e) {
+        console.error("Error parsing saved profile from localStorage:", e);
+        // Optionally clear corrupted data
+        // localStorage.removeItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
+      }
+    }
   }, [isGuestMode]);
 
   const handleSaveProfile = () => {
@@ -47,17 +53,22 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       toast({ title: "Action Disabled", description: "Please sign in to save your profile.", variant: "default"});
       return;
     }
-    localStorage.setItem('jobSeekerProfileHeadline', profileHeadline);
-    localStorage.setItem('jobSeekerExperienceSummary', experienceSummary);
-    localStorage.setItem('jobSeekerSkills', skills);
-    localStorage.setItem('jobSeekerDesiredWorkStyle', desiredWorkStyle);
-    localStorage.setItem('jobSeekerPastProjects', pastProjects);
-    localStorage.setItem('jobSeekerVideoPortfolioLink', videoPortfolioLink);
-
-    toast({
-      title: 'Profile Updated & Published!',
-      description: 'Your profile is now visible to recruiters with the latest information.',
-    });
+    if (typeof window !== 'undefined') {
+      const profileData = {
+        profileHeadline,
+        experienceSummary,
+        skills, // Save as string
+        desiredWorkStyle,
+        pastProjects,
+        videoPortfolioLink,
+      };
+      localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(profileData));
+      toast({
+        title: 'Profile Updated & Published!',
+        description: 'Your profile is now visible to recruiters with the latest information. (Refresh Find Talent to see changes reflected on the first candidate card).',
+        duration: 7000,
+      });
+    }
   };
 
   if (isGuestMode) {
@@ -171,3 +182,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+
+
+    
