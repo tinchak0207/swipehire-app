@@ -10,14 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X } from 'lucide-react'; // Added X
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate } from '@/lib/types';
 import NextImage from 'next/image';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge'; // Added Badge
+import { Badge } from '@/components/ui/badge';
 
 const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -50,12 +50,13 @@ const getThemeClass = (themeKey?: string) => {
   return `card-theme-${themeKey}`;
 };
 
+const jobTypeEnumOptions = Object.values(JobType).filter(jt => jt !== JobType.UNSPECIFIED);
+
 
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
   
-  // Skills management
   const [skillList, setSkillList] = useState<string[]>([]);
   const [currentSkillInputValue, setCurrentSkillInputValue] = useState('');
 
@@ -70,9 +71,16 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [workExperienceLevel, setWorkExperienceLevel] = useState<WorkExperienceLevel | string>(WorkExperienceLevel.UNSPECIFIED);
   const [educationLevel, setEducationLevel] = useState<EducationLevel | string>(EducationLevel.UNSPECIFIED);
   const [locationPreference, setLocationPreference] = useState<LocationPreference | string>(LocationPreference.UNSPECIFIED);
-  const [languages, setLanguages] = useState('');
+  
+  const [languageList, setLanguageList] = useState<string[]>([]);
+  const [currentLanguageInputValue, setCurrentLanguageInputValue] = useState('');
+
   const [availability, setAvailability] = useState<Availability | string>(Availability.UNSPECIFIED);
-  const [jobTypePreference, setJobTypePreference] = useState('');
+  
+  const [jobTypePreferenceList, setJobTypePreferenceList] = useState<JobType[]>([]);
+  const [currentSelectedJobType, setCurrentSelectedJobType] = useState<JobType | string>("");
+
+
   const [salaryExpectationMin, setSalaryExpectationMin] = useState<string>('');
   const [salaryExpectationMax, setSalaryExpectationMax] = useState<string>('');
   const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default');
@@ -110,9 +118,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setWorkExperienceLevel(userData.profileWorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
             setEducationLevel(userData.profileEducationLevel || EducationLevel.UNSPECIFIED);
             setLocationPreference(userData.profileLocationPreference || LocationPreference.UNSPECIFIED);
-            setLanguages(userData.profileLanguages || '');
+            setLanguageList(userData.profileLanguages ? userData.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
             setAvailability(userData.profileAvailability || Availability.UNSPECIFIED);
-            setJobTypePreference(userData.profileJobTypePreference || '');
+            setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
             setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
             setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
             setSelectedCardTheme(userData.profileCardTheme || 'default');
@@ -140,9 +148,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           setWorkExperienceLevel(savedProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
           setEducationLevel(savedProfile.educationLevel || EducationLevel.UNSPECIFIED);
           setLocationPreference(savedProfile.locationPreference || LocationPreference.UNSPECIFIED);
-          setLanguages(savedProfile.languages || '');
+          setLanguageList(savedProfile.languages ? savedProfile.languages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
           setAvailability(savedProfile.availability || Availability.UNSPECIFIED);
-          setJobTypePreference(savedProfile.jobTypePreference || '');
+          setJobTypePreferenceList(savedProfile.jobTypePreference ? savedProfile.jobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
           setSalaryExpectationMin(savedProfile.salaryExpectationMin?.toString() || '');
           setSalaryExpectationMax(savedProfile.salaryExpectationMax?.toString() || '');
           setSelectedCardTheme(savedProfile.profileCardTheme || 'default');
@@ -202,6 +210,41 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     setSkillList(skillList.filter(skill => skill !== skillToRemove));
   };
 
+  const handleAddLanguage = () => {
+    const newLanguage = currentLanguageInputValue.trim();
+    if (newLanguage && !languageList.includes(newLanguage)) {
+      setLanguageList([...languageList, newLanguage]);
+    }
+    setCurrentLanguageInputValue('');
+  };
+
+  const handleLanguageInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleAddLanguage();
+    }
+  };
+
+  const handleRemoveLanguage = (langToRemove: string) => {
+    setLanguageList(languageList.filter(lang => lang !== langToRemove));
+  };
+
+  const handleAddJobTypePreference = () => {
+    const newJobType = currentSelectedJobType as JobType;
+    if (newJobType && jobTypeEnumOptions.includes(newJobType) && !jobTypePreferenceList.includes(newJobType)) {
+      if (jobTypePreferenceList.length < 5) { // Limit to 5 preferences
+        setJobTypePreferenceList([...jobTypePreferenceList, newJobType]);
+      } else {
+        toast({ title: "Limit Reached", description: "You can select up to 5 job type preferences.", variant: "default"});
+      }
+    }
+    setCurrentSelectedJobType(""); // Reset select
+  };
+  
+  const handleRemoveJobTypePreference = (jobTypeToRemove: JobType) => {
+    setJobTypePreferenceList(jobTypePreferenceList.filter(jt => jt !== jobTypeToRemove));
+  };
+
 
   const handleSaveProfile = async () => {
     if (isGuestMode) {
@@ -250,7 +293,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     const profileData = {
       profileHeadline,
       profileExperienceSummary: experienceSummary,
-      profileSkills: skillList.join(','), // Convert array to comma-separated string
+      profileSkills: skillList.join(','),
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
@@ -258,9 +301,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileWorkExperienceLevel: workExperienceLevel,
       profileEducationLevel: educationLevel,
       profileLocationPreference: locationPreference,
-      profileLanguages: languages,
+      profileLanguages: languageList.join(','),
       profileAvailability: availability,
-      profileJobTypePreference: jobTypePreference,
+      profileJobTypePreference: jobTypePreferenceList.join(','),
       profileSalaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin, 10) : undefined,
       profileSalaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax, 10) : undefined,
       profileCardTheme: selectedCardTheme,
@@ -289,7 +332,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       setAvatarPreview(null); 
 
       if (typeof window !== 'undefined') {
-         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl, skills: skillList.join(',') };
+         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl, skills: skillList.join(','), languages: languageList.join(','), jobTypePreference: jobTypePreferenceList.join(',') };
          localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
       }
 
@@ -351,11 +394,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
     educationLevel: educationLevel as EducationLevel,
     locationPreference: locationPreference as LocationPreference,
-    languages: languages ? languages.split(',').map(s => s.trim()).filter(s => s) : [],
+    languages: languageList,
     salaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin) : undefined,
     salaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax) : undefined,
     availability: availability as Availability,
-    jobTypePreference: jobTypePreference ? jobTypePreference.split(',').map(s => s.trim() as JobType).filter(s => s) : [],
+    jobTypePreference: jobTypePreferenceList,
     cardTheme: selectedCardTheme,
     profileStrength: 80, 
     personalityAssessment: [],
@@ -436,7 +479,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             />
           </div>
           
-          {/* Enhanced Skills Input */}
           <div className="space-y-2">
             <Label htmlFor="skillsInput" className="text-base flex items-center">
               <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (add one by one)
@@ -471,7 +513,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             </div>
             <p className="text-xs text-muted-foreground">Enter skills individually. They will appear as tags above.</p>
           </div>
-
 
            <div className="space-y-1">
             <Label htmlFor="workExperienceLevel" className="text-base flex items-center">
@@ -523,17 +564,27 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="languages" className="text-base flex items-center">
-              <LanguagesIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Languages Spoken (comma-separated)
+          
+          <div className="space-y-2">
+            <Label htmlFor="languageInput" className="text-base flex items-center">
+              <LanguagesIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Languages Spoken (add one by one)
             </Label>
-            <Input
-              id="languages"
-              placeholder="e.g., English, Spanish, French"
-              value={languages}
-              onChange={(e) => setLanguages(e.target.value)}
-            />
+            <div className="flex flex-wrap gap-2 mb-2">
+              {languageList.map((lang, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-2">
+                  {lang}
+                  <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleRemoveLanguage(lang)} aria-label={`Remove language ${lang}`}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Input id="languageInput" placeholder="Type a language (e.g., Spanish) and press Enter" value={currentLanguageInputValue} onChange={(e) => setCurrentLanguageInputValue(e.target.value)} onKeyDown={handleLanguageInputKeyDown} className="flex-grow"/>
+              <Button type="button" onClick={handleAddLanguage} variant="outline" size="sm">Add Language</Button>
+            </div>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
                 <Label htmlFor="salaryExpectationMin" className="text-base flex items-center">
@@ -573,17 +624,41 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="jobTypePreference" className="text-base flex items-center">
-              <Type className="mr-2 h-4 w-4 text-muted-foreground" /> Preferred Job Types (comma-separated)
+
+          <div className="space-y-2">
+            <Label className="text-base flex items-center">
+              <Type className="mr-2 h-4 w-4 text-muted-foreground" /> Preferred Job Types
             </Label>
-             <Input
-              id="jobTypePreference"
-              placeholder="e.g., Full-time, Contract"
-              value={jobTypePreference}
-              onChange={(e) => setJobTypePreference(e.target.value)}
-            />
+            <div className="flex flex-wrap gap-2 mb-2">
+              {jobTypePreferenceList.map((jobType, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-2">
+                  {formatEnumLabel(jobType)}
+                  <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleRemoveJobTypePreference(jobType)} aria-label={`Remove job type ${jobType}`}>
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Select value={currentSelectedJobType} onValueChange={(value) => setCurrentSelectedJobType(value as JobType)} >
+                <SelectTrigger id="jobTypePreferenceSelect" className="flex-grow">
+                  <SelectValue placeholder="Select job type preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  {jobTypeEnumOptions.map(type => (
+                    <SelectItem key={type} value={type} disabled={jobTypePreferenceList.includes(type)}>
+                      {formatEnumLabel(type)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button type="button" onClick={handleAddJobTypePreference} variant="outline" size="sm" disabled={!currentSelectedJobType || jobTypePreferenceList.includes(currentSelectedJobType as JobType) || jobTypePreferenceList.length >=5}>
+                Add Preference
+              </Button>
+            </div>
+             <p className="text-xs text-muted-foreground">Select up to 5 job type preferences.</p>
           </div>
+
           <div className="space-y-1">
             <Label htmlFor="pastProjects" className="text-base flex items-center">
               <Edit3 className="mr-2 h-4 w-4 text-muted-foreground" /> My Key Past Projects/Achievements
@@ -657,3 +732,5 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   );
 }
 
+
+    
