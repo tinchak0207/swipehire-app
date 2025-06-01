@@ -83,10 +83,6 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Serve static files from the 'uploads' directory
-// Ensure the 'uploads' directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
-fs.existsSync(uploadsDir) || fs.mkdirSync(uploadsDir);
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 console.log(`[Static Serving] Serving static files from /uploads mapped to ${path.join(__dirname, 'uploads')}`);
 
@@ -243,8 +239,6 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
             profileDesiredWorkStyle,
             profilePastProjects,
             profileVideoPortfolioLink,
-            // profileAvatarUrl will be handled by the separate /avatar endpoint if a file is uploaded
-            // but can still be updated here if a URL is directly provided (e.g. from AI generator)
             profileAvatarUrl, 
             profileWorkExperienceLevel,
             profileEducationLevel,
@@ -277,7 +271,7 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
         if (profileDesiredWorkStyle !== undefined) userToUpdate.profileDesiredWorkStyle = profileDesiredWorkStyle;
         if (profilePastProjects !== undefined) userToUpdate.profilePastProjects = profilePastProjects;
         if (profileVideoPortfolioLink !== undefined) userToUpdate.profileVideoPortfolioLink = profileVideoPortfolioLink;
-        if (profileAvatarUrl !== undefined) userToUpdate.profileAvatarUrl = profileAvatarUrl; // Allows setting URL directly
+        if (profileAvatarUrl !== undefined) userToUpdate.profileAvatarUrl = profileAvatarUrl;
         if (profileWorkExperienceLevel !== undefined) userToUpdate.profileWorkExperienceLevel = profileWorkExperienceLevel;
         if (profileEducationLevel !== undefined) userToUpdate.profileEducationLevel = profileEducationLevel;
         if (profileLocationPreference !== undefined) userToUpdate.profileLocationPreference = profileLocationPreference;
@@ -667,3 +661,4 @@ app.listen(PORT, () => {
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
     console.log(`Frontend URLs allowed by CORS (from env and hardcoded): ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+    
