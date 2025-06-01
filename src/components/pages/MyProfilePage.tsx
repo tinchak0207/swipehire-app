@@ -39,11 +39,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
-  
+
   // Avatar states
-  const [avatarUrl, setAvatarUrl] = useState(''); 
-  const [avatarFile, setAvatarFile] = useState<File | null>(null); 
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null); 
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const [workExperienceLevel, setWorkExperienceLevel] = useState<WorkExperienceLevel | string>(WorkExperienceLevel.UNSPECIFIED);
   const [educationLevel, setEducationLevel] = useState<EducationLevel | string>(EducationLevel.UNSPECIFIED);
@@ -69,7 +69,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     const loadProfile = async () => {
       setIsFetchingProfile(true);
-      setAvatarPreview(null); 
+      setAvatarPreview(null);
       if (mongoDbUserId) {
         try {
           const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
@@ -81,7 +81,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
             setPastProjects(userData.profilePastProjects || '');
             setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
-            setAvatarUrl(userData.profileAvatarUrl || ''); 
+            setAvatarUrl(userData.profileAvatarUrl || '');
             setWorkExperienceLevel(userData.profileWorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
             setEducationLevel(userData.profileEducationLevel || EducationLevel.UNSPECIFIED);
             setLocationPreference(userData.profileLocationPreference || LocationPreference.UNSPECIFIED);
@@ -110,7 +110,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
           setPastProjects(savedProfile.pastProjects || '');
           setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
-          setAvatarUrl(savedProfile.avatarUrl || savedProfile.profileAvatarUrl || ''); 
+          setAvatarUrl(savedProfile.avatarUrl || savedProfile.profileAvatarUrl || '');
           setWorkExperienceLevel(savedProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
           setEducationLevel(savedProfile.educationLevel || EducationLevel.UNSPECIFIED);
           setLocationPreference(savedProfile.locationPreference || LocationPreference.UNSPECIFIED);
@@ -133,14 +133,14 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { 
+      if (file.size > 5 * 1024 * 1024) {
         toast({ title: "File Too Large", description: "Avatar image must be less than 5MB.", variant: "destructive" });
-        event.target.value = ''; 
+        event.target.value = '';
         return;
       }
       if (!file.type.startsWith("image/")) {
         toast({ title: "Invalid File Type", description: "Please select an image file (PNG, JPG, GIF).", variant: "destructive" });
-        event.target.value = ''; 
+        event.target.value = '';
         return;
       }
       setAvatarFile(file);
@@ -167,19 +167,18 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     }
 
     setIsLoading(true);
-    
-    let currentAvatarFinalUrl = avatarUrl; // Start with the current avatar URL (could be existing or manually typed link if file not changed)
+
+    let finalAvatarUrl = avatarUrl; // Start with the current avatar URL (could be existing or manually typed link if file not changed)
 
     // Step 1: Upload avatar if a new file is selected
     if (avatarFile) {
       const formData = new FormData();
-      formData.append('avatar', avatarFile); // The backend expects 'avatar' as the field name
+      formData.append('avatar', avatarFile);
 
       try {
         const avatarUploadResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/avatar`, {
           method: 'POST',
           body: formData,
-          // Browser sets Content-Type for FormData automatically
         });
 
         if (!avatarUploadResponse.ok) {
@@ -188,9 +187,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         }
 
         const avatarUploadResult = await avatarUploadResponse.json();
-        currentAvatarFinalUrl = avatarUploadResult.profileAvatarUrl; // Get the server-generated URL
+        finalAvatarUrl = avatarUploadResult.profileAvatarUrl;
+        setAvatarUrl(finalAvatarUrl); // Update state with new URL from backend
         toast({ title: "Avatar Uploaded!", description: "New avatar image saved to server." });
-      
+
       } catch (uploadError: any) {
         console.error("Error uploading avatar:", uploadError);
         toast({
@@ -198,10 +198,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           description: uploadError.message || "Could not upload your avatar image. Profile text data will still be saved with the previous avatar.",
           variant: "destructive",
         });
-        // Continue to save profile text data with the old avatarUrl (currentAvatarFinalUrl is still the old one)
       }
     }
-    
+
     // Step 2: Save the rest of the profile data (including the potentially updated finalAvatarUrl)
     const profileData = {
       profileHeadline,
@@ -210,7 +209,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
-      profileAvatarUrl: currentAvatarFinalUrl, // Use the URL from upload, or existing if no new file
+      profileAvatarUrl: finalAvatarUrl,
       profileWorkExperienceLevel: workExperienceLevel,
       profileEducationLevel: educationLevel,
       profileLocationPreference: locationPreference,
@@ -232,18 +231,16 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         const errorData = await profileSaveResponse.json().catch(() => ({ message: "An unknown error occurred while saving profile data." }));
         throw new Error(errorData.message || `Failed to save profile data: ${profileSaveResponse.statusText}`);
       }
-      
+
       const savedUserResponse = await profileSaveResponse.json();
-      // Update local state with the potentially new avatar URL from server
       if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) {
           setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
       }
-      // Clear file input related states after successful save of everything
-      setAvatarFile(null); 
+      setAvatarFile(null);
       setAvatarPreview(null);
 
       if (typeof window !== 'undefined') {
-         const localDataToSave = { ...profileData, avatarUrl: currentAvatarFinalUrl }; 
+         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl };
          localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
       }
 
@@ -285,10 +282,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     );
   }
 
-  // Construct the full avatar URL if it's a relative path from backend
-  const displayAvatarUrl = avatarUrl && avatarUrl.startsWith('/uploads/') 
-    ? `${CUSTOM_BACKEND_URL}${avatarUrl}` 
-    : avatarUrl;
+  const displayAvatarUrl = avatarPreview
+    ? avatarPreview
+    : avatarUrl && avatarUrl.startsWith('/uploads/')
+      ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
+      : avatarUrl;
 
 
   return (
@@ -315,18 +313,16 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <ImageIcon className="mr-2 h-4 w-4 text-muted-foreground" /> My Avatar (Upload Image)
             </Label>
             <div className="flex items-center gap-4">
-              {avatarPreview ? (
-                <NextImage src={avatarPreview} alt="Avatar Preview" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar"/>
-              ) : displayAvatarUrl ? (
-                <NextImage src={displayAvatarUrl} alt="Current Avatar" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar" unoptimized={displayAvatarUrl.startsWith('http://localhost')}/>
+              {displayAvatarUrl ? (
+                <NextImage src={displayAvatarUrl} alt="Avatar Preview" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar" unoptimized={true}/>
               ) : (
                 <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
               )}
-              <Input 
-                id="avatarUpload" 
+              <Input
+                id="avatarUpload"
                 type="file"
-                accept="image/*" 
-                onChange={handleAvatarFileChange} 
+                accept="image/*"
+                onChange={handleAvatarFileChange}
                 className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
               />
             </div>
@@ -337,21 +333,21 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Label htmlFor="profileHeadline" className="text-base flex items-center">
               <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" /> My Professional Headline / Role
             </Label>
-            <Input 
-              id="profileHeadline" 
-              placeholder="e.g., Senior Software Engineer, Aspiring UX Designer" 
-              value={profileHeadline} 
-              onChange={(e) => setProfileHeadline(e.target.value)} 
+            <Input
+              id="profileHeadline"
+              placeholder="e.g., Senior Software Engineer, Aspiring UX Designer"
+              value={profileHeadline}
+              onChange={(e) => setProfileHeadline(e.target.value)}
             />
           </div>
            <div className="space-y-1">
             <Label htmlFor="experienceSummary" className="text-base flex items-center">
               <TrendingUp className="mr-2 h-4 w-4 text-muted-foreground" /> My Experience Summary
             </Label>
-            <Textarea 
-              id="experienceSummary" 
-              placeholder="Briefly describe your key experience and what you bring to the table." 
-              value={experienceSummary} 
+            <Textarea
+              id="experienceSummary"
+              placeholder="Briefly describe your key experience and what you bring to the table."
+              value={experienceSummary}
               onChange={(e) => setExperienceSummary(e.target.value)}
               className="min-h-[100px]"
             />
@@ -360,11 +356,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Label htmlFor="skills" className="text-base flex items-center">
               <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (comma-separated)
             </Label>
-            <Input 
-              id="skills" 
-              placeholder="e.g., React, Python, Project Management, Figma" 
-              value={skills} 
-              onChange={(e) => setSkills(e.target.value)} 
+            <Input
+              id="skills"
+              placeholder="e.g., React, Python, Project Management, Figma"
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
             />
           </div>
            <div className="space-y-1">
@@ -397,11 +393,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Label htmlFor="desiredWorkStyle" className="text-base flex items-center">
               <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" /> My Desired Work Style
             </Label>
-            <Input 
-              id="desiredWorkStyle" 
-              placeholder="e.g., Fully Remote, Hybrid, Collaborative team" 
-              value={desiredWorkStyle} 
-              onChange={(e) => setDesiredWorkStyle(e.target.value)} 
+            <Input
+              id="desiredWorkStyle"
+              placeholder="e.g., Fully Remote, Hybrid, Collaborative team"
+              value={desiredWorkStyle}
+              onChange={(e) => setDesiredWorkStyle(e.target.value)}
             />
           </div>
           <div className="space-y-1">
@@ -421,11 +417,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Label htmlFor="languages" className="text-base flex items-center">
               <LanguagesIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Languages Spoken (comma-separated)
             </Label>
-            <Input 
-              id="languages" 
-              placeholder="e.g., English, Spanish, French" 
-              value={languages} 
-              onChange={(e) => setLanguages(e.target.value)} 
+            <Input
+              id="languages"
+              placeholder="e.g., English, Spanish, French"
+              value={languages}
+              onChange={(e) => setLanguages(e.target.value)}
             />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -433,24 +429,24 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 <Label htmlFor="salaryExpectationMin" className="text-base flex items-center">
                 <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" /> Min Salary Expectation (Annual)
                 </Label>
-                <Input 
-                id="salaryExpectationMin" 
+                <Input
+                id="salaryExpectationMin"
                 type="number"
-                placeholder="e.g., 80000" 
-                value={salaryExpectationMin} 
-                onChange={(e) => setSalaryExpectationMin(e.target.value)} 
+                placeholder="e.g., 80000"
+                value={salaryExpectationMin}
+                onChange={(e) => setSalaryExpectationMin(e.target.value)}
                 />
             </div>
             <div className="space-y-1">
                 <Label htmlFor="salaryExpectationMax" className="text-base flex items-center">
                 <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" /> Max Salary Expectation (Annual)
                 </Label>
-                <Input 
-                id="salaryExpectationMax" 
+                <Input
+                id="salaryExpectationMax"
                 type="number"
-                placeholder="e.g., 120000" 
-                value={salaryExpectationMax} 
-                onChange={(e) => setSalaryExpectationMax(e.target.value)} 
+                placeholder="e.g., 120000"
+                value={salaryExpectationMax}
+                onChange={(e) => setSalaryExpectationMax(e.target.value)}
                 />
             </div>
           </div>
@@ -471,35 +467,35 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Label htmlFor="jobTypePreference" className="text-base flex items-center">
               <Type className="mr-2 h-4 w-4 text-muted-foreground" /> Preferred Job Types (comma-separated)
             </Label>
-             <Input 
-              id="jobTypePreference" 
-              placeholder="e.g., Full-time, Contract" 
-              value={jobTypePreference} 
-              onChange={(e) => setJobTypePreference(e.target.value)} 
+             <Input
+              id="jobTypePreference"
+              placeholder="e.g., Full-time, Contract"
+              value={jobTypePreference}
+              onChange={(e) => setJobTypePreference(e.target.value)}
             />
           </div>
           <div className="space-y-1">
             <Label htmlFor="pastProjects" className="text-base flex items-center">
               <Edit3 className="mr-2 h-4 w-4 text-muted-foreground" /> My Key Past Projects/Achievements
             </Label>
-            <Textarea 
-              id="pastProjects" 
-              placeholder="Briefly highlight 1-2 significant projects or achievements." 
-              value={pastProjects} 
+            <Textarea
+              id="pastProjects"
+              placeholder="Briefly highlight 1-2 significant projects or achievements."
+              value={pastProjects}
               onChange={(e) => setPastProjects(e.target.value)}
-              className="min-h-[80px]" 
+              className="min-h-[80px]"
             />
           </div>
           <div className="space-y-1">
             <Label htmlFor="videoPortfolioLink" className="text-base flex items-center">
               <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Link to My Video Resume/Portfolio
             </Label>
-            <Input 
-              id="videoPortfolioLink" 
+            <Input
+              id="videoPortfolioLink"
               type="url"
-              placeholder="https://example.com/my-portfolio-or-video.mp4" 
-              value={videoPortfolioLink} 
-              onChange={(e) => setVideoPortfolioLink(e.target.value)} 
+              placeholder="https://example.com/my-portfolio-or-video.mp4"
+              value={videoPortfolioLink}
+              onChange={(e) => setVideoPortfolioLink(e.target.value)}
             />
           </div>
         </CardContent>
@@ -513,4 +509,3 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
-
