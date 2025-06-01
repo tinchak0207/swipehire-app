@@ -5,8 +5,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Video, Zap, Lightbulb, HelpCircle, CameraOff, CheckCircle, RefreshCw, PlayCircle, TimerIcon, Download, Film } from 'lucide-react';
+import { Video, Zap, Lightbulb, HelpCircle, CameraOff, CheckCircle, RefreshCw, PlayCircle, TimerIcon, Download, Film, Save, Loader2 } from 'lucide-react'; // Added Save, Loader2
 import { useToast } from '@/hooks/use-toast';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
+
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 export function VideoRecorderUI() {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -19,6 +22,9 @@ export function VideoRecorderUI() {
   const [isRecordingComplete, setIsRecordingComplete] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const recordingDuration = 60; // 1 minute, can be adjusted
+
+  const [isSavingVideo, setIsSavingVideo] = useState(false); // New state for saving
+  const { mongoDbUserId } = useUserPreferences(); // Get MongoDB User ID
 
   const { toast } = useToast();
 
@@ -214,12 +220,59 @@ export function VideoRecorderUI() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(recordedVideoUrl); 
+      // Do not revokeObjectURL here if video is still needed for saving or preview
       toast({ title: "Download Started", description: "Your video is downloading." });
     } else {
       toast({ title: "No Recording Found", description: "Please record a video first.", variant: "destructive"});
     }
   };
+
+  const handleSaveVideoResume = async () => {
+    if (!recordedVideoUrl) {
+      toast({ title: "Error", description: "No video recorded to save.", variant: "destructive" });
+      return;
+    }
+    if (!mongoDbUserId) {
+      toast({ title: "User Not Identified", description: "Please log in to save your video resume.", variant: "destructive" });
+      return;
+    }
+
+    setIsSavingVideo(true);
+    try {
+      const response = await fetch(recordedVideoUrl);
+      const videoBlob = await response.blob();
+      const videoFile = new File([videoBlob], `video-resume-${Date.now()}.webm`, { type: videoBlob.type });
+  
+      const formData = new FormData();
+      formData.append('videoResume', videoFile); // Field name must match backend (uploadVideo.single('videoResume'))
+  
+      const uploadResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/video-resume`, {
+        method: 'POST',
+        body: formData,
+        // No 'Content-Type' header for FormData, browser sets it with boundary
+      });
+  
+      if (!uploadResponse.ok) {
+        const errorData = await uploadResponse.json().catch(() => ({ message: `Failed to save video. Status: ${uploadResponse.status}` }));
+        throw new Error(errorData.message);
+      }
+  
+      const result = await uploadResponse.json();
+      toast({ title: "Video Saved!", description: "Your video resume has been saved to your profile." });
+      // console.log("Video saved, server response:", result);
+      // If the user navigates to MyProfilePage, it will fetch the latest profile including this new video link.
+      // To update the preview here, you could use:
+      // if (result.videoUrl) setRecordedVideoUrl(CUSTOM_BACKEND_URL + result.videoUrl); 
+      // But be careful with blob URLs vs server URLs logic.
+
+    } catch (error: any) {
+      console.error("Error saving video resume:", error);
+      toast({ title: "Save Failed", description: error.message || "Could not save video resume.", variant: "destructive" });
+    } finally {
+      setIsSavingVideo(false);
+    }
+  };
+
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
@@ -327,9 +380,16 @@ export function VideoRecorderUI() {
             <Button onClick={handleDownload} variant="default" size="lg" className="bg-green-600 hover:bg-green-700" disabled={!isRecordingComplete || isRecording}>
               <Download className="mr-2 h-5 w-5" /> Download
             </Button>
+            
+            {isRecordingComplete && recordedVideoUrl && (
+              <Button onClick={handleSaveVideoResume} variant="default" size="lg" disabled={isSavingVideo || !mongoDbUserId}>
+                {isSavingVideo ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
+                Save Video Resume
+              </Button>
+            )}
           </div>
            {isRecordingComplete && recordedVideoUrl && (
-             <p className="text-sm text-muted-foreground">Recording complete. You can now preview and download.</p>
+             <p className="text-sm text-muted-foreground">Recording complete. You can now preview, download, or save to your profile.</p>
            )}
         </div>
       </CardContent>
@@ -343,3 +403,4 @@ export function VideoRecorderUI() {
     </Card>
   );
 }
+
