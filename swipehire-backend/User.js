@@ -2,6 +2,31 @@
 // custom-backend-example/models/User.js
 const mongoose = require('mongoose');
 
+// Sub-schema for individual job openings
+const CompanyJobOpeningSchema = new mongoose.Schema({
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true, trim: true },
+    location: { type: String, trim: true },
+    salaryRange: { type: String, trim: true },
+    jobType: { type: String, trim: true }, // e.g., 'Full-time', 'Contract'
+    tags: { type: [String], default: [] },
+    videoOrImageUrl: { type: String, trim: true },
+    dataAiHint: { type: String, trim: true },
+    requiredExperienceLevel: { type: String, trim: true },
+    requiredEducationLevel: { type: String, trim: true },
+    workLocationType: { type: String, trim: true }, // e.g., 'Remote', 'Hybrid', 'On-site'
+    requiredLanguages: { type: [String], default: [] },
+    salaryMin: { type: Number },
+    salaryMax: { type: Number },
+    companyCultureKeywords: { type: [String], default: [] },
+    // These will be populated from the parent User document (recruiter's profile)
+    companyNameForJob: { type: String, required: true },
+    companyLogoForJob: { type: String },
+    companyIndustryForJob: { type: String },
+    postedAt: { type: Date, default: Date.now }
+}, { _id: true }); // Ensure subdocuments get their own _id for potential future direct manipulation
+
+
 const UserSchema = new mongoose.Schema({
     name: {
         type: String,
@@ -26,6 +51,18 @@ const UserSchema = new mongoose.Schema({
         enum: ['recruiter', 'jobseeker', null],
         default: null,
     },
+    // Recruiter specific fields for company context
+    companyNameForJobs: { // Used as the default company name for jobs posted by this recruiter
+        type: String,
+        trim: true,
+    },
+    companyIndustryForJobs: { // Used as the default company industry
+        type: String,
+        trim: true,
+    },
+    // Job Openings: Only relevant if selectedRole is 'recruiter'
+    jobOpenings: [CompanyJobOpeningSchema],
+
     address: String,
     country: String,
     documentId: String,
@@ -68,16 +105,15 @@ const UserSchema = new mongoose.Schema({
             default: false,
         },
     },
-    profileCardTheme: { // New field for storing the selected card theme key
+    profileCardTheme: { 
         type: String,
         trim: true,
-        default: 'default', // A default theme key
+        default: 'default', 
     },
-    // --- Fields for Likes and Matches ---
-    likedCandidateIds: [{ // For recruiters: list of candidate profile IDs they liked (e.g., 'cand1')
+    likedCandidateIds: [{ 
         type: String,
     }],
-    likedCompanyIds: [{ // For job seekers: list of company profile IDs they liked (e.g., 'comp1')
+    likedCompanyIds: [{ 
         type: String,
     }],
     representedCandidateProfileId: {
@@ -90,58 +126,51 @@ const UserSchema = new mongoose.Schema({
         index: true,
         sparse: true,
     },
-    // --- Detailed Job Seeker Profile Fields ---
-    profileHeadline: { // Already exists, used for 'role'
+    profileHeadline: { 
         type: String,
         trim: true,
     },
-    profileExperienceSummary: { // Already exists
+    profileExperienceSummary: { 
         type: String,
         trim: true,
     },
-    profileSkills: { // Already exists, comma-separated string
+    profileSkills: { 
         type: String,
         trim: true,
     },
-    profileDesiredWorkStyle: { // Already exists
+    profileDesiredWorkStyle: { 
         type: String,
         trim: true,
     },
-    profilePastProjects: { // Already exists
+    profilePastProjects: { 
         type: String,
         trim: true,
     },
-    profileVideoPortfolioLink: { // Already exists
+    profileVideoPortfolioLink: { 
         type: String,
         trim: true,
     },
-    // New fields for more detailed profile
     profileAvatarUrl: {
         type: String,
         trim: true,
     },
     profileWorkExperienceLevel: {
         type: String,
-        // Consider enum validation if desired, but string is flexible for now
-        // enum: ['intern', '1-3 years', '3-5 years', '5-10 years', '10+ years', 'unspecified'],
     },
     profileEducationLevel: {
         type: String,
-        // enum: ['high_school', 'university', 'master', 'doctorate', 'unspecified'],
     },
-    profileLocationPreference: { // For candidate's preference, distinct from job's location type
+    profileLocationPreference: { 
         type: String,
-        // enum: ['specific_city', 'remote', 'hybrid', 'unspecified'],
     },
-    profileLanguages: { // Storing as a comma-separated string for simplicity in form
+    profileLanguages: { 
         type: String,
         trim: true,
     },
     profileAvailability: {
         type: String,
-        // enum: ['immediate', '1_month', '3_months', 'negotiable', 'unspecified'],
     },
-    profileJobTypePreference: { // Storing as a comma-separated string
+    profileJobTypePreference: { 
         type: String,
         trim: true,
     },
@@ -155,3 +184,5 @@ const UserSchema = new mongoose.Schema({
 
 
 module.exports = mongoose.model('User', UserSchema);
+
+    

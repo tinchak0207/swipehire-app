@@ -152,7 +152,15 @@ app.post('/api/users', async (req, res) => {
         let finalRepCompanyId = representedCompanyProfileId;
         if (selectedRole === 'jobseeker' && !representedCandidateProfileId) finalRepCandidateId = `cand-user-${firebaseUid.slice(0,5)}`;
         else if (selectedRole === 'recruiter' && !representedCompanyProfileId) finalRepCompanyId = `comp-user-${firebaseUid.slice(0,5)}`;
-        const newUser = new User({ name, email, preferences, firebaseUid, selectedRole, representedCandidateProfileId: finalRepCandidateId, representedCompanyProfileId: finalRepCompanyId });
+        
+        const newUserPayload = { 
+            name, email, preferences, firebaseUid, selectedRole, 
+            representedCandidateProfileId: finalRepCandidateId, 
+            representedCompanyProfileId: finalRepCompanyId,
+            companyNameForJobs: selectedRole === 'recruiter' ? name : undefined, // Set default company name for recruiter
+            companyIndustryForJobs: selectedRole === 'recruiter' ? 'Various' : undefined // Set default company industry
+        };
+        const newUser = new User(newUserPayload);
         await newUser.save();
         res.status(201).json({ message: 'User created!', user: newUser });
     } catch (error) { res.status(500).json({ message: 'Server error', error: error.message }); }
@@ -204,6 +212,13 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
         if (userToUpdate.selectedRole === 'jobseeker' && !userToUpdate.representedCandidateProfileId) {
             userToUpdate.representedCandidateProfileId = userToUpdate.firebaseUid ? `cand-user-${userToUpdate.firebaseUid.slice(0,5)}` : `cand-user-${userToUpdate._id.toString().slice(-5)}`;
         }
+        // If recruiter and company name for jobs is not set, default it from user's name
+        if (userToUpdate.selectedRole === 'recruiter' && !userToUpdate.companyNameForJobs) {
+            userToUpdate.companyNameForJobs = userToUpdate.name;
+        }
+        if (userToUpdate.selectedRole === 'recruiter' && !userToUpdate.companyIndustryForJobs) {
+            userToUpdate.companyIndustryForJobs = 'Various'; // Default industry
+        }
         const updatedUser = await userToUpdate.save();
         res.json({ message: 'User profile updated successfully!', user: updatedUser });
     } catch (error) { res.status(500).json({ message: 'Server error while updating profile', error: error.message }); }
@@ -217,12 +232,87 @@ app.put('/api/users/:identifier', async (req, res) => {
         const updatePayload = { ...update };
         if (updatePayload.firebaseUid === undefined) delete updatePayload.firebaseUid;
         if (updatePayload.email === undefined) delete updatePayload.email;
+        // If updating to recruiter and company fields are not provided, set defaults
+        if (updatePayload.selectedRole === 'recruiter') {
+            if (updatePayload.companyNameForJobs === undefined || updatePayload.companyNameForJobs === '') {
+                updatePayload.companyNameForJobs = updatePayload.name || 'Default Company Name';
+            }
+            if (updatePayload.companyIndustryForJobs === undefined || updatePayload.companyIndustryForJobs === '') {
+                updatePayload.companyIndustryForJobs = 'Various';
+            }
+        }
+
         if (mongoose.Types.ObjectId.isValid(identifier)) updatedUser = await User.findByIdAndUpdate(identifier, updatePayload, { new: true, runValidators: true });
         if (!updatedUser) updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, updatePayload, { new: true, runValidators: true });
         if (!updatedUser) return res.status(404).json({ message: 'User not found' });
         res.json({ message: 'User updated!', user: updatedUser });
     } catch (error) { res.status(500).json({ message: 'Server error', error: error.message }); }
 });
+
+// POST a new job for a specific user (recruiter)
+app.post('/api/users/:userId/jobs', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const jobOpeningData = req.body; // This should be the CompanyJobOpening object
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format.' });
+        }
+
+        const recruiter = await User.findById(userId);
+        if (!recruiter) {
+            return res.status(404).json({ message: 'Recruiter not found.' });
+        }
+        if (recruiter.selectedRole !== 'recruiter') {
+            return res.status(403).json({ message: 'User is not a recruiter.' });
+        }
+
+        // Populate company details for the job from the recruiter's profile
+        const newJob = {
+            ...jobOpeningData,
+            companyNameForJob: recruiter.companyNameForJobs || recruiter.name,
+            companyLogoForJob: recruiter.profileAvatarUrl, // Use recruiter's avatar as company logo for now
+            companyIndustryForJob: recruiter.companyIndustryForJobs || 'Various',
+        };
+
+        recruiter.jobOpenings.push(newJob);
+        await recruiter.save();
+        
+        // Return only the newly added job opening, which is the last one in the array
+        const postedJob = recruiter.jobOpenings[recruiter.jobOpenings.length - 1];
+        res.status(201).json({ message: 'Job posted successfully!', job: postedJob });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Server error posting job', error: error.message });
+    }
+});
+
+// GET all job openings from all recruiters
+app.get('/api/jobs', async (req, res) => {
+    try {
+        const recruiters = await User.find({ selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } });
+        
+        const allJobs = recruiters.flatMap(recruiter => {
+            return recruiter.jobOpenings.map(job => ({
+                // This structure mimics a 'Company' object for the JobDiscoveryPage
+                id: `comp-user-${recruiter._id.toString()}-job-${job._id.toString()}`, // Unique ID for the "company-job" context
+                name: job.companyNameForJob || recruiter.name,
+                industry: job.companyIndustryForJob || recruiter.companyIndustryForJobs || 'Various',
+                description: `Job posting by ${recruiter.name}`, // Generic company description
+                cultureHighlights: job.companyCultureKeywords || [],
+                logoUrl: job.companyLogoForJob || recruiter.profileAvatarUrl || 'https://placehold.co/100x100.png',
+                dataAiHint: 'company logo', // Placeholder
+                jobOpenings: [{ ...job.toObject(), _id: job._id.toString() }], // Ensure job has its own _id as string
+                // Other company fields (introVideoUrl, companyNeeds) can be added if available on User model
+            }));
+        });
+        
+        res.json(allJobs);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error fetching jobs', error: error.message });
+    }
+});
+
 
 app.post('/api/proxy/users/:identifier/role', async (req, res) => {
   const { identifier } = req.params;
@@ -325,34 +415,70 @@ app.post('/api/interactions/like', async (req, res) => {
             if (!mongoose.Types.ObjectId.isValid(likedProfileId)) return res.status(400).json({ message: "Invalid candidate profile ID." });
             otherUser = await User.findById(likedProfileId);
         } else if (likedProfileType === 'company') {
-            otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
+            // A 'company' like is a like on a job posting, which is owned by a recruiter user.
+            // We need to find the recruiter User who posted the job represented by 'likedProfileId' (which is a composite company-job ID)
+            // For now, let's assume likedProfileId for a company will be the mongoDbUserId of the recruiter.
+            // Or, if it's a `comp-user-` type ID, we need a way to map that back.
+            // This part needs refinement based on how `likedProfileId` for companies is structured.
+            // For this iteration, if likedProfileType is 'company', likedProfileId is expected to be the User._id of the recruiter.
+             if (!mongoose.Types.ObjectId.isValid(likedProfileId)) { // If likedProfileId is NOT a mongo ObjectId
+                console.warn(`[Like Interaction] likedProfileId for company is not a Mongo ObjectId: ${likedProfileId}. Attempting lookup by representedCompanyProfileId (if that was the intent). This path might need review for job postings.`);
+                // This logic path is tricky if 'likedProfileId' is a mock company ID like 'comp1'
+                // and not the recruiter's User._id.
+                // For jobs now stored in User.jobOpenings, the "company" is the recruiter User.
+                // So, `likedProfileId` *should* be the recruiter's `User._id`
+                // or an ID that resolves to the recruiter's `User._id`.
+                // Let's assume for now that `likedProfileId` for a "company" (job) will be the User ID of the recruiter.
+                 otherUser = await User.findById(likedProfileId); // Assuming likedProfileId for company IS the recruiter's User ID
+             } else {
+                otherUser = await User.findById(likedProfileId);
+             }
         }
+
+        if (!otherUser) return res.status(404).json({ message: "Liked profile's owner (user or recruiter) not found." });
+
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
+            // Recruiter likes a candidate. 'likedProfileId' is the candidate's User._id
             if (!likingUser.likedCandidateIds.includes(likedProfileId)) likingUser.likedCandidateIds.push(likedProfileId);
-            if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) matchMade = true;
+            // Check if candidate (otherUser) has liked this recruiter's "company"
+            // The recruiter's "company" is represented by their own User._id in this simplified model
+            if (otherUser.likedCompanyIds.includes(likingUser._id.toString())) matchMade = true;
+
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
+            // Job seeker likes a company (job posting by a recruiter). 'likedProfileId' is the recruiter's User._id
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) likingUser.likedCompanyIds.push(likedProfileId);
-            if (otherUser && otherUser.likedCandidateIds.includes(likingUser._id.toString())) matchMade = true;
+            // Check if recruiter (otherUser) has liked this job seeker (likingUser)
+            if (otherUser.likedCandidateIds.includes(likingUser._id.toString())) matchMade = true;
         } else return res.status(400).json({ message: "Invalid role/profile type combination." });
+        
         await likingUser.save();
-        if (matchMade && otherUser) {
+
+        if (matchMade) {
             const userA_Id = likingUser._id.toString() < otherUser._id.toString() ? likingUser._id : otherUser._id;
             const userB_Id = likingUser._id.toString() < otherUser._id.toString() ? otherUser._id : likingUser._id;
             const uniqueKey = `${userA_Id.toString()}-${userB_Id.toString()}`;
             const existingMatch = await Match.findOne({ uniqueMatchKey: uniqueKey });
+            
             if (!existingMatch) {
                 let candidateDisplayIdForMatch, companyDisplayIdForMatch;
-                if (likingUserRole === 'recruiter') {
-                    candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString();
-                    companyDisplayIdForMatch = likingUser.representedCompanyProfileId;
-                } else {
-                    candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString();
-                    companyDisplayIdForMatch = otherUser.representedCompanyProfileId;
+                // Determine who is candidate and who represents company for display purposes.
+                // This uses the MongoDB _id as the primary display identifier now.
+                if (likingUser.selectedRole === 'jobseeker') {
+                    candidateDisplayIdForMatch = likingUser._id.toString(); // Job seeker's own ID
+                    companyDisplayIdForMatch = otherUser._id.toString();   // Recruiter's User ID (representing the company)
+                } else { // likingUser is recruiter
+                    candidateDisplayIdForMatch = otherUser._id.toString();   // Candidate's User ID
+                    companyDisplayIdForMatch = likingUser._id.toString();  // Recruiter's own User ID
                 }
-                if (candidateDisplayIdForMatch && companyDisplayIdForMatch) {
-                    const newMatch = new Match({ userA_Id, userB_Id, candidateProfileIdForDisplay: candidateDisplayIdForMatch, companyProfileIdForDisplay: companyDisplayIdForMatch, uniqueMatchKey });
-                    await newMatch.save(); newMatchDetails = newMatch;
-                }
+                
+                const newMatch = new Match({ 
+                    userA_Id, 
+                    userB_Id, 
+                    candidateProfileIdForDisplay: candidateDisplayIdForMatch, 
+                    companyProfileIdForDisplay: companyDisplayIdForMatch, 
+                    uniqueMatchKey 
+                });
+                await newMatch.save(); newMatchDetails = newMatch;
             } else { newMatchDetails = existingMatch; }
         }
         res.status(200).json({ success: true, message: "Like recorded.", matchMade, matchDetails: newMatchDetails });
@@ -484,7 +610,6 @@ io.on('connection', (socket) => {
       console.log(`[Socket.io ReadReceipt] Updated ${result.modifiedCount} messages to read=true for match ${matchId}, reader ${readerUserId}`);
       
       if (result.modifiedCount > 0) {
-        // Notify the room that messages have been read by readerUserId
         const roomName = `chat-${matchId}`;
         io.to(roomName).emit('messagesAcknowledgedAsRead', { matchId, readerUserId });
         console.log(`[Socket.io ReadReceipt] Emitted 'messagesAcknowledgedAsRead' to room ${roomName} for reader ${readerUserId}`);
@@ -509,3 +634,5 @@ server.listen(PORT, () => {
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
 
+
+    
