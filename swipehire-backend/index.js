@@ -5,11 +5,11 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const User = require('./User');
-const DiaryPost = require('./DiaryPost');
-const Match = require('./Match'); // Import the new Match model
-const multer = require('multer'); // Import multer
-const path = require('path'); // Import path
-const fs = require('fs'); // Import fs for directory creation
+const DiaryPost = require('./DiaryPost'); // Assuming DiaryPost model exists
+const Match = require('./Match'); // Assuming Match model exists
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -83,6 +83,10 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Serve static files from the 'uploads' directory
+// Ensure the 'uploads' directory exists
+const uploadsDir = path.join(__dirname, 'uploads');
+fs.existsSync(uploadsDir) || fs.mkdirSync(uploadsDir);
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 console.log(`[Static Serving] Serving static files from /uploads mapped to ${path.join(__dirname, 'uploads')}`);
 
@@ -90,7 +94,7 @@ console.log(`[Static Serving] Serving static files from /uploads mapped to ${pat
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, uploadsDir); // Save files to the 'uploads' directory
-    },
+    }, 
     filename: function (req, file, cb) {
         // Create a unique filename: timestamp + original filename
         cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
@@ -106,7 +110,7 @@ const imageFileFilter = (req, file, cb) => {
     }
 };
 
-const upload = multer({ storage: storage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
+const upload = multer({ storage: storage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB file size limit
 
 // Welcome Route
 app.get('/', (req, res) => {
@@ -177,6 +181,7 @@ app.get('/api/users/:identifier', async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
+
 
 // --- New Endpoint for Avatar Upload ---
 app.post('/api/users/:identifier/avatar', upload.single('avatar'), async (req, res) => {

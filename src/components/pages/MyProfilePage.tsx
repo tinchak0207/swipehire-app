@@ -147,11 +147,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
-        const fileNameStart = file.name.split('.')[0].substring(0, 10);
-        setAvatarUrl(`https://placehold.co/100x100.png?text=${encodeURIComponent(fileNameStart)}`);
-        toast({ title: "Avatar Preview Updated", description: "Save profile to apply. Actual file upload is simulated." });
       };
       reader.readAsDataURL(file);
+      toast({ title: "Avatar Preview Updated", description: "Click 'Update & Publish My Profile' to save changes including the new avatar." });
     } else {
       setAvatarFile(null);
       setAvatarPreview(null);
@@ -170,13 +168,41 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     setIsLoading(true);
     
-    let finalAvatarUrl = avatarUrl; 
+    let currentAvatarFinalUrl = avatarUrl; // Start with the current avatar URL (could be existing or manually typed link if file not changed)
 
+    // Step 1: Upload avatar if a new file is selected
     if (avatarFile) {
-      console.log("Simulating avatar upload for file:", avatarFile.name);
-      toast({ title: "Avatar Update (Simulated)", description: "Using a placeholder for the new avatar. Actual file upload is a future step.", duration: 4000});
+      const formData = new FormData();
+      formData.append('avatar', avatarFile); // The backend expects 'avatar' as the field name
+
+      try {
+        const avatarUploadResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/avatar`, {
+          method: 'POST',
+          body: formData,
+          // Browser sets Content-Type for FormData automatically
+        });
+
+        if (!avatarUploadResponse.ok) {
+          const errorData = await avatarUploadResponse.json().catch(() => ({ message: "Avatar upload failed with non-JSON response." }));
+          throw new Error(errorData.message || `Avatar upload failed: ${avatarUploadResponse.statusText}`);
+        }
+
+        const avatarUploadResult = await avatarUploadResponse.json();
+        currentAvatarFinalUrl = avatarUploadResult.profileAvatarUrl; // Get the server-generated URL
+        toast({ title: "Avatar Uploaded!", description: "New avatar image saved to server." });
+      
+      } catch (uploadError: any) {
+        console.error("Error uploading avatar:", uploadError);
+        toast({
+          title: 'Avatar Upload Failed',
+          description: uploadError.message || "Could not upload your avatar image. Profile text data will still be saved with the previous avatar.",
+          variant: "destructive",
+        });
+        // Continue to save profile text data with the old avatarUrl (currentAvatarFinalUrl is still the old one)
+      }
     }
     
+    // Step 2: Save the rest of the profile data (including the potentially updated finalAvatarUrl)
     const profileData = {
       profileHeadline,
       profileExperienceSummary: experienceSummary,
@@ -184,7 +210,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
-      profileAvatarUrl: finalAvatarUrl, 
+      profileAvatarUrl: currentAvatarFinalUrl, // Use the URL from upload, or existing if no new file
       profileWorkExperienceLevel: workExperienceLevel,
       profileEducationLevel: educationLevel,
       profileLocationPreference: locationPreference,
@@ -196,26 +222,34 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     };
 
     try {
-      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
-        method: 'POST', // Changed from PUT to POST
+      const profileSaveResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: "An unknown error occurred while saving to backend."}));
-        throw new Error(errorData.message || `Failed to save profile to backend. Status: ${response.status}`);
+      if (!profileSaveResponse.ok) {
+        const errorData = await profileSaveResponse.json().catch(() => ({ message: "An unknown error occurred while saving profile data." }));
+        throw new Error(errorData.message || `Failed to save profile data: ${profileSaveResponse.statusText}`);
       }
       
+      const savedUserResponse = await profileSaveResponse.json();
+      // Update local state with the potentially new avatar URL from server
+      if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) {
+          setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
+      }
+      // Clear file input related states after successful save of everything
+      setAvatarFile(null); 
+      setAvatarPreview(null);
+
       if (typeof window !== 'undefined') {
-         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl }; 
+         const localDataToSave = { ...profileData, avatarUrl: currentAvatarFinalUrl }; 
          localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
       }
 
       toast({
         title: 'Profile Updated & Published!',
         description: 'Your profile has been saved to the backend and is visible to recruiters.',
-        duration: 7000,
       });
 
     } catch (error: any) {
@@ -227,7 +261,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       });
     } finally {
       setIsLoading(false);
-      setAvatarFile(null); 
     }
   };
 
@@ -251,6 +284,12 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       </div>
     );
   }
+
+  // Construct the full avatar URL if it's a relative path from backend
+  const displayAvatarUrl = avatarUrl && avatarUrl.startsWith('/uploads/') 
+    ? `${CUSTOM_BACKEND_URL}${avatarUrl}` 
+    : avatarUrl;
+
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
@@ -278,8 +317,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="flex items-center gap-4">
               {avatarPreview ? (
                 <NextImage src={avatarPreview} alt="Avatar Preview" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar"/>
-              ) : avatarUrl ? (
-                <NextImage src={avatarUrl} alt="Current Avatar" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar"/>
+              ) : displayAvatarUrl ? (
+                <NextImage src={displayAvatarUrl} alt="Current Avatar" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar" unoptimized={displayAvatarUrl.startsWith('http://localhost')}/>
               ) : (
                 <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
               )}
@@ -291,7 +330,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
               />
             </div>
-            <p className="text-xs text-muted-foreground">Max 5MB. PNG, JPG, GIF. Actual file upload is simulated for now.</p>
+            <p className="text-xs text-muted-foreground">Max 5MB. PNG, JPG, GIF.</p>
           </div>
 
           <div className="space-y-1">
@@ -475,4 +514,3 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   );
 }
 
-    
