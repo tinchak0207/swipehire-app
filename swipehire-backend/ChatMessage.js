@@ -24,10 +24,11 @@ const ChatMessageSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    read: {
+    read: { // New field for read status
         type: Boolean,
         default: false,
     }
 }, { timestamps: true }); // Adds createdAt and updatedAt automatically
 
 module.exports = mongoose.model('ChatMessage', ChatMessageSchema);
+

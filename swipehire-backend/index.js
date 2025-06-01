@@ -379,14 +379,15 @@ app.post('/api/matches/:matchId/messages', async (req, res) => {
         if (!match) return res.status(404).json({ message: 'Match not found.' });
         const matchUserIds = [match.userA_Id.toString(), match.userB_Id.toString()];
         if (!matchUserIds.includes(senderId) || !matchUserIds.includes(receiverId) || senderId === receiverId) return res.status(400).json({ message: 'Invalid sender/receiver for this match.' });
-        const newMessage = new ChatMessage({ matchId, senderId, receiverId, text: text.trim() });
+        
+        const newMessage = new ChatMessage({ matchId, senderId, receiverId, text: text.trim(), read: false }); // Ensure 'read' is set
         await newMessage.save();
-        // Emit message via Socket.io
+        
         const roomName = `chat-${matchId}`;
         const savedMessageWithId = { ...newMessage.toObject(), id: newMessage._id.toString() };
         io.to(roomName).emit('newMessage', savedMessageWithId); 
         console.log(`[Socket.io] Emitted 'newMessage' to room ${roomName}:`, newMessage._id);
-        res.status(201).json(savedMessageWithId); // Respond with the message including its DB _id mapped to id
+        res.status(201).json(savedMessageWithId);
     } catch (error) { res.status(500).json({ message: 'Server error creating chat message.', error: error.message }); }
 });
 
@@ -394,22 +395,17 @@ app.get('/api/matches/:matchId/messages', async (req, res) => {
     try {
         const { matchId } = req.params;
         if (!mongoose.Types.ObjectId.isValid(matchId)) return res.status(400).json({ message: 'Invalid matchId.' });
-        const messages = await ChatMessage.find({ matchId }).sort({ createdAt: 1 });
+        const messages = await ChatMessage.find({ matchId }).sort({ createdAt: 1 }); // Fetches all fields, including 'read'
         res.status(200).json(messages);
     } catch (error) { res.status(500).json({ message: 'Server error fetching messages.', error: error.message }); }
 });
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  const connectedUserId = socket.handshake.auth.userId; // Auth data sent from client
-  if (connectedUserId) {
-    console.log(`[Socket.io] User connected: ${socket.id} (User ID: ${connectedUserId})`);
-  } else {
-    console.log(`[Socket.io] User connected: ${socket.id} (Anonymous)`);
-    // Optionally, disconnect if authentication is strictly required:
-    // socket.disconnect(true);
-    // return;
-  }
+  const connectedUserId = socket.handshake.auth.userId; 
+  const clientIp = socket.handshake.address;
+  console.log(`[Socket.io] User connected: ${socket.id} (User ID: ${connectedUserId || 'Anonymous'}, IP: ${clientIp})`);
+
 
   socket.on('joinRoom', (matchId) => {
     if (matchId) {
@@ -424,9 +420,7 @@ io.on('connection', (socket) => {
   socket.on('typing', ({ matchId, userId, userName }) => {
     if (matchId && userId && userName) {
         const roomName = `chat-${matchId}`;
-        // Broadcast to others in the room
         socket.to(roomName).emit('userTyping', { matchId, userId, userName });
-        // console.log(`[Socket.io] User ${userName} (${userId}) is typing in room ${roomName}`);
     }
   });
 
@@ -434,7 +428,6 @@ io.on('connection', (socket) => {
      if (matchId && userId) {
         const roomName = `chat-${matchId}`;
         socket.to(roomName).emit('userStopTyping', { matchId, userId });
-        // console.log(`[Socket.io] User ${userId} stopped typing in room ${roomName}`);
     }
   });
 
@@ -448,7 +441,6 @@ mongoose.connect(MONGO_URI)
 .then(() => console.log(`Connected to MongoDB at ${MONGO_URI}`))
 .catch((err) => { console.error('MongoDB connection error:', err); process.exit(1); });
 
-// Use 'server.listen' instead of 'app.listen' for socket.io
 server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);

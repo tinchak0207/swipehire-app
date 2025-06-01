@@ -202,7 +202,7 @@ export interface ChatMessage {
   receiverId: string; // MongoDB User ID of the receiver
   text: string;
   timestamp: string; // ISO Date string
-  read?: boolean;
+  read?: boolean; // New field for read status
   // for frontend display only, not in DB
   senderType?: 'user' | 'contact'; // 'user' is the current logged-in user, 'contact' is the other person
 }
@@ -360,3 +360,4 @@ export interface RecordLikeResponse {
   matchMade?: boolean;
   matchDetails?: Match; // Full match details if one was created
 }
+
