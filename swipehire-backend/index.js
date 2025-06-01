@@ -383,9 +383,10 @@ app.post('/api/matches/:matchId/messages', async (req, res) => {
         await newMessage.save();
         // Emit message via Socket.io
         const roomName = `chat-${matchId}`;
-        io.to(roomName).emit('newMessage', { ...newMessage.toObject(), id: newMessage._id.toString() }); // Ensure 'id' field for frontend
+        const savedMessageWithId = { ...newMessage.toObject(), id: newMessage._id.toString() };
+        io.to(roomName).emit('newMessage', savedMessageWithId); 
         console.log(`[Socket.io] Emitted 'newMessage' to room ${roomName}:`, newMessage._id);
-        res.status(201).json(newMessage);
+        res.status(201).json(savedMessageWithId); // Respond with the message including its DB _id mapped to id
     } catch (error) { res.status(500).json({ message: 'Server error creating chat message.', error: error.message }); }
 });
 
@@ -400,20 +401,45 @@ app.get('/api/matches/:matchId/messages', async (req, res) => {
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-  console.log('[Socket.io] A user connected:', socket.id);
+  const connectedUserId = socket.handshake.auth.userId; // Auth data sent from client
+  if (connectedUserId) {
+    console.log(`[Socket.io] User connected: ${socket.id} (User ID: ${connectedUserId})`);
+  } else {
+    console.log(`[Socket.io] User connected: ${socket.id} (Anonymous)`);
+    // Optionally, disconnect if authentication is strictly required:
+    // socket.disconnect(true);
+    // return;
+  }
 
   socket.on('joinRoom', (matchId) => {
     if (matchId) {
       const roomName = `chat-${matchId}`;
       socket.join(roomName);
-      console.log(`[Socket.io] User ${socket.id} joined room: ${roomName}`);
+      console.log(`[Socket.io] User ${socket.id} (User ID: ${connectedUserId || 'Anonymous'}) joined room: ${roomName}`);
     } else {
         console.warn(`[Socket.io] User ${socket.id} tried to join room with invalid matchId: ${matchId}`);
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log('[Socket.io] User disconnected:', socket.id);
+  socket.on('typing', ({ matchId, userId, userName }) => {
+    if (matchId && userId && userName) {
+        const roomName = `chat-${matchId}`;
+        // Broadcast to others in the room
+        socket.to(roomName).emit('userTyping', { matchId, userId, userName });
+        // console.log(`[Socket.io] User ${userName} (${userId}) is typing in room ${roomName}`);
+    }
+  });
+
+  socket.on('stopTyping', ({ matchId, userId }) => {
+     if (matchId && userId) {
+        const roomName = `chat-${matchId}`;
+        socket.to(roomName).emit('userStopTyping', { matchId, userId });
+        // console.log(`[Socket.io] User ${userId} stopped typing in room ${roomName}`);
+    }
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log(`[Socket.io] User disconnected: ${socket.id} (User ID: ${connectedUserId || 'Anonymous'}). Reason: ${reason}`);
   });
 });
 
@@ -427,3 +453,4 @@ server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+

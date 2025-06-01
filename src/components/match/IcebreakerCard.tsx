@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogC
 import { generateIcebreakerQuestion } from '@/ai/flows/icebreaker-generator';
 import { sendMessage, fetchMessages } from '@/services/chatService';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw } from 'lucide-react';
+import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw, Edit3 } from 'lucide-react'; // Added Edit3
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,7 +37,9 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const [icebreaker, setIcebreaker] = useState<string | null>(null);
   const [isLoadingIcebreaker, setIsLoadingIcebreaker] = useState(false);
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences();
+  const { mongoDbUserId, preferences } = useUserPreferences();
+  const currentUserName = typeof window !== 'undefined' ? localStorage.getItem('userNameSettings') || 'User' : 'User';
+
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -45,6 +47,8 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const [isSendingMessage, setIsSendingMessage] = useState(false);
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({}); // Stores { userId: userName }
 
   const contactName = mongoDbUserId === match.userA_Id ? match.company.name : match.candidate.name;
   const contactAvatar = mongoDbUserId === match.userA_Id ? match.company.logoUrl : match.candidate.avatarUrl;
@@ -53,20 +57,24 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     : (match.candidate.dataAiHint || "person");
 
   const getSocket = useCallback(() => {
-    if (!socket) {
+    if (!socket && mongoDbUserId) { // Only initialize if mongoDbUserId is available
       const socketUrl = CUSTOM_BACKEND_URL.startsWith('http') ? CUSTOM_BACKEND_URL : `http://${CUSTOM_BACKEND_URL}`;
+      console.log('[Socket.IO Client] Initializing socket connection to:', socketUrl, 'with userId:', mongoDbUserId);
       socket = io(socketUrl, {
           reconnectionAttempts: 5,
-          transports: ['websocket'] // Prefer WebSocket
+          transports: ['websocket'],
+          auth: { userId: mongoDbUserId } // Send userId during handshake
       });
-      console.log('[Socket.IO Client] Initializing socket connection to:', socketUrl);
 
-      socket.on('connect', () => console.log('[Socket.IO Client] Connected:', socket?.id));
-      socket.on('disconnect', (reason) => console.log('[Socket.IO Client] Disconnected:', reason));
-      socket.on('connect_error', (err) => console.error('[Socket.IO Client] Connection Error:', err.message, err.cause));
+      socket.on('connect', () => console.log('[Socket.IO Client] Connected:', socket?.id, 'User ID:', mongoDbUserId));
+      socket.on('disconnect', (reason) => console.log('[Socket.IO Client] Disconnected:', reason, 'User ID:', mongoDbUserId));
+      socket.on('connect_error', (err) => {
+        console.error('[Socket.IO Client] Connection Error:', err.message, err.cause, 'User ID:', mongoDbUserId);
+        // toast({ title: "Chat Connection Error", description: `Could not connect to chat: ${err.message}. Trying to reconnect...`, variant: "destructive", duration: 7000});
+      });
     }
     return socket;
-  }, []);
+  }, [mongoDbUserId]);
 
 
   const loadChatMessages = useCallback(async () => {
@@ -89,7 +97,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   useEffect(() => {
     const currentSocket = getSocket();
     
-    if (isChatOpen && match._id && currentSocket) {
+    if (isChatOpen && match._id && currentSocket && mongoDbUserId) {
       const roomName = `chat-${match._id}`;
       console.log(`[Socket.IO Client] Emitting joinRoom for: ${roomName}`);
       currentSocket.emit('joinRoom', match._id);
@@ -98,25 +106,53 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
         console.log('[Socket.IO Client] newMessage received:', newMessage);
         if (newMessage.matchId === match._id) {
           setMessages(prev => {
-            // Avoid adding duplicate if optimistic update already added it
-            if (prev.find(m => m.id === newMessage.id || (m.id?.startsWith('temp-') && m.text === newMessage.text))) {
-              return prev.map(m => (m.text === newMessage.text && m.id?.startsWith('temp-')) ? { ...newMessage, senderType: newMessage.senderId === mongoDbUserId ? 'user' : 'contact' } : m);
+            if (prev.find(m => m.id === newMessage.id || (m.id?.startsWith('temp-') && m.text === newMessage.text && m.senderId === newMessage.senderId))) {
+              return prev.map(m => (m.text === newMessage.text && m.id?.startsWith('temp-') && m.senderId === newMessage.senderId) ? { ...newMessage, senderType: newMessage.senderId === mongoDbUserId ? 'user' : 'contact' } : m);
             }
             return [...prev, { ...newMessage, senderType: newMessage.senderId === mongoDbUserId ? 'user' : 'contact' }];
           });
         }
       };
+
+      const handleUserTyping = ({ matchId: incomingMatchId, userId, userName }: { matchId: string, userId: string, userName: string }) => {
+        if (incomingMatchId === match._id && userId !== mongoDbUserId) {
+          setTypingUsers(prev => ({ ...prev, [userId]: userName }));
+        }
+      };
+
+      const handleUserStopTyping = ({ matchId: incomingMatchId, userId }: { matchId: string, userId: string }) => {
+         if (incomingMatchId === match._id) {
+          setTypingUsers(prev => {
+            const newTyping = { ...prev };
+            delete newTyping[userId];
+            return newTyping;
+          });
+        }
+      };
+
       currentSocket.on('newMessage', handleNewMessage);
-      loadChatMessages(); // Load history when chat opens
+      currentSocket.on('userTyping', handleUserTyping);
+      currentSocket.on('userStopTyping', handleUserStopTyping);
+
+      loadChatMessages(); 
 
       return () => {
-        console.log(`[Socket.IO Client] Leaving room: ${roomName} and removing listener.`);
-        currentSocket.emit('leaveRoom', match._id); // Good practice, though backend doesn't handle it explicitly yet
+        console.log(`[Socket.IO Client] Leaving room: ${roomName} and removing listeners.`);
+        // currentSocket.emit('leaveRoom', match._id); // Backend doesn't explicitly handle this yet, but good practice
         currentSocket.off('newMessage', handleNewMessage);
+        currentSocket.off('userTyping', handleUserTyping);
+        currentSocket.off('userStopTyping', handleUserStopTyping);
+        // Clean up typing indicators for this user if they close the chat
+        setTypingUsers(prev => {
+            const newTyping = { ...prev };
+            if (mongoDbUserId) delete newTyping[mongoDbUserId];
+            return newTyping;
+        });
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       };
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isChatOpen, match._id, mongoDbUserId, getSocket]); // loadChatMessages removed from deps to avoid re-fetch on every message
+  }, [isChatOpen, match._id, mongoDbUserId, getSocket]); 
 
   useEffect(() => {
     if (isChatOpen && messages.length > 0) {
@@ -156,6 +192,8 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     if (!currentMessage.trim() || !mongoDbUserId || !match._id) return;
     setIsSendingMessage(true);
     const receiverId = match.userA_Id === mongoDbUserId ? match.userB_Id : match.userA_Id;
+    
+    // Optimistic update
     const optimisticMessage: ChatMessage = {
       id: `temp-${Date.now()}`, matchId: match._id, senderId: mongoDbUserId, receiverId: receiverId,
       text: currentMessage.trim(), timestamp: new Date().toISOString(), senderType: 'user',
@@ -163,30 +201,74 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     setMessages(prev => [...prev, optimisticMessage]);
     const messageToSend = currentMessage.trim();
     setCurrentMessage(""); 
+    
+    // Stop emitting 'typing' if user was typing
+    const currentSocket = getSocket();
+    if (currentSocket && typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = null;
+        currentSocket.emit('stopTyping', { matchId: match._id, userId: mongoDbUserId });
+    }
+
     try {
-      const savedMessage = await sendMessage({
+      await sendMessage({
         matchId: match._id, senderId: mongoDbUserId, receiverId: receiverId, text: messageToSend,
       });
-      // Backend now emits via WebSocket, so listener should handle update.
-      // We can refine this to replace temp message if needed.
+      // Message will be broadcast by server and picked up by 'newMessage' listener
     } catch (error) {
       console.error("Error sending message:", error);
       toast({ title: "Send Error", description: "Could not send message.", variant: "destructive" });
-      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
-      setCurrentMessage(messageToSend);
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id)); // Revert optimistic update
+      setCurrentMessage(messageToSend); // Put message back in input
     } finally {
       setIsSendingMessage(false);
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setCurrentMessage(e.target.value);
+    const currentSocket = getSocket();
+    if (!currentSocket || !mongoDbUserId || !match._id) return;
+
+    if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+    } else {
+        // User started typing if no timeout was previously set
+        currentSocket.emit('typing', { matchId: match._id, userId: mongoDbUserId, userName: currentUserName });
+    }
+    
+    typingTimeoutRef.current = setTimeout(() => {
+        currentSocket.emit('stopTyping', { matchId: match._id, userId: mongoDbUserId });
+        typingTimeoutRef.current = null;
+    }, 2000); // User considered stopped typing after 2 seconds of inactivity
+  };
+
+
   const handleChatOpenChange = (open: boolean) => {
     setIsChatOpen(open);
     if (open) {
-      if (icebreaker && messages.length === 0) {
+      if (icebreaker && messages.length === 0) { // Only prefill if chat is empty
         setCurrentMessage(icebreaker); 
+      }
+      setTypingUsers({}); // Clear typing users when chat opens/closes
+    } else {
+      // User closed chat, ensure they are marked as not typing
+      const currentSocket = getSocket();
+      if (currentSocket && mongoDbUserId && match?._id) {
+          currentSocket.emit('stopTyping', { matchId: match._id, userId: mongoDbUserId });
+      }
+      if (typingTimeoutRef.current) {
+          clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = null;
       }
     }
   };
+
+  const typingUsersDisplay = Object.entries(typingUsers)
+    .filter(([userId, _]) => userId !== mongoDbUserId) // Don't show if current user is typing
+    .map(([_, userName]) => userName)
+    .join(', ');
+
 
   return (
     <Card className="w-full shadow-lg overflow-hidden flex flex-col">
@@ -279,10 +361,13 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
                 <div ref={messagesEndRef} />
               </div>
             </ScrollArea>
+            <div className="px-1 pt-1 text-xs text-muted-foreground italic h-5">
+              {typingUsersDisplay && `${typingUsersDisplay} ${Object.keys(typingUsers).length > 1 ? 'are' : 'is'} typing...`}
+            </div>
             <DialogFooter className="pt-2 border-t">
               <div className="flex w-full items-center space-x-2">
                 <Input type="text" placeholder="Type a message..." value={currentMessage}
-                  onChange={(e) => setCurrentMessage(e.target.value)}
+                  onChange={handleInputChange}
                   onKeyPress={(e) => e.key === 'Enter' && !isSendingMessage && handleSendMessage()}
                   disabled={isSendingMessage || !mongoDbUserId} className="flex-1"/>
                 <Button onClick={handleSendMessage} disabled={isSendingMessage || !currentMessage.trim() || !mongoDbUserId}>
@@ -297,3 +382,4 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     </Card>
   );
 }
+
