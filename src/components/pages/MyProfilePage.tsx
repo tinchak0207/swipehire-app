@@ -168,9 +168,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     setIsLoading(true);
 
-    let finalAvatarUrl = avatarUrl; // Start with the current avatar URL (could be existing or manually typed link if file not changed)
+    let finalAvatarUrl = avatarUrl; 
 
-    // Step 1: Upload avatar if a new file is selected
     if (avatarFile) {
       const formData = new FormData();
       formData.append('avatar', avatarFile);
@@ -188,7 +187,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
         const avatarUploadResult = await avatarUploadResponse.json();
         finalAvatarUrl = avatarUploadResult.profileAvatarUrl;
-        setAvatarUrl(finalAvatarUrl); // Update state with new URL from backend
+        setAvatarUrl(finalAvatarUrl); 
         toast({ title: "Avatar Uploaded!", description: "New avatar image saved to server." });
 
       } catch (uploadError: any) {
@@ -201,7 +200,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       }
     }
 
-    // Step 2: Save the rest of the profile data (including the potentially updated finalAvatarUrl)
     const profileData = {
       profileHeadline,
       profileExperienceSummary: experienceSummary,
@@ -236,8 +234,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) {
           setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
       }
-      setAvatarFile(null);
-      setAvatarPreview(null);
+      setAvatarFile(null); 
+      setAvatarPreview(null); 
 
       if (typeof window !== 'undefined') {
          const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl };
@@ -253,7 +251,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       console.error("Error saving profile:", error);
       toast({
         title: 'Error Saving Profile',
-        description: error.message || "Could not save your profile. Please try again.",
+        description: error.message || "An unknown error occurred while saving to backend.",
         variant: "destructive",
       });
     } finally {
@@ -288,6 +286,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
       : avatarUrl;
 
+  console.log("[MyProfilePage] displayAvatarUrl for NextImage:", displayAvatarUrl);
+  console.log("[MyProfilePage] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
+  console.log("[MyProfilePage] avatarUrl (state):", avatarUrl);
+  console.log("[MyProfilePage] avatarPreview (state):", avatarPreview);
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
@@ -314,7 +316,15 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             </Label>
             <div className="flex items-center gap-4">
               {displayAvatarUrl ? (
-                <NextImage src={displayAvatarUrl} alt="Avatar Preview" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar" unoptimized={true}/>
+                <NextImage 
+                  src={displayAvatarUrl} 
+                  alt="Avatar Preview" 
+                  width={80} 
+                  height={80} 
+                  className="rounded-full object-cover border" 
+                  data-ai-hint="user avatar" 
+                  unoptimized={true} // Keep unoptimized for local/direct backend URLs
+                />
               ) : (
                 <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
               )}
@@ -509,3 +519,5 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+
+
