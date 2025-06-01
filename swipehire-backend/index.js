@@ -92,8 +92,16 @@ const storage = multer.diskStorage({
         cb(null, uploadsDir); // Save files to the 'uploads' directory
     }, 
     filename: function (req, file, cb) {
-        // Create a unique filename: timestamp + original filename
-        cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
+        // Sanitize the original filename
+        const fileExtension = path.extname(file.originalname);
+        const safeBaseName = path.basename(file.originalname, fileExtension)
+            .toLowerCase() // Convert to lowercase
+            .replace(/\s+/g, '_') // Replace spaces with underscores
+            .replace(/[^\w-]/g, ''); // Remove all non-word characters (alphanumeric + underscore) and hyphens (but keep them)
+        
+        const finalFilename = Date.now() + '-' + (safeBaseName || 'uploaded_file') + fileExtension;
+        console.log(`[Multer] Original filename: ${file.originalname}, Sanitized and timestamped: ${finalFilename}`);
+        cb(null, finalFilename);
     }
 });
 
