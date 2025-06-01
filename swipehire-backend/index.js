@@ -14,11 +14,14 @@ const fs = require('fs');
 
 const http = require('http'); // Required for socket.io
 const { Server } = require("socket.io"); // socket.io server
+const { createAdapter } = require("@socket.io/redis-adapter");
+const { createClient } = require("redis");
 
 const app = express();
 const server = http.createServer(app); // Create HTTP server from Express app
 
 const PORT = process.env.PORT || 5000;
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"; // Default to local Redis
 
 const uploadsDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
@@ -46,6 +49,29 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+
+// Setup Redis Adapter for Socket.IO
+(async () => {
+  if (process.env.USE_REDIS_ADAPTER === 'true') {
+    console.log(`[Socket.IO Redis] Attempting to connect to Redis at ${REDIS_URL} for Socket.IO adapter.`);
+    const pubClient = createClient({ url: REDIS_URL });
+    const subClient = pubClient.duplicate();
+
+    pubClient.on('error', (err) => console.error('[Socket.IO Redis] Publisher client error:', err));
+    subClient.on('error', (err) => console.error('[Socket.IO Redis] Subscriber client error:', err));
+
+    try {
+      await Promise.all([pubClient.connect(), subClient.connect()]);
+      io.adapter(createAdapter(pubClient, subClient));
+      console.log('[Socket.IO Redis] Successfully connected to Redis and set adapter.');
+    } catch (err) {
+      console.error('[Socket.IO Redis] Failed to connect to Redis or set adapter. Running in single-server mode.', err);
+    }
+  } else {
+    console.log('[Socket.IO] Not using Redis adapter (USE_REDIS_ADAPTER not set to "true"). Running in single-server mode.');
+  }
+})();
+
 
 app.options('*', (req, res, next) => {
   const origin = req.headers.origin;
@@ -659,8 +685,3 @@ server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
-
-
-    
-
-    
