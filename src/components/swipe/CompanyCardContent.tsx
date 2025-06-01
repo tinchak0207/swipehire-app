@@ -34,6 +34,8 @@ const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
 
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
+const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
+
 
 // Conceptual analytics helper
 const incrementAnalytic = (key: string) => {
@@ -90,22 +92,29 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setAiJobFitAnalysis(null);
 
     try {
-      const candidateRole = localStorage.getItem('jobSeekerProfileHeadline') || 'Software Developer';
-      const candidateExpSummary = localStorage.getItem('jobSeekerExperienceSummary') || 'Experienced in web technologies.';
-      const candidateSkillsString = localStorage.getItem('jobSeekerSkills') || 'React,Node.js';
-      const candidateSkills = candidateSkillsString ? candidateSkillsString.split(',').map(s => s.trim()).filter(s => s) : ['React', 'Node.js'];
-      const candidateDesiredWorkStyle = localStorage.getItem('jobSeekerDesiredWorkStyle') || 'Remote, Collaborative';
-
-
+      let candidateDataFromStorage: Partial<Candidate> = {};
+      if (typeof window !== 'undefined') {
+        const storedProfile = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
+        if (storedProfile) {
+          candidateDataFromStorage = JSON.parse(storedProfile);
+        }
+      }
+      
       const candidateForAI: CandidateProfileForAI = {
         id: 'currentUserProfile',
-        role: candidateRole,
-        experienceSummary: candidateExpSummary,
-        skills: candidateSkills,
-        desiredWorkStyle: candidateDesiredWorkStyle,
-        workExperienceLevel: WorkExperienceLevel.MID_LEVEL,
-        educationLevel: EducationLevel.UNIVERSITY,
-        locationPreference: LocationPreference.REMOTE,
+        role: candidateDataFromStorage.role || 'Software Developer',
+        experienceSummary: candidateDataFromStorage.experienceSummary || 'Experienced in various technologies.',
+        skills: candidateDataFromStorage.skills || ['React', 'Node.js'],
+        desiredWorkStyle: candidateDataFromStorage.desiredWorkStyle || 'Remote, Collaborative',
+        pastProjects: candidateDataFromStorage.pastProjects || undefined,
+        workExperienceLevel: candidateDataFromStorage.workExperienceLevel || WorkExperienceLevel.MID_LEVEL,
+        educationLevel: candidateDataFromStorage.educationLevel || EducationLevel.UNIVERSITY,
+        locationPreference: candidateDataFromStorage.locationPreference || LocationPreference.REMOTE,
+        languages: candidateDataFromStorage.languages || ['English'],
+        salaryExpectationMin: candidateDataFromStorage.salaryExpectationMin,
+        salaryExpectationMax: candidateDataFromStorage.salaryExpectationMax,
+        availability: candidateDataFromStorage.availability || Availability.UNSPECIFIED,
+        jobTypePreference: candidateDataFromStorage.jobTypePreference || [],
       };
 
       const jobCriteria: JobCriteriaForAI = {
@@ -125,14 +134,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       };
       
       let userAIWeights: UserAIWeights | undefined = undefined;
-      const storedWeights = localStorage.getItem('userJobSeekerAIWeights');
-      if (storedWeights) {
-        try {
-          const parsedJobSeekerWeights: JobSeekerPerspectiveWeights = JSON.parse(storedWeights);
-          if (Object.values(parsedJobSeekerWeights).reduce((sum, val) => sum + val, 0) === 100) {
-            userAIWeights = { jobSeekerPerspective: parsedJobSeekerWeights };
+      if (typeof window !== 'undefined') {
+          const storedWeights = localStorage.getItem('userJobSeekerAIWeights');
+          if (storedWeights) {
+            try {
+              const parsedJobSeekerWeights: JobSeekerPerspectiveWeights = JSON.parse(storedWeights);
+              // Basic validation if weights sum to 100, or adjust as needed
+              const sumOfWeights = Object.values(parsedJobSeekerWeights).reduce((sum, val) => sum + (Number(val) || 0), 0);
+              if (Math.abs(sumOfWeights - 100) < 0.01) { // Check sum is close to 100
+                userAIWeights = { jobSeekerPerspective: parsedJobSeekerWeights };
+              } else {
+                 console.warn("Stored JobSeekerAIWeights do not sum to 100. Using defaults.");
+              }
+            } catch (e) { console.warn("Could not parse userJobSeekerAIWeights from localStorage", e); }
           }
-        } catch (e) { console.warn("Could not parse userJobSeekerAIWeights from localStorage", e); }
       }
 
 
@@ -283,14 +298,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "Q&A Error", description: "Could not get an answer from the AI.", variant: "destructive" });
     } finally {
       setIsAskingQuestion(false);
-    }
-  };
-
-  const handleShareClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isGuestMode) {
-      toast({ title: "Feature Locked", description: "Sign in to share job postings.", variant: "default" });
-      return;
     }
   };
   
