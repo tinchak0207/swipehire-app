@@ -659,7 +659,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full bg-card overflow-hidden"
+        className="flex flex-col h-full overflow-hidden"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -671,8 +671,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Top Avatar Section */}
-        <div className="shrink-0 h-[30%] bg-slate-100 dark:bg-slate-800 flex justify-center items-center p-3 sm:p-3 relative">
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28">
+        <div className="shrink-0 h-44 bg-slate-100 dark:bg-slate-800 flex justify-center items-center p-3 sm:p-3 relative">
+            <div className="relative w-24 h-24 sm:w-28 sm:h-28"> {/* Avatar Image Container */}
                 {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
                 <Image
                     src={cardAvatarSrc || 'https://placehold.co/500x700.png'}
@@ -792,4 +792,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
