@@ -312,21 +312,21 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
       : avatarUrl || `https://placehold.co/80x80.png?text=${profileHeadline?.[0] || 'P'}`;
   
-  // console.log("[MyProfilePage Debug] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
-  // console.log("[MyProfilePage Debug] state avatarUrl:", avatarUrl);
-  // console.log("[MyProfilePage Debug] state avatarPreview:", avatarPreview);
-  // console.log("[MyProfilePage Debug] Final displayAvatarUrl for NextImage:", currentDisplayAvatarUrl);
+  console.log("[MyProfilePage Preview] Current displayAvatarUrl:", currentDisplayAvatarUrl);
+  console.log("[MyProfilePage Preview] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
+  console.log("[MyProfilePage Preview] State avatarUrl:", avatarUrl);
+  console.log("[MyProfilePage Preview] State avatarPreview:", avatarPreview);
 
 
   const candidatePreviewData: Candidate = {
     id: mongoDbUserId || 'preview-user',
-    name: 'Your Name (Preview)', // Placeholder, actual name not edited on this page
+    name: 'Your Name (Preview)', 
     role: profileHeadline,
     experienceSummary,
     skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
     avatarUrl: currentDisplayAvatarUrl,
     videoResumeUrl: videoPortfolioLink || undefined,
-    location: 'Your Location (Preview)', // Placeholder
+    location: 'Your Location (Preview)',
     desiredWorkStyle: desiredWorkStyle,
     pastProjects,
     workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
@@ -599,9 +599,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <SwipeCard className={cn("h-full w-full overflow-hidden !rounded-3xl", getThemeClass(selectedCardTheme))}>
               <CandidateCardContent
                 candidate={candidatePreviewData}
-                onSwipeAction={() => {}} // No-op for preview
-                isLiked={false} // Not relevant for preview
-                isGuestMode={true} // Disable interactions in preview
+                onSwipeAction={() => {}} 
+                isLiked={false} 
+                isGuestMode={true}
+                isPreviewMode={true} 
               />
             </SwipeCard>
           </div>
@@ -610,4 +611,3 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
-

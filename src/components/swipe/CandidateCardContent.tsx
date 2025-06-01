@@ -23,6 +23,7 @@ interface CandidateCardContentProps {
   onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details') => void;
   isLiked: boolean;
   isGuestMode?: boolean;
+  isPreviewMode?: boolean; // New prop
 }
 
 const SWIPE_THRESHOLD = 75;
@@ -341,7 +342,7 @@ function CandidateDetailsModal({
 }
 
 
-export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGuestMode }: CandidateCardContentProps) {
+export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGuestMode, isPreviewMode }: CandidateCardContentProps) {
   const cardRootRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -457,7 +458,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isGuestMode) return;
+    if (isGuestMode || isPreviewMode) return;
     const targetElement = e.target as HTMLElement;
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
         if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
@@ -483,12 +484,12 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode || isPreviewMode) return;
     setCurrentX(e.clientX);
   };
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode || isPreviewMode) return;
 
     const deltaX = currentX - startX;
 
@@ -513,7 +514,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   };
 
   const getCardTransform = () => {
-    if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
+    if (!isDragging || isGuestMode || isPreviewMode) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
@@ -521,7 +522,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   };
   
   const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
-    if (isGuestMode) {
+    if (isGuestMode || isPreviewMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
@@ -659,13 +660,13 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden"
+        className="flex flex-col h-full overflow-hidden" // Removed bg-card, parent SwipeCard handles themes
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
         style={{
-          cursor: isGuestMode ? 'default' : 'grab',
+          cursor: (isGuestMode || isPreviewMode) ? 'default' : 'grab',
           transform: getCardTransform(),
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
@@ -759,22 +760,24 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
             
         {/* Footer with actions */}
-        <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
-          <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
-          <ActionButton
-              action="details"
-              Icon={Eye} 
-              label="View Profile" 
-              className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
-              onClickOverride={(e) => {
-                e.stopPropagation();
-                setActiveAccordionItemModal(undefined);
-                setIsDetailsModalOpen(true); 
-              }}
-          />
-          <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-          <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
-        </CardFooter>
+        {!isPreviewMode && (
+            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
+            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
+            <ActionButton
+                action="details"
+                Icon={Eye} 
+                label="View Profile" 
+                className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
+                onClickOverride={(e) => {
+                    e.stopPropagation();
+                    setActiveAccordionItemModal(undefined);
+                    setIsDetailsModalOpen(true); 
+                }}
+            />
+            <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
+            <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+            </CardFooter>
+        )}
       </div>
 
       <CandidateDetailsModal
