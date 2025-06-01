@@ -82,40 +82,43 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-// Serve static files from the 'uploads' directory
-const staticUploadsPath = path.resolve(__dirname, 'uploads'); // Ensures absolute path
-console.log(`[Static Serving Config] Serving static files from /uploads mapped to physical path: ${staticUploadsPath}`);
+// Serve static files from the 'uploads' directory using a manual route
+const staticUploadsPath = path.resolve(__dirname, 'uploads');
+console.log(`[Static Serving Config] Base path for uploads (manual route): ${staticUploadsPath}`);
 
-// Enhanced logging middleware for /uploads route
-app.use('/uploads', (req, res, next) => {
-  console.log(`[Uploads Static Entry] Request for: ${req.originalUrl}`);
-  console.log(`[Uploads Static Entry]   Raw req.path: ${req.path}`);
-  
-  let decodedReqPath = req.path;
-  try {
-    decodedReqPath = decodeURIComponent(req.path);
-    console.log(`[Uploads Static Entry]   Decoded req.path: ${decodedReqPath}`);
-  } catch (e) {
-    console.error(`[Uploads Static Entry]   Error decoding req.path: ${req.path}`, e);
-    // If decoding fails, proceed with the raw path, or handle error as appropriate
-  }
+app.get('/uploads/:filename', (req, res) => {
+    const filename = req.params.filename;
+    console.log(`[Manual /uploads/:filename Handler] Request for filename: ${filename}`);
 
-  // req.path for a route mounted at /uploads will be like '/filename.png'
-  // We need the part after the initial '/' for path.join with an absolute base
-  const relativeFilePath = decodedReqPath.startsWith('/') ? decodedReqPath.substring(1) : decodedReqPath;
-  const physicalPath = path.join(staticUploadsPath, relativeFilePath);
-  console.log(`[Uploads Static Entry]   Attempting to serve physical path: ${physicalPath}`);
+    // Basic security: prevent directory traversal
+    if (filename.includes('..')) {
+        console.warn(`[Manual /uploads/:filename Handler] Directory traversal attempt blocked for: ${filename}`);
+        return res.status(400).send('Invalid filename.');
+    }
 
-  const fileExists = fs.existsSync(physicalPath);
-  console.log(`[Uploads Static Entry]   File ${fileExists ? 'EXISTS' : 'DOES NOT EXIST'} at physical path.`);
-  
-  if (!fileExists) {
-      console.warn(`[Uploads Static Entry] File not found at: ${physicalPath}. Original requested path: ${req.originalUrl}`);
-      // Optionally, you could res.status(404).send('File not found via custom log') here if express.static doesn't handle it
-  }
-  
-  next();
-}, express.static(staticUploadsPath));
+    const filePath = path.join(staticUploadsPath, filename);
+    console.log(`[Manual /uploads/:filename Handler] Attempting to serve physical path: ${filePath}`);
+
+    fs.exists(filePath, (exists) => {
+        if (exists) {
+            console.log(`[Manual /uploads/:filename Handler] File EXISTS. Sending: ${filePath}`);
+            res.sendFile(filePath, (err) => {
+                if (err) {
+                    console.error(`[Manual /uploads/:filename Handler] Error sending file ${filePath}:`, err);
+                    // Avoid sending another response if headers already sent by res.sendFile on error
+                    if (!res.headersSent) {
+                        res.status(500).send('Error sending file.');
+                    }
+                } else {
+                    console.log(`[Manual /uploads/:filename Handler] File sent successfully: ${filePath}`);
+                }
+            });
+        } else {
+            console.warn(`[Manual /uploads/:filename Handler] File DOES NOT EXIST at: ${filePath}`);
+            res.status(404).send('File not found.');
+        }
+    });
+});
 
 
 // Multer storage configuration
