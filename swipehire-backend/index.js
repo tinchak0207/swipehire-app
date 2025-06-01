@@ -406,28 +406,63 @@ io.on('connection', (socket) => {
   const clientIp = socket.handshake.address;
   console.log(`[Socket.io] User connected: ${socket.id} (User ID: ${connectedUserId || 'Anonymous'}, IP: ${clientIp})`);
 
+  socket.on('joinRoom', async (matchId) => {
+    if (!matchId) {
+        console.warn(`[Socket.io] User ${socket.id} (User ID: ${connectedUserId}) tried to join room with invalid matchId: ${matchId}`);
+        // Optionally emit an error back to the client: socket.emit('joinRoomError', { message: 'Invalid matchId' });
+        return;
+    }
+    if (!connectedUserId) {
+        console.warn(`[Socket.io] User ${socket.id} (Anonymous) tried to join room ${matchId} without a userId in handshake auth.`);
+        // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Authentication required to join room.' });
+        return;
+    }
+    if (!mongoose.Types.ObjectId.isValid(matchId) || !mongoose.Types.ObjectId.isValid(connectedUserId)) {
+      console.warn(`[Socket.io] Invalid ObjectId format for matchId (${matchId}) or connectedUserId (${connectedUserId}) for socket ${socket.id}.`);
+      // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Invalid ID format.' });
+      return;
+    }
 
-  socket.on('joinRoom', (matchId) => {
-    if (matchId) {
-      const roomName = `chat-${matchId}`;
-      socket.join(roomName);
-      console.log(`[Socket.io] User ${socket.id} (User ID: ${connectedUserId || 'Anonymous'}) joined room: ${roomName}`);
-    } else {
-        console.warn(`[Socket.io] User ${socket.id} tried to join room with invalid matchId: ${matchId}`);
+    try {
+      const match = await Match.findById(matchId);
+      if (!match) {
+        console.warn(`[Socket.io] Match not found for ID: ${matchId}. User ${socket.id} (User ID: ${connectedUserId}) cannot join.`);
+        // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Match not found.' });
+        return;
+      }
+
+      const userObjectId = new mongoose.Types.ObjectId(connectedUserId);
+      const isUserInMatch = match.userA_Id.equals(userObjectId) || match.userB_Id.equals(userObjectId);
+
+      if (isUserInMatch) {
+        const roomName = `chat-${matchId}`;
+        socket.join(roomName);
+        console.log(`[Socket.io] User ${socket.id} (User ID: ${connectedUserId}) successfully joined room: ${roomName}`);
+      } else {
+        console.warn(`[Socket.io] Unauthorized attempt: User ${socket.id} (User ID: ${connectedUserId}) tried to join room ${matchId} but is not a participant.`);
+        // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Not authorized to join this room.' });
+      }
+    } catch (error) {
+      console.error(`[Socket.io] Error during joinRoom for matchId ${matchId}, userId ${connectedUserId}, socket ${socket.id}:`, error);
+      // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Server error during room join.' });
     }
   });
 
   socket.on('typing', ({ matchId, userId, userName }) => {
-    if (matchId && userId && userName) {
+    if (matchId && userId && userName && connectedUserId === userId) { // Ensure typing event is from authenticated user
         const roomName = `chat-${matchId}`;
         socket.to(roomName).emit('userTyping', { matchId, userId, userName });
+    } else if (connectedUserId !== userId) {
+        console.warn(`[Socket.io] Typing event received from unauthenticated or mismatched user. Socket ID: ${socket.id}, Auth UserID: ${connectedUserId}, Event UserID: ${userId}`);
     }
   });
 
   socket.on('stopTyping', ({ matchId, userId }) => {
-     if (matchId && userId) {
+     if (matchId && userId && connectedUserId === userId) { // Ensure stopTyping event is from authenticated user
         const roomName = `chat-${matchId}`;
         socket.to(roomName).emit('userStopTyping', { matchId, userId });
+    } else if (connectedUserId !== userId) {
+        console.warn(`[Socket.io] StopTyping event received from unauthenticated or mismatched user. Socket ID: ${socket.id}, Auth UserID: ${connectedUserId}, Event UserID: ${userId}`);
     }
   });
 
