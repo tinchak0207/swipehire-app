@@ -162,7 +162,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     } else {
         console.log('[CandidateDiscovery] Reset: No filtered items to display.');
     }
-  }, [filteredCandidatesMemo]); // Removed loadMoreCandidates from here
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredCandidatesMemo]); 
 
 
   useEffect(() => {
@@ -178,7 +179,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         observer.current.observe(loadMoreTriggerRef.current);
     }
     return () => { if (observer.current) observer.current.disconnect(); };
-  }, [hasMore, isLoading, loadMoreCandidates]); // loadMoreCandidates is needed here because the observer calls it.
+  }, [hasMore, isLoading, loadMoreCandidates]);
 
   const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => {
     if (action === 'share' || action === 'details') {
@@ -356,7 +357,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
           <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
+             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-100px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
               <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} isGuestMode={mongoDbUserId === null} />
             </SwipeCard>
           </div>
@@ -374,6 +375,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
+    
+
     
 
     
