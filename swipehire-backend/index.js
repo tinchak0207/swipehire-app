@@ -83,15 +83,37 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Serve static files from the 'uploads' directory
-const staticUploadsPath = path.resolve(__dirname, 'uploads');
+const staticUploadsPath = path.resolve(__dirname, 'uploads'); // Ensures absolute path
 console.log(`[Static Serving Config] Serving static files from /uploads mapped to physical path: ${staticUploadsPath}`);
+
+// Enhanced logging middleware for /uploads route
 app.use('/uploads', (req, res, next) => {
-  console.log(`[Uploads Middleware] Request received for: ${req.method} ${req.originalUrl}`);
-  // Log all headers for debugging potential proxy issues
-  // console.log('[Uploads Middleware] Request Headers:', JSON.stringify(req.headers, null, 2));
-  console.log(`[Uploads Middleware] Attempting to serve from physical directory: ${staticUploadsPath}`);
-  console.log(`[Uploads Middleware] Target file relative to static path: ${req.path}`); // req.path is path after /uploads/
-  // express.static will handle the rest
+  console.log(`[Uploads Static Entry] Request for: ${req.originalUrl}`);
+  console.log(`[Uploads Static Entry]   Raw req.path: ${req.path}`);
+  
+  let decodedReqPath = req.path;
+  try {
+    decodedReqPath = decodeURIComponent(req.path);
+    console.log(`[Uploads Static Entry]   Decoded req.path: ${decodedReqPath}`);
+  } catch (e) {
+    console.error(`[Uploads Static Entry]   Error decoding req.path: ${req.path}`, e);
+    // If decoding fails, proceed with the raw path, or handle error as appropriate
+  }
+
+  // req.path for a route mounted at /uploads will be like '/filename.png'
+  // We need the part after the initial '/' for path.join with an absolute base
+  const relativeFilePath = decodedReqPath.startsWith('/') ? decodedReqPath.substring(1) : decodedReqPath;
+  const physicalPath = path.join(staticUploadsPath, relativeFilePath);
+  console.log(`[Uploads Static Entry]   Attempting to serve physical path: ${physicalPath}`);
+
+  const fileExists = fs.existsSync(physicalPath);
+  console.log(`[Uploads Static Entry]   File ${fileExists ? 'EXISTS' : 'DOES NOT EXIST'} at physical path.`);
+  
+  if (!fileExists) {
+      console.warn(`[Uploads Static Entry] File not found at: ${physicalPath}. Original requested path: ${req.originalUrl}`);
+      // Optionally, you could res.status(404).send('File not found via custom log') here if express.static doesn't handle it
+  }
+  
   next();
 }, express.static(staticUploadsPath));
 
@@ -105,8 +127,8 @@ const storage = multer.diskStorage({
         const fileExtension = path.extname(file.originalname);
         const safeBaseName = path.basename(file.originalname, fileExtension)
             .toLowerCase()
-            .replace(/\s+/g, '_')
-            .replace(/[^\w.-]/g, ''); // Allow dots and hyphens as well, was [^\w-]
+            .replace(/\s+/g, '_') // Replace spaces with underscores
+            .replace(/[^\w.-]/g, ''); // Remove non-alphanumeric chars except underscore, dot, hyphen
 
         const finalFilename = Date.now() + '-' + (safeBaseName || 'uploaded_file') + fileExtension;
         console.log(`[Multer] Original filename: ${file.originalname}, Sanitized and timestamped: ${finalFilename}`);
@@ -406,8 +428,9 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             $or: [
                 { selectedRole: 'jobseeker' },
                 {
-                    profileHeadline: { $exists: true, $ne: "", $ne: null },
-                    profileExperienceSummary: { $exists: true, $ne: "", $ne: null }
+                    // selectedRole can be 'recruiter' or even null
+                    profileHeadline: { $exists: true, $ne: "", $ne: null }, // Check if they have a headline
+                    profileExperienceSummary: { $exists: true, $ne: "", $ne: null } // And a summary
                 }
             ]
         });
@@ -435,7 +458,7 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
         }
 
         const candidates = jobSeekerUsers.map(user => ({
-            id: user._id.toString(),
+            id: user._id.toString(), // This is the User._id from MongoDB
             name: user.name || 'N/A',
             role: user.profileHeadline || 'Role not specified',
             experienceSummary: user.profileExperienceSummary || 'No summary available.',
@@ -565,19 +588,46 @@ app.post('/api/interactions/like', async (req, res) => {
         let newMatchDetails = null;
         let otherUser = null;
 
+        // Logic to find the "other user" based on the profile being liked
+        if (likedProfileType === 'candidate') {
+            // Liked profile is a candidate. The "other user" is this candidate's User document.
+            // 'likedProfileId' in this case is the User._id of the candidate.
+             if (!mongoose.Types.ObjectId.isValid(likedProfileId)) {
+                console.warn(`[Like Interaction] Invalid likedProfileId for candidate type: ${likedProfileId}`);
+                return res.status(400).json({ message: "Invalid candidate profile ID." });
+            }
+            otherUser = await User.findById(likedProfileId);
+        } else if (likedProfileType === 'company') {
+            // Liked profile is a company. The "other user" is the recruiter User document
+            // that represents this company.
+            // 'likedProfileId' in this case is the conceptual company ID (e.g., 'comp1').
+            // We need to find the User whose `representedCompanyProfileId` matches this.
+            otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
+        }
+
+        if (!otherUser) {
+            console.warn(`[Like Interaction] Could not find the "other user" for likedProfileId: ${likedProfileId} (type: ${likedProfileType})`);
+            // Decide if this is an error or just means no match possible.
+            // For now, proceed with saving the like, but no match can be made.
+        }
+        
+        // Record the like
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
+            // Recruiter likes a candidate. `likedProfileId` is the candidate's User._id.
             if (!likingUser.likedCandidateIds.includes(likedProfileId)) {
                 likingUser.likedCandidateIds.push(likedProfileId);
             }
-            otherUser = await User.findById(likedProfileId);
+            // Check for match: Does the candidate (otherUser) like the recruiter's company?
             if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) {
                 matchMade = true;
             }
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
+            // Job seeker likes a company. `likedProfileId` is the company's display ID (e.g. 'comp1').
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) {
                 likingUser.likedCompanyIds.push(likedProfileId);
             }
-            otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
+            // Check for match: Does the recruiter (otherUser) for this company like this job seeker (likingUser)?
+            // `otherUser.likedCandidateIds` stores User._ids of candidates liked by the recruiter.
             if (otherUser && otherUser.likedCandidateIds.includes(likingUser._id.toString())) {
                 matchMade = true;
             }
@@ -598,14 +648,14 @@ app.post('/api/interactions/like', async (req, res) => {
             if (!existingMatch) {
                 let candidateDisplayIdForMatch, companyDisplayIdForMatch;
 
-                if (likingUserRole === 'recruiter') {
-                    candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString();
-                    companyDisplayIdForMatch = likingUser.representedCompanyProfileId;
-                } else {
-                    candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString();
-                    companyDisplayIdForMatch = otherUser.representedCompanyProfileId;
+                if (likingUserRole === 'recruiter') { // Recruiter (likingUser) likes a candidate (otherUser)
+                    candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString(); // Candidate is otherUser
+                    companyDisplayIdForMatch = likingUser.representedCompanyProfileId;    // Company is represented by likingUser
+                } else { // Job Seeker (likingUser) likes a company (represented by otherUser)
+                    candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString(); // Candidate is likingUser
+                    companyDisplayIdForMatch = otherUser.representedCompanyProfileId;    // Company is represented by otherUser
                 }
-
+                
                 if (!candidateDisplayIdForMatch || !companyDisplayIdForMatch) {
                     console.error("[Match Creation] Critical error: Missing represented profile ID for match.", {
                         likingUserId: likingUser._id, likingUserRole,
@@ -626,7 +676,7 @@ app.post('/api/interactions/like', async (req, res) => {
                 }
             } else {
                 console.log(`[DB Action] Mutual match ALREADY EXISTS between ${userA_Id} and ${userB_Id}. Match ID: ${existingMatch._id}`);
-                matchMade = true;
+                matchMade = true; // Ensure it's true if match already existed
                 newMatchDetails = existingMatch;
             }
         }
@@ -678,3 +728,4 @@ app.listen(PORT, () => {
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
     console.log(`Frontend URLs allowed by CORS (from env and hardcoded): ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+
