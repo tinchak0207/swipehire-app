@@ -34,9 +34,20 @@ const nextConfig: NextConfig = {
         hostname: 'upload.wikimedia.org',
         port: '',
         pathname: '/**',
+      },
+      { // Added for backend server (uploaded avatars)
+        protocol: 'https', // Assuming your backend cloud workstation URL is HTTPS
+        hostname: '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+        port: '', // The port is part of the hostname in this cloud workstation URL structure
+        pathname: '/uploads/**', // Allow any image from the /uploads/ directory and its subdirectories
+      },
+      { // Fallback for local development if backend runs on http://localhost:5000
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '5000',
+        pathname: '/uploads/**',
       }
       // Add other image source hostnames here if needed
-      // e.g. for actual avatar/logo storage
     ],
   },
   allowedDevOrigins: [
