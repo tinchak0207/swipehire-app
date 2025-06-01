@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
+import NextImage from 'next/image'; // Renamed to avoid conflict with Lucide's Image icon
 
 const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -38,7 +39,12 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
+  
+  // Avatar states
+  const [avatarUrl, setAvatarUrl] = useState(''); // Stores the URL to be saved (could be existing or placeholder for new upload)
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); // Stores the actual file object if selected
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null); // Stores data URL for previewing new file
+
   const [workExperienceLevel, setWorkExperienceLevel] = useState<WorkExperienceLevel | string>(WorkExperienceLevel.UNSPECIFIED);
   const [educationLevel, setEducationLevel] = useState<EducationLevel | string>(EducationLevel.UNSPECIFIED);
   const [locationPreference, setLocationPreference] = useState<LocationPreference | string>(LocationPreference.UNSPECIFIED);
@@ -63,6 +69,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     const loadProfile = async () => {
       setIsFetchingProfile(true);
+      setAvatarPreview(null); // Reset preview on load
       if (mongoDbUserId) {
         try {
           const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
@@ -74,7 +81,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
             setPastProjects(userData.profilePastProjects || '');
             setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
-            setAvatarUrl(userData.profileAvatarUrl || '');
+            setAvatarUrl(userData.profileAvatarUrl || ''); // Load current avatar URL
             setWorkExperienceLevel(userData.profileWorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
             setEducationLevel(userData.profileEducationLevel || EducationLevel.UNSPECIFIED);
             setLocationPreference(userData.profileLocationPreference || LocationPreference.UNSPECIFIED);
@@ -86,13 +93,14 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setIsFetchingProfile(false);
             return;
           } else {
-            console.warn("Failed to fetch profile from backend, status:", response.status, ". Falling back to localStorage.");
+            console.warn("Failed to fetch profile from backend, status:", response.status, ". Falling back to localStorage if available.");
           }
         } catch (error) {
-          console.error("Error fetching profile from backend:", error, ". Falling back to localStorage.");
+          console.error("Error fetching profile from backend:", error, ". Falling back to localStorage if available.");
         }
       }
 
+      // Fallback to localStorage if backend fetch fails or no mongoDbUserId
       const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
       if (savedProfileString) {
         try {
@@ -103,7 +111,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
           setPastProjects(savedProfile.pastProjects || '');
           setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
-          setAvatarUrl(savedProfile.avatarUrl || '');
+          setAvatarUrl(savedProfile.avatarUrl || savedProfile.profileAvatarUrl || ''); // Check both old and new key
           setWorkExperienceLevel(savedProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
           setEducationLevel(savedProfile.educationLevel || EducationLevel.UNSPECIFIED);
           setLocationPreference(savedProfile.locationPreference || LocationPreference.UNSPECIFIED);
@@ -123,6 +131,37 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
   }, [isGuestMode, mongoDbUserId]);
 
+  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast({ title: "File Too Large", description: "Avatar image must be less than 5MB.", variant: "destructive" });
+        event.target.value = ''; // Clear the input
+        return;
+      }
+      if (!file.type.startsWith("image/")) {
+        toast({ title: "Invalid File Type", description: "Please select an image file (PNG, JPG, GIF).", variant: "destructive" });
+        event.target.value = ''; // Clear the input
+        return;
+      }
+      setAvatarFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatarPreview(reader.result as string);
+        // Simulate an uploaded URL. In a real app, this URL would come from your storage service.
+        setAvatarUrl(`https://placehold.co/100x100.png?text=${encodeURIComponent(file.name.substring(0, 8))}`);
+        toast({ title: "Avatar Preview Updated", description: "Save profile to apply. Actual file upload is simulated." });
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setAvatarFile(null);
+      setAvatarPreview(null);
+      // Optionally, you could revert avatarUrl to what was loaded from the backend
+      // if the user clears the file input after selecting a file.
+      // For now, if they clear it, the current avatarUrl (which might be the placeholder) remains.
+    }
+  };
+
   const handleSaveProfile = async () => {
     if (isGuestMode) {
       toast({ title: "Action Disabled", description: "Please sign in to save your profile.", variant: "default"});
@@ -134,6 +173,17 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     }
 
     setIsLoading(true);
+    
+    let finalAvatarUrl = avatarUrl; // Use current avatarUrl state which might be placeholder from new file or existing URL
+
+    if (avatarFile) {
+      // SIMULATED UPLOAD: In a real app, you'd upload avatarFile here and get a new URL.
+      // For now, avatarUrl state has already been updated to a placeholder by handleAvatarFileChange.
+      console.log("Simulating avatar upload for file:", avatarFile.name);
+      // finalAvatarUrl remains as the placeholder set in handleAvatarFileChange
+      toast({ title: "Avatar Update (Simulated)", description: "Using a placeholder for the new avatar. Actual file upload is a future step.", duration: 4000});
+    }
+    
     const profileData = {
       profileHeadline,
       profileExperienceSummary: experienceSummary,
@@ -141,7 +191,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
-      profileAvatarUrl: avatarUrl,
+      profileAvatarUrl: finalAvatarUrl, // Send this URL (original or placeholder) to backend
       profileWorkExperienceLevel: workExperienceLevel,
       profileEducationLevel: educationLevel,
       profileLocationPreference: locationPreference,
@@ -164,10 +214,12 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         throw new Error(errorData.message || `Failed to save profile to backend. Status: ${response.status}`);
       }
       
+      // Save to local storage for CandidateDiscoveryPage quick reflection (can be adjusted later)
       if (typeof window !== 'undefined') {
-        // For CandidateDiscoveryPage quick reflection (can be removed once fully backend driven)
-        localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(profileData));
+         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl }; // Ensure avatarUrl key for local
+         localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
       }
+
 
       toast({
         title: 'Profile Updated & Published!',
@@ -184,6 +236,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       });
     } finally {
       setIsLoading(false);
+      setAvatarFile(null); // Clear the file object after attempting save, preview remains until next selection or load
     }
   };
 
@@ -227,6 +280,29 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           <CardDescription>This information will be visible to recruiters. Make it compelling!</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
+          <div className="space-y-2">
+            <Label htmlFor="avatarUpload" className="text-base flex items-center">
+              <ImageIcon className="mr-2 h-4 w-4 text-muted-foreground" /> My Avatar (Upload Image)
+            </Label>
+            <div className="flex items-center gap-4">
+              {avatarPreview ? (
+                <NextImage src={avatarPreview} alt="Avatar Preview" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar"/>
+              ) : avatarUrl ? (
+                <NextImage src={avatarUrl} alt="Current Avatar" width={80} height={80} className="rounded-full object-cover border" data-ai-hint="user avatar"/>
+              ) : (
+                <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
+              )}
+              <Input 
+                id="avatarUpload" 
+                type="file"
+                accept="image/*" 
+                onChange={handleAvatarFileChange} 
+                className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">Max 5MB. PNG, JPG, GIF. Actual file upload is simulated for now.</p>
+          </div>
+
           <div className="space-y-1">
             <Label htmlFor="profileHeadline" className="text-base flex items-center">
               <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" /> My Professional Headline / Role
@@ -236,18 +312,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               placeholder="e.g., Senior Software Engineer, Aspiring UX Designer" 
               value={profileHeadline} 
               onChange={(e) => setProfileHeadline(e.target.value)} 
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="avatarUrl" className="text-base flex items-center">
-              <ImageIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Avatar Image URL
-            </Label>
-            <Input 
-              id="avatarUrl" 
-              type="url"
-              placeholder="https://example.com/my-avatar.png" 
-              value={avatarUrl} 
-              onChange={(e) => setAvatarUrl(e.target.value)} 
             />
           </div>
            <div className="space-y-1">
@@ -420,3 +484,4 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   );
 }
 
+    
