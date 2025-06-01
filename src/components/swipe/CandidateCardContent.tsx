@@ -688,9 +688,24 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
               <UserCircleIcon className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
+          {candidate.isUnderestimatedTalent && (
+              <TooltipProvider>
+              <Tooltip>
+                  <TooltipTrigger asChild>
+                      <Badge variant="default" className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-yellow-500 hover:bg-yellow-600 text-white shadow-md cursor-default">
+                          <Sparkles className="h-3.5 w-3.5 mr-1.5 sm:mr-2" />
+                          Hidden Gem
+                      </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="left" className="max-w-xs">
+                      <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential that might be overlooked by standard filters."}</p>
+                  </TooltipContent>
+              </Tooltip>
+              </TooltipProvider>
+          )}
         </div>
 
-        {/* Text Content Area */}
+        {/* Text Content Area - designed to mimic job card layout */}
         <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
             <CardHeader className="p-0 mb-1">
                 <div className="flex items-start justify-between">
@@ -698,21 +713,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                         <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
                         <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
                     </div>
-                    {candidate.isUnderestimatedTalent && (
-                        <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                            <Badge variant="outline" className="ml-2 border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0">
-                                <Sparkles className="h-3.5 w-3.5 mr-1.5 text-yellow-500" />
-                                Gem
-                            </Badge>
-                            </TooltipTrigger>
-                            <TooltipContent side="top" className="max-w-xs">
-                            <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                        </TooltipProvider>
-                    )}
                 </div>
                 {candidate.location && (
                 <div className="flex items-center text-xs text-muted-foreground mt-0.5">
@@ -736,10 +736,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             {candidate.skills && candidate.skills.length > 0 && (
                 <div className="pt-1">
                 <div className="flex flex-wrap gap-1">
-                    {candidate.skills.slice(0, 2).map((skill) => (
+                    {candidate.skills.slice(0, 3).map((skill) => ( // Show up to 3 skills
                     <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
                     ))}
-                    {candidate.skills.length > 2 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-2} more</Badge>}
+                    {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-3} more</Badge>}
                 </div>
                 </div>
             )}
@@ -780,4 +780,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
