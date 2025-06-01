@@ -296,24 +296,35 @@ app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
 app.get('/api/users/profiles/jobseekers', async (req, res) => {
     console.log(`[Backend Route] HIT: GET /api/users/profiles/jobseekers`);
     try {
+        // Fetch users who are explicitly jobseekers OR
+        // users who might be currently recruiters but have jobseeker profile data filled out
+        // This OR condition is primarily for developer convenience with a single account.
         const jobSeekerUsers = await User.find({
-            selectedRole: 'jobseeker',
+            $or: [
+                { selectedRole: 'jobseeker' },
+                {
+                    // selectedRole can be 'recruiter' or even null if they haven't selected yet
+                    profileHeadline: { $exists: true, $ne: "", $ne: null },
+                    profileExperienceSummary: { $exists: true, $ne: "", $ne: null }
+                    // Add more fields here to ensure it's a substantially filled job seeker profile
+                    // e.g. profileSkills: { $exists: true, $ne: "", $ne: null }
+                }
+            ]
         });
         
-        console.log(`[DB Action GET /jobseekers] Found ${jobSeekerUsers.length} raw user documents with selectedRole: 'jobseeker'.`);
+        console.log(`[DB Action GET /jobseekers] Found ${jobSeekerUsers.length} raw user documents matching jobseeker criteria (explicit or dev convenience).`);
         if (jobSeekerUsers.length > 0) {
-          // Log crucial fields for the first few users to help diagnose mapping issues
           console.log('[DB Action GET /jobseekers] First few raw jobseeker users (selected fields):',
             jobSeekerUsers.slice(0, 3).map(u => ({
               _id: u._id,
               name: u.name,
-              email: u.email, // Added for debugging context
+              email: u.email,
               selectedRole: u.selectedRole,
               profileHeadline: u.profileHeadline,
               profileExperienceSummaryLength: u.profileExperienceSummary?.length,
               profileSkills: u.profileSkills,
               profileAvatarUrl: u.profileAvatarUrl,
-              representedCandidateProfileId: u.representedCandidateProfileId // Important for matching
+              representedCandidateProfileId: u.representedCandidateProfileId
             }))
           );
         }
@@ -331,7 +342,7 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
             avatarUrl: user.profileAvatarUrl || `https://placehold.co/100x100.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
             dataAiHint: 'person portrait',
-            videoResumeUrl: user.profileVideoPortfolioLink || undefined, // Use actual link if available
+            videoResumeUrl: user.profileVideoPortfolioLink || undefined,
             profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder strength
             location: user.country || 'Location not specified',
             desiredWorkStyle: user.profileDesiredWorkStyle || 'Not specified',
@@ -578,3 +589,4 @@ app.listen(PORT, () => {
 });
 
     
+
