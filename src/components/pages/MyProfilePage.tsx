@@ -284,12 +284,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     ? avatarPreview
     : avatarUrl && avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
-      : avatarUrl;
-
-  console.log("[MyProfilePage] displayAvatarUrl for NextImage:", displayAvatarUrl);
+      : avatarUrl || `https://placehold.co/80x80.png?text=${profileHeadline?.[0] || 'P'}`;
+  
   console.log("[MyProfilePage] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
   console.log("[MyProfilePage] avatarUrl (state):", avatarUrl);
   console.log("[MyProfilePage] avatarPreview (state):", avatarPreview);
+  console.log("[MyProfilePage] Final displayAvatarUrl for NextImage:", displayAvatarUrl);
+
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
@@ -323,7 +324,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                   height={80} 
                   className="rounded-full object-cover border" 
                   data-ai-hint="user avatar" 
-                  unoptimized={true} // Keep unoptimized for local/direct backend URLs
+                  unoptimized={displayAvatarUrl.startsWith(CUSTOM_BACKEND_URL) || displayAvatarUrl.startsWith('http://localhost')}
                 />
               ) : (
                 <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
@@ -519,5 +520,4 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
-
 

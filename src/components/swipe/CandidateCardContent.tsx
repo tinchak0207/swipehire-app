@@ -16,6 +16,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+
 interface CandidateCardContentProps {
   candidate: Candidate;
   onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details') => void;
@@ -97,18 +99,24 @@ function CandidateDetailsModal({
     }
   };
 
+  const modalAvatarSrc = candidate.avatarUrl && candidate.avatarUrl.startsWith('/uploads/')
+  ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
+  : candidate.avatarUrl;
+
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
         <DialogHeader className="p-4 sm:p-6 border-b flex-row items-center space-x-3 sticky top-0 bg-background z-10 pb-3">
           {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
             <Image
-              src={candidate.avatarUrl}
+              src={modalAvatarSrc || 'https://placehold.co/500x700.png'}
               alt={candidate.name}
               width={60}
               height={60}
               className="object-cover rounded-full border-2 border-primary"
               data-ai-hint={candidate.dataAiHint || "person"}
+              unoptimized={modalAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || modalAvatarSrc?.startsWith('http://localhost')}
             />
           ) : (
              <UserCircleIcon className="w-16 h-16 text-muted-foreground border-2 border-primary rounded-full p-1" />
@@ -540,6 +548,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     }
   };
 
+  const cardAvatarSrc = candidate.avatarUrl && candidate.avatarUrl.startsWith('/uploads/')
+  ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
+  : candidate.avatarUrl;
+
+
   const ActionButton = ({
     action,
     Icon,
@@ -662,12 +675,13 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             <div className="relative w-24 h-24 sm:w-28 sm:h-28">
                 {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
                 <Image
-                    src={candidate.avatarUrl}
+                    src={cardAvatarSrc || 'https://placehold.co/500x700.png'}
                     alt={candidate.name}
                     fill
                     className="rounded-full object-cover border-4 border-white shadow-md"
                     data-ai-hint={candidate.dataAiHint || "person professional"}
                     priority
+                    unoptimized={cardAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || cardAvatarSrc?.startsWith('http://localhost')}
                 />
                 ) : (
                 <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md" />
@@ -778,5 +792,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
 
