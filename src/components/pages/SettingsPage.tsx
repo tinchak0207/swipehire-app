@@ -355,8 +355,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
 
   if ((isLoadingSettings || contextLoading) && !isGuestMode) {
     return (
-      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center bg-background">
+        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
