@@ -90,7 +90,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const filteredCandidatesMemo = useMemo(() => {
-    console.log('[CandidateDiscovery] Recalculating filteredCandidatesMemo...');
     let candidates = [...allCandidates];
 
     if (activeFilters.experienceLevels.size > 0) {
@@ -114,68 +113,52 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    const candidatesBeforePassFilter = candidates.length;
-    const finalFiltered = candidates.filter(c => !passedCandidateProfileIds.has(c.id));
-    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidatesBeforePassFilter}, Passed IDs count: ${passedCandidateProfileIds.size}, Final filtered count: ${finalFiltered.length}`);
-    return finalFiltered;
+    return candidates.filter(c => !passedCandidateProfileIds.has(c.id));
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds]);
 
 
   const loadMoreCandidates = useCallback(() => {
-    console.log('[CandidateDiscovery] loadMoreCandidates called.');
     if (isLoading || !hasMore || currentIndex >= filteredCandidatesMemo.length) {
       if (currentIndex >= filteredCandidatesMemo.length && filteredCandidatesMemo.length > 0) {
-        console.log('[CandidateDiscovery] No more candidates to load (currentIndex >= filteredCandidatesMemo.length).');
         setHasMore(false);
       } else if (filteredCandidatesMemo.length === 0) {
-        console.log('[CandidateDiscovery] loadMoreCandidates called, but filteredCandidatesMemo is empty.');
         setHasMore(false);
       }
       return;
     }
     setIsLoading(true);
-    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidatesMemo.length}`);
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
       setDisplayedCandidates(prev => {
         const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
-        console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
         return updatedDisplay;
       });
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredCandidatesMemo.length);
       setIsLoading(false);
-      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
     }, 700);
   }, [isLoading, hasMore, currentIndex, filteredCandidatesMemo]);
 
   useEffect(() => {
-    console.log(`[CandidateDiscovery] Effect for filteredCandidatesMemo triggered. Length: ${filteredCandidatesMemo.length}`);
     setDisplayedCandidates([]);
     setCurrentIndex(0);
     const hasFilteredItems = filteredCandidatesMemo.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
-        console.log('[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.');
         loadMoreCandidates();
-    } else {
-        console.log('[CandidateDiscovery] Reset: No filtered items to display.');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidatesMemo]); 
+  }, [filteredCandidatesMemo, loadMoreCandidates]); // Added loadMoreCandidates
 
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
-        console.log('[CandidateDiscovery] IntersectionObserver triggered loadMoreCandidates.');
         loadMoreCandidates();
       }
     }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
     if (loadMoreTriggerRef.current) {
-        console.log('[CandidateDiscovery] IntersectionObserver: Attaching to loadMoreTriggerRef. hasMore:', hasMore, 'isLoading:', isLoading);
         observer.current.observe(loadMoreTriggerRef.current);
     }
     return () => { if (observer.current) observer.current.disconnect(); };
@@ -276,11 +259,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   };
   const handleApplyFilters = () => setIsFilterSheetOpen(false);
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
-  const fixedElementsHeight = '120px'; // Approx height of header + any top bars
+  const fixedElementsHeight = '120px'; 
 
   return (
     <div className="flex flex-col h-full relative">
-      {/* Filter Button */}
       <Sheet open={isFilterSheetOpen} onOpenChange={setIsFilterSheetOpen}>
         <SheetTrigger asChild>
           <Button variant="default" size="icon" className="fixed bottom-20 right-4 z-20 rounded-full w-14 h-14 shadow-lg sm:bottom-6 sm:right-6" aria-label="Open filters">
@@ -293,7 +275,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         </SheetContent>
       </Sheet>
 
-      {/* Trash Bin Button */}
       <Button
         variant="outline"
         size="icon"
@@ -305,7 +286,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         {trashBinCandidates.length > 0 && <Badge variant="destructive" className="absolute -top-1 -right-1 px-1.5 py-0.5 text-xs">{trashBinCandidates.length}</Badge>}
       </Button>
 
-      {/* Trash Bin Dialog */}
       <Dialog open={isTrashBinOpen} onOpenChange={setIsTrashBinOpen}>
         <DialogContent className="sm:max-w-lg max-h-[80vh] flex flex-col p-0">
           <DialogHeader className="p-4 sm:p-6 border-b">
@@ -353,11 +333,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         </DialogContent>
       </Dialog>
 
-
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
           <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-100px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
+             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden min-h-[calc(100vh-200px)] max-h-[calc(100vh-120px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
               <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} isGuestMode={mongoDbUserId === null} />
             </SwipeCard>
           </div>
