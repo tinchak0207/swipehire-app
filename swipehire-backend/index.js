@@ -296,6 +296,7 @@ app.get('/api/jobs', async (req, res) => {
             return recruiter.jobOpenings.map(job => ({
                 // This structure mimics a 'Company' object for the JobDiscoveryPage
                 id: `comp-user-${recruiter._id.toString()}-job-${job._id.toString()}`, // Unique ID for the "company-job" context
+                recruiterUserId: recruiter._id.toString(), // Explicitly add recruiter's User ID
                 name: job.companyNameForJob || recruiter.name,
                 industry: job.companyIndustryForJob || recruiter.companyIndustryForJobs || 'Various',
                 description: `Job posting by ${recruiter.name}`, // Generic company description
@@ -307,7 +308,12 @@ app.get('/api/jobs', async (req, res) => {
             }));
         });
         
-        res.json(allJobs);
+        res.json(allJobs.sort((a, b) => {
+             // Sort by the job's postedAt date, descending
+             const dateA = a.jobOpenings[0].postedAt ? new Date(a.jobOpenings[0].postedAt) : new Date(0);
+             const dateB = b.jobOpenings[0].postedAt ? new Date(b.jobOpenings[0].postedAt) : new Date(0);
+             return dateB - dateA;
+        }));
     } catch (error) {
         res.status(500).json({ message: 'Server error fetching jobs', error: error.message });
     }
@@ -415,23 +421,11 @@ app.post('/api/interactions/like', async (req, res) => {
             if (!mongoose.Types.ObjectId.isValid(likedProfileId)) return res.status(400).json({ message: "Invalid candidate profile ID." });
             otherUser = await User.findById(likedProfileId);
         } else if (likedProfileType === 'company') {
-            // A 'company' like is a like on a job posting, which is owned by a recruiter user.
-            // We need to find the recruiter User who posted the job represented by 'likedProfileId' (which is a composite company-job ID)
-            // For now, let's assume likedProfileId for a company will be the mongoDbUserId of the recruiter.
-            // Or, if it's a `comp-user-` type ID, we need a way to map that back.
-            // This part needs refinement based on how `likedProfileId` for companies is structured.
-            // For this iteration, if likedProfileType is 'company', likedProfileId is expected to be the User._id of the recruiter.
-             if (!mongoose.Types.ObjectId.isValid(likedProfileId)) { // If likedProfileId is NOT a mongo ObjectId
-                console.warn(`[Like Interaction] likedProfileId for company is not a Mongo ObjectId: ${likedProfileId}. Attempting lookup by representedCompanyProfileId (if that was the intent). This path might need review for job postings.`);
-                // This logic path is tricky if 'likedProfileId' is a mock company ID like 'comp1'
-                // and not the recruiter's User._id.
-                // For jobs now stored in User.jobOpenings, the "company" is the recruiter User.
-                // So, `likedProfileId` *should* be the recruiter's `User._id`
-                // or an ID that resolves to the recruiter's `User._id`.
-                // Let's assume for now that `likedProfileId` for a "company" (job) will be the User ID of the recruiter.
-                 otherUser = await User.findById(likedProfileId); // Assuming likedProfileId for company IS the recruiter's User ID
+             if (!mongoose.Types.ObjectId.isValid(likedProfileId)) { 
+                console.warn(`[Like Interaction] likedProfileId for company is not a Mongo ObjectId: ${likedProfileId}.`);
+                return res.status(400).json({ message: "Invalid company/recruiter profile ID." });
              } else {
-                otherUser = await User.findById(likedProfileId);
+                otherUser = await User.findById(likedProfileId); // For jobs, likedProfileId is the recruiter's User ID
              }
         }
 
@@ -440,14 +434,11 @@ app.post('/api/interactions/like', async (req, res) => {
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
             // Recruiter likes a candidate. 'likedProfileId' is the candidate's User._id
             if (!likingUser.likedCandidateIds.includes(likedProfileId)) likingUser.likedCandidateIds.push(likedProfileId);
-            // Check if candidate (otherUser) has liked this recruiter's "company"
-            // The recruiter's "company" is represented by their own User._id in this simplified model
             if (otherUser.likedCompanyIds.includes(likingUser._id.toString())) matchMade = true;
 
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
             // Job seeker likes a company (job posting by a recruiter). 'likedProfileId' is the recruiter's User._id
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) likingUser.likedCompanyIds.push(likedProfileId);
-            // Check if recruiter (otherUser) has liked this job seeker (likingUser)
             if (otherUser.likedCandidateIds.includes(likingUser._id.toString())) matchMade = true;
         } else return res.status(400).json({ message: "Invalid role/profile type combination." });
         
@@ -461,14 +452,13 @@ app.post('/api/interactions/like', async (req, res) => {
             
             if (!existingMatch) {
                 let candidateDisplayIdForMatch, companyDisplayIdForMatch;
-                // Determine who is candidate and who represents company for display purposes.
-                // This uses the MongoDB _id as the primary display identifier now.
+
                 if (likingUser.selectedRole === 'jobseeker') {
-                    candidateDisplayIdForMatch = likingUser._id.toString(); // Job seeker's own ID
-                    companyDisplayIdForMatch = otherUser._id.toString();   // Recruiter's User ID (representing the company)
+                    candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString();
+                    companyDisplayIdForMatch = otherUser.representedCompanyProfileId || otherUser._id.toString();
                 } else { // likingUser is recruiter
-                    candidateDisplayIdForMatch = otherUser._id.toString();   // Candidate's User ID
-                    companyDisplayIdForMatch = likingUser._id.toString();  // Recruiter's own User ID
+                    candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString();
+                    companyDisplayIdForMatch = likingUser.representedCompanyProfileId || likingUser._id.toString();
                 }
                 
                 const newMatch = new Match({ 

@@ -2,8 +2,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Company, JobFilters, UserRole } from '@/lib/types';
-import { mockCompanies as staticMockCompanies, mockCandidates } from '@/lib/mockData';
+import type { Company, JobFilters, UserRole, CompanyJobOpening } from '@/lib/types'; // Added CompanyJobOpening
+import { mockCandidates } from '@/lib/mockData'; // mockCompanies removed, data comes from backend
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
@@ -21,11 +21,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 
 
-const ITEMS_PER_BATCH = 3;
+const ITEMS_PER_BATCH = 3; // This will be used for client-side display limiting if backend sends all
 const LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX = 'passedCompanies_';
 const LOCAL_STORAGE_TRASH_BIN_COMPANIES_KEY_PREFIX = 'trashBinCompanies_';
 
-// Simple Trash icon as Lucide might not have a perfect one
+// Extend Company type for frontend use if backend adds recruiterUserId
+interface CompanyWithRecruiterId extends Company {
+  recruiterUserId?: string; 
+}
+
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M3 6h18" />
@@ -48,23 +52,23 @@ const initialJobFilters: JobFilters = {
 };
 
 export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
-  const [masterJobFeed, setMasterJobFeed] = useState<Company[]>([]);
-  const [displayedCompanies, setDisplayedCompanies] = useState<Company[]>([]);
+  const [masterJobFeed, setMasterJobFeed] = useState<CompanyWithRecruiterId[]>([]);
+  const [displayedCompanies, setDisplayedCompanies] = useState<CompanyWithRecruiterId[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
+  const [hasMore, setHasMore] = useState(true); // Will be mostly true initially, then false after all are loaded
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
-  const [trashBinCompanies, setTrashBinCompanies] = useState<Company[]>([]);
+  const [trashBinCompanies, setTrashBinCompanies] = useState<CompanyWithRecruiterId[]>([]);
 
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
-  const [likedCompanyProfileIds, setLikedCompanyProfileIds] = useState<Set<string>>(new Set());
-  const [passedCompanyProfileIds, setPassedCompanyProfileIds] = useState<Set<string>>(new Set());
+  const [likedCompanyProfileIds, setLikedCompanyProfileIds] = useState<Set<string>>(new Set()); // Stores recruiterUserIds of liked jobs
+  const [passedCompanyProfileIds, setPassedCompanyProfileIds] = useState<Set<string>>(new Set()); // Stores composite company.id of passed jobs
 
   const { toast } = useToast();
-  const { mongoDbUserId, preferences } = useUserPreferences();
+  const { mongoDbUserId } = useUserPreferences();
   const [jobSeekerRepresentedCandidateId, setJobSeekerRepresentedCandidateId] = useState<string | null>(null);
 
   const getPassedKey = useCallback(() => `${LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
@@ -72,8 +76,11 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
 
   useEffect(() => {
      if (mongoDbUserId) {
-        const storedCandidateId = localStorage.getItem(`user_${mongoDbUserId}_representedCandidateId`);
-        setJobSeekerRepresentedCandidateId(storedCandidateId || (mockCandidates.length > 0 ? mockCandidates[0].id : 'cand-placeholder-jobseeker'));
+        // Attempt to get stored ID from MyProfilePage or fallback
+        const storedCandidateId = localStorage.getItem(`currentUserJobSeekerProfile`) 
+          ? JSON.parse(localStorage.getItem(`currentUserJobSeekerProfile`)!).id // Assuming 'id' field exists in stored profile
+          : null;
+        setJobSeekerRepresentedCandidateId(storedCandidateId || (mockCandidates.length > 0 ? mockCandidates[0].id : `cand-user-${mongoDbUserId.slice(0,5)}`));
     }
   }, [mongoDbUserId]);
 
@@ -84,27 +91,22 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     setIsInitialLoading(true);
     setIsLoading(true);
     try {
-      const { jobs: initialJobs } = await fetchJobsFromBackend();
-      const combinedJobs = [
-        ...initialJobs,
-        ...staticMockCompanies.filter(mc => !initialJobs.find(upj => upj.id === mc.id))
-      ];
-      setMasterJobFeed(combinedJobs);
+      const { jobs: fetchedJobs } = await fetchJobsFromBackend(); // Fetches all jobs now
+      setMasterJobFeed(fetchedJobs as CompanyWithRecruiterId[]);
 
-      // Load passed and trash bin after masterJobFeed is set
       const storedPassed = localStorage.getItem(getPassedKey());
       if (storedPassed) setPassedCompanyProfileIds(new Set(JSON.parse(storedPassed)));
 
       const storedTrash = localStorage.getItem(getTrashBinKey());
-      if (storedTrash && combinedJobs.length > 0) {
+      if (storedTrash && fetchedJobs.length > 0) {
           const trashIds: string[] = JSON.parse(storedTrash);
-          setTrashBinCompanies(combinedJobs.filter(c => trashIds.includes(c.id)));
+          setTrashBinCompanies(fetchedJobs.filter(c => trashIds.includes(c.id)) as CompanyWithRecruiterId[]);
       }
 
     } catch (error) {
       console.error("Failed to load initial jobs:", error);
-      setMasterJobFeed(staticMockCompanies); // Fallback to static mocks on error
-      toast({ title: "Error", description: "Could not load initial job listings.", variant: "destructive" });
+      setMasterJobFeed([]); 
+      toast({ title: "Error Loading Jobs", description: "Could not load job listings from the backend.", variant: "destructive" });
     } finally {
       setIsInitialLoading(false);
       setIsLoading(false);
@@ -162,7 +164,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredJobFeed.length);
       setIsLoading(false);
-    }, 700);
+    }, 300); // Reduced delay as it's local filtering
   }, [isLoading, hasMore, currentIndex, filteredJobFeed]);
 
   useEffect(() => {
@@ -188,83 +190,89 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     return () => { if (observer.current) observer.current.disconnect(); };
   }, [hasMore, isLoading, isInitialLoading, loadMoreCompaniesFromLocal]);
 
-  const handleAction = async (companyId: string, action: 'like' | 'pass' | 'details' | 'share') => {
+  const handleAction = async (compositeCompanyJobId: string, action: 'like' | 'pass' | 'details' | 'share') => {
     if (!mongoDbUserId) {
       toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
       return;
     }
     if (action === 'share' || action === 'details') {
-        console.log(`${action} action for company ${companyId}`);
+        console.log(`${action} action for company-job ${compositeCompanyJobId}`);
         return;
     }
 
-    const company = masterJobFeed.find(c => c.id === companyId);
-    if (!company) return;
+    const companyJob = masterJobFeed.find(c => c.id === compositeCompanyJobId);
+    if (!companyJob || !companyJob.recruiterUserId) {
+        toast({ title: "Error", description: "Could not find job details or recruiter information.", variant: "destructive" });
+        return;
+    }
+
+    const recruiterOwnerId = companyJob.recruiterUserId;
+
 
     if (action === 'like') {
       if (!jobSeekerRepresentedCandidateId) {
-        toast({ title: "Profile Incomplete", description: "Your job seeker profile needs to be set up to make matches.", variant: "destructive" });
+        toast({ title: "Profile Incomplete", description: "Your job seeker profile needs to be set up to make matches. Please complete it in 'My Profile'.", variant: "destructive" });
         return;
       }
-      setLikedCompanyProfileIds(prev => new Set(prev).add(companyId));
+      setLikedCompanyProfileIds(prev => new Set(prev).add(recruiterOwnerId)); // Store recruiter's ID as liked
       try {
         const response = await recordLike({
           likingUserId: mongoDbUserId,
-          likedProfileId: companyId,
-          likedProfileType: 'company',
+          likedProfileId: recruiterOwnerId, // This is the recruiter's User ID
+          likedProfileType: 'company', // The 'company' is represented by the recruiter user
           likingUserRole: 'jobseeker',
-          likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId,
+          likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId, // The job seeker's own display ID
         });
         if (response.success) {
-          toast({ title: `Interested in ${company.name}` });
+          toast({ title: `Interested in job at ${companyJob.name}` });
           if (response.matchMade) {
             toast({
               title: "🎉 It's a Mutual Match!",
-              description: `You and ${company.name} are both interested! Check 'My Matches'.`,
+              description: `You and ${companyJob.name} are both interested! Check 'My Matches'.`,
               duration: 7000,
             });
           }
         } else {
           toast({ title: "Like Failed", description: response.message, variant: "destructive" });
-          setLikedCompanyProfileIds(prev => { const newSet = new Set(prev); newSet.delete(companyId); return newSet; });
+          setLikedCompanyProfileIds(prev => { const newSet = new Set(prev); newSet.delete(recruiterOwnerId); return newSet; });
         }
       } catch (error: any) {
         toast({ title: "Error Liking", description: error.message || "Could not record like.", variant: "destructive" });
-        setLikedCompanyProfileIds(prev => { const newSet = new Set(prev); newSet.delete(companyId); return newSet; });
+        setLikedCompanyProfileIds(prev => { const newSet = new Set(prev); newSet.delete(recruiterOwnerId); return newSet; });
       }
     } else if (action === 'pass') {
-      setPassedCompanyProfileIds(prev => {
-        const newSet = new Set(prev).add(companyId);
+      setPassedCompanyProfileIds(prev => { // Store the composite ID for pass tracking
+        const newSet = new Set(prev).add(compositeCompanyJobId);
         localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newSet)));
         return newSet;
       });
       setTrashBinCompanies(prevTrash => {
-        const updatedTrash = [company, ...prevTrash.filter(tc => tc.id !== company.id)];
+        const updatedTrash = [companyJob, ...prevTrash.filter(tc => tc.id !== compositeCompanyJobId)];
         localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
         return updatedTrash;
       });
-      setDisplayedCompanies(prev => prev.filter(c => c.id !== companyId));
-      toast({ title: `Moved ${company.name} to Trash Bin`, variant: "default" });
+      setDisplayedCompanies(prev => prev.filter(c => c.id !== compositeCompanyJobId));
+      toast({ title: `Moved job at ${companyJob.name} to Trash Bin`, variant: "default" });
     }
   };
 
-  const handleRetrieveCompany = (companyId: string) => {
+  const handleRetrieveCompany = (compositeCompanyJobId: string) => {
     setTrashBinCompanies(prevTrash => {
-        const updatedTrash = prevTrash.filter(c => c.id !== companyId);
+        const updatedTrash = prevTrash.filter(c => c.id !== compositeCompanyJobId);
         localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
         return updatedTrash;
     });
-    setPassedCompanyProfileIds(prevPassed => {
+    setPassedCompanyProfileIds(prevPassed => { // Remove composite ID from passed
         const newPassed = new Set(prevPassed);
-        newPassed.delete(companyId);
+        newPassed.delete(compositeCompanyJobId);
         localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
         return newPassed;
     });
     
     setCurrentIndex(0); 
     setDisplayedCompanies([]); 
-    setHasMore(true); // Reset hasMore flag to allow loading
-    toast({ title: "Company Retrieved", description: `${masterJobFeed.find(c=>c.id === companyId)?.name || 'Company'} is back in the discovery feed.` });
+    setHasMore(true); 
+    toast({ title: "Job Retrieved", description: `${masterJobFeed.find(c=>c.id === compositeCompanyJobId)?.name || 'Job'} is back in the discovery feed.` });
     setIsTrashBinOpen(false);
   };
 
@@ -368,8 +376,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCompanies.map(company => (
           <div key={company.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-            <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCompanyProfileIds.has(company.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} -mt-[60px]`}>
-              <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.id)} />
+            <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} -mt-[60px]`}>
+              <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)} />
             </SwipeCard>
           </div>
         ))}

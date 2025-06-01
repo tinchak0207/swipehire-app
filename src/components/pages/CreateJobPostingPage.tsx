@@ -13,8 +13,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDes
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Company, CompanyJobOpening } from '@/lib/types'; 
+import type { CompanyJobOpening } from '@/lib/types'; 
 import { postJobToBackend } from '@/services/jobService';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
@@ -29,6 +30,7 @@ const FormSchema = z.object({
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.type.startsWith("image/") || files?.[0]?.type.startsWith("video/"), "Please upload a valid image or video file.")
     .optional(),
+  location: z.string().optional(), // Added location field
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -42,6 +44,7 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
   const [fileName, setFileName] = useState<string | null>(null);
   const [isPostingAllowed, setIsPostingAllowed] = useState(false);
   const { toast } = useToast();
+  const { mongoDbUserId } = useUserPreferences(); // Get mongoDbUserId
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -59,6 +62,7 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
       description: "",
       compensation: "",
       tags: "",
+      location: "",
     },
   });
 
@@ -73,57 +77,46 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (isGuestMode) {
-        toast({
-            title: "Feature Locked",
-            description: "Please sign in as a recruiter to post jobs.",
-            variant: "default",
-        });
+        toast({ title: "Feature Locked", description: "Please sign in as a recruiter to post jobs.", variant: "default" });
         return;
     }
     if (!isPostingAllowed) {
-        toast({
-            title: "Profile Incomplete",
-            description: "Please complete your recruiter profile in Settings to post a job.",
-            variant: "destructive",
-        });
+        toast({ title: "Profile Incomplete", description: "Please complete your recruiter profile in Settings to post a job.", variant: "destructive" });
+        return;
+    }
+    if (!mongoDbUserId) {
+        toast({ title: "User Not Identified", description: "Cannot post job. Please ensure you are fully logged in.", variant: "destructive"});
         return;
     }
 
     setIsLoading(true);
 
-    const newJobOpening: CompanyJobOpening = {
+    // Prepare only CompanyJobOpening data
+    const jobOpeningData: Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id'> = {
       title: data.title,
       description: data.description,
       salaryRange: data.compensation,
       tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      location: data.location || undefined,
+      // Media file handling needs to be implemented separately if you want to upload actual files
+      // For now, we'll pass a placeholder if a file is selected, assuming backend handles storage
       videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? 'https://placehold.co/600x400.png' : undefined,
-      dataAiHint: data.mediaFile && data.mediaFile.length > 0 ? 'job media' : undefined,
-    };
-
-    const newCompanyForJob: Company = {
-      id: `temp-id-${Date.now()}`,
-      name: localStorage.getItem('userNameSettings') || "A Recruiter",
-      industry: 'Various',
-      description: `A new opportunity: ${data.title}. Posted by ${localStorage.getItem('userNameSettings') || "a recruiter"}.`,
-      cultureHighlights: [],
-      logoUrl: 'https://placehold.co/300x200.png',
-      dataAiHint: 'company logo',
-      jobOpenings: [newJobOpening],
+      dataAiHint: data.mediaFile && data.mediaFile.length > 0 ? data.title.substring(0,20) || 'job media' : undefined,
     };
     
     try {
-      await postJobToBackend(newCompanyForJob);
+      await postJobToBackend(mongoDbUserId, jobOpeningData);
       toast({
         title: "Job Posted!",
         description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
       form.reset();
       setFileName(null);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error posting job:", error);
       toast({
-        title: "Error",
-        description: "Could not post the job. Please try again.",
+        title: "Error Posting Job",
+        description: error.message || "Could not post the job. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -199,6 +192,19 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                   </FormItem>
                 )}
               />
+               <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-lg flex items-center"><FileText className="mr-2 h-5 w-5 text-muted-foreground" />Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., San Francisco, CA or Remote (US)" {...field} disabled={!isPostingAllowed}/>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}
@@ -258,7 +264,7 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading || !isPostingAllowed} size="lg" className="w-full sm:w-auto">
+              <Button type="submit" disabled={isLoading || !isPostingAllowed || !mongoDbUserId} size="lg" className="w-full sm:w-auto">
                 {isLoading ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                 ) : (
