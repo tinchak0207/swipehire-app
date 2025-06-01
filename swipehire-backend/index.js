@@ -380,7 +380,7 @@ app.post('/api/matches/:matchId/messages', async (req, res) => {
         const matchUserIds = [match.userA_Id.toString(), match.userB_Id.toString()];
         if (!matchUserIds.includes(senderId) || !matchUserIds.includes(receiverId) || senderId === receiverId) return res.status(400).json({ message: 'Invalid sender/receiver for this match.' });
         
-        const newMessage = new ChatMessage({ matchId, senderId, receiverId, text: text.trim(), read: false }); // Ensure 'read' is set
+        const newMessage = new ChatMessage({ matchId, senderId, receiverId, text: text.trim(), read: false });
         await newMessage.save();
         
         const roomName = `chat-${matchId}`;
@@ -395,7 +395,7 @@ app.get('/api/matches/:matchId/messages', async (req, res) => {
     try {
         const { matchId } = req.params;
         if (!mongoose.Types.ObjectId.isValid(matchId)) return res.status(400).json({ message: 'Invalid matchId.' });
-        const messages = await ChatMessage.find({ matchId }).sort({ createdAt: 1 }); // Fetches all fields, including 'read'
+        const messages = await ChatMessage.find({ matchId }).sort({ createdAt: 1 });
         res.status(200).json(messages);
     } catch (error) { res.status(500).json({ message: 'Server error fetching messages.', error: error.message }); }
 });
@@ -449,7 +449,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('typing', ({ matchId, userId, userName }) => {
-    if (matchId && userId && userName && connectedUserId === userId) { // Ensure typing event is from authenticated user
+    if (matchId && userId && userName && connectedUserId === userId) {
         const roomName = `chat-${matchId}`;
         socket.to(roomName).emit('userTyping', { matchId, userId, userName });
     } else if (connectedUserId !== userId) {
@@ -458,11 +458,39 @@ io.on('connection', (socket) => {
   });
 
   socket.on('stopTyping', ({ matchId, userId }) => {
-     if (matchId && userId && connectedUserId === userId) { // Ensure stopTyping event is from authenticated user
+     if (matchId && userId && connectedUserId === userId) {
         const roomName = `chat-${matchId}`;
         socket.to(roomName).emit('userStopTyping', { matchId, userId });
     } else if (connectedUserId !== userId) {
         console.warn(`[Socket.io] StopTyping event received from unauthenticated or mismatched user. Socket ID: ${socket.id}, Auth UserID: ${connectedUserId}, Event UserID: ${userId}`);
+    }
+  });
+
+  socket.on('markMessagesAsRead', async ({ matchId, readerUserId }) => {
+    if (!matchId || !readerUserId) {
+      console.warn(`[Socket.io ReadReceipt] Invalid data for markMessagesAsRead: matchId=${matchId}, readerUserId=${readerUserId}`);
+      return;
+    }
+    if (!mongoose.Types.ObjectId.isValid(matchId) || !mongoose.Types.ObjectId.isValid(readerUserId)) {
+      console.warn(`[Socket.io ReadReceipt] Invalid ObjectId format for markMessagesAsRead: matchId=${matchId}, readerUserId=${readerUserId}`);
+      return;
+    }
+
+    try {
+      const result = await ChatMessage.updateMany(
+        { matchId: matchId, receiverId: readerUserId, read: false },
+        { $set: { read: true } }
+      );
+      console.log(`[Socket.io ReadReceipt] Updated ${result.modifiedCount} messages to read=true for match ${matchId}, reader ${readerUserId}`);
+      
+      if (result.modifiedCount > 0) {
+        // Notify the room that messages have been read by readerUserId
+        const roomName = `chat-${matchId}`;
+        io.to(roomName).emit('messagesAcknowledgedAsRead', { matchId, readerUserId });
+        console.log(`[Socket.io ReadReceipt] Emitted 'messagesAcknowledgedAsRead' to room ${roomName} for reader ${readerUserId}`);
+      }
+    } catch (error) {
+      console.error(`[Socket.io ReadReceipt] Error updating messages to read for match ${matchId}, reader ${readerUserId}:`, error);
     }
   });
 
