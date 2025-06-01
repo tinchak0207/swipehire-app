@@ -123,21 +123,24 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds]);
 
   useEffect(() => {
-    console.log('[CandidateDiscovery] filteredCandidates updated, new length:', localFilteredCandidates.length);
+    console.log('[CandidateDiscovery] filteredCandidates memo re-evaluated, new length:', localFilteredCandidates.length);
     setFilteredCandidates(localFilteredCandidates);
   }, [localFilteredCandidates]);
 
   const loadMoreCandidates = useCallback(() => {
     console.log('[CandidateDiscovery] loadMoreCandidates called.');
     if (isLoading || !hasMore || currentIndex >= filteredCandidates.length) {
-      if (currentIndex >= filteredCandidates.length) {
+      if (currentIndex >= filteredCandidates.length && filteredCandidates.length > 0) { // Only log if there were candidates to begin with
         console.log('[CandidateDiscovery] No more candidates to load (currentIndex >= filteredCandidates.length).');
+        setHasMore(false);
+      } else if (filteredCandidates.length === 0) {
+        console.log('[CandidateDiscovery] loadMoreCandidates called, but filteredCandidates is empty.');
         setHasMore(false);
       }
       return;
     }
     setIsLoading(true);
-    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}`);
+    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidates.length}`);
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredCandidates.slice(currentIndex, newLoadIndex);
@@ -154,19 +157,19 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [isLoading, hasMore, currentIndex, filteredCandidates]);
 
   useEffect(() => {
-    console.log('[CandidateDiscovery] filteredCandidates dependency changed. Resetting display.');
+    console.log('[CandidateDiscovery] Effect for filteredCandidates/loadMoreCandidates triggered.');
     setDisplayedCandidates([]);
     setCurrentIndex(0);
     const hasFilteredItems = filteredCandidates.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
-      console.log('[CandidateDiscovery] Has filtered items, calling loadMoreCandidates.');
+      console.log('[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.');
       loadMoreCandidates();
     } else {
-      console.log('[CandidateDiscovery] No filtered items to display.');
+      console.log('[CandidateDiscovery] Reset: No filtered items to display after current filters/search.');
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidates]); // loadMoreCandidates removed from deps as it's stable with useCallback
+  }, [filteredCandidates, loadMoreCandidates]);
+
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -253,10 +256,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         return newPassed;
     });
     // Force re-evaluation of filteredCandidates by triggering a state update it depends on
-    // This is a bit of a hack; ideally, filteredCandidates would recompute automatically.
     // For simplicity, we can refetch/reset the displayed list.
     setCurrentIndex(0); // This will trigger a reload via useEffect dependencies
     setDisplayedCandidates([]); // Clear displayed to ensure fresh load
+    setHasMore(true); // Reset hasMore to allow loading
     toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
     setIsTrashBinOpen(false);
   };
@@ -367,7 +370,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           </div>
         ))}
         {isLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-        {hasMore && !isLoading && filteredCandidates.length > 0 && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
+        {hasMore && !isLoading && filteredCandidates.length > 0 && displayedCandidates.length < filteredCandidates.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
         {!isLoading && displayedCandidates.length === 0 && (
           <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
@@ -379,7 +382,5 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
-    
 
     
-
