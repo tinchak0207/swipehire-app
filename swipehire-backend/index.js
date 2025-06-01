@@ -170,9 +170,9 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
-// New endpoint specifically for updating job seeker profile details
 // Changed from PUT to POST
 app.post('/api/users/:identifier/profile', async (req, res) => {
+    console.log(`[Backend Route] HIT: POST /api/users/${req.params.identifier}/profile with body:`, JSON.stringify(req.body).substring(0, 200) + "...");
     try {
         const { identifier } = req.params;
         const {
