@@ -645,7 +645,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full bg-card overflow-hidden"
+        className="flex flex-col h-full bg-card overflow-hidden" 
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -656,8 +656,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area: Explicit height relative to the card */}
-        <div className="relative w-full h-3/5 shrink-0 bg-muted p-2 sm:p-3"> {/* Use h-3/5 for 60% height */}
+        {/* Media Area: Explicit height */}
+        <div className="relative w-full h-3/5 shrink-0 bg-muted p-2 sm:p-3">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
@@ -689,9 +689,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area: Takes remaining space and scrolls */}
+        {/* Scrollable Text Content Area */}
         <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm">
-            <CardHeader className="p-0 mb-1"> {/* Reduced padding here */}
+            <CardHeader className="p-0 mb-1"> 
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
                         <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
@@ -764,5 +764,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
+    
 
     
