@@ -659,19 +659,19 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area */}
-        <div className="relative w-full aspect-[3/4] shrink-0 bg-muted p-2 sm:p-3">
+        {/* Media Area - Explicit height */}
+        <div className="relative w-full h-3/5 shrink-0 bg-muted">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
               fill
-              className="object-cover rounded-md"
+              className="object-cover" 
               data-ai-hint={candidate.dataAiHint || "person"}
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md" data-ai-hint="profile avatar placeholder">
+            <div className="w-full h-full flex items-center justify-center bg-gray-200" data-ai-hint="profile avatar placeholder">
               <UserCircleIcon className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
@@ -692,7 +692,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area */}
+        {/* Text Content Area - Flex-grow and scrollable */}
         <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
             <CardHeader className="p-0 mb-1">
                 <div className="flex items-start justify-between">
@@ -733,7 +733,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
 
 
-        {/* Footer with actions */}
+        {/* Footer with actions - Fixed height */}
         <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
           <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
           <ActionButton
