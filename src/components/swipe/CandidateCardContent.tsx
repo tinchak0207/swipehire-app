@@ -659,19 +659,19 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area - Explicit height */}
-        <div className="relative w-full h-3/5 shrink-0 bg-muted">
+        {/* Media Area - Explicit height (e.g., 60% of card height) */}
+        <div className="relative w-full h-1/2 shrink-0 bg-muted p-2 sm:p-3">
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
               fill
-              className="object-cover" 
+              className="object-cover rounded-md" 
               data-ai-hint={candidate.dataAiHint || "person"}
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200" data-ai-hint="profile avatar placeholder">
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md" data-ai-hint="profile avatar placeholder">
               <UserCircleIcon className="w-24 h-24 text-muted-foreground" />
             </div>
           )}
@@ -767,3 +767,5 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
+    
