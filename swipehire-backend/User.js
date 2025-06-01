@@ -68,6 +68,11 @@ const UserSchema = new mongoose.Schema({
             default: false,
         },
     },
+    profileCardTheme: { // New field for storing the selected card theme key
+        type: String,
+        trim: true,
+        default: 'default', // A default theme key
+    },
     // --- Fields for Likes and Matches ---
     likedCandidateIds: [{ // For recruiters: list of candidate profile IDs they liked (e.g., 'cand1')
         type: String,
@@ -150,4 +155,3 @@ const UserSchema = new mongoose.Schema({
 
 
 module.exports = mongoose.model('User', UserSchema);
-

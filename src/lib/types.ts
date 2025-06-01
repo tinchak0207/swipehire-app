@@ -1,3 +1,4 @@
+
 // src/lib/types.ts
 
 export type UserRole = 'recruiter' | 'jobseeker';
@@ -76,6 +77,7 @@ export interface BackendUser {
   likedCompanyIds?: string[];   // Array of Company profile IDs (e.g., 'comp1')
   representedCandidateProfileId?: string; // For job seeker, their profile ID from mockData e.g. 'cand1'
   representedCompanyProfileId?: string;   // For recruiter, company profile ID they represent e.g. 'comp1'
+  profileCardTheme?: string; // New field for card theme
   createdAt?: string;
   updatedAt?: string;
 }
@@ -106,6 +108,7 @@ export interface Candidate { // This remains as the structure for mockData.ts ca
   optimalWorkStyles?: string[];
   isUnderestimatedTalent?: boolean;
   underestimatedReasoning?: string;
+  cardTheme?: string; // New field for card theme
 }
 
 export interface CompanyJobOpening {

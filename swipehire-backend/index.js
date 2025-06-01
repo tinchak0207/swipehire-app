@@ -15,7 +15,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'uploads');
+const uploadsDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
     fs.mkdirSync(uploadsDir, { recursive: true });
     console.log(`[File System] Created uploads directory at: ${uploadsDir}`);
@@ -83,8 +83,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Serve static files from the 'uploads' directory using a manual route
-const staticUploadsPath = path.resolve(__dirname, 'uploads');
-console.log(`[Static Serving Config] Base path for uploads (manual route): ${staticUploadsPath}`);
+console.log(`[Static Serving Config] Base path for uploads (manual route): ${uploadsDir}`);
 
 app.get('/uploads/:filename', (req, res) => {
     const filename = req.params.filename;
@@ -96,7 +95,7 @@ app.get('/uploads/:filename', (req, res) => {
         return res.status(400).send('Invalid filename.');
     }
 
-    const filePath = path.join(staticUploadsPath, filename);
+    const filePath = path.join(uploadsDir, filename);
     console.log(`[Manual /uploads/:filename Handler] Attempting to serve physical path: ${filePath}`);
 
     fs.exists(filePath, (exists) => {
@@ -289,7 +288,8 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
             profileAvailability,
             profileJobTypePreference,
             profileSalaryExpectationMin,
-            profileSalaryExpectationMax
+            profileSalaryExpectationMax,
+            profileCardTheme // Added profileCardTheme
         } = req.body;
 
         console.log(`[DB Action POST /profile] Attempting to update profile for user identifier: ${identifier}.`);
@@ -322,6 +322,7 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
         if (profileJobTypePreference !== undefined) userToUpdate.profileJobTypePreference = profileJobTypePreference;
         if (profileSalaryExpectationMin !== undefined) userToUpdate.profileSalaryExpectationMin = profileSalaryExpectationMin;
         if (profileSalaryExpectationMax !== undefined) userToUpdate.profileSalaryExpectationMax = profileSalaryExpectationMax;
+        if (profileCardTheme !== undefined) userToUpdate.profileCardTheme = profileCardTheme; // Save the card theme
 
         if (userToUpdate.selectedRole === 'jobseeker' && !userToUpdate.representedCandidateProfileId) {
             const defaultCandidateId = userToUpdate.firebaseUid ? `cand-user-${userToUpdate.firebaseUid.slice(0,5)}` : `cand-user-${userToUpdate._id.toString().slice(-5)}`;
@@ -450,7 +451,8 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
               profileExperienceSummaryLength: u.profileExperienceSummary?.length,
               profileSkills: u.profileSkills,
               profileAvatarUrl: u.profileAvatarUrl,
-              representedCandidateProfileId: u.representedCandidateProfileId
+              representedCandidateProfileId: u.representedCandidateProfileId,
+              profileCardTheme: u.profileCardTheme // Include card theme
             }))
           );
         }
@@ -485,6 +487,7 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             optimalWorkStyles: [],
             isUnderestimatedTalent: Math.random() < 0.15,
             underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential based on raw data.' : undefined,
+            cardTheme: user.profileCardTheme || 'default', // Include card theme
         }));
 
         console.log(`[DB Action GET /jobseekers] Transformed ${candidates.length} jobseeker profiles to send to frontend.`);
@@ -494,7 +497,8 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
                 name: candidates[0].name,
                 role: candidates[0].role,
                 skills: candidates[0].skills,
-                avatarUrl: candidates[0].avatarUrl
+                avatarUrl: candidates[0].avatarUrl,
+                cardTheme: candidates[0].cardTheme
             });
         }
         res.json(candidates);
@@ -731,4 +735,3 @@ app.listen(PORT, () => {
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
     console.log(`Frontend URLs allowed by CORS (from env and hardcoded): ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
-

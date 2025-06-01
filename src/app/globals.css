@@ -197,4 +197,71 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
-    
+/* Custom Talent Card Themes */
+.card-theme-default {
+  @apply bg-card text-card-foreground; /* Uses default card variables */
+}
+.card-theme-ocean {
+  background: linear-gradient(135deg, #0575E6, #021B79); /* Deep Blue to Darker Blue */
+  color: hsl(var(--primary-foreground));
+}
+.card-theme-sunset {
+  background: linear-gradient(135deg, #FF8C00, #FF0080); /* Orange to Deep Pink */
+  color: hsl(var(--primary-foreground));
+}
+.card-theme-forest {
+  background: linear-gradient(135deg, #138808, #004225); /* Green to Dark Green */
+  color: hsl(var(--primary-foreground));
+}
+.card-theme-lavender {
+  background: linear-gradient(135deg, #E6E6FA, #9370DB); /* Lavender to Medium Purple */
+  color: hsl(var(--foreground)); /* Darker text for light background */
+}
+.card-theme-professional-dark {
+  background: linear-gradient(135deg, #434343, #1c1c1c); /* Dark Gray to Near Black */
+  color: hsl(var(--primary-foreground));
+}
+
+/* Ensure text within themed cards is readable, may need more specific selectors if issues arise */
+.card-theme-ocean .text-muted-foreground, .card-theme-ocean .text-primary {
+  color: hsl(var(--primary-foreground)) !important;
+  opacity: 0.85;
+}
+.card-theme-ocean .text-primary {
+   opacity: 1;
+   filter: brightness(1.2); /* Make primary slightly brighter on dark theme */
+}
+.card-theme-sunset .text-muted-foreground, .card-theme-sunset .text-primary {
+  color: hsl(var(--primary-foreground)) !important;
+  opacity: 0.9;
+}
+.card-theme-sunset .text-primary {
+   opacity: 1;
+   filter: brightness(0.9) contrast(1.1);
+}
+
+.card-theme-forest .text-muted-foreground, .card-theme-forest .text-primary {
+  color: hsl(var(--primary-foreground)) !important;
+  opacity: 0.85;
+}
+.card-theme-forest .text-primary {
+  opacity: 1;
+  filter: brightness(1.1);
+}
+
+.card-theme-lavender .text-muted-foreground {
+  color: hsl(var(--muted-foreground)) !important;
+  opacity: 0.9;
+}
+.card-theme-lavender .text-primary {
+  color: hsl(276, 50%, 50%) !important; /* A darker purple for primary elements */
+}
+
+.card-theme-professional-dark .text-muted-foreground, .card-theme-professional-dark .text-primary {
+  color: hsl(var(--primary-foreground)) !important;
+  opacity: 0.8;
+}
+.card-theme-professional-dark .text-primary {
+  opacity: 1;
+  filter: brightness(1.1);
+}

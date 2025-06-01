@@ -8,11 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon } from 'lucide-react';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import NextImage from 'next/image'; // Renamed to avoid conflict with Lucide's Image icon
+import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate } from '@/lib/types';
+import NextImage from 'next/image';
+import { SwipeCard } from '@/components/swipe/SwipeCard';
+import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
+import { cn } from '@/lib/utils';
 
 const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -31,6 +35,20 @@ const formatEnumLabel = (value: string) => {
     .join(' ');
 };
 
+const cardThemeOptions = [
+  { value: 'default', label: 'Default Theme' },
+  { value: 'ocean', label: 'Ocean Blue' },
+  { value: 'sunset', label: 'Sunset Orange' },
+  { value: 'forest', label: 'Forest Green' },
+  { value: 'lavender', label: 'Lavender Bliss' },
+  { value: 'professional-dark', label: 'Professional Dark' },
+];
+
+const getThemeClass = (themeKey?: string) => {
+  if (!themeKey || themeKey === 'default') return 'card-theme-default';
+  return `card-theme-${themeKey}`;
+};
+
 
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
@@ -40,7 +58,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
 
-  // Avatar states
   const [avatarUrl, setAvatarUrl] = useState('');
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
@@ -53,10 +70,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [jobTypePreference, setJobTypePreference] = useState('');
   const [salaryExpectationMin, setSalaryExpectationMin] = useState<string>('');
   const [salaryExpectationMax, setSalaryExpectationMax] = useState<string>('');
+  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default');
 
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
 
   const { toast } = useToast();
   const { mongoDbUserId } = useUserPreferences();
@@ -90,6 +110,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setJobTypePreference(userData.profileJobTypePreference || '');
             setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
             setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
+            setSelectedCardTheme(userData.profileCardTheme || 'default');
             setIsFetchingProfile(false);
             return;
           } else {
@@ -119,6 +140,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           setJobTypePreference(savedProfile.jobTypePreference || '');
           setSalaryExpectationMin(savedProfile.salaryExpectationMin?.toString() || '');
           setSalaryExpectationMax(savedProfile.salaryExpectationMax?.toString() || '');
+          setSelectedCardTheme(savedProfile.profileCardTheme || 'default');
         } catch (e) {
           console.error("Error parsing saved profile from localStorage:", e);
         }
@@ -216,6 +238,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileJobTypePreference: jobTypePreference,
       profileSalaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin, 10) : undefined,
       profileSalaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax, 10) : undefined,
+      profileCardTheme: selectedCardTheme,
     };
 
     try {
@@ -233,6 +256,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       const savedUserResponse = await profileSaveResponse.json();
       if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) {
           setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
+      }
+      if (savedUserResponse.user && savedUserResponse.user.profileCardTheme) {
+          setSelectedCardTheme(savedUserResponse.user.profileCardTheme);
       }
       setAvatarFile(null); 
       setAvatarPreview(null); 
@@ -280,16 +306,44 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     );
   }
 
-  const displayAvatarUrl = avatarPreview
+  const currentDisplayAvatarUrl = avatarPreview
     ? avatarPreview
     : avatarUrl && avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
       : avatarUrl || `https://placehold.co/80x80.png?text=${profileHeadline?.[0] || 'P'}`;
   
-  console.log("[MyProfilePage] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
-  console.log("[MyProfilePage] avatarUrl (state):", avatarUrl);
-  console.log("[MyProfilePage] avatarPreview (state):", avatarPreview);
-  console.log("[MyProfilePage] Final displayAvatarUrl for NextImage:", displayAvatarUrl);
+  console.log("[MyProfilePage Debug] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
+  console.log("[MyProfilePage Debug] state avatarUrl:", avatarUrl);
+  console.log("[MyProfilePage Debug] state avatarPreview:", avatarPreview);
+  console.log("[MyProfilePage Debug] Final displayAvatarUrl for NextImage:", currentDisplayAvatarUrl);
+
+
+  const candidatePreviewData: Candidate = {
+    id: mongoDbUserId || 'preview-user',
+    name: document.getElementById('profileName') ? (document.getElementById('profileName') as HTMLInputElement).value : 'Your Name', // Assuming you add an ID to name input for consistency or get from state if you add name to this page's state.
+    role: profileHeadline,
+    experienceSummary,
+    skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
+    avatarUrl: currentDisplayAvatarUrl,
+    videoResumeUrl: videoPortfolioLink || undefined, // Use actual link if available
+    location: document.getElementById('profileLocation') ? (document.getElementById('profileLocation') as HTMLInputElement).value : 'Your Location', // Example: fetch from input or use state
+    desiredWorkStyle,
+    pastProjects,
+    workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
+    educationLevel: educationLevel as EducationLevel,
+    locationPreference: locationPreference as LocationPreference,
+    languages: languages ? languages.split(',').map(s => s.trim()).filter(s => s) : [],
+    salaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin) : undefined,
+    salaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax) : undefined,
+    availability: availability as Availability,
+    jobTypePreference: jobTypePreference ? jobTypePreference.split(',').map(s => s.trim() as JobType).filter(s => s) : [],
+    cardTheme: selectedCardTheme,
+    // These can be omitted or set to defaults for preview
+    profileStrength: 80, 
+    personalityAssessment: [],
+    optimalWorkStyles: [],
+    isUnderestimatedTalent: false,
+  };
 
 
   return (
@@ -316,15 +370,15 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <ImageIcon className="mr-2 h-4 w-4 text-muted-foreground" /> My Avatar (Upload Image)
             </Label>
             <div className="flex items-center gap-4">
-              {displayAvatarUrl ? (
+              {currentDisplayAvatarUrl ? (
                 <NextImage 
-                  src={displayAvatarUrl} 
+                  src={currentDisplayAvatarUrl} 
                   alt="Avatar Preview" 
                   width={80} 
                   height={80} 
                   className="rounded-full object-cover border" 
                   data-ai-hint="user avatar" 
-                  unoptimized={displayAvatarUrl.startsWith(CUSTOM_BACKEND_URL) || displayAvatarUrl.startsWith('http://localhost')}
+                  unoptimized={currentDisplayAvatarUrl.startsWith(CUSTOM_BACKEND_URL) || currentDisplayAvatarUrl.startsWith('http://localhost')}
                 />
               ) : (
                 <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
@@ -374,6 +428,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               onChange={(e) => setSkills(e.target.value)}
             />
           </div>
+          {/* ... other existing fields (Work Experience, Education, etc.) ... */}
            <div className="space-y-1">
             <Label htmlFor="workExperienceLevel" className="text-base flex items-center">
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" /> Work Experience Level
@@ -509,15 +564,50 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               onChange={(e) => setVideoPortfolioLink(e.target.value)}
             />
           </div>
+          <div className="space-y-1">
+            <Label htmlFor="cardTheme" className="text-base flex items-center">
+                <PaletteIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Talent Card Appearance
+            </Label>
+            <Select value={selectedCardTheme} onValueChange={setSelectedCardTheme}>
+                <SelectTrigger id="cardTheme">
+                    <SelectValue placeholder="Select card theme" />
+                </SelectTrigger>
+                <SelectContent>
+                    {cardThemeOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+          </div>
         </CardContent>
-        <CardFooter className="flex justify-end pt-6">
+        <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
+          <Button variant="outline" onClick={() => setIsPreviewModalOpen(true)}>
+            <Eye className="mr-2 h-4 w-4" /> Preview My Talent Card
+          </Button>
           <Button onClick={handleSaveProfile} size="lg" disabled={isLoading || !mongoDbUserId}>
             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
             Update & Publish My Profile
           </Button>
         </CardFooter>
       </Card>
+
+      <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
+        <DialogContent className="sm:max-w-md md:max-w-lg p-0 bg-transparent border-none shadow-none">
+          <ShadDialogTitle className="sr-only">Talent Card Preview</ShadDialogTitle>
+          <div className="aspect-[9/16] max-h-[80vh] w-full">
+            <SwipeCard className={cn("h-full w-full overflow-hidden !rounded-3xl", getThemeClass(selectedCardTheme))}>
+              <CandidateCardContent
+                candidate={candidatePreviewData}
+                onSwipeAction={() => {}} // No-op for preview
+                isLiked={false} // Not relevant for preview
+                isGuestMode={true} // Disable interactions in preview
+              />
+            </SwipeCard>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
-

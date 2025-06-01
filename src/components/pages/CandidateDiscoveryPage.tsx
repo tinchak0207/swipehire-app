@@ -18,6 +18,7 @@ import { recordLike } from '@/services/matchService';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 const ITEMS_PER_BATCH = 3;
 const LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX = 'passedCandidates_';
@@ -47,6 +48,11 @@ const initialFilters: CandidateFilters = {
   educationLevels: new Set(),
   locationPreferences: new Set(),
   jobTypes: new Set(),
+};
+
+const getThemeClass = (themeKey?: string) => {
+  if (!themeKey || themeKey === 'default') return 'card-theme-default';
+  return `card-theme-${themeKey}`;
 };
 
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
@@ -365,12 +371,13 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
                   <div key={candidate.id} className="flex items-center p-3 space-x-3 shadow-sm border rounded-md">
                     {candidate.avatarUrl && (
                         <Image
-                            src={candidate.avatarUrl}
+                            src={candidate.avatarUrl.startsWith('/uploads/') ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}` : candidate.avatarUrl}
                             alt={candidate.name}
                             width={48}
                             height={48}
                             className="rounded-full object-cover"
                             data-ai-hint={candidate.dataAiHint || "person"}
+                            unoptimized={candidate.avatarUrl?.startsWith(CUSTOM_BACKEND_URL) || candidate.avatarUrl?.startsWith('http://localhost')}
                         />
                     )}
                     <div className="flex-1 min-w-0">
@@ -396,7 +403,12 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
           <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-3xl bg-card overflow-hidden min-h-[calc(100vh-200px)] max-h-[calc(100vh-120px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
+             <SwipeCard className={cn(
+                `w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-3xl overflow-hidden min-h-[calc(100vh-200px)] max-h-[calc(100vh-120px)]`,
+                getThemeClass(candidate.cardTheme),
+                likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl',
+                candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''
+              )}>
               <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} isGuestMode={mongoDbUserId === null} />
             </SwipeCard>
           </div>
@@ -414,4 +426,3 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
-    
