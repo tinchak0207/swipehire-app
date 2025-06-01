@@ -2,7 +2,7 @@
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput, UserAIWeights, RecruiterPerspectiveWeights } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Briefcase, Lightbulb, MapPin, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays, UserCircle as UserCircleIcon } from 'lucide-react';
+import { Briefcase, Lightbulb, MapPin, CheckCircle, AlertTriangle, XCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star, Link as LinkIcon, Mail, Twitter, Linkedin, CalendarDays, UserCircle as UserCircleIcon, BarChartHorizontal } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,8 @@ import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Progress } from '@/components/ui/progress';
+
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -324,6 +326,7 @@ function CandidateDetailsModal({
                     <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
                 </h3>
                 <div className="flex items-center text-md text-primary font-medium">
+                  <Progress value={candidate.profileStrength} className="w-2/3 h-2.5 mr-2" />
                   {candidate.profileStrength}%
                   {candidate.profileStrength > 89 && <Badge variant="default" className="ml-2 text-xs px-2 py-0.5 bg-green-500 hover:bg-green-600 text-white">Top Talent</Badge>}
                 </div>
@@ -672,8 +675,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Top Avatar Section */}
-        <div className="shrink-0 h-44 bg-slate-100 dark:bg-slate-800 flex justify-center items-center p-3 sm:p-3 relative">
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28"> {/* Avatar Image Container */}
+        <div className="shrink-0 h-36 sm:h-40 bg-slate-100 dark:bg-slate-800 flex justify-center items-center p-3 relative">
+            <div className="relative w-20 h-20 sm:w-24 sm:h-24">
                 {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
                 <Image
                     src={cardAvatarSrc || 'https://placehold.co/500x700.png'}
@@ -688,11 +691,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md" />
                 )}
             </div>
-          {candidate.isUnderestimatedTalent && (
+          {candidate.isUnderestimatedTalent && !isPreviewMode && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="default" className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-0.5">
+                  <Badge variant="default" className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-1.5 py-0.5">
                     <Sparkles className="h-3 w-3 mr-1" />
                     Gem
                   </Badge>
@@ -705,68 +708,54 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
         
-        {/* Yellow Separator Line */}
-        <div className="w-full border-t-4 border-yellow-400 shrink-0"></div>
+        <div className="w-full border-t-4 border-accent shrink-0"></div>
 
-        {/* Main Text Content Section - Name, Role, Location, Summary, Skills, Work Style */}
-        <div className="flex-1 p-3 overflow-y-auto min-h-0 space-y-3 text-sm sm:text-base">
+        <div className="flex-1 p-3 overflow-y-auto min-h-0 space-y-1.5 text-sm sm:text-base">
             <div className="text-center">
-                <h2 className="text-xl sm:text-2xl font-bold text-primary">{candidate.name}</h2>
-                <p className="text-lg sm:text-xl text-muted-foreground mb-2">{candidate.role}</p>
+                <h2 className="text-lg sm:text-xl font-bold text-primary">{candidate.name}</h2>
+                <p className="text-md sm:text-lg text-muted-foreground mb-1 line-clamp-1">{candidate.role}</p>
             </div>
-            {/* Separator removed as per user request */}
 
             {candidate.location && (
-                <div className="flex items-center text-muted-foreground mt-3">
-                <MapPin className="h-4 w-4 mr-2 shrink-0" />
-                <span className="line-clamp-1">{candidate.location}</span>
+                <div className="flex items-center text-xs text-muted-foreground">
+                  <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                  <span className="line-clamp-1">{candidate.location}</span>
+                </div>
+            )}
+            {candidate.profileStrength !== undefined && !isPreviewMode && (
+                <div className="flex items-center text-xs text-muted-foreground">
+                    <BarChartHorizontal className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                    <span>Profile Strength: <span className="font-semibold text-primary">{candidate.profileStrength}%</span></span>
                 </div>
             )}
             
             {candidate.experienceSummary && (
-                <div className="mt-3">
-                    <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
-                        <Briefcase className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                        Summary
-                    </h4>
-                    <p className="text-muted-foreground line-clamp-3 sm:line-clamp-4">
+                <div className="mt-2">
+                    <p className="text-xs text-muted-foreground line-clamp-2 sm:line-clamp-3">
                         {candidate.experienceSummary}
                     </p>
                 </div>
             )}
-
-            {candidate.desiredWorkStyle && (
-              <div className="mt-3">
-                <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
-                    <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                    Desired Work Style
-                </h4>
-                <p className="text-muted-foreground">
-                    {candidate.desiredWorkStyle}
-                </p>
-              </div>
-            )}
             
             {candidate.skills && candidate.skills.length > 0 && (
-                <div className="pt-2 mt-3">
-                    <div className="flex flex-wrap gap-1.5">
-                        {candidate.skills.slice(0, 4).map((skill) => (
-                        <Badge key={skill} variant="secondary" className="text-sm px-2 py-1">{skill}</Badge>
+                <div className="pt-1.5 mt-2">
+                    <div className="flex flex-wrap gap-1">
+                        {candidate.skills.slice(0, 3).map((skill) => (
+                          <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
                         ))}
-                        {candidate.skills.length > 4 && <Badge variant="outline" className="text-sm px-2 py-1">+{candidate.skills.length - 4} more</Badge>}
+                        {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length - 3}</Badge>}
                     </div>
                 </div>
             )}
         </div>
             
-        {/* Footer with actions */}
         {!isPreviewMode && (
-            <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
+            <CardFooter className="p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t bg-card shrink-0 no-swipe-area">
             <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
             <ActionButton
                 action="details"
                 Icon={Eye} 
-                label="View Profile" 
+                label="Profile" 
                 className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600"
                 onClickOverride={(e) => {
                     e.stopPropagation();
@@ -795,3 +784,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+

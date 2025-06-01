@@ -13,10 +13,11 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase"; 
 // Firestore imports removed
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen } from 'lucide-react';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from '@/lib/utils';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -414,13 +415,13 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </CardTitle>
           <CardDescription>
             Update your contact and personal details. These will be stored in your user profile on our backend.
-            {selectedRoleInSettings === 'recruiter' && " Recruiters: Name and Email are required to post jobs."}
+            {selectedRoleInSettings === 'recruiter' && <span className="block mt-1 text-sm font-medium text-destructive">Recruiters: Full Name and Email are required to post jobs.</span>}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-1">
-            <Label htmlFor="name" className="text-base flex items-center">
-              <User className="mr-2 h-4 w-4 text-muted-foreground" /> Full Name
+            <Label htmlFor="name" className={cn("text-base flex items-center", selectedRoleInSettings === 'recruiter' && "font-semibold")}>
+              <User className="mr-2 h-4 w-4 text-muted-foreground" /> Full Name {selectedRoleInSettings === 'recruiter' && <StarIcon className="ml-1 h-3 w-3 text-destructive fill-destructive" />}
             </Label>
             <Input 
               id="name" 
@@ -428,11 +429,12 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               value={userName} 
               onChange={(e) => setUserName(e.target.value)} 
               disabled={isGuestMode}
+              className={cn(selectedRoleInSettings === 'recruiter' && !userName.trim() && "border-destructive focus-visible:ring-destructive")}
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="email" className="text-base flex items-center">
-              <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> Email Address
+            <Label htmlFor="email" className={cn("text-base flex items-center", selectedRoleInSettings === 'recruiter' && "font-semibold")}>
+              <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> Email Address {selectedRoleInSettings === 'recruiter' && <StarIcon className="ml-1 h-3 w-3 text-destructive fill-destructive" />}
             </Label>
             <Input 
               id="email" 
@@ -440,7 +442,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               placeholder="Enter your email address" 
               value={userEmail} 
               onChange={(e) => setUserEmail(e.target.value)} 
-              disabled={isGuestMode || isAuthEmail} 
+              disabled={isGuestMode || isAuthEmail}
+              className={cn(selectedRoleInSettings === 'recruiter' && !userEmail.trim() && "border-destructive focus-visible:ring-destructive")}
             />
              {isAuthEmail && !isGuestMode && (
               <p className="text-xs text-muted-foreground">Your primary email is managed by your authentication provider. To change it, please update it there.</p>

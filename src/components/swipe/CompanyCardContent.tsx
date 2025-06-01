@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin } from 'lucide-react';
+import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, BarChartHorizontalShorthand, Tag } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Progress } from '@/components/ui/progress';
 
 
 interface CompanyCardContentProps {
@@ -27,7 +28,7 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 60;
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 50; // Reduced for card
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
@@ -463,9 +464,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area */}
         <div className="relative w-full shrink-0 pt-[70px]"> 
-          <div className="relative w-full aspect-video px-4 pb-4"> 
+          <div className="relative w-full aspect-[16/7] sm:aspect-video px-4 pb-4">
             {company.logoUrl ? (
               <Image
                 src={company.logoUrl}
@@ -476,16 +476,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 priority
               />
             ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center" data-ai-hint="company building">
-                <Building className="w-20 h-20 text-muted-foreground" />
+              <div className="w-full h-full bg-muted flex items-center justify-center rounded-md" data-ai-hint="company building">
+                <Building className="w-16 h-16 sm:w-20 sm:h-20 text-muted-foreground" />
               </div>
             )}
           </div>
         </div>
         
-        {/* Text Content Area */}
-        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
-            <CardHeader className="p-0 mb-1">
+        <div className="w-full border-t-4 border-accent shrink-0"></div>
+        
+        <div className="flex-1 p-3 sm:p-4 space-y-1.5 text-xs sm:text-sm">
+            <CardHeader className="p-0 mb-1.5">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
                         <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
@@ -497,35 +498,36 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 )}
             </CardHeader>
 
-            <div className="space-y-0.5">
+            <div className="space-y-1">
                 {jobOpening?.location && (
-                <div className="flex items-center text-muted-foreground">
-                    <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                <div className="flex items-center text-muted-foreground text-xs">
+                    <MapPin className="h-3 w-3 mr-1.5 shrink-0" />
                     <span className="truncate">{jobOpening.location}</span>
                 </div>
                 )}
-                {(jobOpening?.salaryRange) && (
-                <div className="flex items-center text-muted-foreground">
-                    <DollarSign className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                    <span className="truncate">{jobOpening?.salaryRange}</span>
-                </div>
-                )}
                 {(jobOpening?.jobType) && (
-                <div className="flex items-center text-muted-foreground">
-                    <JobTypeIcon className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                <div className="flex items-center text-muted-foreground text-xs">
+                    <JobTypeIcon className="h-3 w-3 mr-1.5 shrink-0" />
                     <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
                 </div>
                 )}
+                {jobOpening?.tags && jobOpening.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {jobOpening.tags.slice(0,3).map(tag => (
+                      <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0.5">{tag}</Badge>
+                    ))}
+                    {jobOpening.tags.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{jobOpening.tags.length - 3}</Badge>}
+                  </div>
+                )}
                 {jobOpening?.description && (
-                    <p className="text-muted-foreground text-xs pt-0.5 line-clamp-2">
+                    <p className="text-muted-foreground text-xs pt-1 line-clamp-2 sm:line-clamp-3">
                         {truncatedJobDescriptionForCard}
                     </p>
                 )}
             </div>
         </div>
             
-        {/* Footer with actions */}
-        <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
+        <CardFooter className="p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t bg-card shrink-0 no-swipe-area">
             <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
             <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
             <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
