@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
-
 interface CandidateCardContentProps {
   candidate: Candidate;
   onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details') => void;
@@ -349,7 +348,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
 
-
   const fetchAiRecruiterAnalysis = useCallback(async () => {
     if (!candidate || isGuestMode) {
         if (isGuestMode) {
@@ -643,12 +641,11 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     );
   };
 
-
   return (
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-card"
+        className="flex flex-col h-full bg-card overflow-hidden"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -659,8 +656,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area - Explicit height (e.g., 60% of card height) */}
-        <div className="relative w-full h-1/2 shrink-0 bg-muted p-2 sm:p-3">
+        {/* Media Area: Explicit height relative to the card */}
+        <div className="relative w-full h-3/5 shrink-0 bg-muted p-2 sm:p-3"> {/* Use h-3/5 for 60% height */}
           {candidate.avatarUrl ? (
             <Image
               src={candidate.avatarUrl}
@@ -692,9 +689,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area - Flex-grow and scrollable */}
-        <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
-            <CardHeader className="p-0 mb-1">
+        {/* Text Content Area: Takes remaining space and scrolls */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm">
+            <CardHeader className="p-0 mb-1"> {/* Reduced padding here */}
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
                         <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
