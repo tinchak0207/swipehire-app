@@ -12,6 +12,7 @@ import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter }
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge"; // Added Badge import
 import { cn } from '@/lib/utils';
 
 type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor';
@@ -253,7 +254,8 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 text-sm text-muted-foreground">
-                <div className="p-3 border rounded-md bg-muted/30">
+                <div className="p-3 border rounded-md bg-muted/30 relative">
+                  <Badge variant="outline" className="absolute top-2 right-2 text-xs border-amber-500 text-amber-600 bg-amber-500/10">Coming Soon</Badge>
                   <h4 className="font-semibold text-md text-foreground mb-1">Basic Optimization Package</h4>
                   <ul className="list-disc list-inside pl-2 space-y-0.5">
                     <li>Automatic editing & rhythm adjustment</li>
@@ -261,7 +263,8 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                     <li>Standard subtitle generation & quality scoring</li>
                   </ul>
                 </div>
-                <div className="p-3 border rounded-md bg-muted/30">
+                <div className="p-3 border rounded-md bg-muted/30 relative">
+                  <Badge variant="outline" className="absolute top-2 right-2 text-xs border-amber-500 text-amber-600 bg-amber-500/10">Coming Soon</Badge>
                   <h4 className="font-semibold text-md text-foreground mb-1">Professional Enhancement Package</h4>
                   <ul className="list-disc list-inside pl-2 space-y-0.5">
                     <li>Advanced editing effects & transitions</li>
@@ -270,7 +273,8 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                     <li>Industry-specific template application</li>
                   </ul>
                 </div>
-                 <div className="p-3 border rounded-md bg-muted/30">
+                 <div className="p-3 border rounded-md bg-muted/30 relative">
+                  <Badge variant="outline" className="absolute top-2 right-2 text-xs border-amber-500 text-amber-600 bg-amber-500/10">Coming Soon</Badge>
                   <h4 className="font-semibold text-md text-foreground mb-1">Enterprise Customization</h4>
                   <ul className="list-disc list-inside pl-2 space-y-0.5">
                     <li>Fully customized production & branding</li>
@@ -309,3 +313,4 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     </div>
   );
 }
+
