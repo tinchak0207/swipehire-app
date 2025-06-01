@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, type ChangeEvent, useEffect } from 'react';
+import { useState, type ChangeEvent, useEffect, type KeyboardEvent } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -11,29 +11,36 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock } from 'lucide-react';
+import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { CompanyJobOpening } from '@/lib/types'; 
 import { postJobToBackend } from '@/services/jobService';
-import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { Badge } from '@/components/ui/badge'; // Added Badge
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
   description: z.string().min(20, "Description must be at least 20 characters."),
   compensation: z.string().min(1, "Please specify compensation or prize."),
-  tags: z.string().refine(value => {
-    if (!value) return true; 
-    const tags = value.split(',').map(tag => tag.trim());
-    return tags.every(tag => tag.length > 0 && tag.length <= 20 && !tag.includes(' '));
-  }, "Tags should be comma-separated, no spaces within tags, max 20 chars each."),
+  // tags: z.string().refine(value => { // Old string validation
+  //   if (!value) return true; 
+  //   const tags = value.split(',').map(tag => tag.trim());
+  //   return tags.every(tag => tag.length > 0 && tag.length <= 20 && !tag.includes(' '));
+  // }, "Tags should be comma-separated, no spaces within tags, max 20 chars each."),
+  tags: z.array(z.string().min(1, "Tag cannot be empty.").max(20, "Tag too long.").regex(/^[a-zA-Z0-9-]+$/, "Tag can only contain letters, numbers, and hyphens.")).optional(),
   mediaFile: z.custom<FileList>((val) => val === undefined || (val instanceof FileList && val.length <= 1), "Only one file can be uploaded.")
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.type.startsWith("image/") || files?.[0]?.type.startsWith("video/"), "Please upload a valid image or video file.")
     .optional(),
-  location: z.string().optional(), // Added location field
+  location: z.string().optional(),
 });
 
-type FormValues = z.infer<typeof FormSchema>;
+// Adjust FormValues to reflect tags as an array
+type FormValues = Omit<z.infer<typeof FormSchema>, 'tags'> & {
+  tags?: string; // Keep this for the input field itself
+  actualTags?: string[]; // This will be used for the form submission
+};
+
 
 interface CreateJobPostingPageProps {
   isGuestMode?: boolean;
@@ -44,7 +51,12 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
   const [fileName, setFileName] = useState<string | null>(null);
   const [isPostingAllowed, setIsPostingAllowed] = useState(false);
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences(); // Get mongoDbUserId
+  const { mongoDbUserId } = useUserPreferences();
+
+  // State for tag input
+  const [currentTagInput, setCurrentTagInput] = useState('');
+  const [tagList, setTagList] = useState<string[]>([]);
+
 
   useEffect(() => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -55,13 +67,14 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     }
   }, [isGuestMode]);
 
-  const form = useForm<FormValues>({
+  const form = useForm<FormValues>({ // Use updated FormValues
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: "",
       description: "",
       compensation: "",
-      tags: "",
+      tags: "", // This will be the string input, not directly used for submission of tags
+      actualTags: [], // Initialize actualTags as an empty array
       location: "",
     },
   });
@@ -73,6 +86,32 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     } else {
       setFileName(null);
     }
+  };
+
+  const handleAddTag = () => {
+    const newTag = currentTagInput.trim().toLowerCase().replace(/\s+/g, '-');
+    if (newTag && newTag.length <= 20 && /^[a-zA-Z0-9-]+$/.test(newTag) && !tagList.includes(newTag) && tagList.length < 10) {
+      setTagList([...tagList, newTag]);
+      form.setValue('actualTags', [...tagList, newTag]); // Update RHF state for actualTags
+    } else if (tagList.length >= 10) {
+      toast({ title: "Tag Limit Reached", description: "You can add up to 10 tags.", variant: "default"});
+    } else if (newTag && (newTag.length > 20 || !/^[a-zA-Z0-9-]+$/.test(newTag))) {
+      toast({ title: "Invalid Tag", description: "Tags must be max 20 chars, letters, numbers, or hyphens only.", variant: "destructive"});
+    }
+    setCurrentTagInput('');
+  };
+
+  const handleTagInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      handleAddTag();
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const newTagList = tagList.filter(tag => tag !== tagToRemove);
+    setTagList(newTagList);
+    form.setValue('actualTags', newTagList); // Update RHF state for actualTags
   };
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -91,15 +130,12 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
     setIsLoading(true);
 
-    // Prepare only CompanyJobOpening data
     const jobOpeningData: Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id'> = {
       title: data.title,
       description: data.description,
       salaryRange: data.compensation,
-      tags: data.tags ? data.tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : [],
+      tags: tagList, // Use the tagList state directly
       location: data.location || undefined,
-      // Media file handling needs to be implemented separately if you want to upload actual files
-      // For now, we'll pass a placeholder if a file is selected, assuming backend handles storage
       videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? 'https://placehold.co/600x400.png' : undefined,
       dataAiHint: data.mediaFile && data.mediaFile.length > 0 ? data.title.substring(0,20) || 'job media' : undefined,
     };
@@ -111,6 +147,8 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
         description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
       form.reset();
+      setTagList([]); // Clear tag list
+      form.setValue('actualTags', []); // Clear RHF tag list
       setFileName(null);
     } catch (error: any) {
       console.error("Error posting job:", error);
@@ -220,22 +258,49 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="tags"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-muted-foreground" />Tags (comma-separated)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="e.g., react,full-time,design,urgent" {...field} disabled={!isPostingAllowed}/>
-                    </FormControl>
-                     <FormDescription>
-                      Help categorize your job. Use commas to separate tags (e.g., engineering,remote,full-stack).
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {/* Updated Tags Field */}
+              <FormItem>
+                <FormLabel className="text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-muted-foreground" />Tags</FormLabel>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {tagList.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-2">
+                      {tag}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => handleRemoveTag(tag)}
+                        aria-label={`Remove tag ${tag}`}
+                        disabled={!isPostingAllowed}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="tags"
+                    placeholder="Type a tag (e.g., react) and press Enter or comma"
+                    value={currentTagInput}
+                    onChange={(e) => setCurrentTagInput(e.target.value)}
+                    onKeyDown={handleTagInputKeyDown}
+                    disabled={!isPostingAllowed || tagList.length >= 10}
+                    className="flex-grow"
+                  />
+                   <Button type="button" onClick={handleAddTag} variant="outline" size="sm" disabled={!isPostingAllowed || tagList.length >= 10}>Add Tag</Button>
+                </div>
+                <FormDescription>
+                  Help categorize your job. Add up to 10 tags (letters, numbers, hyphens only, max 20 chars each).
+                </FormDescription>
+                 <FormField
+                  control={form.control}
+                  name="actualTags" // This is a hidden field for RHF to track the actual array for validation
+                  render={({ field }) => ( <Input type="hidden" {...field} /> )}
+                />
+                <FormMessage>{form.formState.errors.tags?.message || form.formState.errors.actualTags?.message}</FormMessage>
+              </FormItem>
               
               <FormField
                 control={form.control}
