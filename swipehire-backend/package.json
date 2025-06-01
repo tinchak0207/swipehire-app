@@ -1,11 +1,17 @@
+
 {
   "name": "swipehire-backend",
   "version": "1.0.0",
   "description": "Custom backend server for SwipeHire application",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start:dev": "nodemon index.js",
+    "start": "pm2 start index.js --name swipehire-backend",
+    "stop": "pm2 stop swipehire-backend",
+    "restart": "pm2 restart swipehire-backend",
+    "logs": "pm2 logs swipehire-backend",
+    "delete": "pm2 delete swipehire-backend",
+    "prod": "NODE_ENV=production pm2 start index.js --name swipehire-backend-prod -i max"
   },
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
@@ -14,6 +20,7 @@
     "express": "^4.19.2",
     "mongoose": "^8.4.0",
     "multer": "^2.0.0",
+    "pm2": "^5.4.2",
     "redis": "^4.6.13",
     "socket.io": "^4.7.5"
   },
