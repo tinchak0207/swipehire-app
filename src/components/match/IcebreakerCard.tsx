@@ -101,7 +101,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     };
     setMessages(prev => [...prev, newUserMessage]);
     const messageForAI = currentMessage;
-    setCurrentMessage("");
+    setCurrentMessage(""); // Clear input after sending
 
     try {
       // Simulate AI reply
@@ -132,6 +132,22 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     }
   };
 
+
+  const handleChatOpenChange = (open: boolean) => {
+    if (open) {
+      // Dialog is opening
+      if (icebreaker) {
+        setCurrentMessage(icebreaker); // Pre-fill with generated icebreaker
+      } else {
+        setCurrentMessage(""); // Or clear if no icebreaker exists
+      }
+    } else {
+      // Dialog is closing, optionally clear messages or currentMessage if desired
+      // For now, let's not clear messages so they persist if re-opened in same session.
+      // setCurrentMessage(""); // Optionally clear input on close
+    }
+    setIsChatOpen(open);
+  };
 
   return (
     <Card className="w-full shadow-lg overflow-hidden flex flex-col">
@@ -193,7 +209,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
           {icebreaker ? 'Regenerate Icebreaker' : 'Generate Icebreaker'}
         </Button>
 
-        <Dialog open={isChatOpen} onOpenChange={setIsChatOpen}>
+        <Dialog open={isChatOpen} onOpenChange={handleChatOpenChange}>
           <DialogTrigger asChild>
             <Button variant="outline" className="w-full sm:flex-1">
               <MessageCircle className="mr-2 h-4 w-4" /> Start Chat
@@ -275,3 +291,6 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     </Card>
   );
 }
+
+
+    
