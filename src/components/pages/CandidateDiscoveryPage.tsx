@@ -156,6 +156,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
         console.log("[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.");
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         loadMoreCandidates();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -349,7 +350,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
           <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden min-h-[calc(100vh-200px)] max-h-[calc(100vh-120px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
+             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-3xl bg-card overflow-hidden min-h-[calc(100vh-200px)] max-h-[calc(100vh-120px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
               <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} isGuestMode={mongoDbUserId === null} />
             </SwipeCard>
           </div>
@@ -374,4 +375,5 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     
 
     
+
 

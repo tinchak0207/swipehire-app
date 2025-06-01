@@ -646,7 +646,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full bg-card overflow-hidden rounded-xl shadow-lg"
+        className="flex flex-col h-full bg-card overflow-hidden"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -694,12 +694,12 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         <div className="w-full border-t-4 border-yellow-400 shrink-0"></div>
 
         {/* Main Text Content Section - Name, Role, Location, Summary, Skills, Work Style */}
-        <div className="flex-1 p-3 space-y-3 text-sm sm:text-base overflow-y-auto min-h-0">
+        <div className="flex-1 p-3 overflow-y-auto min-h-0 space-y-3 text-sm sm:text-base">
             <div className="text-center">
                 <h2 className="text-xl sm:text-2xl font-bold text-primary">{candidate.name}</h2>
                 <p className="text-lg sm:text-xl text-muted-foreground mb-2">{candidate.role}</p>
             </div>
-            {/* Removed Separator here */}
+            {/* Separator removed as per user request */}
 
             {candidate.location && (
                 <div className="flex items-center text-muted-foreground mt-3">
@@ -778,4 +778,5 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
 
