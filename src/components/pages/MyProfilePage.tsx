@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect, type ChangeEvent } from 'react';
+import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,13 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon } from 'lucide-react';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X } from 'lucide-react'; // Added X
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate } from '@/lib/types';
 import NextImage from 'next/image';
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge'; // Added Badge
 
 const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -53,7 +54,11 @@ const getThemeClass = (themeKey?: string) => {
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
-  const [skills, setSkills] = useState(''); // Comma-separated string from input
+  
+  // Skills management
+  const [skillList, setSkillList] = useState<string[]>([]);
+  const [currentSkillInputValue, setCurrentSkillInputValue] = useState('');
+
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
@@ -97,7 +102,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             const userData = await response.json();
             setProfileHeadline(userData.profileHeadline || '');
             setExperienceSummary(userData.profileExperienceSummary || '');
-            setSkills(userData.profileSkills || '');
+            setSkillList(userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
             setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
             setPastProjects(userData.profilePastProjects || '');
             setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
@@ -127,7 +132,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           const savedProfile = JSON.parse(savedProfileString);
           setProfileHeadline(savedProfile.profileHeadline || '');
           setExperienceSummary(savedProfile.experienceSummary || '');
-          setSkills(savedProfile.skills || '');
+          setSkillList(savedProfile.skills ? savedProfile.skills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
           setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
           setPastProjects(savedProfile.pastProjects || '');
           setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
@@ -178,6 +183,26 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     }
   };
 
+  const handleAddSkill = () => {
+    const newSkill = currentSkillInputValue.trim();
+    if (newSkill && !skillList.includes(newSkill)) {
+      setSkillList([...skillList, newSkill]);
+    }
+    setCurrentSkillInputValue('');
+  };
+
+  const handleSkillInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      handleAddSkill();
+    }
+  };
+
+  const handleRemoveSkill = (skillToRemove: string) => {
+    setSkillList(skillList.filter(skill => skill !== skillToRemove));
+  };
+
+
   const handleSaveProfile = async () => {
     if (isGuestMode) {
       toast({ title: "Action Disabled", description: "Please sign in to save your profile.", variant: "default"});
@@ -225,7 +250,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     const profileData = {
       profileHeadline,
       profileExperienceSummary: experienceSummary,
-      profileSkills: skills,
+      profileSkills: skillList.join(','), // Convert array to comma-separated string
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
@@ -264,7 +289,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       setAvatarPreview(null); 
 
       if (typeof window !== 'undefined') {
-         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl };
+         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl, skills: skillList.join(',') };
          localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
       }
 
@@ -312,18 +337,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
       : avatarUrl || `https://placehold.co/80x80.png?text=${profileHeadline?.[0] || 'P'}`;
   
-  console.log("[MyProfilePage Preview] Current displayAvatarUrl:", currentDisplayAvatarUrl);
-  console.log("[MyProfilePage Preview] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
-  console.log("[MyProfilePage Preview] State avatarUrl:", avatarUrl);
-  console.log("[MyProfilePage Preview] State avatarPreview:", avatarPreview);
-
 
   const candidatePreviewData: Candidate = {
     id: mongoDbUserId || 'preview-user',
     name: 'Your Name (Preview)', 
     role: profileHeadline,
     experienceSummary,
-    skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
+    skills: skillList,
     avatarUrl: currentDisplayAvatarUrl,
     videoResumeUrl: videoPortfolioLink || undefined,
     location: 'Your Location (Preview)',
@@ -416,18 +436,44 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               className="min-h-[100px]"
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="skills" className="text-base flex items-center">
-              <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (comma-separated)
+          
+          {/* Enhanced Skills Input */}
+          <div className="space-y-2">
+            <Label htmlFor="skillsInput" className="text-base flex items-center">
+              <Star className="mr-2 h-4 w-4 text-muted-foreground" /> My Skills (add one by one)
             </Label>
-            <Input
-              id="skills"
-              placeholder="e.g., React, Python, Project Management, Figma"
-              value={skills}
-              onChange={(e) => setSkills(e.target.value)}
-            />
+            <div className="flex flex-wrap gap-2 mb-2">
+              {skillList.map((skill, index) => (
+                <Badge key={index} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-2">
+                  {skill}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => handleRemoveSkill(skill)}
+                    aria-label={`Remove skill ${skill}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                id="skillsInput"
+                placeholder="Type a skill (e.g., React) and press Enter"
+                value={currentSkillInputValue}
+                onChange={(e) => setCurrentSkillInputValue(e.target.value)}
+                onKeyDown={handleSkillInputKeyDown}
+                className="flex-grow"
+              />
+              <Button type="button" onClick={handleAddSkill} variant="outline" size="sm">Add Skill</Button>
+            </div>
+            <p className="text-xs text-muted-foreground">Enter skills individually. They will appear as tags above.</p>
           </div>
-          {/* ... other existing fields (Work Experience, Education, etc.) ... */}
+
+
            <div className="space-y-1">
             <Label htmlFor="workExperienceLevel" className="text-base flex items-center">
               <Clock className="mr-2 h-4 w-4 text-muted-foreground" /> Work Experience Level
@@ -611,3 +657,4 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+
