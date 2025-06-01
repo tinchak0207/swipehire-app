@@ -1,22 +1,25 @@
 
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
-import type { Match, IcebreakerRequest, ChatMessage } from '@/lib/types';
+import { useState, useRef, useEffect, useCallback } from 'react';
+import type { Match, IcebreakerRequest, ChatMessage, Candidate, Company } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { generateIcebreakerQuestion } from '@/ai/flows/icebreaker-generator';
-import { generateChatReply } from '@/ai/flows/generic-chat-reply-flow'; // New AI flow
-import { Loader2, MessageCircle, Sparkles, Send, Bot } from 'lucide-react';
+// import { generateChatReply } from '@/ai/flows/generic-chat-reply-flow'; // Replaced by actual chat
+import { sendMessage, fetchMessages } from '@/services/chatService'; // New chat service
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // To get current user's MongoDB ID
+import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw } from 'lucide-react'; // Added RefreshCcw
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface IcebreakerCardProps {
-  match: Match;
+  match: Match & { candidate: Candidate; company: Company }; // Ensure candidate & company are always present
 }
 
 // Conceptual analytics helper
@@ -31,21 +34,49 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const [icebreaker, setIcebreaker] = useState<string | null>(null);
   const [isLoadingIcebreaker, setIsLoadingIcebreaker] = useState(false);
   const { toast } = useToast();
+  const { mongoDbUserId } = useUserPreferences();
 
   // Chat state
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [currentMessage, setCurrentMessage] = useState("");
   const [isSendingMessage, setIsSendingMessage] = useState(false);
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const contactName = match.candidate ? match.candidate.name : match.company.name;
-  const contactAvatar = match.candidate ? match.candidate.avatarUrl : match.company.logoUrl;
-  const contactDataAiHint = match.candidate ? (match.candidate.dataAiHint || "person") : (match.company.dataAiHint || "company logo");
+  const contactName = mongoDbUserId === match.userA_Id ? match.company.name : match.candidate.name;
+  const contactAvatar = mongoDbUserId === match.userA_Id ? match.company.logoUrl : match.candidate.avatarUrl;
+  const contactDataAiHint = mongoDbUserId === match.userA_Id 
+    ? (match.company.dataAiHint || "company logo") 
+    : (match.candidate.dataAiHint || "person");
+
+
+  const loadChatMessages = useCallback(async () => {
+    if (!isChatOpen || !match._id || !mongoDbUserId) return;
+    setIsLoadingMessages(true);
+    try {
+      const fetchedMsgs = await fetchMessages(match._id);
+      setMessages(fetchedMsgs.map(msg => ({
+        ...msg,
+        senderType: msg.senderId === mongoDbUserId ? 'user' : 'contact'
+      })));
+    } catch (error) {
+      console.error("Error fetching chat messages:", error);
+      toast({ title: "Chat Error", description: "Could not load messages.", variant: "destructive" });
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  }, [isChatOpen, match._id, mongoDbUserId, toast]);
+  
+  useEffect(() => {
+    if (isChatOpen) {
+        loadChatMessages();
+    }
+  }, [isChatOpen, loadChatMessages]);
 
 
   useEffect(() => {
-    if (isChatOpen) {
+    if (isChatOpen && messages.length > 0) {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isChatOpen]);
@@ -55,19 +86,20 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     setIsLoadingIcebreaker(true);
     setIcebreaker(null);
     try {
-      const candidate = match.candidate;
-      const company = match.company;
+      // Determine who is the candidate and who represents the company in this match context
+      const candidateForIcebreaker = match.candidate;
+      const companyForIcebreaker = match.company;
       
-      const jobDescription = company.jobOpenings && company.jobOpenings.length > 0 
-        ? `${company.jobOpenings[0].title}: ${company.jobOpenings[0].description}`
-        : `a role at ${company.name}`;
+      const jobDescription = companyForIcebreaker.jobOpenings && companyForIcebreaker.jobOpenings.length > 0 
+        ? `${companyForIcebreaker.jobOpenings[0].title}: ${companyForIcebreaker.jobOpenings[0].description}`
+        : `a role at ${companyForIcebreaker.name}`;
 
       const requestData: IcebreakerRequest = {
-        candidateName: candidate.name,
+        candidateName: candidateForIcebreaker.name,
         jobDescription: jobDescription,
-        candidateSkills: candidate.skills.join(', '),
-        companyNeeds: company.companyNeeds || "general company needs for talent",
-        pastProjects: candidate.pastProjects || "various interesting projects"
+        candidateSkills: candidateForIcebreaker.skills.join(', '),
+        companyNeeds: companyForIcebreaker.companyNeeds || "general company needs for talent",
+        pastProjects: candidateForIcebreaker.pastProjects || "various interesting projects"
       };
 
       const result = await generateIcebreakerQuestion(requestData);
@@ -90,43 +122,44 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   };
 
   const handleSendMessage = async () => {
-    if (!currentMessage.trim()) return;
+    if (!currentMessage.trim() || !mongoDbUserId || !match._id) return;
     setIsSendingMessage(true);
 
-    const newUserMessage: ChatMessage = {
-      id: `msg-${Date.now()}`,
-      sender: 'user',
-      text: currentMessage,
-      timestamp: new Date(),
+    const receiverId = match.userA_Id === mongoDbUserId ? match.userB_Id : match.userA_Id;
+
+    // Optimistic update
+    const optimisticMessage: ChatMessage = {
+      id: `temp-${Date.now()}`, // Temporary ID
+      matchId: match._id,
+      senderId: mongoDbUserId,
+      receiverId: receiverId,
+      text: currentMessage.trim(),
+      timestamp: new Date().toISOString(),
+      senderType: 'user',
     };
-    setMessages(prev => [...prev, newUserMessage]);
-    const messageForAI = currentMessage;
-    setCurrentMessage(""); // Clear input after sending
+    setMessages(prev => [...prev, optimisticMessage]);
+    const messageToSend = currentMessage.trim();
+    setCurrentMessage(""); 
 
     try {
-      // Simulate AI reply
-      const aiResult = await generateChatReply({
-        userMessage: messageForAI,
-        contactName: contactName, // The person AI is simulating
-        userName: "You" // Assuming the current user is "You"
+      const savedMessage = await sendMessage({
+        matchId: match._id,
+        senderId: mongoDbUserId,
+        receiverId: receiverId,
+        text: messageToSend,
       });
+      
+      // Replace optimistic message with saved one
+      setMessages(prev => prev.map(msg => 
+        msg.id === optimisticMessage.id ? { ...savedMessage, senderType: 'user' } : msg
+      ));
 
-      const aiMessage: ChatMessage = {
-        id: `msg-ai-${Date.now()}`,
-        sender: 'contact', // Simulating the contact's reply
-        text: aiResult.aiReply,
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
-      console.error("Error getting AI reply:", error);
-      const errorReply: ChatMessage = {
-        id: `msg-err-${Date.now()}`,
-        sender: 'contact',
-        text: "Sorry, I couldn't process that. Try again?",
-        timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorReply]);
+      console.error("Error sending message:", error);
+      toast({ title: "Send Error", description: "Could not send message.", variant: "destructive" });
+      // Optionally, remove optimistic message or mark as failed
+      setMessages(prev => prev.filter(msg => msg.id !== optimisticMessage.id));
+      setCurrentMessage(messageToSend); // Restore message to input if send failed
     } finally {
       setIsSendingMessage(false);
     }
@@ -134,19 +167,15 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
 
 
   const handleChatOpenChange = (open: boolean) => {
-    if (open) {
-      // Dialog is opening
-      if (icebreaker) {
-        setCurrentMessage(icebreaker); // Pre-fill with generated icebreaker
-      } else {
-        setCurrentMessage(""); // Or clear if no icebreaker exists
-      }
-    } else {
-      // Dialog is closing, optionally clear messages or currentMessage if desired
-      // For now, let's not clear messages so they persist if re-opened in same session.
-      // setCurrentMessage(""); // Optionally clear input on close
-    }
     setIsChatOpen(open);
+    if (open) {
+      if (icebreaker && messages.length === 0) { // Only prefill if chat is empty and icebreaker exists
+        setCurrentMessage(icebreaker); 
+      }
+      // Messages will be loaded by useEffect based on isChatOpen
+    } else {
+       // setCurrentMessage(""); // Optionally clear input on close
+    }
   };
 
   return (
@@ -166,7 +195,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
           <div>
             <CardTitle className="text-xl text-primary">Match: {contactName}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
-              {match.candidate ? `Candidate for ${match.company.name}` : `Company: ${match.company.name}`}
+              {mongoDbUserId === match.userA_Id ? `Matched with candidate ${match.candidate.name}` : `Matched with company ${match.company.name}`}
             </CardDescription>
           </div>
         </div>
@@ -175,7 +204,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
         {!icebreaker && !isLoadingIcebreaker && (
            <div className="text-center py-4">
             <Sparkles className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">Generate an AI icebreaker to get started!</p>
+            <p className="text-muted-foreground">Generate an AI icebreaker or start chatting!</p>
           </div>
         )}
         {isLoadingIcebreaker && (
@@ -216,7 +245,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[480px] flex flex-col h-[70vh] max-h-[600px]">
-            <DialogHeader>
+            <DialogHeader className="flex-row justify-between items-center">
               <DialogTitle className="flex items-center">
                 {contactAvatar && (
                   <Image 
@@ -230,17 +259,31 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
                 )}
                 Chat with {contactName}
               </DialogTitle>
+              <Button variant="ghost" size="icon" onClick={loadChatMessages} disabled={isLoadingMessages} aria-label="Refresh chat messages">
+                {isLoadingMessages ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCcw className="h-4 w-4" />}
+              </Button>
             </DialogHeader>
             <ScrollArea className="flex-grow p-1 pr-3 -mr-2 mb-2 border rounded-md bg-background">
+              {isLoadingMessages && messages.length === 0 && (
+                <div className="flex justify-center items-center h-full">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <p className="ml-2 text-muted-foreground">Loading messages...</p>
+                </div>
+              )}
+              {!isLoadingMessages && messages.length === 0 && (
+                <div className="flex justify-center items-center h-full">
+                  <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+                </div>
+              )}
               <div className="space-y-3 py-2">
                 {messages.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`flex items-end space-x-2 ${
-                      msg.sender === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
+                    className={cn("flex items-end space-x-2", 
+                      msg.senderType === 'user' ? 'justify-end' : 'justify-start'
+                    )}
                   >
-                    {msg.sender !== 'user' && (
+                    {msg.senderType !== 'user' && (
                        contactAvatar ? (
                         <Image 
                           src={contactAvatar} 
@@ -255,11 +298,11 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
                       )
                     )}
                     <div
-                      className={`max-w-[70%] rounded-lg px-3 py-2 text-sm shadow-sm ${
-                        msg.sender === 'user'
+                      className={cn("max-w-[70%] rounded-lg px-3 py-2 text-sm shadow-sm",
+                        msg.senderType === 'user'
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-muted text-muted-foreground'
-                      }`}
+                      )}
                     >
                       {msg.text}
                     </div>
@@ -276,10 +319,10 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
                   value={currentMessage}
                   onChange={(e) => setCurrentMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && !isSendingMessage && handleSendMessage()}
-                  disabled={isSendingMessage}
+                  disabled={isSendingMessage || !mongoDbUserId}
                   className="flex-1"
                 />
-                <Button onClick={handleSendMessage} disabled={isSendingMessage || !currentMessage.trim()}>
+                <Button onClick={handleSendMessage} disabled={isSendingMessage || !currentMessage.trim() || !mongoDbUserId}>
                   {isSendingMessage ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
                   <span className="sr-only">Send</span>
                 </Button>
@@ -291,6 +334,3 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     </Card>
   );
 }
-
-
-    

@@ -7,6 +7,7 @@ const cors = require('cors');
 const User = require('./User');
 const DiaryPost = require('./DiaryPost'); // Assuming DiaryPost model exists
 const Match = require('./Match'); // Assuming Match model exists
+const ChatMessage = require('./ChatMessage'); // Added ChatMessage model
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -83,38 +84,48 @@ const corsOptions = {
 app.use(cors(corsOptions));
 
 // Serve static files from the 'uploads' directory using a manual route
-console.log(`[Static Serving Config] Base path for uploads (manual route): ${uploadsDir}`);
+const staticUploadsPath = path.resolve(__dirname, 'uploads');
+console.log(`[Static Serving Config] Serving static files from: ${staticUploadsPath}`);
 
-app.get('/uploads/:filename', (req, res) => {
+// Logging middleware for static file requests
+const uploadsLoggingMiddleware = (req, res, next) => {
+    console.log(`[Uploads Static Entry] Request for: ${req.originalUrl}`);
+    const requestedFilename = req.path.startsWith('/') ? req.path.substring(1) : req.path;
+    const physicalPath = path.join(staticUploadsPath, requestedFilename);
+    console.log(`[Uploads Static Entry]   Raw req.path: ${req.path}`);
+    console.log(`[Uploads Static Entry]   Decoded req.path: ${decodeURIComponent(req.path)}`);
+    console.log(`[Uploads Static Entry]   Attempting to serve physical path: ${physicalPath}`);
+    if (fs.existsSync(physicalPath)) {
+        console.log(`[Uploads Static Entry]   File EXISTS at physical path.`);
+    } else {
+        console.warn(`[Uploads Static Entry]   File DOES NOT EXIST at physical path.`);
+    }
+    next();
+};
+
+app.get('/uploads/:filename', uploadsLoggingMiddleware, (req, res) => {
     const filename = req.params.filename;
     console.log(`[Manual /uploads/:filename Handler] Request for filename: ${filename}`);
 
-    // Basic security: prevent directory traversal
     if (filename.includes('..')) {
         console.warn(`[Manual /uploads/:filename Handler] Directory traversal attempt blocked for: ${filename}`);
         return res.status(400).send('Invalid filename.');
     }
-
-    const filePath = path.join(uploadsDir, filename);
+    const filePath = path.join(staticUploadsPath, filename);
     console.log(`[Manual /uploads/:filename Handler] Attempting to serve physical path: ${filePath}`);
 
-    fs.exists(filePath, (exists) => {
-        if (exists) {
-            console.log(`[Manual /uploads/:filename Handler] File EXISTS. Sending: ${filePath}`);
-            res.sendFile(filePath, (err) => {
-                if (err) {
-                    console.error(`[Manual /uploads/:filename Handler] Error sending file ${filePath}:`, err);
-                    // Avoid sending another response if headers already sent by res.sendFile on error
-                    if (!res.headersSent) {
-                        res.status(500).send('Error sending file.');
-                    }
+    res.sendFile(filePath, (err) => {
+        if (err) {
+            console.error(`[Manual /uploads/:filename Handler] Error sending file ${filePath}:`, err);
+            if (!res.headersSent) {
+                if (err.code === 'ENOENT') {
+                    res.status(404).send('File not found.');
                 } else {
-                    console.log(`[Manual /uploads/:filename Handler] File sent successfully: ${filePath}`);
+                    res.status(500).send('Error sending file.');
                 }
-            });
+            }
         } else {
-            console.warn(`[Manual /uploads/:filename Handler] File DOES NOT EXIST at: ${filePath}`);
-            res.status(404).send('File not found.');
+            console.log(`[Manual /uploads/:filename Handler] File sent successfully: ${filePath}`);
         }
     });
 });
@@ -720,6 +731,63 @@ app.get('/api/matches/:userId', async (req, res) => {
 });
 
 
+// --- Chat Message API Endpoints ---
+app.post('/api/matches/:matchId/messages', async (req, res) => {
+    try {
+        const { matchId } = req.params;
+        const { senderId, receiverId, text } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(matchId) || 
+            !mongoose.Types.ObjectId.isValid(senderId) || 
+            !mongoose.Types.ObjectId.isValid(receiverId)) {
+            return res.status(400).json({ message: 'Invalid matchId, senderId, or receiverId.' });
+        }
+        if (!text || text.trim() === '') {
+            return res.status(400).json({ message: 'Message text cannot be empty.' });
+        }
+
+        // Optional: Validate that senderId and receiverId are part of the match
+        const match = await Match.findById(matchId);
+        if (!match) {
+            return res.status(404).json({ message: 'Match not found.' });
+        }
+        const matchUserIds = [match.userA_Id.toString(), match.userB_Id.toString()];
+        if (!matchUserIds.includes(senderId) || !matchUserIds.includes(receiverId) || senderId === receiverId) {
+            return res.status(400).json({ message: 'Invalid sender or receiver for this match.' });
+        }
+
+        const newMessage = new ChatMessage({
+            matchId,
+            senderId,
+            receiverId,
+            text: text.trim(),
+        });
+        await newMessage.save();
+        console.log(`[DB Action] Chat message created for match ${matchId} from ${senderId} to ${receiverId}. Msg ID: ${newMessage._id}`);
+        res.status(201).json(newMessage);
+    } catch (error) {
+        console.error('Error creating chat message:', error);
+        res.status(500).json({ message: 'Server error creating chat message.', error: error.message });
+    }
+});
+
+app.get('/api/matches/:matchId/messages', async (req, res) => {
+    try {
+        const { matchId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(matchId)) {
+            return res.status(400).json({ message: 'Invalid matchId.' });
+        }
+
+        const messages = await ChatMessage.find({ matchId }).sort({ createdAt: 1 }); // Fetch oldest first
+        console.log(`[DB Action] Fetched ${messages.length} messages for match ${matchId}.`);
+        res.status(200).json(messages);
+    } catch (error) {
+        console.error('Error fetching chat messages:', error);
+        res.status(500).json({ message: 'Server error fetching chat messages.', error: error.message });
+    }
+});
+
+
 // Connect to MongoDB
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb+srv://tinchak0207:cfchan%407117@swipehire.fwxspbu.mongodb.net/?retryWrites=true&w=majority&appName=swipehire';
 mongoose.connect(MONGO_URI)
@@ -735,3 +803,4 @@ app.listen(PORT, () => {
     console.log(`Make sure your Next.js app is configured to send requests to this address.`);
     console.log(`Frontend URLs allowed by CORS (from env and hardcoded): ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+

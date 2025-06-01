@@ -195,10 +195,16 @@ export interface JobPosting {
 }
 
 export interface ChatMessage {
-  id: string;
-  sender: 'user' | 'ai' | 'contact';
+  _id?: string; // MongoDB ID
+  id?: string; // Frontend ID, can be same as _id after fetch
+  matchId: string; // Links to the Match document's _id
+  senderId: string; // MongoDB User ID of the sender
+  receiverId: string; // MongoDB User ID of the receiver
   text: string;
-  timestamp: Date;
+  timestamp: string; // ISO Date string
+  read?: boolean;
+  // for frontend display only, not in DB
+  senderType?: 'user' | 'contact'; // 'user' is the current logged-in user, 'contact' is the other person
 }
 
 export interface DiaryPost {
