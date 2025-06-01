@@ -125,6 +125,7 @@ app.get('/uploads/:filename', uploadsLoggingMiddleware, (req, res) => {
     });
 });
 
+// Multer storage configuration for general files (like avatars)
 const storage = multer.diskStorage({
     destination: function (req, file, cb) { cb(null, uploadsDir); },
     filename: function (req, file, cb) {
@@ -134,11 +135,21 @@ const storage = multer.diskStorage({
         cb(null, finalFilename);
     }
 });
+
+// Multer file filter for images
 const imageFileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) { cb(null, true); }
     else { cb(new Error('Not an image! Please upload only images.'), false); }
 };
-const upload = multer({ storage: storage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadAvatar = multer({ storage: storage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit for avatars
+
+// Multer file filter for videos
+const videoFileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('video/')) { cb(null, true); }
+    else { cb(new Error('Not a video! Please upload only video files (e.g., mp4, webm).'), false); }
+};
+const uploadVideo = multer({ storage: storage, fileFilter: videoFileFilter, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit for videos
+
 
 app.get('/', (req, res) => res.send('Welcome to SwipeHire Backend API!'));
 
@@ -177,7 +188,7 @@ app.get('/api/users/:identifier', async (req, res) => {
     } catch (error) { res.status(500).json({ message: 'Server error', error: error.message }); }
 });
 
-app.post('/api/users/:identifier/avatar', upload.single('avatar'), async (req, res) => {
+app.post('/api/users/:identifier/avatar', uploadAvatar.single('avatar'), async (req, res) => {
     const { identifier } = req.params;
     if (!req.file) return res.status(400).json({ message: 'No avatar file uploaded.' });
     try {
@@ -195,6 +206,31 @@ app.post('/api/users/:identifier/avatar', upload.single('avatar'), async (req, r
     } catch (error) {
         fs.unlink(req.file.path, err => { if (err) console.error("[Avatar Upload] Error deleting file after DB error:", err); });
         res.status(500).json({ message: 'Server error while updating avatar', error: error.message });
+    }
+});
+
+app.post('/api/users/:identifier/video-resume', uploadVideo.single('videoResume'), async (req, res) => {
+    const { identifier } = req.params;
+    if (!req.file) return res.status(400).json({ message: 'No video resume file uploaded.' });
+    try {
+        let userToUpdate;
+        if (mongoose.Types.ObjectId.isValid(identifier)) userToUpdate = await User.findById(identifier);
+        else userToUpdate = await User.findOne({ firebaseUid: identifier });
+
+        if (!userToUpdate) {
+            fs.unlink(req.file.path, err => { if (err) console.error("[Video Resume Upload] Error deleting orphaned file:", err); });
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const videoUrl = `/uploads/${req.file.filename}`;
+        // Assuming 'profileVideoPortfolioLink' is the field to store the video resume URL.
+        // If you have a different field, update it here.
+        userToUpdate.profileVideoPortfolioLink = videoUrl; 
+        await userToUpdate.save();
+        res.json({ message: 'Video resume uploaded successfully!', videoUrl: videoUrl, user: userToUpdate });
+    } catch (error) {
+        fs.unlink(req.file.path, err => { if (err) console.error("[Video Resume Upload] Error deleting file after DB error:", err); });
+        res.status(500).json({ message: 'Server error while uploading video resume', error: error.message });
     }
 });
 
@@ -624,5 +660,7 @@ server.listen(PORT, () => {
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
 
+
+    
 
     
