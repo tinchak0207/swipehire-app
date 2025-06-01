@@ -101,7 +101,7 @@ function CandidateDetailsModal({
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
         <DialogHeader className="p-4 sm:p-6 border-b flex-row items-center space-x-3 sticky top-0 bg-background z-10 pb-3">
-          {candidate.avatarUrl ? (
+          {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
@@ -157,7 +157,7 @@ function CandidateDetailsModal({
                     loop
                     playsInline
                     className="w-full h-full object-cover bg-black"
-                    poster={candidate.avatarUrl || `https://placehold.co/600x400.png`}
+                    poster={candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? candidate.avatarUrl : `https://placehold.co/600x400.png`}
                     data-ai-hint="candidate video"
                   />
                 </div>
@@ -646,7 +646,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full bg-card overflow-hidden" 
+        className="flex flex-col h-full bg-card overflow-hidden"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -657,19 +657,19 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area: Explicit height */}
-        <div className="relative w-full h-3/5 shrink-0 bg-muted p-2 sm:p-3">
-          {candidate.avatarUrl ? (
+        {/* Media Area: Aspect ratio, shrink-0, no internal padding directly here */}
+        <div className="relative w-full aspect-[3/4] shrink-0 bg-muted">
+          {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
               fill
-              className="object-cover rounded-md" 
+              className="object-cover rounded-t-md" // Rounded only at the top if media is flush
               data-ai-hint={candidate.dataAiHint || "person professional"}
               priority
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md" data-ai-hint="profile avatar placeholder">
+            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-t-md" data-ai-hint="profile avatar placeholder">
               <UserCircleIcon className="w-24 h-24 text-muted-foreground opacity-50" />
             </div>
           )}
@@ -677,8 +677,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
               <TooltipProvider>
               <Tooltip>
                   <TooltipTrigger asChild>
-                      <Badge variant="default" className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-yellow-500 hover:bg-yellow-600 text-white shadow-md cursor-default">
-                          <Sparkles className="h-3.5 w-3.5 mr-1.5 sm:mr-2" />
+                      <Badge variant="default" className="absolute top-2 right-2 bg-yellow-500 hover:bg-yellow-600 text-white shadow-md cursor-default">
+                          <Sparkles className="h-3 w-3 mr-1" />
                           Hidden Gem
                       </Badge>
                   </TooltipTrigger>
@@ -690,7 +690,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area - No internal scroll, flex-1 to take space */}
+        {/* Text Content Area: flex-1 (no min-h-0, no overflow-y-auto) */}
         <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
             <CardHeader className="p-0 mb-1"> 
                 <div className="flex items-start justify-between">
@@ -730,8 +730,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             )}
         </div>
 
-
-        {/* Footer with actions - Fixed height */}
+        {/* Footer with actions - shrink-0 */}
         <CardFooter className="p-0 pt-2 sm:pt-3 grid grid-cols-4 gap-1 sm:gap-2 border-t bg-card shrink-0 no-swipe-area">
           <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
           <ActionButton
@@ -765,4 +764,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
