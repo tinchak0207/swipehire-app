@@ -658,7 +658,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Top Media/Avatar Section */}
-        <div className="relative w-full h-2/5 shrink-0 bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center p-3">
+        <div className="relative w-full h-[35%] shrink-0 bg-slate-100 dark:bg-slate-800 flex flex-col items-center justify-center p-3 sm:p-3">
           <div className="relative">
             {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
               <Image
@@ -692,27 +692,33 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Separator Line */}
+        {/* Yellow Separator Line */}
         <div className="w-full border-t-4 border-yellow-400"></div>
 
         {/* Text Content Section */}
-        <div className="flex-1 min-h-0 p-4 space-y-2 text-sm overflow-y-auto"> {/* Added overflow-y-auto */}
+        <div className="flex-1 p-3 space-y-1 text-xs sm:text-sm"> {/* Removed min-h-0 and overflow-y-auto */}
           <div className="text-center mb-2">
             <h2 className="text-xl font-bold text-primary">{candidate.name}</h2>
             <p className="text-md text-muted-foreground">{candidate.role}</p>
           </div>
           
-          {/* Removed separator here, as the yellow line serves this purpose */}
+          <Separator className="my-1 sm:my-1.5" />
 
           <div className="mt-1 space-y-1.5">
             {candidate.location && (
-              <div className="flex items-center text-muted-foreground text-xs">
+              <div className="flex items-center text-muted-foreground">
                 <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                <span>{candidate.location}</span>
+                <span className="line-clamp-1">{candidate.location}</span>
+              </div>
+            )}
+             {candidate.desiredWorkStyle && (
+              <div className="flex items-center text-muted-foreground">
+                <Lightbulb className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                <span className="line-clamp-1">{candidate.desiredWorkStyle}</span>
               </div>
             )}
 
-            <p className="text-foreground line-clamp-3" title={candidate.experienceSummary}>
+            <p className="text-foreground line-clamp-1 sm:line-clamp-2" title={candidate.experienceSummary}>
               {candidate.experienceSummary}
             </p>
 
@@ -763,4 +769,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
