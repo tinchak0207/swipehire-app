@@ -11,9 +11,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase"; 
-// Firestore imports removed
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, Settings2, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon } from 'lucide-react';
+import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings'; // New Import
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface SettingsPageProps {
-  currentUserRole: UserRole | null; // This is the role from HomePage (derived from Firebase or backend)
+  currentUserRole: UserRole | null;
   onRoleChange: (newRole: UserRole) => void; 
   isGuestMode?: boolean;
 }
@@ -80,7 +80,7 @@ const discoveryItemsPerPageOptions = [5, 10, 15, 20];
 
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
-  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId, fetchAndSetUserPreferences } = useUserPreferences();
+  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId } = useUserPreferences();
   
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
@@ -94,27 +94,20 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [feedbackCategory, setFeedbackCategory] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
 
+  // State for AI weights now managed in SettingsPage
   const [recruiterWeights, setRecruiterWeights] = useState<RecruiterPerspectiveWeights>(defaultRecruiterWeights);
   const [jobSeekerWeights, setJobSeekerWeights] = useState<JobSeekerPerspectiveWeights>(defaultJobSeekerWeights);
-  const [recruiterWeightsError, setRecruiterWeightsError] = useState<string | null>(null);
-  const [jobSeekerWeightsError, setJobSeekerWeightsError] = useState<string | null>(null);
-  const [isLoadingSettings, setIsLoadingSettings] = useState(true); // For loading name, email, etc.
-  const [isSaving, setIsSaving] = useState(false); // For save button loading state
+  
+  const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // State for new preferences
   const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(contextPreferences.theme);
   const [localFeatureFlags, setLocalFeatureFlags] = useState<Record<string, boolean>>(contextPreferences.featureFlags || {});
   const [defaultAIScriptTone, setDefaultAIScriptTone] = useState<AIScriptTone>(contextPreferences.defaultAIScriptTone || 'professional');
   const [discoveryItemsPerPage, setDiscoveryItemsPerPage] = useState<number>(contextPreferences.discoveryItemsPerPage || 10);
   const [enableExperimentalFeatures, setEnableExperimentalFeatures] = useState<boolean>(contextPreferences.enableExperimentalFeatures || false);
 
-
   const { toast } = useToast();
-
-  const validateWeights = (weights: RecruiterPerspectiveWeights | JobSeekerPerspectiveWeights): boolean => {
-    const sum = Object.values(weights).reduce((acc, weight) => acc + Number(weight || 0), 0);
-    return sum === 100;
-  };
 
   useEffect(() => {
     if (!contextLoading) {
@@ -123,6 +116,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setDefaultAIScriptTone(contextPreferences.defaultAIScriptTone || 'professional');
       setDiscoveryItemsPerPage(contextPreferences.discoveryItemsPerPage || 10);
       setEnableExperimentalFeatures(contextPreferences.enableExperimentalFeatures || false);
+      // AI Weights might also come from contextPreferences if stored there in the future.
+      // For now, they are loaded from backend user data directly.
     }
   }, [contextPreferences, contextLoading]);
   
@@ -141,9 +136,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     }
 
     setIsLoadingSettings(true);
-    const user = auth.currentUser; // Firebase user
+    const user = auth.currentUser; 
 
-    if (user && mongoDbUserId) { // Ensure we have MongoDB ID to fetch
+    if (user && mongoDbUserId) { 
       fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`)
         .then(res => {
           if (!res.ok) throw new Error(`User not found in MongoDB or backend error: ${res.status}`);
@@ -157,17 +152,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           setCountry(data.country || '');
           setDocumentId(data.documentId || '');
 
-          if (data.recruiterAIWeights && validateWeights(data.recruiterAIWeights)) {
-            setRecruiterWeights(data.recruiterAIWeights);
-          } else {
-            setRecruiterWeights(defaultRecruiterWeights);
-          }
-          if (data.jobSeekerAIWeights && validateWeights(data.jobSeekerAIWeights)) {
-            setJobSeekerWeights(data.jobSeekerAIWeights);
-          } else {
-            setJobSeekerWeights(defaultJobSeekerWeights);
-          }
-          // Preferences (theme, feature flags, and new tailored ones) are loaded by UserPreferencesContext and synced to local state
+          // Set AI weights from fetched data or defaults
+          setRecruiterWeights(data.recruiterAIWeights || defaultRecruiterWeights);
+          setJobSeekerWeights(data.jobSeekerAIWeights || defaultJobSeekerWeights);
         })
         .catch(error => {
           console.error("Error fetching user settings from MongoDB backend:", error);
@@ -175,6 +162,8 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           setUserName(user.displayName || '');
           setUserEmail(user.email || '');
           setSelectedRoleInSettings(currentUserRole || null); 
+          setRecruiterWeights(defaultRecruiterWeights); // Fallback
+          setJobSeekerWeights(defaultJobSeekerWeights); // Fallback
         })
         .finally(() => {
           setIsLoadingSettings(false);
@@ -189,18 +178,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setIsLoadingSettings(false); 
     }
     loadAppStats();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isGuestMode, currentUserRole, mongoDbUserId]); 
-
-
-  useEffect(() => {
-    setRecruiterWeightsError(validateWeights(recruiterWeights) ? null : "Weights must sum to 100%.");
-  }, [recruiterWeights]);
-
-  useEffect(() => {
-    setJobSeekerWeightsError(validateWeights(jobSeekerWeights) ? null : "Weights must sum to 100%.");
-  }, [jobSeekerWeights]);
-
+  }, [isGuestMode, currentUserRole, mongoDbUserId, toast]); 
 
   const loadAppStats = () => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -219,10 +197,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode or if profile is not synced.", variant: "default" });
       return;
     }
-    if (recruiterWeightsError || jobSeekerWeightsError) {
-      toast({ title: "Invalid Weights", description: "Please ensure all AI recommendation weights sum to 100% for each perspective.", variant: "destructive" });
-      return;
-    }
+    // Validation for weights should be handled by the AiRecommendationSettings component,
+    // but we can add a check here if needed, or rely on its internal error state if passed up.
+    // For now, we assume the child component manages its own validation display.
+    
     setIsSaving(true);
     const user = auth.currentUser; 
     if (user && mongoDbUserId) { 
@@ -242,15 +220,14 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         address,
         country,
         documentId,
-        recruiterAIWeights: recruiterWeights,
-        jobSeekerAIWeights: jobSeekerWeights,
+        recruiterAIWeights: recruiterWeights, // These are now from SettingsPage state
+        jobSeekerAIWeights: jobSeekerWeights, // These are now from SettingsPage state
         preferences: currentPreferencesToSave,
       };
       
       try {
-        // Use the new POST proxy endpoint
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${mongoDbUserId}/settings`, {
-          method: 'POST', // Changed from PUT to POST
+          method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(settingsData),
         });
@@ -329,26 +306,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     setFeedbackMessage('');
     setIsFeedbackModalOpen(false);
   };
-
-  const handleWeightChange = (
-    perspective: 'recruiter' | 'jobSeeker',
-    field: keyof RecruiterPerspectiveWeights | keyof JobSeekerPerspectiveWeights,
-    value: string
-  ) => {
-    const numValue = parseInt(value, 10);
-    const val = isNaN(numValue) ? 0 : Math.max(0, Math.min(100, numValue));
-
-    if (perspective === 'recruiter') {
-      setRecruiterWeights(prev => ({ ...prev, [field]: val }));
-    } else {
-      setJobSeekerWeights(prev => ({ ...prev, [field]: val }));
-    }
-  };
   
   const handleFeatureFlagChange = (flagName: string, checked: boolean) => {
     setLocalFeatureFlags(prev => ({...prev, [flagName]: checked }));
   };
-
 
   const saveButtonText = isSaving ? "Saving..." : "Save Settings";
   const SaveButtonIcon = isSaving ? Loader2 : UserCog;
@@ -592,60 +553,13 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         </CardContent>
       </Card>
       
-      {!isGuestMode && (
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center text-xl">
-            <Settings2 className="mr-2 h-5 w-5 text-primary" />
-            AI Recommendation Customization
-          </CardTitle>
-          <CardDescription>
-            Adjust how our AI weighs different factors when matching candidates to jobs (for recruiters) or jobs to you (for job seekers). Ensure weights for each perspective sum to 100%.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div>
-            <h4 className="font-semibold text-md mb-2 text-foreground">Recruiter Perspective (Candidate to Job Fit)</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {(Object.keys(recruiterWeights) as Array<keyof RecruiterPerspectiveWeights>).map((key) => (
-                <div key={key} className="space-y-1">
-                  <Label htmlFor={`recruiter-${key}`} className="text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').replace(' Score', '')}</Label>
-                  <Input
-                    id={`recruiter-${key}`}
-                    type="number"
-                    min="0" max="100" step="5"
-                    value={recruiterWeights[key]}
-                    onChange={(e) => handleWeightChange('recruiter', key, e.target.value)}
-                    className="text-sm"
-                  />
-                </div>
-              ))}
-            </div>
-            {recruiterWeightsError && <p className="text-xs text-destructive mt-2 flex items-center"><AlertCircle size={14} className="mr-1"/> {recruiterWeightsError}</p>}
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-md mb-2 text-foreground">Job Seeker Perspective (Job to Candidate Fit)</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {(Object.keys(jobSeekerWeights) as Array<keyof JobSeekerPerspectiveWeights>).map((key) => (
-                <div key={key} className="space-y-1">
-                  <Label htmlFor={`jobseeker-${key}`} className="text-sm capitalize">{key.replace(/([A-Z])/g, ' $1').replace(' Score', '')}</Label>
-                  <Input
-                    id={`jobseeker-${key}`}
-                    type="number"
-                    min="0" max="100" step="5"
-                    value={jobSeekerWeights[key]}
-                    onChange={(e) => handleWeightChange('jobSeeker', key, e.target.value)}
-                    className="text-sm"
-                  />
-                </div>
-              ))}
-            </div>
-            {jobSeekerWeightsError && <p className="text-xs text-destructive mt-2 flex items-center"><AlertCircle size={14} className="mr-1"/> {jobSeekerWeightsError}</p>}
-          </div>
-        </CardContent>
-      </Card>
-      )}
+      <AiRecommendationSettings
+        initialRecruiterWeights={recruiterWeights}
+        initialJobSeekerWeights={jobSeekerWeights}
+        onRecruiterWeightsChange={setRecruiterWeights}
+        onJobSeekerWeightsChange={setJobSeekerWeights}
+        isGuestMode={isGuestMode}
+      />
 
       <Card className="shadow-lg">
         <CardHeader>
@@ -750,7 +664,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         <Button 
           onClick={handleSaveSettings} 
           size="lg" 
-          disabled={isGuestMode || !!recruiterWeightsError || !!jobSeekerWeightsError || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode) || isSaving}
+          disabled={isGuestMode || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode) || isSaving}
         >
           <SaveButtonIcon className={isSaving ? "mr-2 h-5 w-5 animate-spin" : "mr-2 h-5 w-5"} />
           {saveButtonText}
@@ -759,4 +673,3 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     </div>
   );
 }
-
