@@ -657,21 +657,21 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        {/* Media Area: Aspect ratio, shrink-0, no internal padding directly here */}
-        <div className="relative w-full aspect-[3/4] shrink-0 bg-muted">
-          {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
+        {/* Media Area: Defines proportion of card height, content fills it */}
+        <div className="relative w-full max-h-[60%] h-3/5 shrink-0 bg-muted">
+          {(!candidate.avatarUrl || candidate.avatarUrl === 'https://placehold.co/500x700.png') ? (
+            <div className="w-full h-full flex items-center justify-center rounded-t-md">
+              <UserCircleIcon className="w-1/2 h-1/2 max-w-[150px] max-h-[150px] text-muted-foreground opacity-50" />
+            </div>
+          ) : (
             <Image
               src={candidate.avatarUrl}
               alt={candidate.name}
               fill
-              className="object-cover rounded-t-md" // Rounded only at the top if media is flush
+              className="object-cover rounded-t-md"
               data-ai-hint={candidate.dataAiHint || "person professional"}
               priority
             />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gray-200 rounded-t-md" data-ai-hint="profile avatar placeholder">
-              <UserCircleIcon className="w-24 h-24 text-muted-foreground opacity-50" />
-            </div>
           )}
           {candidate.isUnderestimatedTalent && (
               <TooltipProvider>
@@ -690,13 +690,13 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area: flex-1 (no min-h-0, no overflow-y-auto) */}
-        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
+        {/* Text Content Area: Takes remaining space, content may be clipped if too long */}
+        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm overflow-hidden">
             <CardHeader className="p-0 mb-1"> 
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
-                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{candidate.name}</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{candidate.role}</CardDescription>
+                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate" title={candidate.name}>{candidate.name}</CardTitle>
+                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate" title={candidate.role}>{candidate.role}</CardDescription>
                     </div>
                 </div>
                 {candidate.location && (
@@ -707,7 +707,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 )}
             </CardHeader>
 
-            <p className="text-muted-foreground line-clamp-1 sm:line-clamp-2">
+            <p className="text-muted-foreground line-clamp-1 sm:line-clamp-2" title={candidate.experienceSummary}>
                 {candidate.experienceSummary}
             </p>
 
