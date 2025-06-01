@@ -53,7 +53,7 @@ const getThemeClass = (themeKey?: string) => {
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
-  const [skills, setSkills] = useState('');
+  const [skills, setSkills] = useState(''); // Comma-separated string from input
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
@@ -312,22 +312,22 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
       : avatarUrl || `https://placehold.co/80x80.png?text=${profileHeadline?.[0] || 'P'}`;
   
-  console.log("[MyProfilePage Debug] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
-  console.log("[MyProfilePage Debug] state avatarUrl:", avatarUrl);
-  console.log("[MyProfilePage Debug] state avatarPreview:", avatarPreview);
-  console.log("[MyProfilePage Debug] Final displayAvatarUrl for NextImage:", currentDisplayAvatarUrl);
+  // console.log("[MyProfilePage Debug] CUSTOM_BACKEND_URL:", CUSTOM_BACKEND_URL);
+  // console.log("[MyProfilePage Debug] state avatarUrl:", avatarUrl);
+  // console.log("[MyProfilePage Debug] state avatarPreview:", avatarPreview);
+  // console.log("[MyProfilePage Debug] Final displayAvatarUrl for NextImage:", currentDisplayAvatarUrl);
 
 
   const candidatePreviewData: Candidate = {
     id: mongoDbUserId || 'preview-user',
-    name: document.getElementById('profileName') ? (document.getElementById('profileName') as HTMLInputElement).value : 'Your Name', // Assuming you add an ID to name input for consistency or get from state if you add name to this page's state.
+    name: 'Your Name (Preview)', // Placeholder, actual name not edited on this page
     role: profileHeadline,
     experienceSummary,
     skills: skills ? skills.split(',').map(s => s.trim()).filter(s => s) : [],
     avatarUrl: currentDisplayAvatarUrl,
-    videoResumeUrl: videoPortfolioLink || undefined, // Use actual link if available
-    location: document.getElementById('profileLocation') ? (document.getElementById('profileLocation') as HTMLInputElement).value : 'Your Location', // Example: fetch from input or use state
-    desiredWorkStyle,
+    videoResumeUrl: videoPortfolioLink || undefined,
+    location: 'Your Location (Preview)', // Placeholder
+    desiredWorkStyle: desiredWorkStyle,
     pastProjects,
     workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
     educationLevel: educationLevel as EducationLevel,
@@ -338,7 +338,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     availability: availability as Availability,
     jobTypePreference: jobTypePreference ? jobTypePreference.split(',').map(s => s.trim() as JobType).filter(s => s) : [],
     cardTheme: selectedCardTheme,
-    // These can be omitted or set to defaults for preview
     profileStrength: 80, 
     personalityAssessment: [],
     optimalWorkStyles: [],
@@ -611,3 +610,4 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+

@@ -222,46 +222,50 @@ body {
   color: hsl(var(--primary-foreground));
 }
 
-/* Ensure text within themed cards is readable, may need more specific selectors if issues arise */
-.card-theme-ocean .text-muted-foreground, .card-theme-ocean .text-primary {
-  color: hsl(var(--primary-foreground)) !important;
+/* Ensure text within themed cards is readable, adjust these if button colors are still overridden */
+.card-theme-ocean .text-muted-foreground {
+  color: hsl(var(--primary-foreground)); 
   opacity: 0.85;
 }
 .card-theme-ocean .text-primary {
+   color: hsl(var(--primary-foreground)); 
    opacity: 1;
-   filter: brightness(1.2); /* Make primary slightly brighter on dark theme */
+   filter: brightness(1.2);
 }
-.card-theme-sunset .text-muted-foreground, .card-theme-sunset .text-primary {
-  color: hsl(var(--primary-foreground)) !important;
+.card-theme-sunset .text-muted-foreground {
+  color: hsl(var(--primary-foreground)); 
   opacity: 0.9;
 }
 .card-theme-sunset .text-primary {
+   color: hsl(var(--primary-foreground)); 
    opacity: 1;
    filter: brightness(0.9) contrast(1.1);
 }
 
-.card-theme-forest .text-muted-foreground, .card-theme-forest .text-primary {
-  color: hsl(var(--primary-foreground)) !important;
+.card-theme-forest .text-muted-foreground {
+  color: hsl(var(--primary-foreground)); 
   opacity: 0.85;
 }
 .card-theme-forest .text-primary {
+  color: hsl(var(--primary-foreground)); 
   opacity: 1;
   filter: brightness(1.1);
 }
 
 .card-theme-lavender .text-muted-foreground {
-  color: hsl(var(--muted-foreground)) !important;
+  color: hsl(var(--muted-foreground)); 
   opacity: 0.9;
 }
 .card-theme-lavender .text-primary {
-  color: hsl(276, 50%, 50%) !important; /* A darker purple for primary elements */
+  color: hsl(276, 50%, 50%); 
 }
 
-.card-theme-professional-dark .text-muted-foreground, .card-theme-professional-dark .text-primary {
-  color: hsl(var(--primary-foreground)) !important;
+.card-theme-professional-dark .text-muted-foreground {
+  color: hsl(var(--primary-foreground)); 
   opacity: 0.8;
 }
 .card-theme-professional-dark .text-primary {
+  color: hsl(var(--primary-foreground)); 
   opacity: 1;
   filter: brightness(1.1);
 }
