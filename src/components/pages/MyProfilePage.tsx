@@ -7,29 +7,53 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2 } from 'lucide-react'; // Added Loader2
-import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Import useUserPreferences
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon } from 'lucide-react';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
+
+const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface MyProfilePageProps {
   isGuestMode?: boolean;
 }
 
-const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+// Helper function to format enum values for display
+const formatEnumLabel = (value: string) => {
+  if (!value) return "";
+  return value
+    .replace(/_/g, ' ') // Replace underscores with spaces
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
-  const [skills, setSkills] = useState(''); 
+  const [skills, setSkills] = useState('');
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
-  const [isLoading, setIsLoading] = useState(false); // For save button loading state
-  const [isFetchingProfile, setIsFetchingProfile] = useState(true); // For initial profile load
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [workExperienceLevel, setWorkExperienceLevel] = useState<WorkExperienceLevel | string>(WorkExperienceLevel.UNSPECIFIED);
+  const [educationLevel, setEducationLevel] = useState<EducationLevel | string>(EducationLevel.UNSPECIFIED);
+  const [locationPreference, setLocationPreference] = useState<LocationPreference | string>(LocationPreference.UNSPECIFIED);
+  const [languages, setLanguages] = useState('');
+  const [availability, setAvailability] = useState<Availability | string>(Availability.UNSPECIFIED);
+  const [jobTypePreference, setJobTypePreference] = useState('');
+  const [salaryExpectationMin, setSalaryExpectationMin] = useState<string>('');
+  const [salaryExpectationMax, setSalaryExpectationMax] = useState<string>('');
+
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(true);
 
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences(); // Get mongoDbUserId
+  const { mongoDbUserId } = useUserPreferences();
 
   useEffect(() => {
     if (isGuestMode || typeof window === 'undefined') {
@@ -39,7 +63,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     const loadProfile = async () => {
       setIsFetchingProfile(true);
-      // First, try to load from backend if mongoDbUserId is available
       if (mongoDbUserId) {
         try {
           const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
@@ -51,8 +74,17 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
             setPastProjects(userData.profilePastProjects || '');
             setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
+            setAvatarUrl(userData.profileAvatarUrl || '');
+            setWorkExperienceLevel(userData.profileWorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
+            setEducationLevel(userData.profileEducationLevel || EducationLevel.UNSPECIFIED);
+            setLocationPreference(userData.profileLocationPreference || LocationPreference.UNSPECIFIED);
+            setLanguages(userData.profileLanguages || '');
+            setAvailability(userData.profileAvailability || Availability.UNSPECIFIED);
+            setJobTypePreference(userData.profileJobTypePreference || '');
+            setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
+            setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
             setIsFetchingProfile(false);
-            return; // Profile loaded from backend
+            return;
           } else {
             console.warn("Failed to fetch profile from backend, status:", response.status, ". Falling back to localStorage.");
           }
@@ -61,7 +93,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         }
       }
 
-      // Fallback to localStorage if backend fetch fails or no mongoDbUserId yet
       const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
       if (savedProfileString) {
         try {
@@ -72,6 +103,15 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
           setPastProjects(savedProfile.pastProjects || '');
           setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
+          setAvatarUrl(savedProfile.avatarUrl || '');
+          setWorkExperienceLevel(savedProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
+          setEducationLevel(savedProfile.educationLevel || EducationLevel.UNSPECIFIED);
+          setLocationPreference(savedProfile.locationPreference || LocationPreference.UNSPECIFIED);
+          setLanguages(savedProfile.languages || '');
+          setAvailability(savedProfile.availability || Availability.UNSPECIFIED);
+          setJobTypePreference(savedProfile.jobTypePreference || '');
+          setSalaryExpectationMin(savedProfile.salaryExpectationMin?.toString() || '');
+          setSalaryExpectationMax(savedProfile.salaryExpectationMax?.toString() || '');
         } catch (e) {
           console.error("Error parsing saved profile from localStorage:", e);
         }
@@ -101,10 +141,18 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
+      profileAvatarUrl: avatarUrl,
+      profileWorkExperienceLevel: workExperienceLevel,
+      profileEducationLevel: educationLevel,
+      profileLocationPreference: locationPreference,
+      profileLanguages: languages,
+      profileAvailability: availability,
+      profileJobTypePreference: jobTypePreference,
+      profileSalaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin, 10) : undefined,
+      profileSalaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax, 10) : undefined,
     };
 
     try {
-      // Save to MongoDB backend
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -116,14 +164,14 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         throw new Error(errorData.message || `Failed to save profile to backend. Status: ${response.status}`);
       }
       
-      // Also save to local storage for immediate reflection in CandidateDiscoveryPage (current behavior)
       if (typeof window !== 'undefined') {
+        // For CandidateDiscoveryPage quick reflection (can be removed once fully backend driven)
         localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(profileData));
       }
 
       toast({
         title: 'Profile Updated & Published!',
-        description: 'Your profile has been saved to the backend and is visible to recruiters. (Refresh Find Talent to see changes on the first card).',
+        description: 'Your profile has been saved to the backend and is visible to recruiters.',
         duration: 7000,
       });
 
@@ -191,6 +239,18 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             />
           </div>
           <div className="space-y-1">
+            <Label htmlFor="avatarUrl" className="text-base flex items-center">
+              <ImageIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Avatar Image URL
+            </Label>
+            <Input 
+              id="avatarUrl" 
+              type="url"
+              placeholder="https://example.com/my-avatar.png" 
+              value={avatarUrl} 
+              onChange={(e) => setAvatarUrl(e.target.value)} 
+            />
+          </div>
+           <div className="space-y-1">
             <Label htmlFor="experienceSummary" className="text-base flex items-center">
               <TrendingUp className="mr-2 h-4 w-4 text-muted-foreground" /> My Experience Summary
             </Label>
@@ -213,6 +273,32 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               onChange={(e) => setSkills(e.target.value)} 
             />
           </div>
+           <div className="space-y-1">
+            <Label htmlFor="workExperienceLevel" className="text-base flex items-center">
+              <Clock className="mr-2 h-4 w-4 text-muted-foreground" /> Work Experience Level
+            </Label>
+            <Select value={workExperienceLevel} onValueChange={(value) => setWorkExperienceLevel(value as WorkExperienceLevel)}>
+              <SelectTrigger id="workExperienceLevel"><SelectValue placeholder="Select experience level" /></SelectTrigger>
+              <SelectContent>
+                {Object.values(WorkExperienceLevel).map(level => (
+                  <SelectItem key={level} value={level}>{formatEnumLabel(level)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="educationLevel" className="text-base flex items-center">
+              <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" /> Education Level
+            </Label>
+            <Select value={educationLevel} onValueChange={(value) => setEducationLevel(value as EducationLevel)}>
+              <SelectTrigger id="educationLevel"><SelectValue placeholder="Select education level" /></SelectTrigger>
+              <SelectContent>
+                {Object.values(EducationLevel).map(level => (
+                  <SelectItem key={level} value={level}>{formatEnumLabel(level)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-1">
             <Label htmlFor="desiredWorkStyle" className="text-base flex items-center">
               <UserCircle className="mr-2 h-4 w-4 text-muted-foreground" /> My Desired Work Style
@@ -222,6 +308,80 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               placeholder="e.g., Fully Remote, Hybrid, Collaborative team" 
               value={desiredWorkStyle} 
               onChange={(e) => setDesiredWorkStyle(e.target.value)} 
+            />
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="locationPreference" className="text-base flex items-center">
+              <Globe className="mr-2 h-4 w-4 text-muted-foreground" /> My Location Preference
+            </Label>
+            <Select value={locationPreference} onValueChange={(value) => setLocationPreference(value as LocationPreference)}>
+              <SelectTrigger id="locationPreference"><SelectValue placeholder="Select location preference" /></SelectTrigger>
+              <SelectContent>
+                {Object.values(LocationPreference).map(pref => (
+                  <SelectItem key={pref} value={pref}>{formatEnumLabel(pref)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="languages" className="text-base flex items-center">
+              <LanguagesIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Languages Spoken (comma-separated)
+            </Label>
+            <Input 
+              id="languages" 
+              placeholder="e.g., English, Spanish, French" 
+              value={languages} 
+              onChange={(e) => setLanguages(e.target.value)} 
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-1">
+                <Label htmlFor="salaryExpectationMin" className="text-base flex items-center">
+                <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" /> Min Salary Expectation (Annual)
+                </Label>
+                <Input 
+                id="salaryExpectationMin" 
+                type="number"
+                placeholder="e.g., 80000" 
+                value={salaryExpectationMin} 
+                onChange={(e) => setSalaryExpectationMin(e.target.value)} 
+                />
+            </div>
+            <div className="space-y-1">
+                <Label htmlFor="salaryExpectationMax" className="text-base flex items-center">
+                <DollarSign className="mr-2 h-4 w-4 text-muted-foreground" /> Max Salary Expectation (Annual)
+                </Label>
+                <Input 
+                id="salaryExpectationMax" 
+                type="number"
+                placeholder="e.g., 120000" 
+                value={salaryExpectationMax} 
+                onChange={(e) => setSalaryExpectationMax(e.target.value)} 
+                />
+            </div>
+          </div>
+           <div className="space-y-1">
+            <Label htmlFor="availability" className="text-base flex items-center">
+              <CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" /> My Availability
+            </Label>
+            <Select value={availability} onValueChange={(value) => setAvailability(value as Availability)}>
+              <SelectTrigger id="availability"><SelectValue placeholder="Select availability" /></SelectTrigger>
+              <SelectContent>
+                {Object.values(Availability).map(avail => (
+                  <SelectItem key={avail} value={avail}>{formatEnumLabel(avail)}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="jobTypePreference" className="text-base flex items-center">
+              <Type className="mr-2 h-4 w-4 text-muted-foreground" /> Preferred Job Types (comma-separated)
+            </Label>
+             <Input 
+              id="jobTypePreference" 
+              placeholder="e.g., Full-time, Contract" 
+              value={jobTypePreference} 
+              onChange={(e) => setJobTypePreference(e.target.value)} 
             />
           </div>
           <div className="space-y-1">
@@ -259,3 +419,4 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+

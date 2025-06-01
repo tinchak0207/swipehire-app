@@ -180,12 +180,20 @@ app.put('/api/users/:identifier/profile', async (req, res) => {
             profileSkills,
             profileDesiredWorkStyle,
             profilePastProjects,
-            profileVideoPortfolioLink
+            profileVideoPortfolioLink,
+            profileAvatarUrl,
+            profileWorkExperienceLevel,
+            profileEducationLevel,
+            profileLocationPreference,
+            profileLanguages,
+            profileAvailability,
+            profileJobTypePreference,
+            profileSalaryExpectationMin,
+            profileSalaryExpectationMax
         } = req.body;
 
         console.log(`[DB Action PUT /profile] Attempting to update profile for user identifier: ${identifier}.`);
-        console.log(`[DB Action PUT /profile] Received profile data:`, req.body);
-
+        // console.log(`[DB Action PUT /profile] Received profile data:`, req.body);
 
         let userToUpdate;
         if (mongoose.Types.ObjectId.isValid(identifier)) {
@@ -199,21 +207,28 @@ app.put('/api/users/:identifier/profile', async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Update only the profile-specific fields
+        // Update profile-specific fields
         if (profileHeadline !== undefined) userToUpdate.profileHeadline = profileHeadline;
         if (profileExperienceSummary !== undefined) userToUpdate.profileExperienceSummary = profileExperienceSummary;
         if (profileSkills !== undefined) userToUpdate.profileSkills = profileSkills;
         if (profileDesiredWorkStyle !== undefined) userToUpdate.profileDesiredWorkStyle = profileDesiredWorkStyle;
         if (profilePastProjects !== undefined) userToUpdate.profilePastProjects = profilePastProjects;
         if (profileVideoPortfolioLink !== undefined) userToUpdate.profileVideoPortfolioLink = profileVideoPortfolioLink;
+        if (profileAvatarUrl !== undefined) userToUpdate.profileAvatarUrl = profileAvatarUrl;
+        if (profileWorkExperienceLevel !== undefined) userToUpdate.profileWorkExperienceLevel = profileWorkExperienceLevel;
+        if (profileEducationLevel !== undefined) userToUpdate.profileEducationLevel = profileEducationLevel;
+        if (profileLocationPreference !== undefined) userToUpdate.profileLocationPreference = profileLocationPreference;
+        if (profileLanguages !== undefined) userToUpdate.profileLanguages = profileLanguages;
+        if (profileAvailability !== undefined) userToUpdate.profileAvailability = profileAvailability;
+        if (profileJobTypePreference !== undefined) userToUpdate.profileJobTypePreference = profileJobTypePreference;
+        if (profileSalaryExpectationMin !== undefined) userToUpdate.profileSalaryExpectationMin = profileSalaryExpectationMin;
+        if (profileSalaryExpectationMax !== undefined) userToUpdate.profileSalaryExpectationMax = profileSalaryExpectationMax;
         
-        // If user is jobseeker and doesn't have a representedCandidateProfileId, assign one
         if (userToUpdate.selectedRole === 'jobseeker' && !userToUpdate.representedCandidateProfileId) {
             const defaultCandidateId = userToUpdate.firebaseUid ? `cand-user-${userToUpdate.firebaseUid.slice(0,5)}` : `cand-user-${userToUpdate._id.toString().slice(-5)}`;
             userToUpdate.representedCandidateProfileId = defaultCandidateId;
             console.log(`[DB Action PUT /profile] Assigned conceptual representedCandidateProfileId: ${defaultCandidateId} to jobseeker ${userToUpdate._id}`);
         }
-
 
         const updatedUser = await userToUpdate.save();
         console.log(`[DB Action PUT /profile] User profile updated for ${updatedUser._id}`);
@@ -282,8 +297,6 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
     try {
         const jobSeekerUsers = await User.find({
             selectedRole: 'jobseeker',
-            // Optionally filter for users who have completed minimal profile:
-            // profileHeadline: { $exists: true, $ne: "" } 
         });
 
         if (!jobSeekerUsers || jobSeekerUsers.length === 0) {
@@ -291,31 +304,31 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             return res.json([]);
         }
 
-        // Transform backend User documents to frontend Candidate structure
         const candidates = jobSeekerUsers.map(user => ({
-            id: user._id.toString(), // Use MongoDB _id as frontend id
+            id: user._id.toString(),
             name: user.name || 'N/A',
-            role: user.profileHeadline || 'Profile Incomplete',
-            experienceSummary: user.profileExperienceSummary || 'No summary provided.',
+            role: user.profileHeadline || 'Role not specified',
+            experienceSummary: user.profileExperienceSummary || 'No summary.',
             skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
-            avatarUrl: `https://placehold.co/500x700.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`, // Placeholder
+            avatarUrl: user.profileAvatarUrl || `https://placehold.co/500x700.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
             dataAiHint: 'person portrait',
-            videoResumeUrl: user.profileVideoPortfolioLink || undefined, // Use link from profile
-            profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder strength (60-99)
+            videoResumeUrl: user.profileVideoPortfolioLink || undefined,
+            profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder
             location: user.country || 'Location not specified',
             desiredWorkStyle: user.profileDesiredWorkStyle || 'Not specified',
             pastProjects: user.profilePastProjects || 'Not specified',
-            // Placeholder values for other fields not yet in backend User profile
-            workExperienceLevel: 'unspecified', // Placeholder - Use string value from enum
-            educationLevel: 'unspecified',    // Placeholder
-            locationPreference: 'unspecified',// Placeholder
-            languages: ['English'],             // Placeholder
-            availability: 'unspecified',       // Placeholder
-            jobTypePreference: ['Unspecified'],   // Placeholder - Use array of string values
-            personalityAssessment: [],          // Placeholder
-            optimalWorkStyles: [],              // Placeholder
-            isUnderestimatedTalent: Math.random() < 0.15, // Random placeholder
-            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential based on initial review.' : undefined,
+            workExperienceLevel: user.profileWorkExperienceLevel || 'unspecified',
+            educationLevel: user.profileEducationLevel || 'unspecified',
+            locationPreference: user.profileLocationPreference || 'unspecified',
+            languages: user.profileLanguages ? user.profileLanguages.split(',').map(s => s.trim()).filter(s => s) : ['English'],
+            availability: user.profileAvailability || 'unspecified',
+            jobTypePreference: user.profileJobTypePreference ? user.profileJobTypePreference.split(',').map(s => s.trim()).filter(s => s) : ['Unspecified'],
+            salaryExpectationMin: user.profileSalaryExpectationMin,
+            salaryExpectationMax: user.profileSalaryExpectationMax,
+            personalityAssessment: [], // Placeholder
+            optimalWorkStyles: [],     // Placeholder
+            isUnderestimatedTalent: Math.random() < 0.15, // Placeholder
+            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential.' : undefined,
         }));
         
         console.log(`[DB Action GET /jobseekers] Fetched and transformed ${candidates.length} jobseeker profiles.`);
@@ -414,21 +427,19 @@ app.post('/api/interactions/like', async (req, res) => {
         let otherUser = null;
 
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
-            if (!likingUser.likedCandidateIds.includes(likedProfileId)) {
+            if (!likingUser.likedCandidateIds.includes(likedProfileId)) { // likedProfileId IS the candidate's User._id
                 likingUser.likedCandidateIds.push(likedProfileId);
             }
-            // For recruiter liking a candidate, 'likedProfileId' is the candidate's backend User _id (which is now candidate.id on frontend)
-            otherUser = await User.findById(likedProfileId); // Assuming likedProfileId IS the user's _id
+            otherUser = await User.findById(likedProfileId); 
             if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) {
                 matchMade = true;
             }
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
+             // For jobseeker liking a company, likedProfileId is the company's representedCompanyProfileId (e.g. 'comp1')
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) {
                 likingUser.likedCompanyIds.push(likedProfileId);
             }
-            // For jobseeker liking a company, 'likedProfileId' is the company's backend User _id (representing the company)
             otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
-            // To check for match, we need otherUser's likedCandidateIds, and our likingUser's representedCandidateProfileId
             if (otherUser && likingUser.representedCandidateProfileId && otherUser.likedCandidateIds.includes(likingUser.representedCandidateProfileId)) {
                 matchMade = true;
             }
@@ -447,33 +458,35 @@ app.post('/api/interactions/like', async (req, res) => {
             const existingMatch = await Match.findOne({ uniqueMatchKey: uniqueKey });
 
             if (!existingMatch) {
-                let candidateDisplayId, companyDisplayId, finalUserA, finalUserB;
+                let candidateDisplayIdForMatch, companyDisplayIdForMatch;
 
                 if (likingUserRole === 'recruiter') { 
-                    finalUserA = likingUser._id; 
-                    finalUserB = otherUser._id; 
-                    candidateDisplayId = otherUser.representedCandidateProfileId || likedProfileId; // Candidate's own profile ID
-                    companyDisplayId = likingUser.representedCompanyProfileId; // Recruiter's company ID
+                    // Liking user is recruiter, otherUser is jobseeker
+                    candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString(); 
+                    companyDisplayIdForMatch = likingUser.representedCompanyProfileId;
                 } else { // likingUserRole === 'jobseeker'
-                    finalUserA = otherUser._id; // Recruiter's User ID
-                    finalUserB = likingUser._id; // Job Seeker's User ID
-                    candidateDisplayId = likingUser.representedCandidateProfileId; // Job seeker's profile ID
-                    companyDisplayId = otherUser.representedCompanyProfileId || likedProfileId; // Company's profile ID
+                    // Liking user is jobseeker, otherUser is recruiter (representing company)
+                    candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString();
+                    companyDisplayIdForMatch = otherUser.representedCompanyProfileId; 
                 }
                 
-                if (!candidateDisplayId || !companyDisplayId) {
-                    console.error("[Match Creation] Critical error: Missing represented profile ID for match detection.", {likingUser, otherUser, likedProfileId, likingUserRole});
+                if (!candidateDisplayIdForMatch || !companyDisplayIdForMatch) {
+                    console.error("[Match Creation] Critical error: Missing represented profile ID for match.", {
+                        likingUserId: likingUser._id, likingUserRole,
+                        otherUserId: otherUser._id, otherUserRole: otherUser.selectedRole,
+                        candidateDisplayIdForMatch, companyDisplayIdForMatch
+                    });
                 } else {
                     const newMatch = new Match({
-                        userA_Id: finalUserA,
-                        userB_Id: finalUserB,
-                        candidateProfileIdForDisplay: candidateDisplayId,
-                        companyProfileIdForDisplay: companyDisplayId,
+                        userA_Id: userA_Id, // Ensure these are sorted by string value to maintain uniqueKey consistency
+                        userB_Id: userB_Id,
+                        candidateProfileIdForDisplay: candidateDisplayIdForMatch,
+                        companyProfileIdForDisplay: companyDisplayIdForMatch,
                         uniqueMatchKey: uniqueKey,
                     });
                     await newMatch.save();
                     newMatchDetails = newMatch;
-                    console.log(`[DB Action] Mutual match CREATED between ${finalUserA} and ${finalUserB}. Match ID: ${newMatch._id}`);
+                    console.log(`[DB Action] Mutual match CREATED between ${userA_Id} and ${userB_Id}. Match ID: ${newMatch._id}`);
                 }
             } else {
                 console.log(`[DB Action] Mutual match ALREADY EXISTS between ${userA_Id} and ${userB_Id}. Match ID: ${existingMatch._id}`);

@@ -75,42 +75,76 @@ const UserSchema = new mongoose.Schema({
     likedCompanyIds: [{ // For job seekers: list of company profile IDs they liked (e.g., 'comp1')
         type: String,
     }],
-    // Conceptual fields to link a User document to a specific profile ID they represent from mockData
-    // This is crucial for matching logic if Candidate/Company profiles are not full User documents themselves
-    representedCandidateProfileId: { // For a job seeker user, which candidate profile ID (e.g., 'cand1') they are
+    representedCandidateProfileId: {
         type: String,
-        index: true, 
-        sparse: true, 
+        index: true,
+        sparse: true,
     },
-    representedCompanyProfileId: { // For a recruiter user, which company profile ID (e.g., 'comp1') they represent
+    representedCompanyProfileId: {
         type: String,
         index: true,
         sparse: true,
     },
     // --- Detailed Job Seeker Profile Fields ---
-    profileHeadline: {
+    profileHeadline: { // Already exists, used for 'role'
         type: String,
         trim: true,
     },
-    profileExperienceSummary: {
+    profileExperienceSummary: { // Already exists
         type: String,
         trim: true,
     },
-    profileSkills: { // Storing as a comma-separated string for simplicity, as per current frontend
+    profileSkills: { // Already exists, comma-separated string
         type: String,
         trim: true,
     },
-    profileDesiredWorkStyle: {
+    profileDesiredWorkStyle: { // Already exists
         type: String,
         trim: true,
     },
-    profilePastProjects: {
+    profilePastProjects: { // Already exists
         type: String,
         trim: true,
     },
-    profileVideoPortfolioLink: {
+    profileVideoPortfolioLink: { // Already exists
         type: String,
         trim: true,
+    },
+    // New fields for more detailed profile
+    profileAvatarUrl: {
+        type: String,
+        trim: true,
+    },
+    profileWorkExperienceLevel: {
+        type: String,
+        // Consider enum validation if desired, but string is flexible for now
+        // enum: ['intern', '1-3 years', '3-5 years', '5-10 years', '10+ years', 'unspecified'],
+    },
+    profileEducationLevel: {
+        type: String,
+        // enum: ['high_school', 'university', 'master', 'doctorate', 'unspecified'],
+    },
+    profileLocationPreference: { // For candidate's preference, distinct from job's location type
+        type: String,
+        // enum: ['specific_city', 'remote', 'hybrid', 'unspecified'],
+    },
+    profileLanguages: { // Storing as a comma-separated string for simplicity in form
+        type: String,
+        trim: true,
+    },
+    profileAvailability: {
+        type: String,
+        // enum: ['immediate', '1_month', '3_months', 'negotiable', 'unspecified'],
+    },
+    profileJobTypePreference: { // Storing as a comma-separated string
+        type: String,
+        trim: true,
+    },
+    profileSalaryExpectationMin: {
+        type: Number,
+    },
+    profileSalaryExpectationMax: {
+        type: Number,
     }
 }, { timestamps: true });
 
