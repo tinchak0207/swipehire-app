@@ -48,7 +48,6 @@ const initialFilters: CandidateFilters = {
 
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates);
-  const [filteredCandidatesMemo, setFilteredCandidatesMemo] = useState<Candidate[]>([]);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,9 +89,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  const calculatedFilteredCandidates = useMemo(() => {
+  const filteredCandidatesMemo = useMemo(() => {
     console.log('[CandidateDiscovery] Recalculating filteredCandidatesMemo...');
-    console.log(`[CandidateDiscovery] Initial allCandidates count: ${allCandidates.length}`);
     let candidates = [...allCandidates];
 
     if (activeFilters.experienceLevels.size > 0) {
@@ -122,10 +120,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds]);
 
-  useEffect(() => {
-    console.log('[CandidateDiscovery] calculatedFilteredCandidates memo re-evaluated, new length:', calculatedFilteredCandidates.length);
-    setFilteredCandidatesMemo(calculatedFilteredCandidates);
-  }, [calculatedFilteredCandidates]);
 
   const loadMoreCandidates = useCallback(() => {
     console.log('[CandidateDiscovery] loadMoreCandidates called.');
@@ -157,12 +151,18 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [isLoading, hasMore, currentIndex, filteredCandidatesMemo]);
 
   useEffect(() => {
-    console.log(`[CandidateDiscovery] Filters/search changed (filteredCandidatesMemo updated to ${filteredCandidatesMemo.length} items). Resetting display state.`);
+    console.log(`[CandidateDiscovery] Effect for filteredCandidatesMemo triggered. Length: ${filteredCandidatesMemo.length}`);
     setDisplayedCandidates([]);
     setCurrentIndex(0);
-    setHasMore(filteredCandidatesMemo.length > 0);
-    // The IntersectionObserver, if its trigger is visible, will call loadMoreCandidates.
-  }, [filteredCandidatesMemo]);
+    const hasFilteredItems = filteredCandidatesMemo.length > 0;
+    setHasMore(hasFilteredItems);
+    if (hasFilteredItems) {
+        console.log('[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.');
+        loadMoreCandidates();
+    } else {
+        console.log('[CandidateDiscovery] Reset: No filtered items to display.');
+    }
+  }, [filteredCandidatesMemo]); // Removed loadMoreCandidates from here
 
 
   useEffect(() => {
@@ -178,7 +178,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         observer.current.observe(loadMoreTriggerRef.current);
     }
     return () => { if (observer.current) observer.current.disconnect(); };
-  }, [hasMore, isLoading, loadMoreCandidates]);
+  }, [hasMore, isLoading, loadMoreCandidates]); // loadMoreCandidates is needed here because the observer calls it.
 
   const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => {
     if (action === 'share' || action === 'details') {
@@ -252,8 +252,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
         return newPassed;
     });
-    // The change in passedCandidateProfileIds will trigger the useMemo for calculatedFilteredCandidates,
-    // which will then trigger the useEffect that resets display and pagination.
     toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
     setIsTrashBinOpen(false);
   };
@@ -376,6 +374,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
+    
+
     
 
     
