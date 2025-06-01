@@ -72,9 +72,19 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
         console.error('[Socket.IO Client] Connection Error:', err.message, err.cause, 'User ID:', mongoDbUserId);
         // toast({ title: "Chat Connection Error", description: `Could not connect to chat: ${err.message}. Trying to reconnect...`, variant: "destructive", duration: 7000});
       });
+      socket.on('joinRoomError', (error: { message: string }) => {
+        console.error('[Socket.IO Client] Join Room Error:', error.message);
+        toast({
+            title: "Chat Access Denied",
+            description: error.message || "Could not join the chat room.",
+            variant: "destructive",
+        });
+        // Optionally, close the chat dialog or disable chat input
+        setIsChatOpen(false);
+      });
     }
     return socket;
-  }, [mongoDbUserId]);
+  }, [mongoDbUserId, toast]);
 
 
   const loadChatMessages = useCallback(async () => {

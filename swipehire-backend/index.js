@@ -409,17 +409,17 @@ io.on('connection', (socket) => {
   socket.on('joinRoom', async (matchId) => {
     if (!matchId) {
         console.warn(`[Socket.io] User ${socket.id} (User ID: ${connectedUserId}) tried to join room with invalid matchId: ${matchId}`);
-        // Optionally emit an error back to the client: socket.emit('joinRoomError', { message: 'Invalid matchId' });
+        socket.emit('joinRoomError', { message: `Failed to join chat room: Invalid Match ID provided.` });
         return;
     }
     if (!connectedUserId) {
         console.warn(`[Socket.io] User ${socket.id} (Anonymous) tried to join room ${matchId} without a userId in handshake auth.`);
-        // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Authentication required to join room.' });
+        socket.emit('joinRoomError', { message: 'Authentication required to join chat room.' });
         return;
     }
     if (!mongoose.Types.ObjectId.isValid(matchId) || !mongoose.Types.ObjectId.isValid(connectedUserId)) {
       console.warn(`[Socket.io] Invalid ObjectId format for matchId (${matchId}) or connectedUserId (${connectedUserId}) for socket ${socket.id}.`);
-      // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Invalid ID format.' });
+      socket.emit('joinRoomError', { message: 'Failed to join chat room: Invalid ID format.' });
       return;
     }
 
@@ -427,7 +427,7 @@ io.on('connection', (socket) => {
       const match = await Match.findById(matchId);
       if (!match) {
         console.warn(`[Socket.io] Match not found for ID: ${matchId}. User ${socket.id} (User ID: ${connectedUserId}) cannot join.`);
-        // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Match not found.' });
+        socket.emit('joinRoomError', { message: `Failed to join chat room: Match not found.` });
         return;
       }
 
@@ -440,11 +440,11 @@ io.on('connection', (socket) => {
         console.log(`[Socket.io] User ${socket.id} (User ID: ${connectedUserId}) successfully joined room: ${roomName}`);
       } else {
         console.warn(`[Socket.io] Unauthorized attempt: User ${socket.id} (User ID: ${connectedUserId}) tried to join room ${matchId} but is not a participant.`);
-        // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Not authorized to join this room.' });
+        socket.emit('joinRoomError', { message: 'Not authorized to join this chat room.' });
       }
     } catch (error) {
       console.error(`[Socket.io] Error during joinRoom for matchId ${matchId}, userId ${connectedUserId}, socket ${socket.id}:`, error);
-      // Optionally emit an error back: socket.emit('joinRoomError', { message: 'Server error during room join.' });
+      socket.emit('joinRoomError', { message: 'Server error while trying to join chat room.' });
     }
   });
 
