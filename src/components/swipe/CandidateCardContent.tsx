@@ -690,8 +690,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Scrollable Text Content Area */}
-        <div className="flex-1 min-h-0 p-3 sm:p-4 overflow-y-auto space-y-1 text-xs sm:text-sm">
+        {/* Text Content Area - No internal scroll, flex-1 to take space */}
+        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
             <CardHeader className="p-0 mb-1"> 
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
@@ -765,3 +765,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
