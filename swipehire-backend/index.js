@@ -171,7 +171,8 @@ app.put('/api/users/:identifier', async (req, res) => {
 });
 
 // New endpoint specifically for updating job seeker profile details
-app.put('/api/users/:identifier/profile', async (req, res) => {
+// Changed from PUT to POST
+app.post('/api/users/:identifier/profile', async (req, res) => {
     try {
         const { identifier } = req.params;
         const {
@@ -192,8 +193,7 @@ app.put('/api/users/:identifier/profile', async (req, res) => {
             profileSalaryExpectationMax
         } = req.body;
 
-        console.log(`[DB Action PUT /profile] Attempting to update profile for user identifier: ${identifier}.`);
-        // console.log(`[DB Action PUT /profile] Received profile data:`, req.body);
+        console.log(`[DB Action POST /profile] Attempting to update profile for user identifier: ${identifier}.`);
 
         let userToUpdate;
         if (mongoose.Types.ObjectId.isValid(identifier)) {
@@ -203,7 +203,7 @@ app.put('/api/users/:identifier/profile', async (req, res) => {
         }
 
         if (!userToUpdate) {
-            console.log(`[DB Action PUT /profile] User not found with identifier: ${identifier}`);
+            console.log(`[DB Action POST /profile] User not found with identifier: ${identifier}`);
             return res.status(404).json({ message: 'User not found' });
         }
 
@@ -227,11 +227,11 @@ app.put('/api/users/:identifier/profile', async (req, res) => {
         if (userToUpdate.selectedRole === 'jobseeker' && !userToUpdate.representedCandidateProfileId) {
             const defaultCandidateId = userToUpdate.firebaseUid ? `cand-user-${userToUpdate.firebaseUid.slice(0,5)}` : `cand-user-${userToUpdate._id.toString().slice(-5)}`;
             userToUpdate.representedCandidateProfileId = defaultCandidateId;
-            console.log(`[DB Action PUT /profile] Assigned conceptual representedCandidateProfileId: ${defaultCandidateId} to jobseeker ${userToUpdate._id}`);
+            console.log(`[DB Action POST /profile] Assigned conceptual representedCandidateProfileId: ${defaultCandidateId} to jobseeker ${userToUpdate._id}`);
         }
 
         const updatedUser = await userToUpdate.save();
-        console.log(`[DB Action PUT /profile] User profile updated for ${updatedUser._id}`);
+        console.log(`[DB Action POST /profile] User profile updated for ${updatedUser._id}`);
         res.json({ message: 'User profile updated successfully!', user: updatedUser });
 
     } catch (error) {
@@ -294,27 +294,28 @@ app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
 
 // --- New Endpoint to Fetch Jobseeker Profiles ---
 app.get('/api/users/profiles/jobseekers', async (req, res) => {
-    console.log(`[Backend Route] HIT: GET /api/users/profiles/jobseekers`); // Logging when route is hit
+    console.log(`[Backend Route] HIT: GET /api/users/profiles/jobseekers`); 
     try {
         const jobSeekerUsers = await User.find({
             selectedRole: 'jobseeker',
         });
+        console.log(`[DB Action GET /jobseekers] Found ${jobSeekerUsers.length} raw user documents with selectedRole: 'jobseeker'.`);
 
         if (!jobSeekerUsers || jobSeekerUsers.length === 0) {
-            console.log('[DB Action GET /jobseekers] No jobseeker profiles found.');
-            return res.json([]);
+            console.log('[DB Action GET /jobseekers] No jobseeker profiles found in DB.');
+            return res.json([]); 
         }
 
         const candidates = jobSeekerUsers.map(user => ({
-            id: user._id.toString(), // Important: use MongoDB _id as the candidate ID
+            id: user._id.toString(), 
             name: user.name || 'N/A',
             role: user.profileHeadline || 'Role not specified',
             experienceSummary: user.profileExperienceSummary || 'No summary.',
             skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
-            avatarUrl: user.profileAvatarUrl || `https://placehold.co/500x700.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
-            dataAiHint: 'person portrait', // Default hint
+            avatarUrl: user.profileAvatarUrl || `https://placehold.co/100x100.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
+            dataAiHint: 'person portrait', 
             videoResumeUrl: user.profileVideoPortfolioLink || undefined,
-            profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder
+            profileStrength: Math.floor(Math.random() * 40) + 60, 
             location: user.country || 'Location not specified',
             desiredWorkStyle: user.profileDesiredWorkStyle || 'Not specified',
             pastProjects: user.profilePastProjects || 'Not specified',
@@ -326,9 +327,9 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             jobTypePreference: user.profileJobTypePreference ? user.profileJobTypePreference.split(',').map(s => s.trim()).filter(s => s) : ['Unspecified'],
             salaryExpectationMin: user.profileSalaryExpectationMin,
             salaryExpectationMax: user.profileSalaryExpectationMax,
-            personalityAssessment: [], // Placeholder
-            optimalWorkStyles: [],     // Placeholder
-            isUnderestimatedTalent: Math.random() < 0.15, // Placeholder
+            personalityAssessment: [], 
+            optimalWorkStyles: [],     
+            isUnderestimatedTalent: Math.random() < 0.15, 
             underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential.' : undefined,
         }));
         

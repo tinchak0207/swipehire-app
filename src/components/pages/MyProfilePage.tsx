@@ -41,9 +41,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
   
   // Avatar states
-  const [avatarUrl, setAvatarUrl] = useState(''); // Stores the URL to be saved (could be existing or placeholder for new upload)
-  const [avatarFile, setAvatarFile] = useState<File | null>(null); // Stores the actual file object if selected
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null); // Stores data URL for previewing new file
+  const [avatarUrl, setAvatarUrl] = useState(''); 
+  const [avatarFile, setAvatarFile] = useState<File | null>(null); 
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null); 
 
   const [workExperienceLevel, setWorkExperienceLevel] = useState<WorkExperienceLevel | string>(WorkExperienceLevel.UNSPECIFIED);
   const [educationLevel, setEducationLevel] = useState<EducationLevel | string>(EducationLevel.UNSPECIFIED);
@@ -69,7 +69,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     const loadProfile = async () => {
       setIsFetchingProfile(true);
-      setAvatarPreview(null); // Reset preview on load
+      setAvatarPreview(null); 
       if (mongoDbUserId) {
         try {
           const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
@@ -81,7 +81,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
             setPastProjects(userData.profilePastProjects || '');
             setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
-            setAvatarUrl(userData.profileAvatarUrl || ''); // Load current avatar URL
+            setAvatarUrl(userData.profileAvatarUrl || ''); 
             setWorkExperienceLevel(userData.profileWorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
             setEducationLevel(userData.profileEducationLevel || EducationLevel.UNSPECIFIED);
             setLocationPreference(userData.profileLocationPreference || LocationPreference.UNSPECIFIED);
@@ -100,7 +100,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         }
       }
 
-      // Fallback to localStorage if backend fetch fails or no mongoDbUserId
       const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
       if (savedProfileString) {
         try {
@@ -111,7 +110,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
           setPastProjects(savedProfile.pastProjects || '');
           setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
-          setAvatarUrl(savedProfile.avatarUrl || savedProfile.profileAvatarUrl || ''); // Check both old and new key
+          setAvatarUrl(savedProfile.avatarUrl || savedProfile.profileAvatarUrl || ''); 
           setWorkExperienceLevel(savedProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
           setEducationLevel(savedProfile.educationLevel || EducationLevel.UNSPECIFIED);
           setLocationPreference(savedProfile.locationPreference || LocationPreference.UNSPECIFIED);
@@ -134,31 +133,28 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) { 
         toast({ title: "File Too Large", description: "Avatar image must be less than 5MB.", variant: "destructive" });
-        event.target.value = ''; // Clear the input
+        event.target.value = ''; 
         return;
       }
       if (!file.type.startsWith("image/")) {
         toast({ title: "Invalid File Type", description: "Please select an image file (PNG, JPG, GIF).", variant: "destructive" });
-        event.target.value = ''; // Clear the input
+        event.target.value = ''; 
         return;
       }
       setAvatarFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         setAvatarPreview(reader.result as string);
-        // Simulate an uploaded URL. In a real app, this URL would come from your storage service.
-        setAvatarUrl(`https://placehold.co/100x100.png?text=${encodeURIComponent(file.name.substring(0, 8))}`);
+        const fileNameStart = file.name.split('.')[0].substring(0, 10);
+        setAvatarUrl(`https://placehold.co/100x100.png?text=${encodeURIComponent(fileNameStart)}`);
         toast({ title: "Avatar Preview Updated", description: "Save profile to apply. Actual file upload is simulated." });
       };
       reader.readAsDataURL(file);
     } else {
       setAvatarFile(null);
       setAvatarPreview(null);
-      // Optionally, you could revert avatarUrl to what was loaded from the backend
-      // if the user clears the file input after selecting a file.
-      // For now, if they clear it, the current avatarUrl (which might be the placeholder) remains.
     }
   };
 
@@ -174,13 +170,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     setIsLoading(true);
     
-    let finalAvatarUrl = avatarUrl; // Use current avatarUrl state which might be placeholder from new file or existing URL
+    let finalAvatarUrl = avatarUrl; 
 
     if (avatarFile) {
-      // SIMULATED UPLOAD: In a real app, you'd upload avatarFile here and get a new URL.
-      // For now, avatarUrl state has already been updated to a placeholder by handleAvatarFileChange.
       console.log("Simulating avatar upload for file:", avatarFile.name);
-      // finalAvatarUrl remains as the placeholder set in handleAvatarFileChange
       toast({ title: "Avatar Update (Simulated)", description: "Using a placeholder for the new avatar. Actual file upload is a future step.", duration: 4000});
     }
     
@@ -191,7 +184,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileDesiredWorkStyle: desiredWorkStyle,
       profilePastProjects: pastProjects,
       profileVideoPortfolioLink: videoPortfolioLink,
-      profileAvatarUrl: finalAvatarUrl, // Send this URL (original or placeholder) to backend
+      profileAvatarUrl: finalAvatarUrl, 
       profileWorkExperienceLevel: workExperienceLevel,
       profileEducationLevel: educationLevel,
       profileLocationPreference: locationPreference,
@@ -204,7 +197,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
-        method: 'PUT',
+        method: 'POST', // Changed from PUT to POST
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
@@ -214,12 +207,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         throw new Error(errorData.message || `Failed to save profile to backend. Status: ${response.status}`);
       }
       
-      // Save to local storage for CandidateDiscoveryPage quick reflection (can be adjusted later)
       if (typeof window !== 'undefined') {
-         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl }; // Ensure avatarUrl key for local
+         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl }; 
          localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
       }
-
 
       toast({
         title: 'Profile Updated & Published!',
@@ -236,7 +227,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       });
     } finally {
       setIsLoading(false);
-      setAvatarFile(null); // Clear the file object after attempting save, preview remains until next selection or load
+      setAvatarFile(null); 
     }
   };
 
