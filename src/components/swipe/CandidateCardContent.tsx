@@ -658,94 +658,92 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         {/* Top Section: Avatar ONLY */}
-        <div className="shrink-0 bg-slate-100 dark:bg-slate-800 p-3 sm:p-3 flex justify-center items-center aspect-[4/3] relative">
-            <div className="relative w-24 h-24 sm:w-28 sm:h-28">
-                {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
-                    <Image
-                    src={candidate.avatarUrl}
-                    alt={candidate.name}
-                    fill
-                    className="rounded-full object-cover border-4 border-white shadow-md"
-                    data-ai-hint={candidate.dataAiHint || "person professional"}
-                    priority
-                    />
-                ) : (
-                    <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md" />
-                )}
-                {candidate.isUnderestimatedTalent && (
-                    <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                        <Badge variant="default" className="absolute top-0 right-0 -mt-1 -mr-1 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-0.5 transform translate-x-1/4 -translate-y-1/4">
-                            <Sparkles className="h-3 w-3 mr-1" />
-                            Gem
-                        </Badge>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-xs bg-black text-white">
-                        <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                    </TooltipProvider>
-                )}
-            </div>
+        <div className="shrink-0 h-[30%] bg-slate-100 dark:bg-slate-800 flex justify-center items-center p-3 sm:p-3 relative">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28"> {/* Fixed size for the avatar circle */}
+            {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
+              <Image
+                src={candidate.avatarUrl}
+                alt={candidate.name}
+                fill
+                className="rounded-full object-cover border-4 border-white shadow-md"
+                data-ai-hint={candidate.dataAiHint || "person professional"}
+                priority
+              />
+            ) : (
+              <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md" />
+            )}
+          </div>
+          {candidate.isUnderestimatedTalent && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="default" className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-0.5">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Gem
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs bg-black text-white">
+                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
         </div>
         
         {/* Yellow Separator Line */}
         <div className="w-full border-t-4 border-yellow-400 shrink-0"></div>
 
         {/* Main Text Content Section - Name, Role, Location, Summary, Skills, Work Style */}
-        <div className="flex-1 min-h-0 p-4 space-y-3 overflow-y-auto text-sm sm:text-base"> {/* Increased base text size & spacing */}
-          
-          <div className="text-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-primary">{candidate.name}</h2>
-            <p className="text-lg sm:text-xl text-muted-foreground">{candidate.role}</p>
-          </div>
-          
-          <Separator className="my-3" /> {/* Separator after name/role */}
-
-          {candidate.location && (
-            <div className="flex items-center text-muted-foreground mt-2">
-              <MapPin className="h-4 w-4 mr-2 shrink-0" />
-              <span className="line-clamp-1">{candidate.location}</span>
+        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-sm sm:text-base">
+            <div className="text-center">
+                <h2 className="text-xl sm:text-2xl font-bold text-primary">{candidate.name}</h2>
+                <p className="text-lg sm:text-xl text-muted-foreground mb-2">{candidate.role}</p>
             </div>
-          )}
+            <Separator className="my-3"/>
 
-          {candidate.desiredWorkStyle && (
-            <div className="mt-3">
-              <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
-                <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                Desired Work Style
-              </h4>
-              <p className="text-muted-foreground">{candidate.desiredWorkStyle}</p>
-            </div>
-          )}
+            {candidate.location && (
+                <div className="flex items-center text-muted-foreground mt-3">
+                <MapPin className="h-4 w-4 mr-2 shrink-0" />
+                <span className="line-clamp-1">{candidate.location}</span>
+                </div>
+            )}
 
-          {candidate.experienceSummary && (
-            <div className="mt-3">
-              <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
-                <Briefcase className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                Summary
-              </h4>
-              <p className="text-muted-foreground line-clamp-3 sm:line-clamp-4">
-                {candidate.experienceSummary}
-              </p>
-            </div>
-          )}
+            {candidate.experienceSummary && (
+                <div className="mt-3">
+                <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
+                    <Briefcase className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
+                    Summary
+                </h4>
+                <p className="text-muted-foreground line-clamp-3 sm:line-clamp-4">
+                    {candidate.experienceSummary}
+                </p>
+                </div>
+            )}
+            
+            {candidate.desiredWorkStyle && (
+                <div className="mt-3">
+                <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
+                    <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
+                    Desired Work Style
+                </h4>
+                <p className="text-muted-foreground">{candidate.desiredWorkStyle}</p>
+                </div>
+            )}
 
-          {candidate.skills && candidate.skills.length > 0 && (
-            <div className="pt-2 mt-3">
-               <h4 className="text-base font-semibold text-foreground flex items-center mb-1.5">
-                <ListChecks className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                Top Skills
-              </h4>
-              <div className="flex flex-wrap gap-1.5">
-                {candidate.skills.slice(0, 4).map((skill) => (
-                  <Badge key={skill} variant="secondary" className="text-sm px-2 py-1">{skill}</Badge>
-                ))}
-                {candidate.skills.length > 4 && <Badge variant="outline" className="text-sm px-2 py-1">+{candidate.skills.length - 4} more</Badge>}
-              </div>
-            </div>
-          )}
+            {candidate.skills && candidate.skills.length > 0 && (
+                <div className="pt-2 mt-3">
+                <h4 className="text-base font-semibold text-foreground flex items-center mb-1.5">
+                    <ListChecks className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
+                    Top Skills
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                    {candidate.skills.slice(0, 4).map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-sm px-2 py-1">{skill}</Badge>
+                    ))}
+                    {candidate.skills.length > 4 && <Badge variant="outline" className="text-sm px-2 py-1">+{candidate.skills.length - 4} more</Badge>}
+                </div>
+                </div>
+            )}
         </div>
             
         {/* Footer with actions */}
@@ -782,3 +780,4 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
