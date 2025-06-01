@@ -694,7 +694,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         <div className="w-full border-t-4 border-yellow-400 shrink-0"></div>
 
         {/* Main Text Content Section - Name, Role, Location, Summary, Skills, Work Style */}
-        <div className="flex-1 min-h-0 p-4 overflow-y-auto space-y-3 text-sm sm:text-base">
+        <div className="flex-1 min-h-0 overflow-y-auto p-3 space-y-3 text-sm sm:text-base">
             <div className="text-center">
                 <h2 className="text-xl sm:text-2xl font-bold text-primary">{candidate.name}</h2>
                 <p className="text-lg sm:text-xl text-muted-foreground mb-2">{candidate.role}</p>
@@ -706,6 +706,16 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 <MapPin className="h-4 w-4 mr-2 shrink-0" />
                 <span className="line-clamp-1">{candidate.location}</span>
                 </div>
+            )}
+            
+            {candidate.desiredWorkStyle && (
+              <div className="mt-3">
+                <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
+                    <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
+                    Desired Work Style
+                </h4>
+                <p className="text-muted-foreground">{candidate.desiredWorkStyle}</p>
+              </div>
             )}
 
             {candidate.experienceSummary && (
@@ -720,22 +730,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 </div>
             )}
             
-            {candidate.desiredWorkStyle && (
-                <div className="mt-3">
-                <h4 className="text-base font-semibold text-foreground flex items-center mb-1">
-                    <Lightbulb className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                    Desired Work Style
-                </h4>
-                <p className="text-muted-foreground">{candidate.desiredWorkStyle}</p>
-                </div>
-            )}
-
             {candidate.skills && candidate.skills.length > 0 && (
                 <div className="pt-2 mt-3">
-                <h4 className="text-base font-semibold text-foreground flex items-center mb-1.5">
-                    <ListChecks className="h-4 w-4 mr-2 text-muted-foreground shrink-0" />
-                    Top Skills
-                </h4>
                 <div className="flex flex-wrap gap-1.5">
                     {candidate.skills.slice(0, 4).map((skill) => (
                     <Badge key={skill} variant="secondary" className="text-sm px-2 py-1">{skill}</Badge>
@@ -780,4 +776,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
