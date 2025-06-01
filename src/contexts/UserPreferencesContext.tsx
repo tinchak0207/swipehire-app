@@ -38,7 +38,7 @@ export const useUserPreferences = () => {
 
 interface UserPreferencesProviderProps {
   children: ReactNode;
-  currentUser: User | null; 
+  currentUser: User | null;
 }
 
 export const UserPreferencesProvider = ({ children, currentUser }: UserPreferencesProviderProps) => {
@@ -92,11 +92,11 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
       if (response.ok) {
         const userData = await response.json();
         // Merge fetched preferences with defaults to ensure all keys exist
-        const loadedPrefs = { 
-          ...defaultPreferences, 
+        const loadedPrefs = {
+          ...defaultPreferences,
           ...userData.preferences,
           // Ensure featureFlags is an object even if not present in userData.preferences
-          featureFlags: { ...(defaultPreferences.featureFlags || {}), ...(userData.preferences?.featureFlags || {}) } 
+          featureFlags: { ...(defaultPreferences.featureFlags || {}), ...(userData.preferences?.featureFlags || {}) }
         };
         setPreferencesState(loadedPrefs);
         applyTheme(loadedPrefs.theme);
@@ -116,7 +116,7 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
       setLoadingPreferences(false);
     }
   }, [applyTheme]);
-  
+
   // Automatically fetch preferences if mongoDbUserId is available
   useEffect(() => {
     if (mongoDbUserId) {
@@ -140,31 +140,14 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
   }, [preferences.theme, applyTheme]);
 
   const setPreferences = async (newPrefsPartial: Partial<UserPreferences>) => {
-    if (!mongoDbUserId) {
-      const localUpdatedPrefs = { ...preferences, ...newPrefsPartial };
-      setPreferencesState(localUpdatedPrefs);
-      if (newPrefsPartial.theme) applyTheme(newPrefsPartial.theme);
-      console.log("Preferences updated locally for guest/unidentified user.");
-      return;
-    }
-
     const updatedPreferences = { ...preferences, ...newPrefsPartial };
-    setPreferencesState(updatedPreferences); 
-    if (newPrefsPartial.theme) applyTheme(newPrefsPartial.theme);
-
-    try {
-      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences: updatedPreferences }), 
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to save preferences: ${response.statusText}`);
-      }
-      console.log("Preferences saved to MongoDB backend for user:", mongoDbUserId);
-    } catch (error) {
-      console.error("Error saving preferences to MongoDB backend:", error);
+    setPreferencesState(updatedPreferences);
+    if (newPrefsPartial.theme) {
+      applyTheme(newPrefsPartial.theme);
     }
+    // Removed direct backend call from here.
+    // SettingsPage.tsx handleSaveSettings will persist all settings to the backend.
+    console.log("UserPreferencesContext: Preferences updated locally. Backend save will occur via Settings page 'Save Settings' button.");
   };
 
   return (
@@ -173,4 +156,3 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     </UserPreferencesContext.Provider>
   );
 };
-
