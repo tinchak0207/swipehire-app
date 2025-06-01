@@ -294,6 +294,7 @@ app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
 
 // --- New Endpoint to Fetch Jobseeker Profiles ---
 app.get('/api/users/profiles/jobseekers', async (req, res) => {
+    console.log(`[Backend Route] HIT: GET /api/users/profiles/jobseekers`); // Logging when route is hit
     try {
         const jobSeekerUsers = await User.find({
             selectedRole: 'jobseeker',
@@ -305,13 +306,13 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
         }
 
         const candidates = jobSeekerUsers.map(user => ({
-            id: user._id.toString(),
+            id: user._id.toString(), // Important: use MongoDB _id as the candidate ID
             name: user.name || 'N/A',
             role: user.profileHeadline || 'Role not specified',
             experienceSummary: user.profileExperienceSummary || 'No summary.',
             skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
             avatarUrl: user.profileAvatarUrl || `https://placehold.co/500x700.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
-            dataAiHint: 'person portrait',
+            dataAiHint: 'person portrait', // Default hint
             videoResumeUrl: user.profileVideoPortfolioLink || undefined,
             profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder
             location: user.country || 'Location not specified',
@@ -427,19 +428,24 @@ app.post('/api/interactions/like', async (req, res) => {
         let otherUser = null;
 
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
-            if (!likingUser.likedCandidateIds.includes(likedProfileId)) { // likedProfileId IS the candidate's User._id
+             // For recruiter liking a candidate, likedProfileId IS the candidate's User._id
+            if (!likingUser.likedCandidateIds.includes(likedProfileId)) { 
                 likingUser.likedCandidateIds.push(likedProfileId);
             }
             otherUser = await User.findById(likedProfileId); 
+            // Check if the candidate (otherUser) has liked the company profile represented by the recruiter
             if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) {
                 matchMade = true;
             }
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
-             // For jobseeker liking a company, likedProfileId is the company's representedCompanyProfileId (e.g. 'comp1')
+             // For jobseeker liking a company, likedProfileId is the company's conceptual ID ('comp1'), 
+             // which corresponds to a recruiter's representedCompanyProfileId
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) {
                 likingUser.likedCompanyIds.push(likedProfileId);
             }
+            // Find the recruiter user who represents this company profile
             otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
+            // Check if that recruiter (otherUser) has liked this jobseeker's profile
             if (otherUser && likingUser.representedCandidateProfileId && otherUser.likedCandidateIds.includes(likingUser.representedCandidateProfileId)) {
                 matchMade = true;
             }
@@ -461,11 +467,11 @@ app.post('/api/interactions/like', async (req, res) => {
                 let candidateDisplayIdForMatch, companyDisplayIdForMatch;
 
                 if (likingUserRole === 'recruiter') { 
-                    // Liking user is recruiter, otherUser is jobseeker
+                    // Liking user is recruiter, otherUser is jobseeker (whose _id is likedProfileId)
                     candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString(); 
                     companyDisplayIdForMatch = likingUser.representedCompanyProfileId;
                 } else { // likingUserRole === 'jobseeker'
-                    // Liking user is jobseeker, otherUser is recruiter (representing company)
+                    // Liking user is jobseeker, otherUser is recruiter (representing company with profile ID likedProfileId)
                     candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString();
                     companyDisplayIdForMatch = otherUser.representedCompanyProfileId; 
                 }
@@ -478,7 +484,7 @@ app.post('/api/interactions/like', async (req, res) => {
                     });
                 } else {
                     const newMatch = new Match({
-                        userA_Id: userA_Id, // Ensure these are sorted by string value to maintain uniqueKey consistency
+                        userA_Id: userA_Id, 
                         userB_Id: userB_Id,
                         candidateProfileIdForDisplay: candidateDisplayIdForMatch,
                         companyProfileIdForDisplay: companyDisplayIdForMatch,
@@ -543,3 +549,4 @@ app.listen(PORT, () => {
     console.log(`Frontend URLs allowed by CORS (from env and hardcoded): ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
 
+    
