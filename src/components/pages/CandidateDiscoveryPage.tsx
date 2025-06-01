@@ -48,7 +48,7 @@ const initialFilters: CandidateFilters = {
 
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>(mockCandidates);
-  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([]);
+  const [filteredCandidatesMemo, setFilteredCandidatesMemo] = useState<Candidate[]>([]);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -90,8 +90,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-  const localFilteredCandidates = useMemo(() => {
-    console.log('[CandidateDiscovery] Recalculating localFilteredCandidates...');
+  const calculatedFilteredCandidates = useMemo(() => {
+    console.log('[CandidateDiscovery] Recalculating filteredCandidatesMemo...');
     console.log(`[CandidateDiscovery] Initial allCandidates count: ${allCandidates.length}`);
     let candidates = [...allCandidates];
 
@@ -123,52 +123,46 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds]);
 
   useEffect(() => {
-    console.log('[CandidateDiscovery] filteredCandidates memo re-evaluated, new length:', localFilteredCandidates.length);
-    setFilteredCandidates(localFilteredCandidates);
-  }, [localFilteredCandidates]);
+    console.log('[CandidateDiscovery] calculatedFilteredCandidates memo re-evaluated, new length:', calculatedFilteredCandidates.length);
+    setFilteredCandidatesMemo(calculatedFilteredCandidates);
+  }, [calculatedFilteredCandidates]);
 
   const loadMoreCandidates = useCallback(() => {
     console.log('[CandidateDiscovery] loadMoreCandidates called.');
-    if (isLoading || !hasMore || currentIndex >= filteredCandidates.length) {
-      if (currentIndex >= filteredCandidates.length && filteredCandidates.length > 0) { // Only log if there were candidates to begin with
-        console.log('[CandidateDiscovery] No more candidates to load (currentIndex >= filteredCandidates.length).');
+    if (isLoading || !hasMore || currentIndex >= filteredCandidatesMemo.length) {
+      if (currentIndex >= filteredCandidatesMemo.length && filteredCandidatesMemo.length > 0) {
+        console.log('[CandidateDiscovery] No more candidates to load (currentIndex >= filteredCandidatesMemo.length).');
         setHasMore(false);
-      } else if (filteredCandidates.length === 0) {
-        console.log('[CandidateDiscovery] loadMoreCandidates called, but filteredCandidates is empty.');
+      } else if (filteredCandidatesMemo.length === 0) {
+        console.log('[CandidateDiscovery] loadMoreCandidates called, but filteredCandidatesMemo is empty.');
         setHasMore(false);
       }
       return;
     }
     setIsLoading(true);
-    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidates.length}`);
+    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidatesMemo.length}`);
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = filteredCandidates.slice(currentIndex, newLoadIndex);
+      const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
       setDisplayedCandidates(prev => {
         const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
         console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
         return updatedDisplay;
       });
       setCurrentIndex(newLoadIndex);
-      setHasMore(newLoadIndex < filteredCandidates.length);
+      setHasMore(newLoadIndex < filteredCandidatesMemo.length);
       setIsLoading(false);
-      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidates.length}`);
+      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
     }, 700);
-  }, [isLoading, hasMore, currentIndex, filteredCandidates]);
+  }, [isLoading, hasMore, currentIndex, filteredCandidatesMemo]);
 
   useEffect(() => {
-    console.log('[CandidateDiscovery] Effect for filteredCandidates/loadMoreCandidates triggered.');
+    console.log(`[CandidateDiscovery] Filters/search changed (filteredCandidatesMemo updated to ${filteredCandidatesMemo.length} items). Resetting display state.`);
     setDisplayedCandidates([]);
     setCurrentIndex(0);
-    const hasFilteredItems = filteredCandidates.length > 0;
-    setHasMore(hasFilteredItems);
-    if (hasFilteredItems) {
-      console.log('[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.');
-      loadMoreCandidates();
-    } else {
-      console.log('[CandidateDiscovery] Reset: No filtered items to display after current filters/search.');
-    }
-  }, [filteredCandidates, loadMoreCandidates]);
+    setHasMore(filteredCandidatesMemo.length > 0);
+    // The IntersectionObserver, if its trigger is visible, will call loadMoreCandidates.
+  }, [filteredCandidatesMemo]);
 
 
   useEffect(() => {
@@ -179,7 +173,10 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         loadMoreCandidates();
       }
     }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
-    if (loadMoreTriggerRef.current) observer.current.observe(loadMoreTriggerRef.current);
+    if (loadMoreTriggerRef.current) {
+        console.log('[CandidateDiscovery] IntersectionObserver: Attaching to loadMoreTriggerRef. hasMore:', hasMore, 'isLoading:', isLoading);
+        observer.current.observe(loadMoreTriggerRef.current);
+    }
     return () => { if (observer.current) observer.current.disconnect(); };
   }, [hasMore, isLoading, loadMoreCandidates]);
 
@@ -255,11 +252,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
         return newPassed;
     });
-    // Force re-evaluation of filteredCandidates by triggering a state update it depends on
-    // For simplicity, we can refetch/reset the displayed list.
-    setCurrentIndex(0); // This will trigger a reload via useEffect dependencies
-    setDisplayedCandidates([]); // Clear displayed to ensure fresh load
-    setHasMore(true); // Reset hasMore to allow loading
+    // The change in passedCandidateProfileIds will trigger the useMemo for calculatedFilteredCandidates,
+    // which will then trigger the useEffect that resets display and pagination.
     toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
     setIsTrashBinOpen(false);
   };
@@ -364,13 +358,13 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
           <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-            <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
-              <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} />
+             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} ${candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''}`}>
+              <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} isGuestMode={mongoDbUserId === null} />
             </SwipeCard>
           </div>
         ))}
         {isLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-        {hasMore && !isLoading && filteredCandidates.length > 0 && displayedCandidates.length < filteredCandidates.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
+        {hasMore && !isLoading && filteredCandidatesMemo.length > 0 && displayedCandidates.length < filteredCandidatesMemo.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
         {!isLoading && displayedCandidates.length === 0 && (
           <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
@@ -382,5 +376,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
+    
 
     
