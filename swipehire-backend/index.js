@@ -277,6 +277,55 @@ app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
   }
 });
 
+// --- New Endpoint to Fetch Jobseeker Profiles ---
+app.get('/api/users/profiles/jobseekers', async (req, res) => {
+    try {
+        const jobSeekerUsers = await User.find({
+            selectedRole: 'jobseeker',
+            // Optionally filter for users who have completed minimal profile:
+            // profileHeadline: { $exists: true, $ne: "" } 
+        });
+
+        if (!jobSeekerUsers || jobSeekerUsers.length === 0) {
+            console.log('[DB Action GET /jobseekers] No jobseeker profiles found.');
+            return res.json([]);
+        }
+
+        // Transform backend User documents to frontend Candidate structure
+        const candidates = jobSeekerUsers.map(user => ({
+            id: user._id.toString(), // Use MongoDB _id as frontend id
+            name: user.name || 'N/A',
+            role: user.profileHeadline || 'Profile Incomplete',
+            experienceSummary: user.profileExperienceSummary || 'No summary provided.',
+            skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
+            avatarUrl: `https://placehold.co/500x700.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`, // Placeholder
+            dataAiHint: 'person portrait',
+            videoResumeUrl: user.profileVideoPortfolioLink || undefined, // Use link from profile
+            profileStrength: Math.floor(Math.random() * 40) + 60, // Placeholder strength (60-99)
+            location: user.country || 'Location not specified',
+            desiredWorkStyle: user.profileDesiredWorkStyle || 'Not specified',
+            pastProjects: user.profilePastProjects || 'Not specified',
+            // Placeholder values for other fields not yet in backend User profile
+            workExperienceLevel: 'unspecified', // Placeholder - Use string value from enum
+            educationLevel: 'unspecified',    // Placeholder
+            locationPreference: 'unspecified',// Placeholder
+            languages: ['English'],             // Placeholder
+            availability: 'unspecified',       // Placeholder
+            jobTypePreference: ['Unspecified'],   // Placeholder - Use array of string values
+            personalityAssessment: [],          // Placeholder
+            optimalWorkStyles: [],              // Placeholder
+            isUnderestimatedTalent: Math.random() < 0.15, // Random placeholder
+            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential based on initial review.' : undefined,
+        }));
+        
+        console.log(`[DB Action GET /jobseekers] Fetched and transformed ${candidates.length} jobseeker profiles.`);
+        res.json(candidates);
+    } catch (error) {
+        console.error('Error fetching jobseeker profiles:', error);
+        res.status(500).json({ message: 'Server error while fetching jobseeker profiles', error: error.message });
+    }
+});
+
 
 // --- Diary Post API Endpoints ---
 app.post('/api/diary-posts', async (req, res) => {
@@ -368,7 +417,8 @@ app.post('/api/interactions/like', async (req, res) => {
             if (!likingUser.likedCandidateIds.includes(likedProfileId)) {
                 likingUser.likedCandidateIds.push(likedProfileId);
             }
-            otherUser = await User.findOne({ selectedRole: 'jobseeker', representedCandidateProfileId: likedProfileId });
+            // For recruiter liking a candidate, 'likedProfileId' is the candidate's backend User _id (which is now candidate.id on frontend)
+            otherUser = await User.findById(likedProfileId); // Assuming likedProfileId IS the user's _id
             if (otherUser && likingUser.representedCompanyProfileId && otherUser.likedCompanyIds.includes(likingUser.representedCompanyProfileId)) {
                 matchMade = true;
             }
@@ -376,7 +426,9 @@ app.post('/api/interactions/like', async (req, res) => {
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) {
                 likingUser.likedCompanyIds.push(likedProfileId);
             }
+            // For jobseeker liking a company, 'likedProfileId' is the company's backend User _id (representing the company)
             otherUser = await User.findOne({ selectedRole: 'recruiter', representedCompanyProfileId: likedProfileId });
+            // To check for match, we need otherUser's likedCandidateIds, and our likingUser's representedCandidateProfileId
             if (otherUser && likingUser.representedCandidateProfileId && otherUser.likedCandidateIds.includes(likingUser.representedCandidateProfileId)) {
                 matchMade = true;
             }
@@ -396,16 +448,17 @@ app.post('/api/interactions/like', async (req, res) => {
 
             if (!existingMatch) {
                 let candidateDisplayId, companyDisplayId, finalUserA, finalUserB;
+
                 if (likingUserRole === 'recruiter') { 
                     finalUserA = likingUser._id; 
                     finalUserB = otherUser._id; 
-                    candidateDisplayId = likedProfileId; 
-                    companyDisplayId = likingUser.representedCompanyProfileId;
-                } else { 
-                    finalUserA = otherUser._id; 
-                    finalUserB = likingUser._id; 
-                    candidateDisplayId = likingUser.representedCandidateProfileId;
-                    companyDisplayId = likedProfileId; 
+                    candidateDisplayId = otherUser.representedCandidateProfileId || likedProfileId; // Candidate's own profile ID
+                    companyDisplayId = likingUser.representedCompanyProfileId; // Recruiter's company ID
+                } else { // likingUserRole === 'jobseeker'
+                    finalUserA = otherUser._id; // Recruiter's User ID
+                    finalUserB = likingUser._id; // Job Seeker's User ID
+                    candidateDisplayId = likingUser.representedCandidateProfileId; // Job seeker's profile ID
+                    companyDisplayId = otherUser.representedCompanyProfileId || likedProfileId; // Company's profile ID
                 }
                 
                 if (!candidateDisplayId || !companyDisplayId) {
