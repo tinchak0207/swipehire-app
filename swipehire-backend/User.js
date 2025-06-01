@@ -1,3 +1,4 @@
+
 // custom-backend-example/models/User.js
 const mongoose = require('mongoose');
 
@@ -85,8 +86,34 @@ const UserSchema = new mongoose.Schema({
         type: String,
         index: true,
         sparse: true,
+    },
+    // --- Detailed Job Seeker Profile Fields ---
+    profileHeadline: {
+        type: String,
+        trim: true,
+    },
+    profileExperienceSummary: {
+        type: String,
+        trim: true,
+    },
+    profileSkills: { // Storing as a comma-separated string for simplicity, as per current frontend
+        type: String,
+        trim: true,
+    },
+    profileDesiredWorkStyle: {
+        type: String,
+        trim: true,
+    },
+    profilePastProjects: {
+        type: String,
+        trim: true,
+    },
+    profileVideoPortfolioLink: {
+        type: String,
+        trim: true,
     }
 }, { timestamps: true });
 
 
 module.exports = mongoose.model('User', UserSchema);
+

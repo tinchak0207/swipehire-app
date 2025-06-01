@@ -8,14 +8,15 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock } from 'lucide-react'; // Added Lock
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2 } from 'lucide-react'; // Added Loader2
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Import useUserPreferences
 
 interface MyProfilePageProps {
   isGuestMode?: boolean;
 }
 
-// Define the key for localStorage
 const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
@@ -24,50 +25,117 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [desiredWorkStyle, setDesiredWorkStyle] = useState('');
   const [pastProjects, setPastProjects] = useState('');
   const [videoPortfolioLink, setVideoPortfolioLink] = useState('');
+  const [isLoading, setIsLoading] = useState(false); // For save button loading state
+  const [isFetchingProfile, setIsFetchingProfile] = useState(true); // For initial profile load
 
   const { toast } = useToast();
+  const { mongoDbUserId } = useUserPreferences(); // Get mongoDbUserId
 
   useEffect(() => {
-    if (isGuestMode || typeof window === 'undefined') return;
-
-    const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
-    if (savedProfileString) {
-      try {
-        const savedProfile = JSON.parse(savedProfileString);
-        if (savedProfile.profileHeadline) setProfileHeadline(savedProfile.profileHeadline);
-        if (savedProfile.experienceSummary) setExperienceSummary(savedProfile.experienceSummary);
-        if (savedProfile.skills) setSkills(savedProfile.skills); // Keep as string
-        if (savedProfile.desiredWorkStyle) setDesiredWorkStyle(savedProfile.desiredWorkStyle);
-        if (savedProfile.pastProjects) setPastProjects(savedProfile.pastProjects);
-        if (savedProfile.videoPortfolioLink) setVideoPortfolioLink(savedProfile.videoPortfolioLink);
-      } catch (e) {
-        console.error("Error parsing saved profile from localStorage:", e);
-        // Optionally clear corrupted data
-        // localStorage.removeItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
-      }
+    if (isGuestMode || typeof window === 'undefined') {
+      setIsFetchingProfile(false);
+      return;
     }
-  }, [isGuestMode]);
 
-  const handleSaveProfile = () => {
+    const loadProfile = async () => {
+      setIsFetchingProfile(true);
+      // First, try to load from backend if mongoDbUserId is available
+      if (mongoDbUserId) {
+        try {
+          const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
+          if (response.ok) {
+            const userData = await response.json();
+            setProfileHeadline(userData.profileHeadline || '');
+            setExperienceSummary(userData.profileExperienceSummary || '');
+            setSkills(userData.profileSkills || '');
+            setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
+            setPastProjects(userData.profilePastProjects || '');
+            setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
+            setIsFetchingProfile(false);
+            return; // Profile loaded from backend
+          } else {
+            console.warn("Failed to fetch profile from backend, status:", response.status, ". Falling back to localStorage.");
+          }
+        } catch (error) {
+          console.error("Error fetching profile from backend:", error, ". Falling back to localStorage.");
+        }
+      }
+
+      // Fallback to localStorage if backend fetch fails or no mongoDbUserId yet
+      const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
+      if (savedProfileString) {
+        try {
+          const savedProfile = JSON.parse(savedProfileString);
+          setProfileHeadline(savedProfile.profileHeadline || '');
+          setExperienceSummary(savedProfile.experienceSummary || '');
+          setSkills(savedProfile.skills || '');
+          setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
+          setPastProjects(savedProfile.pastProjects || '');
+          setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
+        } catch (e) {
+          console.error("Error parsing saved profile from localStorage:", e);
+        }
+      }
+      setIsFetchingProfile(false);
+    };
+
+    loadProfile();
+
+  }, [isGuestMode, mongoDbUserId]);
+
+  const handleSaveProfile = async () => {
     if (isGuestMode) {
       toast({ title: "Action Disabled", description: "Please sign in to save your profile.", variant: "default"});
       return;
     }
-    if (typeof window !== 'undefined') {
-      const profileData = {
-        profileHeadline,
-        experienceSummary,
-        skills, // Save as string
-        desiredWorkStyle,
-        pastProjects,
-        videoPortfolioLink,
-      };
-      localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(profileData));
+    if (!mongoDbUserId) {
+      toast({ title: "User Not Identified", description: "Cannot save profile. Please ensure you are fully logged in.", variant: "destructive"});
+      return;
+    }
+
+    setIsLoading(true);
+    const profileData = {
+      profileHeadline,
+      profileExperienceSummary: experienceSummary,
+      profileSkills: skills,
+      profileDesiredWorkStyle: desiredWorkStyle,
+      profilePastProjects: pastProjects,
+      profileVideoPortfolioLink: videoPortfolioLink,
+    };
+
+    try {
+      // Save to MongoDB backend
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "An unknown error occurred while saving to backend."}));
+        throw new Error(errorData.message || `Failed to save profile to backend. Status: ${response.status}`);
+      }
+      
+      // Also save to local storage for immediate reflection in CandidateDiscoveryPage (current behavior)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(profileData));
+      }
+
       toast({
         title: 'Profile Updated & Published!',
-        description: 'Your profile is now visible to recruiters with the latest information. (Refresh Find Talent to see changes reflected on the first candidate card).',
+        description: 'Your profile has been saved to the backend and is visible to recruiters. (Refresh Find Talent to see changes on the first card).',
         duration: 7000,
       });
+
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      toast({
+        title: 'Error Saving Profile',
+        description: error.message || "Could not save your profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -79,6 +147,15 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         <p className="text-muted-foreground max-w-md">
           Managing your profile is a feature for registered users. Please sign in using the Login button in the header to create or edit your profile.
         </p>
+      </div>
+    );
+  }
+
+  if (isFetchingProfile) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="mt-4 text-muted-foreground">Loading your profile...</p>
       </div>
     );
   }
@@ -173,8 +250,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end pt-6">
-          <Button onClick={handleSaveProfile} size="lg">
-            <Save className="mr-2 h-5 w-5" />
+          <Button onClick={handleSaveProfile} size="lg" disabled={isLoading || !mongoDbUserId}>
+            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
             Update & Publish My Profile
           </Button>
         </CardFooter>
@@ -182,6 +259,3 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
-
-
-    

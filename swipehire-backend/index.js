@@ -170,6 +170,62 @@ app.put('/api/users/:identifier', async (req, res) => {
     }
 });
 
+// New endpoint specifically for updating job seeker profile details
+app.put('/api/users/:identifier/profile', async (req, res) => {
+    try {
+        const { identifier } = req.params;
+        const {
+            profileHeadline,
+            profileExperienceSummary,
+            profileSkills,
+            profileDesiredWorkStyle,
+            profilePastProjects,
+            profileVideoPortfolioLink
+        } = req.body;
+
+        console.log(`[DB Action PUT /profile] Attempting to update profile for user identifier: ${identifier}.`);
+        console.log(`[DB Action PUT /profile] Received profile data:`, req.body);
+
+
+        let userToUpdate;
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            userToUpdate = await User.findById(identifier);
+        } else {
+            userToUpdate = await User.findOne({ firebaseUid: identifier });
+        }
+
+        if (!userToUpdate) {
+            console.log(`[DB Action PUT /profile] User not found with identifier: ${identifier}`);
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update only the profile-specific fields
+        if (profileHeadline !== undefined) userToUpdate.profileHeadline = profileHeadline;
+        if (profileExperienceSummary !== undefined) userToUpdate.profileExperienceSummary = profileExperienceSummary;
+        if (profileSkills !== undefined) userToUpdate.profileSkills = profileSkills;
+        if (profileDesiredWorkStyle !== undefined) userToUpdate.profileDesiredWorkStyle = profileDesiredWorkStyle;
+        if (profilePastProjects !== undefined) userToUpdate.profilePastProjects = profilePastProjects;
+        if (profileVideoPortfolioLink !== undefined) userToUpdate.profileVideoPortfolioLink = profileVideoPortfolioLink;
+        
+        // If user is jobseeker and doesn't have a representedCandidateProfileId, assign one
+        if (userToUpdate.selectedRole === 'jobseeker' && !userToUpdate.representedCandidateProfileId) {
+            const defaultCandidateId = userToUpdate.firebaseUid ? `cand-user-${userToUpdate.firebaseUid.slice(0,5)}` : `cand-user-${userToUpdate._id.toString().slice(-5)}`;
+            userToUpdate.representedCandidateProfileId = defaultCandidateId;
+            console.log(`[DB Action PUT /profile] Assigned conceptual representedCandidateProfileId: ${defaultCandidateId} to jobseeker ${userToUpdate._id}`);
+        }
+
+
+        const updatedUser = await userToUpdate.save();
+        console.log(`[DB Action PUT /profile] User profile updated for ${updatedUser._id}`);
+        res.json({ message: 'User profile updated successfully!', user: updatedUser });
+
+    } catch (error) {
+        console.error('Error updating user profile:', error);
+        res.status(500).json({ message: 'Server error while updating profile', error: error.message });
+    }
+});
+
+
 // Proxy Endpoints
 app.post('/api/proxy/users/:identifier/role', async (req, res) => {
   const { identifier } = req.params;
