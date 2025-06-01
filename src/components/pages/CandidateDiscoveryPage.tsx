@@ -23,7 +23,6 @@ import { cn } from '@/lib/utils';
 const ITEMS_PER_BATCH = 3;
 const LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX = 'passedCandidates_';
 const LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX = 'trashBinCandidates_';
-// LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY is no longer used for overriding cand1
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -91,12 +90,17 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
       }
       const data: Candidate[] = await response.json();
-      setAllCandidates(data);
-      console.log("[CandidateDiscovery] Fetched candidates from backend:", data.length);
+      if (data.length === 0) {
+        console.log("[CandidateDiscovery] Backend returned no candidates. Using mock candidates as fallback.");
+        setAllCandidates([...mockCandidates]);
+      } else {
+        setAllCandidates(data);
+        console.log("[CandidateDiscovery] Fetched candidates from backend:", data.length);
+      }
     } catch (error) {
       console.error("Error fetching candidates from backend:", error);
       toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles from the backend. Displaying mock data as fallback.", variant: "destructive" });
-      setAllCandidates([...mockCandidates]); // Fallback to mockCandidates
+      setAllCandidates([...mockCandidates]); // Fallback to mockCandidates on error
     } finally {
       setIsInitialLoading(false);
     }
@@ -124,7 +128,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     const storedTrash = localStorage.getItem(getTrashBinKey());
     if (storedTrash) {
         const trashIds: string[] = JSON.parse(storedTrash);
-        // Filter from `allCandidates` (which now comes from backend)
+        // Filter from `allCandidates` (which now comes from backend or mocks)
         setTrashBinCandidates(allCandidates.filter(c => trashIds.includes(c.id)));
     }
   }, [mongoDbUserId, allCandidates, getPassedKey, getTrashBinKey, isInitialLoading]);
@@ -426,3 +430,5 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
+
+    
