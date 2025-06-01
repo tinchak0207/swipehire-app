@@ -705,8 +705,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
 
-        {/* Text Content Area - designed to mimic job card layout */}
-        <div className="flex-1 p-3 sm:p-4 space-y-1 text-xs sm:text-sm">
+        {/* Text Content Area */}
+        <div className="flex-1 min-h-0 p-3 sm:p-4 space-y-1 text-xs sm:text-sm overflow-y-auto">
             <CardHeader className="p-0 mb-1">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
@@ -736,7 +736,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             {candidate.skills && candidate.skills.length > 0 && (
                 <div className="pt-1">
                 <div className="flex flex-wrap gap-1">
-                    {candidate.skills.slice(0, 3).map((skill) => ( // Show up to 3 skills
+                    {candidate.skills.slice(0, 3).map((skill) => (
                     <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
                     ))}
                     {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length-3} more</Badge>}
