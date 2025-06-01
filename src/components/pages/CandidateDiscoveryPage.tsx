@@ -90,6 +90,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const filteredCandidatesMemo = useMemo(() => {
+    console.log("[CandidateDiscovery] Recalculating filteredCandidatesMemo...");
     let candidates = [...allCandidates];
 
     if (activeFilters.experienceLevels.size > 0) {
@@ -113,11 +114,15 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    return candidates.filter(c => !passedCandidateProfileIds.has(c.id));
+    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidates.length}, Passed IDs count: ${passedCandidateProfileIds.size}`);
+    const finalFiltered = candidates.filter(c => !passedCandidateProfileIds.has(c.id));
+    console.log(`[CandidateDiscovery] Final filtered count: ${finalFiltered.length}`);
+    return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds]);
 
 
   const loadMoreCandidates = useCallback(() => {
+    console.log("[CandidateDiscovery] loadMoreCandidates called.");
     if (isLoading || !hasMore || currentIndex >= filteredCandidatesMemo.length) {
       if (currentIndex >= filteredCandidatesMemo.length && filteredCandidatesMemo.length > 0) {
         setHasMore(false);
@@ -127,34 +132,42 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       return;
     }
     setIsLoading(true);
+    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidatesMemo.length}`);
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
       setDisplayedCandidates(prev => {
         const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
+        console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
         return updatedDisplay;
       });
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredCandidatesMemo.length);
       setIsLoading(false);
+      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
     }, 700);
   }, [isLoading, hasMore, currentIndex, filteredCandidatesMemo]);
 
   useEffect(() => {
+    console.log(`[CandidateDiscovery] Effect for filteredCandidatesMemo triggered. Length: ${filteredCandidatesMemo.length}`);
     setDisplayedCandidates([]);
     setCurrentIndex(0);
     const hasFilteredItems = filteredCandidatesMemo.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
+        console.log("[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.");
         loadMoreCandidates();
     }
-  }, [filteredCandidatesMemo, loadMoreCandidates]); // Added loadMoreCandidates
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredCandidatesMemo]);
 
 
   useEffect(() => {
+    console.log(`[CandidateDiscovery] IntersectionObserver: Attaching to loadMoreTriggerRef. hasMore: ${hasMore} isLoading: ${isLoading}`);
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
+        console.log("[CandidateDiscovery] IntersectionObserver: Triggered loadMoreCandidates.");
         loadMoreCandidates();
       }
     }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
@@ -361,3 +374,4 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     
 
     
+
