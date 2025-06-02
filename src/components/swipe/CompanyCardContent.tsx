@@ -68,22 +68,30 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  const jobMatchPercentage = company.jobMatchPercentage || 75;
+  // Use AI score for match percentage if available, otherwise use prop or default
+  const displayMatchPercentage = aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 75;
+
   const experienceRequiredText = jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') : 'Experience not specified';
   const categoryText = company.industry || "General";
 
 
-  const handleDetailsButtonClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setAiJobFitAnalysis(null);
-    setIsLoadingAiAnalysis(false);
+  const handleDetailsButtonClick = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setAiJobFitAnalysis(null); // Reset so it can be re-fetched or shown fresh in modal
+    setIsLoadingAiAnalysis(false); // Reset loading state for modal
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
     setShowFullJobDescriptionInModal(false);
     setShowFullCompanyDescriptionInModal(false);
-    setActiveAccordionItem(undefined);
     setIsDetailsModalOpen(true);
+    // Active accordion item will be set by fetchAiAnalysis or user interaction in modal
+  };
+
+  const handleDetailsButtonClickAndFocusAI = (e?: React.MouseEvent) => {
+    handleDetailsButtonClick(e);
+    // Setting timeout to allow modal to open before trying to set accordion
+    setTimeout(() => setActiveAccordionItem("ai-fit-analysis"), 100);
   };
 
   const fetchCurrentUserProfileForAI = useCallback(async () => {
@@ -120,8 +128,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   }, [mongoDbUserId, isGuestMode, toast]);
 
 
-  const fetchAiAnalysis = useCallback(async () => {
-    if (!company || !jobOpening || isGuestMode || !isDetailsModalOpen) {
+  const fetchAiAnalysis = useCallback(async (isModalFetch = false) => {
+    if (!company || !jobOpening || isGuestMode) {
       if (isGuestMode) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       }
@@ -141,7 +149,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
     
     setIsLoadingAiAnalysis(true);
-    setAiJobFitAnalysis(null);
+    if (!isModalFetch) setAiJobFitAnalysis(null); // Only clear for card face analysis, modal might re-trigger
 
     try {
       const jobCriteria: JobCriteriaForAI = {
@@ -183,7 +191,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       });
       if (result.candidateJobFitAnalysis) {
         setAiJobFitAnalysis(result.candidateJobFitAnalysis);
-        setActiveAccordionItem("ai-fit-analysis"); 
+        if (isModalFetch || isDetailsModalOpen) setActiveAccordionItem("ai-fit-analysis"); 
       } else {
         setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
@@ -202,17 +210,19 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  }, [company, jobOpening, isDetailsModalOpen, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI]);
+  }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI, isDetailsModalOpen]);
 
+  // Fetch AI Analysis when modal opens (if not already fetched by card button)
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-          fetchAiAnalysis();
+          fetchAiAnalysis(true); // Pass true to indicate it's a modal fetch
       } else if (isGuestMode && isDetailsModalOpen) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
         setIsLoadingAiAnalysis(false);
         setActiveAccordionItem(undefined); 
       }
-  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetailsModalOpen]); // Removed fetchAiAnalysis from deps to avoid loop if it's passed as prop
 
   const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
     if (actionType === 'like') {
@@ -371,23 +381,21 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Header Section */}
-        <div className="h-24 bg-gradient-to-r from-custom-primary-purple to-custom-dark-purple-blue p-4 flex flex-col items-center justify-center relative">
-          {/* Category Badge */}
+        <div className="h-24 bg-gradient-to-r from-custom-primary-purple to-custom-dark-purple-blue p-4 flex flex-col items-center justify-start relative">
           <Badge className="absolute top-3 left-3 bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
             {categoryText}
           </Badge>
-          {/* Central Icon Container */}
-          <div className="w-[60px] h-[60px] rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 shadow-lg">
+          <div className="w-[60px] h-[60px] rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 shadow-lg mt-4">
              <Code2 className="h-7 w-7 text-white" />
           </div>
         </div>
         
         {/* Main Content Area */}
-        <div className="flex-1 p-4 pt-5 text-center overflow-y-auto">
-          <p className="text-custom-light-purple-text text-lg font-bold uppercase mt-5">{company.name}</p>
-          <h1 className="text-4xl font-bold text-white mt-2 line-clamp-2">{jobOpening?.title || 'Exciting Opportunity'}</h1>
+        <div className="flex-1 p-4 pt-6 text-center overflow-y-auto space-y-3">
+          <p className="text-custom-light-purple-text text-lg font-bold uppercase mt-1">{company.name}</p>
+          <h1 className="text-4xl font-bold text-white mt-1 line-clamp-2">{jobOpening?.title || 'Exciting Opportunity'}</h1>
           
-          <div className="text-base text-white/80 mt-4 flex justify-center items-center gap-x-1.5">
+          <div className="text-base text-white/80 mt-3 flex justify-center items-center gap-x-1.5">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>
             )}
@@ -396,36 +404,37 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
             )}
           </div>
-
-          <Separator className="border-b border-white/20 my-5 mx-auto w-3/4" />
-
-          {/* Circular Job Match Indicator */}
-          <div className="mt-4 mb-3 flex justify-center">
-             <div className="relative w-[70px] h-[70px] mx-auto">
-                <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
-                {/* Visual Approximation of Progress Arc */}
-                <div 
-                    className="absolute inset-0 rounded-full border-4 border-transparent"
-                    style={{
-                        borderTopColor: jobMatchPercentage >= 25 ? 'var(--color-custom-primary-purple)' : 'transparent',
-                        borderRightColor: jobMatchPercentage >= 50 ? 'var(--color-custom-primary-purple)' : 'transparent',
-                        borderBottomColor: jobMatchPercentage >= 75 ? 'var(--color-custom-primary-purple)' : 'transparent',
-                        borderLeftColor: jobMatchPercentage >= 100 ? 'var(--color-custom-primary-purple)' : 'transparent', 
-                        transform: 'rotate(-45deg)', 
-                    }}
-                ></div>
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-white text-sm font-semibold leading-none">{jobMatchPercentage}%</span>
-                    <span className="text-white/80 text-[10px] leading-tight">Match</span>
-                </div>
-            </div>
+          
+          {/* "Analyze My Job Fit" Section */}
+          <div className="my-4 space-y-2 px-2">
+            {isGuestMode ? (
+              <div className="text-sm text-red-400 italic p-3 border border-red-600 bg-red-900/30 rounded-md shadow-sm">
+                <Lock className="inline h-4 w-4 mr-1.5"/>Sign in for AI Job Fit Analysis.
+              </div>
+            ) : isLoadingAiAnalysis ? (
+              <div className="flex items-center justify-center text-white/80 py-3">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" /> Analyzing your fit...
+              </div>
+            ) : aiJobFitAnalysis ? (
+              <div className="p-3 border border-white/20 rounded-lg bg-white/5 text-left text-sm">
+                <p className="font-semibold text-custom-light-purple-text">Your Fit Score: <span className={cn("text-lg font-bold", aiJobFitAnalysis.matchScoreForCandidate >=75 ? 'text-green-400' : aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-400' : 'text-red-400')}>{aiJobFitAnalysis.matchScoreForCandidate}%</span></p>
+                <p className="text-white/80 line-clamp-2 text-xs mt-1">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                <Button variant="link" onClick={handleDetailsButtonClickAndFocusAI} className="text-custom-primary-purple hover:text-custom-primary-purple/80 p-0 h-auto text-xs mt-1.5">View Full Analysis</Button>
+              </div>
+            ) : (
+              <Button onClick={() => fetchAiAnalysis()} variant="outline" className="w-full bg-white/10 hover:bg-white/20 border-white/30 text-white py-2.5">
+                <Brain className="mr-2 h-5 w-5" /> Analyze My Job Fit
+              </Button>
+            )}
           </div>
-           <p className="text-xs italic text-white/70 mt-3">{experienceRequiredText}</p>
+
+          <p className="text-xs italic text-white/70 mt-1">{experienceRequiredText}</p>
+          <Separator className="border-b border-white/20 my-3 mx-auto w-3/4" />
           
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
-            <div className="mt-5">
+            <div className="mt-3">
               <h3 className="text-xs uppercase font-semibold text-custom-light-purple-text tracking-wider">TOP SKILLS</h3>
-              <div className="flex flex-wrap justify-center gap-2 mt-3">
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
                   <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-xs px-3 py-1.5 rounded-full font-medium shadow-sm">
                     {tag}
@@ -434,6 +443,27 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               </div>
             </div>
           )}
+          
+          {/* Moved Job Match Indicator */}
+           <div className="mt-4 mb-2 flex flex-col items-center justify-center">
+             <div className="relative w-[70px] h-[70px] mx-auto">
+                <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
+                <div 
+                    className="absolute inset-0 rounded-full border-4 border-transparent"
+                    style={{
+                        borderTopColor: displayMatchPercentage >= 25 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                        borderRightColor: displayMatchPercentage >= 50 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                        borderBottomColor: displayMatchPercentage >= 75 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                        borderLeftColor: displayMatchPercentage >= 100 ? 'var(--color-custom-primary-purple)' : 'transparent', // Full circle at 100
+                        transform: 'rotate(-45deg)', 
+                    }}
+                ></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    <span className="text-white text-sm font-semibold leading-none">{displayMatchPercentage}%</span>
+                    <span className="text-white/80 text-[10px] leading-tight">Match</span>
+                </div>
+            </div>
+          </div>
         </div>
             
         {/* Action Buttons Footer */}
@@ -606,13 +636,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       </div>
                     ) : (
                       <>
-                        <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto bg-custom-primary-purple hover:bg-custom-primary-purple/80 text-white">
+                        <Button onClick={() => fetchAiAnalysis(true)} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto bg-custom-primary-purple hover:bg-custom-primary-purple/80 text-white">
                           {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                           {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
                         </Button>
                         {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
-                          <div className="flex items-center text-sm text-slate-400">
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          <div className="flex items-center text-sm text-slate-400 py-1.5">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             <span>Assessing fit...</span>
                           </div>
                         )}
