@@ -21,7 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
-import { Progress } from '@/components/ui/progress'; // Added for linear progress
+import { Progress } from '@/components/ui/progress';
 
 interface CompanyCardContentProps {
   company: Company;
@@ -45,12 +45,13 @@ const incrementAnalytic = (key: string) => {
   }
 };
 
-const CircularProgressBar = ({ percentage, size = 90 }: { percentage: number, size?: number }) => {
+const CircularProgressBar = ({ percentage, size = 110, displayText }: { percentage: number, size?: number, displayText?: string }) => {
   const radius = size / 2;
-  const strokeWidth = 7;
+  const strokeWidth = 8;
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+  const effectivePercentage = displayText === "?" ? 0 : percentage;
+  const strokeDashoffset = circumference - (effectivePercentage / 100) * circumference;
 
   return (
     <svg
@@ -60,7 +61,7 @@ const CircularProgressBar = ({ percentage, size = 90 }: { percentage: number, si
       className="transform -rotate-90"
     >
       <circle
-        stroke="rgba(255, 255, 255, 0.2)" // Background ring color from theme
+        stroke="rgba(255, 255, 255, 0.2)"
         fill="transparent"
         strokeWidth={strokeWidth}
         r={normalizedRadius}
@@ -72,7 +73,7 @@ const CircularProgressBar = ({ percentage, size = 90 }: { percentage: number, si
         fill="transparent"
         strokeWidth={strokeWidth}
         strokeDasharray={circumference + ' ' + circumference}
-        style={{ strokeDashoffset, strokeLinecap: 'round' }}
+        style={{ strokeDashoffset, strokeLinecap: 'round', transition: 'stroke-dashoffset 0.35s ease-out' }}
         r={normalizedRadius}
         cx={radius}
         cy={radius}
@@ -85,22 +86,30 @@ const CircularProgressBar = ({ percentage, size = 90 }: { percentage: number, si
       </defs>
       <text
         x="50%"
-        y="48%"
+        y={displayText ? "50%" : "48%"}
         dy=".3em"
         textAnchor="middle"
-        className="text-2xl font-bold fill-white transform rotate-90 origin-center"
+        className={cn(
+          "font-bold fill-white transform rotate-90 origin-center",
+          size >= 100 ? "text-3xl" : "text-2xl"
+        )}
       >
-        {`${Math.round(percentage)}%`}
+        {displayText ? displayText : `${Math.round(percentage)}%`}
       </text>
-      <text
-        x="50%"
-        y="62%"
-        dy=".3em"
-        textAnchor="middle"
-        className="text-xs fill-white/80 transform rotate-90 origin-center"
-      >
-        match
-      </text>
+      {!displayText && (
+        <text
+          x="50%"
+          y="62%"
+          dy=".3em"
+          textAnchor="middle"
+          className={cn(
+            "fill-white/80 transform rotate-90 origin-center",
+            size >= 100 ? "text-sm" : "text-xs"
+          )}
+        >
+          match
+        </text>
+      )}
     </svg>
   );
 };
@@ -125,24 +134,24 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
+  
   const [isHoveringMatchArea, setIsHoveringMatchArea] = useState(false);
   const [analysisTriggered, setAnalysisTriggered] = useState(false);
+  const [simulatedProgress, setSimulatedProgress] = useState(0);
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  
   const categoryText = company.industry || "General";
 
   const handleDetailsButtonClick = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setAiJobFitAnalysis(null);
-    setIsLoadingAiAnalysis(false);
-    setUserQuestion("");
-    setAiAnswer(null);
-    setIsAskingQuestion(false);
-    setShowFullJobDescriptionInModal(false);
-    setShowFullCompanyDescriptionInModal(false);
-    // AI Analysis will be fetched when modal opens or if already fetched
+    if (!isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
+      fetchAiAnalysis(true); 
+    } else if (isGuestMode) {
+      setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
+      setIsLoadingAiAnalysis(false);
+      setActiveAccordionItem(undefined);
+    }
     setIsDetailsModalOpen(true);
   };
   
@@ -184,7 +193,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
     let candidateForAI = currentUserProfileForAI;
     if (!candidateForAI) {
-      setIsLoadingAiAnalysis(true); 
+      setIsLoadingAiAnalysis(true);
+      setAnalysisTriggered(true); 
       candidateForAI = await fetchCurrentUserProfileForAI();
     }
     if (!candidateForAI) {
@@ -192,9 +202,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "AI Analysis Error", description: "Your profile could not be loaded for analysis.", variant: "destructive" });
       return;
     }
+    
     setAnalysisTriggered(true);
     setIsLoadingAiAnalysis(true);
-    if (!isModalFetch) setAiJobFitAnalysis(null); 
+    setSimulatedProgress(0); 
+
     try {
       const jobCriteria: JobCriteriaForAI = {
         title: jobOpening.title, description: jobOpening.description, requiredSkills: jobOpening.tags || [],
@@ -218,33 +230,54 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           }
       }
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria, userAIWeights: userAIWeights });
-      if (result.candidateJobFitAnalysis) setAiJobFitAnalysis(result.candidateJobFitAnalysis);
-      else setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
       
-      // Auto-open modal only if analysis was triggered by card click, not modal refresh
-      if (!isModalFetch && result.candidateJobFitAnalysis) {
-         setIsDetailsModalOpen(true);
-         setActiveAccordionItem("ai-fit-analysis");
-      } else if (isModalFetch) {
-         setActiveAccordionItem("ai-fit-analysis");
-      }
+      const remainingSimulatedTime = (100 - simulatedProgress) * 40; 
+      setTimeout(() => {
+        setSimulatedProgress(100);
+        if (result.candidateJobFitAnalysis) setAiJobFitAnalysis(result.candidateJobFitAnalysis);
+        else setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
+        setIsLoadingAiAnalysis(false);
+        if (isModalFetch) { // Only open modal if fetch was triggered by modal details button
+            setIsDetailsModalOpen(true);
+            setActiveAccordionItem("ai-fit-analysis");
+        }
+      }, Math.max(0, remainingSimulatedTime));
+
 
     } catch (error: any) {
       console.error("Error fetching AI job fit analysis for company " + company.name + ":", error);
       toast({ title: "AI Analysis Error", description: `Failed to get AI insights. ${error.message || 'Ensure your profile is up to date.'}`, variant: "destructive" });
       setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "Error during AI analysis.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
-    } finally { setIsLoadingAiAnalysis(false); }
-  }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI]);
+      setIsLoadingAiAnalysis(false);
+    }
+  }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI, simulatedProgress]);
 
   useEffect(() => {
-      // Fetch AI analysis if modal is opened and no analysis data exists yet (and not guest mode)
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-        fetchAiAnalysis(true); // true indicates it's a modal-initiated fetch
+        fetchAiAnalysis(true); // Pass true to indicate this is a modal-initiated fetch
       } else if (isGuestMode && isDetailsModalOpen) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
         setIsLoadingAiAnalysis(false); setActiveAccordionItem(undefined); 
       }
-  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]); // Removed analysisTriggered from deps
+
+  useEffect(() => {
+    let progressInterval: NodeJS.Timeout | undefined;
+    if (isLoadingAiAnalysis && !isGuestMode) {
+      let currentProgress = simulatedProgress; 
+      progressInterval = setInterval(() => {
+        currentProgress += 2.5; 
+        if (currentProgress <= 100) {
+          setSimulatedProgress(currentProgress);
+        } else {
+          clearInterval(progressInterval);
+          if (isLoadingAiAnalysis) setSimulatedProgress(100); 
+        }
+      }, 100);
+    }
+    return () => clearInterval(progressInterval);
+  }, [isLoadingAiAnalysis, isGuestMode, simulatedProgress]);
 
 
   const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
@@ -256,28 +289,21 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isGuestMode) return;
     const targetElement = e.target as HTMLElement;
-    // Check if the click is on the interactive match area or its children, or other non-draggable elements
     if (targetElement.closest('[data-interactive-match-area="true"], video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
         if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
             const video = targetElement as HTMLVideoElement;
             const rect = video.getBoundingClientRect();
-            if (e.clientY > rect.bottom - 40) { return; } // Allow clicks on video controls
+            if (e.clientY > rect.bottom - 40) { return; }
         } else if (targetElement.closest('[data-interactive-match-area="true"]') && !isLoadingAiAnalysis && !isGuestMode) {
-            // Allow click on match area to trigger analysis, but don't start card drag
+             // Allow click, but prevent drag start from this specific area
+             // so the drag is not initiated by the click on the interactive area
             return;
         } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
            return; 
         }
     }
-    
-    e.preventDefault();
-    setIsDragging(true);
-    setStartX(e.clientX);
-    setCurrentX(e.clientX);
-    if (cardRootRef.current) {
-      cardRootRef.current.style.cursor = 'grabbing';
-      cardRootRef.current.style.transition = 'none';
-    }
+    e.preventDefault(); setIsDragging(true); setStartX(e.clientX); setCurrentX(e.clientX);
+    if (cardRootRef.current) { cardRootRef.current.style.cursor = 'grabbing'; cardRootRef.current.style.transition = 'none';}
     document.body.style.userSelect = 'none';
    };
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => { 
@@ -287,258 +313,172 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { 
     if (!isDragging || !cardRootRef.current || isGuestMode) return;
     const deltaX = currentX - startX;
-    cardRootRef.current.style.transition = 'transform 0.3s ease-out';
-    cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-
-    if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-      if (deltaX < 0) handleLocalSwipeAction('pass');
-      else handleLocalSwipeAction('like');
-    }
-    setIsDragging(false);
-    setStartX(0);
-    setCurrentX(0);
+    cardRootRef.current.style.transition = 'transform 0.3s ease-out'; cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD) { if (deltaX < 0) handleLocalSwipeAction('pass'); else handleLocalSwipeAction('like');}
+    setIsDragging(false); setStartX(0); setCurrentX(0);
     if (cardRootRef.current) cardRootRef.current.style.cursor = 'grab';
     document.body.style.userSelect = '';
    };
   const getCardTransform = () => { 
     if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
-    const deltaX = currentX - startX;
-    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
-    const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
-    return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
+    const deltaX = currentX - startX; const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor; return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
    };
 
   const handleAskQuestion = async () => {
     if (isGuestMode || !userQuestion.trim()) return;
-    setIsAskingQuestion(true);
-    setAiAnswer(null);
+    setIsAskingQuestion(true); setAiAnswer(null);
     try {
       const companyInput: CompanyQAInput = {
-        companyName: company.name,
-        companyDescription: company.description,
-        companyIndustry: company.industry,
+        companyName: company.name, companyDescription: company.description, companyIndustry: company.industry,
         companyCultureHighlights: company.cultureHighlights,
         jobOpeningsSummary: jobOpening ? `${jobOpening.title}: ${jobOpening.description.substring(0, 100)}...` : "General opportunities available.",
-        userQuestion: userQuestion
-      };
-      const result = await answerCompanyQuestion(companyInput);
-      setAiAnswer(result.aiAnswer);
+        userQuestion: userQuestion };
+      const result = await answerCompanyQuestion(companyInput); setAiAnswer(result.aiAnswer);
     } catch (error) {
       console.error("Error asking AI about company:", error);
       toast({ title: "AI Question Error", description: "Could not get an answer from AI.", variant: "destructive" });
       setAiAnswer("Sorry, I couldn't process that question right now.");
-    } finally {
-      setIsAskingQuestion(false);
-    }
+    } finally { setIsAskingQuestion(false); }
   };
   const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => { 
-    if (isGuestMode) {
-      toast({ title: "Feature Locked", description: "Sign in to share.", variant: "default" });
-      return;
-    }
+    if (isGuestMode) { toast({ title: "Feature Locked", description: "Sign in to share.", variant: "default" }); return; }
     const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/company/${company.id}/job/${jobOpening?.title.replace(/\s+/g, '-') || 'general'}` : 'https://swipehire-app.com'; 
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role!'}. Visit ${profileUrl}`;
     const emailSubject = `Job Opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role!'}`;
     const emailBody = `I found this job opportunity on SwipeHire and thought you might be interested:\n\nCompany: ${company.name}\nRole: ${jobOpening?.title || 'Exciting Role!'}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
-
     switch (action) {
-      case 'copy':
-        navigator.clipboard.writeText(profileUrl)
-          .then(() => toast({ title: "Link Copied!", description: "Job link copied to clipboard." }))
-          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
-        break;
-      case 'email':
-        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        break;
-      case 'linkedin':
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
-        break;
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
-        break;
+      case 'copy': navigator.clipboard.writeText(profileUrl).then(() => toast({ title: "Link Copied!", description: "Job link copied to clipboard." })).catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" })); break;
+      case 'email': window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`; break;
+      case 'linkedin': window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer'); break;
+      case 'twitter': window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer'); break;
     }
    };
 
   const companyDescriptionForModal = company.description;
   const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL
-    ? companyDescriptionForModal
-    : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
-
+    ? companyDescriptionForModal : companyDescriptionForModal.substring(0, MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL
-    ? jobDescriptionForModal
-    : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
-
-  const displayMatchPercentage = Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0);
+    ? jobDescriptionForModal : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
     
 
   return (
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white"
+        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white" // Main card gradient
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
-        style={{
-          cursor: isGuestMode ? 'default' : (isDragging ? 'grabbing' : 'grab'),
-          transform: getCardTransform(),
-          transition: isDragging ? 'none' : 'transform 0.3s ease-out',
-        }}
+        style={{ cursor: isGuestMode ? 'default' : (isDragging ? 'grabbing' : 'grab'), transform: getCardTransform(), transition: isDragging ? 'none' : 'transform 0.3s ease-out' }}
       >
-        <div className="p-4 pt-5 text-center flex flex-col flex-grow">
-          <div className="absolute top-3 left-3">
-            <Badge className="bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
-              {categoryText}
-            </Badge>
-          </div>
-
+        {/* Header Section */}
+        <div className="p-4 text-center relative">
+          <Badge className="absolute top-3 left-3 bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
+            {categoryText}
+          </Badge>
           <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-8">
             {company.logoUrl && company.logoUrl !== 'https://placehold.co/500x350.png' ? (
               <Image src={company.logoUrl} alt={`${company.name} logo`} width={36} height={36} className="object-contain" data-ai-hint={company.dataAiHint || "company logo"}/>
-            ) : (
-              <Code2 className="text-white h-7 w-7" />
-            )}
+            ) : (<Code2 className="text-white h-7 w-7" />)}
           </div>
+        </div>
 
+        {/* Job Information Section */}
+        <div className="p-4 pt-2 text-center flex-grow flex flex-col">
           <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-4">{company.name}</p>
           <h1 className="text-white text-3xl sm:text-4xl font-bold mt-1 leading-tight break-words">
             {jobOpening?.title.split('(')[0].trim()}
-            {jobOpening?.title.includes('(') && (
-              <span className="block text-2xl font-bold">{`(${jobOpening?.title.split('(')[1]}`}</span>
-            )}
+            {jobOpening?.title.includes('(') && (<span className="block text-2xl font-bold">{`(${jobOpening?.title.split('(')[1]}`}</span>)}
           </h1>
-          
-          <div className="text-white/90 text-base mt-3 flex justify-center items-center gap-x-1.5">
-            {jobOpening?.location && (
-              <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>
-            )}
+          <div className="text-white/90 text-base mt-3 mb-4 flex justify-center items-center gap-x-1.5">
+            {jobOpening?.location && (<span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>)}
             {jobOpening?.location && jobOpening?.jobType && <span className="text-white/50 mx-0.5">•</span>}
-            {jobOpening?.jobType && (
-              <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
-            )}
+            {jobOpening?.jobType && (<span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>)}
           </div>
-          
-          <div className="flex-grow min-h-[20px] my-4"></div>
 
-          {/* Interactive Match Analysis Area */}
+          {/* Interactive AI Match Analysis Area */}
           <div
             data-interactive-match-area="true"
             className={cn(
-              "my-6 mx-auto flex flex-col items-center justify-center cursor-pointer group transition-all duration-300 ease-in-out",
-              isGuestMode && "cursor-not-allowed opacity-70",
-              isLoadingAiAnalysis ? "h-[90px]" : "h-auto" // Fixed height during loading
+                "my-4 mx-auto flex flex-col items-center justify-center group transition-all duration-300 ease-in-out min-h-[110px] w-[110px]",
+                isGuestMode && "cursor-not-allowed opacity-70",
+                !isGuestMode && "cursor-pointer"
             )}
-            onMouseEnter={() => !isGuestMode && !isLoadingAiAnalysis && setIsHoveringMatchArea(true)}
+            onMouseEnter={() => { if(!isGuestMode && !analysisTriggered && !isLoadingAiAnalysis) setIsHoveringMatchArea(true); if (!isGuestMode && !analysisTriggered) setAnalysisTriggered(true); }}
             onMouseLeave={() => setIsHoveringMatchArea(false)}
-            onClick={() => !isGuestMode && !isLoadingAiAnalysis && !aiJobFitAnalysis && fetchAiAnalysis()}
+            onClick={() => { if(!isGuestMode && !isLoadingAiAnalysis) fetchAiAnalysis(); }}
           >
             {isGuestMode ? (
-              <div className="text-center p-2 bg-red-500/20 border border-red-400/50 rounded-lg w-[200px]">
-                <Lock className="h-6 w-6 mx-auto mb-1 text-red-300" />
-                <p className="text-xs text-red-200">Sign in for AI Fit Analysis</p>
-              </div>
+                <div className="text-center p-2 bg-red-500/20 border border-red-400/50 rounded-lg w-full h-full flex flex-col items-center justify-center">
+                    <Lock className="h-8 w-8 mx-auto mb-1 text-red-300" />
+                    <p className="text-xs text-red-200">Sign in for AI Fit</p>
+                </div>
             ) : isLoadingAiAnalysis ? (
-              <div className="w-full max-w-[200px] space-y-2">
-                <Progress value={undefined} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-pink-500 [&>div]:to-purple-500 animate-pulse" />
-                <p className="text-xs text-white/70 text-center">Analyzing fit...</p>
-              </div>
+                <div className="w-full max-w-[150px] space-y-2 text-center">
+                    <Progress value={simulatedProgress} className="h-2 bg-white/20 [&>div]:bg-gradient-to-r [&>div]:from-pink-400 [&>div]:to-purple-400" />
+                    <p className="text-xs text-white/70">Analyzing fit...</p>
+                </div>
             ) : isHoveringMatchArea && !aiJobFitAnalysis ? (
-              <div className="flex flex-col items-center p-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg shadow-md min-h-[90px] justify-center w-[200px]">
-                <Sparkles className="h-6 w-6 mb-1 text-yellow-300" />
-                <p className="text-sm font-semibold text-white">Analyze My Job Fit</p>
-                <p className="text-xs text-white/70">Click to get AI insights</p>
-              </div>
+                <div className="flex flex-col items-center p-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg shadow-md min-h-[90px] justify-center w-full h-full">
+                    <Sparkles className="h-8 w-8 mb-1 text-yellow-300" />
+                    <p className="text-sm font-semibold text-white">Analyze My Job Fit</p>
+                </div>
             ) : (
-              <CircularProgressBar percentage={displayMatchPercentage} />
+                <CircularProgressBar 
+                    percentage={Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0)} 
+                    size={110} 
+                    displayText={!analysisTriggered && !aiJobFitAnalysis && !isLoadingAiAnalysis ? "?" : undefined}
+                />
             )}
           </div>
-          
+
           {jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && (
-            <p className="text-xs italic text-white/70 mt-2">
+            <p className="text-xs italic text-white/70 mt-2 mb-4">
               {jobOpening.requiredExperienceLevel.replace(/_/g, ' ')} experience preferred
             </p>
           )}
 
-          <div className="mt-6">
-            <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider">TOP SKILLS</p>
+          {/* Skills Section - moved to bottom */}
+          <div className="mt-auto pt-4"> 
+            <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-6">TOP SKILLS</p>
             <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
               {jobOpening?.tags?.slice(0, 3).map((tag) => (
-                <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-base px-5 py-2 rounded-full font-semibold shadow-sm">
+                <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-base px-5 py-2.5 rounded-full font-semibold shadow-sm">
                   {tag}
                 </Badge>
               ))}
             </div>
           </div>
-
-          <div className="flex-grow"></div> {/* Spacer to push footer down */}
         </div>
             
-        <CardFooter className="mt-auto p-3 grid grid-cols-4 gap-3 border-t border-white/10 bg-transparent justify-items-center">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
-                  disabled={isGuestMode}
-                  className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-                  aria-label={`Pass on ${company.name}`} data-no-drag="true"
-                >
-                  {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1 text-white/90" />} Pass
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>Not Interested</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost" onClick={handleDetailsButtonClick}
-                  className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-                  aria-label={`View details for ${company.name}`} data-no-drag="true" data-modal-trigger="true"
-                > <Eye className="h-5 w-5 mb-1 text-white/90" /> Profile
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>View Full Details</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
-                  disabled={isGuestMode}
-                  className={cn("flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm",
-                    isLiked && !isGuestMode ? "ring-2 ring-pink-400 bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 hover:text-pink-200 hover:border-pink-400/70" : "hover:text-green-300 hover:bg-green-500/20 hover:border-green-400/50"
-                  )} aria-label={`Like ${company.name}`} data-no-drag="true"
-                > {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Heart className={cn("h-5 w-5 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />} Like
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>I'm Interested!</p></TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <DropdownMenu>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost" disabled={isGuestMode}
-                      className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-                      aria-label={`Share ${company.name}`} data-no-drag="true" onClick={(e) => e.stopPropagation()}
-                    > {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1 text-white/90" />} Share
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent className={cn(isGuestMode && "bg-red-500 text-white border-red-600", !isGuestMode && "bg-slate-800 text-white border-slate-700")}>
-                    <p>{isGuestMode ? "Sign in to share" : "Share this opportunity"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+        <CardFooter className="mt-auto p-4 grid grid-cols-4 gap-4 border-t border-white/10 bg-transparent justify-items-center">
+          <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
+            <Button variant="ghost" onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} disabled={isGuestMode}
+              className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+              aria-label={`Pass on ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <X className="h-6 w-6 mb-1 text-white/90" />} Pass </Button>
+          </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>Not Interested</p></TooltipContent> </Tooltip> </TooltipProvider>
+          
+          <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
+            <Button variant="ghost" onClick={handleDetailsButtonClick}
+              className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+              aria-label={`View details for ${company.name}`} data-no-drag="true" data-modal-trigger="true"> <Eye className="h-6 w-6 mb-1 text-white/90" /> Profile </Button>
+          </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>View Full Details</p></TooltipContent> </Tooltip> </TooltipProvider>
+
+          <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
+            <Button variant="ghost" onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} disabled={isGuestMode}
+              className={cn("flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm",
+                isLiked && !isGuestMode ? "ring-2 ring-pink-400 bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 hover:text-pink-200 hover:border-pink-400/70" : "hover:text-green-300 hover:bg-green-500/20 hover:border-green-400/50"
+              )} aria-label={`Like ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <Heart className={cn("h-6 w-6 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />} Like </Button>
+          </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>I'm Interested!</p></TooltipContent> </Tooltip> </TooltipProvider>
+
+          <DropdownMenu> <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
+            <Button variant="ghost" disabled={isGuestMode}
+              className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+              aria-label={`Share ${company.name}`} data-no-drag="true" onClick={(e) => e.stopPropagation()}> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <Share2 className="h-6 w-6 mb-1 text-white/90" />} Share </Button>
+          </TooltipTrigger> <TooltipContent className={cn(isGuestMode && "bg-red-500 text-white border-red-600", !isGuestMode && "bg-slate-800 text-white border-slate-700")}><p>{isGuestMode ? "Sign in to share" : "Share this opportunity"}</p></TooltipContent> </Tooltip> </TooltipProvider>
             <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><LinkIcon className="mr-2 h-4 w-4" /> Copy Link</DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Mail className="mr-2 h-4 w-4" /> Email</DropdownMenuItem>
