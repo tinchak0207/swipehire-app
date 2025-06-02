@@ -20,6 +20,7 @@ interface ProfileCardProps {
   onAction: (candidateId: string, action: 'like' | 'pass' | 'viewProfile') => void;
   isLiked?: boolean;
   isGuestMode?: boolean;
+  isPreviewMode?: boolean; // New prop
 }
 
 const SWIPE_THRESHOLD = 75;
@@ -32,7 +33,7 @@ const incrementAnalytic = (key: string) => {
   }
 };
 
-const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardProps) => {
+const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode }: ProfileCardProps) => {
   const { toast } = useToast();
   const cardRootRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -48,7 +49,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
   const needsUnoptimized = avatarDisplayUrl.startsWith(CUSTOM_BACKEND_URL) || avatarDisplayUrl.startsWith('http://localhost');
 
   const handleLocalSwipeAction = (actionType: 'like' | 'pass') => {
-    if (isGuestMode) return;
+    if (isGuestMode || isPreviewMode) return;
     if (actionType === 'like') {
       incrementAnalytic('analytics_candidate_likes');
     } else if (actionType === 'pass') {
@@ -58,7 +59,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (isGuestMode) return;
+    if (isGuestMode || isPreviewMode) return;
     const targetElement = e.target as HTMLElement;
     if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], [role="menu"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
@@ -83,12 +84,12 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
   };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode || isPreviewMode) return;
     setCurrentX(e.clientX);
   };
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    if (!isDragging || !cardRootRef.current || isGuestMode || isPreviewMode) return;
 
     const deltaX = currentX - startX;
     cardRootRef.current.style.transition = 'transform 0.3s ease-out';
@@ -106,13 +107,13 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
     setStartX(0);
     setCurrentX(0);
     if (cardRootRef.current) {
-      cardRootRef.current.style.cursor = isGuestMode ? 'default' : 'grab';
+      cardRootRef.current.style.cursor = (isGuestMode || isPreviewMode) ? 'default' : 'grab';
     }
     document.body.style.userSelect = '';
   };
 
   const getCardTransform = () => {
-    if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
+    if (!isDragging || isGuestMode || isPreviewMode) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX;
     const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
@@ -120,7 +121,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
   };
 
   const handleShareOptionClick = (platform: 'copy' | 'email' | 'linkedin' | 'twitter') => {
-    if (isGuestMode) {
+    if (isGuestMode || isPreviewMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
@@ -156,19 +157,21 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
     }
     return 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200';
   };
+  
+  const lockedButtonClasses = "bg-rose-100 text-rose-600 border-rose-200 hover:bg-rose-200 hover:border-rose-300 cursor-not-allowed";
 
   return (
     <div 
       ref={cardRootRef}
       className="max-w-sm w-full mx-auto bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-3xl"
-      onMouseDown={handleMouseDown}
-      onMouseMove={handleMouseMove}
-      onMouseUp={handleMouseUpOrLeave}
-      onMouseLeave={handleMouseUpOrLeave}
+      onMouseDown={!isPreviewMode ? handleMouseDown : undefined}
+      onMouseMove={!isPreviewMode ? handleMouseMove : undefined}
+      onMouseUp={!isPreviewMode ? handleMouseUpOrLeave : undefined}
+      onMouseLeave={!isPreviewMode ? handleMouseUpOrLeave : undefined}
       style={{
-        cursor: isGuestMode ? 'default' : (isDragging ? 'grabbing' : 'grab'),
+        cursor: (isGuestMode || isPreviewMode) ? 'default' : (isDragging ? 'grabbing' : 'grab'),
         transform: getCardTransform(),
-        transition: isDragging ? 'none' : 'transform 0.3s ease-out, box-shadow 0.3s ease-out, scale 0.3s ease-out', // Ensure transition is re-enabled
+        transition: isDragging ? 'none' : 'transform 0.3s ease-out, box-shadow 0.3s ease-out, scale 0.3s ease-out',
       }}
     >
       {/* Header Section with Profile Image */}
@@ -188,7 +191,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 priority
               />
             </div>
-            {candidate.isUnderestimatedTalent ? (
+            {candidate.isUnderestimatedTalent && !isPreviewMode ? ( // Hide gem in preview to match screenshot
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -202,7 +205,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 </Tooltip>
               </TooltipProvider>
             ) : (
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full ring-2 ring-white shadow-md"></div>
+              <div className={cn("absolute -bottom-1 -right-1 w-6 h-6 rounded-full ring-2 ring-white shadow-md", isPreviewMode ? "bg-gray-300" : "bg-green-400")}></div>
             )}
           </div>
         </div>
@@ -212,38 +215,46 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
       <div className="px-6 py-6 space-y-4">
         {/* Name and Title */}
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{candidate.name || "N/A"}</h2>
-          <p className="text-indigo-600 font-medium text-sm uppercase tracking-wide">{candidate.role || "Role not specified"}</p>
+          <h2 className={cn("text-2xl font-bold tracking-tight", isPreviewMode && !candidate.name ? "text-gray-300" : "text-gray-800")}>
+            {isPreviewMode && !candidate.name ? "Your Name (Preview)" : candidate.name || "N/A"}
+          </h2>
+          <p className={cn("font-medium text-sm uppercase tracking-wide", isPreviewMode && !candidate.role ? "text-gray-300" : "text-indigo-600")}>
+             {isPreviewMode && !candidate.role ? "Your Role (Preview)" : candidate.role || "Role not specified"}
+          </p>
         </div>
 
         {/* Info Cards */}
         <div className="space-y-3">
-          {candidate.location && (
+          {(candidate.location || isPreviewMode) && (
             <div className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
               <MapPin className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span className="text-gray-700 text-sm font-medium truncate">{candidate.location}</span>
+              <span className={cn("text-sm font-medium truncate", isPreviewMode && !candidate.location ? "text-gray-400 italic" : "text-gray-700")}>
+                {candidate.location || (isPreviewMode ? "Your Location (Preview)" : "Not specified")}
+              </span>
             </div>
           )}
           
-          {candidate.workExperienceLevel && candidate.workExperienceLevel !== "unspecified" && (
+          {(candidate.workExperienceLevel && candidate.workExperienceLevel !== "unspecified" || isPreviewMode) && (
             <div className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
               <Briefcase className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span className="text-gray-700 text-sm font-medium truncate">{candidate.workExperienceLevel}</span>
+              <span className={cn("text-sm font-medium truncate", isPreviewMode && (!candidate.workExperienceLevel || candidate.workExperienceLevel === "unspecified") ? "text-gray-400 italic" : "text-gray-700")}>
+                 {candidate.workExperienceLevel && candidate.workExperienceLevel !== "unspecified" ? candidate.workExperienceLevel : (isPreviewMode ? "Experience Level (Preview)" : "Not specified")}
+              </span>
             </div>
           )}
           
-          {candidate.profileStrength !== undefined && (
+          {(candidate.profileStrength !== undefined || isPreviewMode) && (
             <div className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
               <BarChart3 className="w-4 h-4 text-indigo-500 shrink-0" />
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
-                  <span className="text-gray-700 text-sm font-medium">Profile Strength</span>
-                  <span className="text-indigo-600 text-sm font-bold">{candidate.profileStrength}%</span>
+                  <span className={cn("text-sm font-medium",isPreviewMode && candidate.profileStrength === undefined ? "text-gray-400 italic": "text-gray-700")}>Profile Strength</span>
+                  <span className="text-indigo-600 text-sm font-bold">{candidate.profileStrength ?? (isPreviewMode ? 80 : 0)}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div
                     className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${candidate.profileStrength}%` }}
+                    style={{ width: `${candidate.profileStrength ?? (isPreviewMode ? 80 : 0)}%` }}
                   ></div>
                 </div>
               </div>
@@ -252,20 +263,20 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
         </div>
 
         {/* Experience */}
-        {candidate.experienceSummary && (
+        {(candidate.experienceSummary || isPreviewMode) && (
           <div className="p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-            <p className="text-gray-600 text-sm leading-relaxed italic line-clamp-3">
-              {candidate.experienceSummary}
+            <p className={cn("text-sm leading-relaxed line-clamp-3", isPreviewMode && !candidate.experienceSummary ? "text-gray-400 italic" : "text-gray-600")}>
+              {candidate.experienceSummary || (isPreviewMode ? "Your experience summary goes here..." : "No experience summary provided.")}
             </p>
           </div>
         )}
 
         {/* Skills */}
-        {candidate.skills && candidate.skills.length > 0 && (
+        {((candidate.skills && candidate.skills.length > 0) || isPreviewMode) && (
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Top Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {candidate.skills.slice(0, 5).map(skill => (
+              {(candidate.skills && candidate.skills.length > 0 ? candidate.skills.slice(0, 5) : (isPreviewMode ? ["Example Skill 1", "Example Skill 2"] : [])).map(skill => (
                 <Badge
                   key={skill}
                   variant="secondary"
@@ -279,42 +290,50 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-2 pt-4 no-swipe-area" data-no-drag="true">
+        <div className={cn("grid gap-2 pt-4 no-swipe-area", isPreviewMode ? "grid-cols-3" : "grid-cols-4")} data-no-drag="true">
           <Button
             data-no-drag="true"
-            variant="outline"
+            variant={isPreviewMode ? "default" : "outline"}
             size="sm"
-            className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
-            onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'pass'); }}
-            disabled={isGuestMode}
+            className={cn(
+                "flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
+                isPreviewMode ? lockedButtonClasses : "bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+            )}
+            onClick={(e) => { if (!isPreviewMode) { e.stopPropagation(); onAction(candidate.id, 'pass'); } }}
+            disabled={isGuestMode || isPreviewMode}
           >
-            {isGuestMode ? <Lock className="w-5 h-5" /> : <ThumbsDown className="w-5 h-5" />}
+            {(isGuestMode || isPreviewMode) ? <Lock className="w-5 h-5" /> : <ThumbsDown className="w-5 h-5" />}
             <span className="text-xs">Pass</span>
           </Button>
           
-          <Button
-            data-no-drag="true"
-            variant="outline"
-            size="sm"
-            className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
-            onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'viewProfile'); }}
-          >
-            <Eye className="w-5 h-5" />
-            <span className="text-xs">Profile</span>
-          </Button>
+          {!isPreviewMode && (
+            <Button
+              data-no-drag="true"
+              variant="outline"
+              size="sm"
+              className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+              onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'viewProfile'); }}
+            >
+              <Eye className="w-5 h-5" />
+              <span className="text-xs">Profile</span>
+            </Button>
+          )}
           
           <Button
             data-no-drag="true"
-            variant="outline"
+            variant={isPreviewMode ? "default" : "outline"}
             size="sm"
             className={cn(
-                "flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
-                isLiked && "bg-green-100 border-green-400 ring-2 ring-green-500"
+                "flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
+                isPreviewMode ? lockedButtonClasses : cn(
+                    "bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300",
+                    isLiked && "bg-green-100 border-green-400 ring-2 ring-green-500"
+                )
             )}
-            onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'like'); }}
-            disabled={isGuestMode}
+            onClick={(e) => { if (!isPreviewMode) { e.stopPropagation(); onAction(candidate.id, 'like'); } }}
+            disabled={isGuestMode || isPreviewMode}
           >
-            {isGuestMode ? <Lock className="w-5 h-5" /> : <ThumbsUp className={cn("w-5 h-5", isLiked && "fill-green-500")} />}
+            {(isGuestMode || isPreviewMode) ? <Lock className="w-5 h-5" /> : <ThumbsUp className={cn("w-5 h-5", isLiked && "fill-green-500")} />}
             <span className="text-xs">Like</span>
           </Button>
           
@@ -325,24 +344,28 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                   <DropdownMenuTrigger asChild>
                     <Button
                       data-no-drag="true"
-                      variant="outline"
+                      variant={isPreviewMode ? "default" : "outline"}
                       size="sm"
-                      className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
-                      disabled={isGuestMode}
+                      className={cn(
+                        "flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
+                        isPreviewMode ? lockedButtonClasses : "bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+                      )}
+                      disabled={isGuestMode || isPreviewMode}
                       onClick={(e) => e.stopPropagation()} 
                     >
-                      {isGuestMode ? <Lock className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
+                      {(isGuestMode || isPreviewMode) ? <Lock className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
                       <span className="text-xs">Share</span>
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
-                {isGuestMode && (
+                {(isGuestMode || isPreviewMode) && (
                   <TooltipContent side="top" className="bg-red-500 text-white border-red-600 p-2 rounded-md shadow-lg">
-                    <p>Sign in to share</p>
+                    <p>{isPreviewMode ? "Share disabled in preview" : "Sign in to share"}</p>
                   </TooltipContent>
                 )}
               </Tooltip>
             </TooltipProvider>
+           {!isPreviewMode && (
             <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg rounded-md" data-no-drag="true">
               <DropdownMenuItem onClick={() => handleShareOptionClick('copy')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
                 <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Copy Link
@@ -357,6 +380,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 <TwitterIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Share on X
               </DropdownMenuItem>
             </DropdownMenuContent>
+           )}
           </DropdownMenu>
         </div>
       </div>
@@ -365,4 +389,3 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
 };
 
 export default ProfileCard;
-    

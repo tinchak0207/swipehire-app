@@ -14,8 +14,7 @@ import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save,
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate } from '@/lib/types';
 import NextImage from 'next/image';
-import { SwipeCard } from '@/components/swipe/SwipeCard';
-import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
+import ProfileCard from '@/components/cards/ProfileCard'; // Changed import from SwipeCard/CandidateCardContent
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
@@ -34,20 +33,6 @@ const formatEnumLabel = (value: string) => {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-};
-
-const cardThemeOptions = [
-  { value: 'default', label: 'Default Theme' },
-  { value: 'ocean', label: 'Ocean Blue' },
-  { value: 'sunset', label: 'Sunset Orange' },
-  { value: 'forest', label: 'Forest Green' },
-  { value: 'lavender', label: 'Lavender Bliss' },
-  { value: 'professional-dark', label: 'Professional Dark' },
-];
-
-const getThemeClass = (themeKey?: string) => {
-  if (!themeKey || themeKey === 'default') return 'card-theme-default';
-  return `card-theme-${themeKey}`;
 };
 
 const jobTypeEnumOptions = Object.values(JobType).filter(jt => jt !== JobType.UNSPECIFIED);
@@ -83,7 +68,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
   const [salaryExpectationMin, setSalaryExpectationMin] = useState<string>('');
   const [salaryExpectationMax, setSalaryExpectationMax] = useState<string>('');
-  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default');
+  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default'); // This is for candidate's own card theming choice, ProfileCard itself doesn't use this directly for its base style
 
 
   const [isLoading, setIsLoading] = useState(false);
@@ -123,7 +108,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
             setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
             setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
-            setSelectedCardTheme(userData.profileCardTheme || 'default');
+            setSelectedCardTheme(userData.profileCardTheme || 'default'); // Load chosen theme
             setIsFetchingProfile(false);
             return;
           } else {
@@ -375,7 +360,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     ? avatarPreview
     : avatarUrl && avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
-      : avatarUrl || `https://placehold.co/80x80.png?text=${profileHeadline?.[0] || 'P'}`;
+      : avatarUrl || `https://placehold.co/96x96.png?text=${profileHeadline?.[0] || 'P'}`; // Changed placeholder size
   
 
   const candidatePreviewData: Candidate = {
@@ -386,7 +371,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     skills: skillList,
     avatarUrl: currentDisplayAvatarUrl,
     videoResumeUrl: videoPortfolioLink || undefined,
-    location: 'Your Location (Preview)',
+    location: 'Your Location (Preview)', // You might want to add a form field for actual location
     desiredWorkStyle: desiredWorkStyle,
     pastProjects,
     workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
@@ -397,11 +382,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     salaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax) : undefined,
     availability: availability as Availability,
     jobTypePreference: jobTypePreferenceList,
-    cardTheme: selectedCardTheme,
-    profileStrength: 80, 
-    personalityAssessment: [],
-    optimalWorkStyles: [],
-    isUnderestimatedTalent: false,
+    cardTheme: selectedCardTheme, // This will be passed to ProfileCard but ProfileCard doesn't use it directly
+    profileStrength: 80, // Example value
+    personalityAssessment: [], // Example value
+    optimalWorkStyles: [], // Example value
+    isUnderestimatedTalent: false, // Example value
   };
 
 
@@ -681,23 +666,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               onChange={(e) => setVideoPortfolioLink(e.target.value)}
             />
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="cardTheme" className="text-base flex items-center">
-                <PaletteIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Talent Card Appearance
-            </Label>
-            <Select value={selectedCardTheme} onValueChange={setSelectedCardTheme}>
-                <SelectTrigger id="cardTheme">
-                    <SelectValue placeholder="Select card theme" />
-                </SelectTrigger>
-                <SelectContent>
-                    {cardThemeOptions.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                            {option.label}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-          </div>
+          {/* Card Theme selection is removed as ProfileCard doesn't use themes the same way CompanyCardContent does. ProfileCard has a fixed style. */}
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
           <Button variant="outline" onClick={() => setIsPreviewModalOpen(true)}>
@@ -711,24 +680,19 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       </Card>
 
       <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
-        <DialogContent className="sm:max-w-md md:max-w-lg p-0 bg-transparent border-none shadow-none">
+        <DialogContent className="sm:max-w-sm p-0 bg-transparent border-none shadow-none data-[state=open]:animate-none data-[state=closed]:animate-none">
           <ShadDialogTitle className="sr-only">Talent Card Preview</ShadDialogTitle>
-          <div className="aspect-[9/16] max-h-[80vh] w-full">
-            <SwipeCard className={cn("h-full w-full overflow-hidden !rounded-3xl", getThemeClass(selectedCardTheme))}>
-              <CandidateCardContent
-                candidate={candidatePreviewData}
-                onSwipeAction={() => {}} 
-                isLiked={false} 
-                isGuestMode={true}
-                isPreviewMode={true} 
-              />
-            </SwipeCard>
-          </div>
+            <div className="w-full max-w-sm mx-auto aspect-[9/16] sm:aspect-auto sm:h-auto">
+                <ProfileCard
+                    candidate={candidatePreviewData}
+                    onAction={() => {}} // No-op for preview
+                    isLiked={false} // Not relevant for preview
+                    isGuestMode={true} // To show locked buttons
+                    isPreviewMode={true} // Ensures ProfileCard disables its own interactions
+                />
+            </div>
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
-
-    
