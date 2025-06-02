@@ -29,7 +29,7 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 50; // Reduced for card
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 50; 
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
@@ -38,8 +38,6 @@ const MAX_ROTATION = 10;
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-
-// Conceptual analytics helper
 const incrementAnalytic = (key: string) => {
   if (typeof window !== 'undefined') {
     const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
@@ -47,11 +45,16 @@ const incrementAnalytic = (key: string) => {
   }
 };
 
+const getThemeClass = (themeKey?: string) => {
+  if (!themeKey || themeKey === 'default') return 'card-theme-default'; // For company cards, default might be 'bg-card' instead of a specific theme class
+  return `card-theme-${themeKey}`;
+};
+
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardRootRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences(); // Get current user's MongoDB ID
+  const { mongoDbUserId } = useUserPreferences(); 
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -69,7 +72,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
-
+  const isThemedCard = company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender';
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
@@ -129,7 +132,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     
     let candidateForAI = currentUserProfileForAI;
     if (!candidateForAI) {
-      setIsLoadingAiAnalysis(true); // Show loading while fetching profile too
+      setIsLoadingAiAnalysis(true); 
       candidateForAI = await fetchCurrentUserProfileForAI();
     }
 
@@ -370,7 +373,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
 
-  const isThemedCard = company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender';
 
   const ActionButton = ({
     action,
@@ -400,18 +402,18 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         iconFillClass = "fill-green-500";
         hoverClasses = "hover:bg-green-500/10";
       } else {
-        colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-muted-foreground";
-        hoverClasses = "hover:text-green-500 hover:bg-green-500/10";
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-muted-foreground";
+        hoverClasses = isThemedCard ? "hover:text-green-300 hover:bg-green-500/20" : "hover:text-green-500 hover:bg-green-500/10";
       }
     } else if (action === 'pass') {
-      colorClasses = isThemedCard ? "text-primary-foreground/80" : "text-destructive";
-      hoverClasses = `hover:text-destructive hover:bg-destructive/10`;
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-destructive";
+        hoverClasses = isThemedCard ? "hover:text-red-300 hover:bg-red-500/20" : "hover:bg-destructive/10";
     } else if (action === 'details') {
-      colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-blue-500";
-      hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10";
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-blue-500";
+        hoverClasses = isThemedCard ? "hover:text-blue-300 hover:bg-blue-500/20" : "hover:text-blue-600 hover:bg-blue-500/10";
     } else if (action === 'share_trigger') {
-      colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-muted-foreground";
-      hoverClasses = isThemedCard ? "hover:text-primary-foreground hover:bg-primary-foreground/10" : "hover:text-gray-600 hover:bg-gray-500/10";
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-muted-foreground";
+        hoverClasses = isThemedCard ? "hover:text-primary-foreground/80 hover:bg-primary-foreground/10" : "hover:text-gray-600 hover:bg-gray-500/10";
     }
     
     const effectiveOnClick = action === 'details' 
@@ -518,7 +520,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="relative w-full shrink-0 pt-[70px]"> 
+        <div className={cn(
+          "relative w-full shrink-0 pt-[70px]",
+           company.cardTheme && company.cardTheme !== 'default' ? getThemeClass(company.cardTheme) : 'bg-card' 
+          )}> 
           <div className="relative w-full aspect-[16/7] sm:aspect-video px-4 pb-4">
             {company.logoUrl ? (
               <Image
@@ -554,19 +559,19 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
             <div className="space-y-1.5">
                 {jobOpening?.location && (
-                <div className={cn("flex items-center text-xs", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                <div className={cn("flex items-center text-xs mt-2", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                     <MapPin className={cn("h-3 w-3 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                     <span className="truncate">{jobOpening.location}</span>
                 </div>
                 )}
                 {(jobOpening?.jobType) && (
-                <div className={cn("flex items-center text-xs", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                <div className={cn("flex items-center text-xs mt-1.5", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                     <JobTypeIcon className={cn("h-3 w-3 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                     <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
                 </div>
                 )}
                 {jobOpening?.tags && jobOpening.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1">
+                  <div className="flex flex-wrap gap-1 pt-1.5 mt-2">
                     {jobOpening.tags.slice(0,3).map(tag => (
                       <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0.5">{tag}</Badge>
                     ))}
@@ -574,7 +579,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </div>
                 )}
                 {jobOpening?.description && (
-                    <p className={cn("text-xs pt-1 line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                    <p className={cn("text-xs pt-1.5 mt-2 line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {truncatedJobDescriptionForCard}
                     </p>
                 )}
@@ -795,4 +800,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-

@@ -34,12 +34,16 @@ const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
 
-// Conceptual analytics helper
 const incrementAnalytic = (key: string) => {
   if (typeof window !== 'undefined') {
     const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
     localStorage.setItem(key, (currentCount + 1).toString());
   }
+};
+
+const getThemeClass = (themeKey?: string) => {
+  if (!themeKey || themeKey === 'default') return 'card-theme-default';
+  return `card-theme-${themeKey}`;
 };
 
 
@@ -361,6 +365,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
 
+  const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender';
+
   const fetchAiRecruiterAnalysis = useCallback(async () => {
     if (!candidate || isGuestMode) {
         if (isGuestMode) {
@@ -573,33 +579,32 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     onClickOverride?: (e: React.MouseEvent) => void;
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
-    const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender';
-
+    
     let colorClasses = "";
     let hoverClasses = "";
     let iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "text-white"; // For red guest lock button
+      colorClasses = "text-white"; 
       hoverClasses = "hover:bg-red-500";
     } else if (action === 'like') {
       if (isSpecificActionLiked) {
-        colorClasses = "text-green-500";
+        colorClasses = "text-green-500"; // Liked state is always green
         iconFillClass = "fill-green-500";
         hoverClasses = "hover:bg-green-500/10";
       } else {
-        colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-muted-foreground";
-        hoverClasses = "hover:text-green-500 hover:bg-green-500/10";
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-muted-foreground";
+        hoverClasses = isThemedCard ? "hover:text-green-300 hover:bg-green-500/20" : "hover:text-green-500 hover:bg-green-500/10";
       }
     } else if (action === 'pass') {
-      colorClasses = isThemedCard ? "text-primary-foreground/80" : "text-destructive";
-      hoverClasses = `hover:text-destructive hover:bg-destructive/10`;
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-destructive"; // Default: light on theme, red on default
+        hoverClasses = isThemedCard ? "hover:text-red-300 hover:bg-red-500/20" : "hover:bg-destructive/10"; // Hover: stronger red indication
     } else if (action === 'details') {
-      colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-blue-500";
-      hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10";
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-blue-500";
+        hoverClasses = isThemedCard ? "hover:text-blue-300 hover:bg-blue-500/20" : "hover:text-blue-600 hover:bg-blue-500/10";
     } else if (action === 'share_trigger') {
-      colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-muted-foreground";
-      hoverClasses = isThemedCard ? "hover:text-primary-foreground hover:bg-primary-foreground/10" : "hover:text-gray-600 hover:bg-gray-500/10";
+        colorClasses = isThemedCard ? "text-primary-foreground" : "text-muted-foreground";
+        hoverClasses = isThemedCard ? "hover:text-primary-foreground/80 hover:bg-primary-foreground/10" : "hover:text-gray-600 hover:bg-gray-500/10";
     }
     
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { 
@@ -689,8 +694,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     );
   };
 
-  const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender';
-
   return (
     <>
       <div
@@ -706,7 +709,10 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="shrink-0 h-36 sm:h-40 bg-slate-100 dark:bg-slate-800 flex justify-center items-center p-3 relative">
+        <div className={cn(
+            "shrink-0 h-36 sm:h-40 flex justify-center items-center p-3 relative",
+            candidate.cardTheme && candidate.cardTheme !== 'default' ? getThemeClass(candidate.cardTheme) : 'bg-slate-100 dark:bg-slate-800'
+            )}>
             <div className="relative w-20 h-20 sm:w-24 sm:h-24">
                 {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
                 <Image
@@ -748,20 +754,20 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             </div>
 
             {candidate.location && (
-                <div className={cn("flex items-center text-xs mt-1", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                <div className={cn("flex items-center text-xs mt-2", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                   <MapPin className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                   <span className="line-clamp-1">{candidate.location}</span>
                 </div>
             )}
             {candidate.profileStrength !== undefined && !isPreviewMode && (
-                <div className={cn("flex items-center text-xs mt-1", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                <div className={cn("flex items-center text-xs mt-1.5", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                     <BarChartHorizontal className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                     <span>Profile Strength: <span className={cn("font-semibold", isThemedCard ? 'text-primary-foreground' : 'text-primary')}>{candidate.profileStrength}%</span></span>
                 </div>
             )}
             
             {candidate.experienceSummary && (
-                <div className="mt-2">
+                <div className="mt-2.5">
                     <p className={cn("text-xs line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {candidate.experienceSummary}
                     </p>
@@ -769,7 +775,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             )}
             
             {candidate.skills && candidate.skills.length > 0 && (
-                <div className="pt-1.5 mt-2">
+                <div className="pt-2 mt-2.5">
                     <div className="flex flex-wrap gap-1">
                         {candidate.skills.slice(0, 3).map((skill) => (
                           <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
@@ -814,4 +820,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
-
