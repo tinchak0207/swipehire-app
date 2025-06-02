@@ -301,7 +301,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     if (actionType === 'details') { 
         handleDetailsButtonClick();
     } else {
-        onSwipeAction(company.id, actionType);
+        onSwipeAction(company.id, actionType as 'like' | 'pass');
     }
   };
 
@@ -618,4 +618,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
