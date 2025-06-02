@@ -44,7 +44,9 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
     const typingSpeed = 40; 
     let typingInterval: NodeJS.Timeout | undefined;
   
-    const startDelay = parseInt(aosDelay || "0", 10) + 300; 
+    // Ensure aosDelay is treated as a number, default to 0 if undefined or NaN
+    const delayMs = parseInt(aosDelay || "0", 10);
+    const startDelay = (isNaN(delayMs) ? 0 : delayMs) + 300; 
   
     const timer = setTimeout(() => {
       if (quote) {
@@ -142,12 +144,10 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
       <main className="flex-grow">
         <section
           id="hero"
-          className="relative py-24 md:py-36 text-white bg-cover bg-center bg-no-repeat parallax-hero"
-          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
+          className="relative py-24 md:py-36 text-white parallax-hero bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"
           data-aos="fade-in"
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent z-0"></div>
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70 z-0"></div>
+          <div className="absolute inset-0 bg-black/10 z-0"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
               Unlock Your Career<br className="sm:block" />
@@ -282,7 +282,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                             </ul>
                         </CardContent>
                         <CardFooter className="mt-auto pt-6 p-6">
-                            <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Sign Up Free</Button>
+                            <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover font-semibold">Sign Up Free</Button>
                         </CardFooter>
                     </Card>
                     <Card className="flex flex-col shadow-xl border-2 border-primary relative subtle-card-hover" data-aos="flip-up" data-aos-delay="100">
@@ -301,7 +301,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                             </ul>
                         </CardContent>
                         <CardFooter className="mt-auto pt-6 p-6">
-                            <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Get Started</Button>
+                            <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover font-semibold">Get Started</Button>
                         </CardFooter>
                     </Card>
                     <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-right" data-aos-delay="200">
@@ -319,7 +319,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                             </ul>
                         </CardContent>
                         <CardFooter className="mt-auto pt-6 p-6">
-                           <Button onClick={() => alert('Contact sales for Enterprise plan!')} variant="outline" className="w-full subtle-button-hover">Contact Sales</Button>
+                           <Button onClick={() => alert('Contact sales for Enterprise plan!')} variant="outline" className="w-full subtle-button-hover font-semibold">Contact Sales</Button>
                         </CardFooter>
                     </Card>
                 </div>
@@ -332,7 +332,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <p className="text-lg text-slate-200 max-w-xl mx-auto mb-10 leading-relaxed">
               Join SwipeHire today and experience a smarter, more engaging way to connect.
             </p>
-            <Button onClick={onStartExploring} size="lg" className="bg-white text-primary hover:bg-slate-100 text-lg px-10 py-3 subtle-button-hover shadow-lg hover:shadow-xl">
+            <Button onClick={onStartExploring} size="lg" className="bg-white text-primary hover:bg-slate-100 text-lg px-10 py-3 subtle-button-hover shadow-lg hover:shadow-xl font-semibold">
               Sign Up Now <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
           </div>
