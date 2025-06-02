@@ -60,7 +60,12 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUserMongoId || !currentUserName) {
-      toast({ title: "Authentication Error", description: "User information is missing. Please re-login.", variant: "destructive" });
+      toast({
+        title: "Authentication Error",
+        description: "User information is missing. Please ensure your profile is complete and try again.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false); // Ensure loading state is reset
       return;
     }
     if (!title.trim() || !content.trim()) {

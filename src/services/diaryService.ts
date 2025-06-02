@@ -48,15 +48,24 @@ export async function createDiaryPost(postData: CreateDiaryPostPayload): Promise
       },
       body: JSON.stringify(postData),
     });
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: `Failed to create diary post. Status: ${response.status}` }));
-      throw new Error(errorData.message);
+      const contentType = response.headers.get("content-type");
+      let errorData;
+      if (contentType && contentType.includes("application/json")) {
+        errorData = await response.json();
+      } else {
+        // Attempt to get text if not JSON, for better debugging
+        const errorText = await response.text();
+        errorData = { message: `Server error: ${response.status}. Response: ${errorText.substring(0, 100)}...` }; // Truncate long HTML errors
+      }
+      throw new Error(errorData.message || `Failed to create diary post. Status: ${response.status}`);
     }
     const newPost: DiaryPost = await response.json();
     return { ...newPost, id: newPost._id }; // Map _id to id
   } catch (error) {
     console.error("Error in createDiaryPost:", error);
-    throw error;
+    throw error; // Re-throw the error to be caught by the component
   }
 }
 
