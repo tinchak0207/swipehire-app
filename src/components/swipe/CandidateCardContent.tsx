@@ -156,9 +156,9 @@ function CandidateDetailsModal({
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto bg-background">
-          <div className="p-4 sm:p-6 space-y-3 pt-3">
+          <div className="p-4 sm:p-6 space-y-4 pt-4">
             {candidate.videoResumeUrl && (
-              <section className="mb-3">
+              <section className="mb-4">
                 <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
                   <Video className="mr-2 h-5 w-5 text-primary" /> Video Resume
                 </h3>
@@ -178,10 +178,10 @@ function CandidateDetailsModal({
                 </div>
               </section>
             )}
-            <Separator className="my-3" />
+            <Separator className="my-4" />
 
             <section>
-              <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
+              <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                 <Briefcase className="mr-2 h-5 w-5 text-primary" /> Experience Summary
               </h3>
               <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
@@ -199,31 +199,31 @@ function CandidateDetailsModal({
                 )}
               </p>
             </section>
-             <Separator className="my-3" />
+             <Separator className="my-4" />
 
             {candidate.desiredWorkStyle && (
                 <section>
-                    <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
+                    <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                         <Lightbulb className="mr-2 h-5 w-5 text-primary" /> Desired Work Style
                     </h3>
                     <p className="text-sm text-muted-foreground">{candidate.desiredWorkStyle}</p>
                 </section>
             )}
-             <Separator className="my-3" />
+             <Separator className="my-4" />
 
             {candidate.skills && candidate.skills.length > 0 && (
               <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
+                <h3 className="text-lg font-semibold text-foreground mb-2.5 flex items-center">
                     <ListChecks className="mr-2 h-5 w-5 text-primary" /> Skills
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {candidate.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-sm px-2 py-1">{skill}</Badge>
+                    <Badge key={skill} variant="secondary" className="text-sm px-2.5 py-1">{skill}</Badge>
                   ))}
                 </div>
               </section>
             )}
-            <Separator className="my-3" />
+            <Separator className="my-4" />
             
             <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
               <AccordionItem value="ai-assessment">
@@ -232,8 +232,8 @@ function CandidateDetailsModal({
                     <Brain className="mr-2 h-5 w-5" /> AI Assessment (Recruiter Perspective) <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pt-1 pb-3">
-                  <p className="text-xs text-muted-foreground italic mb-2">
+                <AccordionContent className="pt-2 pb-4">
+                  <p className="text-xs text-muted-foreground italic mb-2.5">
                     Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
                   </p>
                   {isGuestMode ? (
@@ -246,7 +246,7 @@ function CandidateDetailsModal({
                           <span>Analyzing fit...</span>
                       </div>
                   ) : aiRecruiterMatchScore !== null ? (
-                      <div className="space-y-2 p-3 bg-muted/30 rounded-md shadow-sm">
+                      <div className="space-y-2.5 p-3 bg-muted/30 rounded-md shadow-sm">
                           <div className="text-md text-foreground">
                               <span className="font-semibold">Overall Match Score:</span>
                               <span className={cn(
@@ -263,9 +263,9 @@ function CandidateDetailsModal({
                               </p>
                           )}
                           {aiRecruiterWeightedScores && (
-                              <div className="pt-2 mt-2 border-t border-border/70">
-                                  <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
-                                  <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
+                              <div className="pt-2.5 mt-2.5 border-t border-border/70">
+                                  <p className="font-medium text-foreground text-sm mb-1.5">Score Breakdown (Individual Assessments):</p>
+                                  <ul className="list-none space-y-1 text-xs text-muted-foreground">
                                       <li>Skills Match: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
                                       <li>Experience Relevance: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
                                       <li>Culture Fit: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.cultureFitScore}%</span></li>
@@ -279,29 +279,29 @@ function CandidateDetailsModal({
                   )}
                 </AccordionContent>
               </AccordionItem>
-              <Separator className="my-3" />
+              <Separator className="my-4" />
               <AccordionItem value="coworker-fit">
                 <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
                   <div className="flex items-center">
                     <Users2 className="mr-2 h-5 w-5" /> Coworker Fit Profile <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pt-1 pb-3">
+                <AccordionContent className="pt-2 pb-4">
                   {isGuestMode ? (
                      <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
                          <Lock className="h-4 w-4 mr-2"/>Sign in to view detailed Coworker Fit Profile.
                      </div>
                   ) : (
-                    <div className="space-y-2 p-3 bg-muted/30 rounded-md shadow-sm">
+                    <div className="space-y-2.5 p-3 bg-muted/30 rounded-md shadow-sm">
                       {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
-                        <div className="mb-2 space-y-1">
+                        <div className="mb-2.5 space-y-1.5">
                           <p className="font-medium text-foreground text-sm">Personality Insights:</p>
                           {candidate.personalityAssessment.map((item, index) => (
                             <div key={index} className="flex items-start text-sm">
                               {renderPersonalityFitIcon(item.fit)}
                               <div className="min-w-0">
                                 <span className="font-semibold">{item.trait}:</span>
-                                <span className="text-muted-foreground ml-1">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
+                                <span className="text-muted-foreground ml-1.5">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
                               </div>
                             </div>
                           ))}
@@ -310,7 +310,7 @@ function CandidateDetailsModal({
                       {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 ? (
                         <div>
                           <p className="font-medium text-foreground text-sm">Optimal Work Style:</p>
-                          <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-0.5 text-sm">
+                          <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-1 text-sm">
                             {candidate.optimalWorkStyles.map((style, index) => (
                               <li key={index}>{style}</li>
                             ))}
@@ -322,11 +322,11 @@ function CandidateDetailsModal({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-             <Separator className="my-3" />
+             <Separator className="my-4" />
 
             {candidate.profileStrength && !isGuestMode && (
               <section>
-                <h3 className="text-lg font-semibold text-foreground mb-1 flex items-center">
+                <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
                 </h3>
                 <div className="flex items-center text-md text-primary font-medium">
@@ -367,6 +367,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
   const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default';
   const isLavenderTheme = candidate.cardTheme === 'lavender';
+  const isProfessionalDarkTheme = candidate.cardTheme === 'professional-dark';
+  const isLightBgThemedCard = isThemedCard && (isLavenderTheme || ['ocean', 'sunset', 'forest'].includes(candidate.cardTheme!));
 
 
   const fetchAiRecruiterAnalysis = useCallback(async () => {
@@ -580,40 +582,28 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     isSpecificActionLiked?: boolean;
     onClickOverride?: (e: React.MouseEvent) => void;
   }) => {
-    const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
+    const baseClasses = "flex-col h-auto py-2 text-xs sm:text-sm group"; // Added group for icon hover
     
     let colorClasses = "";
-    let hoverClasses = "";
+    let hoverClasses = "hover:bg-black/5"; // Default subtle hover
     let iconFillClass = "";
 
-    // Determine color based on theme and action
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "text-white"; // For locked state, always white text on red button
+      colorClasses = "text-white"; 
       hoverClasses = "hover:bg-red-500/80";
-    } else if (isThemedCard && !isLavenderTheme) { // Dark custom themes
-      switch (action) {
-        case 'like': colorClasses = isSpecificActionLiked ? "text-green-300" : "text-white"; iconFillClass = isSpecificActionLiked ? "fill-green-300" : ""; hoverClasses = "hover:text-green-300 hover:bg-green-500/20"; break;
-        case 'pass': colorClasses = "text-white"; hoverClasses = "hover:text-red-300 hover:bg-red-500/20"; break;
-        case 'details': colorClasses = "text-white"; hoverClasses = "hover:text-blue-300 hover:bg-blue-500/20"; break;
-        case 'share_trigger': colorClasses = "text-white"; hoverClasses = "hover:text-primary-foreground hover:bg-white/10"; break;
-        default: colorClasses = "text-white";
-      }
-    } else if (isLavenderTheme) { // Light custom theme (lavender)
-      switch (action) {
-        case 'like': colorClasses = isSpecificActionLiked ? "text-green-600" : "text-slate-700"; iconFillClass = isSpecificActionLiked ? "fill-green-600" : ""; hoverClasses = "hover:text-green-600 hover:bg-green-500/10"; break;
-        case 'pass': colorClasses = "text-slate-700"; hoverClasses = "hover:text-red-600 hover:bg-red-500/10"; break;
-        case 'details': colorClasses = "text-slate-700"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
-        case 'share_trigger': colorClasses = "text-slate-700"; hoverClasses = "hover:text-slate-900 hover:bg-slate-500/10"; break;
-        default: colorClasses = "text-slate-700";
-      }
-    } else { // Default (non-themed, light background) card
-      switch (action) {
-        case 'like': colorClasses = isSpecificActionLiked ? "text-green-500" : "text-muted-foreground"; iconFillClass = isSpecificActionLiked ? "fill-green-500" : ""; hoverClasses = "hover:text-green-500 hover:bg-green-500/10"; break;
-        case 'pass': colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; break;
-        case 'details': colorClasses = "text-blue-500"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
-        case 'share_trigger': colorClasses = "text-muted-foreground"; hoverClasses = "hover:text-gray-600 hover:bg-gray-500/10"; break;
-        default: colorClasses = "text-muted-foreground";
-      }
+    } else if (isProfessionalDarkTheme) { // Dark theme with light text
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-primary-foreground/90"; // Light text
+      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-300" : "";
+      if (action === 'like') hoverClasses = "hover:text-green-300 hover:bg-white/10";
+      else if (action === 'pass') hoverClasses = "hover:text-red-300 hover:bg-white/10";
+      else hoverClasses = "hover:text-primary-foreground hover:bg-white/10";
+    } else if (isLightBgThemedCard || !isThemedCard) { // Light themes (ocean, sunset, forest, lavender) OR default card
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" : "text-foreground/80"; // Dark text
+      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-600" : "";
+      if (action === 'like') hoverClasses = "hover:text-green-600 hover:bg-green-500/10";
+      else if (action === 'pass') { colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; }
+      else if (action === 'details') { colorClasses = "text-primary"; hoverClasses = "hover:bg-primary/10"; }
+      else hoverClasses = "hover:text-foreground hover:bg-black/5";
     }
     
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { 
@@ -638,7 +628,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             baseClasses, 
             colorClasses, 
             hoverClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400", 
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400 !text-white", 
             extraClassName
           )}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
@@ -647,7 +637,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           data-no-drag="true"
           data-modal-trigger={action === 'details' ? 'true' : undefined}
         >
-          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", iconFillClass)} />}
+          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-5 w-5 mb-1" /> : <Icon className={cn("h-5 w-5 mb-1 group-hover:scale-110 transition-transform", iconFillClass)} />}
           <span className="text-xs">{label}</span>
         </Button>
     );
@@ -719,30 +709,30 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         <div className={cn(
-            "shrink-0 h-36 sm:h-40 flex justify-center items-center p-3 relative",
+            "shrink-0 h-40 sm:h-44 flex justify-center items-center p-4 relative", // Increased padding
             isThemedCard ? getThemeClass(candidate.cardTheme) : 'bg-slate-100 dark:bg-slate-800'
             )}>
-            <div className="relative w-20 h-20 sm:w-24 sm:h-24">
+            <div className="relative w-24 h-24 sm:w-28 sm:w-28"> 
                 {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
                 <Image
                     src={cardAvatarSrc || 'https://placehold.co/500x700.png'}
                     alt={candidate.name}
                     fill
-                    className="rounded-full object-cover border-4 border-white shadow-md"
+                    className="rounded-full object-cover border-4 border-white shadow-lg" // Increased border, shadow
                     data-ai-hint={candidate.dataAiHint || "person professional"}
                     priority
                     unoptimized={cardAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || cardAvatarSrc?.startsWith('http://localhost')}
                 />
                 ) : (
-                <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md" />
+                <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-lg border-4 border-white" />
                 )}
             </div>
           {candidate.isUnderestimatedTalent && !isPreviewMode && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="default" className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-1.5 py-0.5">
-                    <Sparkles className="h-3 w-3 mr-1" />
+                  <Badge variant="default" className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-1"> {/* Adjusted badge style */}
+                    <Sparkles className="h-3.5 w-3.5 mr-1" />
                     Gem
                   </Badge>
                 </TooltipTrigger>
@@ -754,42 +744,58 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           )}
         </div>
         
-        <div className={cn("w-full border-t-4", isThemedCard ? "border-primary-foreground/30" : "border-accent" )}></div>
+        <div className={cn("w-full border-t-4", 
+            isProfessionalDarkTheme ? "border-primary-foreground/30" : 
+            isLightBgThemedCard ? "border-foreground/20" : 
+            "border-accent" 
+          )}></div>
 
-        <div className="flex-1 p-3 sm:p-4 overflow-y-auto min-h-0 space-y-1.5 sm:space-y-2">
-            <div className="text-center mt-1">
-                <h2 className={cn("text-lg sm:text-xl font-bold", isThemedCard && !isLavenderTheme ? 'text-primary-foreground' : (isLavenderTheme ? 'text-foreground': 'text-primary'))}>{candidate.name}</h2>
-                <p className={cn("text-md sm:text-lg mb-1.5 line-clamp-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>{candidate.role}</p>
+        <div className="flex-1 p-4 space-y-2.5 sm:space-y-3 overflow-y-auto min-h-0">
+            <div className="text-center mt-1.5">
+                <CardTitle className={cn("text-xl sm:text-2xl font-bold", 
+                    isProfessionalDarkTheme ? 'text-primary-foreground' : 'text-foreground'
+                )}>{candidate.name}</CardTitle>
+                <CardDescription className={cn("text-md sm:text-lg mt-0.5 mb-2 line-clamp-1", 
+                    isProfessionalDarkTheme ? 'text-primary-foreground/80' : 'text-muted-foreground'
+                )}>{candidate.role}</CardDescription>
             </div>
 
-            {candidate.location && (
-                <div className={cn("flex items-center text-xs mt-2", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
-                  <MapPin className={cn("h-4 w-4 mr-1.5 shrink-0", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
-                  <span className="line-clamp-1">{candidate.location}</span>
-                </div>
-            )}
-            {candidate.profileStrength !== undefined && !isPreviewMode && (
-                <div className={cn("flex items-center text-xs mt-1.5", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
-                    <BarChartHorizontal className={cn("h-4 w-4 mr-1.5 shrink-0", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
-                    <span>Profile Strength: <span className={cn("font-semibold", isThemedCard && !isLavenderTheme ? 'text-primary-foreground' : (isLavenderTheme ? 'text-primary' : 'text-primary'))}>{candidate.profileStrength}%</span></span>
-                </div>
-            )}
+            <div className="space-y-2 text-sm">
+                {candidate.location && (
+                    <div className={cn("flex items-center", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                      <MapPin className={cn("h-4 w-4 mr-2 shrink-0")} />
+                      <span className="line-clamp-1">{candidate.location}</span>
+                    </div>
+                )}
+                {candidate.profileStrength !== undefined && !isPreviewMode && (
+                    <div className={cn("flex items-center", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                        <BarChartHorizontal className={cn("h-4 w-4 mr-2 shrink-0")} />
+                        <span>Profile Strength: <span className={cn("font-semibold", isProfessionalDarkTheme ? 'text-primary-foreground' : 'text-primary')}>{candidate.profileStrength}%</span></span>
+                    </div>
+                )}
+                 {candidate.workExperienceLevel && candidate.workExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && (
+                    <div className={cn("flex items-center", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                      <Briefcase className={cn("h-4 w-4 mr-2 shrink-0")} />
+                      <span className="line-clamp-1">{candidate.workExperienceLevel}</span>
+                    </div>
+                )}
+            </div>
             
             {candidate.experienceSummary && (
-                <div className="mt-2 pt-1.5 min-h-[2.5em]">
-                    <p className={cn("text-sm line-clamp-2 sm:line-clamp-3", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>
+                <div className="mt-3 pt-2.5 min-h-[3em]"> 
+                    <p className={cn("text-sm line-clamp-2 sm:line-clamp-3", isProfessionalDarkTheme ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {candidate.experienceSummary}
                     </p>
                 </div>
             )}
             
             {candidate.skills && candidate.skills.length > 0 && (
-                <div className="pt-2 mt-2">
-                    <div className="flex flex-wrap gap-1">
+                <div className="pt-3 mt-3">
+                    <div className="flex flex-wrap gap-1.5">
                         {candidate.skills.slice(0, 3).map((skill) => (
-                          <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
+                          <Badge key={skill} variant="secondary" className="text-xs px-2 py-0.5">{skill}</Badge>
                         ))}
-                        {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length - 3}</Badge>}
+                        {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-2 py-0.5">+{candidate.skills.length - 3}</Badge>}
                     </div>
                 </div>
             )}
@@ -797,8 +803,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             
         {!isPreviewMode && (
             <CardFooter className={cn(
-                "p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t shrink-0 no-swipe-area",
-                isThemedCard ? '' : 'bg-card' // Transparent for themed, bg-card for default
+                "p-0 pt-2.5 sm:pt-3 grid grid-cols-4 gap-1 border-t shrink-0 no-swipe-area",
+                isThemedCard ? (isProfessionalDarkTheme ? '' : '') : 'bg-card' 
             )}>
               <ActionButton action="pass" Icon={ThumbsDown} label="Pass" />
               <ActionButton

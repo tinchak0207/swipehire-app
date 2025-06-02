@@ -22,6 +22,8 @@ h1, h2, h3, h4, h5, h6 {
     /* Deep Blue for Primary, Purple for Accent */
     --background: 240 20% 94%; /* Light Gray, kept for general page background */
     --foreground: 220 15% 25%; /* Darker Blue-Gray for text */
+    --foreground-hsl: 220 15% 25%;
+
 
     --card: 0 0% 100%; /* White */
     --card-foreground: 220 15% 25%;
@@ -31,9 +33,7 @@ h1, h2, h3, h4, h5, h6 {
 
     --primary: 220 70% 50%; /* Deep Blue */
     --primary-foreground: 0 0% 100%; /* White for contrast */
-    /* For hsla usage in themes */
     --primary-foreground-hsl: 0 0% 100%;
-    --foreground-hsl: 220 15% 25%; /* For lavender theme text on light bg */
 
 
     --secondary: 220 70% 90%; /* Lighter Blue */
@@ -76,6 +76,7 @@ h1, h2, h3, h4, h5, h6 {
     /* Dark theme adjustments - keeping it simple for now, can be expanded */
     --background: 220 15% 10%; /* Dark Blue */
     --foreground: 220 15% 90%; /* Light Blue-Gray */
+    --foreground-hsl: 220 15% 90%;
 
     --card: 220 15% 15%; /* Slightly Lighter Dark Blue */
     --card-foreground: 220 15% 90%;
@@ -86,7 +87,6 @@ h1, h2, h3, h4, h5, h6 {
     --primary: 220 70% 55%; /* Deep Blue (slightly lighter for dark mode) */
     --primary-foreground: 0 0% 100%;
     --primary-foreground-hsl: 0 0% 100%;
-    --foreground-hsl: 220 15% 90%;
 
 
     --secondary: 220 50% 25%; /* Darker Blue */
@@ -219,23 +219,23 @@ h1, h2, h3, h4, h5, h6 {
   @apply bg-card text-card-foreground; /* Uses default card variables */
 }
 .card-theme-ocean {
-  background: linear-gradient(135deg, hsla(200, 70%, 65%, 0.75), hsla(220, 60%, 55%, 0.8));
-  color: hsl(var(--primary-foreground));
+  background: linear-gradient(135deg, hsla(200, 80%, 75%, 0.7), hsla(220, 70%, 65%, 0.8));
+  color: hsl(var(--foreground)); /* Dark text for lightened theme */
 }
 .card-theme-sunset {
-  background: linear-gradient(135deg, hsla(25, 85%, 70%, 0.75), hsla(350, 75%, 60%, 0.8));
-  color: hsl(var(--primary-foreground));
+  background: linear-gradient(135deg, hsla(25, 90%, 75%, 0.7), hsla(350, 80%, 70%, 0.8));
+  color: hsl(var(--foreground)); /* Dark text for lightened theme */
 }
 .card-theme-forest {
-  background: linear-gradient(135deg, hsla(130, 55%, 55%, 0.75), hsla(160, 50%, 45%, 0.8));
-  color: hsl(var(--primary-foreground));
+  background: linear-gradient(135deg, hsla(130, 60%, 70%, 0.7), hsla(160, 55%, 60%, 0.8));
+  color: hsl(var(--foreground)); /* Dark text for lightened theme */
 }
-.card-theme-lavender {
+.card-theme-lavender { /* This theme already uses dark text on lighter background */
   background: linear-gradient(135deg, hsla(250, 70%, 94%, 0.85), hsla(270, 50%, 80%, 0.75));
-  color: hsl(var(--foreground)); /* This theme uses darker text on lighter background */
+  color: hsl(var(--foreground)); 
 }
-.card-theme-professional-dark {
-  background: linear-gradient(135deg, hsla(220, 15%, 35%, 0.8), hsla(220, 20%, 20%, 0.9));
+.card-theme-professional-dark { /* This theme is dark, so it uses light text */
+  background: linear-gradient(135deg, hsla(220, 15%, 30%, 0.9), hsla(220, 20%, 20%, 0.95));
   color: hsl(var(--primary-foreground));
 }
 
@@ -243,34 +243,33 @@ h1, h2, h3, h4, h5, h6 {
 .card-theme-ocean .badge-secondary,
 .card-theme-sunset .badge-secondary,
 .card-theme-forest .badge-secondary,
-.card-theme-professional-dark .badge-secondary {
-  background-color: hsla(var(--primary-foreground-hsl), 0.15); /* More transparent */
+.card-theme-lavender .badge-secondary { /* For themes that now default to dark text */
+  background-color: hsla(var(--foreground-hsl), 0.08); /* Subtle dark background for badge */
+  color: hsl(var(--foreground)); /* Dark text */
+  border-color: hsla(var(--foreground-hsl), 0.15);
+}
+.card-theme-professional-dark .badge-secondary { /* For dark theme with light text */
+  background-color: hsla(var(--primary-foreground-hsl), 0.15); 
   color: hsl(var(--primary-foreground));
   border-color: hsla(var(--primary-foreground-hsl), 0.25);
-}
-.card-theme-lavender .badge-secondary { /* Lavender has dark text, so badges need to contrast that */
-  background-color: hsla(var(--foreground-hsl), 0.08);
-  color: hsl(var(--foreground));
-  border-color: hsla(var(--foreground-hsl), 0.15);
 }
 
 .card-theme-ocean .badge-outline,
 .card-theme-sunset .badge-outline,
 .card-theme-forest .badge-outline,
-.card-theme-professional-dark .badge-outline {
-  color: hsl(var(--primary-foreground));
-  border-color: hsla(var(--primary-foreground-hsl), 0.4);
-}
 .card-theme-lavender .badge-outline {
   color: hsl(var(--foreground));
   border-color: hsla(var(--foreground-hsl), 0.4);
+}
+.card-theme-professional-dark .badge-outline {
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.4);
 }
 
 
 /* New styles for Landing Page Hero Background */
 .hero-gradient-bg {
   background: linear-gradient(160deg, hsl(var(--primary) / 0.95) 0%, hsl(var(--accent) / 0.85) 70%, hsl(var(--secondary) / 0.7) 100%);
-  /* Example: dark blue to purple to lighter blue/purple */
 }
 .hero-gradient-bg-secondary { /* For final CTA, slightly different */
   background: linear-gradient(135deg, hsl(var(--accent) / 0.9) 0%, hsl(var(--primary) / 0.75) 100%);
