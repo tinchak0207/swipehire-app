@@ -1,9 +1,9 @@
 
 "use client";
 
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import NextImage from 'next/image';
-import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2, Link as LinkIcon, Mail, Linkedin, Twitter as TwitterIcon, Star } from 'lucide-react';
+import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2, Link as LinkIcon, Mail, Linkedin, Twitter as TwitterIcon, Star, Lock, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Candidate } from '@/lib/types';
@@ -22,8 +22,22 @@ interface ProfileCardProps {
   isGuestMode?: boolean;
 }
 
+const SWIPE_THRESHOLD = 75;
+const MAX_ROTATION = 10;
+
+const incrementAnalytic = (key: string) => {
+  if (typeof window !== 'undefined') {
+    const currentCount = parseInt(localStorage.getItem(`analytics_${key}`) || '0', 10);
+    localStorage.setItem(`analytics_${key}`, (currentCount + 1).toString());
+  }
+};
+
 const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardProps) => {
   const { toast } = useToast();
+  const cardRootRef = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [currentX, setCurrentX] = useState(0);
 
   const avatarDisplayUrl = candidate.avatarUrl
     ? candidate.avatarUrl.startsWith('/uploads/')
@@ -33,12 +47,84 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
 
   const needsUnoptimized = avatarDisplayUrl.startsWith(CUSTOM_BACKEND_URL) || avatarDisplayUrl.startsWith('http://localhost');
 
+  const handleLocalSwipeAction = (actionType: 'like' | 'pass') => {
+    if (isGuestMode) return;
+    if (actionType === 'like') {
+      incrementAnalytic('analytics_candidate_likes');
+    } else if (actionType === 'pass') {
+      incrementAnalytic('analytics_candidate_passes');
+    }
+    onAction(candidate.id, actionType);
+  };
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isGuestMode) return;
+    const targetElement = e.target as HTMLElement;
+    if (targetElement.closest('video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], [role="menu"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
+      if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
+        const video = targetElement as HTMLVideoElement;
+        const rect = video.getBoundingClientRect();
+        if (e.clientY > rect.bottom - 40) {
+            return; 
+        }
+      } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], [role="menu"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
+       return; 
+      }
+    }
+    e.preventDefault();
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setCurrentX(e.clientX);
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = 'grabbing';
+      cardRootRef.current.style.transition = 'none';
+    }
+    document.body.style.userSelect = 'none';
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    setCurrentX(e.clientX);
+  };
+
+  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+
+    const deltaX = currentX - startX;
+    cardRootRef.current.style.transition = 'transform 0.3s ease-out';
+    cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+      if (deltaX < 0) {
+        handleLocalSwipeAction('pass');
+      } else {
+        handleLocalSwipeAction('like');
+      }
+    }
+
+    setIsDragging(false);
+    setStartX(0);
+    setCurrentX(0);
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = isGuestMode ? 'default' : 'grab';
+    }
+    document.body.style.userSelect = '';
+  };
+
+  const getCardTransform = () => {
+    if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
+    const deltaX = currentX - startX;
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
+    return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
+  };
+
   const handleShareOptionClick = (platform: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
-    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/candidate/${candidate.id}` : `https://swipehire-app.com/candidate/${candidate.id}`; // Conceptual URL
+    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/candidate/${candidate.id}` : `https://swipehire-app.com/candidate/${candidate.id}`;
     const shareText = `Check out this profile on SwipeHire: ${candidate.name} - ${candidate.role}. Visit ${profileUrl}`;
     const emailSubject = `Interesting Profile on SwipeHire: ${candidate.name}`;
     const emailBody = `I found this profile on SwipeHire and thought you might be interested:\n\nName: ${candidate.name}\nRole: ${candidate.role}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
@@ -68,11 +154,23 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
     if (skill.toLowerCase() === 'c++') {
       return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300 hover:from-blue-200 hover:to-blue-300';
     }
-    return 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200'; // Default skill badge
+    return 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200';
   };
 
   return (
-    <div className="max-w-sm w-full mx-auto bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100 rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
+    <div 
+      ref={cardRootRef}
+      className="max-w-sm w-full mx-auto bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-3xl"
+      onMouseDown={handleMouseDown}
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUpOrLeave}
+      onMouseLeave={handleMouseUpOrLeave}
+      style={{
+        cursor: isGuestMode ? 'default' : (isDragging ? 'grabbing' : 'grab'),
+        transform: getCardTransform(),
+        transition: isDragging ? 'none' : 'transform 0.3s ease-out, box-shadow 0.3s ease-out, scale 0.3s ease-out', // Ensure transition is re-enabled
+      }}
+    >
       {/* Header Section with Profile Image */}
       <div className="relative pt-8 pb-6 bg-gradient-to-r from-violet-500 via-purple-500 to-blue-500">
         <div className="absolute inset-0 bg-black/10"></div>
@@ -181,39 +279,42 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
         )}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-4 gap-2 pt-4">
+        <div className="grid grid-cols-4 gap-2 pt-4 no-swipe-area" data-no-drag="true">
           <Button
+            data-no-drag="true"
             variant="outline"
             size="sm"
             className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
-            onClick={() => onAction(candidate.id, 'pass')}
+            onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'pass'); }}
             disabled={isGuestMode}
           >
-            <ThumbsDown className="w-5 h-5" />
+            {isGuestMode ? <Lock className="w-5 h-5" /> : <ThumbsDown className="w-5 h-5" />}
             <span className="text-xs">Pass</span>
           </Button>
           
           <Button
+            data-no-drag="true"
             variant="outline"
             size="sm"
             className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
-            onClick={() => onAction(candidate.id, 'viewProfile')}
+            onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'viewProfile'); }}
           >
             <Eye className="w-5 h-5" />
             <span className="text-xs">Profile</span>
           </Button>
           
           <Button
+            data-no-drag="true"
             variant="outline"
             size="sm"
             className={cn(
                 "flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
                 isLiked && "bg-green-100 border-green-400 ring-2 ring-green-500"
             )}
-            onClick={() => onAction(candidate.id, 'like')}
+            onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'like'); }}
             disabled={isGuestMode}
           >
-            <ThumbsUp className={cn("w-5 h-5", isLiked && "fill-green-500")} />
+            {isGuestMode ? <Lock className="w-5 h-5" /> : <ThumbsUp className={cn("w-5 h-5", isLiked && "fill-green-500")} />}
             <span className="text-xs">Like</span>
           </Button>
           
@@ -223,12 +324,14 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
                     <Button
+                      data-no-drag="true"
                       variant="outline"
                       size="sm"
                       className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
                       disabled={isGuestMode}
+                      onClick={(e) => e.stopPropagation()} 
                     >
-                      <Share2 className="w-5 h-5" />
+                      {isGuestMode ? <Lock className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
                       <span className="text-xs">Share</span>
                     </Button>
                   </DropdownMenuTrigger>
@@ -240,17 +343,17 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 )}
               </Tooltip>
             </TooltipProvider>
-            <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg rounded-md">
-              <DropdownMenuItem onClick={() => handleShareOptionClick('copy')} className="cursor-pointer hover:bg-muted">
+            <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg rounded-md" data-no-drag="true">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('copy')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
                 <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Copy Link
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShareOptionClick('email')} className="cursor-pointer hover:bg-muted">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('email')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> Share via Email
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShareOptionClick('linkedin')} className="cursor-pointer hover:bg-muted">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('linkedin')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
                 <Linkedin className="mr-2 h-4 w-4 text-muted-foreground" /> Share on LinkedIn
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShareOptionClick('twitter')} className="cursor-pointer hover:bg-muted">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('twitter')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
                 <TwitterIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Share on X
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -262,6 +365,4 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
 };
 
 export default ProfileCard;
-    
-
     
