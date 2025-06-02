@@ -12,7 +12,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogClose } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from '@/components/ui/progress';
@@ -25,11 +25,11 @@ interface CandidateCardContentProps {
   onSwipeAction: (candidateId: string, action: 'like' | 'pass' | 'details') => void;
   isLiked: boolean;
   isGuestMode?: boolean;
-  isPreviewMode?: boolean; // New prop
+  isPreviewMode?: boolean;
 }
 
 const SWIPE_THRESHOLD = 75;
-const MAX_ROTATION = 10; // degrees
+const MAX_ROTATION = 10; 
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
@@ -42,7 +42,7 @@ const incrementAnalytic = (key: string) => {
 };
 
 const getThemeClass = (themeKey?: string) => {
-  if (!themeKey || themeKey === 'default') return 'card-theme-default';
+  if (!themeKey || themeKey === 'default') return ''; // Return empty if default so no theme class applied to specific elements
   return `card-theme-${themeKey}`;
 };
 
@@ -129,7 +129,7 @@ function CandidateDetailsModal({
              <UserCircleIcon className="w-16 h-16 text-muted-foreground border-2 border-primary rounded-full p-1" />
           )}
           <div className="flex-grow">
-            <DialogTitle className="text-xl sm:text-2xl text-primary">{candidate.name}</DialogTitle>
+            <ShadDialogTitle className="text-xl sm:text-2xl text-primary">{candidate.name}</ShadDialogTitle>
             <CardDescription className="truncate text-sm text-muted-foreground">{candidate.role}</CardDescription>
             {candidate.location && (
                 <div className="flex items-center text-xs text-muted-foreground mt-0.5">
@@ -329,9 +329,9 @@ function CandidateDetailsModal({
                 <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
                     <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
                 </h3>
-                <div className="flex items-center text-md text-primary font-medium">
+                <div className="flex items-center text-md font-medium">
                   <Progress value={candidate.profileStrength} className="w-2/3 h-2.5 mr-2" />
-                  {candidate.profileStrength}%
+                  <span className="text-accent font-semibold">{candidate.profileStrength}%</span>
                   {candidate.profileStrength > 89 && <Badge variant="default" className="ml-2 text-xs px-2 py-0.5 bg-green-500 hover:bg-green-600 text-white">Top Talent</Badge>}
                 </div>
               </section>
@@ -366,8 +366,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
 
   const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default';
-  const isLavenderTheme = candidate.cardTheme === 'lavender';
   const isProfessionalDarkTheme = candidate.cardTheme === 'professional-dark';
+  const isLavenderTheme = candidate.cardTheme === 'lavender';
+  // For themes that have a light background and thus need dark text by default
   const isLightBgThemedCard = isThemedCard && (isLavenderTheme || ['ocean', 'sunset', 'forest'].includes(candidate.cardTheme!));
 
 
@@ -582,28 +583,38 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     isSpecificActionLiked?: boolean;
     onClickOverride?: (e: React.MouseEvent) => void;
   }) => {
-    const baseClasses = "flex-col h-auto py-2 text-xs sm:text-sm group"; // Added group for icon hover
+    const baseClasses = "flex-col h-auto py-2 text-xs sm:text-sm group rounded-lg hover:scale-105 hover:shadow-md active:scale-95 transition-all duration-200 ease-in-out";
     
     let colorClasses = "";
-    let hoverClasses = "hover:bg-black/5"; // Default subtle hover
+    let hoverBgClass = "";
     let iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
       colorClasses = "text-white"; 
-      hoverClasses = "hover:bg-red-500/80";
+      hoverBgClass = "hover:bg-red-500/80";
     } else if (isProfessionalDarkTheme) { // Dark theme with light text
-      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-primary-foreground/90"; // Light text
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-primary-foreground/90";
       iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-300" : "";
-      if (action === 'like') hoverClasses = "hover:text-green-300 hover:bg-white/10";
-      else if (action === 'pass') hoverClasses = "hover:text-red-300 hover:bg-white/10";
-      else hoverClasses = "hover:text-primary-foreground hover:bg-white/10";
-    } else if (isLightBgThemedCard || !isThemedCard) { // Light themes (ocean, sunset, forest, lavender) OR default card
-      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" : "text-foreground/80"; // Dark text
+      if (action === 'like') { hoverBgClass = "hover:bg-white/10"; colorClasses = "hover:text-green-300"; }
+      else if (action === 'pass') { hoverBgClass = "hover:bg-white/10"; colorClasses = "hover:text-red-300"; }
+      else { hoverBgClass = "hover:bg-white/10"; colorClasses = "hover:text-primary-foreground"; }
+    } else if (isLightBgThemedCard) { // Light themes (ocean, sunset, forest, lavender) that now use dark text by default
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" : "text-foreground/80";
       iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-600" : "";
-      if (action === 'like') hoverClasses = "hover:text-green-600 hover:bg-green-500/10";
-      else if (action === 'pass') { colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; }
-      else if (action === 'details') { colorClasses = "text-primary"; hoverClasses = "hover:bg-primary/10"; }
-      else hoverClasses = "hover:text-foreground hover:bg-black/5";
+      if (action === 'like') { hoverBgClass = "hover:bg-green-500/10"; colorClasses = "hover:text-green-600"; }
+      else if (action === 'pass') { colorClasses = "text-destructive"; hoverBgClass = "hover:bg-destructive/10"; }
+      else if (action === 'details') { colorClasses = "text-primary"; hoverBgClass = "hover:bg-primary/10"; }
+      else { hoverBgClass = "hover:bg-black/5"; colorClasses = "hover:text-foreground"; }
+    } else { // Default card (light background)
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" 
+                   : action === 'details' ? "text-primary" 
+                   : action === 'pass' ? "text-destructive"
+                   : "text-muted-foreground";
+      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-600" : "";
+      if (action === 'like') hoverBgClass = "hover:bg-green-500/10";
+      else if (action === 'pass') hoverBgClass = "hover:bg-destructive/10";
+      else if (action === 'details') hoverBgClass = "hover:bg-primary/10";
+      else hoverBgClass = "hover:bg-black/5";
     }
     
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { 
@@ -627,7 +638,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           className={cn(
             baseClasses, 
             colorClasses, 
-            hoverClasses, 
+            hoverBgClass, 
             isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400 !text-white", 
             extraClassName
           )}
@@ -652,11 +663,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                                 {buttonElement}
                             </DropdownMenuTrigger>
                         </TooltipTrigger>
-                        {isGuestMode && (
-                            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
-                                <p>Sign in to share</p>
-                            </TooltipContent>
-                        )}
+                         <TooltipContent side="bottom" className={cn(isGuestMode && "bg-red-500 text-white border-red-600")}>
+                            <p>{isGuestMode ? "Sign in to share" : label}</p>
+                        </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
                 <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
@@ -683,11 +692,9 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           <TooltipTrigger asChild>
             {buttonElement}
           </TooltipTrigger>
-          {isGuestMode && (action === 'like' || action === 'pass') && (
-            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
-              <p>Sign in to interact</p>
-            </TooltipContent>
-          )}
+          <TooltipContent side="bottom" className={cn(isGuestMode && (action === 'like' || action === 'pass') && "bg-red-500 text-white border-red-600")}>
+              <p>{isGuestMode && (action === 'like' || action === 'pass') ? "Sign in to interact" : label}</p>
+          </TooltipContent>
         </Tooltip>
       </TooltipProvider>
     );
@@ -709,16 +716,19 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         }}
       >
         <div className={cn(
-            "shrink-0 h-40 sm:h-44 flex justify-center items-center p-4 relative", // Increased padding
+            "shrink-0 h-44 sm:h-48 flex justify-center items-center p-4 relative", 
             isThemedCard ? getThemeClass(candidate.cardTheme) : 'bg-slate-100 dark:bg-slate-800'
             )}>
-            <div className="relative w-24 h-24 sm:w-28 sm:w-28"> 
+            <div className="relative w-28 h-28 sm:w-32 sm:h-32"> 
                 {candidate.avatarUrl && candidate.avatarUrl !== 'https://placehold.co/500x700.png' ? (
                 <Image
                     src={cardAvatarSrc || 'https://placehold.co/500x700.png'}
                     alt={candidate.name}
                     fill
-                    className="rounded-full object-cover border-4 border-white shadow-lg" // Increased border, shadow
+                    className={cn(
+                        "rounded-full object-cover border-4 border-white shadow-lg",
+                        isThemedCard && !isLavenderTheme && candidate.cardTheme !== 'default' && "border-accent" 
+                    )}
                     data-ai-hint={candidate.dataAiHint || "person professional"}
                     priority
                     unoptimized={cardAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || cardAvatarSrc?.startsWith('http://localhost')}
@@ -731,7 +741,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="default" className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-1"> {/* Adjusted badge style */}
+                  <Badge variant="default" className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-1">
                     <Sparkles className="h-3.5 w-3.5 mr-1" />
                     Gem
                   </Badge>
@@ -745,52 +755,56 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         </div>
         
         <div className={cn("w-full border-t-4", 
-            isProfessionalDarkTheme ? "border-primary-foreground/30" : 
-            isLightBgThemedCard ? "border-foreground/20" : 
-            "border-accent" 
+             isThemedCard && !isLavenderTheme ? (isProfessionalDarkTheme ? "border-primary-foreground/30" : "border-accent" )
+             : isLavenderTheme ? "border-foreground/20"
+             : "border-accent" 
           )}></div>
 
-        <div className="flex-1 p-4 space-y-2.5 sm:space-y-3 overflow-y-auto min-h-0">
-            <div className="text-center mt-1.5">
-                <CardTitle className={cn("text-xl sm:text-2xl font-bold", 
+        <div className="flex-1 p-4 space-y-3 sm:space-y-3.5 overflow-y-auto min-h-0">
+            <div className="text-center mt-2">
+                <CardTitle className={cn("text-2xl sm:text-3xl font-extrabold", 
                     isProfessionalDarkTheme ? 'text-primary-foreground' : 'text-foreground'
                 )}>{candidate.name}</CardTitle>
-                <CardDescription className={cn("text-md sm:text-lg mt-0.5 mb-2 line-clamp-1", 
+                <CardDescription className={cn("text-lg sm:text-xl font-medium mt-1 mb-2.5 line-clamp-1", 
                     isProfessionalDarkTheme ? 'text-primary-foreground/80' : 'text-muted-foreground'
                 )}>{candidate.role}</CardDescription>
             </div>
+            <Separator className="my-3"/>
 
-            <div className="space-y-2 text-sm">
+            <div className="space-y-2.5 text-sm">
                 {candidate.location && (
                     <div className={cn("flex items-center", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                      <MapPin className={cn("h-4 w-4 mr-2 shrink-0")} />
+                      <MapPin className={cn("h-5 w-5 mr-2 shrink-0", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                       <span className="line-clamp-1">{candidate.location}</span>
                     </div>
                 )}
                 {candidate.profileStrength !== undefined && !isPreviewMode && (
                     <div className={cn("flex items-center", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                        <BarChartHorizontal className={cn("h-4 w-4 mr-2 shrink-0")} />
-                        <span>Profile Strength: <span className={cn("font-semibold", isProfessionalDarkTheme ? 'text-primary-foreground' : 'text-primary')}>{candidate.profileStrength}%</span></span>
+                        <BarChartHorizontal className={cn("h-5 w-5 mr-2 shrink-0", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
+                        <span>Profile Strength: <span className={cn("font-semibold", isProfessionalDarkTheme ? 'text-primary-foreground' : 'text-accent')}>{candidate.profileStrength}%</span></span>
                     </div>
                 )}
                  {candidate.workExperienceLevel && candidate.workExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && (
                     <div className={cn("flex items-center", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                      <Briefcase className={cn("h-4 w-4 mr-2 shrink-0")} />
+                      <Briefcase className={cn("h-5 w-5 mr-2 shrink-0", isProfessionalDarkTheme ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                       <span className="line-clamp-1">{candidate.workExperienceLevel}</span>
                     </div>
                 )}
             </div>
+             <Separator className="my-3"/>
             
             {candidate.experienceSummary && (
-                <div className="mt-3 pt-2.5 min-h-[3em]"> 
+                <div className="mt-3.5 pt-1 min-h-[3em]"> 
                     <p className={cn("text-sm line-clamp-2 sm:line-clamp-3", isProfessionalDarkTheme ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {candidate.experienceSummary}
                     </p>
                 </div>
             )}
+            <Separator className="my-3"/>
             
             {candidate.skills && candidate.skills.length > 0 && (
-                <div className="pt-3 mt-3">
+                <div className="pt-1 mt-3.5">
+                    <h4 className={cn("text-xs font-semibold uppercase tracking-wider mb-1.5", isProfessionalDarkTheme ? 'text-primary-foreground/60' : 'text-muted-foreground')}>Top Skills</h4>
                     <div className="flex flex-wrap gap-1.5">
                         {candidate.skills.slice(0, 3).map((skill) => (
                           <Badge key={skill} variant="secondary" className="text-xs px-2 py-0.5">{skill}</Badge>
@@ -803,8 +817,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             
         {!isPreviewMode && (
             <CardFooter className={cn(
-                "p-0 pt-2.5 sm:pt-3 grid grid-cols-4 gap-1 border-t shrink-0 no-swipe-area",
-                isThemedCard ? (isProfessionalDarkTheme ? '' : '') : 'bg-card' 
+                "p-0 pt-3 sm:pt-3.5 grid grid-cols-4 gap-1 border-t shrink-0 no-swipe-area",
+                isThemedCard ? '' : 'bg-card' // Transparent footer for themed, bg-card for default
             )}>
               <ActionButton action="pass" Icon={ThumbsDown} label="Pass" />
               <ActionButton
@@ -840,4 +854,3 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 }
 
     
-
