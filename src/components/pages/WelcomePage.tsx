@@ -138,7 +138,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         <section
           id="hero"
           className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('https://placehold.co/1920x1080/2D3748/F7FAFC.png?text=Modern+Office+Background')" }}
+          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
           data-aos="fade-in"
         >
           <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
