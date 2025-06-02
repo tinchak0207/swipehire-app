@@ -41,8 +41,8 @@ const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http:/
 
 const incrementAnalytic = (key: string) => {
   if (typeof window !== 'undefined') {
-    const currentCount = parseInt(localStorage.getItem(key) || '0', 10);
-    localStorage.setItem(key, (currentCount + 1).toString());
+    const currentCount = parseInt(localStorage.getItem(`analytics_${key}`) || '0', 10);
+    localStorage.setItem(`analytics_${key}`, (currentCount + 1).toString());
   }
 };
 
@@ -370,54 +370,56 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       >
         {/* Header Section */}
         <div className="relative h-24 bg-gradient-to-r from-purple-500 to-blue-500 shrink-0 p-4 flex items-start">
-          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/20 text-white backdrop-blur-sm text-xs px-2.5 py-1 rounded-full shadow-sm">
+          <Badge variant="secondary" className="absolute top-4 left-4 bg-white/30 text-white backdrop-blur-sm text-xs px-3 py-1 rounded-full shadow-md">
             {categoryText.length > 15 ? categoryText.substring(0, 12) + "..." : categoryText}
           </Badge>
-          <div className="absolute top-14 left-1/2 -translate-x-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-200 z-10">
+          <div className="absolute top-[68px] left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-100 z-10">
             {company.logoUrl ? (
               <Image
                 src={company.logoUrl}
                 alt={company.name + " logo"}
-                width={48} 
-                height={48}
-                className="object-contain rounded-md p-1"
+                width={36} 
+                height={36}
+                className="object-contain rounded-md" // p-1 removed for tighter fit if logo is square
                 data-ai-hint={company.dataAiHint || "company logo"}
               />
             ) : (
-              <BriefcaseIcon className="h-10 w-10 text-muted-foreground" />
+              <BriefcaseIcon className="h-8 w-8 text-slate-700" />
             )}
           </div>
         </div>
         
         {/* Main Content Area */}
-        <div className="flex-1 p-4 pt-12 space-y-2.5 text-center overflow-y-auto relative">
-          <h2 className="text-xl font-bold text-foreground mt-1">{company.name}</h2>
-          {jobOpening && <p className="text-md text-purple-600 font-medium">{jobOpening.title}</p>}
+        <div className="flex-1 p-4 pt-10 space-y-3 text-center overflow-y-auto relative"> {/* Adjusted pt based on logo size */}
+          <h2 className="text-xl font-bold text-slate-800 mt-1">{company.name}</h2>
+          {jobOpening && <p className="text-sm text-purple-600 font-medium uppercase tracking-wider mt-0.5">{jobOpening.title}</p>}
           
-          <div className="flex justify-center items-center gap-3 text-sm text-muted-foreground mt-2">
+          <div className="flex justify-center items-center gap-2.5 text-sm text-slate-500 mt-3">
             {jobOpening?.location && (
-              <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" /> {jobOpening.location}</span>
+              <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-slate-400" /> {jobOpening.location}</span>
             )}
             {jobOpening?.jobType && (
-              <span className="flex items-center"><Clock className="h-4 w-4 mr-1" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
+              <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-slate-400" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
             )}
           </div>
 
           <div className="pt-3 space-y-1">
-            <div className="flex justify-between items-center text-sm px-1">
-              <span className="text-muted-foreground">Job Match</span>
+            <div className="flex justify-between items-center text-sm px-2">
+              <span className="text-slate-600">Job Match</span>
               <span className="font-semibold text-purple-600">{jobMatchPercentage}%</span>
             </div>
-            <Progress value={jobMatchPercentage} className="h-2 [&>div]:progress-gradient-purple-blue flex-grow mx-1" /> 
-            <p className="text-xs italic text-muted-foreground text-center pt-1">{experienceRequiredText}</p>
+            <div className="w-full bg-slate-200 rounded-full h-1.5">
+                <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-full rounded-full" style={{ width: `${jobMatchPercentage}%` }}></div>
+            </div>
+            <p className="text-xs text-slate-400 italic mt-1.5">{experienceRequiredText}</p>
           </div>
 
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
             <div className="pt-3 space-y-1.5">
-              <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider text-center">TOP SKILLS</h3>
-              <div className="flex flex-wrap justify-center gap-1.5">
+              <h3 className="text-xs font-semibold uppercase text-slate-600 tracking-wider">TOP SKILLS</h3>
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2 py-0.5 rounded-md">
+                  <Badge key={tag} variant="outline" className="bg-orange-100 text-orange-600 border-orange-200 text-xs px-3 py-1 rounded-full font-medium shadow-sm">
                     {tag}
                   </Badge>
                 ))}
@@ -427,55 +429,55 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
             
         {/* Action Buttons Footer */}
-        <CardFooter className="p-3 grid grid-cols-4 gap-3 border-t bg-card shrink-0 no-swipe-area">
+        <CardFooter className="p-3 grid grid-cols-4 gap-2.5 border-t bg-slate-50 shrink-0 no-swipe-area">
             <Button
                 variant="outline"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                 disabled={isGuestMode}
-                className="flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-red-300 text-red-500 hover:bg-red-50"
+                className="flex flex-col items-center justify-center w-[68px] h-[68px] rounded-lg text-[11px] font-medium shadow-sm transition-all hover:shadow-md active:scale-95 border-red-200 text-red-500 hover:bg-red-50/70"
                 aria-label={`Pass on ${company.name}`}
                 data-no-drag="true"
             >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1" />}
-                Pass
+                {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <X className="h-5 w-5 mb-0.5 text-red-500" />}
+                <span className="text-slate-700">Pass</span>
             </Button>
             <Button
                 variant="outline"
                 onClick={handleDetailsButtonClick}
-                className="flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-blue-300 text-blue-500 hover:bg-blue-50"
+                className="flex flex-col items-center justify-center w-[68px] h-[68px] rounded-lg text-[11px] font-medium shadow-sm transition-all hover:shadow-md active:scale-95 border-blue-200 text-blue-500 hover:bg-blue-50/70"
                 aria-label={`View details for ${company.name}`}
                 data-no-drag="true"
                 data-modal-trigger="true"
             >
-                <Eye className="h-5 w-5 mb-1" />
-                Profile
+                <Eye className="h-5 w-5 mb-0.5 text-blue-500" />
+                <span className="text-slate-700">Profile</span>
             </Button>
             <Button
                 variant="outline"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                 disabled={isGuestMode}
                 className={cn(
-                    "flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-green-300 text-green-500 hover:bg-green-50",
-                    isLiked && "bg-green-100 ring-2 ring-green-500"
+                    "flex flex-col items-center justify-center w-[68px] h-[68px] rounded-lg text-[11px] font-medium shadow-sm transition-all hover:shadow-md active:scale-95 border-green-200 text-green-500 hover:bg-green-50/70",
+                    isLiked && "bg-green-50 ring-1 ring-green-400"
                 )}
                 aria-label={`Like ${company.name}`}
                 data-no-drag="true"
             >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : (isLiked ? <Heart className="h-5 w-5 mb-1 fill-green-500 text-green-500" /> : <Heart className="h-5 w-5 mb-1" />)}
-                Like
+                {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <Heart className={cn("h-5 w-5 mb-0.5 text-green-500", isLiked && "fill-green-500")} />}
+                <span className="text-slate-700">Like</span>
             </Button>
             <DropdownMenu onOpenChange={setIsShareModalOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
                         disabled={isGuestMode}
-                        className="flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-purple-300 text-purple-500 hover:bg-purple-50"
+                        className="flex flex-col items-center justify-center w-[68px] h-[68px] rounded-lg text-[11px] font-medium shadow-sm transition-all hover:shadow-md active:scale-95 border-purple-200 text-purple-500 hover:bg-purple-50/70"
                         aria-label={`Share ${company.name}`}
                         data-no-drag="true"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1" />}
-                        Share
+                        {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <Share2 className="h-5 w-5 mb-0.5 text-purple-500" />}
+                        <span className="text-slate-700">Share</span>
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
@@ -707,4 +709,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
