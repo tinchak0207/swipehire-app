@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
+import { ScrollToTopButton } from '@/components/common/ScrollToTopButton'; // Added import
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -31,7 +32,7 @@ const FeatureCard = ({ icon, title, description, aosAnimation, aosDelay }: { ico
   );
 };
 
-const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay, dataAiHint }: { quote: string, author: string, role: string, avatar: string, aosAnimation?: string, aosDelay?: string, dataAiHint?: string }) => {
+const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }: { quote: string, author: string, role: string, avatar: string, aosAnimation?: string, aosDelay?: string }) => {
   const [displayedQuote, setDisplayedQuote] = useState('');
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
@@ -39,29 +40,27 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay, 
     setDisplayedQuote('');
     setIsTypingComplete(false);
     let index = 0;
-    const typingSpeed = 40;
-    const delay = parseInt(aosDelay || "0", 10);
-    let typingInterval: NodeJS.Timeout | undefined;
+    const typingSpeed = 40; // Adjust for faster/slower typing
+    const startDelay = parseInt(aosDelay || "0", 10) + 300; // Start typing slightly after AOS animation
+    let typingInterval: NodeJS.Timeout;
 
-    const startTypingTimer = setTimeout(() => {
+    const timer = setTimeout(() => {
       if (quote) {
         typingInterval = setInterval(() => {
           if (index < quote.length) {
             setDisplayedQuote((prev) => prev + quote.charAt(index));
             index++;
           } else {
-            if (typingInterval) clearInterval(typingInterval);
+            clearInterval(typingInterval);
             setIsTypingComplete(true);
           }
         }, typingSpeed);
       }
-    }, delay + 500); // Start typing 500ms after AOS animation delay (if any)
+    }, startDelay);
 
-    return () => { // Cleanup function for useEffect
-      clearTimeout(startTypingTimer);
-      if (typingInterval) {
-        clearInterval(typingInterval);
-      }
+    return () => {
+      clearTimeout(timer);
+      clearInterval(typingInterval);
     };
   }, [quote, aosDelay]);
 
@@ -79,7 +78,7 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay, 
             width={40}
             height={40}
             className="rounded-full mr-3 border-2 border-primary/20"
-            data-ai-hint={dataAiHint || "person face"}
+            data-ai-hint={author === "Sarah L." ? "woman smiling" : author === "John B." ? "man professional" : "person happy"}
           />
           <div>
             <p className="font-semibold text-foreground font-heading">{author}</p>
@@ -168,9 +167,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </section>
 
         {/* Social Proof Bar */}
-        <section className="py-5 bg-primary/90 text-primary-foreground">
+        <section className="py-5 bg-primary/90 text-primary-foreground" data-aos="fade-in" data-aos-delay="100">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p className="text-md sm:text-lg font-medium flex items-center justify-center" data-aos="fade-in">
+            <p className="text-md sm:text-lg font-medium flex items-center justify-center">
               <Brain className="mr-2 h-6 w-6" />
               Join thousands finding their dream jobs & top talent with AI-driven insights.
             </p>
@@ -187,12 +186,12 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <FeatureCard icon={FileVideo2} title="AI Video Resumes" description="Showcase your personality and skills beyond paper. Get AI assistance to create compelling video introductions." aosAnimation="fade-up" aosDelay="0" />
+              <FeatureCard icon={FileVideo2} title="AI Video Resumes" description="Showcase your personality and skills beyond paper. Get AI assistance to create compelling video introductions." aosAnimation="fade-right" aosDelay="0" />
               <FeatureCard icon={Sparkles} title="Intelligent Matching" description="Our AI connects you with the right opportunities or candidates based on deep profile analysis and preferences." aosAnimation="fade-up" aosDelay="100" />
-              <FeatureCard icon={Wand2} title="AI Toolkit" description="Access tools like script generators, avatar creators, and video feedback to perfect your application or job posting." aosAnimation="fade-up" aosDelay="200" />
-              <FeatureCard icon={HeartHandshake} title="Mutual Interest First" description="Connect only when both parties express interest, making interactions more meaningful and efficient." aosAnimation="fade-up" aosDelay="0" />
+              <FeatureCard icon={Wand2} title="AI Toolkit" description="Access tools like script generators, avatar creators, and video feedback to perfect your application or job posting." aosAnimation="fade-left" aosDelay="200" />
+              <FeatureCard icon={HeartHandshake} title="Mutual Interest First" description="Connect only when both parties express interest, making interactions more meaningful and efficient." aosAnimation="fade-right" aosDelay="0" />
               <FeatureCard icon={Briefcase} title="Dynamic Job Postings" description="Recruiters can create engaging job posts with video, showcasing company culture and role specifics." aosAnimation="fade-up" aosDelay="100" />
-              <FeatureCard icon={Zap} title="Staff Diary & Community" description="Share experiences, insights, and connect with a community of professionals within your field." aosAnimation="fade-up" aosDelay="200" />
+              <FeatureCard icon={Zap} title="Staff Diary & Community" description="Share experiences, insights, and connect with a community of professionals within your field." aosAnimation="fade-left" aosDelay="200" />
             </div>
           </div>
         </section>
@@ -237,7 +236,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 author="Sarah L."
                 role="Software Engineer"
                 avatar="https://placehold.co/100x100/A663CC/FFFFFF.png?text=SL"
-                dataAiHint="woman smiling"
                 aosAnimation="fade-right"
                 aosDelay="0"
               />
@@ -246,7 +244,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 author="John B."
                 role="HR Manager, Tech Corp"
                 avatar="https://placehold.co/100x100/63A6FF/FFFFFF.png?text=JB"
-                dataAiHint="man professional"
                 aosAnimation="fade-up" data-aos-delay="100"
               />
               <TestimonialCard
@@ -254,7 +251,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 author="Maria G."
                 role="Marketing Specialist"
                 avatar="https://placehold.co/100x100/FF6B6B/FFFFFF.png?text=MG"
-                dataAiHint="person happy"
                 aosAnimation="fade-left" data-aos-delay="200"
               />
             </div>
@@ -375,6 +371,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </div>
       </footer>
+      <ScrollToTopButton /> {/* Added ScrollToTopButton */}
       <style jsx>{`
         html {
           scroll-behavior: smooth;
@@ -386,5 +383,3 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
     </div>
   );
 }
-
-    
