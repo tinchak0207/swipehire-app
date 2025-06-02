@@ -1,4 +1,6 @@
 
+"use client";
+
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
@@ -10,7 +12,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose, DialogFooter as ShadDialogFooter } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -66,8 +68,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  const jobMatchPercentage = company.jobMatchPercentage || 85; // Placeholder to match image
-  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : '2-3 years experience required'; // Placeholder to match image
+  const jobMatchPercentage = company.jobMatchPercentage || 85; 
+  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : 'Experience level not specified'; 
+  const categoryText = company.industry || "General";
+
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -184,12 +188,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
             reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.",
-            weightedScoresForCandidate: {
-                cultureFitScore: 0,
-                jobRelevanceScore: 0,
-                growthOpportunityScore: 0,
-                jobConditionFitScore: 0,
-            }
+            weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }
         });
       }
     } catch (error: any) {
@@ -198,17 +197,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
        setAiJobFitAnalysis({
             matchScoreForCandidate: 0,
             reasoningForCandidate: "Error during AI analysis.",
-            weightedScoresForCandidate: {
-                cultureFitScore: 0,
-                jobRelevanceScore: 0,
-                growthOpportunityScore: 0,
-                jobConditionFitScore: 0,
-            }
+            weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }
         });
     } finally {
       setIsLoadingAiAnalysis(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company, jobOpening, isDetailsModalOpen, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI]);
 
   useEffect(() => {
@@ -238,9 +231,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
         const video = targetElement as HTMLVideoElement;
         const rect = video.getBoundingClientRect();
-        if (e.clientY > rect.bottom - 40) {
-            return;
-        }
+        if (e.clientY > rect.bottom - 40) return;
       } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
         return;
       }
@@ -361,8 +352,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
 
-  const categoryText = company.industry || "Technology";
-
 
   return (
     <>
@@ -384,7 +373,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           <Badge variant="secondary" className="absolute top-3 left-3 bg-white/20 text-white backdrop-blur-sm text-xs px-2.5 py-1 rounded-full shadow-sm">
             {categoryText.length > 15 ? categoryText.substring(0, 12) + "..." : categoryText}
           </Badge>
-          {/* Circular Logo Icon Holder */}
           <div className="absolute top-14 left-1/2 -translate-x-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-200 z-10">
             {company.logoUrl ? (
               <Image
@@ -402,7 +390,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
         
         {/* Main Content Area */}
-        <div className="flex-1 p-4 pt-14 space-y-2.5 text-center overflow-y-auto relative">
+        <div className="flex-1 p-4 pt-12 space-y-2.5 text-center overflow-y-auto relative">
           <h2 className="text-xl font-bold text-foreground mt-1">{company.name}</h2>
           {jobOpening && <p className="text-md text-purple-600 font-medium">{jobOpening.title}</p>}
           
@@ -415,20 +403,18 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             )}
           </div>
 
-          {/* Job Match Section */}
           <div className="pt-3 space-y-1">
             <div className="flex justify-between items-center text-sm px-1">
               <span className="text-muted-foreground">Job Match</span>
               <span className="font-semibold text-purple-600">{jobMatchPercentage}%</span>
             </div>
-            <Progress value={jobMatchPercentage} className="h-2 [&>div]:progress-gradient-purple-blue flex-grow mx-2" />
+            <Progress value={jobMatchPercentage} className="h-2 [&>div]:progress-gradient-purple-blue flex-grow mx-1" /> 
             <p className="text-xs italic text-muted-foreground text-center pt-1">{experienceRequiredText}</p>
           </div>
 
-          {/* Top Skills Section */}
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
             <div className="pt-3 space-y-1.5">
-              <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider text-center">Top Skills</h3>
+              <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider text-center">TOP SKILLS</h3>
               <div className="flex flex-wrap justify-center gap-1.5">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
                   <Badge key={tag} variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2 py-0.5 rounded-md">
@@ -441,7 +427,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
             
         {/* Action Buttons Footer */}
-        <CardFooter className="p-2 grid grid-cols-4 gap-2 border-t bg-card shrink-0 no-swipe-area">
+        <CardFooter className="p-3 grid grid-cols-4 gap-3 border-t bg-card shrink-0 no-swipe-area">
             <Button
                 variant="outline"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
@@ -711,8 +697,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               )}
             </div>
           </div>
+           <ShadDialogFooter className="p-4 border-t sticky bottom-0 bg-background z-10">
+            <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+            </DialogClose>
+          </ShadDialogFooter>
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
