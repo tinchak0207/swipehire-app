@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Eye, MapPin, Building, DollarSign, Tag, UploadCloud, X, Lock, Code2, CalendarDays, Percent, Sparkles } from 'lucide-react';
+import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Eye, MapPin, Building, DollarSign, Tag, UploadCloud, X, Lock, Code2, CalendarDays, Percent, Sparkles, FileText } from 'lucide-react'; // Added FileText
 import { formatDistanceToNow } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -23,7 +23,7 @@ import { z } from 'zod';
 import { ScrollArea } from '../ui/scroll-area';
 import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
-import { WorkExperienceLevel } from '@/lib/types'; // Import WorkExperienceLevel
+import { WorkExperienceLevel, JobType } from '@/lib/types'; // Import WorkExperienceLevel and JobType
 
 const JobFormSchema = z.object({
   _id: z.string().optional(),
