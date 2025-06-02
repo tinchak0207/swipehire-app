@@ -30,7 +30,7 @@ const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(
 const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').then(mod => mod.MyProfilePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 
 
-const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcome';
+const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2'; // Changed key to ensure new page shows once
 const GUEST_MODE_KEY = 'isGuestModeActive';
 
 // Inner component to access UserPreferencesContext
@@ -212,12 +212,13 @@ function AppContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleStartExploring = () => {
+  const handleStartExploring = () => { // This is called by WelcomePage's "Get Started Free" or "Log In"
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
+    // No explicit login call here, the state change will trigger LoginPage if not authenticated
   };
 
-  const handleLoginBypass = async () => {
+  const handleLoginBypass = async () => { // For LoginPage development bypass
     const mockUid = `mock-bypass-user-${Date.now()}`;
     const mockUser: User = {
       uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)',
@@ -252,7 +253,7 @@ function AppContent() {
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
 
-  const handleGuestMode = () => {
+  const handleGuestMode = () => { // Called by WelcomePage or LoginPage
     localStorage.setItem(GUEST_MODE_KEY, 'true');
     setIsGuestMode(true);
     setIsAuthenticated(false); 
@@ -320,15 +321,22 @@ function AppContent() {
     }
   };
 
-  const handleLoginRequest = () => {
+  const handleLoginRequest = () => { // Triggered by AppHeader when user clicks "Login" (e.g., to exit guest mode)
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
+        setCurrentUser(null); // Force re-evaluation of auth state
+        setIsAuthenticated(false);
         setUserPhotoURL(null);
         setMongoDbUserId(null);
-        const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
-        setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
+        // The useEffect for onAuthStateChanged will now detect no user & no guest mode,
+        // and if HAS_SEEN_WELCOME_KEY is true, it will show LoginPage.
+        // If HAS_SEEN_WELCOME_KEY is false, it will show WelcomePage.
+        // Forcing a state that leads to LoginPage:
+        localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); // Ensure welcome doesn't reappear
+        setShowWelcomePage(false); // Explicitly hide welcome
     }
+    // If not guest mode, this button might not be visible or could also just ensure LoginPage shows if not auth'd
   };
 
   const baseTabItems = [
@@ -356,8 +364,10 @@ function AppContent() {
   } else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   } else if (isGuestMode) {
+    // Guest mode defaults to job seeker view but with features locked
     currentTabItems = jobseekerTabItems; 
   }
+
 
   useEffect(() => {
     if (!isInitialLoading && initialAuthCheckDone.current) {
@@ -388,8 +398,8 @@ function AppContent() {
   }
   
   const mainContentRender = () => {
-    if (showWelcomePage && !isGuestMode) { 
-      return <WelcomePage onStartExploring={handleStartExploring} />;
+    if (showWelcomePage) { // Show new landing page if not seen or user logged out and it reset
+      return <WelcomePage onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
     }
     if (isAuthenticated && !isGuestMode && !userRole && !showWelcomePage && mongoDbUserId) { 
       return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
@@ -518,3 +528,6 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
+
+    

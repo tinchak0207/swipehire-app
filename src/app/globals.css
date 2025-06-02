@@ -269,3 +269,14 @@ body {
   opacity: 1;
   filter: brightness(1.1);
 }
+
+/* New styles for Landing Page Hero Background */
+.hero-gradient-bg {
+  /* Matching the dark blue gradient from StreakSafe.com example */
+  background: linear-gradient(160deg, #0f203a 0%, #1f3a63 50%, #2b4f81 100%);
+}
+.hero-gradient-bg-secondary { /* For final CTA, slightly different */
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+}
+
+    

@@ -18,7 +18,7 @@ const { createAdapter } = require("@socket.io/redis-adapter");
 const { createClient } = require("redis");
 
 const app = express();
-const server = http.createServer(app); // Create HTTP server from Express app
+const server = http.createServer(app); // Create HTTP server from Express app for Socket.io integration
 
 const PORT = process.env.PORT || 5000;
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"; // Default to local Redis
@@ -682,6 +682,7 @@ mongoose.connect(MONGO_URI)
 .catch((err) => { console.error('MongoDB connection error:', err); process.exit(1); });
 
 server.listen(PORT, () => {
+    // Cloud Run will set process.env.PORT to the port your application should listen on.
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
