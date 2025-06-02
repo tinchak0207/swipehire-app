@@ -12,7 +12,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose, DialogFooter as ShadDialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription } from "@/components/ui/dialog"; // Removed DialogClose and DialogFooter
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -68,7 +68,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  const jobMatchPercentage = company.jobMatchPercentage || 75; // Default to 75% as per new design
+  const jobMatchPercentage = company.jobMatchPercentage || 75; 
   const experienceRequiredText = jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') : 'Experience not specified';
   const categoryText = company.industry || "General";
 
@@ -357,7 +357,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-custom-dark-purple-blue text-white" // Main card dark background
+        className="flex flex-col h-full overflow-hidden relative bg-custom-dark-purple-blue text-white" 
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -369,57 +369,54 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Header Section */}
-        <div className="h-32 bg-gradient-to-r from-custom-primary-purple to-custom-dark-purple-blue p-4 flex flex-col items-center justify-center relative">
+        <div className="h-24 bg-gradient-to-r from-custom-primary-purple to-custom-dark-purple-blue p-4 flex flex-col items-center justify-center relative">
+          <Badge className="absolute top-3 left-3 bg-white/25 text-white text-xs font-medium px-2.5 py-1 rounded-full shadow-sm backdrop-blur-sm">{categoryText}</Badge>
           <div className="w-[50px] h-[50px] rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2">
-            {/* Use a relevant icon for job/company */}
             <Code2 className="h-6 w-6 text-white" /> 
           </div>
         </div>
         
         {/* Main Content Area */}
         <div className="flex-1 p-4 text-center overflow-y-auto">
-          <p className="text-lg uppercase font-bold text-custom-light-purple-text">{company.name}</p>
+          <p className="text-lg uppercase font-bold text-custom-light-purple-text mt-0">{company.name}</p>
           <h1 className="text-4xl font-bold text-white mt-1 line-clamp-2">{jobOpening?.title || 'Exciting Opportunity'}</h1>
           
-          <div className="flex justify-center items-center gap-x-3 text-base text-white/90 mt-3">
+          <div className="flex justify-center items-center gap-x-2 text-base text-white/90 mt-2">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 opacity-80" /> {jobOpening.location}</span>
             )}
+            {jobOpening?.location && jobOpening?.jobType && <span className="text-white/60 mx-0.5">•</span>}
             {jobOpening?.jobType && (
               <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 opacity-80" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
             )}
           </div>
 
-          {/* Circular Job Match Indicator - Simplified */}
-          <div className="mt-6 mb-5 flex justify-center">
-            <div className="relative w-[70px] h-[70px]">
-              <div className="absolute inset-0 rounded-full border-[6px] border-custom-light-gray-ring"></div>
-              <div 
-                className="absolute inset-0 rounded-full border-[6px] border-transparent border-t-custom-primary-purple border-r-custom-primary-purple"
-                style={{ 
-                  transform: 'rotate(45deg)', // Start point for the arc
-                  clipPath: `inset(0% ${100 - jobMatchPercentage}% 0% 0%)` // Approximation
-                }}
-              ></div>
-               <div 
-                className="absolute inset-0 rounded-full border-[6px] border-transparent border-b-custom-primary-purple border-l-custom-primary-purple"
-                style={{ 
-                  transform: 'rotate(45deg)', // Start point for the arc
-                   clipPath: jobMatchPercentage > 50 ? `inset(0% 0% 0% ${100 - (jobMatchPercentage - 50) * 2}%)` : 'inset(0% 0% 0% 100%)'
-                }}
-              ></div>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-white text-sm font-semibold">{jobMatchPercentage}%</span>
-                <span className="text-white/80 text-[10px] leading-tight">match</span>
-              </div>
+          {/* Circular Job Match Indicator */}
+          <div className="mt-5 mb-4 flex justify-center">
+             <div className="relative w-[70px] h-[70px]">
+                <div className="absolute inset-0 rounded-full border-4 border-custom-light-gray-ring"></div>
+                {/* Approximating progress with borders - a proper SVG/Canvas solution would be better for exact arc */}
+                <div 
+                    className="absolute inset-0 rounded-full border-4 border-transparent"
+                    style={{
+                        borderTopColor: jobMatchPercentage >= 25 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                        borderRightColor: jobMatchPercentage >= 50 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                        borderBottomColor: jobMatchPercentage >= 75 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                        borderLeftColor: jobMatchPercentage >= 100 ? 'var(--color-custom-primary-purple)' : 'transparent', // Full circle
+                        transform: 'rotate(-45deg)', // Offset to start from top
+                    }}
+                ></div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-white text-sm font-semibold">{jobMatchPercentage}%</span>
+                    <span className="text-white/80 text-[10px] leading-tight">match</span>
+                </div>
             </div>
           </div>
           
-          {/* Experience Text (Not in new design directly under match, but keeping for data completeness if needed elsewhere) */}
-          {/* <p className="text-xs italic text-white/70 mt-1.5">{experienceRequiredText}</p> */}
+          {/* Removed Experience Text from here to match new design. It can be in modal. */}
 
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
-            <div className="mt-5">
+            <div className="mt-4">
               <h3 className="text-sm uppercase font-bold text-custom-light-purple-text tracking-wider">TOP SKILLS</h3>
               <div className="flex flex-wrap justify-center gap-2 mt-2">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
@@ -433,8 +430,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
             
         {/* Action Buttons Footer */}
-        <CardFooter className="p-2.5 grid grid-cols-4 gap-2 border-t border-white/10 bg-custom-dark-purple-blue/50 shrink-0 no-swipe-area">
-            {/* Simplified button styling to fit dark theme, original functionality preserved */}
+        <CardFooter className="p-2.5 grid grid-cols-4 gap-2.5 border-t border-white/10 bg-custom-dark-purple-blue/50 shrink-0 no-swipe-area">
             <Button
                 variant="ghost"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
@@ -704,13 +700,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               )}
             </div>
           </div>
-           <ShadDialogFooter className="p-4 border-t border-slate-700 sticky bottom-0 bg-slate-800 z-10">
-            <DialogClose asChild>
-                <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">Close</Button>
-            </DialogClose>
-          </ShadDialogFooter>
+          {/* Footer removed as per request */}
         </DialogContent>
       </Dialog>
     </>
   );
 }
+
