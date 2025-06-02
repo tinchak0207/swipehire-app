@@ -72,8 +72,8 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   };
 
   return (
-    <div 
-      className="flex flex-col items-center justify-center p-4 min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
+    <div
+      className="flex flex-col items-center justify-center min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
     >
       {/* Overlay div 1 (darker bottom gradient) */}
@@ -82,7 +82,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 via-indigo-800/40 to-transparent opacity-80 z-0"></div>
       
       <Card className={cn(
-        "w-full max-w-md shadow-2xl rounded-xl relative z-10", 
+        "w-full max-w-md shadow-2xl rounded-xl relative z-10 mx-4", // Added mx-4 for some spacing if needed, card itself is centered
         "bg-white/10 backdrop-blur-xl border border-white/20 text-white" 
       )}>
         <CardHeader className="text-center space-y-2 pt-8">
@@ -92,8 +92,8 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
             Sign in to discover your next opportunity or top talent.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6 py-6">
-          <div className="text-left px-2 space-y-2 mb-4">
+        <CardContent className="space-y-6 py-6 px-6 sm:px-8">
+          <div className="text-left space-y-2 mb-4">
             <h3 className="text-lg font-semibold text-slate-100 flex items-center">
               <CheckCircle className="h-5 w-5 mr-2 text-green-400" /> 
               Join us to:
@@ -146,7 +146,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           </p>
 
         </CardContent>
-        <CardFooter className="pb-8">
+        <CardFooter className="pb-8 px-6 sm:px-8">
             <p className="text-center text-xs text-slate-400 w-full flex items-center justify-center">
               <ShieldCheck className="h-4 w-4 mr-1.5 text-green-400" /> By signing in, you agree to our Terms of Service and Privacy Policy.
             </p>
