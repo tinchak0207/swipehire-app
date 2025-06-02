@@ -220,21 +220,21 @@ h1, h2, h3, h4, h5, h6 {
 }
 .card-theme-ocean {
   background: linear-gradient(135deg, hsla(200, 80%, 75%, 0.7), hsla(220, 70%, 65%, 0.8));
-  color: hsl(var(--foreground)); /* Dark text for lightened theme */
+  color: hsl(var(--foreground));
 }
 .card-theme-sunset {
   background: linear-gradient(135deg, hsla(25, 90%, 75%, 0.7), hsla(350, 80%, 70%, 0.8));
-  color: hsl(var(--foreground)); /* Dark text for lightened theme */
+  color: hsl(var(--foreground));
 }
 .card-theme-forest {
   background: linear-gradient(135deg, hsla(130, 60%, 70%, 0.7), hsla(160, 55%, 60%, 0.8));
-  color: hsl(var(--foreground)); /* Dark text for lightened theme */
+  color: hsl(var(--foreground));
 }
-.card-theme-lavender { /* This theme already uses dark text on lighter background */
+.card-theme-lavender {
   background: linear-gradient(135deg, hsla(250, 70%, 94%, 0.85), hsla(270, 50%, 80%, 0.75));
   color: hsl(var(--foreground)); 
 }
-.card-theme-professional-dark { /* This theme is dark, so it uses light text */
+.card-theme-professional-dark {
   background: linear-gradient(135deg, hsla(220, 15%, 30%, 0.9), hsla(220, 20%, 20%, 0.95));
   color: hsl(var(--primary-foreground));
 }
@@ -243,12 +243,12 @@ h1, h2, h3, h4, h5, h6 {
 .card-theme-ocean .badge-secondary,
 .card-theme-sunset .badge-secondary,
 .card-theme-forest .badge-secondary,
-.card-theme-lavender .badge-secondary { /* For themes that now default to dark text */
-  background-color: hsla(var(--foreground-hsl), 0.08); /* Subtle dark background for badge */
-  color: hsl(var(--foreground)); /* Dark text */
+.card-theme-lavender .badge-secondary {
+  background-color: hsla(var(--foreground-hsl), 0.08);
+  color: hsl(var(--foreground));
   border-color: hsla(var(--foreground-hsl), 0.15);
 }
-.card-theme-professional-dark .badge-secondary { /* For dark theme with light text */
+.card-theme-professional-dark .badge-secondary {
   background-color: hsla(var(--primary-foreground-hsl), 0.15); 
   color: hsl(var(--primary-foreground));
   border-color: hsla(var(--primary-foreground-hsl), 0.25);
