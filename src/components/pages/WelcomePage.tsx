@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect, useState } from 'react'; // Ensure useState is imported
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap } from "lucide-react";
@@ -31,37 +31,38 @@ const FeatureCard = ({ icon, title, description, aosAnimation, aosDelay }: { ico
   );
 };
 
-const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }: { quote: string, author: string, role: string, avatar: string, aosAnimation?: string, aosDelay?: string }) => {
+const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay, dataAiHint }: { quote: string, author: string, role: string, avatar: string, aosAnimation?: string, aosDelay?: string, dataAiHint?: string }) => {
   const [displayedQuote, setDisplayedQuote] = useState('');
   const [isTypingComplete, setIsTypingComplete] = useState(false);
 
   useEffect(() => {
-    setDisplayedQuote(''); 
+    setDisplayedQuote('');
     setIsTypingComplete(false);
+    let index = 0;
+    const typingSpeed = 40;
+    const delay = parseInt(aosDelay || "0", 10);
+    let typingInterval: NodeJS.Timeout | undefined;
 
-    if (quote) {
-      let index = 0;
-      const typingSpeed = 40; 
-      const initialDelay = 700 + parseInt(aosDelay || "0"); 
-
-      const startTypingTimer = setTimeout(() => {
-        const typingInterval = setInterval(() => {
-          setDisplayedQuote((prev) => {
-            if (index < quote.length) {
-              return prev + quote.charAt(index);
-            }
-            clearInterval(typingInterval);
+    const startTypingTimer = setTimeout(() => {
+      if (quote) {
+        typingInterval = setInterval(() => {
+          if (index < quote.length) {
+            setDisplayedQuote((prev) => prev + quote.charAt(index));
+            index++;
+          } else {
+            if (typingInterval) clearInterval(typingInterval);
             setIsTypingComplete(true);
-            return prev; 
-          });
-          index++;
+          }
         }, typingSpeed);
-        
-        return () => clearInterval(typingInterval);
-      }, initialDelay);
+      }
+    }, delay + 500); // Start typing 500ms after AOS animation delay (if any)
 
-      return () => clearTimeout(startTypingTimer);
-    }
+    return () => { // Cleanup function for useEffect
+      clearTimeout(startTypingTimer);
+      if (typingInterval) {
+        clearInterval(typingInterval);
+      }
+    };
   }, [quote, aosDelay]);
 
   return (
@@ -78,7 +79,7 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
             width={40}
             height={40}
             className="rounded-full mr-3 border-2 border-primary/20"
-            data-ai-hint="person face"
+            data-ai-hint={dataAiHint || "person face"}
           />
           <div>
             <p className="font-semibold text-foreground font-heading">{author}</p>
@@ -94,9 +95,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
   useEffect(() => {
     AOS.init({
-      duration: 800, 
-      once: true, 
-      offset: 50, // Trigger animations a bit earlier
+      duration: 800,
+      once: true,
+      offset: 50,
     });
   }, []);
 
@@ -236,7 +237,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 author="Sarah L."
                 role="Software Engineer"
                 avatar="https://placehold.co/100x100/A663CC/FFFFFF.png?text=SL"
-                data-ai-hint="woman smiling"
+                dataAiHint="woman smiling"
                 aosAnimation="fade-right"
                 aosDelay="0"
               />
@@ -245,7 +246,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 author="John B."
                 role="HR Manager, Tech Corp"
                 avatar="https://placehold.co/100x100/63A6FF/FFFFFF.png?text=JB"
-                data-ai-hint="man professional"
+                dataAiHint="man professional"
                 aosAnimation="fade-up" data-aos-delay="100"
               />
               <TestimonialCard
@@ -253,7 +254,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 author="Maria G."
                 role="Marketing Specialist"
                 avatar="https://placehold.co/100x100/FF6B6B/FFFFFF.png?text=MG"
-                data-ai-hint="person happy"
+                dataAiHint="person happy"
                 aosAnimation="fade-left" data-aos-delay="200"
               />
             </div>
@@ -385,3 +386,5 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
     </div>
   );
 }
+
+    
