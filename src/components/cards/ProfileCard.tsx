@@ -2,11 +2,11 @@
 "use client";
 
 import React from 'react';
-import type { Candidate } from '@/lib/types';
-import Image from 'next/image';
+import Image from 'next/image'; // Import next/image
 import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import type { Candidate } from '@/lib/types'; // Import Candidate type
 import { cn } from '@/lib/utils';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -14,7 +14,7 @@ const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http:/
 interface ProfileCardProps {
   candidate: Candidate;
   onAction: (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => void;
-  isLiked?: boolean; // Optional: to style the like button if already liked
+  isLiked?: boolean;
 }
 
 const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
@@ -22,7 +22,10 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
     ? candidate.avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
       : candidate.avatarUrl
-    : `https://placehold.co/100x100.png?text=${encodeURIComponent(candidate.name?.[0] || 'P')}`;
+    : `https://placehold.co/96x96.png?text=${encodeURIComponent(candidate.name?.[0] || 'P')}`;
+
+  // Determine if unoptimized prop is needed for next/image
+  const needsUnoptimized = avatarDisplayUrl.startsWith(CUSTOM_BACKEND_URL) || avatarDisplayUrl.startsWith('http://localhost');
 
   return (
     <div className="max-w-sm w-full mx-auto bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100 rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
@@ -39,10 +42,10 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
                 height={96}
                 className="w-full h-full object-cover"
                 data-ai-hint={candidate.dataAiHint || "person portrait"}
-                unoptimized={avatarDisplayUrl.startsWith(CUSTOM_BACKEND_URL) || avatarDisplayUrl.startsWith('http://localhost')}
+                unoptimized={needsUnoptimized} // Use unoptimized for external backend URLs not in next.config.js images.remotePatterns
               />
             </div>
-            {/* Optional: Online status indicator if needed later */}
+            {/* Optional: Online status indicator, can be made dynamic if data exists */}
             {/* <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full ring-2 ring-white"></div> */}
           </div>
         </div>
@@ -51,7 +54,7 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
       {/* Profile Information */}
       <div className="px-6 py-6 space-y-4">
         {/* Name and Title */}
-        <div className="text-center space-y-1">
+        <div className="text-center space-y-2">
           <h2 className="text-2xl font-bold text-gray-800 tracking-tight">{candidate.name || "N/A"}</h2>
           <p className="text-indigo-600 font-medium text-sm uppercase tracking-wide">{candidate.role || "Role not specified"}</p>
         </div>
@@ -123,7 +126,7 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex flex-col items-center gap-1 p-2 sm:p-3 h-auto bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
+            className="flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
             onClick={() => onAction(candidate.id, 'pass')}
           >
             <ThumbsDown className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -133,7 +136,7 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex flex-col items-center gap-1 p-2 sm:p-3 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+            className="flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
             onClick={() => onAction(candidate.id, 'details')}
           >
             <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -144,7 +147,7 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
             variant="outline" 
             size="sm" 
             className={cn(
-              "flex flex-col items-center gap-1 p-2 sm:p-3 h-auto bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-200",
+              "flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-200",
               isLiked && "bg-green-100 border-green-400"
             )}
             onClick={() => onAction(candidate.id, 'like')}
@@ -156,7 +159,7 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
           <Button 
             variant="outline" 
             size="sm" 
-            className="flex flex-col items-center gap-1 p-2 sm:p-3 h-auto bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200"
+            className="flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200"
             onClick={() => onAction(candidate.id, 'share')}
           >
             <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -169,3 +172,5 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
 };
 
 export default ProfileCard;
+
+    
