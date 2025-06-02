@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag } from 'lucide-react';
+import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -66,8 +66,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  const jobMatchPercentage = company.jobMatchPercentage || 97; // Placeholder from image
-  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : '5-10 years experience required'; // Placeholder from image
+  const jobMatchPercentage = company.jobMatchPercentage || 85; // Placeholder to match image
+  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : '2-3 years experience required'; // Placeholder to match image
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -361,119 +361,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
 
-  const categoryText = company.industry || "General";
+  const categoryText = company.industry || "Technology";
 
-  const ActionButton = ({
-    action,
-    Icon,
-    label,
-    className: extraClassName,
-    isSpecificActionLiked,
-  }: {
-    action: 'like' | 'pass' | 'details' | 'share_trigger';
-    Icon: React.ElementType;
-    label: string;
-    className?: string;
-    isSpecificActionLiked?: boolean;
-  }) => {
-    const baseClasses = "flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm";
-    let variant: "outline" | "default" | "ghost" = "outline";
-    let colorClasses = "";
-
-    if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "bg-red-400 text-white border-red-500 hover:bg-red-500/80";
-    } else {
-        switch (action) {
-            case 'like': colorClasses = `border-green-300 text-green-500 hover:bg-green-50 ${isSpecificActionLiked ? 'bg-green-100 ring-2 ring-green-500' : ''}`; break;
-            case 'pass': colorClasses = "border-red-300 text-red-500 hover:bg-red-50"; break;
-            case 'details': colorClasses = "border-blue-300 text-blue-500 hover:bg-blue-50"; break;
-            case 'share_trigger': colorClasses = "border-purple-300 text-purple-500 hover:bg-purple-50"; break;
-            default: colorClasses = "border-gray-300 text-gray-500 hover:bg-gray-50";
-        }
-    }
-    
-    const effectiveOnClick = action === 'details' 
-        ? handleDetailsButtonClick 
-        : (e: React.MouseEvent) => { 
-            e.stopPropagation(); 
-            if (!isGuestMode) {
-                if (action !== 'share_trigger') {
-                    handleLocalSwipeAction(action as 'like' | 'pass' | 'details');
-                }
-            } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-                toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
-            } else if (isGuestMode && action === 'details') {
-                 handleDetailsButtonClick(e); 
-            }
-        };
-
-
-    const buttonElement = (
-        <Button
-          variant={variant}
-          size="icon" 
-          className={cn(baseClasses, colorClasses, extraClassName)}
-          onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
-          disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
-          aria-label={`${label} ${company.name}`}
-          data-no-drag="true"
-          data-modal-trigger={action === 'details' ? "true" : undefined}
-        >
-          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-5 w-5 mb-1" /> : <Icon className={cn("h-5 w-5 mb-1", isSpecificActionLiked && action === 'like' && 'fill-green-500')} />}
-          <span className="text-xs font-medium">{label}</span>
-        </Button>
-    );
-
-    if (action === 'share_trigger') {
-        return (
-            <DropdownMenu onOpenChange={setIsShareModalOpen}>
-                 <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                                {buttonElement}
-                            </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                         {isGuestMode && (
-                            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
-                                <p>Sign in to share</p>
-                            </TooltipContent>
-                        )}
-                    </Tooltip>
-                </TooltipProvider>
-                <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} data-no-drag="true">
-                        <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} data-no-drag="true">
-                        <Mail className="mr-2 h-4 w-4" /> Email
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} data-no-drag="true">
-                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} data-no-drag="true">
-                        <Twitter className="mr-2 h-4 w-4" /> X / Twitter
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        );
-    }
-
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {buttonElement}
-          </TooltipTrigger>
-          {isGuestMode && (action === 'like' || action === 'pass') && (
-            <TooltipContent side="bottom" className="bg-red-500 text-white border-red-600">
-              <p>Sign in to interact</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
-    );
-  };
 
   return (
     <>
@@ -492,22 +381,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       >
         {/* Header Section */}
         <div className="relative h-24 bg-gradient-to-r from-purple-500 to-blue-500 shrink-0 p-4 flex items-start">
-          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/30 text-white backdrop-blur-sm text-xs px-2 py-1 shadow-sm">
+          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/20 text-white backdrop-blur-sm text-xs px-2.5 py-1 rounded-full shadow-sm">
             {categoryText.length > 15 ? categoryText.substring(0, 12) + "..." : categoryText}
           </Badge>
-          {/* Placeholder for absolutely positioned circular logo */}
-        </div>
-        
-        {/* Main Content Area */}
-        <div className="flex-1 p-4 pt-12 space-y-3 text-center overflow-y-auto relative"> {/* pt-12 to create space for the overlapping logo */}
-          {/* Absolutely Positioned Circular Logo */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-2 border-slate-200 z-10">
+          {/* Circular Logo Icon Holder */}
+          <div className="absolute top-14 left-1/2 -translate-x-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-200 z-10">
             {company.logoUrl ? (
               <Image
                 src={company.logoUrl}
                 alt={company.name + " logo"}
-                width={56} 
-                height={56}
+                width={48} 
+                height={48}
                 className="object-contain rounded-md p-1"
                 data-ai-hint={company.dataAiHint || "company logo"}
               />
@@ -515,11 +399,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               <BriefcaseIcon className="h-10 w-10 text-muted-foreground" />
             )}
           </div>
-
-          <h2 className="text-xl font-bold text-foreground pt-2">{company.name}</h2>
-          {jobOpening && <p className="text-purple-600 font-medium text-md">{jobOpening.title}</p>}
+        </div>
+        
+        {/* Main Content Area */}
+        <div className="flex-1 p-4 pt-14 space-y-2.5 text-center overflow-y-auto relative">
+          <h2 className="text-xl font-bold text-foreground mt-1">{company.name}</h2>
+          {jobOpening && <p className="text-md text-purple-600 font-medium">{jobOpening.title}</p>}
           
-          <div className="flex justify-center items-center gap-3 text-sm text-muted-foreground">
+          <div className="flex justify-center items-center gap-3 text-sm text-muted-foreground mt-2">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" /> {jobOpening.location}</span>
             )}
@@ -534,17 +421,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               <span className="text-muted-foreground">Job Match</span>
               <span className="font-semibold text-purple-600">{jobMatchPercentage}%</span>
             </div>
-            <Progress value={jobMatchPercentage} className="h-2 [&>div]:progress-gradient-purple-blue" />
-            <p className="text-xs italic text-muted-foreground pt-1">{experienceRequiredText}</p>
+            <Progress value={jobMatchPercentage} className="h-2 [&>div]:progress-gradient-purple-blue flex-grow mx-2" />
+            <p className="text-xs italic text-muted-foreground text-center pt-1">{experienceRequiredText}</p>
           </div>
 
           {/* Top Skills Section */}
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
-            <div className="pt-3 space-y-2">
-              <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Top Skills</h3>
+            <div className="pt-3 space-y-1.5">
+              <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider text-center">Top Skills</h3>
               <div className="flex flex-wrap justify-center gap-1.5">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} className="bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 text-xs px-2 py-0.5">
+                  <Badge key={tag} variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2 py-0.5 rounded-md">
                     {tag}
                   </Badge>
                 ))}
@@ -555,10 +442,71 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             
         {/* Action Buttons Footer */}
         <CardFooter className="p-2 grid grid-cols-4 gap-2 border-t bg-card shrink-0 no-swipe-area">
-            <ActionButton action="pass" Icon={CloseIcon} label="Pass" />
-            <ActionButton action="details" Icon={Eye} label="Profile" /> 
-            <ActionButton action="like" Icon={ThumbsUp} label="Like" isSpecificActionLiked={isLiked} />
-            <ActionButton action="share_trigger" Icon={Share2} label="Share" />
+            <Button
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
+                disabled={isGuestMode}
+                className="flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-red-300 text-red-500 hover:bg-red-50"
+                aria-label={`Pass on ${company.name}`}
+                data-no-drag="true"
+            >
+                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1" />}
+                Pass
+            </Button>
+            <Button
+                variant="outline"
+                onClick={handleDetailsButtonClick}
+                className="flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-blue-300 text-blue-500 hover:bg-blue-50"
+                aria-label={`View details for ${company.name}`}
+                data-no-drag="true"
+                data-modal-trigger="true"
+            >
+                <Eye className="h-5 w-5 mb-1" />
+                Profile
+            </Button>
+            <Button
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
+                disabled={isGuestMode}
+                className={cn(
+                    "flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-green-300 text-green-500 hover:bg-green-50",
+                    isLiked && "bg-green-100 ring-2 ring-green-500"
+                )}
+                aria-label={`Like ${company.name}`}
+                data-no-drag="true"
+            >
+                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : (isLiked ? <Heart className="h-5 w-5 mb-1 fill-green-500 text-green-500" /> : <Heart className="h-5 w-5 mb-1" />)}
+                Like
+            </Button>
+            <DropdownMenu onOpenChange={setIsShareModalOpen}>
+                <DropdownMenuTrigger asChild>
+                    <Button
+                        variant="outline"
+                        disabled={isGuestMode}
+                        className="flex flex-col items-center justify-center w-16 h-16 rounded-xl text-xs font-medium transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm border-purple-300 text-purple-500 hover:bg-purple-50"
+                        aria-label={`Share ${company.name}`}
+                        data-no-drag="true"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1" />}
+                        Share
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} data-no-drag="true">
+                        <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} data-no-drag="true">
+                        <Mail className="mr-2 h-4 w-4" /> Email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} data-no-drag="true">
+                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} data-no-drag="true">
+                        <Twitter className="mr-2 h-4 w-4" /> X / Twitter
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </CardFooter>
       </div>
 
@@ -768,4 +716,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
