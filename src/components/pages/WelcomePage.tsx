@@ -10,7 +10,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
-import { ScrollToTopButton } from '@/components/common/ScrollToTopButton'; // Added import
+import { ScrollToTopButton } from '@/components/common/ScrollToTopButton';
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -22,10 +22,10 @@ const FeatureCard = ({ icon, title, description, aosAnimation, aosDelay }: { ico
   return (
     <Card className="text-center shadow-lg bg-card subtle-card-hover h-full flex flex-col group" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
       <CardHeader className="pb-4">
-        <Icon className="mx-auto h-10 w-10 text-primary mb-3 group-hover:scale-110 transition-transform duration-300" />
+        <Icon className="mx-auto h-10 w-10 text-primary mb-3 group-hover:scale-110 group-hover:text-accent group-hover:rotate-[10deg] transition-all duration-300" />
         <CardTitle className="text-xl font-semibold font-heading">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="flex-grow">
+      <CardContent className="flex-grow group-hover:bg-muted/70 transition-colors duration-300 rounded-b-lg">
         <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
       </CardContent>
     </Card>
@@ -40,9 +40,9 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
     setDisplayedQuote('');
     setIsTypingComplete(false);
     let index = 0;
-    const typingSpeed = 40; // Adjust for faster/slower typing
-    const startDelay = parseInt(aosDelay || "0", 10) + 300; // Start typing slightly after AOS animation
-    let typingInterval: NodeJS.Timeout;
+    const typingSpeed = 40;
+    const startDelay = parseInt(aosDelay || "0", 10) + 300;
+    let typingInterval: NodeJS.Timeout | undefined;
 
     const timer = setTimeout(() => {
       if (quote) {
@@ -60,14 +60,16 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
 
     return () => {
       clearTimeout(timer);
-      clearInterval(typingInterval);
+      if (typingInterval) {
+        clearInterval(typingInterval);
+      }
     };
   }, [quote, aosDelay]);
 
   return (
-    <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
+    <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col group" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
       <CardContent className="pt-6 flex-grow flex flex-col">
-        <blockquote className="italic text-muted-foreground leading-relaxed flex-grow min-h-[6em]">
+        <blockquote className="italic text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300 leading-relaxed flex-grow min-h-[6em]">
           {displayedQuote}
           {!isTypingComplete && <span className="typing-cursor"></span>}
         </blockquote>
@@ -77,11 +79,11 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
             alt={author}
             width={40}
             height={40}
-            className="rounded-full mr-3 border-2 border-primary/20"
+            className="rounded-full mr-3 border-2 border-primary/20 transform transition-transform duration-300 group-hover:scale-110"
             data-ai-hint={author === "Sarah L." ? "woman smiling" : author === "John B." ? "man professional" : "person happy"}
           />
           <div>
-            <p className="font-semibold text-foreground font-heading">{author}</p>
+            <p className="font-semibold text-foreground group-hover:text-primary transition-colors duration-300 font-heading">{author}</p>
             <p className="text-xs text-muted-foreground">{role}</p>
           </div>
         </div>
@@ -197,7 +199,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </section>
 
         {/* How It Works Section */}
-        <section id="how-it-works" className="py-20 md:py-28 bg-muted/50">
+        <section id="how-it-works" className="py-20 md:py-28 bg-muted/50" data-aos="fade-up">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16" data-aos="fade-up">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading">Simple Steps to Success</h2>
@@ -224,7 +226,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </section>
 
         {/* Testimonials Section */}
-        <section id="testimonials" className="py-20 md:py-28 bg-background">
+        <section id="testimonials" className="py-20 md:py-28 bg-background" data-aos="fade-up">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16" data-aos="fade-up">
               <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading">Loved by Professionals</h2>
@@ -258,7 +260,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-20 md:py-28 bg-muted/50">
+        <section id="pricing" className="py-20 md:py-28 bg-muted/50" data-aos="fade-up">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16" data-aos="fade-up">
                     <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading">Simple, Transparent Pricing</h2>
@@ -371,7 +373,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </div>
       </footer>
-      <ScrollToTopButton /> {/* Added ScrollToTopButton */}
+      <ScrollToTopButton />
       <style jsx>{`
         html {
           scroll-behavior: smooth;
