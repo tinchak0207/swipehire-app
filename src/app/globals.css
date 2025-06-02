@@ -7,6 +7,16 @@ body {
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
+/* Define a CSS variable for the heading font */
+:root {
+  --font-heading: var(--font-montserrat), var(--font-geist-sans), sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
+
+
 @layer base {
   :root {
     /* Deep Blue for Primary, Purple for Accent */
@@ -287,12 +297,27 @@ body {
   @apply shadow-xl -translate-y-1;
 }
 
-/* Subtle hover effect for buttons */
+/* Enhanced subtle hover effect for buttons to include translateY and active state */
 .subtle-button-hover {
-  @apply transition-transform duration-200 ease-in-out;
+  @apply transition-all duration-200 ease-in-out;
 }
 .subtle-button-hover:hover {
-  @apply scale-105;
+  @apply scale-105 shadow-lg -translate-y-0.5;
+  /* Example: color change on hover - primary buttons already have good hover from shadcn variants */
+  /* For custom buttons or overriding, you might add something like:
+     background-color: hsl(var(--primary) / 0.8); if it's a primary button
+  */
+}
+.subtle-button-hover:active {
+  @apply scale-100 -translate-y-0 shadow-md;
+}
+
+/* Parallax Hero Background */
+.parallax-hero {
+  background-attachment: fixed;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
 }
 
     
