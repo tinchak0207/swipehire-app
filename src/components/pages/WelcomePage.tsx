@@ -128,9 +128,14 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <a href="#pricing" onClick={(e) => handleNavLinkClick(e, 'pricing')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
             <a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
           </nav>
-          <Button onClick={onStartExploring} variant="default" size="sm" className="subtle-button-hover">
-            Log In / Sign Up
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={onStartExploring} variant="link" size="sm" className="text-foreground hover:text-primary px-3 py-2">
+              Log In
+            </Button>
+            <Button onClick={onStartExploring} variant="default" size="sm" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md subtle-button-hover">
+              Sign Up
+            </Button>
+          </div>
         </div>
       </header>
 
