@@ -16,18 +16,16 @@ import { useToast } from '@/hooks/use-toast';
 import type { CompanyJobOpening } from '@/lib/types'; 
 import { postJobToBackend } from '@/services/jobService';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { Badge } from '@/components/ui/badge'; // Added Badge
+import { Badge } from '@/components/ui/badge';
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
   description: z.string().min(20, "Description must be at least 20 characters."),
   compensation: z.string().min(1, "Please specify compensation or prize."),
-  // tags: z.string().refine(value => { // Old string validation
-  //   if (!value) return true; 
-  //   const tags = value.split(',').map(tag => tag.trim());
-  //   return tags.every(tag => tag.length > 0 && tag.length <= 20 && !tag.includes(' '));
-  // }, "Tags should be comma-separated, no spaces within tags, max 20 chars each."),
-  tags: z.array(z.string().min(1, "Tag cannot be empty.").max(20, "Tag too long.").regex(/^[a-zA-Z0-9-]+$/, "Tag can only contain letters, numbers, and hyphens.")).optional(),
+  // The 'tags' field in the Zod schema is for the temporary input string, 
+  // 'actualTags' will be used for the validated array of tags for submission.
+  tags: z.string().optional(), // User types into this, but it's not directly submitted as the final tags array
+  actualTags: z.array(z.string().min(1, "Tag cannot be empty.").max(20, "Tag too long.").regex(/^[a-zA-Z0-9-]+$/, "Tag can only contain letters, numbers, and hyphens.")).optional().default([]),
   mediaFile: z.custom<FileList>((val) => val === undefined || (val instanceof FileList && val.length <= 1), "Only one file can be uploaded.")
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
     .refine(files => files === undefined || files.length === 0 || files?.[0]?.type.startsWith("image/") || files?.[0]?.type.startsWith("video/"), "Please upload a valid image or video file.")
@@ -35,11 +33,7 @@ const FormSchema = z.object({
   location: z.string().optional(),
 });
 
-// Adjust FormValues to reflect tags as an array
-type FormValues = Omit<z.infer<typeof FormSchema>, 'tags'> & {
-  tags?: string; // Keep this for the input field itself
-  actualTags?: string[]; // This will be used for the form submission
-};
+type FormValues = z.infer<typeof FormSchema>;
 
 
 interface CreateJobPostingPageProps {
@@ -53,7 +47,6 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
   const { toast } = useToast();
   const { mongoDbUserId } = useUserPreferences();
 
-  // State for tag input
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [tagList, setTagList] = useState<string[]>([]);
 
@@ -67,17 +60,22 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     }
   }, [isGuestMode]);
 
-  const form = useForm<FormValues>({ // Use updated FormValues
+  const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
       title: "",
       description: "",
       compensation: "",
-      tags: "", // This will be the string input, not directly used for submission of tags
-      actualTags: [], // Initialize actualTags as an empty array
+      tags: "", // For the input field
+      actualTags: [], // For validation and submission
       location: "",
     },
   });
+
+  useEffect(() => {
+    // Sync tagList with RHF's actualTags for validation
+    form.setValue('actualTags', tagList);
+  }, [tagList, form]);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -92,7 +90,6 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     const newTag = currentTagInput.trim().toLowerCase().replace(/\s+/g, '-');
     if (newTag && newTag.length <= 20 && /^[a-zA-Z0-9-]+$/.test(newTag) && !tagList.includes(newTag) && tagList.length < 10) {
       setTagList([...tagList, newTag]);
-      form.setValue('actualTags', [...tagList, newTag]); // Update RHF state for actualTags
     } else if (tagList.length >= 10) {
       toast({ title: "Tag Limit Reached", description: "You can add up to 10 tags.", variant: "default"});
     } else if (newTag && (newTag.length > 20 || !/^[a-zA-Z0-9-]+$/.test(newTag))) {
@@ -111,7 +108,6 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
   const handleRemoveTag = (tagToRemove: string) => {
     const newTagList = tagList.filter(tag => tag !== tagToRemove);
     setTagList(newTagList);
-    form.setValue('actualTags', newTagList); // Update RHF state for actualTags
   };
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
@@ -130,11 +126,12 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
     setIsLoading(true);
 
+    // Use the validated `data.actualTags` (which is synced from `tagList`) for the payload
     const jobOpeningData: Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id'> = {
       title: data.title,
       description: data.description,
       salaryRange: data.compensation,
-      tags: tagList, // Use the tagList state directly
+      tags: data.actualTags, // Use the validated array from form data
       location: data.location || undefined,
       videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? 'https://placehold.co/600x400.png' : undefined,
       dataAiHint: data.mediaFile && data.mediaFile.length > 0 ? data.title.substring(0,20) || 'job media' : undefined,
@@ -147,8 +144,8 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
         description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
       form.reset();
-      setTagList([]); // Clear tag list
-      form.setValue('actualTags', []); // Clear RHF tag list
+      setTagList([]); // Clear displayed tag list
+      setCurrentTagInput(''); // Clear tag input field
       setFileName(null);
     } catch (error: any) {
       console.error("Error posting job:", error);
@@ -258,7 +255,7 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                 )}
               />
 
-              {/* Updated Tags Field */}
+              {/* Tags Field */}
               <FormItem>
                 <FormLabel className="text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-muted-foreground" />Tags</FormLabel>
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -279,27 +276,39 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                     </Badge>
                   ))}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="tags"
-                    placeholder="Type a tag (e.g., react) and press Enter or comma"
-                    value={currentTagInput}
-                    onChange={(e) => setCurrentTagInput(e.target.value)}
-                    onKeyDown={handleTagInputKeyDown}
-                    disabled={!isPostingAllowed || tagList.length >= 10}
-                    className="flex-grow"
-                  />
-                   <Button type="button" onClick={handleAddTag} variant="outline" size="sm" disabled={!isPostingAllowed || tagList.length >= 10}>Add Tag</Button>
-                </div>
+                 {/* This is the input for typing new tags */}
+                <FormField
+                  control={form.control}
+                  name="tags" // This 'tags' field in Zod schema is just for the input, not direct submission
+                  render={({ field }) => (
+                    <div className="flex items-center gap-2">
+                    <Input
+                      id="tags-input-field" // Unique ID for the input field
+                      placeholder="Type a tag (e.g., react) and press Enter or comma"
+                      value={currentTagInput}
+                      onChange={(e) => {
+                        setCurrentTagInput(e.target.value);
+                        field.onChange(e); // RHF tracks the input field's value if needed, but we use currentTagInput for actual tag addition logic
+                      }}
+                      onKeyDown={handleTagInputKeyDown}
+                      disabled={!isPostingAllowed || tagList.length >= 10}
+                      className="flex-grow"
+                    />
+                     <Button type="button" onClick={handleAddTag} variant="outline" size="sm" disabled={!isPostingAllowed || tagList.length >= 10}>Add Tag</Button>
+                    </div>
+                  )}
+                />
                 <FormDescription>
                   Help categorize your job. Add up to 10 tags (letters, numbers, hyphens only, max 20 chars each).
                 </FormDescription>
-                 <FormField
+                 {/* This 'actualTags' field is what Zod validates as an array */}
+                <FormField
                   control={form.control}
-                  name="actualTags" // This is a hidden field for RHF to track the actual array for validation
-                  render={({ field }) => ( <Input type="hidden" {...field} /> )}
+                  name="actualTags" 
+                  render={() => null} // No need to render, it's for validation of the tagList
                 />
-                <FormMessage>{form.formState.errors.tags?.message || form.formState.errors.actualTags?.message}</FormMessage>
+                {/* Display validation errors for actualTags */}
+                <FormMessage>{form.formState.errors.actualTags?.message || form.formState.errors.actualTags?.root?.message}</FormMessage>
               </FormItem>
               
               <FormField
@@ -344,3 +353,4 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     </div>
   );
 }
+
