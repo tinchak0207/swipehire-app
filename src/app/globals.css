@@ -103,7 +103,7 @@ h1, h2, h3, h4, h5, h6 {
     --chart-5: 340 75% 55%;
 
     /* Sidebar specific colors for dark theme */
-    --sidebar-background: 220 10% 12%; 
+    --sidebar-background: 220 10% 12%;
     --sidebar-foreground: 220 10% 85%;
     --sidebar-primary: 276 50% 65%;
     --sidebar-primary-foreground: 0 0% 100%;
@@ -213,72 +213,27 @@ h1, h2, h3, h4, h5, h6 {
 }
 .card-theme-ocean {
   background: linear-gradient(135deg, #0575E6, #021B79); /* Deep Blue to Darker Blue */
-  color: hsl(var(--primary-foreground));
+  /* Removed: color: hsl(var(--primary-foreground)); */
 }
 .card-theme-sunset {
   background: linear-gradient(135deg, #FF8C00, #FF0080); /* Orange to Deep Pink */
-  color: hsl(var(--primary-foreground));
+  /* Removed: color: hsl(var(--primary-foreground)); */
 }
 .card-theme-forest {
   background: linear-gradient(135deg, #138808, #004225); /* Green to Dark Green */
-  color: hsl(var(--primary-foreground));
+  /* Removed: color: hsl(var(--primary-foreground)); */
 }
 .card-theme-lavender {
   background: linear-gradient(135deg, #E6E6FA, #9370DB); /* Lavender to Medium Purple */
-  color: hsl(var(--foreground)); /* Darker text for light background */
+  /* Removed: color: hsl(var(--foreground)); */ /* Note: this one used --foreground, others --primary-foreground */
 }
 .card-theme-professional-dark {
   background: linear-gradient(135deg, #434343, #1c1c1c); /* Dark Gray to Near Black */
-  color: hsl(var(--primary-foreground));
+  /* Removed: color: hsl(var(--primary-foreground)); */
 }
 
-/* Ensure text within themed cards is readable, adjust these if button colors are still overridden */
-.card-theme-ocean .text-muted-foreground {
-  color: hsl(var(--primary-foreground)); 
-  opacity: 0.85;
-}
-.card-theme-ocean .text-primary {
-   color: hsl(var(--primary-foreground)); 
-   opacity: 1;
-   filter: brightness(1.2);
-}
-.card-theme-sunset .text-muted-foreground {
-  color: hsl(var(--primary-foreground)); 
-  opacity: 0.9;
-}
-.card-theme-sunset .text-primary {
-   color: hsl(var(--primary-foreground)); 
-   opacity: 1;
-   filter: brightness(0.9) contrast(1.1);
-}
-
-.card-theme-forest .text-muted-foreground {
-  color: hsl(var(--primary-foreground)); 
-  opacity: 0.85;
-}
-.card-theme-forest .text-primary {
-  color: hsl(var(--primary-foreground)); 
-  opacity: 1;
-  filter: brightness(1.1);
-}
-
-.card-theme-lavender .text-muted-foreground {
-  color: hsl(var(--muted-foreground)); 
-  opacity: 0.9;
-}
-.card-theme-lavender .text-primary {
-  color: hsl(276, 50%, 50%); 
-}
-
-.card-theme-professional-dark .text-muted-foreground {
-  color: hsl(var(--primary-foreground)); 
-  opacity: 0.8;
-}
-.card-theme-professional-dark .text-primary {
-  color: hsl(var(--primary-foreground)); 
-  opacity: 1;
-  filter: brightness(1.1);
-}
+/* Removed specific .card-theme-* .text-muted-foreground and .text-primary overrides,
+   as standard Tailwind utilities should now work correctly. */
 
 /* New styles for Landing Page Hero Background */
 .hero-gradient-bg {
@@ -327,4 +282,3 @@ h1, h2, h3, h4, h5, h6 {
   50% { color: inherit; }
 }
     
-
