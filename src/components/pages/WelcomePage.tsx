@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { ScrollToTopButton } from '@/components/common/ScrollToTopButton';
-import { ScrollProgressBar } from '@/components/common/ScrollProgressBar'; // Added import
+import { ScrollProgressBar } from '@/components/common/ScrollProgressBar';
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -41,10 +41,10 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
     setDisplayedQuote('');
     setIsTypingComplete(false);
     let index = 0;
-    const typingSpeed = 40; // Adjust for speed
+    const typingSpeed = 40; 
     let typingInterval: NodeJS.Timeout | undefined;
   
-    const startDelay = parseInt(aosDelay || "0", 10) + 300; // Start after AOS animation
+    const startDelay = parseInt(aosDelay || "0", 10) + 300; 
   
     const timer = setTimeout(() => {
       if (quote) {
@@ -60,14 +60,13 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
       }
     }, startDelay);
   
-    // Cleanup function
     return () => {
       clearTimeout(timer);
       if (typingInterval) {
         clearInterval(typingInterval);
       }
     };
-  }, [quote, aosDelay]); // Rerun if quote or aosDelay changes
+  }, [quote, aosDelay]); 
 
   return (
      <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col group" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
@@ -116,8 +115,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
-      <ScrollProgressBar /> {/* Added ScrollProgressBar here */}
-      {/* Sticky Header */}
+      <ScrollProgressBar /> 
       <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-primary hover:opacity-80 transition-opacity">
@@ -136,30 +134,29 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </div>
       </header>
 
-      {/* Hero Section */}
       <main className="flex-grow">
         <section
           id="hero"
           className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
+          style={{ backgroundImage: "url('https://placehold.co/1920x1080/2D3748/F7FAFC.png?text=Modern+Office+Background')" }}
           data-aos="fade-in"
         >
           <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
-          <div className="absolute inset-0 bg-black/50 z-0"></div> {/* Overlay for better text contrast */}
+          <div className="absolute inset-0 bg-slate-900/60 z-0"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
-              Unlock Your Career Potential <span className="text-accent">✨</span>
+              Unlock Your Career Potential <span className="text-yellow-400">✨</span>
               <br className="hidden sm:block" />
               Discover Top Talent.
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
+            <p className="text-lg sm:text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
               SwipeHire revolutionizes recruitment with AI-powered video resumes and intelligent matching. Connect authentically, hire effectively.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8" data-aos="fade-up" data-aos-delay="200">
               <Button onClick={onStartExploring} size="lg" className="bg-white text-primary hover:bg-slate-100 w-full sm:w-auto text-lg px-8 py-3 subtle-button-hover shadow-lg hover:shadow-xl">
                 <Rocket className="mr-2 h-5 w-5" /> Get Started Free
               </Button>
-              <Button onClick={onGuestMode} variant="secondary" size="lg" className="bg-slate-800/70 border-slate-600 hover:bg-slate-700/90 text-white w-full sm:w-auto text-lg px-8 py-3 subtle-button-hover shadow-md hover:shadow-lg">
+              <Button onClick={onGuestMode} variant="secondary" size="lg" className="bg-slate-700/80 border-slate-600 hover:bg-slate-600/90 text-white w-full sm:w-auto text-lg px-8 py-3 subtle-button-hover shadow-md hover:shadow-lg">
                 <User className="mr-2 h-5 w-5" /> Continue as Guest
               </Button>
             </div>
@@ -172,7 +169,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </section>
 
-        {/* Social Proof Bar */}
         <section className="py-5 bg-primary/90 text-primary-foreground" data-aos="fade-in" data-aos-delay="100">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <p className="text-md sm:text-lg font-medium flex items-center justify-center">
@@ -182,7 +178,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </section>
 
-        {/* Features Section */}
         <section id="features" className="py-20 md:py-28 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16" data-aos="fade-up">
@@ -202,7 +197,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </section>
 
-        {/* How It Works Section */}
         <section id="how-it-works" className="py-20 md:py-28 bg-muted/50" data-aos="fade-up">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16" data-aos="fade-up">
@@ -229,7 +223,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </section>
 
-        {/* Testimonials Section */}
         <section id="testimonials" className="py-20 md:py-28 bg-background" data-aos="fade-up">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16" data-aos="fade-up">
@@ -263,7 +256,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </section>
 
-        {/* Pricing Section */}
         <section id="pricing" className="py-20 md:py-28 bg-muted/50" data-aos="fade-up">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16" data-aos="fade-up">
@@ -271,7 +263,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                     <p className="mt-4 text-lg text-muted-foreground leading-relaxed">Choose the plan that's right for you. (Conceptual)</p>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-                    {/* Basic Plan */}
                     <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-left" data-aos-delay="0">
                         <CardHeader className="pb-4">
                             <CardTitle className="text-2xl text-primary font-heading">Job Seeker Basic</CardTitle>
@@ -289,7 +280,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Sign Up Free</Button>
                         </CardFooter>
                     </Card>
-                    {/* Pro Plan */}
                     <Card className="flex flex-col shadow-xl border-2 border-primary relative subtle-card-hover" data-aos="flip-up" data-aos-delay="100">
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold rounded-full shadow-md">Most Popular</div>
                         <CardHeader className="pb-4 pt-8">
@@ -309,7 +299,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Get Started</Button>
                         </CardFooter>
                     </Card>
-                     {/* Enterprise Plan */}
                     <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-right" data-aos-delay="200">
                         <CardHeader className="pb-4">
                             <CardTitle className="text-2xl text-primary font-heading">Enterprise</CardTitle>
@@ -332,7 +321,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             </div>
         </section>
 
-        {/* Final CTA Section */}
         <section id="about" className="py-24 md:py-32 hero-gradient-bg-secondary text-white" data-aos="fade-in">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-6 leading-tight font-heading">Ready to Transform Your Hiring or Job Search?</h2>
@@ -346,7 +334,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </section>
       </main>
 
-      {/* Footer */}
       <footer className="py-10 bg-slate-900 text-slate-400">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
@@ -383,7 +370,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           scroll-behavior: smooth;
         }
         .font-heading {
-          font-family: var(--font-heading);
+          font-family: var(--font-montserrat), var(--font-geist-sans), sans-serif;
         }
       `}</style>
     </div>
