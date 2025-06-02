@@ -5,20 +5,25 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, Sparkles, CheckCircle, ShieldCheck, Chrome, Loader2, FileVideo2 } from "lucide-react";
-import Link from "next/link"; // Added Link
+import Link from "next/link";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { useRouter } from 'next/navigation'; // Import useRouter
 
 interface LoginPageProps {
   onLoginBypass: () => void;
   onGuestMode: () => void;
 }
 
+// Key used to track if the welcome page has been seen. Must match src/app/page.tsx
+const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
+
 export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   const { toast } = useToast();
+  const router = useRouter(); // Initialize router
   const [isLoadingGoogleSignIn, setIsLoadingGoogleSignIn] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -32,6 +37,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         title: "Sign-In Successful!",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
       });
+      // No explicit redirect here; onAuthStateChanged in page.tsx will handle it.
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
@@ -56,6 +62,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         errorMessage = "This domain is not authorized for Google Sign-In. Check Firebase console.";
       }
 
+
       if (shouldBypass) {
         toast({
           title: "Google Sign-In Failed (Popup)",
@@ -72,17 +79,24 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
     }
   };
 
+  const handleLogoClick = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
+    }
+    router.push('/'); // Navigate to root, AppContent will re-evaluate
+  };
+
   return (
     <div
       className="flex flex-col min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
       style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
     >
-      {/* Simplified Header for LoginPage */}
       <header className="w-full p-4 sm:p-6 z-20 shrink-0">
-        <Link href="/" className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
+        {/* Updated Link to use onClick handler */}
+        <a onClick={handleLogoClick} className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity cursor-pointer">
           <FileVideo2 className="h-8 w-8" />
           <span className="text-2xl font-bold">SwipeHire</span>
-        </Link>
+        </a>
       </header>
 
       {/* Overlay div 1 (darker bottom gradient) */}
@@ -90,8 +104,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
       {/* Overlay div 2 (colored side gradient) */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 via-indigo-800/40 to-transparent opacity-80 z-0"></div>
       
-      {/* Main content area to center the card */}
-      <main className="flex flex-grow items-center justify-center p-4 relative z-10">
+      <main className="flex flex-grow items-center justify-center relative z-10">
         <Card className={cn(
           "w-full max-w-md shadow-2xl rounded-xl mx-4", 
           "bg-white/10 backdrop-blur-xl border border-white/20 text-white" 
