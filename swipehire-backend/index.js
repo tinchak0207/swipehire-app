@@ -317,38 +317,44 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
             return res.status(400).json({ message: 'Invalid user ID format.' });
         }
 
-        const recruiter = await User.findById(userId);
-        if (!recruiter) {
+        // Fetch user to get defaults for company name/industry
+        const recruiterCheck = await User.findById(userId).lean();
+        if (!recruiterCheck) {
             return res.status(404).json({ message: 'Recruiter not found.' });
         }
-        // Ensure the user's role is recruiter if they are posting a job
-        if (recruiter.selectedRole !== 'recruiter') {
-            recruiter.selectedRole = 'recruiter';
-            console.log(`[Backend POST Job] User ${recruiter.name} (${recruiter._id}) role was not 'recruiter'. Updated to 'recruiter'.`);
-        }
-        
-        // Ensure recruiter's company name and industry are set if missing
-        if (!recruiter.companyNameForJobs) {
-            recruiter.companyNameForJobs = recruiter.name; // Default to recruiter's name
-            console.log(`[Backend POST Job] Recruiter ${recruiter.name} companyNameForJobs was missing. Defaulted to recruiter name.`);
-        }
-        if (!recruiter.companyIndustryForJobs) {
-            recruiter.companyIndustryForJobs = 'Various'; // Default industry
-            console.log(`[Backend POST Job] Recruiter ${recruiter.name} companyIndustryForJobs was missing. Defaulted to 'Various'.`);
-        }
-        
-        const newJob = {
-            ...jobOpeningData,
-            companyNameForJob: recruiter.companyNameForJobs,
-            companyLogoForJob: recruiter.profileAvatarUrl, 
-            companyIndustryForJob: recruiter.companyIndustryForJobs,
-        };
 
-        recruiter.jobOpenings.push(newJob);
-        await recruiter.save(); // This single save commits role update (if any) and new job
+        const companyNameForJob = recruiterCheck.companyNameForJobs || recruiterCheck.name || 'Default Company Name';
+        const companyIndustryForJob = recruiterCheck.companyIndustryForJobs || 'Various';
+        const companyLogoForJob = recruiterCheck.profileAvatarUrl; // Use recruiter's avatar as company logo if available
+
+        const newJobSubdocument = {
+            ...jobOpeningData,
+            companyNameForJob,
+            companyIndustryForJob,
+            companyLogoForJob,
+        };
         
-        const postedJob = recruiter.jobOpenings[recruiter.jobOpenings.length - 1];
-        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${recruiter.name} (${recruiter._id}). Total jobs: ${recruiter.jobOpenings.length}. Recruiter role is now: ${recruiter.selectedRole}`);
+        const updatedRecruiter = await User.findByIdAndUpdate(
+            userId,
+            { 
+                $set: { 
+                    selectedRole: 'recruiter', // Ensure role is recruiter
+                    companyNameForJobs: companyNameForJob, // Ensure these are set/updated if needed
+                    companyIndustryForJobs: companyIndustryForJob 
+                }, 
+                $push: { jobOpenings: newJobSubdocument } 
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedRecruiter) {
+            // This case should ideally not be hit if recruiterCheck was successful,
+            // but as a safeguard.
+            return res.status(404).json({ message: 'Recruiter not found during update.' });
+        }
+        
+        const postedJob = updatedRecruiter.jobOpenings[updatedRecruiter.jobOpenings.length - 1];
+        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${updatedRecruiter.name} (${updatedRecruiter._id}). Total jobs: ${updatedRecruiter.jobOpenings.length}. Recruiter role is now: ${updatedRecruiter.selectedRole}`);
         res.status(201).json({ message: 'Job posted successfully!', job: postedJob });
 
     } catch (error) {
@@ -360,18 +366,22 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
 // GET all job openings from all recruiters
 app.get('/api/jobs', async (req, res) => {
     try {
-        const recruiters = await User.find({ selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } }).lean();
-        console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings based on query: { selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } }.`);
+        const query = { selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } };
+        console.log(`[Backend GET Jobs] Querying for recruiters with jobs using: ${JSON.stringify(query)}`);
+        const recruiters = await User.find(query).lean();
+        console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings based on query: ${JSON.stringify(query)}.`);
         
         const allJobs = recruiters.flatMap(recruiter => {
-            console.log(`[Backend GET Jobs] Processing recruiter ${recruiter.name} (${recruiter._id}, role: ${recruiter.selectedRole}) with ${recruiter.jobOpenings.length} jobs.`);
+            // console.log(`[Backend GET Jobs] Processing recruiter ${recruiter.name} (${recruiter._id}, role: ${recruiter.selectedRole}) with ${recruiter.jobOpenings ? recruiter.jobOpenings.length : 0} jobs.`);
+            if (!recruiter.jobOpenings || recruiter.jobOpenings.length === 0) {
+                return []; // Should not happen due to query, but defensive
+            }
             return recruiter.jobOpenings.map(job => {
                 const jobIdString = job._id ? job._id.toString() : `generated-${Math.random().toString(36).substring(2, 15)}`;
                 if (!job._id) {
                     console.warn(`[Backend GET Jobs] Job for recruiter ${recruiter.name} missing _id, generated: ${jobIdString}. Title: ${job.title}`);
                 }
                 
-                // Since recruiter is now a lean object, job is also a plain object.
                 const jobObject = job; 
                 
                 const companyLikeObject = {
