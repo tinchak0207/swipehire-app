@@ -168,9 +168,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 <User className="mr-2 h-5 w-5" /> Continue as Guest
               </Button>
             </div>
-            <button onClick={onStartExploring} className="text-sm text-slate-300 hover:text-white transition-colors" data-aos="fade-up" data-aos-delay="300">
-              Already have an account? <span className="font-semibold underline">Log In</span>
-            </button>
+            {/* "Already have an account? Log In" button removed from here */}
             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-70 cursor-pointer" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
               <ChevronDown className="h-8 w-8" />
             </div>

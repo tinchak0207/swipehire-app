@@ -388,8 +388,16 @@ function AppContent() {
     if (showWelcomePage) {
       return <WelcomePage onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
     }
+    
+    if (!isAuthenticated && !isGuestMode) { // Welcome page has been seen, now show Login
+      return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
+    }
 
-    // For all other states (authenticated, guest, or unauthenticated but past welcome), render the main app layout
+    if (isAuthenticated && !isGuestMode && !userRole && mongoDbUserId) {
+        return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
+    }
+
+    // Authenticated with role OR Guest mode: Show tabs and main app layout
     const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
     return (
       <div className={mainAppContainerClasses}>
@@ -404,47 +412,35 @@ function AppContent() {
           userPhotoURL={userPhotoURL}
         />
         <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
-          {(() => { // IIFE to decide content
-            if (isAuthenticated && !isGuestMode && !userRole && mongoDbUserId) {
-              return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
-            }
-            if (!isAuthenticated && !isGuestMode) { // Welcome page has been seen, now show Login
-              return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
-            }
-
-            // Authenticated with role OR Guest mode: Show tabs
-            return (
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                {isMobile ? (
-                  <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
-                ) : (
-                  <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
-                    {currentTabItems.map(item => (
-                      <TabsTrigger
-                        key={item.value}
-                        value={item.value}
-                        className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
-                      >
-                        <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
-                        <span className="truncate">{item.label}</span>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                )}
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            {isMobile ? (
+              <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
+            ) : (
+              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
                 {currentTabItems.map(item => (
-                  <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
-                    {React.cloneElement(item.component, {
-                      ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
-                      isGuestMode,
-                      ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }),
-                      ...(item.value === 'aiTools' && { currentUserRole: userRole }),
-                      ...(item.value === 'myDiary' && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
-                    })}
-                  </TabsContent>
+                  <TabsTrigger
+                    key={item.value}
+                    value={item.value}
+                    className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
+                  >
+                    <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
+                    <span className="truncate">{item.label}</span>
+                  </TabsTrigger>
                 ))}
-              </Tabs>
-            );
-          })()}
+              </TabsList>
+            )}
+            {currentTabItems.map(item => (
+              <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
+                {React.cloneElement(item.component, {
+                  ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
+                  isGuestMode,
+                  ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }),
+                  ...(item.value === 'aiTools' && { currentUserRole: userRole }),
+                  ...(item.value === 'myDiary' && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
+                })}
+              </TabsContent>
+            ))}
+          </Tabs>
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t">
           <div className="flex justify-center items-center gap-x-4 mb-1">
