@@ -3,7 +3,7 @@
 
 import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Removed CardFooter as it's not used
 import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -19,7 +19,7 @@ interface WelcomePageProps {
 const FeatureCard = ({ icon, title, description, aosAnimation, aosDelay }: { icon: React.ElementType, title: string, description: string, aosAnimation?: string, aosDelay?: string }) => {
   const Icon = icon;
   return (
-    <Card className="text-center shadow-lg bg-card subtle-card-hover h-full flex flex-col" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
+    <Card className="text-center shadow-lg bg-card subtle-card-hover h-full flex flex-col group" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
       <CardHeader className="pb-4">
         <Icon className="mx-auto h-10 w-10 text-primary mb-3 group-hover:scale-110 transition-transform duration-300" />
         <CardTitle className="text-xl font-semibold font-heading">{title}</CardTitle>
@@ -57,9 +57,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
   useEffect(() => {
     AOS.init({
-      duration: 800, // Animation speed
-      once: true,    // Only animate once on scroll
-      offset: 100,   // Offset (in px) from the original trigger point
+      duration: 800, 
+      once: true,    
+      offset: 100,   
     });
   }, []);
 
@@ -97,7 +97,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
       <main className="flex-grow">
         <section 
           className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('https://placehold.co/1920x1080/233A5F/FFFFFF.png?text=Hero+Background')" }}
+          style={{ backgroundImage: "url('https://placehold.co/1920x1080/233A5F/FFFFFF.png')" }} // Removed text parameter
           data-ai-hint="office team collaboration"
         >
           <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
@@ -243,9 +243,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Basic AI Tools</li>
                             </ul>
                         </CardContent>
-                        <CardFooter className="mt-auto pt-6">
+                        <div className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Sign Up Free</Button>
-                        </CardFooter>
+                        </div>
                     </Card>
                     {/* Pro Plan */}
                     <Card className="flex flex-col shadow-xl border-2 border-primary relative subtle-card-hover" data-aos="flip-up" data-aos-delay="100">
@@ -263,9 +263,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Priority Support</li>
                             </ul>
                         </CardContent>
-                        <CardFooter className="mt-auto pt-6">
+                        <div className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Get Started</Button>
-                        </CardFooter>
+                        </div>
                     </Card>
                      {/* Enterprise Plan */}
                     <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-right" data-aos-delay="200">
@@ -282,9 +282,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Custom Branding</li>
                             </ul>
                         </CardContent>
-                        <CardFooter className="mt-auto pt-6">
+                        <div className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
                            <Button onClick={() => alert('Contact sales for Enterprise plan!')} variant="outline" className="w-full subtle-button-hover">Contact Sales</Button>
-                        </CardFooter>
+                        </div>
                     </Card>
                 </div>
             </div>
@@ -348,4 +348,3 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
     </div>
   );
 }
-
