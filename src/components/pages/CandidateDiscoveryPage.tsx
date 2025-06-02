@@ -148,7 +148,7 @@ function CandidateDetailsModal({
     const lowerSkill = skill.toLowerCase();
     if (lowerSkill === 'firebase') return 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200';
     if (lowerSkill === 'c++') return 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200';
-    if (lowerSkill === 'flexible') return 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200'; // For "Flexible" badge
+    if (lowerSkill === 'flexible') return 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200';
     return 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
   };
 
@@ -189,9 +189,7 @@ function CandidateDetailsModal({
                 </div>
             </div>
           </div>
-          <DialogClose asChild>
-            <Button variant="ghost" size="sm" className="absolute top-4 right-4 text-muted-foreground hover:bg-muted/50">Close</Button>
-          </DialogClose>
+          {/* Removed the explicit "Close" button here. The 'X' from DialogContent will be used. */}
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0 bg-white">
@@ -199,7 +197,7 @@ function CandidateDetailsModal({
 
             <section>
                 <div className="flex items-center mb-2">
-                    <div className="p-2 rounded-lg mr-3 bg-purple-500 shadow-md">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-tr from-purple-500 to-indigo-600 shadow-md">
                         <Briefcase className="h-5 w-5 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-700 font-heading">Experience Summary</h3>
@@ -207,21 +205,31 @@ function CandidateDetailsModal({
                 <div className="p-4 rounded-lg bg-orange-50 border border-orange-200 shadow-sm">
                     <Label className="text-xs font-semibold text-orange-700 uppercase block mb-1">Current Status</Label>
                     <p className="text-sm text-orange-800 whitespace-pre-line leading-relaxed">
-                        {candidate.experienceSummary || "No professional experience yet, but passionate about UX design and eager to start my career journey. Currently learning through online courses and personal projects."}
+                        {summaryForModalDisplay}
+                         {candidate.experienceSummary && candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && (
+                            <Button
+                                variant="link" size="sm"
+                                onClick={(e) => {e.stopPropagation(); setShowFullSummaryModal(!showFullSummaryModal);}}
+                                className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                                data-no-drag="true"
+                            >
+                                {showFullSummaryModal ? "Read less" : "Read more"}
+                            </Button>
+                        )}
                     </p>
                 </div>
             </section>
 
             <section>
                 <div className="flex items-center mb-2">
-                    <div className="p-2 rounded-lg mr-3 bg-green-500 shadow-md">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-tr from-green-500 to-emerald-600 shadow-md">
                         <Target className="h-5 w-5 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-700 font-heading">Desired Work Style</h3>
                 </div>
                 <div className="p-4 rounded-lg bg-green-50 border border-green-200 shadow-sm flex justify-between items-start">
                     <div>
-                        <Label className="text-base font-semibold text-green-800 block">{candidate.desiredWorkStyle || "Fully Remote"}</Label>
+                        <Label className="text-base font-semibold text-green-800 block">{candidate.desiredWorkStyle || "Flexible"}</Label>
                         <p className="text-sm text-green-700">Preferred working arrangement</p>
                     </div>
                     <Badge className={cn("text-xs", getSkillBadgeClass("flexible"))}>Flexible</Badge>
@@ -231,7 +239,7 @@ function CandidateDetailsModal({
             {candidate.skills && candidate.skills.length > 0 && (
               <section>
                 <div className="flex items-center mb-2">
-                    <div className="p-2 rounded-lg mr-3 bg-sky-500 shadow-md">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-tr from-sky-500 to-blue-600 shadow-md">
                          <Sparkles className="h-5 w-5 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-700 font-heading">Technical Skills</h3>
@@ -250,7 +258,7 @@ function CandidateDetailsModal({
               <AccordionItem value="ai-assessment" className="border-b-0">
                 <AccordionTrigger className="text-xl font-semibold text-slate-700 hover:no-underline data-[state=open]:text-primary font-heading py-3 group -mx-1 px-1">
                   <div className="flex items-center">
-                    <div className="p-2 rounded-lg mr-3 bg-pink-500 shadow-md group-data-[state=open]:ring-2 group-data-[state=open]:ring-pink-300 transition-all">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-tr from-pink-500 to-purple-600 shadow-md group-data-[state=open]:ring-2 group-data-[state=open]:ring-pink-300 transition-all">
                         <Brain className="h-5 w-5 text-white" />
                     </div>
                     AI Assessment
@@ -288,6 +296,32 @@ function CandidateDetailsModal({
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+
+             {candidate.videoResumeUrl && (
+              <section>
+                <div className="flex items-center mb-2">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-tr from-teal-500 to-cyan-600 shadow-md">
+                        <Video className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-slate-700 font-heading">Video Resume</h3>
+                </div>
+                <div className="relative w-full bg-slate-800 aspect-video rounded-lg overflow-hidden shadow-md">
+                  <video
+                    ref={videoRef}
+                    src={candidate.videoResumeUrl}
+                    controls={!isGuestMode}
+                    muted={false}
+                    autoPlay={false}
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover"
+                    poster={modalAvatarSrc || `https://placehold.co/600x400.png`}
+                    data-ai-hint="candidate video"
+                  />
+                </div>
+              </section>
+            )}
+
 
           </div>
         </ScrollArea>
@@ -362,7 +396,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
       if (!mongoDbUserId && !isGuestMode) {
         console.log("[CandidateDiscovery] Skipping backend fetch: no mongoDbUserId and not in guest mode. Using mock data.");
         setAllCandidates([...mockCandidates]);
-        return;
+        return; // Exit early after setting mock data
       }
       console.log("[CandidateDiscovery] Fetching candidates from backend...");
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
@@ -430,8 +464,8 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
 
-  useEffect(() => {
-    if (!isInitialLoading) {
+ useEffect(() => {
+    if (!isInitialLoading && filteredCandidatesMemo) {
         const initialBatch = filteredCandidatesMemo.slice(0, ITEMS_PER_BATCH);
         setDisplayedCandidates(initialBatch);
         setCurrentIndex(initialBatch.length);
