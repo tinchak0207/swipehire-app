@@ -17,7 +17,7 @@ const ScrollArea = React.forwardRef<
   >
     <ScrollAreaPrimitive.Viewport 
       className={cn(
-        "h-full w-full rounded-[inherit] overscroll-y-contain",
+        "h-full w-full rounded-[inherit] overflow-y-auto overscroll-y-contain", // Added overflow-y-auto
         // Check if the parent ScrollArea was passed a no-scrollbar class for consistency
         // This is a bit of a workaround for direct class propagation. A more robust solution
         // might involve context or direct prop passing if this pattern becomes common.
@@ -55,3 +55,4 @@ const ScrollBar = React.forwardRef<
 ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName
 
 export { ScrollArea, ScrollBar }
+
