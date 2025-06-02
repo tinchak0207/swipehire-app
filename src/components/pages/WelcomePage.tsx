@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react'; // Ensure useState is imported
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap } from "lucide-react";
@@ -31,35 +31,72 @@ const FeatureCard = ({ icon, title, description, aosAnimation, aosDelay }: { ico
   );
 };
 
-const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }: { quote: string, author: string, role: string, avatar: string, aosAnimation?: string, aosDelay?: string }) => (
-  <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
-    <CardContent className="pt-6 flex-grow flex flex-col">
-      <blockquote className="italic text-muted-foreground leading-relaxed flex-grow">"{quote}"</blockquote>
-      <div className="mt-4 flex items-center pt-4 border-t border-border">
-        <Image
-          src={avatar}
-          alt={author}
-          width={40}
-          height={40}
-          className="rounded-full mr-3 border-2 border-primary/20"
-          data-ai-hint="person face"
-        />
-        <div>
-          <p className="font-semibold text-foreground font-heading">{author}</p>
-          <p className="text-xs text-muted-foreground">{role}</p>
+const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }: { quote: string, author: string, role: string, avatar: string, aosAnimation?: string, aosDelay?: string }) => {
+  const [displayedQuote, setDisplayedQuote] = useState('');
+  const [isTypingComplete, setIsTypingComplete] = useState(false);
+
+  useEffect(() => {
+    setDisplayedQuote(''); 
+    setIsTypingComplete(false);
+
+    if (quote) {
+      let index = 0;
+      const typingSpeed = 40; 
+      const initialDelay = 700 + parseInt(aosDelay || "0"); 
+
+      const startTypingTimer = setTimeout(() => {
+        const typingInterval = setInterval(() => {
+          setDisplayedQuote((prev) => {
+            if (index < quote.length) {
+              return prev + quote.charAt(index);
+            }
+            clearInterval(typingInterval);
+            setIsTypingComplete(true);
+            return prev; 
+          });
+          index++;
+        }, typingSpeed);
+        
+        return () => clearInterval(typingInterval);
+      }, initialDelay);
+
+      return () => clearTimeout(startTypingTimer);
+    }
+  }, [quote, aosDelay]);
+
+  return (
+    <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
+      <CardContent className="pt-6 flex-grow flex flex-col">
+        <blockquote className="italic text-muted-foreground leading-relaxed flex-grow min-h-[6em]">
+          {displayedQuote}
+          {!isTypingComplete && <span className="typing-cursor"></span>}
+        </blockquote>
+        <div className="mt-4 flex items-center pt-4 border-t border-border/50">
+          <Image
+            src={avatar}
+            alt={author}
+            width={40}
+            height={40}
+            className="rounded-full mr-3 border-2 border-primary/20"
+            data-ai-hint="person face"
+          />
+          <div>
+            <p className="font-semibold text-foreground font-heading">{author}</p>
+            <p className="text-xs text-muted-foreground">{role}</p>
+          </div>
         </div>
-      </div>
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
 export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps) {
 
   useEffect(() => {
     AOS.init({
-      duration: 800,
+      duration: 800, 
       once: true, 
-      offset: 100, 
+      offset: 50, // Trigger animations a bit earlier
     });
   }, []);
 
@@ -201,6 +238,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 avatar="https://placehold.co/100x100/A663CC/FFFFFF.png?text=SL"
                 data-ai-hint="woman smiling"
                 aosAnimation="fade-right"
+                aosDelay="0"
               />
               <TestimonialCard
                 quote="Finding qualified candidates used to be a chore. SwipeHire's AI matching is a game-changer for our recruitment process."

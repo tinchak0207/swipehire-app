@@ -44,7 +44,7 @@ h1, h2, h3, h4, h5, h6 {
     --destructive: 0 84.2% 60.2%; /* Reddish */
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 20% 85%; /* Slightly darker blue-gray for borders */
+    --border: 220 20% 90%; /* Slightly Lighter Blue-Gray for softer borders */
     --input: 220 20% 88%; /* Slightly darker blue-gray for input backgrounds */
     --ring: 276 50% 60%; /* Purple for focus rings */
 
@@ -91,7 +91,7 @@ h1, h2, h3, h4, h5, h6 {
     --accent: 276 50% 65%; /* Saturated Purple (slightly lighter for dark mode) */
     --accent-foreground: 0 0% 100%;
 
-    --border: 220 15% 25%;
+    --border: 220 15% 30%; /* Darker border for dark mode */
     --input: 220 15% 22%;
     --ring: 276 50% 65%;
 
@@ -302,14 +302,10 @@ h1, h2, h3, h4, h5, h6 {
   @apply transition-all duration-200 ease-in-out;
 }
 .subtle-button-hover:hover {
-  @apply scale-105 shadow-lg -translate-y-0.5;
-  /* Example: color change on hover - primary buttons already have good hover from shadcn variants */
-  /* For custom buttons or overriding, you might add something like:
-     background-color: hsl(var(--primary) / 0.8); if it's a primary button
-  */
+  @apply scale-105 shadow-lg -translate-y-0.5 brightness-110;
 }
 .subtle-button-hover:active {
-  @apply scale-100 -translate-y-0 shadow-md;
+  @apply scale-100 -translate-y-0 shadow-md brightness-95;
 }
 
 /* Parallax Hero Background */
@@ -320,4 +316,15 @@ h1, h2, h3, h4, h5, h6 {
   background-size: cover;
 }
 
+/* Typewriter Blinking Cursor */
+.typing-cursor::after {
+  content: '|';
+  animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+  from, to { color: transparent; }
+  50% { color: inherit; }
+}
     
+
