@@ -311,50 +311,37 @@ app.put('/api/users/:identifier', async (req, res) => {
 app.post('/api/users/:userId/jobs', async (req, res) => {
     try {
         const { userId } = req.params;
-        const jobOpeningData = req.body; 
+        const jobOpeningData = req.body;
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'Invalid user ID format.' });
         }
-
-        // Fetch user to get defaults for company name/industry
-        const recruiterCheck = await User.findById(userId).lean();
-        if (!recruiterCheck) {
+        
+        const recruiter = await User.findById(userId);
+        if (!recruiter) {
             return res.status(404).json({ message: 'Recruiter not found.' });
         }
 
-        const companyNameForJob = recruiterCheck.companyNameForJobs || recruiterCheck.name || 'Default Company Name';
-        const companyIndustryForJob = recruiterCheck.companyIndustryForJobs || 'Various';
-        const companyLogoForJob = recruiterCheck.profileAvatarUrl; // Use recruiter's avatar as company logo if available
+        recruiter.selectedRole = 'recruiter';
+        recruiter.companyNameForJobs = recruiter.companyNameForJobs || recruiter.name || 'Default Company Name';
+        recruiter.companyIndustryForJobs = recruiter.companyIndustryForJobs || 'Various';
+        
+        const companyLogoForJob = recruiter.profileAvatarUrl; 
 
         const newJobSubdocument = {
             ...jobOpeningData,
-            companyNameForJob,
-            companyIndustryForJob,
-            companyLogoForJob,
+            companyNameForJob: recruiter.companyNameForJobs,
+            companyIndustryForJob: recruiter.companyIndustryForJobs,
+            companyLogoForJob: companyLogoForJob,
         };
         
-        const updatedRecruiter = await User.findByIdAndUpdate(
-            userId,
-            { 
-                $set: { 
-                    selectedRole: 'recruiter', // Ensure role is recruiter
-                    companyNameForJobs: companyNameForJob, // Ensure these are set/updated if needed
-                    companyIndustryForJobs: companyIndustryForJob 
-                }, 
-                $push: { jobOpenings: newJobSubdocument } 
-            },
-            { new: true, runValidators: true }
-        );
-
-        if (!updatedRecruiter) {
-            // This case should ideally not be hit if recruiterCheck was successful,
-            // but as a safeguard.
-            return res.status(404).json({ message: 'Recruiter not found during update.' });
-        }
+        recruiter.jobOpenings.push(newJobSubdocument);
+        
+        const updatedRecruiter = await recruiter.save();
         
         const postedJob = updatedRecruiter.jobOpenings[updatedRecruiter.jobOpenings.length - 1];
         console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${updatedRecruiter.name} (${updatedRecruiter._id}). Total jobs: ${updatedRecruiter.jobOpenings.length}. Recruiter role is now: ${updatedRecruiter.selectedRole}`);
+        console.log(`[Backend POST Job] Recruiter document after save: selectedRole=${updatedRecruiter.selectedRole}, companyNameForJobs=${updatedRecruiter.companyNameForJobs}`);
         res.status(201).json({ message: 'Job posted successfully!', job: postedJob });
 
     } catch (error) {
@@ -363,18 +350,18 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
     }
 });
 
+
 // GET all job openings from all recruiters
 app.get('/api/jobs', async (req, res) => {
     try {
         const query = { selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } };
         console.log(`[Backend GET Jobs] Querying for recruiters with jobs using: ${JSON.stringify(query)}`);
-        const recruiters = await User.find(query).lean();
+        const recruiters = await User.find(query).lean(); // Using .lean() here
         console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings based on query: ${JSON.stringify(query)}.`);
         
         const allJobs = recruiters.flatMap(recruiter => {
-            // console.log(`[Backend GET Jobs] Processing recruiter ${recruiter.name} (${recruiter._id}, role: ${recruiter.selectedRole}) with ${recruiter.jobOpenings ? recruiter.jobOpenings.length : 0} jobs.`);
             if (!recruiter.jobOpenings || recruiter.jobOpenings.length === 0) {
-                return []; // Should not happen due to query, but defensive
+                return [];
             }
             return recruiter.jobOpenings.map(job => {
                 const jobIdString = job._id ? job._id.toString() : `generated-${Math.random().toString(36).substring(2, 15)}`;
@@ -771,3 +758,4 @@ server.listen(PORT, () => {
     
 
     
+
