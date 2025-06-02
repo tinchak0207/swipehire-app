@@ -14,7 +14,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Search, Settings, FileText, DollarSign, Tag, UploadCloud, X, Lock } from 'lucide-react';
+import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Search, Settings, FileText, DollarSign, Tag, UploadCloud, X, Lock, Eye, MapPin, Building } from 'lucide-react'; // Added Eye, MapPin, Building
 import { formatDistanceToNow } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -30,8 +30,6 @@ const JobFormSchema = z.object({
   tags: z.string().optional(), // User types into this
   actualTags: z.array(z.string().min(1).max(20).regex(/^[a-zA-Z0-9-]+$/)).optional().default([]),
   location: z.string().optional(),
-  // Media file handling would be more complex if actually uploading new files during edit.
-  // For simplicity, this example won't handle new file uploads in edit mode, only existing URL.
   videoOrImageUrl: z.string().url().optional().or(z.literal('')), 
 });
 
@@ -48,11 +46,14 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   const [editingJob, setEditingJob] = useState<CompanyJobOpening | null>(null);
   const [jobToDelete, setJobToDelete] = useState<CompanyJobOpening | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isAlertOpen, setIsAlertOpen] = useState(false); // For AlertDialog control
-  const [tagInput, setTagInput] = useState(''); // For the edit form
-  const [currentTags, setCurrentTags] = useState<string[]>([]); // For the edit form
+  const [isAlertOpen, setIsAlertOpen] = useState(false); 
+  const [tagInput, setTagInput] = useState(''); 
+  const [currentTags, setCurrentTags] = useState<string[]>([]); 
 
-  const { mongoDbUserId } = useUserPreferences();
+  const [previewingJob, setPreviewingJob] = useState<CompanyJobOpening | null>(null);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+  const { mongoDbUserId, fullBackendUser } = useUserPreferences(); // Added fullBackendUser
   const { toast } = useToast();
 
   const form = useForm<JobFormValues>({
@@ -86,7 +87,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   useEffect(() => {
     if (editingJob) {
       form.reset({
-        _id: (editingJob as any)._id, // Assuming jobs have _id from backend
+        _id: (editingJob as any)._id, 
         title: editingJob.title,
         description: editingJob.description,
         salaryRange: editingJob.salaryRange || "",
@@ -106,7 +107,6 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     form.setValue('actualTags', currentTags);
   }, [currentTags, form]);
 
-
   const handleEditJob = (job: CompanyJobOpening) => {
     setEditingJob(job);
     setIsEditModalOpen(true);
@@ -118,7 +118,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     try {
       await deleteRecruiterJob(mongoDbUserId, (jobToDelete as any)._id);
       toast({ title: "Job Deleted", description: `"${jobToDelete.title}" has been removed.` });
-      loadJobs(); // Refresh list
+      loadJobs(); 
     } catch (error: any) {
       toast({ title: "Error Deleting Job", description: error.message, variant: "destructive" });
     } finally {
@@ -137,7 +137,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
         title: data.title,
         description: data.description,
         salaryRange: data.salaryRange,
-        tags: data.actualTags, // Use the validated actualTags from RHF
+        tags: data.actualTags, 
         location: data.location,
         videoOrImageUrl: data.videoOrImageUrl || undefined,
     };
@@ -147,7 +147,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
       toast({ title: "Job Updated", description: `"${data.title}" has been successfully updated.` });
       setIsEditModalOpen(false);
       setEditingJob(null);
-      loadJobs(); // Refresh list
+      loadJobs(); 
     } catch (error: any) {
       toast({ title: "Error Updating Job", description: error.message, variant: "destructive" });
     } finally {
@@ -178,6 +178,10 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     setCurrentTags(currentTags.filter(tag => tag !== tagToRemove));
   };
 
+  const handlePreviewJob = (job: CompanyJobOpening) => {
+    setPreviewingJob(job);
+    setIsPreviewModalOpen(true);
+  };
 
   if (isGuestMode) {
     return (
@@ -204,7 +208,6 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
             </h1>
             <p className="text-muted-foreground mt-1">View, edit, or delete your active job listings.</p>
         </div>
-        {/* Optional: Add a button to navigate to Create Job page if needed */}
       </div>
 
       {jobs.length === 0 ? (
@@ -231,6 +234,9 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                     </CardDescription>
                   </div>
                    <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => handlePreviewJob(job)}>
+                      <Eye className="mr-1.5 h-4 w-4" /> Preview
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => handleEditJob(job)}>
                       <Edit3 className="mr-1.5 h-4 w-4" /> Edit
                     </Button>
@@ -257,7 +263,6 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
           setIsEditModalOpen(isOpen);
           if (!isOpen) setEditingJob(null);
       }}>
-        {/* Removed redundant DialogTrigger here */}
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center"><Edit3 className="mr-2 h-5 w-5 text-primary" /> Edit Job Posting</DialogTitle>
@@ -269,7 +274,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                 <div className="space-y-4 py-2 pr-1">
                   <FormField control={form.control} name="title" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Job Title</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="description" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Description</FormLabel> <FormControl><Textarea {...field} className="min-h-[100px]" /></FormControl> <FormMessage /> </FormItem>)} />
-                  <FormField control={form.control} name="location" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Location</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
+                  <FormField control={form.control} name="location" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Location</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="salaryRange" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />Compensation</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
                   
                   <FormItem>
@@ -318,6 +323,57 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {previewingJob && (
+        <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center"><Eye className="mr-2 h-5 w-5 text-primary" />Job Posting Preview</DialogTitle>
+              <DialogDescription>This is how your job posting might appear to candidates.</DialogDescription>
+            </DialogHeader>
+            <Card className="shadow-none border-none">
+              <CardHeader className="p-4">
+                <div className="flex items-center space-x-3">
+                  {fullBackendUser?.profileAvatarUrl || previewingJob.companyLogoForJob ? (
+                    <img src={previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl} alt={previewingJob.companyNameForJob || fullBackendUser?.companyNameForJobs || fullBackendUser?.name} className="h-12 w-12 rounded-md object-contain bg-muted" data-ai-hint="company logo" />
+                  ) : (
+                    <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center">
+                      <Building className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                  <div>
+                    <CardTitle className="text-lg">{previewingJob.title}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {previewingJob.companyNameForJob || fullBackendUser?.companyNameForJobs || fullBackendUser?.name || 'Your Company'}
+                      {previewingJob.location && ` - ${previewingJob.location}`}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 space-y-2 text-sm">
+                <p className="text-muted-foreground line-clamp-4">{previewingJob.description}</p>
+                {previewingJob.salaryRange && (
+                  <div className="flex items-center">
+                    <DollarSign className="mr-1.5 h-4 w-4 text-green-600" /> 
+                    <span className="font-medium">{previewingJob.salaryRange}</span>
+                  </div>
+                )}
+                {previewingJob.tags && previewingJob.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {previewingJob.tags.map(tag => <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>)}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+            <DialogFooter className="pt-4">
+              <DialogClose asChild>
+                <Button type="button" variant="outline" onClick={() => {setIsPreviewModalOpen(false); setPreviewingJob(null);}}>Close</Button>
+              </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
+
