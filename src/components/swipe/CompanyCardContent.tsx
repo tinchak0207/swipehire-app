@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, BarChartHorizontalShorthand, Tag } from 'lucide-react';
+import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog"; // Removed ShadDialogDescription for now
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -19,7 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from '@/components/ui/progress';
-import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 
 
 interface CompanyCardContentProps {
@@ -29,7 +29,6 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 70; // Increased slightly
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
@@ -44,12 +43,6 @@ const incrementAnalytic = (key: string) => {
     localStorage.setItem(key, (currentCount + 1).toString());
   }
 };
-
-const getThemeClass = (themeKey?: string) => {
-  if (!themeKey || themeKey === 'default') return 'card-theme-default';
-  return `card-theme-${themeKey}`;
-};
-
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardRootRef = useRef<HTMLDivElement>(null);
@@ -72,9 +65,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
-  const isThemedCard = company.cardTheme && company.cardTheme !== 'default';
-  const isLavenderTheme = company.cardTheme === 'lavender';
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
+  const jobMatchPercentage = company.jobMatchPercentage || Math.floor(Math.random() * 30) + 70; // Placeholder
+  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : 'Experience level not specified';
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -358,12 +351,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
   };
 
-
-  const jobDescriptionForCard = jobOpening?.description || "";
-  const truncatedJobDescriptionForCard = jobDescriptionForCard.length > MAX_JOB_DESCRIPTION_LENGTH_CARD
-    ? jobDescriptionForCard.substring(0, MAX_JOB_DESCRIPTION_LENGTH_CARD) + "..."
-    : jobDescriptionForCard;
-
   const companyDescriptionForModal = company.description;
   const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL
     ? companyDescriptionForModal
@@ -374,6 +361,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
 
+  const categoryText = company.industry || "General";
 
   const ActionButton = ({
     action,
@@ -388,37 +376,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     className?: string;
     isSpecificActionLiked?: boolean;
   }) => {
-    const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
-    
+    const baseClasses = "flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95";
+    let variant: "outline" | "default" | "ghost" = "outline";
     let colorClasses = "";
-    let hoverClasses = "";
-    let iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "text-white"; 
-      hoverClasses = "hover:bg-red-500/80";
-    } else if (isThemedCard && !isLavenderTheme) { // Dark custom themes
-      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-white";
-      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-300" : "";
-      if (action === 'like') hoverClasses = "hover:text-green-300 hover:bg-green-500/20";
-      else if (action === 'pass') hoverClasses = "hover:text-red-300 hover:bg-red-500/20";
-      else if (action === 'details') hoverClasses = "hover:text-blue-300 hover:bg-blue-500/20";
-      else if (action === 'share_trigger') hoverClasses = "hover:text-primary-foreground hover:bg-white/10";
-    } else if (isLavenderTheme) { // Light custom theme (lavender)
-      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" : "text-slate-700";
-      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-600" : "";
-      if (action === 'like') hoverClasses = "hover:text-green-600 hover:bg-green-500/10";
-      else if (action === 'pass') hoverClasses = "hover:text-red-600 hover:bg-red-500/10";
-      else if (action === 'details') hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10";
-      else if (action === 'share_trigger') hoverClasses = "hover:text-slate-900 hover:bg-slate-500/10";
-    } else { // Default (non-themed, light background) card
-       switch (action) {
-        case 'like': colorClasses = isSpecificActionLiked ? "text-green-500" : "text-muted-foreground"; iconFillClass = isSpecificActionLiked ? "fill-green-500" : ""; hoverClasses = "hover:text-green-500 hover:bg-green-500/10"; break;
-        case 'pass': colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; break;
-        case 'details': colorClasses = "text-blue-500"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
-        case 'share_trigger': colorClasses = "text-muted-foreground"; hoverClasses = "hover:text-gray-600 hover:bg-gray-500/10"; break;
-        default: colorClasses = "text-muted-foreground";
-      }
+      colorClasses = "bg-red-400 text-white border-red-500 hover:bg-red-500/80";
+    } else {
+        switch (action) {
+            case 'like': colorClasses = `border-green-300 text-green-500 hover:bg-green-50 ${isSpecificActionLiked ? 'bg-green-100 ring-2 ring-green-500' : ''}`; break;
+            case 'pass': colorClasses = "border-red-300 text-red-500 hover:bg-red-50"; break;
+            case 'details': colorClasses = "border-blue-300 text-blue-500 hover:bg-blue-50"; break;
+            case 'share_trigger': colorClasses = "border-purple-300 text-purple-500 hover:bg-purple-50"; break;
+            default: colorClasses = "border-gray-300 text-gray-500 hover:bg-gray-50";
+        }
     }
     
     const effectiveOnClick = action === 'details' 
@@ -439,23 +410,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
     const buttonElement = (
         <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            baseClasses, 
-            colorClasses, 
-            hoverClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400", 
-            extraClassName
-          )}
+          variant={variant}
+          size="icon" // This makes it square, we control specific w/h via className
+          className={cn(baseClasses, colorClasses, extraClassName)}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
           disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
           aria-label={`${label} ${company.name}`}
           data-no-drag="true"
           data-modal-trigger={action === 'details' ? "true" : undefined}
         >
-          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", iconFillClass)} />}
-          <span className="text-xs">{label}</span>
+          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-5 w-5 mb-1" /> : <Icon className={cn("h-5 w-5 mb-1", isSpecificActionLiked && action === 'like' && 'fill-green-500')} />}
+          <span className="text-xs font-medium">{label}</span>
         </Button>
     );
 
@@ -525,79 +490,71 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className={cn(
-          "relative w-full shrink-0 pt-[70px]", 
-           isThemedCard ? getThemeClass(company.cardTheme) : 'bg-slate-100 dark:bg-slate-800' 
-          )}> 
-          <div className="relative w-full aspect-[16/7] sm:aspect-video px-4 pb-4">
+        {/* Header Section */}
+        <div className="relative h-32 bg-gradient-to-r from-purple-500 to-blue-500 shrink-0 p-4">
+          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/30 text-white backdrop-blur-sm text-xs">
+            {categoryText.length > 15 ? categoryText.substring(0, 12) + "..." : categoryText}
+          </Badge>
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 mt-1 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-200">
             {company.logoUrl ? (
               <Image
                 src={company.logoUrl}
                 alt={company.name + " logo"}
-                fill
-                className="object-contain"
+                width={60}
+                height={60}
+                className="object-contain rounded-md p-1" // Added p-1 to prevent sharp edges of logo touching circle
                 data-ai-hint={company.dataAiHint || "company logo"}
-                priority
               />
             ) : (
-              <div className="w-full h-full bg-muted flex items-center justify-center rounded-md" data-ai-hint="company building">
-                <Building className="w-16 h-16 sm:w-20 sm:h-20 text-muted-foreground" />
-              </div>
+              <BriefcaseIcon className="h-10 w-10 text-muted-foreground" />
             )}
           </div>
         </div>
         
-        <div className={cn("w-full border-t-4", isThemedCard ? "border-primary-foreground/30" : "border-accent" )}></div>
-        
-        <div className="flex-1 p-3 sm:p-4 space-y-1.5 sm:space-y-2">
-            <CardHeader className="p-0 mb-1.5">
-                <div className="flex items-start justify-between">
-                    <div className="flex-grow min-w-0">
-                        <CardTitle className={cn("text-lg sm:text-xl font-bold truncate", isThemedCard && !isLavenderTheme ? 'text-primary-foreground' : (isLavenderTheme ? 'text-foreground' : 'text-primary'))}>{company.name}</CardTitle>
-                        <CardDescription className={cn("text-md sm:text-lg truncate", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>{company.industry}</CardDescription>
-                    </div>
-                </div>
-                {jobOpening && (
-                    <p className={cn("text-md sm:text-lg font-semibold mt-1.5 sm:mt-2 line-clamp-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground' : (isLavenderTheme ? 'text-foreground' : 'text-foreground'))}>{jobOpening.title}</p>
-                )}
-            </CardHeader>
+        {/* Main Content Area */}
+        <div className="flex-1 p-4 pt-12 space-y-3 text-center overflow-y-auto"> {/* pt-12 to account for overlapping icon */}
+          <h2 className="text-xl font-bold text-foreground mt-2">{company.name}</h2>
+          {jobOpening && <p className="text-purple-600 font-medium">{jobOpening.title}</p>}
+          
+          <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground">
+            {jobOpening?.location && (
+              <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" /> {jobOpening.location}</span>
+            )}
+            {jobOpening?.jobType && (
+              <span className="flex items-center"><Clock className="h-4 w-4 mr-1" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
+            )}
+          </div>
 
-            <div className="space-y-1.5 mt-2">
-                {jobOpening?.location && (
-                <div className={cn("flex items-center text-xs mt-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
-                    <MapPin className={cn("h-4 w-4 mr-1.5 shrink-0", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
-                    <span className="truncate">{jobOpening.location}</span>
-                </div>
-                )}
-                {(jobOpening?.jobType) && (
-                <div className={cn("flex items-center text-xs mt-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
-                    <JobTypeIcon className={cn("h-4 w-4 mr-1.5 shrink-0", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
-                    <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
-                </div>
-                )}
-                {jobOpening?.tags && jobOpening.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1.5 mt-1.5">
-                    {jobOpening.tags.slice(0,3).map(tag => (
-                      <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0.5">{tag}</Badge>
-                    ))}
-                    {jobOpening.tags.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{jobOpening.tags.length - 3}</Badge>}
-                  </div>
-                )}
-                {jobOpening?.description && (
-                    <p className={cn("text-sm pt-2 mt-2 line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>
-                        {truncatedJobDescriptionForCard}
-                    </p>
-                )}
+          {/* Job Match Section */}
+          <div className="pt-2 space-y-1">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-muted-foreground">Job Match</span>
+              <span className="font-semibold text-purple-600">{jobMatchPercentage}%</span>
             </div>
+            <Progress value={jobMatchPercentage} className="h-2 [&>div]:progress-gradient-purple-blue" />
+            <p className="text-xs italic text-muted-foreground pt-1">{experienceRequiredText}</p>
+          </div>
+
+          {/* Top Skills Section */}
+          {jobOpening?.tags && jobOpening.tags.length > 0 && (
+            <div className="pt-2 space-y-2">
+              <h3 className="text-xs font-semibold uppercase text-muted-foreground">Top Skills</h3>
+              <div className="flex flex-wrap justify-center gap-2">
+                {jobOpening.tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} className="bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
             
-        <CardFooter className={cn(
-            "p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t shrink-0 no-swipe-area",
-            isThemedCard ? '' : 'bg-card' // Transparent for themed, bg-card for default
-            )}>
-            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" />
-            <ActionButton action="details" Icon={Info} label="Details" />
-            <ActionButton action="like" Icon={ThumbsUp} label="Apply" isSpecificActionLiked={isLiked} />
+        {/* Action Buttons Footer */}
+        <CardFooter className="p-2 grid grid-cols-4 gap-2 border-t bg-card shrink-0 no-swipe-area">
+            <ActionButton action="pass" Icon={CloseIcon} label="Pass" />
+            <ActionButton action="details" Icon={Eye} label="Profile" /> 
+            <ActionButton action="like" Icon={ThumbsUp} label="Like" isSpecificActionLiked={isLiked} />
             <ActionButton action="share_trigger" Icon={Share2} label="Share" />
         </CardFooter>
       </div>
@@ -605,9 +562,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
         <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
            <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10 pb-3">
-            <DialogTitle className="text-xl sm:text-2xl font-bold text-primary">
+            <ShadDialogTitle className="text-xl sm:text-2xl font-bold text-primary">
               {jobOpening?.title || "Opportunity Details"} at {company.name}
-            </DialogTitle>
+            </ShadDialogTitle>
             <ShadDialogDescription className="text-sm text-muted-foreground">
                {company.industry}
             </ShadDialogDescription>
@@ -640,7 +597,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 <>
                   <section>
                     <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
-                        <JobTypeIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
+                        <BriefcaseIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
                     </h3>
                     <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
                       {displayedJobDescriptionInModal}
@@ -666,11 +623,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
                         {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
                         {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
-                        {jobOpening.jobType && <div className="flex items-start"><JobTypeIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}
+                        {jobOpening.jobType && <div className="flex items-start"><BriefcaseIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}
                         {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><CalendarDays className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
                         {jobOpening.tags && jobOpening.tags.length > 0 && (
                         <div className="flex items-start sm:col-span-2">
-                            <Sparkles className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
+                            <Tag className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
                             <span className="font-medium text-foreground mr-1 self-start">Skills/Tags:</span>
                             <div className="flex flex-wrap gap-1">
                                 {jobOpening.tags.map((tag) => (
@@ -808,6 +765,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
-    
-
