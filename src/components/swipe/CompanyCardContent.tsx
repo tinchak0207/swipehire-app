@@ -50,7 +50,7 @@ const CircularProgressBar = ({ percentage, size = 110, displayText }: { percenta
   const strokeWidth = 8;
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
-  const effectivePercentage = displayText === "?" ? 0 : percentage;
+  const effectivePercentage = displayText === "?" ? 0 : percentage; // Show 0% fill for "?"
   const strokeDashoffset = circumference - (effectivePercentage / 100) * circumference;
 
   return (
@@ -61,23 +61,25 @@ const CircularProgressBar = ({ percentage, size = 110, displayText }: { percenta
       className="transform -rotate-90"
     >
       <circle
-        stroke="rgba(255, 255, 255, 0.2)"
+        stroke="rgba(255, 255, 255, 0.2)" // Lighter background ring for dark theme
         fill="transparent"
         strokeWidth={strokeWidth}
         r={normalizedRadius}
         cx={radius}
         cy={radius}
       />
-      <circle
-        stroke="url(#progressGradientCompanyCard)" 
-        fill="transparent"
-        strokeWidth={strokeWidth}
-        strokeDasharray={circumference + ' ' + circumference}
-        style={{ strokeDashoffset, strokeLinecap: 'round', transition: 'stroke-dashoffset 0.35s ease-out' }}
-        r={normalizedRadius}
-        cx={radius}
-        cy={radius}
-      />
+      {effectivePercentage > 0 && ( // Only show progress arc if not "?"
+        <circle
+          stroke="url(#progressGradientCompanyCard)"
+          fill="transparent"
+          strokeWidth={strokeWidth}
+          strokeDasharray={circumference + ' ' + circumference}
+          style={{ strokeDashoffset, strokeLinecap: 'round', transition: 'stroke-dashoffset 0.35s ease-out' }}
+          r={normalizedRadius}
+          cx={radius}
+          cy={radius}
+        />
+      )}
       <defs>
         <linearGradient id="progressGradientCompanyCard" x1="0%" y1="0%" x2="100%" y2="0%">
           <stop offset="0%" stopColor="#A78BFA" /> 
@@ -86,7 +88,7 @@ const CircularProgressBar = ({ percentage, size = 110, displayText }: { percenta
       </defs>
       <text
         x="50%"
-        y={displayText ? "50%" : "48%"}
+        y={displayText ? "50%" : "48%"} // Adjust y based on whether "match" text is present
         dy=".3em"
         textAnchor="middle"
         className={cn(
@@ -96,7 +98,7 @@ const CircularProgressBar = ({ percentage, size = 110, displayText }: { percenta
       >
         {displayText ? displayText : `${Math.round(percentage)}%`}
       </text>
-      {!displayText && (
+      {!displayText && ( // Only show "match" if displayText (like "?") is not provided
         <text
           x="50%"
           y="62%"
@@ -136,8 +138,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
   
   const [isHoveringMatchArea, setIsHoveringMatchArea] = useState(false);
-  const [analysisTriggered, setAnalysisTriggered] = useState(false);
   const [simulatedProgress, setSimulatedProgress] = useState(0);
+  const analysisInitiatedFromCardClickRef = useRef(false);
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
@@ -146,11 +148,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleDetailsButtonClick = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-      fetchAiAnalysis(true); 
+      fetchAiAnalysis(true, false); // isModalFetch = true, isCardClick = false
     } else if (isGuestMode) {
       setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       setIsLoadingAiAnalysis(false);
-      setActiveAccordionItem(undefined);
+      setActiveAccordionItem(undefined); 
     }
     setIsDetailsModalOpen(true);
   };
@@ -186,7 +188,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
   }, [mongoDbUserId, isGuestMode, toast]);
 
-  const fetchAiAnalysis = useCallback(async (isModalFetch = false) => {
+  const fetchAiAnalysis = useCallback(async (isModalFetch = false, isCardClick = false) => {
     if (!company || !jobOpening || isGuestMode) {
       if (isGuestMode) setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       return;
@@ -194,7 +196,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     let candidateForAI = currentUserProfileForAI;
     if (!candidateForAI) {
       setIsLoadingAiAnalysis(true);
-      setAnalysisTriggered(true); 
       candidateForAI = await fetchCurrentUserProfileForAI();
     }
     if (!candidateForAI) {
@@ -203,8 +204,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       return;
     }
     
-    setAnalysisTriggered(true);
     setIsLoadingAiAnalysis(true);
+    if (isCardClick) {
+      analysisInitiatedFromCardClickRef.current = true;
+    }
     setSimulatedProgress(0); 
 
     try {
@@ -231,16 +234,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       }
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria, userAIWeights: userAIWeights });
       
-      const remainingSimulatedTime = (100 - simulatedProgress) * 40; 
+      const currentSimulatedProgress = simulatedProgress;
+      const remainingSimulatedTime = (100 - currentSimulatedProgress) * 40; // 40ms per 2.5% = 4s total for 100%
+      
       setTimeout(() => {
-        setSimulatedProgress(100);
+        setSimulatedProgress(100); // Ensure it hits 100
         if (result.candidateJobFitAnalysis) setAiJobFitAnalysis(result.candidateJobFitAnalysis);
         else setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
-        setIsLoadingAiAnalysis(false);
-        if (isModalFetch) { // Only open modal if fetch was triggered by modal details button
-            setIsDetailsModalOpen(true);
-            setActiveAccordionItem("ai-fit-analysis");
-        }
+        setIsLoadingAiAnalysis(false); // This will trigger the useEffect for modal opening if analysisInitiatedFromCardClickRef is true
       }, Math.max(0, remainingSimulatedTime));
 
 
@@ -249,32 +250,45 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "AI Analysis Error", description: `Failed to get AI insights. ${error.message || 'Ensure your profile is up to date.'}`, variant: "destructive" });
       setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "Error during AI analysis.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
       setIsLoadingAiAnalysis(false);
+      analysisInitiatedFromCardClickRef.current = false; // Reset if error
     }
   }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI, simulatedProgress]);
 
+  // Effect to open modal after card-click initiated analysis
   useEffect(() => {
-      if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-        fetchAiAnalysis(true); // Pass true to indicate this is a modal-initiated fetch
-      } else if (isGuestMode && isDetailsModalOpen) {
-        setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
-        setIsLoadingAiAnalysis(false); setActiveAccordionItem(undefined); 
-      }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]); // Removed analysisTriggered from deps
+    if (!isLoadingAiAnalysis && aiJobFitAnalysis && analysisInitiatedFromCardClickRef.current) {
+      setIsDetailsModalOpen(true);
+      setActiveAccordionItem("ai-fit-analysis");
+      analysisInitiatedFromCardClickRef.current = false; // Reset ref after modal opens
+    }
+  }, [isLoadingAiAnalysis, aiJobFitAnalysis]);
+  
+  // Effect to fetch AI analysis if modal is opened directly (e.g. from "My Matches")
+  // and no analysis has been done yet for this card.
+  useEffect(() => {
+    if (isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
+      fetchAiAnalysis(true, false); // isModalFetch = true, isCardClick = false
+    } else if (isGuestMode && isDetailsModalOpen) {
+      setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
+      setIsLoadingAiAnalysis(false); 
+      setActiveAccordionItem(undefined); 
+    }
+  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
   useEffect(() => {
     let progressInterval: NodeJS.Timeout | undefined;
     if (isLoadingAiAnalysis && !isGuestMode) {
-      let currentProgress = simulatedProgress; 
+      let currentProgress = simulatedProgress; // Start from current simulated progress
       progressInterval = setInterval(() => {
-        currentProgress += 2.5; 
+        currentProgress += 2.5; // Increment by 2.5 to reach 100 in 40 steps (4 seconds at 100ms interval)
         if (currentProgress <= 100) {
           setSimulatedProgress(currentProgress);
         } else {
           clearInterval(progressInterval);
+          // Ensure it doesn't overshoot if interval fires late, and loading is still true
           if (isLoadingAiAnalysis) setSimulatedProgress(100); 
         }
-      }, 100);
+      }, 100); // 100ms interval
     }
     return () => clearInterval(progressInterval);
   }, [isLoadingAiAnalysis, isGuestMode, simulatedProgress]);
@@ -283,7 +297,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
     if (actionType === 'like') incrementAnalytic('analytics_company_likes');
     else if (actionType === 'pass') incrementAnalytic('analytics_company_passes');
-    onSwipeAction(company.id, actionType);
+    if (actionType === 'details') { // If 'details' action is passed, treat as modal open request
+        handleDetailsButtonClick();
+    } else {
+        onSwipeAction(company.id, actionType);
+    }
   };
 
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -295,8 +313,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             const rect = video.getBoundingClientRect();
             if (e.clientY > rect.bottom - 40) { return; }
         } else if (targetElement.closest('[data-interactive-match-area="true"]') && !isLoadingAiAnalysis && !isGuestMode) {
-             // Allow click, but prevent drag start from this specific area
-             // so the drag is not initiated by the click on the interactive area
             return;
         } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
            return; 
@@ -362,20 +378,21 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL
     ? jobDescriptionForModal : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
     
+  const showQuestionMark = !isLoadingAiAnalysis && !aiJobFitAnalysis;
+  const displayPercentage = Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0);
 
   return (
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white" // Main card gradient
+        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white" 
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
         style={{ cursor: isGuestMode ? 'default' : (isDragging ? 'grabbing' : 'grab'), transform: getCardTransform(), transition: isDragging ? 'none' : 'transform 0.3s ease-out' }}
       >
-        {/* Header Section */}
-        <div className="p-4 text-center relative">
+        <div className="p-4 pt-5 text-center relative">
           <Badge className="absolute top-3 left-3 bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
             {categoryText}
           </Badge>
@@ -386,30 +403,39 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </div>
         </div>
 
-        {/* Job Information Section */}
         <div className="p-4 pt-2 text-center flex-grow flex flex-col">
           <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-4">{company.name}</p>
           <h1 className="text-white text-3xl sm:text-4xl font-bold mt-1 leading-tight break-words">
             {jobOpening?.title.split('(')[0].trim()}
             {jobOpening?.title.includes('(') && (<span className="block text-2xl font-bold">{`(${jobOpening?.title.split('(')[1]}`}</span>)}
           </h1>
-          <div className="text-white/90 text-base mt-3 mb-4 flex justify-center items-center gap-x-1.5">
+          <div className="text-white/90 text-base mt-3 flex justify-center items-center gap-x-1.5">
             {jobOpening?.location && (<span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>)}
             {jobOpening?.location && jobOpening?.jobType && <span className="text-white/50 mx-0.5">•</span>}
             {jobOpening?.jobType && (<span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>)}
           </div>
+          
+          <Separator className="my-4 border-white/20 w-3/4 mx-auto" />
 
-          {/* Interactive AI Match Analysis Area */}
-          <div
+           <div
             data-interactive-match-area="true"
             className={cn(
-                "my-4 mx-auto flex flex-col items-center justify-center group transition-all duration-300 ease-in-out min-h-[110px] w-[110px]",
-                isGuestMode && "cursor-not-allowed opacity-70",
-                !isGuestMode && "cursor-pointer"
+              "my-4 mx-auto flex flex-col items-center justify-center group transition-all duration-300 ease-in-out min-h-[110px] w-[110px]",
+              isGuestMode && "cursor-not-allowed opacity-70",
+              !isGuestMode && "cursor-pointer"
             )}
-            onMouseEnter={() => { if(!isGuestMode && !analysisTriggered && !isLoadingAiAnalysis) setIsHoveringMatchArea(true); if (!isGuestMode && !analysisTriggered) setAnalysisTriggered(true); }}
+            onMouseEnter={() => {
+              if (!isGuestMode && !isLoadingAiAnalysis && !aiJobFitAnalysis) {
+                setIsHoveringMatchArea(true);
+              }
+            }}
             onMouseLeave={() => setIsHoveringMatchArea(false)}
-            onClick={() => { if(!isGuestMode && !isLoadingAiAnalysis) fetchAiAnalysis(); }}
+            onClick={() => {
+              if (!isGuestMode && !isLoadingAiAnalysis) {
+                fetchAiAnalysis(false, true); // isModalFetch = false, isCardClick = true
+                setIsHoveringMatchArea(false);
+              }
+            }}
           >
             {isGuestMode ? (
                 <div className="text-center p-2 bg-red-500/20 border border-red-400/50 rounded-lg w-full h-full flex flex-col items-center justify-center">
@@ -417,31 +443,33 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     <p className="text-xs text-red-200">Sign in for AI Fit</p>
                 </div>
             ) : isLoadingAiAnalysis ? (
-                <div className="w-full max-w-[150px] space-y-2 text-center">
+                <div className="w-full max-w-[150px] space-y-2 text-center p-2">
                     <Progress value={simulatedProgress} className="h-2 bg-white/20 [&>div]:bg-gradient-to-r [&>div]:from-pink-400 [&>div]:to-purple-400" />
-                    <p className="text-xs text-white/70">Analyzing fit...</p>
+                    <p className="text-xs text-white/70 mt-1">Analyzing fit...</p>
                 </div>
             ) : isHoveringMatchArea && !aiJobFitAnalysis ? (
                 <div className="flex flex-col items-center p-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg shadow-md min-h-[90px] justify-center w-full h-full">
                     <Sparkles className="h-8 w-8 mb-1 text-yellow-300" />
-                    <p className="text-sm font-semibold text-white">Analyze My Job Fit</p>
+                    <p className="text-sm font-semibold text-white text-center">Analyze My Job Fit</p>
                 </div>
             ) : (
-                <CircularProgressBar 
-                    percentage={Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0)} 
-                    size={110} 
-                    displayText={!analysisTriggered && !aiJobFitAnalysis && !isLoadingAiAnalysis ? "?" : undefined}
+                <CircularProgressBar
+                    percentage={showQuestionMark ? 0 : displayPercentage}
+                    size={110}
+                    displayText={showQuestionMark ? "?" : undefined}
                 />
             )}
           </div>
 
+
           {jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && (
-            <p className="text-xs italic text-white/70 mt-2 mb-4">
+            <p className="text-xs italic text-white/70 mt-2">
               {jobOpening.requiredExperienceLevel.replace(/_/g, ' ')} experience preferred
             </p>
           )}
 
-          {/* Skills Section - moved to bottom */}
+          <Separator className="my-4 border-white/20 w-3/4 mx-auto" />
+          
           <div className="mt-auto pt-4"> 
             <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-6">TOP SKILLS</p>
             <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
@@ -458,26 +486,26 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
             <Button variant="ghost" onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} disabled={isGuestMode}
               className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-              aria-label={`Pass on ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <X className="h-6 w-6 mb-1 text-white/90" />} Pass </Button>
+              aria-label={`Pass on ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <X className="h-6 w-6 mb-1 text-white/90" />} <span className="text-sm">Pass</span> </Button>
           </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>Not Interested</p></TooltipContent> </Tooltip> </TooltipProvider>
           
           <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
             <Button variant="ghost" onClick={handleDetailsButtonClick}
               className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-              aria-label={`View details for ${company.name}`} data-no-drag="true" data-modal-trigger="true"> <Eye className="h-6 w-6 mb-1 text-white/90" /> Profile </Button>
+              aria-label={`View details for ${company.name}`} data-no-drag="true" data-modal-trigger="true"> <Eye className="h-6 w-6 mb-1 text-white/90" /> <span className="text-sm">Profile</span> </Button>
           </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>View Full Details</p></TooltipContent> </Tooltip> </TooltipProvider>
 
           <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
             <Button variant="ghost" onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} disabled={isGuestMode}
               className={cn("flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm",
                 isLiked && !isGuestMode ? "ring-2 ring-pink-400 bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 hover:text-pink-200 hover:border-pink-400/70" : "hover:text-green-300 hover:bg-green-500/20 hover:border-green-400/50"
-              )} aria-label={`Like ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <Heart className={cn("h-6 w-6 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />} Like </Button>
+              )} aria-label={`Like ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <Heart className={cn("h-6 w-6 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />} <span className="text-sm">Like</span> </Button>
           </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>I'm Interested!</p></TooltipContent> </Tooltip> </TooltipProvider>
 
           <DropdownMenu> <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
             <Button variant="ghost" disabled={isGuestMode}
               className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-              aria-label={`Share ${company.name}`} data-no-drag="true" onClick={(e) => e.stopPropagation()}> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <Share2 className="h-6 w-6 mb-1 text-white/90" />} Share </Button>
+              aria-label={`Share ${company.name}`} data-no-drag="true" onClick={(e) => e.stopPropagation()}> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <Share2 className="h-6 w-6 mb-1 text-white/90" />} <span className="text-sm">Share</span> </Button>
           </TooltipTrigger> <TooltipContent className={cn(isGuestMode && "bg-red-500 text-white border-red-600", !isGuestMode && "bg-slate-800 text-white border-slate-700")}><p>{isGuestMode ? "Sign in to share" : "Share this opportunity"}</p></TooltipContent> </Tooltip> </TooltipProvider>
             <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><LinkIcon className="mr-2 h-4 w-4" /> Copy Link</DropdownMenuItem>
@@ -554,7 +582,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   <AccordionContent className="pt-1 pb-3">
                     <p className="text-xs text-slate-400 italic mb-2">Our AI considers how this job aligns with your profile... (Customize weights in Settings).</p>
                     {isGuestMode ? (<div className="text-sm text-red-400 italic flex items-center p-3 border border-red-600 bg-red-900/30 rounded-md shadow-sm"><Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.</div>)
-                    : (<><Button onClick={() => fetchAiAnalysis(true)} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto bg-custom-primary-purple hover:bg-custom-primary-purple/80 text-white">{isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}{aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}</Button>
+                    : (<><Button onClick={() => fetchAiAnalysis(true, false)} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto bg-custom-primary-purple hover:bg-custom-primary-purple/80 text-white">{isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}{aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}</Button>
                         {isLoadingAiAnalysis && !aiJobFitAnalysis &&(<div className="flex items-center text-sm text-slate-400 py-1.5"><Loader2 className="mr-2 h-4 w-4 animate-spin" /><span>Assessing fit...</span></div>)}
                         {aiJobFitAnalysis && !isLoadingAiAnalysis && (<div className="space-y-2 p-3 border border-slate-700 rounded-lg bg-slate-700/30 shadow-sm"><div className="flex items-baseline"><span className="text-md font-semibold text-white">Your Fit Score:</span><span className={cn("ml-1.5 font-bold text-xl",aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-400' : aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-400' : 'text-red-400')}>{aiJobFitAnalysis.matchScoreForCandidate}%</span></div><p className="text-sm text-slate-300 italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
                         {aiJobFitAnalysis.weightedScoresForCandidate && (<div className="pt-2 mt-2 border-t border-slate-700/70"><p className="font-medium text-white text-sm mb-1">Score Breakdown:</p><ul className="list-none space-y-0.5 text-xs text-slate-300"><li>Culture Fit: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li><li>Job Relevance: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li><li>Growth Opportunity: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li><li>Job Conditions: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li></ul></div>)}</div>)}</>)}
@@ -589,4 +617,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
