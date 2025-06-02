@@ -96,3 +96,81 @@ export async function fetchJobsFromBackend(): Promise<{ jobs: Company[]; hasMore
   }
 }
 
+export async function fetchRecruiterJobs(recruiterUserId: string): Promise<CompanyJobOpening[]> {
+  if (!recruiterUserId) {
+    console.warn('[Frontend Service] fetchRecruiterJobs called without recruiterUserId.');
+    return [];
+  }
+  const targetUrl = `${CUSTOM_BACKEND_URL}/api/users/${recruiterUserId}/jobs?timestamp=${new Date().getTime()}`;
+  console.log('[Frontend Service] Fetching jobs for recruiter:', recruiterUserId, 'URL:', targetUrl);
+  try {
+    const response = await fetch(targetUrl, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to fetch recruiter jobs. Status: ${response.status}` }));
+      console.error('[Frontend Service] Error fetching recruiter jobs (JSON):', errorData);
+      throw new Error(errorData.message);
+    }
+    const jobs: CompanyJobOpening[] = await response.json();
+    console.log(`[Frontend Service] Fetched ${jobs.length} jobs for recruiter ${recruiterUserId}.`);
+    return jobs;
+  } catch (error: any) {
+    console.error(`[Frontend Service] Error in fetchRecruiterJobs for ${recruiterUserId}:`, error.message);
+    throw error;
+  }
+}
+
+export async function updateRecruiterJob(recruiterUserId: string, jobId: string, jobData: Partial<CompanyJobOpening>): Promise<CompanyJobOpening> {
+  if (!recruiterUserId || !jobId) {
+    throw new Error('Recruiter user ID and Job ID are required for update.');
+  }
+  const targetUrl = `${CUSTOM_BACKEND_URL}/api/users/${recruiterUserId}/jobs/${jobId}`;
+  console.log('[Frontend Service] Updating job:', jobId, 'for recruiter:', recruiterUserId, 'URL:', targetUrl);
+  try {
+    const response = await fetch(targetUrl, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(jobData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to update job. Status: ${response.status}` }));
+      console.error('[Frontend Service] Error updating job (JSON):', errorData);
+      throw new Error(errorData.message);
+    }
+    const updatedJob: { message: string; job: CompanyJobOpening } = await response.json();
+    console.log('[Frontend Service] Job updated successfully:', updatedJob.job.title);
+    return updatedJob.job;
+  } catch (error: any) {
+    console.error(`[Frontend Service] Error in updateRecruiterJob for job ${jobId}:`, error.message);
+    throw error;
+  }
+}
+
+export async function deleteRecruiterJob(recruiterUserId: string, jobId: string): Promise<{ message: string }> {
+  if (!recruiterUserId || !jobId) {
+    throw new Error('Recruiter user ID and Job ID are required for deletion.');
+  }
+  const targetUrl = `${CUSTOM_BACKEND_URL}/api/users/${recruiterUserId}/jobs/${jobId}`;
+  console.log('[Frontend Service] Deleting job:', jobId, 'for recruiter:', recruiterUserId, 'URL:', targetUrl);
+  try {
+    const response = await fetch(targetUrl, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to delete job. Status: ${response.status}` }));
+      console.error('[Frontend Service] Error deleting job (JSON):', errorData);
+      throw new Error(errorData.message);
+    }
+    const result: { message: string } = await response.json();
+    console.log('[Frontend Service] Job deleted successfully. Message:', result.message);
+    return result;
+  } catch (error: any) {
+    console.error(`[Frontend Service] Error in deleteRecruiterJob for job ${jobId}:`, error.message);
+    throw error;
+  }
+}
+
+

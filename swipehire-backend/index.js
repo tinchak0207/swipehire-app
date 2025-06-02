@@ -309,20 +309,22 @@ app.put('/api/users/:identifier', async (req, res) => {
 
 // POST a new job for a specific user (recruiter)
 app.post('/api/users/:userId/jobs', async (req, res) => {
-    try {
-        const { userId } = req.params;
-        const jobOpeningData = req.body;
+    const { userId } = req.params;
+    const jobOpeningData = req.body;
+    console.log(`[Backend POST Job] Received request to post job for user ${userId}. Data:`, JSON.stringify(jobOpeningData).substring(0, 300) + "...");
 
+    try {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
+            console.error(`[Backend POST Job] Invalid userId format: ${userId}`);
             return res.status(400).json({ message: 'Invalid user ID format.' });
         }
         
         const recruiter = await User.findById(userId);
         if (!recruiter) {
+            console.error(`[Backend POST Job] Recruiter not found for ID: ${userId}`);
             return res.status(404).json({ message: 'Recruiter not found.' });
         }
 
-        // Ensure recruiter data is correctly set before adding the job
         recruiter.selectedRole = 'recruiter';
         recruiter.companyNameForJobs = recruiter.companyNameForJobs || recruiter.name || 'Default Company Name From Post';
         recruiter.companyIndustryForJobs = recruiter.companyIndustryForJobs || 'Various From Post';
@@ -334,6 +336,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
             companyNameForJob: recruiter.companyNameForJobs,
             companyIndustryForJob: recruiter.companyIndustryForJobs,
             companyLogoForJob: companyLogoForJob,
+            postedAt: new Date(), // Ensure postedAt is set
         };
         
         recruiter.jobOpenings.push(newJobSubdocument);
@@ -351,11 +354,106 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
     }
 });
 
+// GET all jobs posted by a specific user (recruiter)
+app.get('/api/users/:userId/jobs', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format.' });
+        }
+        const user = await User.findById(userId).lean(); // Use .lean() for potentially better performance
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        const jobs = user.jobOpenings || [];
+        console.log(`[Backend GET User Jobs] Found ${jobs.length} jobs for user ${userId}.`);
+        res.status(200).json(jobs.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()));
+    } catch (error) {
+        console.error(`[Backend GET User Jobs] Error fetching jobs for user ${req.params.userId}:`, error);
+        res.status(500).json({ message: 'Server error fetching user jobs', error: error.message });
+    }
+});
+
+// PUT (update) a specific job for a specific user (recruiter)
+app.put('/api/users/:userId/jobs/:jobId', async (req, res) => {
+    try {
+        const { userId, jobId } = req.params;
+        const updatedJobData = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(jobId)) {
+            return res.status(400).json({ message: 'Invalid ID format.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const jobIndex = user.jobOpenings.findIndex(job => job._id.toString() === jobId);
+        if (jobIndex === -1) {
+            return res.status(404).json({ message: 'Job posting not found.' });
+        }
+
+        // Update specific fields of the job subdocument
+        Object.keys(updatedJobData).forEach(key => {
+            // Ensure we don't try to update _id or companyNameForJob/companyIndustryForJob/companyLogoForJob directly from payload
+            if (key !== '_id' && key !== 'companyNameForJob' && key !== 'companyIndustryForJob' && key !== 'companyLogoForJob' && key !== 'postedAt') {
+                user.jobOpenings[jobIndex][key] = updatedJobData[key];
+            }
+        });
+         // Ensure tags are handled correctly (convert string to array if necessary)
+        if (updatedJobData.tags && typeof updatedJobData.tags === 'string') {
+            user.jobOpenings[jobIndex].tags = updatedJobData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        } else if (Array.isArray(updatedJobData.tags)) {
+            user.jobOpenings[jobIndex].tags = updatedJobData.tags.map(tag => tag.trim()).filter(tag => tag);
+        }
+
+
+        await user.save();
+        console.log(`[Backend PUT Job] Successfully updated job "${user.jobOpenings[jobIndex].title}" (ID: ${jobId}) for recruiter ${user.name} (${userId}).`);
+        res.status(200).json({ message: 'Job updated successfully!', job: user.jobOpenings[jobIndex] });
+
+    } catch (error) {
+        console.error(`[Backend PUT Job] Error updating job ID ${req.params.jobId} for user ${req.params.userId}:`, error);
+        res.status(500).json({ message: 'Server error updating job', error: error.message });
+    }
+});
+
+
+// DELETE a specific job for a specific user (recruiter)
+app.delete('/api/users/:userId/jobs/:jobId', async (req, res) => {
+    try {
+        const { userId, jobId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(jobId)) {
+            return res.status(400).json({ message: 'Invalid ID format.' });
+        }
+
+        const result = await User.updateOne(
+            { _id: userId },
+            { $pull: { jobOpenings: { _id: jobId } } }
+        );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+        if (result.modifiedCount === 0) {
+            return res.status(404).json({ message: 'Job posting not found for this user or already deleted.' });
+        }
+        
+        console.log(`[Backend DELETE Job] Successfully deleted job ID ${jobId} for user ${userId}.`);
+        res.status(200).json({ message: 'Job posting deleted successfully.' });
+
+    } catch (error) {
+        console.error(`[Backend DELETE Job] Error deleting job ID ${req.params.jobId} for user ${req.params.userId}:`, error);
+        res.status(500).json({ message: 'Server error deleting job', error: error.message });
+    }
+});
+
 
 // GET all job openings from all recruiters
 app.get('/api/jobs', async (req, res) => {
     try {
-        // Fetch users who have jobOpenings. No longer filtering by selectedRole.
         const query = { 'jobOpenings.0': { $exists: true } };
         console.log(`[Backend GET Jobs] Querying for users with jobs using: ${JSON.stringify(query)}`);
         const usersWithJobs = await User.find(query).lean();
@@ -373,7 +471,6 @@ app.get('/api/jobs', async (req, res) => {
                 
                 const jobObject = job; 
                 
-                // Ensure companyNameForJob and companyIndustryForJob fall back to user's main details if not on job itself
                 const companyName = job.companyNameForJob || user.companyNameForJobs || user.name || 'Unknown Company';
                 const companyIndustry = job.companyIndustryForJob || user.companyIndustryForJobs || 'Various';
                 const companyLogo = job.companyLogoForJob || user.profileAvatarUrl || 'https://placehold.co/100x100.png';
@@ -387,7 +484,7 @@ app.get('/api/jobs', async (req, res) => {
                     cultureHighlights: job.companyCultureKeywords || [],
                     logoUrl: companyLogo,
                     dataAiHint: 'company logo', 
-                    jobOpenings: [{ ...jobObject, _id: jobIdString }], 
+                    jobOpenings: [{ ...jobObject, _id: jobIdString, postedAt: job.postedAt || new Date() }], 
                 };
                 return companyLikeObject;
             });
@@ -765,5 +862,6 @@ server.listen(PORT, () => {
     
 
     
+
 
 

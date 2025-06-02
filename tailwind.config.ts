@@ -12,7 +12,8 @@ export default {
     'grid-cols-3',
     'grid-cols-4',
     'grid-cols-5', 
-    'grid-cols-6', // Added for job seeker tabs (Find Jobs, My Profile, My Diary, AI Tools, My Matches, Settings)
+    'grid-cols-6',
+    'grid-cols-7', // Added for recruiter tabs (Find Talent, Post Job, Manage Jobs, AI Tools, My Matches, Settings)
   ],
   theme: {
   	extend: {
@@ -114,3 +115,4 @@ export default {
     require('@tailwindcss/typography'),
   ],
 } satisfies Config;
+
