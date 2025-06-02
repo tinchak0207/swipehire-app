@@ -6,7 +6,7 @@ import type { Candidate, CandidateFilters, ProfileRecommenderOutput, RecruiterPe
 import { mockCandidates } from '@/lib/mockData';
 import ProfileCard from '@/components/cards/ProfileCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, RotateCcw, Trash2 as TrashIcon, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal, Target, Activity, Bookmark, Send, CalendarDays, UserCircle as UserCircleIcon, Clock, Globe, X as CloseIcon } from 'lucide-react'; // Added Clock, Globe, CloseIcon
+import { Loader2, SearchX, Filter, RotateCcw, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal, Target, Activity, Bookmark, Send, CalendarDays, UserCircle as UserCircleIcon, Clock, Globe, X as CloseIcon, Trash2 as TrashIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -34,9 +34,21 @@ const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
 
 
-const getThemeClass = (themeKey?: string) => {
-  if (!themeKey || themeKey === 'default') return ''; // Or a default theme class
-  return `card-theme-${themeKey}`;
+// Helper to format enum values for display
+const formatEnumLabel = (value: string) => {
+  if (!value) return "";
+  return value
+    .replace(/_/g, ' ')
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
+const initialFilters: CandidateFilters = {
+  experienceLevels: new Set(),
+  educationLevels: new Set(),
+  locationPreferences: new Set(),
+  jobTypes: new Set(),
 };
 
 function CandidateDetailsModal({
@@ -136,8 +148,8 @@ function CandidateDetailsModal({
     const lowerSkill = skill.toLowerCase();
     if (lowerSkill === 'firebase') return 'bg-orange-100 text-orange-700 border-orange-300 hover:bg-orange-200';
     if (lowerSkill === 'c++') return 'bg-blue-100 text-blue-700 border-blue-300 hover:bg-blue-200';
-    // The image reference for "Flexible" was in "Desired Work Style", not "Technical Skills", handle if needed elsewhere
-    return 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'; 
+    if (lowerSkill === 'flexible') return 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200'; // For "Flexible" badge
+    return 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200';
   };
 
 
@@ -184,7 +196,7 @@ function CandidateDetailsModal({
 
         <ScrollArea className="flex-1 min-h-0 bg-white">
           <div className="p-4 sm:p-6 space-y-6">
-            
+
             <section>
                 <div className="flex items-center mb-2">
                     <div className="p-2 rounded-lg mr-3 bg-purple-500 shadow-md">
@@ -212,14 +224,14 @@ function CandidateDetailsModal({
                         <Label className="text-base font-semibold text-green-800 block">{candidate.desiredWorkStyle || "Fully Remote"}</Label>
                         <p className="text-sm text-green-700">Preferred working arrangement</p>
                     </div>
-                    <Badge className="bg-green-100 text-green-700 border-green-300 text-xs">Flexible</Badge>
+                    <Badge className={cn("text-xs", getSkillBadgeClass("flexible"))}>Flexible</Badge>
                 </div>
             </section>
 
             {candidate.skills && candidate.skills.length > 0 && (
               <section>
                 <div className="flex items-center mb-2">
-                    <div className="p-2 rounded-lg mr-3 bg-sky-500 shadow-md"> 
+                    <div className="p-2 rounded-lg mr-3 bg-sky-500 shadow-md">
                          <Sparkles className="h-5 w-5 text-white" />
                     </div>
                     <h3 className="text-xl font-semibold text-slate-700 font-heading">Technical Skills</h3>
@@ -233,7 +245,7 @@ function CandidateDetailsModal({
                 </div>
               </section>
             )}
-            
+
             <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
               <AccordionItem value="ai-assessment" className="border-b-0">
                 <AccordionTrigger className="text-xl font-semibold text-slate-700 hover:no-underline data-[state=open]:text-primary font-heading py-3 group -mx-1 px-1">
@@ -268,7 +280,6 @@ function CandidateDetailsModal({
                                         {aiRecruiterReasoning}
                                     </p>
                                 )}
-                                {/* Removed detailed score breakdown for brevity as per image */}
                             </div>
                         ) : (
                             <p className="text-sm text-purple-700 italic">AI assessment currently unavailable for this candidate.</p>
@@ -281,23 +292,23 @@ function CandidateDetailsModal({
           </div>
         </ScrollArea>
         <DialogFooter className="p-4 sm:p-6 border-t bg-slate-50 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 rounded-b-xl">
-            <Button 
-              onClick={() => { if (!isGuestMode) onPassCandidate(candidate.id); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} 
-              variant="default" 
+            <Button
+              onClick={() => { if (!isGuestMode) onPassCandidate(candidate.id); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
+              variant="default"
               className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all px-6 py-2.5 text-base"
               disabled={isGuestMode}
             >
                 <ThumbsDown className="mr-2 h-4 w-4" /> Pass
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full sm:w-auto shadow-sm hover:shadow-md transition-all border-slate-300 text-slate-700 hover:bg-slate-100 px-6 py-2.5 text-base"
               onClick={handleSaveForLater}
               disabled={isGuestMode}
             >
                 <Bookmark className="mr-2 h-4 w-4" /> Save for Later
             </Button>
-            <Button 
+            <Button
               className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all px-6 py-2.5 text-base"
               onClick={handleAdvanceToInterview}
               disabled={isGuestMode}
@@ -310,28 +321,10 @@ function CandidateDetailsModal({
   );
 }
 
-
-const initialFilters: CandidateFilters = {
-  experienceLevels: new Set(),
-  educationLevels: new Set(),
-  locationPreferences: new Set(),
-  jobTypes: new Set(),
-};
-
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
   isGuestMode?: boolean;
 }
-
-// Helper to format enum values for display
-const formatEnumLabel = (value: string) => {
-  if (!value) return "";
-  return value
-    .replace(/_/g, ' ') 
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
 
 export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
@@ -363,16 +356,15 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const fetchBackendCandidates = useCallback(async () => {
-    if (!mongoDbUserId && !isGuestMode) {
-        console.log("[CandidateDiscovery] Skipping fetch: no mongoDbUserId and not in guest mode.");
-        setAllCandidates([...mockCandidates]); 
-        setIsInitialLoading(false);
-        return;
-    }
-    console.log("[CandidateDiscovery] Fetching candidates from backend...");
-    setIsLoading(true); 
     setIsInitialLoading(true);
+    setIsLoading(true);
     try {
+      if (!mongoDbUserId && !isGuestMode) {
+        console.log("[CandidateDiscovery] Skipping backend fetch: no mongoDbUserId and not in guest mode. Using mock data.");
+        setAllCandidates([...mockCandidates]);
+        return;
+      }
+      console.log("[CandidateDiscovery] Fetching candidates from backend...");
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
       if (!response.ok) throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
       const data: Candidate[] = await response.json();
@@ -380,7 +372,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
       console.log(`[CandidateDiscovery] Fetched candidates from backend: ${data.length}`);
     } catch (error) {
       console.error("Error fetching candidates from backend:", error);
-      toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles. Using mock data.", variant: "destructive" });
+      toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles. Using mock data.", variant: "destructive", duration: 7000 });
       setAllCandidates([...mockCandidates]);
     } finally {
       setIsInitialLoading(false);
@@ -389,13 +381,8 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   }, [toast, mongoDbUserId, isGuestMode]);
 
   useEffect(() => {
-    if (mongoDbUserId || isGuestMode) {
-      fetchBackendCandidates();
-    } else if (!mongoDbUserId && !isGuestMode && isInitialLoading) {
-        setAllCandidates([...mockCandidates]);
-        setIsInitialLoading(false);
-    }
-  }, [fetchBackendCandidates, mongoDbUserId, isGuestMode, isInitialLoading]);
+    fetchBackendCandidates();
+  }, [fetchBackendCandidates]);
 
 
   useEffect(() => {
@@ -403,7 +390,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
         const storedCompanyId = localStorage.getItem(`user_${mongoDbUserId}_representedCompanyId`);
         setRecruiterRepresentedCompanyId(storedCompanyId || 'comp-placeholder-recruiter');
         if(!passedCandidateProfileIdsFromContext || passedCandidateProfileIdsFromContext.size === 0) {
-            fetchAndSetUserPreferences(mongoDbUserId); 
+            fetchAndSetUserPreferences(mongoDbUserId);
         }
     }
   }, [mongoDbUserId, fetchAndSetUserPreferences, passedCandidateProfileIdsFromContext]);
@@ -442,7 +429,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
-  
+
   useEffect(() => {
     if (!isInitialLoading) {
         const initialBatch = filteredCandidatesMemo.slice(0, ITEMS_PER_BATCH);
@@ -458,19 +445,19 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
        if (currentIndex >= filteredCandidatesMemo.length) setHasMore(false);
       return;
     }
-    
+
     setIsLoading(true);
     const nextBatch = filteredCandidatesMemo.slice(currentIndex, currentIndex + ITEMS_PER_BATCH);
-    
+
     setDisplayedCandidates(prev => [...prev, ...nextBatch]);
     setCurrentIndex(prev => prev + nextBatch.length);
     setHasMore(currentIndex + nextBatch.length < filteredCandidatesMemo.length);
     setIsLoading(false);
   }, [
-    isLoading, 
-    hasMore,   
-    isInitialLoading, 
-    currentIndex, 
+    isLoading,
+    hasMore,
+    isInitialLoading,
+    currentIndex,
     filteredCandidatesMemo,
   ]);
 
@@ -521,7 +508,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
         companyCultureKeywords: ["innovative", "collaborative", "driven", "growth-oriented"],
         companyIndustry: "Technology / General Business",
       };
-      
+
       let userAIWeights: UserAIWeights | undefined = undefined;
       if (typeof window !== 'undefined') {
         const storedWeights = localStorage.getItem('userRecruiterAIWeights');
@@ -559,7 +546,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
 
     if (action === 'viewProfile') {
       setSelectedCandidateForDetails(candidate);
-      setAiRecruiterMatchScoreModal(null); 
+      setAiRecruiterMatchScoreModal(null);
       setAiRecruiterReasoningModal(null);
       setAiRecruiterWeightedScoresModal(null);
       setIsLoadingAiAnalysisModal(false);
@@ -642,7 +629,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   };
   const handleApplyFilters = () => setIsFilterSheetOpen(false);
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
-  const fixedElementsHeight = '120px'; 
+  const fixedElementsHeight = '120px';
 
   if (isInitialLoading) {
     return <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
@@ -750,7 +737,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
           </div>
         ))}
         {isLoading && !isInitialLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-        
+
         {!isLoading && !isInitialLoading && filteredCandidatesMemo.length > 0 && displayedCandidates.length < filteredCandidatesMemo.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More Trigger</div>}
 
         {!isLoading && !isInitialLoading && displayedCandidates.length === 0 && (
@@ -764,3 +751,5 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     </div>
   );
 }
+
+    
