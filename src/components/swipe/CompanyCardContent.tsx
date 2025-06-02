@@ -1,5 +1,5 @@
 
-import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights } from '@/lib/types';
+import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Building, MapPin, Briefcase as JobTypeIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, BarChartHorizontalShorthand, Tag } from 'lucide-react';
@@ -19,6 +19,7 @@ import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from '@/components/ui/progress';
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
 
 
 interface CompanyCardContentProps {
@@ -35,7 +36,7 @@ const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
 
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
-const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 
 // Conceptual analytics helper
@@ -50,6 +51,7 @@ const incrementAnalytic = (key: string) => {
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardRootRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { mongoDbUserId } = useUserPreferences(); // Get current user's MongoDB ID
 
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
@@ -65,6 +67,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
+  const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
@@ -82,6 +85,40 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setIsDetailsModalOpen(true);
   };
 
+  const fetchCurrentUserProfileForAI = useCallback(async () => {
+    if (!mongoDbUserId || isGuestMode) return null;
+    try {
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch current user's profile for AI analysis.");
+      }
+      const userData = await response.json();
+      const profile: CandidateProfileForAI = {
+        id: userData._id,
+        role: userData.profileHeadline || 'Software Developer',
+        experienceSummary: userData.profileExperienceSummary || 'Experienced in various technologies.',
+        skills: userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : ['React', 'Node.js'],
+        desiredWorkStyle: userData.profileDesiredWorkStyle || 'Remote, Collaborative',
+        pastProjects: userData.profilePastProjects || undefined,
+        workExperienceLevel: userData.profileWorkExperienceLevel || WorkExperienceLevel.MID_LEVEL,
+        educationLevel: userData.profileEducationLevel || EducationLevel.UNIVERSITY,
+        locationPreference: userData.profileLocationPreference || LocationPreference.REMOTE,
+        languages: userData.profileLanguages ? userData.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : ['English'],
+        salaryExpectationMin: userData.profileSalaryExpectationMin,
+        salaryExpectationMax: userData.profileSalaryExpectationMax,
+        availability: userData.profileAvailability || Availability.UNSPECIFIED,
+        jobTypePreference: userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : [],
+      };
+      setCurrentUserProfileForAI(profile);
+      return profile;
+    } catch (error) {
+      console.error("Error fetching current user profile:", error);
+      toast({ title: "Profile Error", description: "Could not load your profile for AI analysis.", variant: "destructive" });
+      return null;
+    }
+  }, [mongoDbUserId, isGuestMode, toast]);
+
+
   const fetchAiAnalysis = useCallback(async () => {
     if (!company || !jobOpening || isGuestMode || !isDetailsModalOpen) {
       if (isGuestMode) {
@@ -89,35 +126,23 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       }
       return;
     }
+    
+    let candidateForAI = currentUserProfileForAI;
+    if (!candidateForAI) {
+      setIsLoadingAiAnalysis(true); // Show loading while fetching profile too
+      candidateForAI = await fetchCurrentUserProfileForAI();
+    }
+
+    if (!candidateForAI) {
+      setIsLoadingAiAnalysis(false);
+      toast({ title: "AI Analysis Error", description: "Your profile could not be loaded for analysis.", variant: "destructive" });
+      return;
+    }
+    
     setIsLoadingAiAnalysis(true);
     setAiJobFitAnalysis(null);
 
     try {
-      let candidateDataFromStorage: Partial<Candidate> = {};
-      if (typeof window !== 'undefined') {
-        const storedProfile = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
-        if (storedProfile) {
-          candidateDataFromStorage = JSON.parse(storedProfile);
-        }
-      }
-      
-      const candidateForAI: CandidateProfileForAI = {
-        id: 'currentUserProfile',
-        role: candidateDataFromStorage.role || 'Software Developer',
-        experienceSummary: candidateDataFromStorage.experienceSummary || 'Experienced in various technologies.',
-        skills: candidateDataFromStorage.skills || ['React', 'Node.js'],
-        desiredWorkStyle: candidateDataFromStorage.desiredWorkStyle || 'Remote, Collaborative',
-        pastProjects: candidateDataFromStorage.pastProjects || undefined,
-        workExperienceLevel: candidateDataFromStorage.workExperienceLevel || WorkExperienceLevel.MID_LEVEL,
-        educationLevel: candidateDataFromStorage.educationLevel || EducationLevel.UNIVERSITY,
-        locationPreference: candidateDataFromStorage.locationPreference || LocationPreference.REMOTE,
-        languages: candidateDataFromStorage.languages || ['English'],
-        salaryExpectationMin: candidateDataFromStorage.salaryExpectationMin,
-        salaryExpectationMax: candidateDataFromStorage.salaryExpectationMax,
-        availability: candidateDataFromStorage.availability || Availability.UNSPECIFIED,
-        jobTypePreference: candidateDataFromStorage.jobTypePreference || [],
-      };
-
       const jobCriteria: JobCriteriaForAI = {
         title: jobOpening.title,
         description: jobOpening.description,
@@ -140,9 +165,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           if (storedWeights) {
             try {
               const parsedJobSeekerWeights: JobSeekerPerspectiveWeights = JSON.parse(storedWeights);
-              // Basic validation if weights sum to 100, or adjust as needed
               const sumOfWeights = Object.values(parsedJobSeekerWeights).reduce((sum, val) => sum + (Number(val) || 0), 0);
-              if (Math.abs(sumOfWeights - 100) < 0.01) { // Check sum is close to 100
+              if (Math.abs(sumOfWeights - 100) < 0.01) {
                 userAIWeights = { jobSeekerPerspective: parsedJobSeekerWeights };
               } else {
                  console.warn("Stored JobSeekerAIWeights do not sum to 100. Using defaults.");
@@ -150,7 +174,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             } catch (e) { console.warn("Could not parse userJobSeekerAIWeights from localStorage", e); }
           }
       }
-
 
       const result = await recommendProfile({ 
           candidateProfile: candidateForAI, 
@@ -189,7 +212,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsLoadingAiAnalysis(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [company.id, company.name, company.industry, company.description, company.cultureHighlights, jobOpening?.title, jobOpening?.description, jobOpening?.tags, jobOpening?.requiredExperienceLevel, jobOpening?.requiredEducationLevel, jobOpening?.workLocationType, jobOpening?.location, jobOpening?.requiredLanguages, jobOpening?.salaryMin, jobOpening?.salaryMax, jobOpening?.jobType, isDetailsModalOpen, isGuestMode, toast]);
+  }, [company, jobOpening, isDetailsModalOpen, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI]);
 
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
@@ -741,4 +764,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-

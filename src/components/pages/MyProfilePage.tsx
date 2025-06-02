@@ -19,7 +19,6 @@ import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-const LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY = 'currentUserJobSeekerProfile';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface MyProfilePageProps {
@@ -102,7 +101,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     const loadProfile = async () => {
       setIsFetchingProfile(true);
-      setAvatarPreview(null);
+      setAvatarPreview(null); // Reset preview before loading
       if (mongoDbUserId) {
         try {
           const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
@@ -127,43 +126,46 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setIsFetchingProfile(false);
             return;
           } else {
-            console.warn("Failed to fetch profile from backend, status:", response.status, ". Falling back to localStorage if available.");
+            console.warn("Failed to fetch profile from backend, status:", response.status, ". Profile fields will be empty or default.");
+            toast({
+              title: "Profile Not Found or Error",
+              description: "Could not load your profile from the server. Please fill in your details.",
+              variant: "default",
+              duration: 7000,
+            });
           }
         } catch (error) {
-          console.error("Error fetching profile from backend:", error, ". Falling back to localStorage if available.");
+          console.error("Error fetching profile from backend:", error, ". Profile fields will be empty or default.");
+           toast({
+              title: "Error Loading Profile",
+              description: "An error occurred while trying to load your profile. Please check your connection or try again later.",
+              variant: "destructive",
+            });
         }
       }
-
-      const savedProfileString = localStorage.getItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY);
-      if (savedProfileString) {
-        try {
-          const savedProfile = JSON.parse(savedProfileString);
-          setProfileHeadline(savedProfile.profileHeadline || '');
-          setExperienceSummary(savedProfile.experienceSummary || '');
-          setSkillList(savedProfile.skills ? savedProfile.skills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-          setDesiredWorkStyle(savedProfile.desiredWorkStyle || '');
-          setPastProjects(savedProfile.pastProjects || '');
-          setVideoPortfolioLink(savedProfile.videoPortfolioLink || '');
-          setAvatarUrl(savedProfile.avatarUrl || savedProfile.profileAvatarUrl || '');
-          setWorkExperienceLevel(savedProfile.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
-          setEducationLevel(savedProfile.educationLevel || EducationLevel.UNSPECIFIED);
-          setLocationPreference(savedProfile.locationPreference || LocationPreference.UNSPECIFIED);
-          setLanguageList(savedProfile.languages ? savedProfile.languages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-          setAvailability(savedProfile.availability || Availability.UNSPECIFIED);
-          setJobTypePreferenceList(savedProfile.jobTypePreference ? savedProfile.jobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
-          setSalaryExpectationMin(savedProfile.salaryExpectationMin?.toString() || '');
-          setSalaryExpectationMax(savedProfile.salaryExpectationMax?.toString() || '');
-          setSelectedCardTheme(savedProfile.profileCardTheme || 'default');
-        } catch (e) {
-          console.error("Error parsing saved profile from localStorage:", e);
-        }
-      }
+      // If mongoDbUserId is not available or fetch failed, keep fields as default/empty
+      setProfileHeadline('');
+      setExperienceSummary('');
+      setSkillList([]);
+      setDesiredWorkStyle('');
+      setPastProjects('');
+      setVideoPortfolioLink('');
+      setAvatarUrl('');
+      setWorkExperienceLevel(WorkExperienceLevel.UNSPECIFIED);
+      setEducationLevel(EducationLevel.UNSPECIFIED);
+      setLocationPreference(LocationPreference.UNSPECIFIED);
+      setLanguageList([]);
+      setAvailability(Availability.UNSPECIFIED);
+      setJobTypePreferenceList([]);
+      setSalaryExpectationMin('');
+      setSalaryExpectationMax('');
+      setSelectedCardTheme('default');
       setIsFetchingProfile(false);
     };
 
     loadProfile();
 
-  }, [isGuestMode, mongoDbUserId]);
+  }, [isGuestMode, mongoDbUserId, toast]);
 
   const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -330,11 +332,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       }
       setAvatarFile(null); 
       setAvatarPreview(null); 
-
-      if (typeof window !== 'undefined') {
-         const localDataToSave = { ...profileData, avatarUrl: finalAvatarUrl, skills: skillList.join(','), languages: languageList.join(','), jobTypePreference: jobTypePreferenceList.join(',') };
-         localStorage.setItem(LOCAL_STORAGE_JOBSEEKER_PROFILE_KEY, JSON.stringify(localDataToSave));
-      }
 
       toast({
         title: 'Profile Updated & Published!',
@@ -731,6 +728,3 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
-
-
-    
