@@ -117,46 +117,10 @@ const corsOptions = {
 };
 app.use(cors(corsOptions));
 
-const staticUploadsPath = path.resolve(__dirname, 'uploads');
-const uploadsLoggingMiddleware = (req, res, next) => {
-    console.log(`[Uploads Static Entry] Request for: ${req.originalUrl}`);
-    const requestedFilename = req.path.startsWith('/') ? req.path.substring(1) : req.path;
-    const physicalPath = path.join(staticUploadsPath, decodeURIComponent(requestedFilename));
-    console.log(`[Uploads Static Entry]   Raw req.path: ${req.path}`);
-    console.log(`[Uploads Static Entry]   Decoded req.path: ${decodeURIComponent(req.path)}`);
-    console.log(`[Uploads Static Entry]   Attempting to serve physical path: ${physicalPath}`);
-    if (fs.existsSync(physicalPath)) {
-        console.log(`[Uploads Static Entry]   File EXISTS at physical path.`);
-    } else {
-        console.warn(`[Uploads Static Entry]   File DOES NOT EXIST at physical path.`);
-    }
-    next();
-};
+// Serve static files from the 'uploads' directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+console.log(`[Static Serving] Serving static files from ${path.join(__dirname, 'uploads')} at /uploads`);
 
-app.get('/uploads/:filename', uploadsLoggingMiddleware, (req, res) => {
-    const filename = req.params.filename;
-    console.log(`[Manual /uploads/:filename Handler] Request for filename: ${filename}`);
-    if (filename.includes('..')) {
-        console.warn(`[Manual /uploads/:filename Handler] Directory traversal attempt blocked for: ${filename}`);
-        return res.status(400).send('Invalid filename.');
-    }
-    const filePath = path.join(staticUploadsPath, decodeURIComponent(filename)); // Decode filename
-    console.log(`[Manual /uploads/:filename Handler] Attempting to serve physical path: ${filePath}`);
-    res.sendFile(filePath, (err) => {
-        if (err) {
-            console.error(`[Manual /uploads/:filename Handler] Error sending file ${filePath}:`, err);
-            if (!res.headersSent) {
-                if (err.code === 'ENOENT') {
-                    res.status(404).send('File not found.');
-                } else {
-                    res.status(500).send('Error sending file.');
-                }
-            }
-        } else {
-            console.log(`[Manual /uploads/:filename Handler] File sent successfully: ${filePath}`);
-        }
-    });
-});
 
 // Multer storage configuration for general files (like avatars)
 const storage = multer.diskStorage({
@@ -330,7 +294,7 @@ app.put('/api/users/:identifier', async (req, res) => {
 app.post('/api/users/:userId/jobs', async (req, res) => {
     const { userId } = req.params;
     const jobOpeningData = req.body;
-    console.log(`[Backend POST Job] Received request to post job for user ${userId}. Data:`, JSON.stringify(jobOpeningData).substring(0, 300) + "...");
+    console.log(`[Backend POST Job] Received request to post job for user ${userId}.`);
 
     try {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -347,7 +311,6 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         recruiter.selectedRole = 'recruiter';
         recruiter.companyNameForJobs = recruiter.companyNameForJobs || recruiter.name || 'Default Company Name From Post';
         recruiter.companyIndustryForJobs = recruiter.companyIndustryForJobs || 'Various From Post';
-        console.log(`[Backend POST Job] Before job add: Recruiter ${recruiter.name} (${recruiter._id}) - selectedRole=${recruiter.selectedRole}, companyNameForJobs=${recruiter.companyNameForJobs}`);
         
         const companyLogoForJob = recruiter.profileAvatarUrl; 
 
@@ -356,7 +319,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
             companyNameForJob: recruiter.companyNameForJobs,
             companyIndustryForJob: recruiter.companyIndustryForJobs,
             companyLogoForJob: companyLogoForJob,
-            postedAt: new Date(), // Ensure postedAt is set
+            postedAt: new Date(),
         };
         
         recruiter.jobOpenings.push(newJobSubdocument);
@@ -364,7 +327,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         const updatedRecruiter = await recruiter.save();
         
         const postedJob = updatedRecruiter.jobOpenings[updatedRecruiter.jobOpenings.length - 1];
-        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${updatedRecruiter.name} (${updatedRecruiter._id}). Total jobs: ${updatedRecruiter.jobOpenings.length}. Recruiter role is now: ${updatedRecruiter.selectedRole}`);
+        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${updatedRecruiter.name} (${updatedRecruiter._id}). Total jobs: ${updatedRecruiter.jobOpenings.length}.`);
         console.log(`[Backend POST Job] Recruiter document after save: selectedRole=${updatedRecruiter.selectedRole}, companyNameForJobs=${updatedRecruiter.companyNameForJobs}`);
         res.status(201).json({ message: 'Job posted successfully!', job: postedJob });
 
@@ -381,7 +344,7 @@ app.get('/api/users/:userId/jobs', async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'Invalid user ID format.' });
         }
-        const user = await User.findById(userId).lean(); // Use .lean() for potentially better performance
+        const user = await User.findById(userId).lean();
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
@@ -414,20 +377,16 @@ app.put('/api/users/:userId/jobs/:jobId', async (req, res) => {
             return res.status(404).json({ message: 'Job posting not found.' });
         }
 
-        // Update specific fields of the job subdocument
         Object.keys(updatedJobData).forEach(key => {
-            // Ensure we don't try to update _id or companyNameForJob/companyIndustryForJob/companyLogoForJob directly from payload
             if (key !== '_id' && key !== 'companyNameForJob' && key !== 'companyIndustryForJob' && key !== 'companyLogoForJob' && key !== 'postedAt') {
                 user.jobOpenings[jobIndex][key] = updatedJobData[key];
             }
         });
-         // Ensure tags are handled correctly (convert string to array if necessary)
         if (updatedJobData.tags && typeof updatedJobData.tags === 'string') {
             user.jobOpenings[jobIndex].tags = updatedJobData.tags.split(',').map(tag => tag.trim()).filter(tag => tag);
         } else if (Array.isArray(updatedJobData.tags)) {
             user.jobOpenings[jobIndex].tags = updatedJobData.tags.map(tag => tag.trim()).filter(tag => tag);
         }
-
 
         await user.save();
         console.log(`[Backend PUT Job] Successfully updated job "${user.jobOpenings[jobIndex].title}" (ID: ${jobId}) for recruiter ${user.name} (${userId}).`);
@@ -471,13 +430,14 @@ app.delete('/api/users/:userId/jobs/:jobId', async (req, res) => {
 });
 
 
-// GET all job openings from all users (regardless of current role, if they have jobs)
+// GET all job openings from all users
 app.get('/api/jobs', async (req, res) => {
     try {
+        // Fetch users who have job openings, regardless of their current selectedRole
         const query = { 'jobOpenings.0': { $exists: true } };
         console.log(`[Backend GET Jobs] Querying for users with jobs using: ${JSON.stringify(query)}`);
         const usersWithJobs = await User.find(query).lean();
-        console.log(`[Backend GET Jobs] Found ${usersWithJobs.length} users with job openings based on query: ${JSON.stringify(query)}.`);
+        console.log(`[Backend GET Jobs] Found ${usersWithJobs.length} users with job openings based on query.`);
         
         const allJobs = usersWithJobs.flatMap(user => {
             if (!user.jobOpenings || user.jobOpenings.length === 0) {
@@ -582,7 +542,6 @@ app.post('/api/diary-posts/upload-image', uploadDiaryImageMulter.single('diaryIm
         return res.status(400).json({ message: 'No image file uploaded for diary post.' });
     }
     // The file is saved by multer. Return the path.
-    // The path will be relative to the '/uploads/diary/' directory served statically.
     const imageUrl = `/uploads/diary/${req.file.filename}`;
     res.json({ success: true, imageUrl: imageUrl });
 });
@@ -890,11 +849,3 @@ server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
-
-    
-
-    
-
-
-
-
