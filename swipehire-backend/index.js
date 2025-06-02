@@ -194,8 +194,8 @@ app.post('/api/users', async (req, res) => {
             name, email, preferences, firebaseUid, selectedRole, 
             representedCandidateProfileId: finalRepCandidateId, 
             representedCompanyProfileId: finalRepCompanyId,
-            companyNameForJobs: selectedRole === 'recruiter' ? name : undefined, // Set default company name for recruiter
-            companyIndustryForJobs: selectedRole === 'recruiter' ? 'Various' : undefined // Set default company industry
+            companyNameForJobs: selectedRole === 'recruiter' ? name : undefined, 
+            companyIndustryForJobs: selectedRole === 'recruiter' ? 'Various' : undefined 
         };
         const newUser = new User(newUserPayload);
         await newUser.save();
@@ -249,8 +249,6 @@ app.post('/api/users/:identifier/video-resume', uploadVideo.single('videoResume'
         }
 
         const videoUrl = `/uploads/${req.file.filename}`;
-        // Assuming 'profileVideoPortfolioLink' is the field to store the video resume URL.
-        // If you have a different field, update it here.
         userToUpdate.profileVideoPortfolioLink = videoUrl; 
         await userToUpdate.save();
         res.json({ message: 'Video resume uploaded successfully!', videoUrl: videoUrl, user: userToUpdate });
@@ -274,12 +272,11 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
         if (userToUpdate.selectedRole === 'jobseeker' && !userToUpdate.representedCandidateProfileId) {
             userToUpdate.representedCandidateProfileId = userToUpdate.firebaseUid ? `cand-user-${userToUpdate.firebaseUid.slice(0,5)}` : `cand-user-${userToUpdate._id.toString().slice(-5)}`;
         }
-        // If recruiter and company name for jobs is not set, default it from user's name
         if (userToUpdate.selectedRole === 'recruiter' && !userToUpdate.companyNameForJobs) {
             userToUpdate.companyNameForJobs = userToUpdate.name;
         }
         if (userToUpdate.selectedRole === 'recruiter' && !userToUpdate.companyIndustryForJobs) {
-            userToUpdate.companyIndustryForJobs = 'Various'; // Default industry
+            userToUpdate.companyIndustryForJobs = 'Various';
         }
         const updatedUser = await userToUpdate.save();
         res.json({ message: 'User profile updated successfully!', user: updatedUser });
@@ -294,7 +291,6 @@ app.put('/api/users/:identifier', async (req, res) => {
         const updatePayload = { ...update };
         if (updatePayload.firebaseUid === undefined) delete updatePayload.firebaseUid;
         if (updatePayload.email === undefined) delete updatePayload.email;
-        // If updating to recruiter and company fields are not provided, set defaults
         if (updatePayload.selectedRole === 'recruiter') {
             if (updatePayload.companyNameForJobs === undefined || updatePayload.companyNameForJobs === '') {
                 updatePayload.companyNameForJobs = updatePayload.name || 'Default Company Name';
@@ -315,7 +311,7 @@ app.put('/api/users/:identifier', async (req, res) => {
 app.post('/api/users/:userId/jobs', async (req, res) => {
     try {
         const { userId } = req.params;
-        const jobOpeningData = req.body; // This should be the CompanyJobOpening object
+        const jobOpeningData = req.body; 
 
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'Invalid user ID format.' });
@@ -329,22 +325,30 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
             return res.status(403).json({ message: 'User is not a recruiter.' });
         }
 
-        // Populate company details for the job from the recruiter's profile
+        // Ensure recruiter's company name and industry are set if missing
+        if (!recruiter.companyNameForJobs) {
+            recruiter.companyNameForJobs = recruiter.name; // Default to recruiter's name
+        }
+        if (!recruiter.companyIndustryForJobs) {
+            recruiter.companyIndustryForJobs = 'Various'; // Default industry
+        }
+        
         const newJob = {
             ...jobOpeningData,
-            companyNameForJob: recruiter.companyNameForJobs || recruiter.name,
-            companyLogoForJob: recruiter.profileAvatarUrl, // Use recruiter's avatar as company logo for now
-            companyIndustryForJob: recruiter.companyIndustryForJobs || 'Various',
+            companyNameForJob: recruiter.companyNameForJobs,
+            companyLogoForJob: recruiter.profileAvatarUrl, 
+            companyIndustryForJob: recruiter.companyIndustryForJobs,
         };
 
         recruiter.jobOpenings.push(newJob);
         await recruiter.save();
         
-        // Return only the newly added job opening, which is the last one in the array
         const postedJob = recruiter.jobOpenings[recruiter.jobOpenings.length - 1];
+        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${recruiter.name} (${recruiter._id}). Total jobs: ${recruiter.jobOpenings.length}`);
         res.status(201).json({ message: 'Job posted successfully!', job: postedJob });
 
     } catch (error) {
+        console.error(`[Backend POST Job] Error posting job for user ${req.params.userId}:`, error);
         res.status(500).json({ message: 'Server error posting job', error: error.message });
     }
 });
@@ -353,30 +357,44 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
 app.get('/api/jobs', async (req, res) => {
     try {
         const recruiters = await User.find({ selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } });
+        console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings.`);
         
         const allJobs = recruiters.flatMap(recruiter => {
-            return recruiter.jobOpenings.map(job => ({
-                // This structure mimics a 'Company' object for the JobDiscoveryPage
-                id: `comp-user-${recruiter._id.toString()}-job-${job._id.toString()}`, // Unique ID for the "company-job" context
-                recruiterUserId: recruiter._id.toString(), // Explicitly add recruiter's User ID
-                name: job.companyNameForJob || recruiter.name,
-                industry: job.companyIndustryForJob || recruiter.companyIndustryForJobs || 'Various',
-                description: `Job posting by ${recruiter.name}`, // Generic company description
-                cultureHighlights: job.companyCultureKeywords || [],
-                logoUrl: job.companyLogoForJob || recruiter.profileAvatarUrl || 'https://placehold.co/100x100.png',
-                dataAiHint: 'company logo', // Placeholder
-                jobOpenings: [{ ...job.toObject(), _id: job._id.toString() }], // Ensure job has its own _id as string
-                // Other company fields (introVideoUrl, companyNeeds) can be added if available on User model
-            }));
+            console.log(`[Backend GET Jobs] Processing recruiter ${recruiter.name} (${recruiter._id}) with ${recruiter.jobOpenings.length} jobs.`);
+            return recruiter.jobOpenings.map(job => {
+                // Ensure job._id is a string
+                const jobIdString = job._id ? job._id.toString() : `generated-${Math.random().toString(36).substring(2, 15)}`;
+                if (!job._id) {
+                    console.warn(`[Backend GET Jobs] Job for recruiter ${recruiter.name} missing _id, generated: ${jobIdString}. Title: ${job.title}`);
+                }
+                
+                const jobObject = job.toObject ? job.toObject() : { ...job }; // Handle if job is not a full Mongoose subdocument instance (less likely here)
+                
+                const companyLikeObject = {
+                    id: `comp-user-${recruiter._id.toString()}-job-${jobIdString}`, 
+                    recruiterUserId: recruiter._id.toString(), 
+                    name: job.companyNameForJob || recruiter.name || 'Unknown Company', // Added fallback
+                    industry: job.companyIndustryForJob || recruiter.companyIndustryForJobs || 'Various',
+                    description: `Job posting by ${recruiter.name || 'a recruiter'}`, 
+                    cultureHighlights: job.companyCultureKeywords || [],
+                    logoUrl: job.companyLogoForJob || recruiter.profileAvatarUrl || 'https://placehold.co/100x100.png',
+                    dataAiHint: 'company logo', 
+                    jobOpenings: [{ ...jobObject, _id: jobIdString }], 
+                };
+                // console.log(`[Backend GET Jobs] Mapped job: ${job.title} from ${recruiter.name} to company-like ID: ${companyLikeObject.id}`);
+                return companyLikeObject;
+            });
         });
         
-        res.json(allJobs.sort((a, b) => {
-             // Sort by the job's postedAt date, descending
+        allJobs.sort((a, b) => {
              const dateA = a.jobOpenings[0].postedAt ? new Date(a.jobOpenings[0].postedAt) : new Date(0);
              const dateB = b.jobOpenings[0].postedAt ? new Date(b.jobOpenings[0].postedAt) : new Date(0);
-             return dateB - dateA;
-        }));
+             return dateB.getTime() - dateA.getTime();
+        });
+        console.log(`[Backend GET Jobs] Returning ${allJobs.length} total jobs to frontend.`);
+        res.json(allJobs);
     } catch (error) {
+        console.error(`[Backend GET Jobs] Error fetching jobs:`, error);
         res.status(500).json({ message: 'Server error fetching jobs', error: error.message });
     }
 });
@@ -487,19 +505,17 @@ app.post('/api/interactions/like', async (req, res) => {
                 console.warn(`[Like Interaction] likedProfileId for company is not a Mongo ObjectId: ${likedProfileId}.`);
                 return res.status(400).json({ message: "Invalid company/recruiter profile ID." });
              } else {
-                otherUser = await User.findById(likedProfileId); // For jobs, likedProfileId is the recruiter's User ID
+                otherUser = await User.findById(likedProfileId); 
              }
         }
 
         if (!otherUser) return res.status(404).json({ message: "Liked profile's owner (user or recruiter) not found." });
 
         if (likingUserRole === 'recruiter' && likedProfileType === 'candidate') {
-            // Recruiter likes a candidate. 'likedProfileId' is the candidate's User._id
             if (!likingUser.likedCandidateIds.includes(likedProfileId)) likingUser.likedCandidateIds.push(likedProfileId);
             if (otherUser.likedCompanyIds.includes(likingUser._id.toString())) matchMade = true;
 
         } else if (likingUserRole === 'jobseeker' && likedProfileType === 'company') {
-            // Job seeker likes a company (job posting by a recruiter). 'likedProfileId' is the recruiter's User._id
             if (!likingUser.likedCompanyIds.includes(likedProfileId)) likingUser.likedCompanyIds.push(likedProfileId);
             if (otherUser.likedCandidateIds.includes(likingUser._id.toString())) matchMade = true;
         } else return res.status(400).json({ message: "Invalid role/profile type combination." });
@@ -518,7 +534,7 @@ app.post('/api/interactions/like', async (req, res) => {
                 if (likingUser.selectedRole === 'jobseeker') {
                     candidateDisplayIdForMatch = likingUser.representedCandidateProfileId || likingUser._id.toString();
                     companyDisplayIdForMatch = otherUser.representedCompanyProfileId || otherUser._id.toString();
-                } else { // likingUser is recruiter
+                } else { 
                     candidateDisplayIdForMatch = otherUser.representedCandidateProfileId || otherUser._id.toString();
                     companyDisplayIdForMatch = likingUser.representedCompanyProfileId || likingUser._id.toString();
                 }
@@ -527,7 +543,7 @@ app.post('/api/interactions/like', async (req, res) => {
                     userA_Id, 
                     userB_Id, 
                     candidateProfileIdForDisplay: candidateDisplayIdForMatch, 
-                    companyDisplayIdForDisplay: companyDisplayIdForMatch, 
+                    companyProfileIdForDisplay: companyDisplayIdForMatch, 
                     uniqueMatchKey 
                 });
                 await newMatch.save(); newMatchDetails = newMatch;
@@ -547,11 +563,9 @@ app.get('/api/matches/:userId', async (req, res) => {
     } catch (error) { res.status(500).json({ message: 'Server error fetching matches.', error: error.message }); }
 });
 
-// New Endpoints for Passed/Trashed Items
 app.post('/api/users/:userId/pass-candidate/:candidateId', async (req, res) => {
     const { userId, candidateId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid user ID.' });
-    // candidateId is a mock ID string like 'cand1', not a MongoDB ObjectId
     try {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found.' });
@@ -566,7 +580,6 @@ app.post('/api/users/:userId/pass-candidate/:candidateId', async (req, res) => {
 app.post('/api/users/:userId/pass-company/:companyId', async (req, res) => {
     const { userId, companyId } = req.params;
     if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid user ID.' });
-    // companyId is a mock ID string like 'comp1', not a MongoDB ObjectId
     try {
         const user = await User.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found.' });
@@ -738,7 +751,6 @@ mongoose.connect(MONGO_URI)
 .catch((err) => { console.error('MongoDB connection error:', err); process.exit(1); });
 
 server.listen(PORT, () => {
-    // Cloud Run will set process.env.PORT to the port your application should listen on.
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
