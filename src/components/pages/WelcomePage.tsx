@@ -150,8 +150,8 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70 z-0"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
-              Unlock Your Career<br className="hidden sm:block" />
-              Potential <span className="text-yellow-400">✨</span><br className="hidden sm:block" />
+              Unlock Your Career<br className="sm:block" />
+              Potential <span className="text-yellow-400">✨</span><br className="sm:block" />
               Discover Top Talent.
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
@@ -168,7 +168,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <button onClick={onStartExploring} className="text-sm text-slate-300 hover:text-white transition-colors" data-aos="fade-up" data-aos-delay="300">
               Already have an account? <span className="font-semibold underline">Log In</span>
             </button>
-            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-70">
+            <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-70 cursor-pointer" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
               <ChevronDown className="h-8 w-8" />
             </div>
           </div>
