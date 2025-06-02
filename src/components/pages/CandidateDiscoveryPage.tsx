@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { recordLike } from '@/services/matchService';
 import NextImage from 'next/image';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"; // Removed DialogClose explicitly
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { passCandidate, retrieveCandidate } from '@/services/interactionService';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
@@ -28,7 +28,8 @@ import { Label } from '@/components/ui/label';
 
 
 const ITEMS_PER_BATCH = 3;
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
@@ -189,7 +190,7 @@ function CandidateDetailsModal({
                 </div>
             </div>
           </div>
-          {/* Removed the explicit "Close" button here. The 'X' from DialogContent will be used. */}
+          {/* The "X" close button is provided by DialogContent itself */}
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0 bg-white">
@@ -203,7 +204,6 @@ function CandidateDetailsModal({
                     <h3 className="text-xl font-semibold text-slate-700 font-heading">Experience Summary</h3>
                 </div>
                 <div className="p-4 rounded-lg bg-orange-50 border border-orange-200 shadow-sm">
-                    <Label className="text-xs font-semibold text-orange-700 uppercase block mb-1">Current Status</Label>
                     <p className="text-sm text-orange-800 whitespace-pre-line leading-relaxed">
                         {summaryForModalDisplay}
                          {candidate.experienceSummary && candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && (
@@ -396,7 +396,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
       if (!mongoDbUserId && !isGuestMode) {
         console.log("[CandidateDiscovery] Skipping backend fetch: no mongoDbUserId and not in guest mode. Using mock data.");
         setAllCandidates([...mockCandidates]);
-        return; // Exit early after setting mock data
+        return;
       }
       console.log("[CandidateDiscovery] Fetching candidates from backend...");
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
@@ -735,9 +735,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
             </div>
           </ScrollArea>
           <DialogFooter className="p-4 border-t">
-            <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-            </DialogClose>
+             <Button variant="outline" onClick={() => setIsTrashBinOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -785,5 +783,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     </div>
   );
 }
+
+    
 
     

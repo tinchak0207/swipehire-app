@@ -57,6 +57,7 @@ const nextConfig: NextConfig = {
     
     // Origins from which requests were previously blocked (ports 9000, 6000)
     'https://9000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    'http://9000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev', // Added HTTP variant
     'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
     
     // Backend URL (port 5000 public URL), for completeness if direct browser interactions are needed
@@ -70,3 +71,6 @@ const nextConfig: NextConfig = {
 };
 
 export default nextConfig;
+
+
+    

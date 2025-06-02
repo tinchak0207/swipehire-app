@@ -12,7 +12,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
 
 interface ProfileCardProps {
   candidate: Candidate;
@@ -261,4 +262,6 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
 };
 
 export default ProfileCard;
+    
+
     

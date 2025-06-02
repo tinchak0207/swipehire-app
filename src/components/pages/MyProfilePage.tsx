@@ -19,7 +19,8 @@ import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
 
 interface MyProfilePageProps {
   isGuestMode?: boolean;
@@ -728,3 +729,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+
+
+    
