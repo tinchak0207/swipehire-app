@@ -322,9 +322,10 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
             return res.status(404).json({ message: 'Recruiter not found.' });
         }
 
+        // Ensure recruiter data is correctly set before adding the job
         recruiter.selectedRole = 'recruiter';
-        recruiter.companyNameForJobs = recruiter.companyNameForJobs || recruiter.name || 'Default Company Name';
-        recruiter.companyIndustryForJobs = recruiter.companyIndustryForJobs || 'Various';
+        recruiter.companyNameForJobs = recruiter.companyNameForJobs || recruiter.name || 'Default Company Name From Post';
+        recruiter.companyIndustryForJobs = recruiter.companyIndustryForJobs || 'Various From Post';
         
         const companyLogoForJob = recruiter.profileAvatarUrl; 
 
@@ -354,31 +355,37 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
 // GET all job openings from all recruiters
 app.get('/api/jobs', async (req, res) => {
     try {
-        const query = { selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } };
-        console.log(`[Backend GET Jobs] Querying for recruiters with jobs using: ${JSON.stringify(query)}`);
-        const recruiters = await User.find(query).lean(); // Using .lean() here
-        console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings based on query: ${JSON.stringify(query)}.`);
+        // Fetch users who have jobOpenings. No longer filtering by selectedRole.
+        const query = { 'jobOpenings.0': { $exists: true } };
+        console.log(`[Backend GET Jobs] Querying for users with jobs using: ${JSON.stringify(query)}`);
+        const usersWithJobs = await User.find(query).lean();
+        console.log(`[Backend GET Jobs] Found ${usersWithJobs.length} users with job openings based on query: ${JSON.stringify(query)}.`);
         
-        const allJobs = recruiters.flatMap(recruiter => {
-            if (!recruiter.jobOpenings || recruiter.jobOpenings.length === 0) {
+        const allJobs = usersWithJobs.flatMap(user => {
+            if (!user.jobOpenings || user.jobOpenings.length === 0) {
                 return [];
             }
-            return recruiter.jobOpenings.map(job => {
+            return user.jobOpenings.map(job => {
                 const jobIdString = job._id ? job._id.toString() : `generated-${Math.random().toString(36).substring(2, 15)}`;
                 if (!job._id) {
-                    console.warn(`[Backend GET Jobs] Job for recruiter ${recruiter.name} missing _id, generated: ${jobIdString}. Title: ${job.title}`);
+                    console.warn(`[Backend GET Jobs] Job for user ${user.name} missing _id, generated: ${jobIdString}. Title: ${job.title}`);
                 }
                 
                 const jobObject = job; 
                 
+                // Ensure companyNameForJob and companyIndustryForJob fall back to user's main details if not on job itself
+                const companyName = job.companyNameForJob || user.companyNameForJobs || user.name || 'Unknown Company';
+                const companyIndustry = job.companyIndustryForJob || user.companyIndustryForJobs || 'Various';
+                const companyLogo = job.companyLogoForJob || user.profileAvatarUrl || 'https://placehold.co/100x100.png';
+
                 const companyLikeObject = {
-                    id: `comp-user-${recruiter._id.toString()}-job-${jobIdString}`, 
-                    recruiterUserId: recruiter._id.toString(), 
-                    name: job.companyNameForJob || recruiter.name || 'Unknown Company',
-                    industry: job.companyIndustryForJob || recruiter.companyIndustryForJobs || 'Various',
-                    description: `Job posting by ${recruiter.name || 'a recruiter'}`, 
+                    id: `comp-user-${user._id.toString()}-job-${jobIdString}`, 
+                    recruiterUserId: user._id.toString(), 
+                    name: companyName,
+                    industry: companyIndustry,
+                    description: `Job posting by ${user.name || 'a recruiter'}`, 
                     cultureHighlights: job.companyCultureKeywords || [],
-                    logoUrl: job.companyLogoForJob || recruiter.profileAvatarUrl || 'https://placehold.co/100x100.png',
+                    logoUrl: companyLogo,
                     dataAiHint: 'company logo', 
                     jobOpenings: [{ ...jobObject, _id: jobIdString }], 
                 };
@@ -758,4 +765,5 @@ server.listen(PORT, () => {
     
 
     
+
 
