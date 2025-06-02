@@ -3,7 +3,7 @@
 
 import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
 import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap, Maximize } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
@@ -58,8 +58,8 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
   useEffect(() => {
     AOS.init({
       duration: 800,
-      once: true,
-      offset: 100,
+      once: true, // Only animate once on scroll
+      offset: 100, // offset (in px) from the original trigger point
     });
   }, []);
 
@@ -98,7 +98,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         <section
           id="hero"
           className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('/hero-background.jpg')" }} /* Updated image path */
+          style={{ backgroundImage: "url('/heroimage/office.jpg')" }} 
           data-aos="fade-in"
         >
           <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
