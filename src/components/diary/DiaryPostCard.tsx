@@ -25,8 +25,12 @@ const isUrlProcessableByNextImage = (imageUrl?: string): boolean => {
   if (!imageUrl) return false;
   try {
     const url = new URL(imageUrl);
+    // Check against configured hostnames
     return CONFIGURED_IMAGE_HOSTNAMES.includes(url.hostname);
   } catch (e) {
+    // If it's a relative path like /uploads/diary/..., it's not a full URL.
+    // This function expects a full URL to check its hostname.
+    // The calling code will now pass the final, absolute URL.
     return false;
   }
 };
@@ -38,6 +42,8 @@ interface DiaryPostCardProps {
   isGuestMode?: boolean;
   currentUserId?: string | null;
 }
+
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 export function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestMode, currentUserId }: DiaryPostCardProps) {
   const [showFullContent, setShowFullContent] = useState(false);
@@ -68,8 +74,19 @@ export function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestM
     return `${post.content.substring(0, MAX_CONTENT_LENGTH)}...`;
   }, [post.content, showFullContent]);
 
+  let finalImageUrl = post.imageUrl;
+  if (post.imageUrl && post.imageUrl.startsWith('/uploads/')) {
+    finalImageUrl = `${CUSTOM_BACKEND_URL}${post.imageUrl}`;
+  }
+
   const imageHint = post.diaryImageHint || post.tags?.[0] || 'diary image';
-  const useNextImage = isUrlProcessableByNextImage(post.imageUrl);
+  const useNextImage = isUrlProcessableByNextImage(finalImageUrl);
+  
+  // Determine if the image is from the backend to potentially set unoptimized=true for next/image
+  // This is useful if the backend URL is localhost or a dynamic dev URL.
+  // next.config.ts should have the patterns, but unoptimized is safer for dev.
+  const isBackendImage = finalImageUrl && (finalImageUrl.startsWith('http://localhost') || finalImageUrl.includes('cloudworkstations.dev'));
+
 
   return (
     <Card className="w-full shadow-lg overflow-hidden">
@@ -93,13 +110,21 @@ export function DiaryPostCard({ post, onLikePost, isLikedByCurrentUser, isGuestM
       </CardHeader>
       <CardContent className="p-4 space-y-3">
         <h3 className="text-lg font-semibold">{post.title}</h3>
-        {post.imageUrl && (
+        {finalImageUrl && (
           <div className="relative aspect-video w-full rounded-md overflow-hidden my-2">
             {useNextImage ? (
-              <Image src={post.imageUrl} alt={post.title} fill style={{ objectFit: 'cover' }} data-ai-hint={imageHint} priority={post.isFeatured} />
+              <Image 
+                src={finalImageUrl} 
+                alt={post.title} 
+                fill 
+                style={{ objectFit: 'cover' }} 
+                data-ai-hint={imageHint} 
+                priority={post.isFeatured} 
+                unoptimized={isBackendImage} // Consider unoptimized for local/dev backend URLs
+              />
             ) : (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.imageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} data-ai-hint={imageHint} />
+              <img src={finalImageUrl} alt={post.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} data-ai-hint={imageHint} />
             )}
           </div>
         )}
