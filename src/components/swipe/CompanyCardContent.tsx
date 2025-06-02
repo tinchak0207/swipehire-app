@@ -4,7 +4,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart, Code2 } from 'lucide-react';
+import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart, Code2, UserCircle as UserCircleIcon } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,8 @@ import { Separator } from '@/components/ui/separator';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { recommendProfile } from '@/ai/flows/profile-recommender'; // Ensure this path is correct
-import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow'; // Ensure this path is correct
+import { recommendProfile } from '@/ai/flows/profile-recommender';
+import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 
 
 interface CompanyCardContentProps {
@@ -44,6 +44,67 @@ const incrementAnalytic = (key: string) => {
     localStorage.setItem(`analytics_${key}`, (currentCount + 1).toString());
   }
 };
+
+const CircularProgressBar = ({ percentage }: { percentage: number }) => {
+  const radius = 30;
+  const strokeWidth = 5;
+  const normalizedRadius = radius - strokeWidth / 2;
+  const circumference = normalizedRadius * 2 * Math.PI;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
+
+  return (
+    <svg
+      height={radius * 2}
+      width={radius * 2}
+      viewBox={`0 0 ${radius * 2} ${radius * 2}`}
+      className="transform -rotate-90"
+    >
+      <circle
+        stroke="rgba(255, 255, 255, 0.2)" // Background ring color from theme
+        fill="transparent"
+        strokeWidth={strokeWidth}
+        r={normalizedRadius}
+        cx={radius}
+        cy={radius}
+      />
+      <circle
+        stroke="url(#progressGradient)" // Using gradient for progress
+        fill="transparent"
+        strokeWidth={strokeWidth}
+        strokeDasharray={circumference + ' ' + circumference}
+        style={{ strokeDashoffset, strokeLinecap: 'round' }}
+        r={normalizedRadius}
+        cx={radius}
+        cy={radius}
+      />
+      <defs>
+        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#A78BFA" /> {/* Lighter purple */}
+          <stop offset="100%" stopColor="#6366F1" /> {/* Indigo */}
+        </linearGradient>
+      </defs>
+      <text
+        x="50%"
+        y="48%"
+        dy=".3em"
+        textAnchor="middle"
+        className="text-sm font-bold fill-white transform rotate-90 origin-center"
+      >
+        {`${percentage}%`}
+      </text>
+      <text
+        x="50%"
+        y="62%"
+        dy=".3em"
+        textAnchor="middle"
+        className="text-[8px] fill-white/80 transform rotate-90 origin-center"
+      >
+        match
+      </text>
+    </svg>
+  );
+};
+
 
 export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMode }: CompanyCardContentProps) {
   const cardRootRef = useRef<HTMLDivElement>(null);
@@ -82,11 +143,6 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setIsDetailsModalOpen(true);
   };
   
-  const handleDetailsButtonClickAndFocusAI = (e?: React.MouseEvent) => {
-    handleDetailsButtonClick(e);
-    setTimeout(() => setActiveAccordionItem("ai-fit-analysis"), 100);
-  };
-
   const fetchCurrentUserProfileForAI = useCallback(async () => {
     if (!mongoDbUserId || isGuestMode) return null;
     try {
@@ -187,7 +243,29 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { /* ... (no changes) */ };
   const getCardTransform = () => { /* ... (no changes) */ };
 
-  const handleAskQuestion = async () => { /* ... (no changes) */ };
+  const handleAskQuestion = async () => {
+    if (isGuestMode || !userQuestion.trim()) return;
+    setIsAskingQuestion(true);
+    setAiAnswer(null);
+    try {
+      const companyInput: CompanyQAInput = {
+        companyName: company.name,
+        companyDescription: company.description,
+        companyIndustry: company.industry,
+        companyCultureHighlights: company.cultureHighlights,
+        jobOpeningsSummary: jobOpening ? `${jobOpening.title}: ${jobOpening.description.substring(0, 100)}...` : "General opportunities available.",
+        userQuestion: userQuestion
+      };
+      const result = await answerCompanyQuestion(companyInput);
+      setAiAnswer(result.aiAnswer);
+    } catch (error) {
+      console.error("Error asking AI about company:", error);
+      toast({ title: "AI Question Error", description: "Could not get an answer from AI.", variant: "destructive" });
+      setAiAnswer("Sorry, I couldn't process that question right now.");
+    } finally {
+      setIsAskingQuestion(false);
+    }
+  };
   const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => { /* ... (no changes) */ };
 
   const companyDescriptionForModal = company.description;
@@ -200,44 +278,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
     
-  const CircularProgressBar = ({ percentage }: { percentage: number }) => {
-    const radius = 30;
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (percentage / 100) * circumference;
-
-    return (
-      <svg className="w-full h-full" viewBox="0 0 70 70">
-        <circle
-          className="text-white/20"
-          strokeWidth="4"
-          stroke="currentColor"
-          fill="transparent"
-          r={radius}
-          cx="35"
-          cy="35"
-        />
-        <circle
-          className="text-custom-primary-purple" // Or your accent purple
-          strokeWidth="4"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          fill="transparent"
-          r={radius}
-          cx="35"
-          cy="35"
-          style={{ transform: 'rotate(-90deg)', transformOrigin: '50% 50%' }}
-        />
-      </svg>
-    );
-  };
-
 
   return (
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-custom-primary-purple via-indigo-600 to-custom-dark-purple-blue text-white"
+        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -248,26 +294,30 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
       >
-        <div className="flex-1 p-4 pt-5 text-center flex flex-col">
-          <div className="absolute top-4 left-4">
-            <Badge className="bg-white/20 text-white text-xs px-3 py-1.5 rounded-full backdrop-blur-sm shadow-sm">
+        <div className="p-4 pt-5 text-center flex flex-col flex-grow">
+          <div className="absolute top-3 left-3">
+            <Badge className="bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
               {categoryText}
             </Badge>
           </div>
 
-          <div className="mx-auto mt-6 w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20">
-            <Code2 className="text-white h-8 w-8" />
+          <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-10">
+            {company.logoUrl && company.logoUrl !== 'https://placehold.co/500x350.png' ? (
+              <Image src={company.logoUrl} alt={`${company.name} logo`} width={36} height={36} className="object-contain" data-ai-hint={company.dataAiHint || "company logo"}/>
+            ) : (
+              <Code2 className="text-white h-8 w-8" />
+            )}
           </div>
 
-          <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-4">{company.name}</p>
-          <h1 className="text-white text-3xl font-bold mt-1 leading-tight break-words">
+          <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-6">{company.name}</p>
+          <h1 className="text-white text-3xl sm:text-4xl font-bold mt-1.5 leading-tight break-words">
             {jobOpening?.title.split('(')[0].trim()}
             {jobOpening?.title.includes('(') && (
               <span className="block text-2xl font-bold">{`(${jobOpening?.title.split('(')[1]}`}</span>
             )}
           </h1>
           
-          <div className="flex justify-center items-center gap-x-1.5 text-white/90 text-base mt-4">
+          <div className="text-white/90 text-base mt-4 flex justify-center items-center gap-x-1.5">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>
             )}
@@ -276,84 +326,123 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
             )}
           </div>
-
-          <div className="relative w-[90px] h-[90px] mx-auto mt-8 flex flex-col items-center justify-center">
-            <CircularProgressBar percentage={displayMatchPercentage} />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-              <span className="text-2xl font-bold text-white">{displayMatchPercentage}%</span>
-              <span className="text-xs text-white/80 mt-0.5">match</span>
-            </div>
-          </div>
           
-          <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-8 text-center">TOP SKILLS</p>
-          <div className="flex flex-wrap justify-center gap-2 mt-2">
+          {/* Spacer to push match indicator down if content is short */}
+          <div className="flex-grow min-h-[20px]"></div>
+
+
+          {/* New "Analyze My Job Fit" Section - replaces old match indicator spot */}
+          <div className="mt-8 mb-4 text-center">
+            {isGuestMode ? (
+               <div className="text-sm text-red-300 italic flex items-center justify-center p-2 border border-red-400/50 bg-red-500/20 rounded-md shadow-sm max-w-xs mx-auto">
+                 <Lock className="h-4 w-4 mr-2"/>AI Fit Analysis disabled in Guest Mode.
+               </div>
+            ) : !aiJobFitAnalysis && !isLoadingAiAnalysis ? (
+              <Button 
+                onClick={() => fetchAiAnalysis()} 
+                variant="outline" 
+                className="bg-white/10 hover:bg-white/20 border-white/30 text-white backdrop-blur-sm py-2.5 px-5 text-sm"
+              >
+                <Sparkles className="mr-2 h-4 w-4" /> Analyze My Job Fit
+              </Button>
+            ) : isLoadingAiAnalysis ? (
+              <div className="flex items-center justify-center text-sm text-white/80">
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analyzing Fit...
+              </div>
+            ) : aiJobFitAnalysis && (
+              <div className="space-y-1 p-2 bg-black/10 rounded-md max-w-xs mx-auto">
+                <p className="text-lg font-semibold text-white">
+                  Your Fit: <span className={cn(
+                    aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-300' : 
+                    aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-300' : 'text-red-300'
+                  )}>{aiJobFitAnalysis.matchScoreForCandidate}%</span>
+                </p>
+                <p className="text-xs text-white/70 italic line-clamp-2">{aiJobFitAnalysis.reasoningForCandidate}</p>
+              </div>
+            )}
+          </div>
+
+
+          <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-8">TOP SKILLS</p>
+          <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
             {jobOpening?.tags?.slice(0, 3).map((tag) => (
-              <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-sm px-4 py-1.5 rounded-full font-medium shadow-sm">
+              <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-base px-6 py-2.5 rounded-full font-semibold shadow-sm">
                 {tag}
               </Badge>
             ))}
           </div>
+
+          {/* Relocated Job Match Indicator */}
+          <div className="mt-8 mb-2 flex justify-center items-center">
+             <div className="w-[90px] h-[90px]">
+                <CircularProgressBar percentage={displayMatchPercentage} />
+             </div>
+          </div>
+           <p className="text-xs italic text-white/70 mb-4">Job Match Percentage</p>
+
           <div className="flex-grow"></div> {/* Spacer to push footer down */}
         </div>
             
-        <CardFooter className="mt-auto p-3 grid grid-cols-4 gap-3 border-t border-white/10 bg-transparent">
-          <Button
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
-            disabled={isGuestMode}
-            className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white transition-colors border border-white/20 bg-white/10 hover:bg-white/15 shadow-md hover:shadow-lg backdrop-blur-sm"
-            aria-label={`Pass on ${company.name}`}
-            data-no-drag="true"
-          >
-            {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1 text-white/90" />}
-            Pass
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={handleDetailsButtonClick}
-            className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white transition-colors border border-white/20 bg-white/10 hover:bg-white/15 shadow-md hover:shadow-lg backdrop-blur-sm"
-            aria-label={`View details for ${company.name}`}
-            data-no-drag="true"
-            data-modal-trigger="true"
-          >
-            <Eye className="h-5 w-5 mb-1 text-white/90" />
-            Profile
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
-            disabled={isGuestMode}
-            className={cn(
-              "flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white transition-colors border border-white/20 bg-white/10 hover:bg-white/15 shadow-md hover:shadow-lg backdrop-blur-sm",
-              isLiked && !isGuestMode && "ring-2 ring-custom-primary-purple bg-white/20"
-            )}
-            aria-label={`Like ${company.name}`}
-            data-no-drag="true"
-          >
-            {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Heart className={cn("h-5 w-5 mb-1 text-white/90", isLiked && "fill-custom-primary-purple text-custom-primary-purple")} />}
-            Like
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                disabled={isGuestMode}
-                className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white transition-colors border border-white/20 bg-white/10 hover:bg-white/15 shadow-md hover:shadow-lg backdrop-blur-sm"
-                aria-label={`Share ${company.name}`}
-                data-no-drag="true"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1 text-white/90" />}
-                Share
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><LinkIcon className="mr-2 h-4 w-4" /> Copy Link</DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Mail className="mr-2 h-4 w-4" /> Email</DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Linkedin className="mr-2 h-4 w-4" /> LinkedIn</DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Twitter className="mr-2 h-4 w-4" /> X / Twitter</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <CardFooter className="mt-auto p-3 flex justify-center border-t border-white/10 bg-transparent">
+          <div className="grid grid-cols-4 gap-2.5"> {/* Adjusted gap if needed */}
+            <Button
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
+              disabled={isGuestMode}
+              className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+              aria-label={`Pass on ${company.name}`}
+              data-no-drag="true"
+            >
+              {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1 text-white/90" />}
+              Pass
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={handleDetailsButtonClick}
+              className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+              aria-label={`View details for ${company.name}`}
+              data-no-drag="true"
+              data-modal-trigger="true"
+            >
+              <Eye className="h-5 w-5 mb-1 text-white/90" />
+              Profile
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
+              disabled={isGuestMode}
+              className={cn(
+                "flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm",
+                isLiked && !isGuestMode ? "ring-2 ring-pink-400 bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 hover:text-pink-200 hover:border-pink-400/70" : "hover:text-green-300 hover:bg-green-500/20 hover:border-green-400/50"
+              )}
+              aria-label={`Like ${company.name}`}
+              data-no-drag="true"
+            >
+              {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Heart className={cn("h-5 w-5 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />}
+              Like
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  disabled={isGuestMode}
+                  className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+                  aria-label={`Share ${company.name}`}
+                  data-no-drag="true"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1 text-white/90" />}
+                  Share
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><LinkIcon className="mr-2 h-4 w-4" /> Copy Link</DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Mail className="mr-2 h-4 w-4" /> Email</DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Linkedin className="mr-2 h-4 w-4" /> LinkedIn</DropdownMenuItem>
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Twitter className="mr-2 h-4 w-4" /> X / Twitter</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </CardFooter>
       </div>
 
