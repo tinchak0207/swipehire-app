@@ -129,7 +129,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
           </nav>
           <div className="flex items-center gap-2">
-            <Button onClick={onStartExploring} variant="link" size="sm" className="text-foreground hover:text-primary px-3 py-2">
+             <Button onClick={onStartExploring} variant="link" size="sm" className="text-primary-foreground hover:text-slate-300 px-3 py-2 hidden sm:inline-flex">
               Log In
             </Button>
             <Button onClick={onStartExploring} variant="default" size="sm" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md subtle-button-hover">
@@ -142,15 +142,15 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
       <main className="flex-grow">
         <section
           id="hero"
-          className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
+          className="relative py-24 md:py-36 text-white bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"
           data-aos="fade-in"
         >
-          <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
-          <div className="absolute inset-0 bg-slate-900/60 z-0"></div>
+          <div className="absolute inset-0 bg-black/10 z-0"></div> {/* Subtle overlay */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
-              Unlock Your Career Potential <span className="text-yellow-400">✨</span>
+              Unlock Your Career
+              <br className="hidden sm:block" />
+              Potential <span className="text-yellow-400">✨</span>
               <br className="hidden sm:block" />
               Discover Top Talent.
             </h1>
@@ -381,3 +381,5 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
     </div>
   );
 }
+
+    
