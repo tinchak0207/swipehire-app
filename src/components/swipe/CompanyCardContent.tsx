@@ -12,7 +12,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -68,31 +68,32 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  // Use AI score for match percentage if available, otherwise use prop or default
   const displayMatchPercentage = aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 75;
 
-  const experienceRequiredText = jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') : 'Experience not specified';
+  const experienceRequiredText = jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED 
+    ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + " experience required"
+    : 'Experience level not specified';
   const categoryText = company.industry || "General";
 
 
   const handleDetailsButtonClick = (e?: React.MouseEvent) => {
     e?.stopPropagation();
-    setAiJobFitAnalysis(null); // Reset so it can be re-fetched or shown fresh in modal
-    setIsLoadingAiAnalysis(false); // Reset loading state for modal
+    // Reset AI analysis states for the modal to ensure it's fresh or re-fetched if needed
+    setAiJobFitAnalysis(null);
+    setIsLoadingAiAnalysis(false);
     setUserQuestion("");
     setAiAnswer(null);
     setIsAskingQuestion(false);
     setShowFullJobDescriptionInModal(false);
     setShowFullCompanyDescriptionInModal(false);
     setIsDetailsModalOpen(true);
-    // Active accordion item will be set by fetchAiAnalysis or user interaction in modal
   };
-
+  
   const handleDetailsButtonClickAndFocusAI = (e?: React.MouseEvent) => {
     handleDetailsButtonClick(e);
-    // Setting timeout to allow modal to open before trying to set accordion
     setTimeout(() => setActiveAccordionItem("ai-fit-analysis"), 100);
   };
+
 
   const fetchCurrentUserProfileForAI = useCallback(async () => {
     if (!mongoDbUserId || isGuestMode) return null;
@@ -149,7 +150,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
     
     setIsLoadingAiAnalysis(true);
-    if (!isModalFetch) setAiJobFitAnalysis(null); // Only clear for card face analysis, modal might re-trigger
+    if (!isModalFetch) setAiJobFitAnalysis(null); 
 
     try {
       const jobCriteria: JobCriteriaForAI = {
@@ -212,17 +213,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     }
   }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI, isDetailsModalOpen]);
 
-  // Fetch AI Analysis when modal opens (if not already fetched by card button)
   useEffect(() => {
       if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-          fetchAiAnalysis(true); // Pass true to indicate it's a modal fetch
+          fetchAiAnalysis(true);
       } else if (isGuestMode && isDetailsModalOpen) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
         setIsLoadingAiAnalysis(false);
         setActiveAccordionItem(undefined); 
       }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isDetailsModalOpen]); // Removed fetchAiAnalysis from deps to avoid loop if it's passed as prop
+  }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
   const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
     if (actionType === 'like') {
@@ -369,7 +368,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-custom-primary-purple via-indigo-600 to-custom-dark-purple-blue text-white"
+        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -381,21 +380,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Header Section */}
-        <div className="h-24 bg-gradient-to-r from-custom-primary-purple to-custom-dark-purple-blue p-4 flex flex-col items-center justify-start relative">
-          <Badge className="absolute top-3 left-3 bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
+        <div className="h-24 p-4 flex flex-col items-center justify-start relative">
+           <Badge className="absolute top-3 left-3 bg-white/25 text-white text-xs font-medium px-2.5 py-1 rounded-full shadow-sm backdrop-blur-sm">
             {categoryText}
           </Badge>
-          <div className="w-[60px] h-[60px] rounded-full flex items-center justify-center bg-white/10 backdrop-blur-md border border-white/20 shadow-lg mt-4">
+          <div className="w-16 h-16 rounded-full flex items-center justify-center bg-white/20 backdrop-blur-md border border-white/20 shadow-lg mt-4">
              <Code2 className="h-7 w-7 text-white" />
           </div>
         </div>
         
-        {/* Main Content Area */}
         <div className="flex-1 p-4 pt-6 text-center overflow-y-auto space-y-3">
           <p className="text-custom-light-purple-text text-lg font-bold uppercase mt-1">{company.name}</p>
           <h1 className="text-4xl font-bold text-white mt-1 line-clamp-2">{jobOpening?.title || 'Exciting Opportunity'}</h1>
           
-          <div className="text-base text-white/80 mt-3 flex justify-center items-center gap-x-1.5">
+          <div className="text-base text-white/90 mt-3 flex justify-center items-center gap-x-1.5">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>
             )}
@@ -405,13 +403,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             )}
           </div>
           
-          {/* "Analyze My Job Fit" Section */}
+          {/* "Analyze My Job Fit" Section - MOVED HERE */}
           <div className="my-4 space-y-2 px-2">
             {isGuestMode ? (
               <div className="text-sm text-red-400 italic p-3 border border-red-600 bg-red-900/30 rounded-md shadow-sm">
                 <Lock className="inline h-4 w-4 mr-1.5"/>Sign in for AI Job Fit Analysis.
               </div>
-            ) : isLoadingAiAnalysis ? (
+            ) : isLoadingAiAnalysis && !aiJobFitAnalysis ? ( // Show loading only if analysis isn't yet available
               <div className="flex items-center justify-center text-white/80 py-3">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" /> Analyzing your fit...
               </div>
@@ -429,10 +427,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </div>
 
           <p className="text-xs italic text-white/70 mt-1">{experienceRequiredText}</p>
-          <Separator className="border-b border-white/20 my-3 mx-auto w-3/4" />
+          <Separator className="border-b border-white/20 my-3.5 mx-auto w-3/4" />
           
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
-            <div className="mt-3">
+            <div className="mt-3.5">
               <h3 className="text-xs uppercase font-semibold text-custom-light-purple-text tracking-wider">TOP SKILLS</h3>
               <div className="flex flex-wrap justify-center gap-2 mt-2">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
@@ -444,19 +442,20 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </div>
           )}
           
-          {/* Moved Job Match Indicator */}
+           {/* Circular Job Match Indicator - MOVED HERE */}
            <div className="mt-4 mb-2 flex flex-col items-center justify-center">
              <div className="relative w-[70px] h-[70px] mx-auto">
                 <div className="absolute inset-0 rounded-full border-4 border-white/20"></div>
-                <div 
-                    className="absolute inset-0 rounded-full border-4 border-transparent"
-                    style={{
-                        borderTopColor: displayMatchPercentage >= 25 ? 'var(--color-custom-primary-purple)' : 'transparent',
-                        borderRightColor: displayMatchPercentage >= 50 ? 'var(--color-custom-primary-purple)' : 'transparent',
-                        borderBottomColor: displayMatchPercentage >= 75 ? 'var(--color-custom-primary-purple)' : 'transparent',
-                        borderLeftColor: displayMatchPercentage >= 100 ? 'var(--color-custom-primary-purple)' : 'transparent', // Full circle at 100
-                        transform: 'rotate(-45deg)', 
-                    }}
+                 {/* CSS approximation for progress arc */}
+                <div
+                  className="absolute inset-0 rounded-full border-4 border-transparent"
+                  style={{
+                    borderTopColor: displayMatchPercentage >= 25 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                    borderRightColor: displayMatchPercentage >= 50 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                    borderBottomColor: displayMatchPercentage >= 75 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                    borderLeftColor: displayMatchPercentage >= 100 ? 'var(--color-custom-primary-purple)' : 'transparent',
+                    transform: 'rotate(-45deg)', // Start arc from the top
+                  }}
                 ></div>
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <span className="text-white text-sm font-semibold leading-none">{displayMatchPercentage}%</span>
@@ -466,28 +465,27 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </div>
         </div>
             
-        {/* Action Buttons Footer */}
-        <CardFooter className="p-3 grid grid-cols-4 gap-3 border-t border-white/10 bg-transparent mt-auto shrink-0 no-swipe-area">
+        <CardFooter className="py-3 pl-4 pr-2 grid grid-cols-4 gap-2.5 border-t border-white/10 bg-transparent mt-auto shrink-0 no-swipe-area">
             <Button
                 variant="ghost"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                 disabled={isGuestMode}
-                className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg"
+                className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg"
                 aria-label={`Pass on ${company.name}`}
                 data-no-drag="true"
             >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1" />}
+                {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <X className="h-5 w-5 mb-0.5" />}
                 Pass
             </Button>
             <Button
                 variant="ghost"
                 onClick={handleDetailsButtonClick}
-                className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg"
+                className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg"
                 aria-label={`View details for ${company.name}`}
                 data-no-drag="true"
                 data-modal-trigger="true"
             >
-                <Eye className="h-5 w-5 mb-1" />
+                <Eye className="h-5 w-5 mb-0.5" />
                 Profile
             </Button>
             <Button
@@ -495,13 +493,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                 disabled={isGuestMode}
                 className={cn(
-                    "flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg",
-                    isLiked && !isGuestMode && "bg-white/15 text-custom-primary-purple ring-1 ring-custom-primary-purple"
+                    "flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg",
+                    isLiked && !isGuestMode && "bg-white/15 ring-1 ring-custom-primary-purple" // Keep like highlight subtle
                 )}
                 aria-label={`Like ${company.name}`}
                 data-no-drag="true"
             >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Heart className={cn("h-5 w-5 mb-1", isLiked && "fill-custom-primary-purple text-custom-primary-purple")} />}
+                {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <Heart className={cn("h-5 w-5 mb-0.5", isLiked && "fill-custom-primary-purple text-custom-primary-purple")} />}
                 Like
             </Button>
             <DropdownMenu onOpenChange={setIsShareModalOpen}>
@@ -509,12 +507,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     <Button
                         variant="ghost"
                         disabled={isGuestMode}
-                        className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg"
+                        className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/80 hover:text-white hover:bg-white/10 border border-white/20 shadow-md hover:shadow-lg"
                         aria-label={`Share ${company.name}`}
                         data-no-drag="true"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1" />}
+                        {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <Share2 className="h-5 w-5 mb-0.5" />}
                         Share
                     </Button>
                 </DropdownMenuTrigger>
@@ -742,4 +740,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-
