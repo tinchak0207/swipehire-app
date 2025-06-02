@@ -1,12 +1,14 @@
 
 "use client";
 
+import { useState } from "react"; // Added for loading state
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Compass, Eye, Sparkles, CheckCircle } from "lucide-react";
+import { LogIn, Eye, Sparkles, CheckCircle, ShieldCheck, Chrome, Loader2 } from "lucide-react"; // Added Chrome, Loader2, ShieldCheck
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip
 
 interface LoginPageProps {
   onLoginBypass: () => void;
@@ -15,8 +17,10 @@ interface LoginPageProps {
 
 export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   const { toast } = useToast();
+  const [isLoadingGoogleSignIn, setIsLoadingGoogleSignIn] = useState(false); // Added loading state
 
   const handleGoogleSignIn = async () => {
+    setIsLoadingGoogleSignIn(true); // Set loading true
     const provider = new GoogleAuthProvider();
     try {
       console.log("LoginPage: Attempting signInWithPopup...");
@@ -26,6 +30,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         title: "Sign-In Successful!",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
       });
+      // onLoginBypass will be triggered by onAuthStateChanged in AppContent, so no direct call here.
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
@@ -58,20 +63,20 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           duration: 7000,
         });
         setTimeout(() => {
-          onLoginBypass();
+          onLoginBypass(); // Attempt bypass after showing error
         }, 2000);
       }
+    } finally {
+      setIsLoadingGoogleSignIn(false); // Set loading false
     }
   };
 
   return (
-    // Adjusted min-h-screen to min-h-full for better embedding if needed, but for now dynamic-bg applies here
-    // Keeping p-4, flex, items-center, justify-center for its own layout within the main area
     <div className="flex flex-col items-center justify-center p-4 dynamic-bg w-full h-full">
-      <Card className="w-full max-w-md shadow-2xl bg-card/90 backdrop-blur-sm">
+      <Card className="w-full max-w-md shadow-2xl bg-gradient-to-br from-card via-muted/20 to-card backdrop-blur-sm">
         <CardHeader className="text-center space-y-2 pt-8">
           <LogIn className="mx-auto h-12 w-12 text-primary" />
-          <CardTitle className="text-3xl font-bold">Welcome to SwipeHire</CardTitle>
+          <CardTitle className="text-3xl font-bold animate-text-glow">Welcome to SwipeHire</CardTitle>
           <CardDescription className="text-md text-muted-foreground pt-1">
             Sign in to discover your next opportunity or top talent.
           </CardDescription>
@@ -92,26 +97,48 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           <Button
             onClick={handleGoogleSignIn}
             size="lg"
-            className="w-full text-lg py-3 bg-accent hover:bg-accent/90 text-accent-foreground"
+            variant="outline" // Changed to outline for better contrast with icon
+            className="w-full text-lg py-3 border-input bg-background hover:bg-accent hover:text-accent-foreground"
             aria-label="Sign in with Google"
+            disabled={isLoadingGoogleSignIn}
           >
-            <Compass className="mr-2 h-5 w-5" />
+            {isLoadingGoogleSignIn ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <Chrome className="mr-2 h-5 w-5 text-red-500" /> // Using Chrome as a stand-in for Google icon
+            )}
             Sign in with Google
           </Button>
-          <Button
-            onClick={onGuestMode}
-            variant="outline"
-            size="lg"
-            className="w-full text-lg py-3 border-primary text-primary hover:bg-primary/10"
-            aria-label="Continue as Guest"
-          >
-            <Eye className="mr-2 h-5 w-5" />
-            Continue as Guest
-          </Button>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  onClick={onGuestMode}
+                  variant="outline"
+                  size="lg"
+                  className="w-full text-lg py-3 border-primary text-primary hover:bg-primary/10"
+                  aria-label="Continue as Guest"
+                  disabled={isLoadingGoogleSignIn}
+                >
+                  <Eye className="mr-2 h-5 w-5" />
+                  Continue as Guest
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Guest mode offers limited functionality. Sign in for the full experience.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <p className="text-center text-xs text-muted-foreground pt-2">
+            More sign-in options like Email & LinkedIn coming soon!
+          </p>
+
         </CardContent>
         <CardFooter className="pb-8">
-            <p className="text-center text-xs text-muted-foreground w-full">
-              By signing in, you agree to our (conceptual) Terms of Service and Privacy Policy.
+            <p className="text-center text-xs text-muted-foreground w-full flex items-center justify-center">
+              <ShieldCheck className="h-4 w-4 mr-1.5 text-green-600" /> By signing in, you agree to our (conceptual) Terms of Service and Privacy Policy.
             </p>
         </CardFooter>
       </Card>

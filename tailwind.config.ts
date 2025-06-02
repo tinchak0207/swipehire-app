@@ -89,11 +89,16 @@ export default {
   				to: {
   					height: '0'
   				}
-  			}
+  			},
+        'text-glow': { // Added new keyframes for text glow
+          '0%, 100%': { textShadow: '0 0 5px hsl(var(--primary) / 0.5), 0 0 10px hsl(var(--primary) / 0.3)' },
+          '50%': { textShadow: '0 0 10px hsl(var(--primary) / 0.7), 0 0 20px hsl(var(--primary) / 0.5)' },
+        },
   		},
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out'
+  			'accordion-up': 'accordion-up 0.2s ease-out',
+        'text-glow': 'text-glow 2.5s ease-in-out infinite alternate', // Added new animation utility
   		}
   	}
   },
