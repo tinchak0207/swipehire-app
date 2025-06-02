@@ -3,8 +3,8 @@
 
 import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"; // Removed CardFooter as it's not used
-import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap, Maximize } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -12,8 +12,8 @@ import AOS from 'aos';
 import 'aos/dist/aos.css';
 
 interface WelcomePageProps {
-  onStartExploring: () => void; 
-  onGuestMode: () => void;    
+  onStartExploring: () => void;
+  onGuestMode: () => void;
 }
 
 const FeatureCard = ({ icon, title, description, aosAnimation, aosDelay }: { icon: React.ElementType, title: string, description: string, aosAnimation?: string, aosDelay?: string }) => {
@@ -36,13 +36,13 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
     <CardContent className="pt-6 flex-grow flex flex-col">
       <blockquote className="italic text-muted-foreground leading-relaxed flex-grow">"{quote}"</blockquote>
       <div className="mt-4 flex items-center pt-4 border-t border-border">
-        <Image 
-          src={avatar} 
-          alt={author} 
-          width={40} 
-          height={40} 
-          className="rounded-full mr-3 border-2 border-primary/20" 
-          data-ai-hint="person face" 
+        <Image
+          src={avatar}
+          alt={author}
+          width={40}
+          height={40}
+          className="rounded-full mr-3 border-2 border-primary/20"
+          data-ai-hint="person face"
         />
         <div>
           <p className="font-semibold text-foreground font-heading">{author}</p>
@@ -57,9 +57,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
   useEffect(() => {
     AOS.init({
-      duration: 800, 
-      once: true,    
-      offset: 100,   
+      duration: 800,
+      once: true,
+      offset: 100,
     });
   }, []);
 
@@ -95,10 +95,11 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
       {/* Hero Section */}
       <main className="flex-grow">
-        <section 
+        <section
+          id="hero"
           className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('https://placehold.co/1920x1080/233A5F/FFFFFF.png')" }} // Removed text parameter
-          data-ai-hint="office team collaboration"
+          style={{ backgroundImage: "url('/hero-background.jpg')" }} /* Updated image path */
+          data-aos="fade-in"
         >
           <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
           <div className="absolute inset-0 bg-black/50 z-0"></div>
@@ -184,7 +185,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             </div>
           </div>
         </section>
-        
+
         {/* Testimonials Section */}
         <section id="testimonials" className="py-20 md:py-28 bg-background">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -193,25 +194,25 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <p className="mt-4 text-lg text-muted-foreground leading-relaxed">See what our early users are saying.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <TestimonialCard 
-                quote="SwipeHire's video resume feature helped me stand out and land my dream job! The AI feedback was invaluable." 
-                author="Sarah L." 
+              <TestimonialCard
+                quote="SwipeHire's video resume feature helped me stand out and land my dream job! The AI feedback was invaluable."
+                author="Sarah L."
                 role="Software Engineer"
                 avatar="https://placehold.co/100x100/A663CC/FFFFFF.png?text=SL"
                 data-ai-hint="woman smiling"
                 aosAnimation="fade-right"
               />
-              <TestimonialCard 
-                quote="Finding qualified candidates used to be a chore. SwipeHire's AI matching is a game-changer for our recruitment process." 
-                author="John B." 
+              <TestimonialCard
+                quote="Finding qualified candidates used to be a chore. SwipeHire's AI matching is a game-changer for our recruitment process."
+                author="John B."
                 role="HR Manager, Tech Corp"
                 avatar="https://placehold.co/100x100/63A6FF/FFFFFF.png?text=JB"
                 data-ai-hint="man professional"
                 aosAnimation="fade-up" data-aos-delay="100"
               />
-              <TestimonialCard 
-                quote="The AI tools are incredibly helpful for crafting the perfect application. Highly recommend this platform!" 
-                author="Maria G." 
+              <TestimonialCard
+                quote="The AI tools are incredibly helpful for crafting the perfect application. Highly recommend this platform!"
+                author="Maria G."
                 role="Marketing Specialist"
                 avatar="https://placehold.co/100x100/FF6B6B/FFFFFF.png?text=MG"
                 data-ai-hint="person happy"
@@ -243,9 +244,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Basic AI Tools</li>
                             </ul>
                         </CardContent>
-                        <div className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
+                        <CardFooter className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Sign Up Free</Button>
-                        </div>
+                        </CardFooter>
                     </Card>
                     {/* Pro Plan */}
                     <Card className="flex flex-col shadow-xl border-2 border-primary relative subtle-card-hover" data-aos="flip-up" data-aos-delay="100">
@@ -263,9 +264,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Priority Support</li>
                             </ul>
                         </CardContent>
-                        <div className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
+                        <CardFooter className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Get Started</Button>
-                        </div>
+                        </CardFooter>
                     </Card>
                      {/* Enterprise Plan */}
                     <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-right" data-aos-delay="200">
@@ -282,9 +283,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Custom Branding</li>
                             </ul>
                         </CardContent>
-                        <div className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
+                        <CardFooter className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
                            <Button onClick={() => alert('Contact sales for Enterprise plan!')} variant="outline" className="w-full subtle-button-hover">Contact Sales</Button>
-                        </div>
+                        </CardFooter>
                     </Card>
                 </div>
             </div>
