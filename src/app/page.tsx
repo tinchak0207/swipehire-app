@@ -157,7 +157,7 @@ function AppContent() {
         setIsGuestMode(false);
         setMongoDbUserId(null);
         localStorage.removeItem('recruiterProfileComplete');
-        setShowWelcomePage(true); // ALWAYS show WelcomePage for unauthenticated, non-guest users.
+        setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true'); 
       }
       if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
@@ -181,12 +181,11 @@ function AppContent() {
         if (!initialAuthCheckDone.current) {
             const guestStillActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
             if (!auth.currentUser && !guestStillActive) {
-                 if(!showWelcomePage) setShowWelcomePage(true); // Ensure WelcomePage is shown if all else fails for unauth user
+                 if(!showWelcomePage) setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true'); 
             } else if (guestStillActive && !auth.currentUser) {
                 if(!isGuestMode) handleGuestMode();
                 if(showWelcomePage) setShowWelcomePage(false);
             }
-            // No need for an else if (auth.currentUser) here, as onAuthStateChanged handles it.
             initialAuthCheckDone.current = true;
             setIsInitialLoading(false);
         }
@@ -203,12 +202,12 @@ function AppContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleStartExploring = () => { // Called from WelcomePage when user wants to login/signup
+  const handleStartExploring = () => { 
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-    setShowWelcomePage(false); // This will then reveal LoginPage embedded in main layout
+    setShowWelcomePage(false); 
   };
 
-  const handleLoginBypass = async () => { // Called from LoginPage
+  const handleLoginBypass = async () => { 
     const mockUid = `mock-bypass-user-${Date.now()}`;
     const mockUser: User = {
       uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)',
@@ -218,7 +217,7 @@ function AppContent() {
       getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }),
       reload: () => Promise.resolve(), toJSON: () => ({ uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }),
     };
-    setCurrentUser(mockUser); // Triggers onAuthStateChanged if it were a real auth event, but here we manually set state.
+    setCurrentUser(mockUser); 
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
     setUserPhotoURL(mockUser.photoURL);
@@ -226,25 +225,25 @@ function AppContent() {
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
       fetchAndSetUserPreferences(fetchedMongoId);
-      if (!userRole) { // if fetchUserFromMongo didn't set a role (e.g. new user)
+      if (!userRole) { 
          const defaultRole = 'jobseeker';
-         await handleRoleSelect(defaultRole, fetchedMongoId); // Sets role and updates backend.
+         await handleRoleSelect(defaultRole, fetchedMongoId); 
       }
-    } else { // Should not happen if fetchUserFromMongo creates user, but as fallback:
-      setUserRole('jobseeker'); // Default role for bypass if backend interaction fails
+    } else { 
+      setUserRole('jobseeker'); 
       setUserName(mockUser.displayName);
     }
 
-    setShowWelcomePage(false); // Ensure welcome page is hidden
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); // Mark welcome as "seen"
-    if (!initialAuthCheckDone.current) { // Ensure loading state is cleared
+    setShowWelcomePage(false); 
+    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
+    if (!initialAuthCheckDone.current) { 
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
     }
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
 
-  const handleGuestMode = () => { // Called from WelcomePage or LoginPage
+  const handleGuestMode = () => { 
     localStorage.setItem(GUEST_MODE_KEY, 'true');
     setIsGuestMode(true);
     setIsAuthenticated(false);
@@ -289,42 +288,37 @@ function AppContent() {
       }
     }
     if (!isGuestMode) setUserRole(role);
-    // setShowWelcomePage(false); // Role selection happens *after* welcome page.
   };
 
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // This will trigger onAuthStateChanged, which will set showWelcomePage to true.
+      await signOut(auth); 
       localStorage.removeItem(GUEST_MODE_KEY);
       localStorage.removeItem('recruiterProfileComplete');
-      localStorage.removeItem('mongoDbUserId'); // Ensure mongoDbUserId is cleared from localStorage
-      setMongoDbUserId(null); // Clear from context/state too
-      setIsGuestMode(false); // Ensure guest mode is off
+      localStorage.removeItem('mongoDbUserId'); 
+      setMongoDbUserId(null); 
+      setIsGuestMode(false); 
       setUserPhotoURL(null);
-      setActiveTab('findJobs'); // Reset tab
+      setActiveTab('findJobs'); 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-      // No need to explicitly setShowWelcomePage(true) here, onAuthStateChanged handles it.
     } catch (error) {
       console.error("Error signing out:", error);
       toast({ title: "Logout Failed", description: "Could not log out. Please try again.", variant: "destructive" });
     }
   };
 
-  const handleLoginRequest = () => { // Called from AppHeader if guest clicks "Sign In / Register"
+  const handleLoginRequest = () => { 
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
-        // This will trigger onAuthStateChanged. Since user is null and guestActive is false,
-        // it will set showWelcomePage(true).
-        // setCurrentUser(null);
-        // setIsAuthenticated(false);
-        // setUserPhotoURL(null);
-        // setMongoDbUserId(null);
-        // setShowWelcomePage(true); // Explicitly show welcome page
+        // Setting HAS_SEEN_WELCOME_KEY to false (by removing it) will ensure WelcomePage is shown
+        // if the user was in guest mode and then logs out/tries to sign in.
+        localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
+        setShowWelcomePage(true); // Force welcome page to re-evaluate
+        // This forces a state that onAuthStateChanged will pick up: no user, not guest, HAS_SEEN_WELCOME_KEY false.
+        // This should lead to WelcomePage.
     }
-    // If not guest mode, this button shouldn't be "Login Request" but rather show "Login" or "Logout".
-    // The AppHeader logic should reflect this. If it's "Login", clicking it does nothing as login is on page.
   };
 
   const baseTabItems = [
@@ -389,12 +383,20 @@ function AppContent() {
       return <WelcomePage onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
     }
     
-    if (!isAuthenticated && !isGuestMode) { // Welcome page has been seen, now show Login
-      return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
+    if (!isAuthenticated && !isGuestMode) { 
+      return (
+        <div className="animate-fadeInPage">
+          <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />
+        </div>
+      );
     }
 
     if (isAuthenticated && !isGuestMode && !userRole && mongoDbUserId) {
-        return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
+        return (
+          <div className="animate-fadeInPage">
+            <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />
+          </div>
+        );
     }
 
     // Authenticated with role OR Guest mode: Show tabs and main app layout
@@ -518,4 +520,5 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
 
