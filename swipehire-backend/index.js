@@ -330,9 +330,11 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         // Ensure recruiter's company name and industry are set if missing
         if (!recruiter.companyNameForJobs) {
             recruiter.companyNameForJobs = recruiter.name; // Default to recruiter's name
+            console.log(`[Backend POST Job] Recruiter ${recruiter.name} companyNameForJobs was missing. Defaulted to recruiter name.`);
         }
         if (!recruiter.companyIndustryForJobs) {
             recruiter.companyIndustryForJobs = 'Various'; // Default industry
+            console.log(`[Backend POST Job] Recruiter ${recruiter.name} companyIndustryForJobs was missing. Defaulted to 'Various'.`);
         }
         
         const newJob = {
@@ -343,7 +345,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         };
 
         recruiter.jobOpenings.push(newJob);
-        await recruiter.save();
+        await recruiter.save(); // This single save commits role update (if any) and new job
         
         const postedJob = recruiter.jobOpenings[recruiter.jobOpenings.length - 1];
         console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${recruiter.name} (${recruiter._id}). Total jobs: ${recruiter.jobOpenings.length}. Recruiter role is now: ${recruiter.selectedRole}`);
@@ -358,7 +360,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
 // GET all job openings from all recruiters
 app.get('/api/jobs', async (req, res) => {
     try {
-        const recruiters = await User.find({ selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } });
+        const recruiters = await User.find({ selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } }).lean();
         console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings based on query: { selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } }.`);
         
         const allJobs = recruiters.flatMap(recruiter => {
@@ -369,7 +371,8 @@ app.get('/api/jobs', async (req, res) => {
                     console.warn(`[Backend GET Jobs] Job for recruiter ${recruiter.name} missing _id, generated: ${jobIdString}. Title: ${job.title}`);
                 }
                 
-                const jobObject = job.toObject ? job.toObject() : { ...job };
+                // Since recruiter is now a lean object, job is also a plain object.
+                const jobObject = job; 
                 
                 const companyLikeObject = {
                     id: `comp-user-${recruiter._id.toString()}-job-${jobIdString}`, 
