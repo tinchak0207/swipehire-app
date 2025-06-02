@@ -4,7 +4,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Eye, Sparkles, CheckCircle, ShieldCheck, Chrome, Loader2 } from "lucide-react";
+import { Eye, Sparkles, CheckCircle, ShieldCheck, Chrome, Loader2 } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -72,13 +72,21 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 dynamic-bg min-h-screen w-full">
+    <div 
+      className="flex flex-col items-center justify-center p-4 min-h-screen w-full bg-cover bg-center bg-no-repeat relative"
+      style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
+    >
+      {/* Overlay div 1 (darker bottom gradient) */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent z-0"></div>
+      {/* Overlay div 2 (colored side gradient) */}
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70 z-0"></div>
+      
       <Card className={cn(
-        "w-full max-w-md shadow-2xl rounded-xl",
-        "bg-white/10 backdrop-blur-xl border border-white/20 text-white" // Glass-morphism styles
+        "w-full max-w-md shadow-2xl rounded-xl relative z-10", // Ensure card is above overlays
+        "bg-white/10 backdrop-blur-xl border border-white/30 text-white" 
       )}>
         <CardHeader className="text-center space-y-2 pt-8">
-          <Sparkles className="mx-auto h-12 w-12 text-yellow-300" /> {/* Changed LogIn icon to Sparkles */}
+          <Sparkles className="mx-auto h-12 w-12 text-yellow-300" />
           <CardTitle className="text-3xl font-bold animate-text-glow text-white">Welcome to SwipeHire</CardTitle>
           <CardDescription className="text-md text-slate-300 pt-1">
             Sign in to discover your next opportunity or top talent.
@@ -87,7 +95,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         <CardContent className="space-y-6 py-6">
           <div className="text-left px-2 space-y-2 mb-4">
             <h3 className="text-lg font-semibold text-slate-100 flex items-center">
-              <CheckCircle className="h-5 w-5 mr-2 text-green-400" /> {/* Adjusted icon and color */}
+              <CheckCircle className="h-5 w-5 mr-2 text-green-400" /> 
               Join us to:
             </h3>
             <ul className="space-y-1.5 text-sm text-slate-300 list-none pl-1">
@@ -100,7 +108,6 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           <Button
             onClick={handleGoogleSignIn}
             size="lg"
-            variant="default" // Primary button style
             className="w-full text-lg py-3 bg-white text-slate-800 hover:bg-slate-200 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg"
             aria-label="Sign in with Google"
             disabled={isLoadingGoogleSignIn}
@@ -135,7 +142,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           </TooltipProvider>
           
           <p className="text-center text-xs text-slate-400 pt-2">
-            Email & Password login coming soon!
+            More sign-in options like Email & LinkedIn coming soon!
           </p>
 
         </CardContent>
@@ -148,5 +155,3 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
     </div>
   );
 }
-
-    
