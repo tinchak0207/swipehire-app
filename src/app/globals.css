@@ -272,11 +272,27 @@ body {
 
 /* New styles for Landing Page Hero Background */
 .hero-gradient-bg {
-  /* Matching the dark blue gradient from StreakSafe.com example */
-  background: linear-gradient(160deg, #0f203a 0%, #1f3a63 50%, #2b4f81 100%);
+  background: linear-gradient(160deg, hsl(var(--primary) / 0.95) 0%, hsl(var(--accent) / 0.85) 70%, hsl(var(--secondary) / 0.7) 100%);
+  /* Example: dark blue to purple to lighter blue/purple */
 }
 .hero-gradient-bg-secondary { /* For final CTA, slightly different */
-  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, hsl(var(--accent) / 0.9) 0%, hsl(var(--primary) / 0.75) 100%);
+}
+
+/* Subtle hover effect for cards */
+.subtle-card-hover {
+  @apply transition-all duration-300 ease-in-out;
+}
+.subtle-card-hover:hover {
+  @apply shadow-xl -translate-y-1;
+}
+
+/* Subtle hover effect for buttons */
+.subtle-button-hover {
+  @apply transition-transform duration-200 ease-in-out;
+}
+.subtle-button-hover:hover {
+  @apply scale-105;
 }
 
     
