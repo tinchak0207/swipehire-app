@@ -4,7 +4,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Candidate, CandidateFilters, ProfileRecommenderOutput, RecruiterPerspectiveWeights, CandidateProfileForAI, JobCriteriaForAI, UserAIWeights, PersonalityTraitAssessment } from '@/lib/types';
 import { mockCandidates } from '@/lib/mockData';
-// import { ProfileCard } from '@/components/cards/ProfileCard'; // Using SwipeCard and CandidateCardContent instead
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
 import { Button } from '@/components/ui/button';
@@ -393,20 +392,12 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const fetchBackendCandidates = useCallback(async () => {
-    // console.log('[CandidateDiscovery] Fetching candidates from backend...');
     setIsInitialLoading(true);
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
       const data: Candidate[] = await response.json();
-      // console.log(`[CandidateDiscovery] Fetched candidates from backend: ${data.length}`);
-      if (data.length === 0) {
-        setAllCandidates([...mockCandidates]);
-      } else {
-        setAllCandidates(data.map(c => ({...c, id: (c as any)._id || c.id })));
-      }
+      setAllCandidates(data.length > 0 ? data.map(c => ({...c, id: (c as any)._id || c.id })) : [...mockCandidates]);
     } catch (error) {
       console.error("Error fetching candidates from backend:", error);
       toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles. Using mock data.", variant: "destructive" });
@@ -414,27 +405,26 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     } finally {
       setIsInitialLoading(false);
     }
-  }, [toast]); // Removed mongoDbUserId, isGuestMode from here as they are checked in the useEffect
+  }, [toast]);
 
   useEffect(() => {
-    // console.log(`[CandidateDiscovery] Initial fetch effect. mongoDbUserId: ${mongoDbUserId}, isGuestMode: ${isGuestMode}, allCandidates.length: ${allCandidates.length}, isInitialLoading: ${isInitialLoading}`);
-    if (((mongoDbUserId && !isGuestMode) || isGuestMode) && allCandidates.length === 0 && isInitialLoading) {
-        // console.log("[CandidateDiscovery] Condition met for logged-in/guest initial fetch, calling fetchBackendCandidates.");
+    if (((mongoDbUserId && !isGuestMode) || isGuestMode)) {
         fetchBackendCandidates();
-    } else if (allCandidates.length === 0 && isInitialLoading && !mongoDbUserId && !isGuestMode) {
-        // console.log("[CandidateDiscovery] Initial mount, no user/guest context yet, fetching.");
+    } else if (!mongoDbUserId && !isGuestMode && isInitialLoading) {
         fetchBackendCandidates();
     }
-  }, [fetchBackendCandidates, mongoDbUserId, isGuestMode, allCandidates.length, isInitialLoading]);
+  }, [fetchBackendCandidates, mongoDbUserId, isGuestMode, isInitialLoading]);
 
 
   useEffect(() => {
     if (mongoDbUserId) {
         const storedCompanyId = localStorage.getItem(`user_${mongoDbUserId}_representedCompanyId`);
         setRecruiterRepresentedCompanyId(storedCompanyId || 'comp-placeholder-recruiter');
-        fetchAndSetUserPreferences(mongoDbUserId);
+        if(!passedCandidateProfileIdsFromContext || passedCandidateProfileIdsFromContext.size === 0) {
+            fetchAndSetUserPreferences(mongoDbUserId); // Fetch passed IDs if not already in context
+        }
     }
-  }, [mongoDbUserId, fetchAndSetUserPreferences]);
+  }, [mongoDbUserId, fetchAndSetUserPreferences, passedCandidateProfileIdsFromContext]);
 
   const trashBinCandidates = useMemo(() => {
     if (isInitialLoading || allCandidates.length === 0 || !passedCandidateProfileIdsFromContext) return [];
@@ -442,7 +432,6 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   }, [allCandidates, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
   const filteredCandidatesMemo = useMemo(() => {
-    // console.log('[CandidateDiscovery] Recalculating filteredCandidatesMemo...');
     if (isInitialLoading || !passedCandidateProfileIdsFromContext) return [];
     let candidates = [...allCandidates];
 
@@ -467,66 +456,36 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    // console.log(`[CandidateDiscovery] Candidates after main filters: ${candidates.length}, Passed IDs count: ${passedCandidateProfileIdsFromContext.size}`);
-    const finalFiltered = candidates.filter(c => !passedCandidateProfileIdsFromContext.has(c.id));
-    // console.log(`[CandidateDiscovery] Final filtered count: ${finalFiltered.length}`);
-    return finalFiltered;
+    return candidates.filter(c => !passedCandidateProfileIdsFromContext.has(c.id));
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
-  const loadMoreCandidates = useCallback(() => {
-    // console.log(`[CandidateDiscovery] Attempting to load more. isLoading: ${isLoading}, hasMore: ${hasMore}, currentIndex: ${currentIndex}, Filtered total: ${filteredCandidatesMemo.length}`);
-    if (isInitialLoading || isLoading || !hasMore || currentIndex >= filteredCandidatesMemo.length) {
-      if (currentIndex >= filteredCandidatesMemo.length && filteredCandidatesMemo.length > 0) {
-        // console.log('[CandidateDiscovery] LoadMore: No more to load, setting hasMore to false.');
-        setHasMore(false);
-      } else if (filteredCandidatesMemo.length === 0) {
-        // console.log('[CandidateDiscovery] LoadMore: Filtered list is empty, setting hasMore to false.');
-        setHasMore(false);
-      }
-      return;
-    }
-
-    // console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidatesMemo.length}`);
-    setIsLoading(true);
-
-    const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
-    const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
-
-    setDisplayedCandidates(prev => {
-      const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
-      // console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
-      return updatedDisplay;
-    });
-    setCurrentIndex(newLoadIndex);
-    setHasMore(newLoadIndex < filteredCandidatesMemo.length);
-    setIsLoading(false);
-    // console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
-  }, [
-    isInitialLoading,
-    filteredCandidatesMemo,
-    // Dependencies removed as per infinite loop fix: isLoading, hasMore, currentIndex
-    // State setters (setIsLoading, setDisplayedCandidates, etc.) are stable
-  ]);
-
-
+  // Effect for initial load and filter changes
   useEffect(() => {
-    if (isInitialLoading) return; // Don't run reset logic if initial load is still happening
-    // console.log('[CandidateDiscovery] Effect for filteredCandidatesMemo triggered. Length:', filteredCandidatesMemo.length);
-    setDisplayedCandidates([]);
-    setCurrentIndex(0);
-    const hasFilteredItems = filteredCandidatesMemo.length > 0;
-    setHasMore(hasFilteredItems);
-    if (hasFilteredItems) {
-        // console.log('[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.');
-        loadMoreCandidates();
-    } else {
-        // console.log('[CandidateDiscovery] Reset: No filtered items.');
-    }
-  }, [filteredCandidatesMemo, isInitialLoading, loadMoreCandidates]); 
+    if (isInitialLoading) return;
+
+    const initialBatch = filteredCandidatesMemo.slice(0, ITEMS_PER_BATCH);
+    setDisplayedCandidates(initialBatch);
+    setCurrentIndex(initialBatch.length);
+    setHasMore(initialBatch.length < filteredCandidatesMemo.length);
+    
+  }, [filteredCandidatesMemo, isInitialLoading]);
+
+  const loadMoreCandidates = useCallback(() => {
+    if (isLoading || !hasMore || isInitialLoading) return;
+
+    setIsLoading(true);
+    const nextBatch = filteredCandidatesMemo.slice(currentIndex, currentIndex + ITEMS_PER_BATCH);
+    
+    setDisplayedCandidates(prev => [...prev, ...nextBatch]);
+    setCurrentIndex(prev => prev + nextBatch.length);
+    setHasMore(currentIndex + nextBatch.length < filteredCandidatesMemo.length);
+    setIsLoading(false);
+
+  }, [isLoading, hasMore, currentIndex, filteredCandidatesMemo, isInitialLoading]);
+
 
   useEffect(() => {
     if (isInitialLoading) return;
-    // console.log(`[CandidateDiscovery] IntersectionObserver: Attaching. hasMore: ${hasMore} isLoading: ${isLoading}`);
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
@@ -651,6 +610,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
       try {
         const response = await passCandidate(mongoDbUserId, candidateId);
         updatePassedCandidateIds(response.passedCandidateProfileIds || []);
+        // Optimistically remove from displayed, filtered list will re-evaluate.
         setDisplayedCandidates(prev => prev.filter(c => c.id !== candidateId));
         toast({ title: `Moved ${candidate.name} to Trash Bin`, variant: "default" });
       } catch (error: any) {
@@ -693,7 +653,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   };
   const handleApplyFilters = () => setIsFilterSheetOpen(false);
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
-  const fixedElementsHeight = '120px'; // Approximate height of AppHeader and TabsList
+  const fixedElementsHeight = '120px';
 
   if (isInitialLoading && allCandidates.length === 0) {
     return <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
@@ -805,7 +765,9 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
           </div>
         ))}
         {isLoading && !isInitialLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
-        {hasMore && !isLoading && !isInitialLoading && filteredCandidatesMemo.length > 0 && displayedCandidates.length < filteredCandidatesMemo.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
+        
+        {!isLoading && !isInitialLoading && filteredCandidatesMemo.length > 0 && displayedCandidates.length < filteredCandidatesMemo.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More Trigger</div>}
+
         {!isLoading && !isInitialLoading && displayedCandidates.length === 0 && (
           <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
             <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
