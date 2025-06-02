@@ -114,6 +114,11 @@
     flex-direction: column;
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
   }
+  html.dark .dynamic-bg { /* Ensure dynamic-bg adapts to dark mode if necessary */
+    background: linear-gradient(-45deg, hsl(var(--primary) / 0.7), hsl(var(--accent) / 0.7), hsl(290, 60%, 25%), hsl(var(--secondary) / 0.7));
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+  }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-montserrat), var(--font-geist-sans), sans-serif;
   }
@@ -150,6 +155,7 @@
   .ai-tool-bg-editor { background: linear-gradient(135deg, hsla(25, 90%, 60%, 0.85), hsla(0, 80%, 55%, 0.85)); }
 
   /* Dynamic backgrounds for role selection - Kept from previous state */
+  /* This dynamic-bg will be used for the LoginPage full page background */
   .dynamic-bg {
     background: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(290, 60%, 65%), hsl(var(--secondary)));
     background-size: 400% 400%;
@@ -181,4 +187,6 @@
   }
   .animate-pulse-selection { animation: pulseSelection 0.8s ease-out; }
 }
+    
+
     
