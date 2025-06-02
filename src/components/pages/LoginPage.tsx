@@ -77,13 +77,13 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
       style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
     >
       {/* Overlay div 1 (darker bottom gradient) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent z-0"></div>
       {/* Overlay div 2 (colored side gradient) */}
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70 z-0"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 via-indigo-800/40 to-transparent opacity-80 z-0"></div>
       
       <Card className={cn(
-        "w-full max-w-md shadow-2xl rounded-xl relative z-10", // Ensure card is above overlays
-        "bg-white/10 backdrop-blur-xl border border-white/30 text-white" 
+        "w-full max-w-md shadow-2xl rounded-xl relative z-10", 
+        "bg-white/10 backdrop-blur-xl border border-white/20 text-white" 
       )}>
         <CardHeader className="text-center space-y-2 pt-8">
           <Sparkles className="mx-auto h-12 w-12 text-yellow-300" />
@@ -127,7 +127,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
                   onClick={onGuestMode}
                   variant="outline"
                   size="lg"
-                  className="w-full text-lg py-3 border-white/50 text-white hover:bg-white/10 hover:text-white transition-all duration-300 ease-in-out"
+                  className="w-full text-lg py-3 border-slate-400 text-slate-200 hover:bg-slate-700 hover:border-slate-500 hover:text-white transition-all duration-300 ease-in-out"
                   aria-label="Continue as Guest"
                   disabled={isLoadingGoogleSignIn}
                 >
