@@ -8,11 +8,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole } from "@/lib/types";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/firebase"; 
+import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { UserPreferencesProvider, useUserPreferences } from "@/contexts/UserPreferencesContext"; 
+import { UserPreferencesProvider, useUserPreferences } from "@/contexts/UserPreferencesContext";
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -30,7 +30,7 @@ const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(
 const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').then(mod => mod.MyProfilePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 
 
-const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2'; // Changed key to ensure new page shows once
+const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 const GUEST_MODE_KEY = 'isGuestModeActive';
 
 // Inner component to access UserPreferencesContext
@@ -42,7 +42,7 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
-  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null); 
+  const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
 
   const [activeTab, setActiveTab] = useState<string>("findJobs");
   const [isMobile, setIsMobile] = useState(false);
@@ -55,13 +55,13 @@ function AppContent() {
 
   const fetchUserFromMongo = async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
     try {
-      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`); 
-      
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`);
+
       if (response.ok) {
         const userData = await response.json();
         setUserRole(userData.selectedRole || null);
         setUserName(userData.name || firebaseDisplayName || firebaseEmail);
-        setMongoDbUserId(userData._id); 
+        setMongoDbUserId(userData._id);
         localStorage.setItem('recruiterProfileComplete', (userData.selectedRole === 'recruiter' && userData.name && userData.email) ? 'true' : 'false');
         return userData._id;
       } else if (response.status === 404) {
@@ -72,22 +72,22 @@ function AppContent() {
           body: JSON.stringify({
             name: firebaseDisplayName || firebaseEmail || 'New User',
             email: firebaseEmail,
-            firebaseUid: firebaseUid, 
-            preferences: { theme: 'light', featureFlags: {} } 
+            firebaseUid: firebaseUid,
+            preferences: { theme: 'light', featureFlags: {} }
           }),
         });
 
         if (createUserResponse.ok) {
           const responseData = await createUserResponse.json();
-          const createdUser = responseData.user || responseData; 
+          const createdUser = responseData.user || responseData;
 
           if (createdUser && createdUser._id) {
             setUserRole(createdUser.selectedRole || null);
             setUserName(createdUser.name);
-            setMongoDbUserId(createdUser._id); 
+            setMongoDbUserId(createdUser._id);
             localStorage.setItem('recruiterProfileComplete', (createdUser.selectedRole === 'recruiter' && createdUser.name && createdUser.email) ? 'true' : 'false');
             toast({ title: "Profile Initialized", description: "Your basic profile has been set up."});
-            return createdUser._id; 
+            return createdUser._id;
           } else {
             console.error("Failed to create user in MongoDB: User object or _id missing in response", responseData);
             toast({ title: "Profile Creation Failed", description: "Could not initialize your profile: unexpected response from backend.", variant: "destructive"});
@@ -113,8 +113,8 @@ function AppContent() {
       toast({ title: "Network or Backend Error", description, variant: "destructive"});
     }
     setUserRole(null);
-    setUserName(firebaseDisplayName || firebaseEmail); 
-    setMongoDbUserId(null); 
+    setUserName(firebaseDisplayName || firebaseEmail);
+    setMongoDbUserId(null);
     localStorage.removeItem('recruiterProfileComplete');
     return null;
   };
@@ -130,33 +130,33 @@ function AppContent() {
         setCurrentUser(user);
         setIsAuthenticated(true);
         setIsGuestMode(false);
-        setUserPhotoURL(user.photoURL); 
+        setUserPhotoURL(user.photoURL);
         localStorage.removeItem(GUEST_MODE_KEY);
 
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
         if (fetchedMongoId) {
-          fetchAndSetUserPreferences(fetchedMongoId); 
+          fetchAndSetUserPreferences(fetchedMongoId);
         }
-        
+
         if (hasSeenWelcomeStorage !== 'true') setShowWelcomePage(true);
         else setShowWelcomePage(false);
 
       } else if (guestActive) {
         setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
         setIsAuthenticated(false);
-        setUserRole(null); 
+        setUserRole(null);
         setUserName('Guest User');
-        setUserPhotoURL(null); 
+        setUserPhotoURL(null);
         setIsGuestMode(true);
-        setMongoDbUserId(null); 
-        setShowWelcomePage(false); 
+        setMongoDbUserId(null);
+        setShowWelcomePage(false);
         localStorage.removeItem('recruiterProfileComplete');
-      } else { 
+      } else {
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
         setUserName(null);
-        setUserPhotoURL(null); 
+        setUserPhotoURL(null);
         setIsGuestMode(false);
         setMongoDbUserId(null);
         localStorage.removeItem('recruiterProfileComplete');
@@ -170,12 +170,12 @@ function AppContent() {
     });
 
     getRedirectResult(auth)
-      .then(async (result) => { 
+      .then(async (result) => {
         if (result?.user) {
           const user = result.user;
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${user.displayName || user.email}!` });
           localStorage.removeItem(GUEST_MODE_KEY);
-          setUserPhotoURL(user.photoURL); 
+          setUserPhotoURL(user.photoURL);
           setIsGuestMode(false);
           const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
            if (fetchedMongoId) {
@@ -202,7 +202,7 @@ function AppContent() {
       });
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); 
+  }, []);
 
 
   useEffect(() => {
@@ -212,13 +212,12 @@ function AppContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleStartExploring = () => { // This is called by WelcomePage's "Get Started Free" or "Log In"
+  const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
-    // No explicit login call here, the state change will trigger LoginPage if not authenticated
   };
 
-  const handleLoginBypass = async () => { // For LoginPage development bypass
+  const handleLoginBypass = async () => {
     const mockUid = `mock-bypass-user-${Date.now()}`;
     const mockUser: User = {
       uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)',
@@ -231,20 +230,20 @@ function AppContent() {
     setCurrentUser(mockUser);
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
-    setUserPhotoURL(mockUser.photoURL); 
-    
+    setUserPhotoURL(mockUser.photoURL);
+
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
       fetchAndSetUserPreferences(fetchedMongoId);
-      if (!userRole) { 
-         const defaultRole = 'jobseeker'; 
-         await handleRoleSelect(defaultRole, fetchedMongoId); 
+      if (!userRole) {
+         const defaultRole = 'jobseeker';
+         await handleRoleSelect(defaultRole, fetchedMongoId);
       }
     } else {
-      setUserRole('jobseeker'); 
+      setUserRole('jobseeker');
       setUserName(mockUser.displayName);
     }
-    
+
     setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
@@ -253,32 +252,32 @@ function AppContent() {
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
 
-  const handleGuestMode = () => { // Called by WelcomePage or LoginPage
+  const handleGuestMode = () => {
     localStorage.setItem(GUEST_MODE_KEY, 'true');
     setIsGuestMode(true);
-    setIsAuthenticated(false); 
+    setIsAuthenticated(false);
     setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
     setUserRole(null); setUserName('Guest User'); setUserPhotoURL(null);
-    setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
-    setMongoDbUserId(null); 
+    setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+    setMongoDbUserId(null);
     if (!initialAuthCheckDone.current) { initialAuthCheckDone.current = true; setIsInitialLoading(false); }
     toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
   };
 
   const handleRoleSelect = async (role: UserRole, currentMongoId?: string | null) => {
-    const idToUse = currentMongoId || mongoDbUserId; 
+    const idToUse = currentMongoId || mongoDbUserId;
     if (!isGuestMode && isAuthenticated && currentUser && idToUse) {
       try {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), 
+          body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }),
         });
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`}));
           throw new Error(errorData.message);
         }
-        setUserRole(role); 
+        setUserRole(role);
         toast({ title: "Role Selected", description: `You are now a ${role}.` });
         if (role === 'recruiter' && (userName || currentUser.displayName) && currentUser.email) {
           localStorage.setItem('recruiterProfileComplete', 'true');
@@ -297,23 +296,23 @@ function AppContent() {
          toast({ title: "Action Disabled", description: "Role selection is not available in Guest Mode.", variant: "default"});
       }
     }
-    if (!isGuestMode) setUserRole(role); 
-    setShowWelcomePage(false); 
+    if (!isGuestMode) setUserRole(role);
+    setShowWelcomePage(false);
   };
 
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      localStorage.removeItem(GUEST_MODE_KEY); 
+      localStorage.removeItem(GUEST_MODE_KEY);
       localStorage.removeItem('recruiterProfileComplete');
-      localStorage.removeItem('mongoDbUserId'); 
-      setMongoDbUserId(null); 
+      localStorage.removeItem('mongoDbUserId');
+      setMongoDbUserId(null);
       setIsGuestMode(false);
-      setUserPhotoURL(null); 
+      setUserPhotoURL(null);
       const hasSeenWelcomeStorage = localStorage.getItem(HAS_SEEN_WELCOME_KEY);
       setShowWelcomePage(hasSeenWelcomeStorage !== 'true');
-      setActiveTab('findJobs'); 
+      setActiveTab('findJobs');
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
       console.error("Error signing out:", error);
@@ -321,22 +320,17 @@ function AppContent() {
     }
   };
 
-  const handleLoginRequest = () => { // Triggered by AppHeader when user clicks "Login" (e.g., to exit guest mode)
+  const handleLoginRequest = () => {
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
-        setCurrentUser(null); // Force re-evaluation of auth state
+        setCurrentUser(null);
         setIsAuthenticated(false);
         setUserPhotoURL(null);
         setMongoDbUserId(null);
-        // The useEffect for onAuthStateChanged will now detect no user & no guest mode,
-        // and if HAS_SEEN_WELCOME_KEY is true, it will show LoginPage.
-        // If HAS_SEEN_WELCOME_KEY is false, it will show WelcomePage.
-        // Forcing a state that leads to LoginPage:
-        localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); // Ensure welcome doesn't reappear
-        setShowWelcomePage(false); // Explicitly hide welcome
+        localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+        setShowWelcomePage(false);
     }
-    // If not guest mode, this button might not be visible or could also just ensure LoginPage shows if not auth'd
   };
 
   const baseTabItems = [
@@ -357,57 +351,51 @@ function AppContent() {
     { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestMode} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} /> },
     ...baseTabItems,
   ];
-  
-  let currentTabItems = jobseekerTabItems; 
+
+  let currentTabItems = jobseekerTabItems;
   if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
     currentTabItems = recruiterTabItems;
   } else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   } else if (isGuestMode) {
-    // Guest mode defaults to job seeker view but with features locked
-    currentTabItems = jobseekerTabItems; 
+    currentTabItems = jobseekerTabItems;
   }
 
 
   useEffect(() => {
     if (!isInitialLoading && initialAuthCheckDone.current) {
-      const itemsForCurrentContext = isGuestMode 
-        ? jobseekerTabItems 
+      const itemsForCurrentContext = isGuestMode
+        ? jobseekerTabItems
         : (isAuthenticated && userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
       const validTabValues = itemsForCurrentContext.map(item => item.value);
-      let defaultTabForCurrentContext = "findJobs"; 
+      let defaultTabForCurrentContext = "findJobs";
       if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
         defaultTabForCurrentContext = "findTalent";
       }
-      if (!validTabValues.includes(activeTab) || 
-          (userRole === 'recruiter' && activeTab === 'findJobs') || 
+      if (!validTabValues.includes(activeTab) ||
+          (userRole === 'recruiter' && activeTab === 'findJobs') ||
           (userRole === 'jobseeker' && activeTab === 'findTalent') ||
           (isGuestMode && activeTab === 'findTalent') ) {
         setActiveTab(defaultTabForCurrentContext);
       }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isGuestMode, isAuthenticated, isInitialLoading]); 
+  }, [userRole, isGuestMode, isAuthenticated, isInitialLoading]);
 
-  if (isInitialLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
-      </div>
-    );
-  }
-  
   const mainContentRender = () => {
-    if (showWelcomePage) { // Show new landing page if not seen or user logged out and it reset
+    if (isInitialLoading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+      );
+    }
+
+    if (showWelcomePage) {
       return <WelcomePage onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
     }
-    if (isAuthenticated && !isGuestMode && !userRole && !showWelcomePage && mongoDbUserId) { 
-      return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
-    }
-    if (!isAuthenticated && !isGuestMode && !showWelcomePage) { 
-      return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
-    }
 
+    // For all other states, render the main app layout
     const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
     return (
       <div className={mainAppContainerClasses}>
@@ -419,38 +407,50 @@ function AppContent() {
           searchTerm={searchTerm}
           onSearchTermChange={setSearchTerm}
           userName={userName}
-          userPhotoURL={userPhotoURL} 
+          userPhotoURL={userPhotoURL}
         />
         <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            {isMobile ? (
-              <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
-            ) : (
-              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
+          {(() => { // IIFE to decide content
+            if (isAuthenticated && !isGuestMode && !userRole && mongoDbUserId) {
+              return <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />;
+            }
+            if (!isAuthenticated && !isGuestMode) { // Welcome page has been seen
+              return <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />;
+            }
+
+            // Authenticated with role OR Guest mode: Show tabs
+            return (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                {isMobile ? (
+                  <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
+                ) : (
+                  <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
+                    {currentTabItems.map(item => (
+                      <TabsTrigger
+                        key={item.value}
+                        value={item.value}
+                        className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
+                      >
+                        <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
+                        <span className="truncate">{item.label}</span>
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
+                )}
                 {currentTabItems.map(item => (
-                  <TabsTrigger
-                    key={item.value}
-                    value={item.value}
-                    className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"
-                  >
-                    <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </TabsTrigger>
+                  <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
+                    {React.cloneElement(item.component, {
+                      ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
+                      isGuestMode,
+                      ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }),
+                      ...(item.value === 'aiTools' && { currentUserRole: userRole }),
+                      ...(item.value === 'myDiary' && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
+                    })}
+                  </TabsContent>
                 ))}
-              </TabsList>
-            )}
-            {currentTabItems.map(item => (
-              <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
-                {React.cloneElement(item.component, {
-                  ...( (item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
-                  isGuestMode,
-                  ...(item.value === 'settings' && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }),
-                  ...(item.value === 'aiTools' && { currentUserRole: userRole }),
-                  ...(item.value === 'myDiary' && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
-                })}
-              </TabsContent>
-            ))}
-          </Tabs>
+              </Tabs>
+            );
+          })()}
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t">
           <div className="flex justify-center items-center gap-x-4 mb-1">
@@ -528,6 +528,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
-
-    

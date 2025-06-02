@@ -3,7 +3,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, Compass, Eye, Sparkles, CheckCircle } from "lucide-react"; // Added Sparkles, CheckCircle
+import { LogIn, Compass, Eye, Sparkles, CheckCircle } from "lucide-react";
 import { auth } from "@/lib/firebase";
 import { GoogleAuthProvider, signInWithPopup, type UserCredential, type FirebaseError } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
@@ -30,7 +30,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
       let errorMessage = "Failed to sign in with Google using popup.";
-      let shouldBypass = true; 
+      let shouldBypass = true;
 
       if (firebaseError.code === 'auth/network-request-failed') {
         errorMessage = "Network error. Please check your connection.";
@@ -38,18 +38,18 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         errorMessage = "Pop-up was blocked by the browser. Please allow pop-ups for this site.";
       } else if (firebaseError.code === 'auth/cancelled-popup-request' || firebaseError.code === 'auth/popup-closed-by-user') {
         errorMessage = "Sign-in cancelled. The Google Sign-In window was closed.";
-        shouldBypass = false; 
+        shouldBypass = false;
         toast({
           title: "Sign-In Cancelled or Popup Issue",
           description: errorMessage,
-          variant: "default", 
+          variant: "default",
         });
       } else if (firebaseError.code === 'auth/operation-not-allowed') {
         errorMessage = "Sign-in method is not enabled. Please contact support.";
       } else if (firebaseError.code === 'auth/unauthorized-domain') {
         errorMessage = "This domain is not authorized for Google Sign-In. Check Firebase console.";
       }
-      
+
       if (shouldBypass) {
         toast({
           title: "Google Sign-In Failed (Popup)",
@@ -65,7 +65,9 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4 dynamic-bg">
+    // Adjusted min-h-screen to min-h-full for better embedding if needed, but for now dynamic-bg applies here
+    // Keeping p-4, flex, items-center, justify-center for its own layout within the main area
+    <div className="flex flex-col items-center justify-center p-4 dynamic-bg w-full h-full">
       <Card className="w-full max-w-md shadow-2xl bg-card/90 backdrop-blur-sm">
         <CardHeader className="text-center space-y-2 pt-8">
           <LogIn className="mx-auto h-12 w-12 text-primary" />
