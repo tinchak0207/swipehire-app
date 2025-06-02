@@ -3,10 +3,11 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Candidate, CandidateFilters, UserRole } from '@/lib/types';
-import { WorkExperienceLevel, EducationLevel, LocationPreference, JobType, Availability } from '@/lib/types'; // Added Availability
-import { mockCandidates } from '@/lib/mockData'; // Keep for fallback
-import { SwipeCard } from '@/components/swipe/SwipeCard';
-import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
+import { WorkExperienceLevel, EducationLevel, LocationPreference, JobType, Availability } from '@/lib/types';
+import { mockCandidates } from '@/lib/mockData'; 
+// import { SwipeCard } from '@/components/swipe/SwipeCard'; // No longer used
+// import { CandidateCardContent } from '@/components/swipe/CandidateCardContent'; // No longer used
+import ProfileCard from '@/components/cards/ProfileCard'; // New import
 import { Button } from '@/components/ui/button';
 import { Loader2, SearchX, Filter, X, RotateCcw, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -19,14 +20,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { passCandidate, retrieveCandidate } from '@/services/interactionService'; // New import
+import { passCandidate, retrieveCandidate } from '@/services/interactionService';
 
 const ITEMS_PER_BATCH = 3;
-// LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX and LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX are no longer needed
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-// Simple Trash icon as Lucide might not have a perfect one
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
     <path d="M3 6h18" />
@@ -36,7 +35,6 @@ const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <line x1="14" y1="11" x2="14" y2="17" />
   </svg>
 );
-
 
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
@@ -49,25 +47,18 @@ const initialFilters: CandidateFilters = {
   jobTypes: new Set(),
 };
 
-const getThemeClass = (themeKey?: string) => {
-  if (!themeKey || themeKey === 'default') return 'card-theme-default';
-  return `card-theme-${themeKey}`;
-};
-
 export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isLoading, setIsLoading] = useState(false); // For subsequent pagination loading
+  const [isLoading, setIsLoading] = useState(false); 
   const [hasMore, setHasMore] = useState(true);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
-  // trashBinCandidates state will now derive from passedCandidateProfileIds and allCandidates
   
   const [activeFilters, setActiveFilters] = useState<CandidateFilters>(initialFilters);
   const [likedCandidateProfileIds, setLikedCandidateProfileIds] = useState<Set<string>>(new Set());
-  // passedCandidateProfileIds will now come from context
 
   const { toast } = useToast();
   const { mongoDbUserId, passedCandidateIds: passedCandidateProfileIdsFromContext, updatePassedCandidateIds, fetchAndSetUserPreferences } = useUserPreferences();
@@ -76,9 +67,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
-
   const fetchBackendCandidates = useCallback(async () => {
-    console.log("[CandidateDiscovery] Fetching candidates from backend...");
     setIsInitialLoading(true);
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
@@ -87,17 +76,14 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
       const data: Candidate[] = await response.json();
       if (data.length === 0) {
-        console.log("[CandidateDiscovery] Backend returned no candidates. Using mock candidates as fallback.");
         setAllCandidates([...mockCandidates]);
       } else {
-        // Ensure all candidates from backend have an 'id' field that matches their '_id' for frontend use
         setAllCandidates(data.map(c => ({...c, id: (c as any)._id || c.id })));
-        console.log("[CandidateDiscovery] Fetched candidates from backend:", data.length);
       }
     } catch (error) {
       console.error("Error fetching candidates from backend:", error);
       toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles from the backend. Displaying mock data as fallback.", variant: "destructive" });
-      setAllCandidates([...mockCandidates]); // Fallback to mockCandidates on error
+      setAllCandidates([...mockCandidates]);
     } finally {
       setIsInitialLoading(false);
     }
@@ -107,26 +93,21 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     fetchBackendCandidates();
   }, [fetchBackendCandidates]);
 
-
   useEffect(() => {
     if (mongoDbUserId) {
         const storedCompanyId = localStorage.getItem(`user_${mongoDbUserId}_representedCompanyId`); 
         setRecruiterRepresentedCompanyId(storedCompanyId || 'comp-placeholder-recruiter'); 
-         // Fetch/refresh user preferences (which includes passed IDs) when mongoDbUserId is available
         fetchAndSetUserPreferences(mongoDbUserId);
     }
   }, [mongoDbUserId, fetchAndSetUserPreferences]);
-
 
   const trashBinCandidates = useMemo(() => {
     if (isInitialLoading || allCandidates.length === 0 || !passedCandidateProfileIdsFromContext) return [];
     return allCandidates.filter(c => passedCandidateProfileIdsFromContext.has(c.id));
   }, [allCandidates, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
-
   const filteredCandidatesMemo = useMemo(() => {
     if (isInitialLoading || !passedCandidateProfileIdsFromContext) return [];
-    console.log("[CandidateDiscovery] Recalculating filteredCandidatesMemo...");
     let candidates = [...allCandidates];
 
     if (activeFilters.experienceLevels.size > 0) {
@@ -150,12 +131,9 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidates.length}, Passed IDs count: ${passedCandidateProfileIdsFromContext.size}`);
     const finalFiltered = candidates.filter(c => !passedCandidateProfileIdsFromContext.has(c.id));
-    console.log(`[CandidateDiscovery] Final filtered count: ${finalFiltered.length}`);
     return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
-
 
   const loadMoreCandidates = useCallback(() => {
     if (isInitialLoading || isLoading || !hasMore || currentIndex >= filteredCandidatesMemo.length) {
@@ -166,45 +144,36 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       }
       return;
     }
-    setIsLoading(true); // For subsequent pagination loading
-    console.log(`[CandidateDiscovery] Loading more candidates. Current index: ${currentIndex}, Batch size: ${ITEMS_PER_BATCH}, Filtered total: ${filteredCandidatesMemo.length}`);
+    setIsLoading(true);
     setTimeout(() => {
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
       setDisplayedCandidates(prev => {
         const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
-        console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
         return updatedDisplay;
       });
       setCurrentIndex(newLoadIndex);
       setHasMore(newLoadIndex < filteredCandidatesMemo.length);
       setIsLoading(false);
-      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
     }, 700);
   }, [isInitialLoading, isLoading, hasMore, currentIndex, filteredCandidatesMemo]);
 
   useEffect(() => {
-    if (isInitialLoading) return; // Don't run if initial data isn't loaded yet
-    console.log(`[CandidateDiscovery] Effect for filteredCandidatesMemo triggered. Length: ${filteredCandidatesMemo.length}`);
+    if (isInitialLoading) return; 
     setDisplayedCandidates([]);
     setCurrentIndex(0);
     const hasFilteredItems = filteredCandidatesMemo.length > 0;
     setHasMore(hasFilteredItems);
     if (hasFilteredItems) {
-        console.log("[CandidateDiscovery] Reset: Has filtered items, calling loadMoreCandidates.");
         loadMoreCandidates();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidatesMemo, isInitialLoading]);
-
+  }, [filteredCandidatesMemo, isInitialLoading, loadMoreCandidates]);
 
   useEffect(() => {
     if (isInitialLoading) return;
-    console.log(`[CandidateDiscovery] IntersectionObserver: Attaching. hasMore: ${hasMore} isLoading: ${isLoading}`);
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && hasMore && !isLoading) {
-        console.log("[CandidateDiscovery] IntersectionObserver: Triggered loadMoreCandidates.");
         loadMoreCandidates();
       }
     }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
@@ -215,13 +184,22 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [hasMore, isLoading, loadMoreCandidates, isInitialLoading]);
 
   const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => {
-    if (action === 'share' || action === 'details') {
-        console.log(`${action} action for candidate ${candidateId}`);
-        return;
-    }
-
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
+
+    if (action === 'details') {
+      // Implement logic to show candidate details modal if needed, or navigate to a profile page
+      // For now, just log it. This page doesn't have an internal modal for the new ProfileCard.
+      toast({title: `Viewing details for ${candidate.name}`});
+      console.log(`Details action for candidate ${candidateId}`);
+      return;
+    }
+    if (action === 'share') {
+      // Implement sharing logic if needed
+      toast({title: `Sharing profile of ${candidate.name}`});
+      console.log(`Share action for candidate ${candidateId}`);
+      return;
+    }
 
     if (!mongoDbUserId) {
       toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
@@ -281,9 +259,6 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       updatePassedCandidateIds(response.passedCandidateProfileIds || []);
       toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
       setIsTrashBinOpen(false);
-      // The change in passedCandidateProfileIdsFromContext (via updatePassedCandidateIds)
-      // will trigger filteredCandidatesMemo to recompute, then the useEffect for it
-      // will reset displayedCandidates and call loadMoreCandidates.
     } catch (error: any) {
       toast({ title: "Error Retrieving Candidate", description: error.message || "Could not retrieve candidate.", variant: "destructive" });
     }
@@ -387,17 +362,15 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         </DialogContent>
       </Dialog>
 
+      {/* Main content area for displaying cards */}
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
-          <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
-             <SwipeCard className={cn(
-                `w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-3xl overflow-hidden min-h-[calc(100vh-200px)] max-h-[calc(100vh-120px)]`,
-                getThemeClass(candidate.cardTheme),
-                likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl',
-                candidate.isUnderestimatedTalent ? 'border-2 border-yellow-500 shadow-yellow-500/20' : ''
-              )}>
-              <CandidateCardContent candidate={candidate} onSwipeAction={handleAction} isLiked={likedCandidateProfileIds.has(candidate.id)} isGuestMode={mongoDbUserId === null} />
-            </SwipeCard>
+          <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-2 sm:p-4 bg-transparent"> {/* Ensure bg is transparent or matches page background */}
+            <ProfileCard 
+              candidate={candidate} 
+              onAction={handleAction} 
+              isLiked={likedCandidateProfileIds.has(candidate.id)}
+            />
           </div>
         ))}
         {isLoading && !isInitialLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
@@ -413,5 +386,3 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
-
-    
