@@ -6,15 +6,16 @@ import type { Candidate, CandidateFilters, ProfileRecommenderOutput, RecruiterPe
 import { mockCandidates } from '@/lib/mockData';
 import ProfileCard from '@/components/cards/ProfileCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, X as CloseIcon, RotateCcw, Trash2 as TrashIcon, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal, Target, Activity, Bookmark, Send, CalendarDays } from 'lucide-react';
+import { Loader2, SearchX, Filter, X as CloseIcon, RotateCcw, Trash2 as TrashIcon, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal, Target, Activity, Bookmark, Send, CalendarDays, UserCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { recordLike } from '@/services/matchService';
 import NextImage from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label"; // Added Label import
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { passCandidate, retrieveCandidate } from '@/services/interactionService';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
@@ -866,6 +867,5 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     </div>
   );
 }
-
 
     
