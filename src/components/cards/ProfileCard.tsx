@@ -2,12 +2,11 @@
 "use client";
 
 import React from 'react';
-import Image from 'next/image'; // Import next/image
-import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2 } from 'lucide-react';
+import Image from 'next/image';
+import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2 } from 'lucide-react'; // Updated imports
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Candidate } from '@/lib/types'; // Import Candidate type
-import { cn } from '@/lib/utils';
+import type { Candidate } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -24,7 +23,6 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
       : candidate.avatarUrl
     : `https://placehold.co/96x96.png?text=${encodeURIComponent(candidate.name?.[0] || 'P')}`;
 
-  // Determine if unoptimized prop is needed for next/image
   const needsUnoptimized = avatarDisplayUrl.startsWith(CUSTOM_BACKEND_URL) || avatarDisplayUrl.startsWith('http://localhost');
 
   return (
@@ -35,14 +33,14 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
         <div className="relative flex justify-center">
           <div className="relative">
             <div className="w-24 h-24 rounded-full ring-4 ring-white/50 overflow-hidden shadow-xl">
-              <Image 
-                src={avatarDisplayUrl} 
+              <Image
+                src={avatarDisplayUrl}
                 alt={candidate.name || "Candidate Avatar"}
                 width={96}
                 height={96}
                 className="w-full h-full object-cover"
                 data-ai-hint={candidate.dataAiHint || "person portrait"}
-                unoptimized={needsUnoptimized} // Use unoptimized for external backend URLs not in next.config.js images.remotePatterns
+                unoptimized={needsUnoptimized}
               />
             </div>
             {/* Optional: Online status indicator, can be made dynamic if data exists */}
@@ -84,8 +82,8 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
                   <span className="text-indigo-600 text-sm font-bold">{candidate.profileStrength}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500" 
+                  <div
+                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500"
                     style={{ width: `${candidate.profileStrength}%` }}
                   ></div>
                 </div>
@@ -108,10 +106,10 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
           <div className="space-y-3">
             <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Top Skills</h3>
             <div className="flex flex-wrap gap-2">
-              {candidate.skills.slice(0, 5).map(skill => ( // Show up to 5 skills
-                <Badge 
-                  key={skill} 
-                  variant="secondary" 
+              {candidate.skills.slice(0, 5).map(skill => (
+                <Badge
+                  key={skill}
+                  variant="secondary"
                   className="bg-gradient-to-r from-blue-100 to-indigo-200 text-indigo-700 border-indigo-300 hover:from-blue-200 hover:to-indigo-300 transition-all duration-200"
                 >
                   {skill}
@@ -123,46 +121,43 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
 
         {/* Action Buttons */}
         <div className="grid grid-cols-4 gap-2 pt-4">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 transition-all duration-200"
             onClick={() => onAction(candidate.id, 'pass')}
           >
-            <ThumbsDown className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ThumbsDown className="w-5 h-5" /> {/* Icon instead of emoji */}
             <span className="text-xs">Pass</span>
           </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200"
             onClick={() => onAction(candidate.id, 'details')}
           >
-            <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Eye className="w-5 h-5" /> {/* Icon instead of emoji */}
             <span className="text-xs">Profile</span>
           </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className={cn(
-              "flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-200",
-              isLiked && "bg-green-100 border-green-400"
-            )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className={`flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 transition-all duration-200 ${isLiked ? 'bg-green-100 border-green-400' : ''}`}
             onClick={() => onAction(candidate.id, 'like')}
           >
-            <ThumbsUp className={cn("w-4 h-4 sm:w-5 sm:h-5", isLiked && "fill-green-500")} />
+            <ThumbsUp className={`w-5 h-5 ${isLiked ? 'fill-green-500' : ''}`} /> {/* Icon & conditional fill */}
             <span className="text-xs">Like</span>
           </Button>
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex flex-col items-center justify-center gap-1 p-2 h-auto bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200"
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all duration-200"
             onClick={() => onAction(candidate.id, 'share')}
           >
-            <Share2 className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Share2 className="w-5 h-5" /> {/* Icon instead of emoji */}
             <span className="text-xs">Share</span>
           </Button>
         </div>
@@ -172,5 +167,4 @@ const ProfileCard = ({ candidate, onAction, isLiked }: ProfileCardProps) => {
 };
 
 export default ProfileCard;
-
     
