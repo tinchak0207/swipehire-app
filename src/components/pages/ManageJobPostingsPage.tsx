@@ -7,8 +7,8 @@ import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { fetchRecruiterJobs, updateRecruiterJob, deleteRecruiterJob } from '@/services/jobService';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -48,6 +48,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   const [editingJob, setEditingJob] = useState<CompanyJobOpening | null>(null);
   const [jobToDelete, setJobToDelete] = useState<CompanyJobOpening | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isAlertOpen, setIsAlertOpen] = useState(false); // For AlertDialog control
   const [tagInput, setTagInput] = useState(''); // For the edit form
   const [currentTags, setCurrentTags] = useState<string[]>([]); // For the edit form
 
@@ -111,7 +112,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteJob = async () => {
+  const handleDeleteJobConfirm = async () => {
     if (!jobToDelete || !mongoDbUserId || !(jobToDelete as any)._id) return;
     setIsSubmitting(true);
     try {
@@ -122,6 +123,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
       toast({ title: "Error Deleting Job", description: error.message, variant: "destructive" });
     } finally {
       setJobToDelete(null);
+      setIsAlertOpen(false);
       setIsSubmitting(false);
     }
   };
@@ -232,11 +234,9 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                     <Button variant="outline" size="sm" onClick={() => handleEditJob(job)}>
                       <Edit3 className="mr-1.5 h-4 w-4" /> Edit
                     </Button>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="destructive" size="sm" onClick={() => setJobToDelete(job)}>
+                    <Button variant="destructive" size="sm" onClick={() => { setJobToDelete(job); setIsAlertOpen(true); }}>
                         <Trash2 className="mr-1.5 h-4 w-4" /> Delete
-                      </Button>
-                    </AlertDialogTrigger>
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -257,6 +257,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
           setIsEditModalOpen(isOpen);
           if (!isOpen) setEditingJob(null);
       }}>
+        {/* Removed redundant DialogTrigger here */}
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center"><Edit3 className="mr-2 h-5 w-5 text-primary" /> Edit Job Posting</DialogTitle>
@@ -301,7 +302,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!jobToDelete} onOpenChange={(isOpen) => !isOpen && setJobToDelete(null)}>
+      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
@@ -310,8 +311,8 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setJobToDelete(null)} disabled={isSubmitting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteJob} disabled={isSubmitting} className="bg-destructive hover:bg-destructive/90">
+            <AlertDialogCancel onClick={() => { setJobToDelete(null); setIsAlertOpen(false); }} disabled={isSubmitting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteJobConfirm} disabled={isSubmitting} className="bg-destructive hover:bg-destructive/90">
               {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
