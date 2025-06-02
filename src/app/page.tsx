@@ -297,11 +297,13 @@ function AppContent() {
       localStorage.removeItem(GUEST_MODE_KEY);
       localStorage.removeItem('recruiterProfileComplete');
       localStorage.removeItem('mongoDbUserId'); 
+      localStorage.removeItem(HAS_SEEN_WELCOME_KEY); // Ensure welcome page is shown next
       setMongoDbUserId(null); 
       setIsGuestMode(false); 
       setUserPhotoURL(null);
       setActiveTab('findJobs'); 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
+      // onAuthStateChanged will now naturally lead to WelcomePage
     } catch (error) {
       console.error("Error signing out:", error);
       toast({ title: "Logout Failed", description: "Could not log out. Please try again.", variant: "destructive" });
@@ -380,12 +382,12 @@ function AppContent() {
     }
 
     if (showWelcomePage) {
-      return <WelcomePage onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
+      return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
     }
     
     if (!isAuthenticated && !isGuestMode) { 
       return (
-        <div className="animate-fadeInPage">
+        <div className="animate-fadeInPage" key="login_page_wrapper">
           <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />
         </div>
       );
@@ -393,7 +395,7 @@ function AppContent() {
 
     if (isAuthenticated && !isGuestMode && !userRole && mongoDbUserId) {
         return (
-          <div className="animate-fadeInPage">
+          <div className="animate-fadeInPage" key="role_selection_page_wrapper">
             <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />
           </div>
         );
