@@ -2,7 +2,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag } from 'lucide-react'; // Added Tag
+import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X as CloseIcon, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
 import { useToast } from '@/hooks/use-toast';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog"; // Removed ShadDialogDescription for now
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogClose } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -66,8 +66,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  const jobMatchPercentage = company.jobMatchPercentage || Math.floor(Math.random() * 30) + 70; // Placeholder
-  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : 'Experience level not specified';
+  const jobMatchPercentage = company.jobMatchPercentage || 97; // Placeholder from image
+  const experienceRequiredText = jobOpening?.requiredExperienceLevel ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : '5-10 years experience required'; // Placeholder from image
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -376,7 +376,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     className?: string;
     isSpecificActionLiked?: boolean;
   }) => {
-    const baseClasses = "flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95";
+    const baseClasses = "flex flex-col items-center justify-center w-16 h-16 rounded-xl transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 shadow-sm";
     let variant: "outline" | "default" | "ghost" = "outline";
     let colorClasses = "";
 
@@ -411,7 +411,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     const buttonElement = (
         <Button
           variant={variant}
-          size="icon" // This makes it square, we control specific w/h via className
+          size="icon" 
           className={cn(baseClasses, colorClasses, extraClassName)}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
           disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
@@ -491,32 +491,35 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Header Section */}
-        <div className="relative h-32 bg-gradient-to-r from-purple-500 to-blue-500 shrink-0 p-4">
-          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/30 text-white backdrop-blur-sm text-xs">
+        <div className="relative h-24 bg-gradient-to-r from-purple-500 to-blue-500 shrink-0 p-4 flex items-start">
+          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/30 text-white backdrop-blur-sm text-xs px-2 py-1 shadow-sm">
             {categoryText.length > 15 ? categoryText.substring(0, 12) + "..." : categoryText}
           </Badge>
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 translate-y-1/2 mt-1 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-lg border-2 border-slate-200">
+          {/* Placeholder for absolutely positioned circular logo */}
+        </div>
+        
+        {/* Main Content Area */}
+        <div className="flex-1 p-4 pt-12 space-y-3 text-center overflow-y-auto relative"> {/* pt-12 to create space for the overlapping logo */}
+          {/* Absolutely Positioned Circular Logo */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-2 border-slate-200 z-10">
             {company.logoUrl ? (
               <Image
                 src={company.logoUrl}
                 alt={company.name + " logo"}
-                width={60}
-                height={60}
-                className="object-contain rounded-md p-1" // Added p-1 to prevent sharp edges of logo touching circle
+                width={56} 
+                height={56}
+                className="object-contain rounded-md p-1"
                 data-ai-hint={company.dataAiHint || "company logo"}
               />
             ) : (
               <BriefcaseIcon className="h-10 w-10 text-muted-foreground" />
             )}
           </div>
-        </div>
-        
-        {/* Main Content Area */}
-        <div className="flex-1 p-4 pt-12 space-y-3 text-center overflow-y-auto"> {/* pt-12 to account for overlapping icon */}
-          <h2 className="text-xl font-bold text-foreground mt-2">{company.name}</h2>
-          {jobOpening && <p className="text-purple-600 font-medium">{jobOpening.title}</p>}
+
+          <h2 className="text-xl font-bold text-foreground pt-2">{company.name}</h2>
+          {jobOpening && <p className="text-purple-600 font-medium text-md">{jobOpening.title}</p>}
           
-          <div className="flex justify-center items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex justify-center items-center gap-3 text-sm text-muted-foreground">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1" /> {jobOpening.location}</span>
             )}
@@ -526,8 +529,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </div>
 
           {/* Job Match Section */}
-          <div className="pt-2 space-y-1">
-            <div className="flex justify-between items-center text-sm">
+          <div className="pt-3 space-y-1">
+            <div className="flex justify-between items-center text-sm px-1">
               <span className="text-muted-foreground">Job Match</span>
               <span className="font-semibold text-purple-600">{jobMatchPercentage}%</span>
             </div>
@@ -537,11 +540,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 
           {/* Top Skills Section */}
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
-            <div className="pt-2 space-y-2">
-              <h3 className="text-xs font-semibold uppercase text-muted-foreground">Top Skills</h3>
-              <div className="flex flex-wrap justify-center gap-2">
+            <div className="pt-3 space-y-2">
+              <h3 className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Top Skills</h3>
+              <div className="flex flex-wrap justify-center gap-1.5">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} className="bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 text-xs">
+                  <Badge key={tag} className="bg-orange-100 text-orange-700 border border-orange-200 hover:bg-orange-200 text-xs px-2 py-0.5">
                     {tag}
                   </Badge>
                 ))}
@@ -765,3 +768,4 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
+
