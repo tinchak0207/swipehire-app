@@ -4,7 +4,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart } from 'lucide-react';
+import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart, Code2 } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -68,9 +68,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
-  const jobMatchPercentage = company.jobMatchPercentage || 85;
-  const experienceRequiredText = jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && jobOpening.requiredExperienceLevel !== '5-10 years' ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') + ' experience required' : '5-10 years experience required';
-  const categoryText = company.industry && company.industry !== "SaaS Technology" ? company.industry : "SaaS Technology";
+  const jobMatchPercentage = company.jobMatchPercentage || 75; // Default to 75% as per new design
+  const experienceRequiredText = jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED ? jobOpening.requiredExperienceLevel.replace(/_/g, ' ') : 'Experience not specified';
+  const categoryText = company.industry || "General";
 
 
   const handleDetailsButtonClick = (e: React.MouseEvent) => {
@@ -357,7 +357,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-card"
+        className="flex flex-col h-full overflow-hidden relative bg-custom-dark-purple-blue text-white" // Main card dark background
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -369,55 +369,61 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         {/* Header Section */}
-        <div className="relative h-24 bg-gradient-to-r from-purple-500 to-blue-500 shrink-0 p-4 flex items-start">
-          <Badge variant="secondary" className="absolute top-3 left-3 bg-white/30 text-white backdrop-blur-sm text-xs font-medium px-2.5 py-1 rounded-full shadow-sm">
-            {categoryText.length > 15 ? categoryText.substring(0, 12) + "..." : categoryText}
-          </Badge>
-          <div className="absolute top-16 left-1/2 -translate-x-1/2 w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-slate-100 z-10">
-            {company.logoUrl ? (
-              <Image
-                src={company.logoUrl}
-                alt={company.name + " logo"}
-                width={40} 
-                height={40}
-                className="object-contain rounded-md"
-                data-ai-hint={company.dataAiHint || "company logo"}
-              />
-            ) : (
-              <div className="w-full h-full bg-slate-200 rounded-full flex items-center justify-center text-slate-500 text-xs font-semibold">
-                LOGO
-              </div>
-            )}
+        <div className="h-32 bg-gradient-to-r from-custom-primary-purple to-custom-dark-purple-blue p-4 flex flex-col items-center justify-center relative">
+          <div className="w-[50px] h-[50px] rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mb-2">
+            {/* Use a relevant icon for job/company */}
+            <Code2 className="h-6 w-6 text-white" /> 
           </div>
         </div>
         
         {/* Main Content Area */}
-        <div className="flex-1 p-4 pt-12 text-center overflow-y-auto relative">
-          <h2 className="text-xl font-bold text-slate-900 mt-0">{company.name}</h2>
-          {jobOpening && <p className="text-sm font-medium text-purple-600 uppercase tracking-wider mt-1">{jobOpening.title}</p>}
+        <div className="flex-1 p-4 text-center overflow-y-auto">
+          <p className="text-lg uppercase font-bold text-custom-light-purple-text">{company.name}</p>
+          <h1 className="text-4xl font-bold text-white mt-1 line-clamp-2">{jobOpening?.title || 'Exciting Opportunity'}</h1>
           
-          <div className="flex justify-center items-center gap-x-3 text-sm text-slate-600 mt-2.5">
+          <div className="flex justify-center items-center gap-x-3 text-base text-white/90 mt-3">
             {jobOpening?.location && (
-              <span className="flex items-center"><MapPin className="h-4 w-4 mr-0.5 text-slate-500" /> {jobOpening.location}</span>
+              <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 opacity-80" /> {jobOpening.location}</span>
             )}
             {jobOpening?.jobType && (
-              <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-0.5 text-slate-500" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
+              <span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 opacity-80" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>
             )}
           </div>
 
-          <div className="flex justify-between items-center text-xs mt-4 px-1">
-            <span className="text-slate-500">Job Match</span>
-            <Progress value={jobMatchPercentage} className="flex-grow mx-2 h-[6px] bg-slate-200 [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-blue-500" />
-            <span className="font-semibold text-purple-600">{jobMatchPercentage}%</span>
+          {/* Circular Job Match Indicator - Simplified */}
+          <div className="mt-6 mb-5 flex justify-center">
+            <div className="relative w-[70px] h-[70px]">
+              <div className="absolute inset-0 rounded-full border-[6px] border-custom-light-gray-ring"></div>
+              <div 
+                className="absolute inset-0 rounded-full border-[6px] border-transparent border-t-custom-primary-purple border-r-custom-primary-purple"
+                style={{ 
+                  transform: 'rotate(45deg)', // Start point for the arc
+                  clipPath: `inset(0% ${100 - jobMatchPercentage}% 0% 0%)` // Approximation
+                }}
+              ></div>
+               <div 
+                className="absolute inset-0 rounded-full border-[6px] border-transparent border-b-custom-primary-purple border-l-custom-primary-purple"
+                style={{ 
+                  transform: 'rotate(45deg)', // Start point for the arc
+                   clipPath: jobMatchPercentage > 50 ? `inset(0% 0% 0% ${100 - (jobMatchPercentage - 50) * 2}%)` : 'inset(0% 0% 0% 100%)'
+                }}
+              ></div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-white text-sm font-semibold">{jobMatchPercentage}%</span>
+                <span className="text-white/80 text-[10px] leading-tight">match</span>
+              </div>
+            </div>
           </div>
-          <p className="text-xs italic text-slate-500 mt-1.5">{experienceRequiredText}</p>
+          
+          {/* Experience Text (Not in new design directly under match, but keeping for data completeness if needed elsewhere) */}
+          {/* <p className="text-xs italic text-white/70 mt-1.5">{experienceRequiredText}</p> */}
 
           {jobOpening?.tags && jobOpening.tags.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-xs font-semibold uppercase text-slate-500 tracking-wider">TOP SKILLS</h3>
-              <div className="flex flex-wrap justify-center gap-1.5 mt-1.5">
+            <div className="mt-5">
+              <h3 className="text-sm uppercase font-bold text-custom-light-purple-text tracking-wider">TOP SKILLS</h3>
+              <div className="flex flex-wrap justify-center gap-2 mt-2">
                 {jobOpening.tags.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="outline" className="bg-orange-100 text-orange-700 border-orange-200 text-xs px-2.5 py-1 rounded-md font-medium shadow-sm">
+                  <Badge key={tag} variant="secondary" className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-sm px-4 py-1.5 rounded-full font-medium">
                     {tag}
                   </Badge>
                 ))}
@@ -427,68 +433,69 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
             
         {/* Action Buttons Footer */}
-        <CardFooter className="p-2.5 grid grid-cols-4 gap-2.5 border-t bg-white shrink-0 no-swipe-area">
+        <CardFooter className="p-2.5 grid grid-cols-4 gap-2 border-t border-white/10 bg-custom-dark-purple-blue/50 shrink-0 no-swipe-area">
+            {/* Simplified button styling to fit dark theme, original functionality preserved */}
             <Button
-                variant="outline"
+                variant="ghost"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                 disabled={isGuestMode}
-                className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium border-red-200 text-red-500 hover:bg-red-50 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
                 aria-label={`Pass on ${company.name}`}
                 data-no-drag="true"
             >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <X className="h-5 w-5 mb-0.5 text-red-500" />}
-                <span className="text-red-500">Pass</span>
+                {isGuestMode ? <Lock className="h-6 w-6 mb-0.5"/> : <X className="h-6 w-6 mb-0.5" />}
+                Pass
             </Button>
             <Button
-                variant="outline"
+                variant="ghost"
                 onClick={handleDetailsButtonClick}
-                className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium border-blue-200 text-blue-500 hover:bg-blue-50 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
                 aria-label={`View details for ${company.name}`}
                 data-no-drag="true"
                 data-modal-trigger="true"
             >
-                <Eye className="h-5 w-5 mb-0.5 text-blue-500" />
-                <span className="text-blue-500">Profile</span>
+                <Eye className="h-6 w-6 mb-0.5" />
+                Profile
             </Button>
             <Button
-                variant="outline"
+                variant="ghost"
                 onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                 disabled={isGuestMode}
                 className={cn(
-                    "flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium border-green-200 text-green-500 hover:bg-green-50 transition-colors",
-                    isLiked && !isGuestMode && "bg-green-50 ring-1 ring-green-400"
+                    "flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white",
+                    isLiked && !isGuestMode && "bg-white/10 text-custom-primary-purple"
                 )}
                 aria-label={`Like ${company.name}`}
                 data-no-drag="true"
             >
-                {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <Heart className={cn("h-5 w-5 mb-0.5 text-green-500", isLiked && "fill-green-500")} />}
-                <span className="text-green-500">Like</span>
+                {isGuestMode ? <Lock className="h-6 w-6 mb-0.5"/> : <Heart className={cn("h-6 w-6 mb-0.5", isLiked && "fill-custom-primary-purple")} />}
+                Like
             </Button>
             <DropdownMenu onOpenChange={setIsShareModalOpen}>
                 <DropdownMenuTrigger asChild>
                     <Button
-                        variant="outline"
+                        variant="ghost"
                         disabled={isGuestMode}
-                        className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium border-purple-200 text-purple-500 hover:bg-purple-50 transition-colors"
+                        className="flex flex-col items-center justify-center w-full h-16 rounded-lg text-xs font-medium text-white/70 hover:bg-white/10 hover:text-white"
                         aria-label={`Share ${company.name}`}
                         data-no-drag="true"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        {isGuestMode ? <Lock className="h-5 w-5 mb-0.5"/> : <Share2 className="h-5 w-5 mb-0.5 text-purple-500" />}
-                        <span className="text-purple-500">Share</span>
+                        {isGuestMode ? <Lock className="h-6 w-6 mb-0.5"/> : <Share2 className="h-6 w-6 mb-0.5" />}
+                        Share
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} data-no-drag="true">
+                <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true">
                         <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true">
                         <Mail className="mr-2 h-4 w-4" /> Email
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true">
                         <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} data-no-drag="true">
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true">
                         <Twitter className="mr-2 h-4 w-4" /> X / Twitter
                     </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -497,30 +504,30 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       </div>
 
       <Dialog open={isDetailsModalOpen} onOpenChange={setIsDetailsModalOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
-           <DialogHeader className="p-4 sm:p-6 border-b sticky top-0 bg-background z-10 pb-3">
-            <ShadDialogTitle className="text-xl sm:text-2xl font-bold text-primary">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-slate-800 text-white border-slate-700">
+           <DialogHeader className="p-4 sm:p-6 border-b border-slate-700 sticky top-0 bg-slate-800 z-10 pb-3">
+            <ShadDialogTitle className="text-xl sm:text-2xl font-bold text-custom-primary-purple">
               {jobOpening?.title || "Opportunity Details"} at {company.name}
             </ShadDialogTitle>
-            <ShadDialogDescription className="text-sm text-muted-foreground">
+            <ShadDialogDescription className="text-sm text-slate-400">
                {company.industry}
             </ShadDialogDescription>
           </DialogHeader>
 
-          <div className="flex-1 min-h-0 overflow-y-auto bg-background">
+          <div className="flex-1 min-h-0 overflow-y-auto">
             <div className="p-4 sm:p-6 space-y-3 pt-3">
               <section>
-                <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
-                    <Building className="mr-2 h-5 w-5 text-primary" /> About {company.name}
+                <h3 className="text-lg font-semibold text-custom-light-purple-text mb-1.5 flex items-center">
+                    <Building className="mr-2 h-5 w-5" /> About {company.name}
                 </h3>
-                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                <p className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">
                   {displayedCompanyDescriptionInModal}
                   {companyDescriptionForModal.length > MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL && (
                       <Button
                           variant="link"
                           size="sm"
                           onClick={(e) => {e.stopPropagation(); setShowFullCompanyDescriptionInModal(!showFullCompanyDescriptionInModal);}}
-                          className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                          className="text-custom-primary-purple hover:underline p-0 h-auto ml-1 text-xs font-semibold"
                           data-no-drag="true"
                       >
                           {showFullCompanyDescriptionInModal ? "Read less" : "Read more"}
@@ -528,22 +535,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   )}
                 </p>
               </section>
-              <Separator className="my-3" />
+              <Separator className="my-3 bg-slate-700" />
 
               {jobOpening && (
                 <>
                   <section>
-                    <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center">
-                        <BriefcaseIcon className="mr-2 h-5 w-5 text-primary" /> Job Description: {jobOpening.title}
+                    <h3 className="text-lg font-semibold text-custom-light-purple-text mb-1.5 flex items-center">
+                        <BriefcaseIcon className="mr-2 h-5 w-5" /> Job Description: {jobOpening.title}
                     </h3>
-                    <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                    <p className="text-sm text-slate-300 whitespace-pre-line leading-relaxed">
                       {displayedJobDescriptionInModal}
                       {jobDescriptionForModal.length > MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL && (
                           <Button
                               variant="link"
                               size="sm"
                               onClick={(e) => {e.stopPropagation(); setShowFullJobDescriptionInModal(!showFullJobDescriptionInModal);}}
-                              className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                              className="text-custom-primary-purple hover:underline p-0 h-auto ml-1 text-xs font-semibold"
                               data-no-drag="true"
                           >
                               {showFullJobDescriptionInModal ? "Read less" : "Read more"}
@@ -551,82 +558,82 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                       )}
                     </p>
                   </section>
-                  <Separator className="my-3" />
+                  <Separator className="my-3 bg-slate-700" />
 
                   <section>
-                    <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                        <ListChecks className="mr-2 h-5 w-5 text-primary" /> Key Job Details
+                    <h3 className="text-lg font-semibold text-custom-light-purple-text mb-2 flex items-center">
+                        <ListChecks className="mr-2 h-5 w-5" /> Key Job Details
                     </h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm p-3 border rounded-lg bg-muted/30 shadow-sm">
-                        {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Location:</span> <span className="text-muted-foreground">{jobOpening.location}</span></div>}
-                        {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Salary:</span> <span className="text-muted-foreground">{jobOpening.salaryRange}</span></div>}
-                        {jobOpening.jobType && <div className="flex items-start"><BriefcaseIcon className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Type:</span> <span className="text-muted-foreground">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}
-                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><CalendarDays className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" /><span className="font-medium text-foreground mr-1">Experience:</span> <span className="text-muted-foreground">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm p-3 border border-slate-700 rounded-lg bg-slate-700/30 shadow-sm">
+                        {jobOpening.location && <div className="flex items-start"><MapPin className="h-4 w-4 mr-2 mt-0.5 text-slate-400 shrink-0" /><span className="font-medium text-white mr-1">Location:</span> <span className="text-slate-300">{jobOpening.location}</span></div>}
+                        {jobOpening.salaryRange && <div className="flex items-start"><DollarSign className="h-4 w-4 mr-2 mt-0.5 text-slate-400 shrink-0" /><span className="font-medium text-white mr-1">Salary:</span> <span className="text-slate-300">{jobOpening.salaryRange}</span></div>}
+                        {jobOpening.jobType && <div className="flex items-start"><BriefcaseIcon className="h-4 w-4 mr-2 mt-0.5 text-slate-400 shrink-0" /><span className="font-medium text-white mr-1">Type:</span> <span className="text-slate-300">{jobOpening.jobType.replace(/_/g, ' ')}</span></div>}
+                        {jobOpening.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && <div className="flex items-start"><CalendarDays className="h-4 w-4 mr-2 mt-0.5 text-slate-400 shrink-0" /><span className="font-medium text-white mr-1">Experience:</span> <span className="text-slate-300">{jobOpening.requiredExperienceLevel.replace(/_/g, ' ')}</span></div>}
                         {jobOpening.tags && jobOpening.tags.length > 0 && (
                         <div className="flex items-start sm:col-span-2">
-                            <Tag className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground shrink-0" />
-                            <span className="font-medium text-foreground mr-1 self-start">Skills/Tags:</span>
+                            <Tag className="h-4 w-4 mr-2 mt-0.5 text-slate-400 shrink-0" />
+                            <span className="font-medium text-white mr-1 self-start">Skills/Tags:</span>
                             <div className="flex flex-wrap gap-1">
                                 {jobOpening.tags.map((tag) => (
-                                <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>
+                                <Badge key={tag} variant="secondary" className="text-xs bg-custom-light-purple-skill-bg text-custom-primary-purple">{tag}</Badge>
                                 ))}
                             </div>
                         </div>
                       )}
                     </div>
                   </section>
-                   <Separator className="my-3" />
+                   <Separator className="my-3 bg-slate-700" />
                 </>
               )}
               
               <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
-                <AccordionItem value="ai-fit-analysis">
-                  <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
+                <AccordionItem value="ai-fit-analysis" className="border-b-0">
+                  <AccordionTrigger className="text-lg font-semibold text-custom-light-purple-text hover:no-underline data-[state=open]:text-custom-primary-purple">
                     <div className="flex items-center">
-                      <Brain className="mr-2 h-5 w-5" /> AI: How This Job Fits You <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
+                      <Brain className="mr-2 h-5 w-5" /> AI: How This Job Fits You <ChevronsUpDown className="ml-auto h-4 w-4 text-slate-400/70" />
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-1 pb-3">
-                    <p className="text-xs text-muted-foreground italic mb-2">
-                      Our AI considers how this job aligns with your profile by looking at factors like: skill and experience match, desired work style vs. company culture, growth opportunities, and job condition alignment (salary, location). The final score reflects weights you can customize in Settings.
+                    <p className="text-xs text-slate-400 italic mb-2">
+                      Our AI considers how this job aligns with your profile... (Customize weights in Settings).
                     </p>
                     {isGuestMode ? (
-                      <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                      <div className="text-sm text-red-400 italic flex items-center p-3 border border-red-600 bg-red-900/30 rounded-md shadow-sm">
                           <Lock className="h-4 w-4 mr-2"/>Sign in to get your personalized AI Fit Analysis.
                       </div>
                     ) : (
                       <>
-                        <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto">
+                        <Button onClick={fetchAiAnalysis} disabled={isLoadingAiAnalysis || !!aiJobFitAnalysis} className="mb-2.5 w-full sm:w-auto bg-custom-primary-purple hover:bg-custom-primary-purple/80 text-white">
                           {isLoadingAiAnalysis ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
                           {aiJobFitAnalysis ? "Analysis Complete" : "Analyze My Fit for this Job"}
                         </Button>
                         {isLoadingAiAnalysis && !aiJobFitAnalysis &&(
-                          <div className="flex items-center text-sm text-muted-foreground">
+                          <div className="flex items-center text-sm text-slate-400">
                             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             <span>Assessing fit...</span>
                           </div>
                         )}
                         {aiJobFitAnalysis && !isLoadingAiAnalysis && (
-                          <div className="space-y-2 p-3 border rounded-lg bg-muted/50 shadow-sm">
+                          <div className="space-y-2 p-3 border border-slate-700 rounded-lg bg-slate-700/30 shadow-sm">
                             <div className="flex items-baseline">
-                              <span className="text-md font-semibold text-foreground">Your Fit Score:</span>
+                              <span className="text-md font-semibold text-white">Your Fit Score:</span>
                               <span className={cn(
                                 "ml-1.5 font-bold text-xl",
-                                aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-600' :
-                                aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-600' : 'text-red-600'
+                                aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-400' :
+                                aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-400' : 'text-red-400'
                                 )}>
                                 {aiJobFitAnalysis.matchScoreForCandidate}%
                               </span>
                             </div>
-                            <p className="text-sm text-muted-foreground italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
+                            <p className="text-sm text-slate-300 italic leading-relaxed">{aiJobFitAnalysis.reasoningForCandidate}</p>
                             {aiJobFitAnalysis.weightedScoresForCandidate && (
-                                <div className="pt-2 mt-2 border-t border-border/70">
-                                    <p className="font-medium text-foreground text-sm mb-1">Score Breakdown (Individual Assessments):</p>
-                                    <ul className="list-none space-y-0.5 text-xs text-muted-foreground">
-                                        <li>Culture Fit: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
-                                        <li>Job Relevance: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
-                                        <li>Growth Opportunity: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
-                                        <li>Job Conditions: <span className="font-semibold text-foreground">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
+                                <div className="pt-2 mt-2 border-t border-slate-700/70">
+                                    <p className="font-medium text-white text-sm mb-1">Score Breakdown:</p>
+                                    <ul className="list-none space-y-0.5 text-xs text-slate-300">
+                                        <li>Culture Fit: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.cultureFitScore}%</span></li>
+                                        <li>Job Relevance: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore}%</span></li>
+                                        <li>Growth Opportunity: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore}%</span></li>
+                                        <li>Job Conditions: <span className="font-semibold text-white">{aiJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore}%</span></li>
                                     </ul>
                                 </div>
                             )}
@@ -636,17 +643,17 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                     )}
                   </AccordionContent>
                 </AccordionItem>
-                <Separator className="my-3" />
-                <AccordionItem value="company-qa">
-                  <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary">
+                <Separator className="my-3 bg-slate-700" />
+                <AccordionItem value="company-qa" className="border-b-0">
+                  <AccordionTrigger className="text-lg font-semibold text-custom-light-purple-text hover:no-underline data-[state=open]:text-custom-primary-purple">
                     <div className="flex items-center">
-                       <MessageSquare className="mr-2 h-5 w-5" /> Ask AI About {company.name} <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
+                       <MessageSquare className="mr-2 h-5 w-5" /> Ask AI About {company.name} <ChevronsUpDown className="ml-auto h-4 w-4 text-slate-400/70" />
                     </div>
                   </AccordionTrigger>
                   <AccordionContent className="pt-1 pb-3">
                     {isGuestMode ? (
-                        <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                            <Lock className="h-4 w-4 mr-2"/>Sign in to ask the AI questions about this company.
+                        <div className="text-sm text-red-400 italic flex items-center p-3 border border-red-600 bg-red-900/30 rounded-md shadow-sm">
+                            <Lock className="h-4 w-4 mr-2"/>Sign in to ask the AI questions.
                         </div>
                     ) : (
                       <div className="space-y-2.5">
@@ -656,22 +663,22 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                           value={userQuestion}
                           onChange={(e) => setUserQuestion(e.target.value)}
                           disabled={isAskingQuestion}
-                          className="min-h-[80px] text-sm"
+                          className="min-h-[80px] text-sm bg-slate-700 border-slate-600 placeholder-slate-400 text-white"
                         />
-                        <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto">
+                        <Button onClick={handleAskQuestion} disabled={isAskingQuestion || !userQuestion.trim()} className="w-full sm:w-auto bg-custom-primary-purple hover:bg-custom-primary-purple/80 text-white">
                           {isAskingQuestion ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <HelpCircle className="mr-2 h-4 w-4" />}
                           Ask AI
                         </Button>
                         {isAskingQuestion && !aiAnswer && (
-                          <div className="flex items-center text-sm text-muted-foreground py-1.5">
+                          <div className="flex items-center text-sm text-slate-400 py-1.5">
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                             <span>Thinking...</span>
                           </div>
                         )}
                         {aiAnswer && (
                           <div className="pt-1.5">
-                            <h4 className="font-semibold text-md text-foreground mb-1">AI's Answer:</h4>
-                            <div className="p-3 border rounded-md bg-muted/50 text-sm text-foreground whitespace-pre-line leading-relaxed shadow-sm">
+                            <h4 className="font-semibold text-md text-white mb-1">AI's Answer:</h4>
+                            <div className="p-3 border border-slate-700 rounded-md bg-slate-700/30 text-sm text-slate-300 whitespace-pre-line leading-relaxed shadow-sm">
                               {aiAnswer}
                             </div>
                           </div>
@@ -681,25 +688,25 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
-              <Separator className="my-3" />
+              <Separator className="my-3 bg-slate-700" />
 
               {company.cultureHighlights && company.cultureHighlights.length > 0 && (
                 <section>
-                  <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center">
-                    <Users2 className="mr-2 h-5 w-5 text-primary" /> Culture Highlights
+                  <h3 className="text-lg font-semibold text-custom-light-purple-text mb-2 flex items-center">
+                    <Users2 className="mr-2 h-5 w-5" /> Culture Highlights
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
                     {company.cultureHighlights.map((highlight) => (
-                      <Badge key={highlight} variant="outline" className="text-sm border-primary/50 text-primary bg-primary/5">{highlight}</Badge>
+                      <Badge key={highlight} variant="outline" className="text-sm border-custom-primary-purple/70 text-custom-primary-purple bg-custom-primary-purple/10">{highlight}</Badge>
                     ))}
                   </div>
                 </section>
               )}
             </div>
           </div>
-           <ShadDialogFooter className="p-4 border-t sticky bottom-0 bg-background z-10">
+           <ShadDialogFooter className="p-4 border-t border-slate-700 sticky bottom-0 bg-slate-800 z-10">
             <DialogClose asChild>
-                <Button variant="outline">Close</Button>
+                <Button variant="outline" className="border-slate-600 text-slate-300 hover:bg-slate-700">Close</Button>
             </DialogClose>
           </ShadDialogFooter>
         </DialogContent>

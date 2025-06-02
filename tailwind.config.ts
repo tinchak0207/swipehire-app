@@ -17,6 +17,13 @@ export default {
   theme: {
   	extend: {
   		colors: {
+        // Custom colors for new Job Card design
+        'custom-primary-purple': '#6C63FF',
+        'custom-dark-purple-blue': '#2A2486',
+        'custom-light-purple-text': '#9D99FF',
+        'custom-light-gray-ring': '#E0E0E0',
+        'custom-light-purple-skill-bg': '#F0EEFF',
+        // Existing theme colors
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
