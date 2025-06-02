@@ -21,7 +21,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { answerCompanyQuestion } from '@/ai/flows/company-qa-flow';
-
+import { Progress } from '@/components/ui/progress'; // Added for linear progress
 
 interface CompanyCardContentProps {
   company: Company;
@@ -45,18 +45,18 @@ const incrementAnalytic = (key: string) => {
   }
 };
 
-const CircularProgressBar = ({ percentage }: { percentage: number }) => {
-  const radius = 30;
-  const strokeWidth = 5;
+const CircularProgressBar = ({ percentage, size = 90 }: { percentage: number, size?: number }) => {
+  const radius = size / 2;
+  const strokeWidth = 7;
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
     <svg
-      height={radius * 2}
-      width={radius * 2}
-      viewBox={`0 0 ${radius * 2} ${radius * 2}`}
+      height={size}
+      width={size}
+      viewBox={`0 0 ${size} ${size}`}
       className="transform -rotate-90"
     >
       <circle
@@ -68,7 +68,7 @@ const CircularProgressBar = ({ percentage }: { percentage: number }) => {
         cy={radius}
       />
       <circle
-        stroke="url(#progressGradient)" // Using gradient for progress
+        stroke="url(#progressGradientCompanyCard)" 
         fill="transparent"
         strokeWidth={strokeWidth}
         strokeDasharray={circumference + ' ' + circumference}
@@ -78,9 +78,9 @@ const CircularProgressBar = ({ percentage }: { percentage: number }) => {
         cy={radius}
       />
       <defs>
-        <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#A78BFA" /> {/* Lighter purple */}
-          <stop offset="100%" stopColor="#6366F1" /> {/* Indigo */}
+        <linearGradient id="progressGradientCompanyCard" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#A78BFA" /> 
+          <stop offset="100%" stopColor="#6366F1" /> 
         </linearGradient>
       </defs>
       <text
@@ -88,16 +88,16 @@ const CircularProgressBar = ({ percentage }: { percentage: number }) => {
         y="48%"
         dy=".3em"
         textAnchor="middle"
-        className="text-sm font-bold fill-white transform rotate-90 origin-center"
+        className="text-2xl font-bold fill-white transform rotate-90 origin-center"
       >
-        {`${percentage}%`}
+        {`${Math.round(percentage)}%`}
       </text>
       <text
         x="50%"
         y="62%"
         dy=".3em"
         textAnchor="middle"
-        className="text-[8px] fill-white/80 transform rotate-90 origin-center"
+        className="text-xs fill-white/80 transform rotate-90 origin-center"
       >
         match
       </text>
@@ -125,10 +125,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
+  const [isHoveringMatchArea, setIsHoveringMatchArea] = useState(false);
+  const [analysisTriggered, setAnalysisTriggered] = useState(false);
+
 
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
   
-  const displayMatchPercentage = aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 75;
   const categoryText = company.industry || "General";
 
   const handleDetailsButtonClick = (e?: React.MouseEvent) => {
@@ -140,6 +142,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     setIsAskingQuestion(false);
     setShowFullJobDescriptionInModal(false);
     setShowFullCompanyDescriptionInModal(false);
+    // AI Analysis will be fetched when modal opens or if already fetched
     setIsDetailsModalOpen(true);
   };
   
@@ -189,6 +192,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "AI Analysis Error", description: "Your profile could not be loaded for analysis.", variant: "destructive" });
       return;
     }
+    setAnalysisTriggered(true);
     setIsLoadingAiAnalysis(true);
     if (!isModalFetch) setAiJobFitAnalysis(null); 
     try {
@@ -216,21 +220,32 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria, userAIWeights: userAIWeights });
       if (result.candidateJobFitAnalysis) setAiJobFitAnalysis(result.candidateJobFitAnalysis);
       else setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
-      if (isModalFetch || isDetailsModalOpen) setActiveAccordionItem("ai-fit-analysis");
+      
+      // Auto-open modal only if analysis was triggered by card click, not modal refresh
+      if (!isModalFetch && result.candidateJobFitAnalysis) {
+         setIsDetailsModalOpen(true);
+         setActiveAccordionItem("ai-fit-analysis");
+      } else if (isModalFetch) {
+         setActiveAccordionItem("ai-fit-analysis");
+      }
+
     } catch (error: any) {
       console.error("Error fetching AI job fit analysis for company " + company.name + ":", error);
       toast({ title: "AI Analysis Error", description: `Failed to get AI insights. ${error.message || 'Ensure your profile is up to date.'}`, variant: "destructive" });
       setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "Error during AI analysis.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
     } finally { setIsLoadingAiAnalysis(false); }
-  }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI, isDetailsModalOpen]);
+  }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI]);
 
   useEffect(() => {
-      if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) fetchAiAnalysis(true);
-      else if (isGuestMode && isDetailsModalOpen) {
+      // Fetch AI analysis if modal is opened and no analysis data exists yet (and not guest mode)
+      if(isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
+        fetchAiAnalysis(true); // true indicates it's a modal-initiated fetch
+      } else if (isGuestMode && isDetailsModalOpen) {
         setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
         setIsLoadingAiAnalysis(false); setActiveAccordionItem(undefined); 
       }
   }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
+
 
   const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
     if (actionType === 'like') incrementAnalytic('analytics_company_likes');
@@ -238,10 +253,60 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     onSwipeAction(company.id, actionType);
   };
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => { /* ... (no changes) */ };
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => { /* ... (no changes) */ };
-  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { /* ... (no changes) */ };
-  const getCardTransform = () => { /* ... (no changes) */ };
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (isGuestMode) return;
+    const targetElement = e.target as HTMLElement;
+    // Check if the click is on the interactive match area or its children, or other non-draggable elements
+    if (targetElement.closest('[data-interactive-match-area="true"], video[controls], button, a, [data-no-drag="true"], .no-swipe-area, [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
+        if (targetElement.tagName === 'VIDEO' && targetElement.hasAttribute('controls')) {
+            const video = targetElement as HTMLVideoElement;
+            const rect = video.getBoundingClientRect();
+            if (e.clientY > rect.bottom - 40) { return; } // Allow clicks on video controls
+        } else if (targetElement.closest('[data-interactive-match-area="true"]') && !isLoadingAiAnalysis && !isGuestMode) {
+            // Allow click on match area to trigger analysis, but don't start card drag
+            return;
+        } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
+           return; 
+        }
+    }
+    
+    e.preventDefault();
+    setIsDragging(true);
+    setStartX(e.clientX);
+    setCurrentX(e.clientX);
+    if (cardRootRef.current) {
+      cardRootRef.current.style.cursor = 'grabbing';
+      cardRootRef.current.style.transition = 'none';
+    }
+    document.body.style.userSelect = 'none';
+   };
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => { 
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    setCurrentX(e.clientX);
+   };
+  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { 
+    if (!isDragging || !cardRootRef.current || isGuestMode) return;
+    const deltaX = currentX - startX;
+    cardRootRef.current.style.transition = 'transform 0.3s ease-out';
+    cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
+
+    if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
+      if (deltaX < 0) handleLocalSwipeAction('pass');
+      else handleLocalSwipeAction('like');
+    }
+    setIsDragging(false);
+    setStartX(0);
+    setCurrentX(0);
+    if (cardRootRef.current) cardRootRef.current.style.cursor = 'grab';
+    document.body.style.userSelect = '';
+   };
+  const getCardTransform = () => { 
+    if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
+    const deltaX = currentX - startX;
+    const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
+    const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor;
+    return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
+   };
 
   const handleAskQuestion = async () => {
     if (isGuestMode || !userQuestion.trim()) return;
@@ -266,7 +331,33 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setIsAskingQuestion(false);
     }
   };
-  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => { /* ... (no changes) */ };
+  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => { 
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Sign in to share.", variant: "default" });
+      return;
+    }
+    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/company/${company.id}/job/${jobOpening?.title.replace(/\s+/g, '-') || 'general'}` : 'https://swipehire-app.com'; 
+    const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role!'}. Visit ${profileUrl}`;
+    const emailSubject = `Job Opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role!'}`;
+    const emailBody = `I found this job opportunity on SwipeHire and thought you might be interested:\n\nCompany: ${company.name}\nRole: ${jobOpening?.title || 'Exciting Role!'}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
+
+    switch (action) {
+      case 'copy':
+        navigator.clipboard.writeText(profileUrl)
+          .then(() => toast({ title: "Link Copied!", description: "Job link copied to clipboard." }))
+          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
+        break;
+      case 'email':
+        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
+        break;
+      case 'linkedin':
+        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
+        break;
+    }
+   };
 
   const companyDescriptionForModal = company.description;
   const displayedCompanyDescriptionInModal = showFullCompanyDescriptionInModal || companyDescriptionForModal.length <= MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL
@@ -277,6 +368,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL
     ? jobDescriptionForModal
     : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
+
+  const displayMatchPercentage = Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0);
     
 
   return (
@@ -289,7 +382,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         onMouseUp={handleMouseUpOrLeave}
         onMouseLeave={handleMouseUpOrLeave}
         style={{
-          cursor: isGuestMode ? 'default' : 'grab',
+          cursor: isGuestMode ? 'default' : (isDragging ? 'grabbing' : 'grab'),
           transform: getCardTransform(),
           transition: isDragging ? 'none' : 'transform 0.3s ease-out',
         }}
@@ -301,23 +394,23 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </Badge>
           </div>
 
-          <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-10">
+          <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-8">
             {company.logoUrl && company.logoUrl !== 'https://placehold.co/500x350.png' ? (
               <Image src={company.logoUrl} alt={`${company.name} logo`} width={36} height={36} className="object-contain" data-ai-hint={company.dataAiHint || "company logo"}/>
             ) : (
-              <Code2 className="text-white h-8 w-8" />
+              <Code2 className="text-white h-7 w-7" />
             )}
           </div>
 
-          <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-6">{company.name}</p>
-          <h1 className="text-white text-3xl sm:text-4xl font-bold mt-1.5 leading-tight break-words">
+          <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-4">{company.name}</p>
+          <h1 className="text-white text-3xl sm:text-4xl font-bold mt-1 leading-tight break-words">
             {jobOpening?.title.split('(')[0].trim()}
             {jobOpening?.title.includes('(') && (
               <span className="block text-2xl font-bold">{`(${jobOpening?.title.split('(')[1]}`}</span>
             )}
           </h1>
           
-          <div className="text-white/90 text-base mt-4 flex justify-center items-center gap-x-1.5">
+          <div className="text-white/90 text-base mt-3 flex justify-center items-center gap-x-1.5">
             {jobOpening?.location && (
               <span className="flex items-center"><MapPin className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.location}</span>
             )}
@@ -327,122 +420,132 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             )}
           </div>
           
-          {/* Spacer to push match indicator down if content is short */}
-          <div className="flex-grow min-h-[20px]"></div>
+          <div className="flex-grow min-h-[20px] my-4"></div>
 
-
-          {/* New "Analyze My Job Fit" Section - replaces old match indicator spot */}
-          <div className="mt-8 mb-4 text-center">
+          {/* Interactive Match Analysis Area */}
+          <div
+            data-interactive-match-area="true"
+            className={cn(
+              "my-6 mx-auto flex flex-col items-center justify-center cursor-pointer group transition-all duration-300 ease-in-out",
+              isGuestMode && "cursor-not-allowed opacity-70",
+              isLoadingAiAnalysis ? "h-[90px]" : "h-auto" // Fixed height during loading
+            )}
+            onMouseEnter={() => !isGuestMode && !isLoadingAiAnalysis && setIsHoveringMatchArea(true)}
+            onMouseLeave={() => setIsHoveringMatchArea(false)}
+            onClick={() => !isGuestMode && !isLoadingAiAnalysis && !aiJobFitAnalysis && fetchAiAnalysis()}
+          >
             {isGuestMode ? (
-               <div className="text-sm text-red-300 italic flex items-center justify-center p-2 border border-red-400/50 bg-red-500/20 rounded-md shadow-sm max-w-xs mx-auto">
-                 <Lock className="h-4 w-4 mr-2"/>AI Fit Analysis disabled in Guest Mode.
-               </div>
-            ) : !aiJobFitAnalysis && !isLoadingAiAnalysis ? (
-              <Button 
-                onClick={() => fetchAiAnalysis()} 
-                variant="outline" 
-                className="bg-white/10 hover:bg-white/20 border-white/30 text-white backdrop-blur-sm py-2.5 px-5 text-sm"
-              >
-                <Sparkles className="mr-2 h-4 w-4" /> Analyze My Job Fit
-              </Button>
+              <div className="text-center p-2 bg-red-500/20 border border-red-400/50 rounded-lg w-[200px]">
+                <Lock className="h-6 w-6 mx-auto mb-1 text-red-300" />
+                <p className="text-xs text-red-200">Sign in for AI Fit Analysis</p>
+              </div>
             ) : isLoadingAiAnalysis ? (
-              <div className="flex items-center justify-center text-sm text-white/80">
-                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> Analyzing Fit...
+              <div className="w-full max-w-[200px] space-y-2">
+                <Progress value={undefined} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-pink-500 [&>div]:to-purple-500 animate-pulse" />
+                <p className="text-xs text-white/70 text-center">Analyzing fit...</p>
               </div>
-            ) : aiJobFitAnalysis && (
-              <div className="space-y-1 p-2 bg-black/10 rounded-md max-w-xs mx-auto">
-                <p className="text-lg font-semibold text-white">
-                  Your Fit: <span className={cn(
-                    aiJobFitAnalysis.matchScoreForCandidate >= 75 ? 'text-green-300' : 
-                    aiJobFitAnalysis.matchScoreForCandidate >= 50 ? 'text-yellow-300' : 'text-red-300'
-                  )}>{aiJobFitAnalysis.matchScoreForCandidate}%</span>
-                </p>
-                <p className="text-xs text-white/70 italic line-clamp-2">{aiJobFitAnalysis.reasoningForCandidate}</p>
+            ) : isHoveringMatchArea && !aiJobFitAnalysis ? (
+              <div className="flex flex-col items-center p-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-lg shadow-md min-h-[90px] justify-center w-[200px]">
+                <Sparkles className="h-6 w-6 mb-1 text-yellow-300" />
+                <p className="text-sm font-semibold text-white">Analyze My Job Fit</p>
+                <p className="text-xs text-white/70">Click to get AI insights</p>
               </div>
+            ) : (
+              <CircularProgressBar percentage={displayMatchPercentage} />
             )}
           </div>
+          
+          {jobOpening?.requiredExperienceLevel && jobOpening.requiredExperienceLevel !== WorkExperienceLevel.UNSPECIFIED && (
+            <p className="text-xs italic text-white/70 mt-2">
+              {jobOpening.requiredExperienceLevel.replace(/_/g, ' ')} experience preferred
+            </p>
+          )}
 
-
-          <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-8">TOP SKILLS</p>
-          <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
-            {jobOpening?.tags?.slice(0, 3).map((tag) => (
-              <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-base px-6 py-2.5 rounded-full font-semibold shadow-sm">
-                {tag}
-              </Badge>
-            ))}
+          <div className="mt-6">
+            <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider">TOP SKILLS</p>
+            <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
+              {jobOpening?.tags?.slice(0, 3).map((tag) => (
+                <Badge key={tag} className="bg-custom-light-purple-skill-bg text-custom-primary-purple text-base px-5 py-2 rounded-full font-semibold shadow-sm">
+                  {tag}
+                </Badge>
+              ))}
+            </div>
           </div>
-
-          {/* Relocated Job Match Indicator */}
-          <div className="mt-8 mb-2 flex justify-center items-center">
-             <div className="w-[90px] h-[90px]">
-                <CircularProgressBar percentage={displayMatchPercentage} />
-             </div>
-          </div>
-           <p className="text-xs italic text-white/70 mb-4">Job Match Percentage</p>
 
           <div className="flex-grow"></div> {/* Spacer to push footer down */}
         </div>
             
-        <CardFooter className="mt-auto p-3 flex justify-center border-t border-white/10 bg-transparent">
-          <div className="grid grid-cols-4 gap-2.5"> {/* Adjusted gap if needed */}
-            <Button
-              variant="ghost"
-              onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
-              disabled={isGuestMode}
-              className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-              aria-label={`Pass on ${company.name}`}
-              data-no-drag="true"
-            >
-              {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1 text-white/90" />}
-              Pass
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={handleDetailsButtonClick}
-              className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-              aria-label={`View details for ${company.name}`}
-              data-no-drag="true"
-              data-modal-trigger="true"
-            >
-              <Eye className="h-5 w-5 mb-1 text-white/90" />
-              Profile
-            </Button>
-            <Button
-              variant="ghost"
-              onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
-              disabled={isGuestMode}
-              className={cn(
-                "flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm",
-                isLiked && !isGuestMode ? "ring-2 ring-pink-400 bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 hover:text-pink-200 hover:border-pink-400/70" : "hover:text-green-300 hover:bg-green-500/20 hover:border-green-400/50"
-              )}
-              aria-label={`Like ${company.name}`}
-              data-no-drag="true"
-            >
-              {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Heart className={cn("h-5 w-5 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />}
-              Like
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
+        <CardFooter className="mt-auto p-3 grid grid-cols-4 gap-3 border-t border-white/10 bg-transparent justify-items-center">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
+                  onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
                   disabled={isGuestMode}
-                  className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
-                  aria-label={`Share ${company.name}`}
-                  data-no-drag="true"
-                  onClick={(e) => e.stopPropagation()}
+                  className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+                  aria-label={`Pass on ${company.name}`} data-no-drag="true"
                 >
-                  {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1 text-white/90" />}
-                  Share
+                  {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <X className="h-5 w-5 mb-1 text-white/90" />} Pass
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><LinkIcon className="mr-2 h-4 w-4" /> Copy Link</DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Mail className="mr-2 h-4 w-4" /> Email</DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Linkedin className="mr-2 h-4 w-4" /> LinkedIn</DropdownMenuItem>
-                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Twitter className="mr-2 h-4 w-4" /> X / Twitter</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>Not Interested</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost" onClick={handleDetailsButtonClick}
+                  className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+                  aria-label={`View details for ${company.name}`} data-no-drag="true" data-modal-trigger="true"
+                > <Eye className="h-5 w-5 mb-1 text-white/90" /> Profile
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>View Full Details</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('like'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }}
+                  disabled={isGuestMode}
+                  className={cn("flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm",
+                    isLiked && !isGuestMode ? "ring-2 ring-pink-400 bg-pink-500/20 text-pink-300 hover:bg-pink-500/30 hover:text-pink-200 hover:border-pink-400/70" : "hover:text-green-300 hover:bg-green-500/20 hover:border-green-400/50"
+                  )} aria-label={`Like ${company.name}`} data-no-drag="true"
+                > {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Heart className={cn("h-5 w-5 mb-1 text-white/90", isLiked && !isGuestMode && "fill-pink-400 text-pink-400")} />} Like
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>I'm Interested!</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          <DropdownMenu>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost" disabled={isGuestMode}
+                      className="flex flex-col items-center justify-center w-16 h-16 rounded-2xl text-xs font-medium text-white/80 hover:text-purple-300 hover:bg-purple-500/20 hover:border-purple-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
+                      aria-label={`Share ${company.name}`} data-no-drag="true" onClick={(e) => e.stopPropagation()}
+                    > {isGuestMode ? <Lock className="h-5 w-5 mb-1"/> : <Share2 className="h-5 w-5 mb-1 text-white/90" />} Share
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent className={cn(isGuestMode && "bg-red-500 text-white border-red-600", !isGuestMode && "bg-slate-800 text-white border-slate-700")}>
+                    <p>{isGuestMode ? "Sign in to share" : "Share this opportunity"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <DropdownMenuContent align="end" className="w-40 bg-slate-700 border-slate-600 text-white" data-no-drag="true">
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><LinkIcon className="mr-2 h-4 w-4" /> Copy Link</DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Mail className="mr-2 h-4 w-4" /> Email</DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Linkedin className="mr-2 h-4 w-4" /> LinkedIn</DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter'); }} className="hover:!bg-slate-600 focus:!bg-slate-600" data-no-drag="true"><Twitter className="mr-2 h-4 w-4" /> X / Twitter</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </CardFooter>
       </div>
 
