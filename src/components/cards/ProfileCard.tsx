@@ -1,9 +1,9 @@
 
 "use client";
 
-import React, { useState } from 'react';
-import Image from 'next/image';
-import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2, Link as LinkIcon, Mail, Linkedin, Twitter as TwitterIcon, Star, Sparkles } from 'lucide-react';
+import React from 'react';
+import NextImage from 'next/image';
+import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2, Link as LinkIcon, Mail, Linkedin, Twitter as TwitterIcon, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Candidate } from '@/lib/types';
@@ -16,7 +16,7 @@ const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http:/
 
 interface ProfileCardProps {
   candidate: Candidate;
-  onAction: (candidateId: string, action: 'like' | 'pass' | 'viewProfile') => void; // Removed 'share' from onAction
+  onAction: (candidateId: string, action: 'like' | 'pass' | 'viewProfile') => void;
   isLiked?: boolean;
   isGuestMode?: boolean;
 }
@@ -60,6 +60,15 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
     }
   };
 
+  const getSkillBadgeClass = (skill: string) => {
+    if (skill.toLowerCase() === 'firebase') {
+      return 'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border-orange-300 hover:from-orange-200 hover:to-orange-300';
+    }
+    if (skill.toLowerCase() === 'c++') {
+      return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300 hover:from-blue-200 hover:to-blue-300';
+    }
+    return 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200'; // Default skill badge
+  };
 
   return (
     <div className="max-w-sm w-full mx-auto bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100 rounded-3xl shadow-2xl overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-3xl">
@@ -68,8 +77,8 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative flex justify-center">
           <div className="relative">
-            <div className="w-24 h-24 rounded-full ring-4 ring-accent/70 overflow-hidden shadow-xl">
-              <Image
+            <div className="w-24 h-24 rounded-full ring-4 ring-white/50 overflow-hidden shadow-xl">
+              <NextImage
                 src={avatarDisplayUrl}
                 alt={candidate.name || "Candidate Avatar"}
                 width={96}
@@ -80,8 +89,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 priority
               />
             </div>
-             {/* Optional: Online status indicator or special badge */}
-            {candidate.isUnderestimatedTalent && (
+            {candidate.isUnderestimatedTalent ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -94,6 +102,8 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            ) : (
+              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-400 rounded-full ring-2 ring-white shadow-md"></div>
             )}
           </div>
         </div>
@@ -160,7 +170,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 <Badge
                   key={skill}
                   variant="secondary"
-                  className="bg-gradient-to-r from-blue-100 to-indigo-200 text-indigo-700 border-indigo-300 hover:from-blue-200 hover:to-indigo-300 transition-all duration-200 shadow-sm"
+                  className={cn("transition-all duration-200 shadow-sm", getSkillBadgeClass(skill))}
                 >
                   {skill}
                 </Badge>
@@ -229,7 +239,7 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
                 )}
               </Tooltip>
             </TooltipProvider>
-            <DropdownMenuContent align="end" className="w-48 bg-card border shadow-lg rounded-md">
+            <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg rounded-md">
               <DropdownMenuItem onClick={() => handleShareOptionClick('copy')} className="cursor-pointer hover:bg-muted">
                 <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Copy Link
               </DropdownMenuItem>
@@ -251,3 +261,4 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode }: ProfileCardP
 };
 
 export default ProfileCard;
+    
