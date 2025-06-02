@@ -321,10 +321,12 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         if (!recruiter) {
             return res.status(404).json({ message: 'Recruiter not found.' });
         }
+        // Ensure the user's role is recruiter if they are posting a job
         if (recruiter.selectedRole !== 'recruiter') {
-            return res.status(403).json({ message: 'User is not a recruiter.' });
+            recruiter.selectedRole = 'recruiter';
+            console.log(`[Backend POST Job] User ${recruiter.name} (${recruiter._id}) role was not 'recruiter'. Updated to 'recruiter'.`);
         }
-
+        
         // Ensure recruiter's company name and industry are set if missing
         if (!recruiter.companyNameForJobs) {
             recruiter.companyNameForJobs = recruiter.name; // Default to recruiter's name
@@ -344,7 +346,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         await recruiter.save();
         
         const postedJob = recruiter.jobOpenings[recruiter.jobOpenings.length - 1];
-        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${recruiter.name} (${recruiter._id}). Total jobs: ${recruiter.jobOpenings.length}`);
+        console.log(`[Backend POST Job] Successfully saved job "${postedJob.title}" for recruiter ${recruiter.name} (${recruiter._id}). Total jobs: ${recruiter.jobOpenings.length}. Recruiter role is now: ${recruiter.selectedRole}`);
         res.status(201).json({ message: 'Job posted successfully!', job: postedJob });
 
     } catch (error) {
@@ -357,23 +359,22 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
 app.get('/api/jobs', async (req, res) => {
     try {
         const recruiters = await User.find({ selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } });
-        console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings.`);
+        console.log(`[Backend GET Jobs] Found ${recruiters.length} recruiters with job openings based on query: { selectedRole: 'recruiter', 'jobOpenings.0': { $exists: true } }.`);
         
         const allJobs = recruiters.flatMap(recruiter => {
-            console.log(`[Backend GET Jobs] Processing recruiter ${recruiter.name} (${recruiter._id}) with ${recruiter.jobOpenings.length} jobs.`);
+            console.log(`[Backend GET Jobs] Processing recruiter ${recruiter.name} (${recruiter._id}, role: ${recruiter.selectedRole}) with ${recruiter.jobOpenings.length} jobs.`);
             return recruiter.jobOpenings.map(job => {
-                // Ensure job._id is a string
                 const jobIdString = job._id ? job._id.toString() : `generated-${Math.random().toString(36).substring(2, 15)}`;
                 if (!job._id) {
                     console.warn(`[Backend GET Jobs] Job for recruiter ${recruiter.name} missing _id, generated: ${jobIdString}. Title: ${job.title}`);
                 }
                 
-                const jobObject = job.toObject ? job.toObject() : { ...job }; // Handle if job is not a full Mongoose subdocument instance (less likely here)
+                const jobObject = job.toObject ? job.toObject() : { ...job };
                 
                 const companyLikeObject = {
                     id: `comp-user-${recruiter._id.toString()}-job-${jobIdString}`, 
                     recruiterUserId: recruiter._id.toString(), 
-                    name: job.companyNameForJob || recruiter.name || 'Unknown Company', // Added fallback
+                    name: job.companyNameForJob || recruiter.name || 'Unknown Company',
                     industry: job.companyIndustryForJob || recruiter.companyIndustryForJobs || 'Various',
                     description: `Job posting by ${recruiter.name || 'a recruiter'}`, 
                     cultureHighlights: job.companyCultureKeywords || [],
@@ -381,7 +382,6 @@ app.get('/api/jobs', async (req, res) => {
                     dataAiHint: 'company logo', 
                     jobOpenings: [{ ...jobObject, _id: jobIdString }], 
                 };
-                // console.log(`[Backend GET Jobs] Mapped job: ${job.title} from ${recruiter.name} to company-like ID: ${companyLikeObject.id}`);
                 return companyLikeObject;
             });
         });
@@ -754,5 +754,7 @@ server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+
+    
 
     
