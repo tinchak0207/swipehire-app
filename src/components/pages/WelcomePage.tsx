@@ -129,10 +129,10 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
           </nav>
           <div className="flex items-center gap-2">
-             <Button onClick={onStartExploring} variant="link" size="sm" className="text-primary-foreground hover:text-slate-300 px-3 py-2 hidden sm:inline-flex">
+             <Button onClick={onStartExploring} variant="link" size="sm" className="text-primary-foreground hover:text-slate-300 px-3 py-2 hidden sm:inline-flex font-semibold">
               Log In
             </Button>
-            <Button onClick={onStartExploring} variant="default" size="sm" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md subtle-button-hover">
+            <Button onClick={onStartExploring} variant="default" size="sm" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md subtle-button-hover font-semibold">
               Sign Up
             </Button>
           </div>
@@ -142,10 +142,12 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
       <main className="flex-grow">
         <section
           id="hero"
-          className="relative py-24 md:py-36 text-white bg-gradient-to-br from-purple-800 via-purple-900 to-indigo-900"
+          className="relative py-24 md:py-36 text-white bg-cover bg-center bg-no-repeat parallax-hero"
+          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
           data-aos="fade-in"
         >
-          <div className="absolute inset-0 bg-black/10 z-0"></div> {/* Subtle overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent z-0"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70 z-0"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
               Unlock Your Career
@@ -154,11 +156,11 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <br className="hidden sm:block" />
               Discover Top Talent.
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-slate-300 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
+            <p className="text-lg sm:text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
               SwipeHire revolutionizes recruitment with AI-powered video resumes and intelligent matching. Connect authentically, hire effectively.
             </p>
             <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8" data-aos="fade-up" data-aos-delay="200">
-              <Button onClick={onStartExploring} size="lg" className="bg-white text-primary hover:bg-slate-100 w-full sm:w-auto text-lg px-8 py-3 subtle-button-hover shadow-lg hover:shadow-xl">
+              <Button onClick={onStartExploring} size="lg" className="bg-white text-primary hover:bg-slate-100 w-full sm:w-auto text-lg px-8 py-3 subtle-button-hover shadow-lg hover:shadow-xl font-semibold">
                 <Rocket className="mr-2 h-5 w-5" /> Get Started Free
               </Button>
               <Button onClick={onGuestMode} variant="secondary" size="lg" className="bg-slate-700/80 border-slate-600 hover:bg-slate-600/90 text-white w-full sm:w-auto text-lg px-8 py-3 subtle-button-hover shadow-md hover:shadow-lg">
