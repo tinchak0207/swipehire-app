@@ -33,6 +33,7 @@ h1, h2, h3, h4, h5, h6 {
     --primary-foreground: 0 0% 100%; /* White for contrast */
     /* For hsla usage in themes */
     --primary-foreground-hsl: 0 0% 100%;
+    --foreground-hsl: 220 15% 25%; /* For lavender theme text on light bg */
 
 
     --secondary: 220 70% 90%; /* Lighter Blue */
@@ -85,6 +86,7 @@ h1, h2, h3, h4, h5, h6 {
     --primary: 220 70% 55%; /* Deep Blue (slightly lighter for dark mode) */
     --primary-foreground: 0 0% 100%;
     --primary-foreground-hsl: 0 0% 100%;
+    --foreground-hsl: 220 15% 90%;
 
 
     --secondary: 220 50% 25%; /* Darker Blue */
@@ -217,23 +219,23 @@ h1, h2, h3, h4, h5, h6 {
   @apply bg-card text-card-foreground; /* Uses default card variables */
 }
 .card-theme-ocean {
-  background: linear-gradient(135deg, #0575E6, #021B79); /* Deep Blue to Darker Blue */
-  color: hsl(var(--primary-foreground)); /* Default text color for this theme */
+  background: linear-gradient(135deg, hsla(207, 70%, 60%, 0.7), hsla(227, 60%, 50%, 0.75));
+  color: hsl(var(--primary-foreground));
 }
 .card-theme-sunset {
-  background: linear-gradient(135deg, #FF8C00, #FF0080); /* Orange to Deep Pink */
+  background: linear-gradient(135deg, hsla(30, 90%, 70%, 0.7), hsla(330, 80%, 65%, 0.75));
   color: hsl(var(--primary-foreground));
 }
 .card-theme-forest {
-  background: linear-gradient(135deg, #138808, #004225); /* Green to Dark Green */
+  background: linear-gradient(135deg, hsla(120, 50%, 50%, 0.7), hsla(150, 45%, 40%, 0.75));
   color: hsl(var(--primary-foreground));
 }
 .card-theme-lavender {
-  background: linear-gradient(135deg, #E6E6FA, #9370DB); /* Lavender to Medium Purple */
+  background: linear-gradient(135deg, hsla(240, 60%, 92%, 0.8), hsla(260, 45%, 70%, 0.7));
   color: hsl(var(--foreground)); /* This theme uses darker text on lighter background */
 }
 .card-theme-professional-dark {
-  background: linear-gradient(135deg, #434343, #1c1c1c); /* Dark Gray to Near Black */
+  background: linear-gradient(135deg, hsla(0, 0%, 30%, 0.75), hsla(0, 0%, 15%, 0.8));
   color: hsl(var(--primary-foreground));
 }
 
@@ -242,13 +244,13 @@ h1, h2, h3, h4, h5, h6 {
 .card-theme-sunset .badge-secondary,
 .card-theme-forest .badge-secondary,
 .card-theme-professional-dark .badge-secondary {
-  background-color: hsla(var(--primary-foreground-hsl), 0.15);
+  background-color: hsla(var(--primary-foreground-hsl), 0.2); /* More transparent */
   color: hsl(var(--primary-foreground));
   border-color: hsla(var(--primary-foreground-hsl), 0.3);
 }
 .card-theme-lavender .badge-secondary { /* Lavender has dark text, so badges need to contrast that */
   background-color: hsla(var(--foreground-hsl), 0.1);
-  color: hsl(var(--foreground)); /* Use theme's foreground for Lavender's badge text */
+  color: hsl(var(--foreground));
   border-color: hsla(var(--foreground-hsl), 0.2);
 }
 
@@ -260,7 +262,7 @@ h1, h2, h3, h4, h5, h6 {
   border-color: hsla(var(--primary-foreground-hsl), 0.5);
 }
 .card-theme-lavender .badge-outline {
-  color: hsl(var(--foreground)); /* Use theme's foreground for Lavender's badge outline text */
+  color: hsl(var(--foreground));
   border-color: hsla(var(--foreground-hsl), 0.5);
 }
 
@@ -313,3 +315,4 @@ h1, h2, h3, h4, h5, h6 {
 }
     
 
+    

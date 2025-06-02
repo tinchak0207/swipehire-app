@@ -366,6 +366,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
 
   const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender';
+  const isLavenderTheme = candidate.cardTheme === 'lavender';
+
 
   const fetchAiRecruiterAnalysis = useCallback(async () => {
     if (!candidate || isGuestMode) {
@@ -585,26 +587,26 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     let iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "text-white"; 
-      hoverClasses = "hover:bg-red-500";
+      colorClasses = "text-white"; // For locked button text/icon
+      hoverClasses = "hover:bg-red-500"; // Guest mode lock uses red background anyway
     } else if (action === 'like') {
       if (isSpecificActionLiked) {
-        colorClasses = "text-green-500"; // Liked state is always green
+        colorClasses = "text-green-500";
         iconFillClass = "fill-green-500";
         hoverClasses = "hover:bg-green-500/10";
       } else {
-        colorClasses = isThemedCard ? "text-primary-foreground" : "text-muted-foreground";
-        hoverClasses = isThemedCard ? "hover:text-green-300 hover:bg-green-500/20" : "hover:text-green-500 hover:bg-green-500/10";
+        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-muted-foreground");
+        hoverClasses = isThemedCard ? "hover:text-green-300 hover:bg-green-500/20" : (isLavenderTheme ? "hover:text-green-600 hover:bg-green-500/10" : "hover:text-green-500 hover:bg-green-500/10");
       }
     } else if (action === 'pass') {
-        colorClasses = isThemedCard ? "text-primary-foreground" : "text-destructive"; // Default: light on theme, red on default
-        hoverClasses = isThemedCard ? "hover:text-red-300 hover:bg-red-500/20" : "hover:bg-destructive/10"; // Hover: stronger red indication
+        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-destructive");
+        hoverClasses = isThemedCard ? "hover:text-red-300 hover:bg-red-500/20" : (isLavenderTheme ? "hover:text-red-600 hover:bg-red-500/10" : "hover:bg-destructive/10");
     } else if (action === 'details') {
-        colorClasses = isThemedCard ? "text-primary-foreground" : "text-blue-500";
-        hoverClasses = isThemedCard ? "hover:text-blue-300 hover:bg-blue-500/20" : "hover:text-blue-600 hover:bg-blue-500/10";
+        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-blue-500");
+        hoverClasses = isThemedCard ? "hover:text-blue-300 hover:bg-blue-500/20" : (isLavenderTheme ? "hover:text-blue-600 hover:bg-blue-500/10" : "hover:text-blue-600 hover:bg-blue-500/10");
     } else if (action === 'share_trigger') {
-        colorClasses = isThemedCard ? "text-primary-foreground" : "text-muted-foreground";
-        hoverClasses = isThemedCard ? "hover:text-primary-foreground/80 hover:bg-primary-foreground/10" : "hover:text-gray-600 hover:bg-gray-500/10";
+        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-muted-foreground");
+        hoverClasses = isThemedCard ? "hover:text-white/80 hover:bg-white/10" : (isLavenderTheme ? "hover:text-slate-900 hover:bg-slate-500/10" : "hover:text-gray-600 hover:bg-gray-500/10");
     }
     
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { 
@@ -629,7 +631,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             baseClasses, 
             colorClasses, 
             hoverClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400",
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400", // Keep this for locked state
             extraClassName
           )}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
@@ -755,20 +757,20 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
             {candidate.location && (
                 <div className={cn("flex items-center text-xs mt-2", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                  <MapPin className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
+                  <MapPin className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
                   <span className="line-clamp-1">{candidate.location}</span>
                 </div>
             )}
             {candidate.profileStrength !== undefined && !isPreviewMode && (
-                <div className={cn("flex items-center text-xs mt-1.5", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                    <BarChartHorizontal className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
-                    <span>Profile Strength: <span className={cn("font-semibold", isThemedCard ? 'text-primary-foreground' : 'text-primary')}>{candidate.profileStrength}%</span></span>
+                <div className={cn("flex items-center text-xs mt-1.5", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
+                    <BarChartHorizontal className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
+                    <span>Profile Strength: <span className={cn("font-semibold", isThemedCard ? 'text-primary-foreground' : (isLavenderTheme ? 'text-primary' : 'text-primary'))}>{candidate.profileStrength}%</span></span>
                 </div>
             )}
             
             {candidate.experienceSummary && (
                 <div className="mt-2.5">
-                    <p className={cn("text-xs line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                    <p className={cn("text-xs line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>
                         {candidate.experienceSummary}
                     </p>
                 </div>
@@ -820,3 +822,5 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     </>
   );
 }
+
+    
