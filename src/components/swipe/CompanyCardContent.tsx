@@ -386,6 +386,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
     const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
+    const defaultTextColorClass = 'text-primary-foreground'; // For themed cards, default button text to light
     
     const effectiveOnClick = action === 'details' 
         ? handleDetailsButtonClick 
@@ -402,13 +403,24 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             }
         };
 
+    let actionButtonSpecificClasses = extraClassName;
+    // Apply default light text color to non-destructive/non-active buttons when on a themed card
+    if (action === 'like' && !isSpecificActionLiked) {
+        actionButtonSpecificClasses = cn(defaultTextColorClass, 'hover:text-green-500 hover:bg-green-500/10', extraClassName);
+    } else if (action === 'details') {
+        actionButtonSpecificClasses = cn(defaultTextColorClass, 'hover:text-blue-500 hover:bg-blue-500/10', extraClassName);
+    } else if (action === 'share_trigger') {
+         actionButtonSpecificClasses = cn(defaultTextColorClass, 'hover:text-gray-300 hover:bg-gray-100/10', extraClassName);
+    }
+
+
     const buttonElement = (
         <Button
           variant="ghost"
           size="sm"
           className={cn(
             baseClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : extraClassName
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : actionButtonSpecificClasses
             )}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
           disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
@@ -512,24 +524,24 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             <CardHeader className="p-0 mb-1.5">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
-                        <CardTitle className="text-lg sm:text-xl font-bold text-primary truncate">{company.name}</CardTitle>
-                        <CardDescription className="text-xs sm:text-sm text-muted-foreground truncate">{company.industry}</CardDescription>
+                        <CardTitle className={cn("text-lg sm:text-xl font-bold truncate", company.cardTheme && company.cardTheme !== 'default' ? 'text-primary-foreground' : 'text-primary')}>{company.name}</CardTitle>
+                        <CardDescription className={cn("text-xs sm:text-sm truncate", company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{company.industry}</CardDescription>
                     </div>
                 </div>
                 {jobOpening && (
-                    <p className="text-md sm:text-lg font-semibold text-foreground mt-0.5 sm:mt-1 line-clamp-1">{jobOpening.title}</p>
+                    <p className={cn("text-md sm:text-lg font-semibold mt-0.5 sm:mt-1 line-clamp-1", company.cardTheme && company.cardTheme !== 'default' ? 'text-primary-foreground' : 'text-foreground')}>{jobOpening.title}</p>
                 )}
             </CardHeader>
 
             <div className="space-y-1">
                 {jobOpening?.location && (
-                <div className="flex items-center text-muted-foreground text-xs">
+                <div className={cn("flex items-center text-xs", company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender' ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                     <MapPin className="h-3 w-3 mr-1.5 shrink-0" />
                     <span className="truncate">{jobOpening.location}</span>
                 </div>
                 )}
                 {(jobOpening?.jobType) && (
-                <div className="flex items-center text-muted-foreground text-xs">
+                <div className={cn("flex items-center text-xs", company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender' ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
                     <JobTypeIcon className="h-3 w-3 mr-1.5 shrink-0" />
                     <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
                 </div>
@@ -537,13 +549,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 {jobOpening?.tags && jobOpening.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1 pt-1">
                     {jobOpening.tags.slice(0,3).map(tag => (
-                      <Badge key={tag} variant="outline" className="text-xs px-1.5 py-0.5">{tag}</Badge>
+                      <Badge key={tag} variant={company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender' ? 'outline' : 'secondary'} className="text-xs px-1.5 py-0.5">{tag}</Badge>
                     ))}
                     {jobOpening.tags.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{jobOpening.tags.length - 3}</Badge>}
                   </div>
                 )}
                 {jobOpening?.description && (
-                    <p className="text-muted-foreground text-xs pt-1 line-clamp-2 sm:line-clamp-3">
+                    <p className={cn("text-xs pt-1 line-clamp-2 sm:line-clamp-3", company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {truncatedJobDescriptionForCard}
                     </p>
                 )}
@@ -551,10 +563,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         </div>
             
         <CardFooter className="p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t bg-card shrink-0 no-swipe-area">
-            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="hover:bg-destructive/10 text-destructive hover:text-destructive" />
-            <ActionButton action="details" Icon={Info} label="Details" className="hover:bg-blue-500/10 text-blue-500 hover:text-blue-600" />
-            <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : 'text-muted-foreground hover:text-green-600 hover:bg-green-500/10'} isSpecificActionLiked={isLiked} />
-            <ActionButton action="share_trigger" Icon={Share2} label="Share" className="hover:bg-gray-500/10 text-muted-foreground hover:text-gray-600" />
+            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="text-destructive hover:bg-destructive/10 hover:text-destructive" />
+            <ActionButton action="details" Icon={Info} label="Details" className={cn(company.cardTheme && company.cardTheme !== 'default' ? "text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" : "text-blue-500 hover:bg-blue-500/10 hover:text-blue-600")} />
+            <ActionButton action="like" Icon={ThumbsUp} label="Apply" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : cn(company.cardTheme && company.cardTheme !== 'default' ? 'text-primary-foreground hover:text-green-500' : 'text-muted-foreground hover:text-green-600', 'hover:bg-green-500/10')} isSpecificActionLiked={isLiked} />
+            <ActionButton action="share_trigger" Icon={Share2} label="Share" className={cn(company.cardTheme && company.cardTheme !== 'default' ? "text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" : "text-muted-foreground hover:text-gray-600 hover:bg-gray-500/10")} />
         </CardFooter>
       </div>
 

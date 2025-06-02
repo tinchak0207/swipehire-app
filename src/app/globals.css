@@ -31,6 +31,9 @@ h1, h2, h3, h4, h5, h6 {
 
     --primary: 220 70% 50%; /* Deep Blue */
     --primary-foreground: 0 0% 100%; /* White for contrast */
+    /* For hsla usage in themes */
+    --primary-foreground-hsl: 0 0% 100%;
+
 
     --secondary: 220 70% 90%; /* Lighter Blue */
     --secondary-foreground: 220 70% 30%; /* Darker Blue */
@@ -81,6 +84,8 @@ h1, h2, h3, h4, h5, h6 {
 
     --primary: 220 70% 55%; /* Deep Blue (slightly lighter for dark mode) */
     --primary-foreground: 0 0% 100%;
+    --primary-foreground-hsl: 0 0% 100%;
+
 
     --secondary: 220 50% 25%; /* Darker Blue */
     --secondary-foreground: 220 50% 85%;
@@ -213,27 +218,52 @@ h1, h2, h3, h4, h5, h6 {
 }
 .card-theme-ocean {
   background: linear-gradient(135deg, #0575E6, #021B79); /* Deep Blue to Darker Blue */
-  /* Removed: color: hsl(var(--primary-foreground)); */
+  color: hsl(var(--primary-foreground));
 }
 .card-theme-sunset {
   background: linear-gradient(135deg, #FF8C00, #FF0080); /* Orange to Deep Pink */
-  /* Removed: color: hsl(var(--primary-foreground)); */
+  color: hsl(var(--primary-foreground));
 }
 .card-theme-forest {
   background: linear-gradient(135deg, #138808, #004225); /* Green to Dark Green */
-  /* Removed: color: hsl(var(--primary-foreground)); */
+  color: hsl(var(--primary-foreground));
 }
 .card-theme-lavender {
   background: linear-gradient(135deg, #E6E6FA, #9370DB); /* Lavender to Medium Purple */
-  /* Removed: color: hsl(var(--foreground)); */ /* Note: this one used --foreground, others --primary-foreground */
+  color: hsl(var(--foreground)); /* This theme uses darker text on lighter background */
 }
 .card-theme-professional-dark {
   background: linear-gradient(135deg, #434343, #1c1c1c); /* Dark Gray to Near Black */
-  /* Removed: color: hsl(var(--primary-foreground)); */
+  color: hsl(var(--primary-foreground));
 }
 
-/* Removed specific .card-theme-* .text-muted-foreground and .text-primary overrides,
-   as standard Tailwind utilities should now work correctly. */
+/* Badge styling within themed cards */
+.card-theme-ocean .badge-secondary,
+.card-theme-sunset .badge-secondary,
+.card-theme-forest .badge-secondary,
+.card-theme-professional-dark .badge-secondary {
+  background-color: hsla(var(--primary-foreground-hsl), 0.15);
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.3);
+}
+.card-theme-lavender .badge-secondary { /* Lavender has dark text, so badges need to contrast that */
+  background-color: hsla(var(--foreground-hsl), 0.1); /* Using foreground for lavender theme */
+  color: hsl(var(--foreground));
+  border-color: hsla(var(--foreground-hsl), 0.2);
+}
+
+.card-theme-ocean .badge-outline,
+.card-theme-sunset .badge-outline,
+.card-theme-forest .badge-outline,
+.card-theme-professional-dark .badge-outline {
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.5);
+}
+.card-theme-lavender .badge-outline {
+  color: hsl(var(--foreground));
+  border-color: hsla(var(--foreground-hsl), 0.5);
+}
+
 
 /* New styles for Landing Page Hero Background */
 .hero-gradient-bg {
