@@ -573,10 +573,34 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     onClickOverride?: (e: React.MouseEvent) => void;
   }) => {
     const baseClasses = "flex-col h-auto py-1 text-xs sm:text-sm";
-    const guestClasses = "bg-red-400 text-white cursor-not-allowed hover:bg-red-500";
-    // If inside a themed card that defaults text to white, these buttons need a contrasting default color.
-    // text-primary-foreground will usually be white or light.
-    const defaultTextColorClass = candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground' : 'text-muted-foreground';
+    const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender';
+
+    let colorClasses = "";
+    let hoverClasses = "";
+    let iconFillClass = "";
+
+    if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
+      colorClasses = "text-white"; // For red guest lock button
+      hoverClasses = "hover:bg-red-500";
+    } else if (action === 'like') {
+      if (isSpecificActionLiked) {
+        colorClasses = "text-green-500";
+        iconFillClass = "fill-green-500";
+        hoverClasses = "hover:bg-green-500/10";
+      } else {
+        colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-muted-foreground";
+        hoverClasses = "hover:text-green-500 hover:bg-green-500/10";
+      }
+    } else if (action === 'pass') {
+      colorClasses = isThemedCard ? "text-primary-foreground/80" : "text-destructive";
+      hoverClasses = `hover:text-destructive hover:bg-destructive/10`;
+    } else if (action === 'details') {
+      colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-blue-500";
+      hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10";
+    } else if (action === 'share_trigger') {
+      colorClasses = isThemedCard ? "text-primary-foreground/90" : "text-muted-foreground";
+      hoverClasses = isThemedCard ? "hover:text-primary-foreground hover:bg-primary-foreground/10" : "hover:text-gray-600 hover:bg-gray-500/10";
+    }
     
     const effectiveOnClick = onClickOverride || ((e: React.MouseEvent) => { 
         e.stopPropagation(); 
@@ -591,16 +615,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             setIsDetailsModalOpen(true); 
         }
     });
-    
-    let actionButtonSpecificClasses = extraClassName;
-    if (action === 'like' && !isSpecificActionLiked) {
-        actionButtonSpecificClasses = cn(defaultTextColorClass, 'hover:text-green-600 hover:bg-green-500/10', extraClassName);
-    } else if (action === 'details') {
-        actionButtonSpecificClasses = cn(defaultTextColorClass, 'hover:text-blue-600 hover:bg-blue-500/10', extraClassName);
-    } else if (action === 'share_trigger') {
-         actionButtonSpecificClasses = cn(defaultTextColorClass, 'hover:text-gray-600 hover:bg-gray-500/10', extraClassName);
-    }
-
 
     const buttonElement = (
         <Button
@@ -608,15 +622,18 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
           size="sm"
           className={cn(
             baseClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? guestClasses : actionButtonSpecificClasses
-            )}
+            colorClasses, 
+            hoverClasses, 
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400",
+            extraClassName
+          )}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
           disabled={isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')}
           aria-label={`${label} ${candidate.name}`}
           data-no-drag="true"
           data-modal-trigger={action === 'details' ? 'true' : undefined}
         >
-          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", isSpecificActionLiked && action === 'like' ? "fill-green-500 text-green-500" : "")} />}
+          {isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') ? <Lock className="h-4 w-4 sm:h-5 sm:w-5 mb-0.5" /> : <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 mb-0.5", iconFillClass)} />}
           <span className="text-xs">{label}</span>
         </Button>
     );
@@ -672,6 +689,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     );
   };
 
+  const isThemedCard = candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender';
+
   return (
     <>
       <div
@@ -724,26 +743,26 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
         <div className="flex-1 p-3 overflow-y-auto min-h-0 space-y-1.5 text-sm sm:text-base">
             <div className="text-center">
-                <h2 className={cn("text-lg sm:text-xl font-bold", candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground' : 'text-primary')}>{candidate.name}</h2>
-                <p className={cn("text-md sm:text-lg mb-1 line-clamp-1", candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{candidate.role}</p>
+                <h2 className={cn("text-lg sm:text-xl font-bold", isThemedCard ? 'text-primary-foreground' : 'text-primary')}>{candidate.name}</h2>
+                <p className={cn("text-md sm:text-lg mb-1 line-clamp-1", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{candidate.role}</p>
             </div>
 
             {candidate.location && (
-                <div className={cn("flex items-center text-xs", candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                  <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                <div className={cn("flex items-center text-xs mt-1", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                  <MapPin className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
                   <span className="line-clamp-1">{candidate.location}</span>
                 </div>
             )}
             {candidate.profileStrength !== undefined && !isPreviewMode && (
-                <div className={cn("flex items-center text-xs", candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
-                    <BarChartHorizontal className="h-3.5 w-3.5 mr-1.5 shrink-0" />
-                    <span>Profile Strength: <span className={cn("font-semibold", candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground' : 'text-primary')}>{candidate.profileStrength}%</span></span>
+                <div className={cn("flex items-center text-xs mt-1", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')}>
+                    <BarChartHorizontal className={cn("h-3.5 w-3.5 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : 'text-muted-foreground')} />
+                    <span>Profile Strength: <span className={cn("font-semibold", isThemedCard ? 'text-primary-foreground' : 'text-primary')}>{candidate.profileStrength}%</span></span>
                 </div>
             )}
             
             {candidate.experienceSummary && (
                 <div className="mt-2">
-                    <p className={cn("text-xs line-clamp-2 sm:line-clamp-3", candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
+                    <p className={cn("text-xs line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
                         {candidate.experienceSummary}
                     </p>
                 </div>
@@ -753,7 +772,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 <div className="pt-1.5 mt-2">
                     <div className="flex flex-wrap gap-1">
                         {candidate.skills.slice(0, 3).map((skill) => (
-                          <Badge key={skill} variant={candidate.cardTheme && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender' ? 'outline' : 'secondary'} className="text-xs px-1.5 py-0.5">{skill}</Badge>
+                          <Badge key={skill} variant="secondary" className="text-xs px-1.5 py-0.5">{skill}</Badge>
                         ))}
                         {candidate.skills.length > 3 && <Badge variant="outline" className="text-xs px-1.5 py-0.5">+{candidate.skills.length - 3}</Badge>}
                     </div>
@@ -763,20 +782,19 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             
         {!isPreviewMode && (
             <CardFooter className="p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t bg-card shrink-0 no-swipe-area">
-            <ActionButton action="pass" Icon={ThumbsDown} label="Pass" className="text-destructive hover:bg-destructive/10 hover:text-destructive" />
-            <ActionButton
-                action="details"
-                Icon={Eye} 
-                label="Profile" 
-                className={cn(candidate.cardTheme && candidate.cardTheme !== 'default' ? "text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" : "text-blue-500 hover:bg-blue-500/10 hover:text-blue-600")}
-                onClickOverride={(e) => {
-                    e.stopPropagation();
-                    setActiveAccordionItemModal(undefined);
-                    setIsDetailsModalOpen(true); 
-                }}
-            />
-            <ActionButton action="like" Icon={ThumbsUp} label="Like" className={isLiked ? 'text-green-600 fill-green-500 hover:bg-green-500/10' : cn(candidate.cardTheme && candidate.cardTheme !== 'default' ? 'text-primary-foreground hover:text-green-500' : 'text-muted-foreground hover:text-green-600', 'hover:bg-green-500/10')} isSpecificActionLiked={isLiked} />
-            <ActionButton action="share_trigger" Icon={Share2} label="Share" className={cn(candidate.cardTheme && candidate.cardTheme !== 'default' ? "text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground" : "text-muted-foreground hover:text-gray-600 hover:bg-gray-500/10")} />
+              <ActionButton action="pass" Icon={ThumbsDown} label="Pass" />
+              <ActionButton
+                  action="details"
+                  Icon={Eye} 
+                  label="Profile" 
+                  onClickOverride={(e) => {
+                      e.stopPropagation();
+                      setActiveAccordionItemModal(undefined);
+                      setIsDetailsModalOpen(true); 
+                  }}
+              />
+              <ActionButton action="like" Icon={ThumbsUp} label="Like" isSpecificActionLiked={isLiked} />
+              <ActionButton action="share_trigger" Icon={Share2} label="Share" />
             </CardFooter>
         )}
       </div>

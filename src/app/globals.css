@@ -218,7 +218,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 .card-theme-ocean {
   background: linear-gradient(135deg, #0575E6, #021B79); /* Deep Blue to Darker Blue */
-  color: hsl(var(--primary-foreground));
+  color: hsl(var(--primary-foreground)); /* Default text color for this theme */
 }
 .card-theme-sunset {
   background: linear-gradient(135deg, #FF8C00, #FF0080); /* Orange to Deep Pink */
@@ -247,8 +247,8 @@ h1, h2, h3, h4, h5, h6 {
   border-color: hsla(var(--primary-foreground-hsl), 0.3);
 }
 .card-theme-lavender .badge-secondary { /* Lavender has dark text, so badges need to contrast that */
-  background-color: hsla(var(--foreground-hsl), 0.1); /* Using foreground for lavender theme */
-  color: hsl(var(--foreground));
+  background-color: hsla(var(--foreground-hsl), 0.1);
+  color: hsl(var(--foreground)); /* Use theme's foreground for Lavender's badge text */
   border-color: hsla(var(--foreground-hsl), 0.2);
 }
 
@@ -260,7 +260,7 @@ h1, h2, h3, h4, h5, h6 {
   border-color: hsla(var(--primary-foreground-hsl), 0.5);
 }
 .card-theme-lavender .badge-outline {
-  color: hsl(var(--foreground));
+  color: hsl(var(--foreground)); /* Use theme's foreground for Lavender's badge outline text */
   border-color: hsla(var(--foreground-hsl), 0.5);
 }
 
@@ -312,3 +312,4 @@ h1, h2, h3, h4, h5, h6 {
   50% { color: inherit; }
 }
     
+
