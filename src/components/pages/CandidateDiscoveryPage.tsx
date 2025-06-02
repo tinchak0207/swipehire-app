@@ -2,10 +2,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Candidate, CandidateFilters, UserRole } from '@/lib/types';
+import type { Candidate, CandidateFilters } from '@/lib/types';
 import { mockCandidates } from '@/lib/mockData'; 
-import { SwipeCard } from '@/components/swipe/SwipeCard'; 
-import { CandidateCardContent } from '@/components/swipe/CandidateCardContent';
+import { ProfileCard } from '@/components/cards/ProfileCard'; // Using your new ProfileCard
 import { Button } from '@/components/ui/button';
 import { Loader2, SearchX, Filter, X as CloseIcon, RotateCcw, Trash2 as TrashIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -18,13 +17,14 @@ import NextImage from 'next/image';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { passCandidate, retrieveCandidate } from '@/services/interactionService';
+import { CandidateDetailsModal } from '@/components/swipe/CandidateCardContent'; // Assuming this is where it's defined or import from its own file
 
 const ITEMS_PER_BATCH = 3;
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
+  isGuestMode?: boolean; // Added from AppContent
 }
 
 const initialFilters: CandidateFilters = {
@@ -34,7 +34,7 @@ const initialFilters: CandidateFilters = {
   jobTypes: new Set(),
 };
 
-export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPageProps) {
+export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [displayedCandidates, setDisplayedCandidates] = useState<Candidate[]>([]);
@@ -47,6 +47,9 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const [activeFilters, setActiveFilters] = useState<CandidateFilters>(initialFilters);
   const [likedCandidateProfileIds, setLikedCandidateProfileIds] = useState<Set<string>>(new Set());
 
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedCandidateForDetails, setSelectedCandidateForDetails] = useState<Candidate | null>(null);
+
   const { toast } = useToast();
   const { mongoDbUserId, preferences, passedCandidateIds: passedCandidateProfileIdsFromContext, updatePassedCandidateIds, fetchAndSetUserPreferences } = useUserPreferences();
   const [recruiterRepresentedCompanyId, setRecruiterRepresentedCompanyId] = useState<string | null>(null);
@@ -55,6 +58,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
 
   const fetchBackendCandidates = useCallback(async () => {
+    console.log("[CandidateDiscovery] Fetching candidates from backend...");
     setIsInitialLoading(true);
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
@@ -62,11 +66,11 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
       }
       const data: Candidate[] = await response.json();
+      console.log(`[CandidateDiscovery] Fetched ${data.length} candidates from backend.`);
       if (data.length === 0) {
         console.warn("[CandidateDiscovery] No candidates from backend, using mock data.");
         setAllCandidates([...mockCandidates]);
       } else {
-        console.log(`[CandidateDiscovery] Fetched ${data.length} candidates from backend.`);
         setAllCandidates(data.map(c => ({...c, id: (c as any)._id || c.id })));
       }
     } catch (error) {
@@ -79,8 +83,13 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [toast]);
 
   useEffect(() => {
-    fetchBackendCandidates();
-  }, [fetchBackendCandidates]);
+    // Only fetch if we have a user context (logged in or explicitly guest)
+    // and not already loading or if allCandidates is empty (initial load scenario)
+    if ((mongoDbUserId || isGuestMode) && allCandidates.length === 0) {
+      fetchBackendCandidates();
+    }
+  }, [fetchBackendCandidates, mongoDbUserId, isGuestMode, allCandidates.length]);
+
 
   useEffect(() => {
     if (mongoDbUserId) {
@@ -139,19 +148,20 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     }
     setIsLoading(true);
     console.log(`[CandidateDiscovery] IntersectionObserver: Attaching. hasMore: ${hasMore} isLoading: ${isLoading}`);
-    setTimeout(() => {
-      const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
-      const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
-      setDisplayedCandidates(prev => {
-        const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
-        console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
-        return updatedDisplay;
-      });
-      setCurrentIndex(newLoadIndex);
-      setHasMore(newLoadIndex < filteredCandidatesMemo.length);
-      setIsLoading(false);
-      console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
-    }, 700);
+    
+    // Removed setTimeout for immediate loading
+    const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
+    const newBatch = filteredCandidatesMemo.slice(currentIndex, newLoadIndex);
+    setDisplayedCandidates(prev => {
+      const updatedDisplay = [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))];
+      console.log(`[CandidateDiscovery] New batch loaded. Displayed count: ${updatedDisplay.length}`);
+      return updatedDisplay;
+    });
+    setCurrentIndex(newLoadIndex);
+    setHasMore(newLoadIndex < filteredCandidatesMemo.length);
+    setIsLoading(false);
+    console.log(`[CandidateDiscovery] Finished loading batch. HasMore: ${newLoadIndex < filteredCandidatesMemo.length}`);
+
   }, [isInitialLoading, isLoading, hasMore, currentIndex, filteredCandidatesMemo]);
 
   useEffect(() => {
@@ -183,9 +193,15 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   }, [hasMore, isLoading, loadMoreCandidates, isInitialLoading]);
 
 
-  const handleAction = async (candidateId: string, action: 'like' | 'pass') => { // 'viewProfile' is handled internally by CandidateCardContent
+  const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'viewProfile') => {
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
+
+    if (action === 'viewProfile') {
+      setSelectedCandidateForDetails(candidate);
+      setIsDetailsModalOpen(true);
+      return;
+    }
 
     if (!mongoDbUserId) {
       toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
@@ -264,7 +280,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
   const fixedElementsHeight = '120px'; 
 
-  if (isInitialLoading) {
+  if (isInitialLoading && allCandidates.length === 0) { // Show loader only if truly initial and no data yet
     return <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
   }
 
@@ -340,18 +356,32 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {selectedCandidateForDetails && (
+         <CandidateDetailsModal
+            isOpen={isDetailsModalOpen}
+            onOpenChange={setIsDetailsModalOpen}
+            candidate={selectedCandidateForDetails}
+            aiRecruiterMatchScore={null} // These would be fetched within modal or passed if already available
+            aiRecruiterReasoning={null}
+            aiRecruiterWeightedScores={null}
+            isLoadingAiAnalysis={false} // Modal would manage its own loading state for AI
+            isGuestMode={isGuestMode}
+            activeAccordionItem={undefined} // Modal can manage this internally
+            setActiveAccordionItem={() => {}} // Modal can manage this internally
+            onFetchAiAnalysis={() => { /* Logic to fetch AI analysis for selectedCandidateForDetails */ }}
+        />
+      )}
 
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
           <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-2 sm:p-4 bg-transparent">
-             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}>
-              <CandidateCardContent 
+             <ProfileCard 
                 candidate={candidate} 
-                onSwipeAction={handleAction}
+                onAction={handleAction}
                 isLiked={likedCandidateProfileIds.has(candidate.id)}
-                isGuestMode={!mongoDbUserId}
+                isGuestMode={isGuestMode}
               />
-            </SwipeCard>
           </div>
         ))}
         {isLoading && !isInitialLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
