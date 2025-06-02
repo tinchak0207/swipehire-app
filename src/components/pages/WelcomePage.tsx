@@ -3,8 +3,8 @@
 
 import React, { useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
-import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap, Maximize } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap } from "lucide-react";
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -58,8 +58,8 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
   useEffect(() => {
     AOS.init({
       duration: 800,
-      once: true, // Only animate once on scroll
-      offset: 100, // offset (in px) from the original trigger point
+      once: true, 
+      offset: 100, 
     });
   }, []);
 
@@ -98,14 +98,14 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         <section
           id="hero"
           className="relative py-24 md:py-36 text-white parallax-hero"
-          style={{ backgroundImage: "url('/heroimage/office.jpg')" }} 
+          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
           data-aos="fade-in"
         >
           <div className="absolute inset-0 hero-gradient-bg opacity-80 z-0"></div>
-          <div className="absolute inset-0 bg-black/50 z-0"></div>
+          <div className="absolute inset-0 bg-black/50 z-0"></div> {/* Overlay for better text contrast */}
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
-              Unlock Your Career Potential. <span className="text-accent">✨</span>
+              Unlock Your Career Potential <span className="text-accent">✨</span>
               <br className="hidden sm:block" />
               Discover Top Talent.
             </h1>
@@ -149,10 +149,10 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <FeatureCard icon={FileVideo2} title="AI Video Resumes" description="Showcase your personality and skills beyond paper. Get AI assistance to create compelling video introductions." aosAnimation="fade-up" />
+              <FeatureCard icon={FileVideo2} title="AI Video Resumes" description="Showcase your personality and skills beyond paper. Get AI assistance to create compelling video introductions." aosAnimation="fade-up" aosDelay="0" />
               <FeatureCard icon={Sparkles} title="Intelligent Matching" description="Our AI connects you with the right opportunities or candidates based on deep profile analysis and preferences." aosAnimation="fade-up" aosDelay="100" />
               <FeatureCard icon={Wand2} title="AI Toolkit" description="Access tools like script generators, avatar creators, and video feedback to perfect your application or job posting." aosAnimation="fade-up" aosDelay="200" />
-              <FeatureCard icon={HeartHandshake} title="Mutual Interest First" description="Connect only when both parties express interest, making interactions more meaningful and efficient." aosAnimation="fade-up" />
+              <FeatureCard icon={HeartHandshake} title="Mutual Interest First" description="Connect only when both parties express interest, making interactions more meaningful and efficient." aosAnimation="fade-up" aosDelay="0" />
               <FeatureCard icon={Briefcase} title="Dynamic Job Postings" description="Recruiters can create engaging job posts with video, showcasing company culture and role specifics." aosAnimation="fade-up" aosDelay="100" />
               <FeatureCard icon={Zap} title="Staff Diary & Community" description="Share experiences, insights, and connect with a community of professionals within your field." aosAnimation="fade-up" aosDelay="200" />
             </div>
@@ -167,7 +167,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <p className="mt-4 text-lg text-muted-foreground leading-relaxed">Get started in minutes.</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-              <div className="p-6 space-y-3" data-aos="zoom-in">
+              <div className="p-6 space-y-3" data-aos="zoom-in" data-aos-delay="0">
                 <div className="bg-primary text-primary-foreground rounded-full w-16 h-16 flex items-center justify-center text-2xl font-bold mx-auto mb-5 shadow-md">1</div>
                 <h3 className="text-xl font-semibold text-foreground font-heading">Create Your Profile</h3>
                 <p className="text-muted-foreground text-sm leading-relaxed">Job seekers build a dynamic profile with video. Recruiters showcase their company and roles.</p>
@@ -231,7 +231,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
                     {/* Basic Plan */}
-                    <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-left">
+                    <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-left" data-aos-delay="0">
                         <CardHeader className="pb-4">
                             <CardTitle className="text-2xl text-primary font-heading">Job Seeker Basic</CardTitle>
                             <CardDescription>Get started and find opportunities.</CardDescription>
@@ -244,7 +244,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Basic AI Tools</li>
                             </ul>
                         </CardContent>
-                        <CardFooter className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
+                        <CardFooter className="mt-auto pt-6 p-6">
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Sign Up Free</Button>
                         </CardFooter>
                     </Card>
@@ -264,7 +264,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Priority Support</li>
                             </ul>
                         </CardContent>
-                        <CardFooter className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
+                        <CardFooter className="mt-auto pt-6 p-6">
                             <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover">Get Started</Button>
                         </CardFooter>
                     </Card>
@@ -283,7 +283,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                                 <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Custom Branding</li>
                             </ul>
                         </CardContent>
-                        <CardFooter className="mt-auto pt-6 p-6"> {/* Ensure footer is also padded */}
+                        <CardFooter className="mt-auto pt-6 p-6">
                            <Button onClick={() => alert('Contact sales for Enterprise plan!')} variant="outline" className="w-full subtle-button-hover">Contact Sales</Button>
                         </CardFooter>
                     </Card>
@@ -337,11 +337,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         </div>
       </footer>
       <style jsx>{`
-        /* Ensure smooth scrolling for anchor links */
         html {
           scroll-behavior: smooth;
         }
-        /* Apply heading font to relevant titles if needed beyond globals.css */
         .font-heading {
           font-family: var(--font-heading);
         }
