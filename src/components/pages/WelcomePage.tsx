@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import { ScrollToTopButton } from '@/components/common/ScrollToTopButton';
+import { ScrollProgressBar } from '@/components/common/ScrollProgressBar'; // Added import
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -40,10 +41,11 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
     setDisplayedQuote('');
     setIsTypingComplete(false);
     let index = 0;
-    const typingSpeed = 40;
-    const startDelay = parseInt(aosDelay || "0", 10) + 300;
+    const typingSpeed = 40; // Adjust for speed
     let typingInterval: NodeJS.Timeout | undefined;
-
+  
+    const startDelay = parseInt(aosDelay || "0", 10) + 300; // Start after AOS animation
+  
     const timer = setTimeout(() => {
       if (quote) {
         typingInterval = setInterval(() => {
@@ -57,17 +59,18 @@ const TestimonialCard = ({ quote, author, role, avatar, aosAnimation, aosDelay }
         }, typingSpeed);
       }
     }, startDelay);
-
+  
+    // Cleanup function
     return () => {
       clearTimeout(timer);
       if (typingInterval) {
         clearInterval(typingInterval);
       }
     };
-  }, [quote, aosDelay]);
+  }, [quote, aosDelay]); // Rerun if quote or aosDelay changes
 
   return (
-    <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col group" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
+     <Card className="shadow-lg bg-card subtle-card-hover h-full flex flex-col group" data-aos={aosAnimation || "fade-up"} data-aos-delay={aosDelay}>
       <CardContent className="pt-6 flex-grow flex flex-col">
         <blockquote className="italic text-muted-foreground group-hover:text-foreground/80 transition-colors duration-300 leading-relaxed flex-grow min-h-[6em]">
           {displayedQuote}
@@ -113,6 +116,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
+      <ScrollProgressBar /> {/* Added ScrollProgressBar here */}
       {/* Sticky Header */}
       <header className="sticky top-0 z-50 w-full bg-background/90 backdrop-blur-md shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
