@@ -108,7 +108,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
           <Button
             onClick={handleGoogleSignIn}
             size="lg"
-            className="w-full text-lg py-3 bg-white text-slate-800 hover:bg-slate-200 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg"
+            className="w-full text-lg py-3 bg-white text-slate-800 hover:bg-slate-200 transition-all duration-300 ease-in-out shadow-md hover:shadow-lg font-semibold"
             aria-label="Sign in with Google"
             disabled={isLoadingGoogleSignIn}
           >
@@ -127,7 +127,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
                   onClick={onGuestMode}
                   variant="outline"
                   size="lg"
-                  className="w-full text-lg py-3 border-slate-400 text-slate-200 hover:bg-slate-700 hover:border-slate-500 hover:text-white transition-all duration-300 ease-in-out"
+                  className="w-full text-lg py-3 border-slate-400 text-slate-300 hover:bg-slate-700 hover:border-slate-500 hover:text-white transition-all duration-300 ease-in-out"
                   aria-label="Continue as Guest"
                   disabled={isLoadingGoogleSignIn}
                 >
