@@ -29,7 +29,7 @@ interface CompanyCardContentProps {
   isGuestMode?: boolean;
 }
 
-const MAX_JOB_DESCRIPTION_LENGTH_CARD = 50; 
+const MAX_JOB_DESCRIPTION_LENGTH_CARD = 70; // Increased slightly
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
 const SWIPE_THRESHOLD = 75;
@@ -72,7 +72,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
 
-  const isThemedCard = company.cardTheme && company.cardTheme !== 'default' && company.cardTheme !== 'lavender';
+  const isThemedCard = company.cardTheme && company.cardTheme !== 'default';
   const isLavenderTheme = company.cardTheme === 'lavender';
   const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
@@ -395,26 +395,34 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     let iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "text-white"; 
-      hoverClasses = "hover:bg-red-500";
-    } else if (action === 'like') {
-      if (isSpecificActionLiked) {
-        colorClasses = "text-green-500";
-        iconFillClass = "fill-green-500";
-        hoverClasses = "hover:bg-green-500/10";
-      } else {
-        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-muted-foreground");
-        hoverClasses = isThemedCard ? "hover:text-green-300 hover:bg-green-500/20" : (isLavenderTheme ? "hover:text-green-600 hover:bg-green-500/10" : "hover:text-green-500 hover:bg-green-500/10");
+      colorClasses = "text-white";
+      hoverClasses = "hover:bg-red-500/80";
+    } else {
+      if (isThemedCard && !isLavenderTheme) { // Dark themes
+        switch (action) {
+          case 'like': colorClasses = isSpecificActionLiked ? "text-green-300" : "text-white"; iconFillClass = isSpecificActionLiked ? "fill-green-300" : ""; hoverClasses = "hover:text-green-300 hover:bg-green-500/20"; break;
+          case 'pass': colorClasses = "text-white"; hoverClasses = "hover:text-red-300 hover:bg-red-500/20"; break;
+          case 'details': colorClasses = "text-white"; hoverClasses = "hover:text-blue-300 hover:bg-blue-500/20"; break;
+          case 'share_trigger': colorClasses = "text-white"; hoverClasses = "hover:text-primary-foreground hover:bg-white/10"; break;
+          default: colorClasses = "text-white";
+        }
+      } else if (isLavenderTheme) { // Light theme (lavender)
+         switch (action) {
+          case 'like': colorClasses = isSpecificActionLiked ? "text-green-600" : "text-slate-700"; iconFillClass = isSpecificActionLiked ? "fill-green-600" : ""; hoverClasses = "hover:text-green-600 hover:bg-green-500/10"; break;
+          case 'pass': colorClasses = "text-slate-700"; hoverClasses = "hover:text-red-600 hover:bg-red-500/10"; break;
+          case 'details': colorClasses = "text-slate-700"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
+          case 'share_trigger': colorClasses = "text-slate-700"; hoverClasses = "hover:text-slate-900 hover:bg-slate-500/10"; break;
+          default: colorClasses = "text-slate-700";
+        }
+      } else { // Default (non-themed, light background)
+        switch (action) {
+          case 'like': colorClasses = isSpecificActionLiked ? "text-green-500" : "text-muted-foreground"; iconFillClass = isSpecificActionLiked ? "fill-green-500" : ""; hoverClasses = "hover:text-green-500 hover:bg-green-500/10"; break;
+          case 'pass': colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; break;
+          case 'details': colorClasses = "text-blue-500"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
+          case 'share_trigger': colorClasses = "text-muted-foreground"; hoverClasses = "hover:text-gray-600 hover:bg-gray-500/10"; break;
+          default: colorClasses = "text-muted-foreground";
+        }
       }
-    } else if (action === 'pass') {
-        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-destructive");
-        hoverClasses = isThemedCard ? "hover:text-red-300 hover:bg-red-500/20" : (isLavenderTheme ? "hover:text-red-600 hover:bg-red-500/10" : "hover:bg-destructive/10");
-    } else if (action === 'details') {
-        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-blue-500");
-        hoverClasses = isThemedCard ? "hover:text-blue-300 hover:bg-blue-500/20" : (isLavenderTheme ? "hover:text-blue-600 hover:bg-blue-500/10" : "hover:text-blue-600 hover:bg-blue-500/10");
-    } else if (action === 'share_trigger') {
-        colorClasses = isThemedCard ? "text-white" : (isLavenderTheme ? "text-slate-700" : "text-muted-foreground");
-        hoverClasses = isThemedCard ? "hover:text-white/80 hover:bg-white/10" : (isLavenderTheme ? "hover:text-slate-900 hover:bg-slate-500/10" : "hover:text-gray-600 hover:bg-gray-500/10");
     }
     
     const effectiveOnClick = action === 'details' 
@@ -441,7 +449,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             baseClasses, 
             colorClasses, 
             hoverClasses, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400", // Keep this for locked state
+            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400", 
             extraClassName
           )}
           onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
@@ -522,8 +530,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         }}
       >
         <div className={cn(
-          "relative w-full shrink-0 pt-[70px]", // Added padding top to create space for logo
-           company.cardTheme && company.cardTheme !== 'default' ? getThemeClass(company.cardTheme) : 'bg-card' 
+          "relative w-full shrink-0 pt-[70px]", 
+           company.cardTheme && company.cardTheme !== 'default' ? getThemeClass(company.cardTheme) : 'bg-slate-100 dark:bg-slate-800' 
           )}> 
           <div className="relative w-full aspect-[16/7] sm:aspect-video px-4 pb-4">
             {company.logoUrl ? (
@@ -545,34 +553,34 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         
         <div className="w-full border-t-4 border-accent shrink-0"></div>
         
-        <div className="flex-1 p-3 sm:p-4 space-y-1.5 text-xs sm:text-sm">
+        <div className="flex-1 p-3 sm:p-4 space-y-1.5">
             <CardHeader className="p-0 mb-1.5">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
-                        <CardTitle className={cn("text-lg sm:text-xl font-bold truncate", isThemedCard ? 'text-primary-foreground' : 'text-primary')}>{company.name}</CardTitle>
-                        <CardDescription className={cn("text-xs sm:text-sm truncate", isThemedCard ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{company.industry}</CardDescription>
+                        <CardTitle className={cn("text-lg sm:text-xl font-bold truncate", isThemedCard && !isLavenderTheme ? 'text-primary-foreground' : (isLavenderTheme ? 'text-foreground' : 'text-primary'))}>{company.name}</CardTitle>
+                        <CardDescription className={cn("text-md sm:text-lg truncate", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>{company.industry}</CardDescription>
                     </div>
                 </div>
                 {jobOpening && (
-                    <p className={cn("text-md sm:text-lg font-semibold mt-0.5 sm:mt-1 line-clamp-1", isThemedCard ? 'text-primary-foreground' : 'text-foreground')}>{jobOpening.title}</p>
+                    <p className={cn("text-md sm:text-lg font-semibold mt-1.5 sm:mt-2 line-clamp-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground' : (isLavenderTheme ? 'text-foreground' : 'text-foreground'))}>{jobOpening.title}</p>
                 )}
             </CardHeader>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 mt-2">
                 {jobOpening?.location && (
-                <div className={cn("flex items-center text-xs mt-2", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
-                    <MapPin className={cn("h-3 w-3 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
+                <div className={cn("flex items-center text-xs mt-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
+                    <MapPin className={cn("h-4 w-4 mr-1.5 shrink-0", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
                     <span className="truncate">{jobOpening.location}</span>
                 </div>
                 )}
                 {(jobOpening?.jobType) && (
-                <div className={cn("flex items-center text-xs mt-1.5", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
-                    <JobTypeIcon className={cn("h-3 w-3 mr-1.5 shrink-0", isThemedCard ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
+                <div className={cn("flex items-center text-xs mt-1", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))}>
+                    <JobTypeIcon className={cn("h-4 w-4 mr-1.5 shrink-0", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/70' : (isLavenderTheme ? 'text-foreground/70' : 'text-muted-foreground'))} />
                     <span className="truncate">{jobOpening?.jobType.replace(/_/g, ' ')}</span>
                 </div>
                 )}
                 {jobOpening?.tags && jobOpening.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 pt-1.5 mt-2">
+                  <div className="flex flex-wrap gap-1 pt-1.5 mt-1.5">
                     {jobOpening.tags.slice(0,3).map(tag => (
                       <Badge key={tag} variant="secondary" className="text-xs px-1.5 py-0.5">{tag}</Badge>
                     ))}
@@ -580,7 +588,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                   </div>
                 )}
                 {jobOpening?.description && (
-                    <p className={cn("text-xs pt-1.5 mt-2 line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>
+                    <p className={cn("text-sm pt-2 mt-2 line-clamp-2 sm:line-clamp-3 min-h-[2.5em]", isThemedCard && !isLavenderTheme ? 'text-primary-foreground/80' : (isLavenderTheme ? 'text-foreground/80' : 'text-muted-foreground'))}>
                         {truncatedJobDescriptionForCard}
                     </p>
                 )}
