@@ -2,14 +2,12 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import type { Candidate, CandidateFilters, UserRole } from '@/lib/types';
+import type { Candidate, CandidateFilters, UserRole, ProfileRecommenderOutput, PersonalityTraitAssessment, RecruiterPerspectiveWeights } from '@/lib/types';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, JobType, Availability } from '@/lib/types';
 import { mockCandidates } from '@/lib/mockData'; 
-// import { SwipeCard } from '@/components/swipe/SwipeCard'; // No longer used
-// import { CandidateCardContent } from '@/components/swipe/CandidateCardContent'; // No longer used
-import ProfileCard from '@/components/cards/ProfileCard'; // New import
+import ProfileCard from '@/components/cards/ProfileCard'; 
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, X, RotateCcw, Info } from 'lucide-react';
+import { Loader2, SearchX, Filter, X, RotateCcw, Info, Video, ListChecks, Users2, Briefcase, Lightbulb, ChevronsUpDown, MapPin, Brain, Eye, TrendingUp, Star as StarIcon, MessageSquare, Lock, Sparkles } from 'lucide-react'; // Added relevant icons
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -21,10 +19,16 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { passCandidate, retrieveCandidate } from '@/services/interactionService';
+import { recommendProfile, type ProfileRecommenderInput, type CandidateProfileForAI, type JobCriteriaForAI } from '@/ai/flows/profile-recommender';
+import { Separator } from '@/components/ui/separator';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Progress } from '@/components/ui/progress';
+import { Tooltip, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const ITEMS_PER_BATCH = 3;
-
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
+
 
 const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
@@ -35,6 +39,320 @@ const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
     <line x1="14" y1="11" x2="14" y2="17" />
   </svg>
 );
+
+// Re-integrate or adapt CandidateDetailsModal logic here
+function CandidateDetailsModal({
+    isOpen,
+    onOpenChange,
+    candidate,
+    aiRecruiterMatchScore,
+    aiRecruiterReasoning,
+    aiRecruiterWeightedScores,
+    isLoadingAiAnalysis,
+    isGuestMode,
+    activeAccordionItem,
+    setActiveAccordionItem,
+    onFetchAiAnalysis, // Callback to trigger AI analysis
+}: {
+    isOpen: boolean;
+    onOpenChange: (open: boolean) => void;
+    candidate: Candidate | null; // Can be null initially
+    aiRecruiterMatchScore: number | null;
+    aiRecruiterReasoning: string | null;
+    aiRecruiterWeightedScores: ProfileRecommenderOutput['weightedScores'] | null;
+    isLoadingAiAnalysis: boolean;
+    isGuestMode?: boolean;
+    activeAccordionItem: string | undefined;
+    setActiveAccordionItem: (value: string | undefined) => void;
+    onFetchAiAnalysis: () => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && candidate && !aiRecruiterMatchScore && !isLoadingAiAnalysis && !isGuestMode) {
+      onFetchAiAnalysis();
+    }
+  }, [isOpen, candidate, aiRecruiterMatchScore, isLoadingAiAnalysis, isGuestMode, onFetchAiAnalysis]);
+
+  useEffect(() => {
+    const currentVideoRef = videoRef.current;
+    if (!currentVideoRef || !isOpen || !candidate?.videoResumeUrl) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          currentVideoRef.play().catch(error => console.log("Autoplay prevented for candidate video in modal:", error.name, error.message));
+        } else {
+          currentVideoRef.pause();
+        }
+      }, { threshold: 0.5 }
+    );
+    observer.observe(currentVideoRef);
+    return () => { if (currentVideoRef) observer.unobserve(currentVideoRef); };
+  }, [isOpen, candidate?.videoResumeUrl]);
+
+  if (!candidate) return null;
+
+  const summaryForModalDisplay = candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && !showFullSummaryModal
+    ? `${candidate.experienceSummary.substring(0, MAX_SUMMARY_LENGTH_MODAL_INITIAL)}...`
+    : candidate.experienceSummary;
+
+  const renderPersonalityFitIcon = (fit: PersonalityTraitAssessment['fit']) => {
+    switch (fit) {
+      case 'positive': return <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 shrink-0" />;
+      case 'neutral': return <Info className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />;
+      case 'negative': return <X className="h-4 w-4 text-red-500 mr-1.5 shrink-0" />; // Using X from lucide
+      default: return null;
+    }
+  };
+
+  const modalAvatarSrc = candidate.avatarUrl && candidate.avatarUrl.startsWith('/uploads/')
+  ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
+  : candidate.avatarUrl;
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
+        <DialogHeader className="p-4 sm:p-6 border-b flex-row items-center space-x-3 sticky top-0 bg-background z-10 pb-3">
+          {modalAvatarSrc && modalAvatarSrc !== 'https://placehold.co/500x700.png' ? (
+            <Image
+              src={modalAvatarSrc || 'https://placehold.co/500x700.png'}
+              alt={candidate.name}
+              width={60}
+              height={60}
+              className="object-cover rounded-full border-2 border-primary"
+              data-ai-hint={candidate.dataAiHint || "person"}
+              unoptimized={modalAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || modalAvatarSrc?.startsWith('http://localhost')}
+            />
+          ) : (
+             <UserCircleIcon className="w-16 h-16 text-muted-foreground border-2 border-primary rounded-full p-1" />
+          )}
+          <div className="flex-grow">
+            <DialogTitle className="text-xl sm:text-2xl text-primary font-heading">{candidate.name}</DialogTitle>
+            <DialogDescription className="truncate text-sm text-muted-foreground font-heading">{candidate.role}</DialogDescription>
+            {candidate.location && (
+                <div className="flex items-center text-xs text-muted-foreground mt-0.5">
+                    <MapPin className="h-3 w-3 mr-1 shrink-0 text-accent" />
+                    <span>{candidate.location}</span>
+                </div>
+            )}
+          </div>
+          {candidate.isUnderestimatedTalent && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="ml-auto border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0 py-1 px-2">
+                    <Sparkles className="h-4 w-4 mr-1 text-yellow-500" />
+                    Hidden Gem
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </DialogHeader>
+
+        <ScrollArea className="flex-1 min-h-0">
+          <div className="p-4 sm:p-6 space-y-4 pt-4">
+            {candidate.videoResumeUrl && (
+              <section className="mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center font-heading">
+                  <Video className="mr-2 h-5 w-5 text-primary" /> Video Resume
+                </h3>
+                <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
+                  <video
+                    ref={videoRef}
+                    src={candidate.videoResumeUrl}
+                    controls={!isGuestMode}
+                    muted={false}
+                    autoPlay={false}
+                    loop
+                    playsInline
+                    className="w-full h-full object-cover bg-black"
+                    poster={modalAvatarSrc || `https://placehold.co/600x400.png`}
+                    data-ai-hint="candidate video"
+                  />
+                </div>
+              </section>
+            )}
+            <Separator className="my-4" />
+
+            <section>
+              <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center font-heading">
+                <Briefcase className="mr-2 h-5 w-5 text-primary" /> Experience Summary
+              </h3>
+              <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
+                {summaryForModalDisplay}
+                {candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && (
+                    <Button
+                        variant="link" size="sm"
+                        onClick={(e) => {e.stopPropagation(); setShowFullSummaryModal(!showFullSummaryModal);}}
+                        className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
+                        disabled={isGuestMode}
+                        data-no-drag="true"
+                    >
+                        {showFullSummaryModal ? "Read less" : "Read more"}
+                    </Button>
+                )}
+              </p>
+            </section>
+             <Separator className="my-4" />
+
+            {candidate.desiredWorkStyle && (
+                <section>
+                    <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center font-heading">
+                        <Lightbulb className="mr-2 h-5 w-5 text-primary" /> Desired Work Style
+                    </h3>
+                    <p className="text-sm text-muted-foreground">{candidate.desiredWorkStyle}</p>
+                </section>
+            )}
+             <Separator className="my-4" />
+
+            {candidate.skills && candidate.skills.length > 0 && (
+              <section>
+                <h3 className="text-lg font-semibold text-foreground mb-2.5 flex items-center font-heading">
+                    <ListChecks className="mr-2 h-5 w-5 text-primary" /> Skills
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {candidate.skills.map((skill) => (
+                    <Badge key={skill} variant="secondary" className="text-sm px-2.5 py-1">{skill}</Badge>
+                  ))}
+                </div>
+              </section>
+            )}
+            <Separator className="my-4" />
+            
+            <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
+              <AccordionItem value="ai-assessment">
+                <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary font-heading">
+                  <div className="flex items-center">
+                    <Brain className="mr-2 h-5 w-5" /> AI Assessment (Recruiter Perspective) <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  <p className="text-xs text-muted-foreground italic mb-2.5">
+                    Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
+                  </p>
+                  {isGuestMode ? (
+                     <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                         <Lock className="h-4 w-4 mr-2"/>Sign in to view AI Assessment and detailed insights.
+                     </div>
+                  ) : isLoadingAiAnalysis ? (
+                      <div className="flex items-center text-muted-foreground text-sm">
+                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                          <span>Analyzing fit...</span>
+                      </div>
+                  ) : aiRecruiterMatchScore !== null ? (
+                      <div className="space-y-2.5 p-3 bg-muted/30 rounded-md shadow-sm">
+                          <div className="text-md text-foreground">
+                              <span className="font-semibold">Overall Match Score:</span>
+                              <span className={cn(
+                                  "ml-1.5 font-bold text-lg",
+                                  aiRecruiterMatchScore >= 75 ? 'text-green-600' :
+                                  aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
+                              )}>
+                                  {aiRecruiterMatchScore}%
+                              </span>
+                          </div>
+                          {aiRecruiterReasoning && (
+                              <p className="text-sm text-muted-foreground italic leading-relaxed">
+                                  {aiRecruiterReasoning}
+                              </p>
+                          )}
+                          {aiRecruiterWeightedScores && (
+                              <div className="pt-2.5 mt-2.5 border-t border-border/70">
+                                  <p className="font-medium text-foreground text-sm mb-1.5">Score Breakdown (Individual Assessments):</p>
+                                  <ul className="list-none space-y-1 text-xs text-muted-foreground">
+                                      <li>Skills Match: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
+                                      <li>Experience Relevance: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
+                                      <li>Culture Fit: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.cultureFitScore}%</span></li>
+                                      <li>Growth Potential: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.growthPotentialScore}%</span></li>
+                                  </ul>
+                              </div>
+                          )}
+                      </div>
+                  ) : (
+                       <p className="text-sm text-muted-foreground italic">AI assessment currently unavailable for this candidate.</p>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+              <Separator className="my-4" />
+              <AccordionItem value="coworker-fit">
+                <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary font-heading">
+                  <div className="flex items-center">
+                    <Users2 className="mr-2 h-5 w-5" /> Coworker Fit Profile <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="pt-2 pb-4">
+                  {isGuestMode ? (
+                     <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                         <Lock className="h-4 w-4 mr-2"/>Sign in to view detailed Coworker Fit Profile.
+                     </div>
+                  ) : (
+                    <div className="space-y-2.5 p-3 bg-muted/30 rounded-md shadow-sm">
+                      {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
+                        <div className="mb-2.5 space-y-1.5">
+                          <p className="font-medium text-foreground text-sm">Personality Insights:</p>
+                          {candidate.personalityAssessment.map((item, index) => (
+                            <div key={index} className="flex items-start text-sm">
+                              {renderPersonalityFitIcon(item.fit)}
+                              <div className="min-w-0">
+                                <span className="font-semibold">{item.trait}:</span>
+                                <span className="text-muted-foreground ml-1.5">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground italic">No personality insights available.</p>}
+                      {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 ? (
+                        <div>
+                          <p className="font-medium text-foreground text-sm">Optimal Work Style:</p>
+                          <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-1 text-sm">
+                            {candidate.optimalWorkStyles.map((style, index) => (
+                              <li key={index}>{style}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ) : <p className="text-sm text-muted-foreground italic">No optimal work styles defined.</p>}
+                    </div>
+                  )}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+             <Separator className="my-4" />
+
+            {candidate.profileStrength && !isGuestMode && (
+              <section>
+                <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center font-heading">
+                    <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
+                </h3>
+                <div className="flex items-center text-md font-medium">
+                  <Progress value={candidate.profileStrength} className="w-2/3 h-2.5 mr-2" />
+                  <span className="text-accent font-semibold">{candidate.profileStrength}%</span>
+                  {candidate.profileStrength > 89 && <Badge variant="default" className="ml-2 text-xs px-2 py-0.5 bg-green-500 hover:bg-green-600 text-white">Top Talent</Badge>}
+                </div>
+              </section>
+            )}
+            {isGuestMode && (
+              <section className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
+                  <Lock className="h-4 w-4 mr-2"/>Profile Strength visible to registered users.
+              </section>
+            )}
+          </div>
+        </ScrollArea>
+        <DialogFooter className="p-4 border-t sticky bottom-0 bg-background z-10">
+            <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+            </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
@@ -61,8 +379,18 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const [likedCandidateProfileIds, setLikedCandidateProfileIds] = useState<Set<string>>(new Set());
 
   const { toast } = useToast();
-  const { mongoDbUserId, passedCandidateIds: passedCandidateProfileIdsFromContext, updatePassedCandidateIds, fetchAndSetUserPreferences } = useUserPreferences();
+  const { mongoDbUserId, preferences, passedCandidateIds: passedCandidateProfileIdsFromContext, updatePassedCandidateIds, fetchAndSetUserPreferences } = useUserPreferences();
   const [recruiterRepresentedCompanyId, setRecruiterRepresentedCompanyId] = useState<string | null>(null);
+
+  // State for Details Modal
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedCandidateForDetails, setSelectedCandidateForDetails] = useState<Candidate | null>(null);
+  const [isLoadingAiAnalysisForModal, setIsLoadingAiAnalysisForModal] = useState(false);
+  const [aiRecruiterMatchScoreForModal, setAiRecruiterMatchScoreForModal] = useState<number | null>(null);
+  const [aiRecruiterReasoningForModal, setAiRecruiterReasoningForModal] = useState<string | null>(null);
+  const [aiRecruiterWeightedScoresForModal, setAiRecruiterWeightedScoresForModal] = useState<ProfileRecommenderOutput['weightedScores'] | null>(null);
+  const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
+
 
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
@@ -183,21 +511,71 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     return () => { if (observer.current) observer.current.disconnect(); };
   }, [hasMore, isLoading, loadMoreCandidates, isInitialLoading]);
 
-  const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'details' | 'share') => {
+  const fetchAiRecruiterAnalysisForModal = useCallback(async (candidateToAnalyze: Candidate) => {
+    if (!candidateToAnalyze || !!mongoDbUserId === false) { // Also check mongoDbUserId for guest mode
+        setAiRecruiterMatchScoreForModal(null);
+        setAiRecruiterReasoningForModal(!!mongoDbUserId === false ? "AI Assessment disabled for guest users." : "Candidate data missing.");
+        setAiRecruiterWeightedScoresForModal(null);
+        return;
+    }
+    setIsLoadingAiAnalysisForModal(true);
+    setAiRecruiterMatchScoreForModal(null);
+    setAiRecruiterReasoningForModal(null);
+    setAiRecruiterWeightedScoresForModal(null);
+
+    try {
+      const candidateForAI: CandidateProfileForAI = {
+        id: candidateToAnalyze.id, role: candidateToAnalyze.role || undefined, experienceSummary: candidateToAnalyze.experienceSummary || undefined,
+        skills: candidateToAnalyze.skills || [], location: candidateToAnalyze.location || undefined, desiredWorkStyle: candidateToAnalyze.desiredWorkStyle || undefined,
+        pastProjects: candidateToAnalyze.pastProjects || undefined, workExperienceLevel: candidateToAnalyze.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
+        educationLevel: candidateToAnalyze.educationLevel || EducationLevel.UNSPECIFIED, locationPreference: candidateToAnalyze.locationPreference || LocationPreference.UNSPECIFIED,
+        languages: candidateToAnalyze.languages || [], salaryExpectationMin: candidateToAnalyze.salaryExpectationMin, salaryExpectationMax: candidateToAnalyze.salaryExpectationMax,
+        availability: candidateToAnalyze.availability || Availability.UNSPECIFIED, jobTypePreference: candidateToAnalyze.jobTypePreference || [],
+        personalityAssessment: candidateToAnalyze.personalityAssessment || [],
+      };
+      const genericJobCriteria: JobCriteriaForAI = {
+        title: candidateToAnalyze.role || "General Role Assessment",
+        description: `Assessing overall potential and fit for a role similar to ${candidateToAnalyze.role || 'the candidate\'s stated preference'}. Considering their skills and experience level. Company culture emphasizes innovation and collaboration.`,
+        requiredSkills: candidateToAnalyze.skills?.slice(0,3) || ["communication", "problem-solving"],
+        requiredExperienceLevel: candidateToAnalyze.workExperienceLevel || WorkExperienceLevel.MID_LEVEL,
+        companyCultureKeywords: ["innovative", "collaborative", "driven", "growth-oriented"],
+        companyIndustry: "Technology / General Business",
+      };
+      
+      let userAIWeights = { recruiterPerspective: preferences.recruiterAIWeights };
+      if (!userAIWeights.recruiterPerspective || Object.keys(userAIWeights.recruiterPerspective).length === 0) {
+          userAIWeights.recruiterPerspective = { skillsMatchScore: 40, experienceRelevanceScore: 30, cultureFitScore: 20, growthPotentialScore: 10 }; // Default
+      }
+
+      const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: genericJobCriteria, userAIWeights });
+      setAiRecruiterMatchScoreForModal(result.matchScore);
+      setAiRecruiterReasoningForModal(result.reasoning);
+      setAiRecruiterWeightedScoresForModal(result.weightedScores);
+      setActiveAccordionItemModal("ai-assessment"); 
+
+    } catch (error: any) {
+      toast({ title: "AI Analysis Error", description: `Could not get AI assessment for ${candidateToAnalyze.name}. ${error.message || ''}`, variant: "destructive", duration: 3000 });
+      setAiRecruiterMatchScoreForModal(0);
+      setAiRecruiterReasoningForModal("AI analysis failed to complete.");
+      setAiRecruiterWeightedScoresForModal(null);
+    } finally {
+      setIsLoadingAiAnalysisForModal(false);
+    }
+  }, [toast, preferences.recruiterAIWeights, mongoDbUserId]);
+
+
+  const handleAction = async (candidateId: string, action: 'like' | 'pass' | 'viewProfile') => {
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
 
-    if (action === 'details') {
-      // Implement logic to show candidate details modal if needed, or navigate to a profile page
-      // For now, just log it. This page doesn't have an internal modal for the new ProfileCard.
-      toast({title: `Viewing details for ${candidate.name}`});
-      console.log(`Details action for candidate ${candidateId}`);
-      return;
-    }
-    if (action === 'share') {
-      // Implement sharing logic if needed
-      toast({title: `Sharing profile of ${candidate.name}`});
-      console.log(`Share action for candidate ${candidateId}`);
+    if (action === 'viewProfile') {
+      setSelectedCandidateForDetails(candidate);
+      // Reset AI analysis for the new candidate, it will be fetched when modal opens or if onFetchAiAnalysis is called
+      setAiRecruiterMatchScoreForModal(null);
+      setAiRecruiterReasoningForModal(null);
+      setAiRecruiterWeightedScoresForModal(null);
+      setActiveAccordionItemModal(undefined); // Reset accordion state
+      setIsDetailsModalOpen(true);
       return;
     }
 
@@ -214,20 +592,13 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       setLikedCandidateProfileIds(prev => new Set(prev).add(candidateId));
       try {
         const response = await recordLike({
-          likingUserId: mongoDbUserId,
-          likedProfileId: candidateId, 
-          likedProfileType: 'candidate',
-          likingUserRole: 'recruiter',
-          likingUserRepresentsCompanyId: recruiterRepresentedCompanyId,
+          likingUserId: mongoDbUserId, likedProfileId: candidateId, likedProfileType: 'candidate',
+          likingUserRole: 'recruiter', likingUserRepresentsCompanyId: recruiterRepresentedCompanyId,
         });
         if (response.success) {
           toast({ title: `Liked ${candidate.name}` });
           if (response.matchMade) {
-            toast({
-              title: "🎉 It's a Mutual Match!",
-              description: `You and ${candidate.name} are both interested! Check 'My Matches'.`,
-              duration: 7000,
-            });
+            toast({ title: "🎉 It's a Mutual Match!", description: `You and ${candidate.name} are both interested! Check 'My Matches'.`, duration: 7000 });
           }
         } else {
           toast({ title: "Like Failed", description: response.message, variant: "destructive" });
@@ -362,14 +733,28 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         </DialogContent>
       </Dialog>
 
-      {/* Main content area for displaying cards */}
+      <CandidateDetailsModal
+        isOpen={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+        candidate={selectedCandidateForDetails}
+        aiRecruiterMatchScore={aiRecruiterMatchScoreForModal}
+        aiRecruiterReasoning={aiRecruiterReasoningForModal}
+        aiRecruiterWeightedScores={aiRecruiterWeightedScoresForModal}
+        isLoadingAiAnalysis={isLoadingAiAnalysisForModal}
+        isGuestMode={!mongoDbUserId}
+        activeAccordionItem={activeAccordionItemModal}
+        setActiveAccordionItem={setActiveAccordionItemModal}
+        onFetchAiAnalysis={() => selectedCandidateForDetails && fetchAiRecruiterAnalysisForModal(selectedCandidateForDetails)}
+      />
+
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
-          <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-2 sm:p-4 bg-transparent"> {/* Ensure bg is transparent or matches page background */}
+          <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-2 sm:p-4 bg-transparent">
             <ProfileCard 
               candidate={candidate} 
               onAction={handleAction} 
               isLiked={likedCandidateProfileIds.has(candidate.id)}
+              isGuestMode={!mongoDbUserId}
             />
           </div>
         ))}
@@ -386,3 +771,4 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     </div>
   );
 }
+
