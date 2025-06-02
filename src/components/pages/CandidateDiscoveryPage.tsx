@@ -6,7 +6,7 @@ import type { Candidate, CandidateFilters, ProfileRecommenderOutput, RecruiterPe
 import { mockCandidates } from '@/lib/mockData';
 import ProfileCard from '@/components/cards/ProfileCard';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, X as CloseIcon, RotateCcw, Trash2 as TrashIcon, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal } from 'lucide-react';
+import { Loader2, SearchX, Filter, X as CloseIcon, RotateCcw, Trash2 as TrashIcon, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal, Target, Activity, Bookmark, Send, CalendarDays } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { CandidateFilterPanel } from "@/components/filters/CandidateFilterPanel";
@@ -32,14 +32,6 @@ const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
 
-// Define initialFilters here
-const initialFilters: CandidateFilters = {
-  experienceLevels: new Set(),
-  educationLevels: new Set(),
-  locationPreferences: new Set(),
-  jobTypes: new Set(),
-};
-
 function CandidateDetailsModal({
     isOpen,
     onOpenChange,
@@ -52,6 +44,7 @@ function CandidateDetailsModal({
     activeAccordionItem,
     setActiveAccordionItem,
     onFetchAiAnalysis,
+    onPassCandidate,
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -64,9 +57,11 @@ function CandidateDetailsModal({
     activeAccordionItem: string | undefined;
     setActiveAccordionItem: (value: string | undefined) => void;
     onFetchAiAnalysis: () => void;
+    onPassCandidate: (candidateId: string) => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     if (isOpen && candidate && !aiRecruiterMatchScore && !isLoadingAiAnalysis && !isGuestMode) {
@@ -101,7 +96,7 @@ function CandidateDetailsModal({
   const renderPersonalityFitIcon = (fit: PersonalityTraitAssessment['fit']) => {
     switch (fit) {
       case 'positive': return <CheckCircle className="h-4 w-4 text-green-500 mr-1.5 shrink-0" />;
-      case 'neutral': return <Info className="h-4 w-4 text-yellow-500 mr-1.5 shrink-0" />;
+      case 'neutral': return <Info className="h-4 w-4 text-amber-500 mr-1.5 shrink-0" />;
       case 'negative': return <LucideXCircle className="h-4 w-4 text-red-500 mr-1.5 shrink-0" />;
       default: return null;
     }
@@ -112,30 +107,56 @@ function CandidateDetailsModal({
   : candidate.avatarUrl;
   const needsUnoptimizedModal = modalAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || modalAvatarSrc?.startsWith('http://localhost');
 
+  const handleSaveForLater = () => {
+    if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Please sign in to save candidates.", variant: "default" });
+      return;
+    }
+    console.log(`Candidate ${candidate.id} saved for later.`);
+    toast({ title: "Saved for Later", description: `${candidate.name} has been saved to your list.` });
+  };
+
+  const handleAdvanceToInterview = () => {
+     if (isGuestMode) {
+      toast({ title: "Feature Locked", description: "Please sign in to advance candidates.", variant: "default" });
+      return;
+    }
+    console.log(`Candidate ${candidate.id} advanced to interview.`);
+    toast({ title: "Advanced to Interview", description: `An interview request process has been initiated for ${candidate.name}.` });
+  };
+
+  const getSkillBadgeClass = (skill: string) => {
+    const lowerSkill = skill.toLowerCase();
+    if (lowerSkill === 'firebase') return 'bg-gradient-to-r from-orange-400 to-amber-500 text-white border-orange-600 hover:opacity-90 shadow-sm';
+    if (lowerSkill === 'c++') return 'bg-gradient-to-r from-blue-500 to-sky-600 text-white border-blue-700 hover:opacity-90 shadow-sm';
+    if (lowerSkill === 'flexible') return 'bg-gradient-to-r from-green-400 to-emerald-500 text-white border-green-600 hover:opacity-90 shadow-sm';
+    return 'bg-muted border-border text-muted-foreground hover:bg-muted/80 shadow-sm'; // Default
+  };
+
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl md:max-w-2xl lg:max-w-3xl max-h-[90vh] flex flex-col p-0 bg-background">
-        <DialogHeader className="p-4 sm:p-6 border-b flex-row items-center space-x-3 sticky top-0 bg-background z-10 pb-3">
+      <DialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[95vh] flex flex-col p-0 bg-background shadow-2xl rounded-xl">
+        <DialogHeader className="p-4 sm:p-6 border-b flex-row items-center space-x-4 sticky top-0 bg-gradient-to-r from-slate-800 to-purple-900 text-primary-foreground z-10 rounded-t-xl">
           {modalAvatarSrc && modalAvatarSrc !== 'https://placehold.co/500x700.png' ? (
             <NextImage
               src={modalAvatarSrc || 'https://placehold.co/500x700.png'}
               alt={candidate.name}
-              width={60}
-              height={60}
-              className="object-cover rounded-full border-2 border-accent"
+              width={72}
+              height={72}
+              className="object-cover rounded-full border-2 border-primary-foreground/50 shadow-lg"
               data-ai-hint={candidate.dataAiHint || "person"}
               unoptimized={needsUnoptimizedModal}
             />
           ) : (
-             <UserCircle className="w-16 h-16 text-muted-foreground border-2 border-accent rounded-full p-1" />
+             <UserCircle className="w-18 h-18 text-primary-foreground/70 border-2 border-primary-foreground/50 rounded-full p-1" />
           )}
           <div className="flex-grow">
-            <DialogTitle className="text-xl sm:text-2xl text-primary font-heading">{candidate.name}</DialogTitle>
-            <DialogDescription className="truncate text-sm text-muted-foreground font-heading">{candidate.role}</DialogDescription>
+            <DialogTitle className="text-2xl sm:text-3xl font-bold font-heading">{candidate.name}</DialogTitle>
+            <DialogDescription className="truncate text-md text-primary-foreground/80 font-heading">{candidate.role}</DialogDescription>
             {candidate.location && (
-                <div className="flex items-center text-xs text-muted-foreground mt-0.5">
-                    <MapPin className="h-3 w-3 mr-1 shrink-0 text-accent" />
+                <div className="flex items-center text-xs text-primary-foreground/70 mt-1">
+                    <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0" />
                     <span>{candidate.location}</span>
                 </div>
             )}
@@ -144,12 +165,12 @@ function CandidateDetailsModal({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Badge variant="outline" className="ml-auto border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0 py-1 px-2">
-                    <Sparkles className="h-4 w-4 mr-1 text-yellow-500" />
+                  <Badge variant="outline" className="ml-auto border-yellow-400 text-yellow-300 bg-yellow-500/20 cursor-default shrink-0 py-1.5 px-3 shadow-md">
+                    <Sparkles className="h-4 w-4 mr-1.5 text-yellow-400" />
                     Hidden Gem
                   </Badge>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
+                <TooltipContent side="top" className="max-w-xs bg-popover text-popover-foreground">
                   <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
                 </TooltipContent>
               </Tooltip>
@@ -158,12 +179,15 @@ function CandidateDetailsModal({
         </DialogHeader>
 
         <ScrollArea className="flex-1 min-h-0 bg-background">
-          <div className="p-4 sm:p-6 space-y-4 pt-4">
+          <div className="p-4 sm:p-6 space-y-6">
             {candidate.videoResumeUrl && (
               <section className="mb-4">
-                <h3 className="text-lg font-semibold text-foreground mb-2 flex items-center font-heading">
-                  <Video className="mr-2 h-5 w-5 text-primary" /> Video Resume
-                </h3>
+                <div className="flex items-center mb-3">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-br from-rose-500 to-pink-600 shadow-md">
+                        <Video className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground font-heading">Video Resume</h3>
+                </div>
                 <div className="relative w-full bg-muted aspect-video rounded-lg overflow-hidden shadow-md">
                   <video
                     ref={videoRef}
@@ -180,185 +204,238 @@ function CandidateDetailsModal({
                 </div>
               </section>
             )}
-            <Separator className="my-4" />
+            
+            <section>
+                <div className="flex items-center mb-3">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md">
+                        <Briefcase className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground font-heading">Experience Summary</h3>
+                </div>
+                <div className="p-4 rounded-lg bg-purple-50 border border-purple-200 shadow-sm">
+                    <p className="text-sm text-purple-800 whitespace-pre-line leading-relaxed">
+                        {summaryForModalDisplay}
+                        {candidate.experienceSummary && candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && (
+                            <Button
+                                variant="link" size="sm"
+                                onClick={(e) => {e.stopPropagation(); setShowFullSummaryModal(!showFullSummaryModal);}}
+                                className="text-purple-600 hover:text-purple-800 p-0 h-auto ml-1 text-xs font-semibold"
+                                disabled={isGuestMode}
+                                data-no-drag="true"
+                            >
+                                {showFullSummaryModal ? "Read less" : "Read more"}
+                            </Button>
+                        )}
+                    </p>
+                </div>
+            </section>
 
             <section>
-              <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center font-heading">
-                <Briefcase className="mr-2 h-5 w-5 text-primary" /> Experience Summary
-              </h3>
-              <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed">
-                {summaryForModalDisplay}
-                {candidate.experienceSummary && candidate.experienceSummary.length > MAX_SUMMARY_LENGTH_MODAL_INITIAL && (
-                    <Button
-                        variant="link" size="sm"
-                        onClick={(e) => {e.stopPropagation(); setShowFullSummaryModal(!showFullSummaryModal);}}
-                        className="text-primary hover:underline p-0 h-auto ml-1 text-xs font-semibold"
-                        disabled={isGuestMode}
-                        data-no-drag="true"
-                    >
-                        {showFullSummaryModal ? "Read less" : "Read more"}
-                    </Button>
-                )}
-              </p>
+                <div className="flex items-center mb-3">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
+                        <Activity className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground font-heading">Current Status & Work Style</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 rounded-lg bg-green-50 border border-green-200 shadow-sm">
+                        <Label className="text-xs font-semibold text-green-700 uppercase block mb-1">Availability</Label>
+                        <p className="text-green-800 font-medium">
+                            {candidate.availability ? formatEnumLabel(candidate.availability) : "Not specified"}
+                        </p>
+                    </div>
+                    <div className="p-4 rounded-lg bg-sky-50 border border-sky-200 shadow-sm">
+                        <Label className="text-xs font-semibold text-sky-700 uppercase block mb-1">Desired Work Style</Label>
+                        <p className="text-sky-800">{candidate.desiredWorkStyle || "Not specified"}</p>
+                    </div>
+                </div>
             </section>
-             <Separator className="my-4" />
-
-            {candidate.desiredWorkStyle && (
-                <section>
-                    <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center font-heading">
-                        <Lightbulb className="mr-2 h-5 w-5 text-primary" /> Desired Work Style
-                    </h3>
-                    <p className="text-sm text-muted-foreground">{candidate.desiredWorkStyle}</p>
-                </section>
-            )}
-             <Separator className="my-4" />
 
             {candidate.skills && candidate.skills.length > 0 && (
               <section>
-                <h3 className="text-lg font-semibold text-foreground mb-2.5 flex items-center font-heading">
-                    <ListChecks className="mr-2 h-5 w-5 text-primary" /> Skills
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  {candidate.skills.map((skill) => (
-                    <Badge key={skill} variant="secondary" className="text-sm px-2.5 py-1">{skill}</Badge>
-                  ))}
+                <div className="flex items-center mb-3">
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-br from-teal-500 to-cyan-600 shadow-md">
+                         <Sparkles className="h-5 w-5 text-white" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground font-heading">Technical Skills</h3>
+                </div>
+                <div className="p-4 rounded-lg bg-teal-50 border border-teal-200 shadow-sm">
+                    <div className="flex flex-wrap gap-2">
+                    {candidate.skills.map((skill) => (
+                        <Badge key={skill} className={cn("text-sm px-3 py-1", getSkillBadgeClass(skill))}>
+                        {skill}
+                        </Badge>
+                    ))}
+                    </div>
                 </div>
               </section>
             )}
-            <Separator className="my-4" />
             
             <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
-              <AccordionItem value="ai-assessment">
-                <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary font-heading">
+              <AccordionItem value="ai-assessment" className="border-b-0">
+                <AccordionTrigger className="text-xl font-semibold text-foreground hover:no-underline data-[state=open]:text-primary font-heading py-3 group">
                   <div className="flex items-center">
-                    <Brain className="mr-2 h-5 w-5" /> AI Assessment (Recruiter Perspective) <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
+                    <div className="p-2 rounded-lg mr-3 bg-gradient-to-br from-amber-500 to-orange-600 shadow-md group-data-[state=open]:ring-2 group-data-[state=open]:ring-amber-300 transition-all">
+                        <Brain className="h-5 w-5 text-white" />
+                    </div>
+                    AI Assessment (Recruiter Perspective)
+                    <ChevronsUpDown className="ml-auto h-5 w-5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  <p className="text-xs text-muted-foreground italic mb-2.5">
-                    Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
-                  </p>
-                  {isGuestMode ? (
-                     <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                         <Lock className="h-4 w-4 mr-2"/>Sign in to view AI Assessment and detailed insights.
-                     </div>
-                  ) : isLoadingAiAnalysis ? (
-                      <div className="flex items-center text-muted-foreground text-sm">
-                          <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                          <span>Analyzing fit...</span>
-                      </div>
-                  ) : aiRecruiterMatchScore !== null ? (
-                      <div className="space-y-2.5 p-3 bg-muted/30 rounded-md shadow-sm">
-                          <div className="text-md text-foreground">
-                              <span className="font-semibold">Overall Match Score:</span>
-                              <span className={cn(
-                                  "ml-1.5 font-bold text-lg",
-                                  aiRecruiterMatchScore >= 75 ? 'text-green-600' :
-                                  aiRecruiterMatchScore >= 50 ? 'text-yellow-600' : 'text-red-600'
-                              )}>
-                                  {aiRecruiterMatchScore}%
-                              </span>
-                          </div>
-                          {aiRecruiterReasoning && (
-                              <p className="text-sm text-muted-foreground italic leading-relaxed">
-                                  {aiRecruiterReasoning}
-                              </p>
-                          )}
-                          {aiRecruiterWeightedScores && (
-                              <div className="pt-2.5 mt-2.5 border-t border-border/70">
-                                  <p className="font-medium text-foreground text-sm mb-1.5">Score Breakdown (Individual Assessments):</p>
-                                  <ul className="list-none space-y-1 text-xs text-muted-foreground">
-                                      <li>Skills Match: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
-                                      <li>Experience Relevance: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
-                                      <li>Culture Fit: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.cultureFitScore}%</span></li>
-                                      <li>Growth Potential: <span className="font-semibold text-foreground">{aiRecruiterWeightedScores.growthPotentialScore}%</span></li>
-                                  </ul>
-                              </div>
-                          )}
-                      </div>
-                  ) : (
-                       <p className="text-sm text-muted-foreground italic">AI assessment currently unavailable for this candidate.</p>
-                  )}
+                <AccordionContent className="pt-2 pb-4 pl-1 sm:pl-2">
+                    <div className="p-4 rounded-lg bg-orange-50 border border-orange-200 shadow-sm">
+                        <p className="text-xs text-orange-700 italic mb-3 leading-relaxed">
+                            Our AI assesses candidates by considering key factors such as skill alignment with typical role requirements, relevance of experience described, potential cultural synergy based on desired work style, and inferred growth capacity. The final score reflects weights you can customize in Settings.
+                        </p>
+                        {isGuestMode ? (
+                            <div className="text-sm text-red-600 italic flex items-center p-3 border border-red-300 bg-red-100 rounded-md shadow-sm">
+                                <Lock className="h-4 w-4 mr-2"/>Sign in to view AI Assessment and detailed insights.
+                            </div>
+                        ) : isLoadingAiAnalysis ? (
+                            <div className="flex items-center text-orange-700 text-sm">
+                                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                                <span>Analyzing fit...</span>
+                            </div>
+                        ) : aiRecruiterMatchScore !== null ? (
+                            <div className="space-y-3">
+                                <div className="text-center">
+                                    <span className="text-sm font-medium text-orange-800">Overall Match Score</span>
+                                    <p className={cn(
+                                        "font-bold text-4xl my-1",
+                                        aiRecruiterMatchScore >= 75 ? 'text-green-600' :
+                                        aiRecruiterMatchScore >= 50 ? 'text-amber-600' : 'text-red-600'
+                                    )}>
+                                        {aiRecruiterMatchScore}%
+                                    </p>
+                                    <Progress value={aiRecruiterMatchScore} className="h-3 bg-orange-200 [&>div]:bg-gradient-to-r [&>div]:from-purple-500 [&>div]:to-pink-500" />
+                                </div>
+                                {aiRecruiterReasoning && (
+                                    <p className="text-xs text-orange-700 italic leading-relaxed border-l-2 border-orange-300 pl-3">
+                                        {aiRecruiterReasoning}
+                                    </p>
+                                )}
+                                {aiRecruiterWeightedScores && (
+                                    <div className="pt-3 mt-3 border-t border-orange-200">
+                                        <p className="font-medium text-orange-800 text-sm mb-1.5">Score Breakdown:</p>
+                                        <ul className="list-none space-y-1 text-xs text-orange-700">
+                                            <li>Skills Match: <span className="font-semibold text-orange-900">{aiRecruiterWeightedScores.skillsMatchScore}%</span></li>
+                                            <li>Experience Relevance: <span className="font-semibold text-orange-900">{aiRecruiterWeightedScores.experienceRelevanceScore}%</span></li>
+                                            <li>Culture Fit: <span className="font-semibold text-orange-900">{aiRecruiterWeightedScores.cultureFitScore}%</span></li>
+                                            <li>Growth Potential: <span className="font-semibold text-orange-900">{aiRecruiterWeightedScores.growthPotentialScore}%</span></li>
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <p className="text-sm text-orange-700 italic">AI assessment currently unavailable for this candidate.</p>
+                        )}
+                    </div>
                 </AccordionContent>
               </AccordionItem>
-              <Separator className="my-4" />
-              <AccordionItem value="coworker-fit">
-                <AccordionTrigger className="text-lg font-semibold text-foreground hover:no-underline data-[state=open]:text-primary font-heading">
+              
+              <AccordionItem value="coworker-fit" className="border-b-0">
+                <AccordionTrigger className="text-xl font-semibold text-foreground hover:no-underline data-[state=open]:text-primary font-heading py-3 group">
                   <div className="flex items-center">
-                    <Users2 className="mr-2 h-5 w-5" /> Coworker Fit Profile <ChevronsUpDown className="ml-auto h-4 w-4 text-muted-foreground/70" />
+                     <div className="p-2 rounded-lg mr-3 bg-gradient-to-br from-sky-500 to-blue-600 shadow-md group-data-[state=open]:ring-2 group-data-[state=open]:ring-sky-300 transition-all">
+                        <Users2 className="h-5 w-5 text-white" />
+                    </div>
+                    Coworker Fit Profile
+                    <ChevronsUpDown className="ml-auto h-5 w-5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pt-2 pb-4">
-                  {isGuestMode ? (
-                     <div className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                         <Lock className="h-4 w-4 mr-2"/>Sign in to view detailed Coworker Fit Profile.
-                     </div>
-                  ) : (
-                    <div className="space-y-2.5 p-3 bg-muted/30 rounded-md shadow-sm">
-                      {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
-                        <div className="mb-2.5 space-y-1.5">
-                          <p className="font-medium text-foreground text-sm">Personality Insights:</p>
-                          {candidate.personalityAssessment.map((item, index) => (
-                            <div key={index} className="flex items-start text-sm">
-                              {renderPersonalityFitIcon(item.fit)}
-                              <div className="min-w-0">
-                                <span className="font-semibold">{item.trait}:</span>
-                                <span className="text-muted-foreground ml-1.5">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
-                              </div>
+                <AccordionContent className="pt-2 pb-4 pl-1 sm:pl-2">
+                    <div className="p-4 rounded-lg bg-sky-50 border border-sky-200 shadow-sm">
+                        {isGuestMode ? (
+                            <div className="text-sm text-red-600 italic flex items-center p-3 border border-red-300 bg-red-100 rounded-md shadow-sm">
+                                <Lock className="h-4 w-4 mr-2"/>Sign in to view detailed Coworker Fit Profile.
                             </div>
-                          ))}
-                        </div>
-                      ) : <p className="text-sm text-muted-foreground italic">No personality insights available.</p>}
-                      {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 ? (
-                        <div>
-                          <p className="font-medium text-foreground text-sm">Optimal Work Style:</p>
-                          <ul className="list-disc list-inside pl-4 text-muted-foreground space-y-1 text-sm">
-                            {candidate.optimalWorkStyles.map((style, index) => (
-                              <li key={index}>{style}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      ) : <p className="text-sm text-muted-foreground italic">No optimal work styles defined.</p>}
+                        ) : (
+                            <div className="space-y-3">
+                            {candidate.personalityAssessment && candidate.personalityAssessment.length > 0 ? (
+                                <div className="space-y-1.5">
+                                <p className="font-medium text-sky-800 text-sm">Personality Insights:</p>
+                                {candidate.personalityAssessment.map((item, index) => (
+                                    <div key={index} className="flex items-start text-sm">
+                                    {renderPersonalityFitIcon(item.fit)}
+                                    <div className="min-w-0">
+                                        <span className="font-semibold text-sky-900">{item.trait}:</span>
+                                        <span className="text-sky-700 ml-1.5">{item.reason || (item.fit === 'positive' ? 'Good fit.' : item.fit === 'neutral' ? 'Consider.' : 'Potential challenge.')}</span>
+                                    </div>
+                                    </div>
+                                ))}
+                                </div>
+                            ) : <p className="text-sm text-sky-700 italic">No personality insights available.</p>}
+                            {candidate.optimalWorkStyles && candidate.optimalWorkStyles.length > 0 ? (
+                                <div>
+                                <p className="font-medium text-sky-800 text-sm">Optimal Work Style:</p>
+                                <ul className="list-disc list-inside pl-4 text-sky-700 space-y-1 text-sm">
+                                    {candidate.optimalWorkStyles.map((style, index) => (
+                                    <li key={index}>{style}</li>
+                                    ))}
+                                </ul>
+                                </div>
+                            ) : <p className="text-sm text-sky-700 italic">No optimal work styles defined.</p>}
+                            </div>
+                        )}
                     </div>
-                  )}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
-             <Separator className="my-4" />
 
-            {candidate.profileStrength && !isGuestMode && (
-              <section>
-                <h3 className="text-lg font-semibold text-foreground mb-1.5 flex items-center font-heading">
-                    <TrendingUp className="mr-2 h-5 w-5 text-primary" /> Profile Strength
-                </h3>
-                <div className="flex items-center text-md font-medium">
-                  <Progress value={candidate.profileStrength} className="w-2/3 h-2.5 mr-2" />
-                  <span className="text-accent font-semibold">{candidate.profileStrength}%</span>
-                  {candidate.profileStrength > 89 && <Badge variant="default" className="ml-2 text-xs px-2 py-0.5 bg-green-500 hover:bg-green-600 text-white">Top Talent</Badge>}
-                </div>
-              </section>
-            )}
-            {isGuestMode && (
-              <section className="text-sm text-red-500 italic flex items-center p-3 border border-red-300 bg-red-50 rounded-md shadow-sm">
-                  <Lock className="h-4 w-4 mr-2"/>Profile Strength visible to registered users.
-              </section>
-            )}
           </div>
         </ScrollArea>
-        <DialogFooter className="p-4 border-t sticky bottom-0 bg-background z-10">
-            <DialogClose asChild>
-                <Button variant="outline">Close</Button>
-            </DialogClose>
+        <DialogFooter className="p-4 sm:p-6 border-t sticky bottom-0 bg-background z-10 flex flex-col sm:flex-row sm:justify-end space-y-2 sm:space-y-0 sm:space-x-3 rounded-b-xl">
+            <Button 
+              onClick={() => { if (!isGuestMode) onPassCandidate(candidate.id); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} 
+              variant="destructive" 
+              className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-red-500 hover:from-pink-600 hover:to-red-600 text-white shadow-md hover:shadow-lg transition-all"
+              disabled={isGuestMode}
+            >
+                <ThumbsDown className="mr-2 h-4 w-4" /> Pass
+            </Button>
+            <Button 
+              variant="outline" 
+              className="w-full sm:w-auto shadow-sm hover:shadow-md transition-all"
+              onClick={handleSaveForLater}
+              disabled={isGuestMode}
+            >
+                <Bookmark className="mr-2 h-4 w-4" /> Save for Later
+            </Button>
+            <Button 
+              className="w-full sm:w-auto bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-md hover:shadow-lg transition-all"
+              onClick={handleAdvanceToInterview}
+              disabled={isGuestMode}
+            >
+                <Send className="mr-2 h-4 w-4" /> Advance to Interview
+            </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 }
 
+
+const initialFilters: CandidateFilters = {
+  experienceLevels: new Set(),
+  educationLevels: new Set(),
+  locationPreferences: new Set(),
+  jobTypes: new Set(),
+};
+
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
   isGuestMode?: boolean;
 }
+
+// Helper to format enum values for display
+const formatEnumLabel = (value: string) => {
+  if (!value) return "";
+  return value
+    .replace(/_/g, ' ') 
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
 
 export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
@@ -392,11 +469,12 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   const fetchBackendCandidates = useCallback(async () => {
     if (!mongoDbUserId && !isGuestMode) {
         console.log("[CandidateDiscovery] Skipping fetch: no mongoDbUserId and not in guest mode.");
-        setIsInitialLoading(false);
         setAllCandidates([...mockCandidates]); 
+        setIsInitialLoading(false);
         return;
     }
     console.log("[CandidateDiscovery] Fetching candidates from backend...");
+    setIsLoading(true); 
     setIsInitialLoading(true);
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
@@ -410,10 +488,11 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
       setAllCandidates([...mockCandidates]);
     } finally {
       setIsInitialLoading(false);
+      setIsLoading(false);
     }
   }, [toast, mongoDbUserId, isGuestMode]);
 
-  useEffect(() => {
+ useEffect(() => {
     if (allCandidates.length === 0 && (mongoDbUserId || isGuestMode)) {
       fetchBackendCandidates();
     } else if (allCandidates.length === 0 && !mongoDbUserId && !isGuestMode && isInitialLoading) {
@@ -467,18 +546,11 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
-  useEffect(() => {
-    if (!isInitialLoading) {
-        const initialBatch = filteredCandidatesMemo.slice(0, ITEMS_PER_BATCH);
-        setDisplayedCandidates(initialBatch);
-        setCurrentIndex(initialBatch.length);
-        setHasMore(initialBatch.length < filteredCandidatesMemo.length);
-    }
-  }, [filteredCandidatesMemo, isInitialLoading]);
-
-
   const loadMoreCandidates = useCallback(() => {
-    if (isLoading || !hasMore || isInitialLoading) return;
+    if (isLoading || !hasMore || isInitialLoading || currentIndex >= filteredCandidatesMemo.length) {
+       if (currentIndex >= filteredCandidatesMemo.length) setHasMore(false);
+      return;
+    }
     
     setIsLoading(true);
     const nextBatch = filteredCandidatesMemo.slice(currentIndex, currentIndex + ITEMS_PER_BATCH);
@@ -488,12 +560,21 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     setHasMore(currentIndex + nextBatch.length < filteredCandidatesMemo.length);
     setIsLoading(false);
   }, [
-    isLoading,
-    hasMore,
-    isInitialLoading,
-    currentIndex,
+    isLoading, 
+    hasMore,   
+    isInitialLoading, 
+    currentIndex, 
     filteredCandidatesMemo,
   ]);
+
+  useEffect(() => {
+    if (!isInitialLoading) {
+        const initialBatch = filteredCandidatesMemo.slice(0, ITEMS_PER_BATCH);
+        setDisplayedCandidates(initialBatch);
+        setCurrentIndex(initialBatch.length);
+        setHasMore(initialBatch.length < filteredCandidatesMemo.length);
+    }
+  }, [filteredCandidatesMemo, isInitialLoading]);
 
 
   useEffect(() => {
@@ -755,6 +836,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
             activeAccordionItem={activeAccordionItemModal}
             setActiveAccordionItem={setActiveAccordionItemModal}
             onFetchAiAnalysis={fetchAiRecruiterAnalysisForModal}
+            onPassCandidate={(candidateId) => handleAction(candidateId, 'pass')}
         />
       )}
 
@@ -785,3 +867,5 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   );
 }
 
+
+    
