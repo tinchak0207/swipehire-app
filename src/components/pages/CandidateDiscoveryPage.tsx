@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { Candidate, CandidateFilters, ProfileRecommenderOutput, RecruiterPerspectiveWeights, CandidateProfileForAI, JobCriteriaForAI, UserAIWeights, PersonalityTraitAssessment } from '@/lib/types';
 import { mockCandidates } from '@/lib/mockData';
-import ProfileCard from '@/components/cards/ProfileCard'; // Use the new ProfileCard
+import ProfileCard from '@/components/cards/ProfileCard';
 import { Button } from '@/components/ui/button';
 import { Loader2, SearchX, Filter, X as CloseIcon, RotateCcw, Trash2 as TrashIcon, Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Brain, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, BarChartHorizontal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,14 @@ const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http:/
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
 type RecruiterWeightedScores = ProfileRecommenderOutput['weightedScores'];
+
+// Define initialFilters here
+const initialFilters: CandidateFilters = {
+  experienceLevels: new Set(),
+  educationLevels: new Set(),
+  locationPreferences: new Set(),
+  jobTypes: new Set(),
+};
 
 function CandidateDetailsModal({
     isOpen,
@@ -347,6 +355,10 @@ function CandidateDetailsModal({
   );
 }
 
+interface CandidateDiscoveryPageProps {
+  searchTerm?: string;
+  isGuestMode?: boolean;
+}
 
 export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: CandidateDiscoveryPageProps) {
   const [allCandidates, setAllCandidates] = useState<Candidate[]>([]);
@@ -381,7 +393,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     if (!mongoDbUserId && !isGuestMode) {
         console.log("[CandidateDiscovery] Skipping fetch: no mongoDbUserId and not in guest mode.");
         setIsInitialLoading(false);
-        setAllCandidates([...mockCandidates]); // Fallback to mock if needed for initial render without user
+        setAllCandidates([...mockCandidates]); 
         return;
     }
     console.log("[CandidateDiscovery] Fetching candidates from backend...");
@@ -402,11 +414,9 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   }, [toast, mongoDbUserId, isGuestMode]);
 
   useEffect(() => {
-    // Fetch only if candidates are not yet loaded and we have user context or are in guest mode
     if (allCandidates.length === 0 && (mongoDbUserId || isGuestMode)) {
       fetchBackendCandidates();
     } else if (allCandidates.length === 0 && !mongoDbUserId && !isGuestMode && isInitialLoading) {
-        // If no user context yet but it's initial load, use mock to prevent empty screen before login
         setAllCandidates([...mockCandidates]);
         setIsInitialLoading(false);
     }
@@ -429,7 +439,6 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   }, [allCandidates, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
   const filteredCandidatesMemo = useMemo(() => {
-    console.log("[CandidateDiscovery] Recalculating filteredCandidatesMemo...");
     if (isInitialLoading) return [];
     let candidates = [...allCandidates];
 
@@ -454,32 +463,23 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidates.length}, Passed IDs count: ${passedCandidateProfileIdsFromContext?.size || 0}`);
     const finalFiltered = candidates.filter(c => !passedCandidateProfileIdsFromContext.has(c.id));
-    console.log(`[CandidateDiscovery] Final filtered count: ${finalFiltered.length}`);
     return finalFiltered;
   }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
   useEffect(() => {
-    console.log("[CandidateDiscovery] Effect for filteredCandidatesMemo triggered. Length:", filteredCandidatesMemo.length);
     if (!isInitialLoading) {
         const initialBatch = filteredCandidatesMemo.slice(0, ITEMS_PER_BATCH);
         setDisplayedCandidates(initialBatch);
         setCurrentIndex(initialBatch.length);
         setHasMore(initialBatch.length < filteredCandidatesMemo.length);
-        if (initialBatch.length > 0) {
-             console.log("[CandidateDiscovery] Reset: Has filtered items, first batch set.");
-        } else {
-             console.log("[CandidateDiscovery] Reset: No items in filtered list to display initially.");
-        }
     }
   }, [filteredCandidatesMemo, isInitialLoading]);
 
 
   const loadMoreCandidates = useCallback(() => {
     if (isLoading || !hasMore || isInitialLoading) return;
-    console.log("[CandidateDiscovery] Loading more candidates. Current index:", currentIndex, "Batch size:", ITEMS_PER_BATCH, "Filtered total:", filteredCandidatesMemo.length);
-
+    
     setIsLoading(true);
     const nextBatch = filteredCandidatesMemo.slice(currentIndex, currentIndex + ITEMS_PER_BATCH);
     
@@ -487,21 +487,16 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     setCurrentIndex(prev => prev + nextBatch.length);
     setHasMore(currentIndex + nextBatch.length < filteredCandidatesMemo.length);
     setIsLoading(false);
-    console.log("[CandidateDiscovery] Finished loading batch. HasMore:", currentIndex + nextBatch.length < filteredCandidatesMemo.length);
-    console.log("[CandidateDiscovery] New batch loaded. Displayed count:", displayedCandidates.length + nextBatch.length);
-
   }, [
-    isInitialLoading,
     isLoading,
     hasMore,
+    isInitialLoading,
     currentIndex,
     filteredCandidatesMemo,
-    displayedCandidates.length, // Added to ensure displayedCandidates.length is current in closure
   ]);
 
 
   useEffect(() => {
-    console.log("[CandidateDiscovery] IntersectionObserver: Attaching. hasMore:", hasMore, "isLoading:", isLoading);
     if (isInitialLoading) return;
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(entries => {
@@ -627,7 +622,6 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
       try {
         const response = await passCandidate(mongoDbUserId, candidateId);
         updatePassedCandidateIds(response.passedCandidateProfileIds || []);
-        // No need to optimistically remove, filteredCandidatesMemo will re-evaluate
         toast({ title: `Moved ${candidate.name} to Trash Bin`, variant: "default" });
       } catch (error: any) {
         toast({ title: "Error Passing Candidate", description: error.message || "Could not pass candidate.", variant: "destructive" });
@@ -669,7 +663,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   };
   const handleApplyFilters = () => setIsFilterSheetOpen(false);
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
-  const fixedElementsHeight = '120px'; // Adjust if header/footer height changes
+  const fixedElementsHeight = '120px'; 
 
   if (isInitialLoading && allCandidates.length === 0) {
     return <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
@@ -791,4 +785,3 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   );
 }
 
-    
