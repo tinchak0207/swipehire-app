@@ -129,7 +129,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
           </nav>
           <div className="flex items-center gap-2">
-             <Button onClick={onStartExploring} variant="link" size="sm" className="text-primary-foreground hover:text-slate-300 px-3 py-2 hidden sm:inline-flex font-semibold">
+             <Button onClick={onStartExploring} variant="link" size="sm" className="text-foreground hover:text-primary px-3 py-2 hidden sm:inline-flex font-semibold">
               Log In
             </Button>
             <Button onClick={onStartExploring} variant="default" size="sm" className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-md subtle-button-hover font-semibold">
@@ -150,10 +150,8 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           <div className="absolute inset-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70 z-0"></div>
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
-              Unlock Your Career
-              <br className="hidden sm:block" />
-              Potential <span className="text-yellow-400">✨</span>
-              <br className="hidden sm:block" />
+              Unlock Your Career<br className="hidden sm:block" />
+              Potential <span className="text-yellow-400">✨</span><br className="hidden sm:block" />
               Discover Top Talent.
             </h1>
             <p className="text-lg sm:text-xl md:text-2xl text-slate-200 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
