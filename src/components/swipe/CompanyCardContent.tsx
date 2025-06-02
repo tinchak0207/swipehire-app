@@ -395,33 +395,29 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     let iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-      colorClasses = "text-white";
+      colorClasses = "text-white"; 
       hoverClasses = "hover:bg-red-500/80";
-    } else {
-      if (isThemedCard && !isLavenderTheme) { // Dark themes
-        switch (action) {
-          case 'like': colorClasses = isSpecificActionLiked ? "text-green-300" : "text-white"; iconFillClass = isSpecificActionLiked ? "fill-green-300" : ""; hoverClasses = "hover:text-green-300 hover:bg-green-500/20"; break;
-          case 'pass': colorClasses = "text-white"; hoverClasses = "hover:text-red-300 hover:bg-red-500/20"; break;
-          case 'details': colorClasses = "text-white"; hoverClasses = "hover:text-blue-300 hover:bg-blue-500/20"; break;
-          case 'share_trigger': colorClasses = "text-white"; hoverClasses = "hover:text-primary-foreground hover:bg-white/10"; break;
-          default: colorClasses = "text-white";
-        }
-      } else if (isLavenderTheme) { // Light theme (lavender)
-         switch (action) {
-          case 'like': colorClasses = isSpecificActionLiked ? "text-green-600" : "text-slate-700"; iconFillClass = isSpecificActionLiked ? "fill-green-600" : ""; hoverClasses = "hover:text-green-600 hover:bg-green-500/10"; break;
-          case 'pass': colorClasses = "text-slate-700"; hoverClasses = "hover:text-red-600 hover:bg-red-500/10"; break;
-          case 'details': colorClasses = "text-slate-700"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
-          case 'share_trigger': colorClasses = "text-slate-700"; hoverClasses = "hover:text-slate-900 hover:bg-slate-500/10"; break;
-          default: colorClasses = "text-slate-700";
-        }
-      } else { // Default (non-themed, light background)
-        switch (action) {
-          case 'like': colorClasses = isSpecificActionLiked ? "text-green-500" : "text-muted-foreground"; iconFillClass = isSpecificActionLiked ? "fill-green-500" : ""; hoverClasses = "hover:text-green-500 hover:bg-green-500/10"; break;
-          case 'pass': colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; break;
-          case 'details': colorClasses = "text-blue-500"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
-          case 'share_trigger': colorClasses = "text-muted-foreground"; hoverClasses = "hover:text-gray-600 hover:bg-gray-500/10"; break;
-          default: colorClasses = "text-muted-foreground";
-        }
+    } else if (isThemedCard && !isLavenderTheme) { // Dark custom themes
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-white";
+      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-300" : "";
+      if (action === 'like') hoverClasses = "hover:text-green-300 hover:bg-green-500/20";
+      else if (action === 'pass') hoverClasses = "hover:text-red-300 hover:bg-red-500/20";
+      else if (action === 'details') hoverClasses = "hover:text-blue-300 hover:bg-blue-500/20";
+      else if (action === 'share_trigger') hoverClasses = "hover:text-primary-foreground hover:bg-white/10";
+    } else if (isLavenderTheme) { // Light custom theme (lavender)
+      colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" : "text-slate-700";
+      iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-600" : "";
+      if (action === 'like') hoverClasses = "hover:text-green-600 hover:bg-green-500/10";
+      else if (action === 'pass') hoverClasses = "hover:text-red-600 hover:bg-red-500/10";
+      else if (action === 'details') hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10";
+      else if (action === 'share_trigger') hoverClasses = "hover:text-slate-900 hover:bg-slate-500/10";
+    } else { // Default (non-themed, light background) card
+       switch (action) {
+        case 'like': colorClasses = isSpecificActionLiked ? "text-green-500" : "text-muted-foreground"; iconFillClass = isSpecificActionLiked ? "fill-green-500" : ""; hoverClasses = "hover:text-green-500 hover:bg-green-500/10"; break;
+        case 'pass': colorClasses = "text-destructive"; hoverClasses = "hover:bg-destructive/10"; break;
+        case 'details': colorClasses = "text-blue-500"; hoverClasses = "hover:text-blue-600 hover:bg-blue-500/10"; break;
+        case 'share_trigger': colorClasses = "text-muted-foreground"; hoverClasses = "hover:text-gray-600 hover:bg-gray-500/10"; break;
+        default: colorClasses = "text-muted-foreground";
       }
     }
     
@@ -531,7 +527,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       >
         <div className={cn(
           "relative w-full shrink-0 pt-[70px]", 
-           company.cardTheme && company.cardTheme !== 'default' ? getThemeClass(company.cardTheme) : 'bg-slate-100 dark:bg-slate-800' 
+           isThemedCard ? getThemeClass(company.cardTheme) : 'bg-slate-100 dark:bg-slate-800' 
           )}> 
           <div className="relative w-full aspect-[16/7] sm:aspect-video px-4 pb-4">
             {company.logoUrl ? (
@@ -551,9 +547,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           </div>
         </div>
         
-        <div className="w-full border-t-4 border-accent shrink-0"></div>
+        <div className={cn("w-full border-t-4", isThemedCard ? "border-primary-foreground/30" : "border-accent" )}></div>
         
-        <div className="flex-1 p-3 sm:p-4 space-y-1.5">
+        <div className="flex-1 p-3 sm:p-4 space-y-1.5 sm:space-y-2">
             <CardHeader className="p-0 mb-1.5">
                 <div className="flex items-start justify-between">
                     <div className="flex-grow min-w-0">
@@ -595,7 +591,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </div>
         </div>
             
-        <CardFooter className="p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t bg-card shrink-0 no-swipe-area">
+        <CardFooter className={cn(
+            "p-0 pt-2 sm:pt-2.5 grid grid-cols-4 gap-0.5 sm:gap-1 border-t shrink-0 no-swipe-area",
+            isThemedCard ? '' : 'bg-card' // Transparent for themed, bg-card for default
+            )}>
             <ActionButton action="pass" Icon={ThumbsDown} label="Pass" />
             <ActionButton action="details" Icon={Info} label="Details" />
             <ActionButton action="like" Icon={ThumbsUp} label="Apply" isSpecificActionLiked={isLiked} />
@@ -811,3 +810,4 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
 }
 
     
+
