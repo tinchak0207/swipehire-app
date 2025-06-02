@@ -31,6 +31,12 @@ const ITEMS_PER_BATCH = 3;
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
 
+// Define getThemeClass here so SwipeCard can use it
+const getThemeClass = (themeKey?: string) => {
+  if (!themeKey || themeKey === 'default') return ''; // Will result in SwipeCard using its default bg-card
+  return `card-theme-${themeKey}`;
+};
+
 interface CandidateDiscoveryPageProps {
   searchTerm?: string;
   isGuestMode?: boolean;
@@ -408,12 +414,16 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   }, [toast]);
 
   useEffect(() => {
-    if (((mongoDbUserId && !isGuestMode) || isGuestMode)) {
-        fetchBackendCandidates();
-    } else if (!mongoDbUserId && !isGuestMode && isInitialLoading) {
-        fetchBackendCandidates();
+    const shouldFetch = (mongoDbUserId && !isGuestMode) || isGuestMode;
+    if (shouldFetch && allCandidates.length === 0 && isInitialLoading) {
+      fetchBackendCandidates();
+    } else if (!shouldFetch && isInitialLoading) {
+       // If not guest and no mongoDbUserId, still might want to fetch if app allows (e.g. initial state before login)
+       // For now, let's assume if not guest, mongoDbUserId must be present eventually to interact.
+       // If the app is designed to show mock data when not logged in and not guest, this might need adjustment.
+       if (allCandidates.length === 0) fetchBackendCandidates(); // Or set to mock directly: setAllCandidates([...mockCandidates]); setIsInitialLoading(false);
     }
-  }, [fetchBackendCandidates, mongoDbUserId, isGuestMode, isInitialLoading]);
+  }, [fetchBackendCandidates, mongoDbUserId, isGuestMode, isInitialLoading, allCandidates.length]);
 
 
   useEffect(() => {
@@ -481,7 +491,13 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     setHasMore(currentIndex + nextBatch.length < filteredCandidatesMemo.length);
     setIsLoading(false);
 
-  }, [isLoading, hasMore, currentIndex, filteredCandidatesMemo, isInitialLoading]);
+  }, [
+    isInitialLoading,
+    isLoading,
+    hasMore,
+    currentIndex,
+    filteredCandidatesMemo,
+  ]);
 
 
   useEffect(() => {
@@ -754,6 +770,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
              <SwipeCard className={cn(
                 "w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] -mt-[60px]", 
                 likedCandidateProfileIds.has(candidate.id) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl',
+                candidate.cardTheme && candidate.cardTheme !== 'default' ? getThemeClass(candidate.cardTheme) : 'bg-card'
              )}>
                 <CandidateCardContent
                     candidate={candidate}
@@ -779,3 +796,5 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     </div>
   );
 }
+
+    
