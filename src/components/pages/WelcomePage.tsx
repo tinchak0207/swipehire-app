@@ -3,14 +3,14 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"; // Added CardFooter
 import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, Construction, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, UserCircle, Users, Wand2, Zap } from "lucide-react";
 import Link from 'next/link'; // Import Link
 import Image from 'next/image'; // Import Image
 
 interface WelcomePageProps {
-  onStartExploring: () => void; // Renamed from onGetStarted for consistency with page.tsx
-  onGuestMode: () => void;    // Renamed from onContinueAsGuest
+  onStartExploring: () => void; 
+  onGuestMode: () => void;    
 }
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ElementType, title: string, description: string }) => {
@@ -320,5 +320,3 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
     </div>
   );
 }
-
-    
