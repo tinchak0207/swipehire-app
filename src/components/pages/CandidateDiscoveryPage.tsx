@@ -19,10 +19,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { passCandidate, retrieveCandidate } from '@/services/interactionService'; // New import
 
 const ITEMS_PER_BATCH = 3;
-const LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX = 'passedCandidates_';
-const LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX = 'trashBinCandidates_';
+// LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX and LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX are no longer needed
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -63,19 +63,15 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
   const [hasMore, setHasMore] = useState(true);
   const [isFilterSheetOpen, setIsFilterSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
-  const [trashBinCandidates, setTrashBinCandidates] = useState<Candidate[]>([]);
-
+  // trashBinCandidates state will now derive from passedCandidateProfileIds and allCandidates
+  
   const [activeFilters, setActiveFilters] = useState<CandidateFilters>(initialFilters);
-
   const [likedCandidateProfileIds, setLikedCandidateProfileIds] = useState<Set<string>>(new Set());
-  const [passedCandidateProfileIds, setPassedCandidateProfileIds] = useState<Set<string>>(new Set());
+  // passedCandidateProfileIds will now come from context
 
   const { toast } = useToast();
-  const { mongoDbUserId, preferences } = useUserPreferences();
+  const { mongoDbUserId, passedCandidateIds: passedCandidateProfileIdsFromContext, updatePassedCandidateIds, fetchAndSetUserPreferences } = useUserPreferences();
   const [recruiterRepresentedCompanyId, setRecruiterRepresentedCompanyId] = useState<string | null>(null);
-
-  const getPassedKey = useCallback(() => `${LOCAL_STORAGE_PASSED_CANDIDATES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
-  const getTrashBinKey = useCallback(() => `${LOCAL_STORAGE_TRASH_BIN_CANDIDATES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
@@ -94,7 +90,8 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         console.log("[CandidateDiscovery] Backend returned no candidates. Using mock candidates as fallback.");
         setAllCandidates([...mockCandidates]);
       } else {
-        setAllCandidates(data);
+        // Ensure all candidates from backend have an 'id' field that matches their '_id' for frontend use
+        setAllCandidates(data.map(c => ({...c, id: (c as any)._id || c.id })));
         console.log("[CandidateDiscovery] Fetched candidates from backend:", data.length);
       }
     } catch (error) {
@@ -113,29 +110,22 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
 
   useEffect(() => {
     if (mongoDbUserId) {
-        // This would ideally come from the user's backend profile
         const storedCompanyId = localStorage.getItem(`user_${mongoDbUserId}_representedCompanyId`); 
-        setRecruiterRepresentedCompanyId(storedCompanyId || 'comp-placeholder-recruiter'); // Placeholder if not set
+        setRecruiterRepresentedCompanyId(storedCompanyId || 'comp-placeholder-recruiter'); 
+         // Fetch/refresh user preferences (which includes passed IDs) when mongoDbUserId is available
+        fetchAndSetUserPreferences(mongoDbUserId);
     }
-  }, [mongoDbUserId]);
+  }, [mongoDbUserId, fetchAndSetUserPreferences]);
 
-  useEffect(() => {
-    if (isInitialLoading || allCandidates.length === 0) return; // Don't process if still loading or no base data
 
-    const storedPassed = localStorage.getItem(getPassedKey());
-    if (storedPassed) setPassedCandidateProfileIds(new Set(JSON.parse(storedPassed)));
-
-    const storedTrash = localStorage.getItem(getTrashBinKey());
-    if (storedTrash) {
-        const trashIds: string[] = JSON.parse(storedTrash);
-        // Filter from `allCandidates` (which now comes from backend or mocks)
-        setTrashBinCandidates(allCandidates.filter(c => trashIds.includes(c.id)));
-    }
-  }, [mongoDbUserId, allCandidates, getPassedKey, getTrashBinKey, isInitialLoading]);
+  const trashBinCandidates = useMemo(() => {
+    if (isInitialLoading || allCandidates.length === 0 || !passedCandidateProfileIdsFromContext) return [];
+    return allCandidates.filter(c => passedCandidateProfileIdsFromContext.has(c.id));
+  }, [allCandidates, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
 
   const filteredCandidatesMemo = useMemo(() => {
-    if (isInitialLoading) return [];
+    if (isInitialLoading || !passedCandidateProfileIdsFromContext) return [];
     console.log("[CandidateDiscovery] Recalculating filteredCandidatesMemo...");
     let candidates = [...allCandidates];
 
@@ -160,11 +150,11 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         (candidate.skills && candidate.skills.some(skill => skill.toLowerCase().includes(lowerSearchTerm)))
       );
     }
-    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidates.length}, Passed IDs count: ${passedCandidateProfileIds.size}`);
-    const finalFiltered = candidates.filter(c => !passedCandidateProfileIds.has(c.id));
+    console.log(`[CandidateDiscovery] Candidates after main filters: ${candidates.length}, Passed IDs count: ${passedCandidateProfileIdsFromContext.size}`);
+    const finalFiltered = candidates.filter(c => !passedCandidateProfileIdsFromContext.has(c.id));
     console.log(`[CandidateDiscovery] Final filtered count: ${finalFiltered.length}`);
     return finalFiltered;
-  }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIds, isInitialLoading]);
+  }, [allCandidates, activeFilters, searchTerm, passedCandidateProfileIdsFromContext, isInitialLoading]);
 
 
   const loadMoreCandidates = useCallback(() => {
@@ -205,7 +195,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         loadMoreCandidates();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredCandidatesMemo, isInitialLoading]); // Removed loadMoreCandidates from deps
+  }, [filteredCandidatesMemo, isInitialLoading]);
 
 
   useEffect(() => {
@@ -233,11 +223,12 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
     const candidate = allCandidates.find(c => c.id === candidateId);
     if (!candidate) return;
 
+    if (!mongoDbUserId) {
+      toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
+      return;
+    }
+
     if (action === 'like') {
-      if (!mongoDbUserId) {
-        toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
-        return;
-      }
       if (!recruiterRepresentedCompanyId) {
         toast({ title: "Profile Incomplete", description: "Your recruiter profile needs to be associated with a company to make matches.", variant: "destructive" });
         return;
@@ -246,7 +237,7 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
       try {
         const response = await recordLike({
           likingUserId: mongoDbUserId,
-          likedProfileId: candidateId, // candidateId is now the backend User._id
+          likedProfileId: candidateId, 
           likedProfileType: 'candidate',
           likingUserRole: 'recruiter',
           likingUserRepresentsCompanyId: recruiterRepresentedCompanyId,
@@ -269,41 +260,33 @@ export function CandidateDiscoveryPage({ searchTerm = "" }: CandidateDiscoveryPa
         setLikedCandidateProfileIds(prev => { const newSet = new Set(prev); newSet.delete(candidateId); return newSet; });
       }
     } else if (action === 'pass') {
-      setPassedCandidateProfileIds(prev => {
-        const newSet = new Set(prev).add(candidateId);
-        localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newSet)));
-        return newSet;
-      });
-      setTrashBinCandidates(prevTrash => {
-        const updatedTrash = [candidate, ...prevTrash.filter(tc => tc.id !== candidate.id)];
-        localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
-        return updatedTrash;
-      });
-      setDisplayedCandidates(prev => prev.filter(c => c.id !== candidateId));
-      toast({ title: `Moved ${candidate.name} to Trash Bin`, variant: "default" });
+      try {
+        const response = await passCandidate(mongoDbUserId, candidateId);
+        updatePassedCandidateIds(response.passedCandidateProfileIds || []);
+        setDisplayedCandidates(prev => prev.filter(c => c.id !== candidateId));
+        toast({ title: `Moved ${candidate.name} to Trash Bin`, variant: "default" });
+      } catch (error: any) {
+        toast({ title: "Error Passing Candidate", description: error.message || "Could not pass candidate.", variant: "destructive" });
+      }
     }
   };
 
-  const handleRetrieveCandidate = (candidateId: string) => {
-    setTrashBinCandidates(prevTrash => {
-        const updatedTrash = prevTrash.filter(c => c.id !== candidateId);
-        localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
-        return updatedTrash;
-    });
-    setPassedCandidateProfileIds(prevPassed => {
-        const newPassed = new Set(prevPassed);
-        newPassed.delete(candidateId);
-        localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
-        return newPassed;
-    });
-    toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
-    setIsTrashBinOpen(false);
-    // Force re-evaluation of filteredCandidatesMemo by briefly changing a dependency it might indirectly use
-    // or simply re-trigger the load. The simplest is to reset and reload.
-    setDisplayedCandidates([]);
-    setCurrentIndex(0);
-    setHasMore(true);
-    // loadMoreCandidates will be called by the useEffect watching filteredCandidatesMemo
+  const handleRetrieveCandidate = async (candidateId: string) => {
+    if (!mongoDbUserId) {
+      toast({ title: "Login Required", variant: "destructive"});
+      return;
+    }
+    try {
+      const response = await retrieveCandidate(mongoDbUserId, candidateId);
+      updatePassedCandidateIds(response.passedCandidateProfileIds || []);
+      toast({ title: "Candidate Retrieved", description: `${allCandidates.find(c=>c.id === candidateId)?.name || 'Candidate'} is back in the discovery feed.` });
+      setIsTrashBinOpen(false);
+      // The change in passedCandidateProfileIdsFromContext (via updatePassedCandidateIds)
+      // will trigger filteredCandidatesMemo to recompute, then the useEffect for it
+      // will reset displayedCandidates and call loadMoreCandidates.
+    } catch (error: any) {
+      toast({ title: "Error Retrieving Candidate", description: error.message || "Could not retrieve candidate.", variant: "destructive" });
+    }
   };
 
   const handleFilterChange = <K extends keyof CandidateFilters>(

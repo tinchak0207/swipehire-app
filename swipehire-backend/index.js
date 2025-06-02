@@ -527,7 +527,7 @@ app.post('/api/interactions/like', async (req, res) => {
                     userA_Id, 
                     userB_Id, 
                     candidateProfileIdForDisplay: candidateDisplayIdForMatch, 
-                    companyProfileIdForDisplay: companyDisplayIdForMatch, 
+                    companyDisplayIdForDisplay: companyDisplayIdForMatch, 
                     uniqueMatchKey 
                 });
                 await newMatch.save(); newMatchDetails = newMatch;
@@ -546,6 +546,62 @@ app.get('/api/matches/:userId', async (req, res) => {
         res.status(200).json(matches);
     } catch (error) { res.status(500).json({ message: 'Server error fetching matches.', error: error.message }); }
 });
+
+// New Endpoints for Passed/Trashed Items
+app.post('/api/users/:userId/pass-candidate/:candidateId', async (req, res) => {
+    const { userId, candidateId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid user ID.' });
+    // candidateId is a mock ID string like 'cand1', not a MongoDB ObjectId
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+        if (!user.passedCandidateProfileIds.includes(candidateId)) {
+            user.passedCandidateProfileIds.push(candidateId);
+            await user.save();
+        }
+        res.status(200).json({ message: 'Candidate passed successfully.', passedCandidateProfileIds: user.passedCandidateProfileIds });
+    } catch (error) { res.status(500).json({ message: 'Server error passing candidate.', error: error.message }); }
+});
+
+app.post('/api/users/:userId/pass-company/:companyId', async (req, res) => {
+    const { userId, companyId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid user ID.' });
+    // companyId is a mock ID string like 'comp1', not a MongoDB ObjectId
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+        if (!user.passedCompanyProfileIds.includes(companyId)) {
+            user.passedCompanyProfileIds.push(companyId);
+            await user.save();
+        }
+        res.status(200).json({ message: 'Company passed successfully.', passedCompanyProfileIds: user.passedCompanyProfileIds });
+    } catch (error) { res.status(500).json({ message: 'Server error passing company.', error: error.message }); }
+});
+
+app.post('/api/users/:userId/retrieve-candidate/:candidateId', async (req, res) => {
+    const { userId, candidateId } = req.params;
+     if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid user ID.' });
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+        user.passedCandidateProfileIds = user.passedCandidateProfileIds.filter(id => id !== candidateId);
+        await user.save();
+        res.status(200).json({ message: 'Candidate retrieved successfully.', passedCandidateProfileIds: user.passedCandidateProfileIds });
+    } catch (error) { res.status(500).json({ message: 'Server error retrieving candidate.', error: error.message }); }
+});
+
+app.post('/api/users/:userId/retrieve-company/:companyId', async (req, res) => {
+    const { userId, companyId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) return res.status(400).json({ message: 'Invalid user ID.' });
+    try {
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+        user.passedCompanyProfileIds = user.passedCompanyProfileIds.filter(id => id !== companyId);
+        await user.save();
+        res.status(200).json({ message: 'Company retrieved successfully.', passedCompanyProfileIds: user.passedCompanyProfileIds });
+    } catch (error) { res.status(500).json({ message: 'Server error retrieving company.', error: error.message }); }
+});
+
 
 app.post('/api/matches/:matchId/messages', async (req, res) => {
     try {
@@ -686,3 +742,5 @@ server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+
+    

@@ -111,11 +111,19 @@ const UserSchema = new mongoose.Schema({
         default: 'default', 
     },
     likedCandidateIds: [{ 
-        type: String,
+        type: String, // Should ideally be mongoose.Schema.Types.ObjectId, ref: 'User' if candidates are also Users
     }],
     likedCompanyIds: [{ 
-        type: String,
+        type: String, // Should ideally be mongoose.Schema.Types.ObjectId, ref: 'User' if companies are represented by Users (recruiters)
     }],
+    passedCandidateProfileIds: { // New field
+        type: [String], // Stores candidate IDs (e.g., 'cand1', 'cand2')
+        default: []
+    },
+    passedCompanyProfileIds: { // New field
+        type: [String], // Stores company IDs (e.g., 'comp1', 'comp2')
+        default: []
+    },
     representedCandidateProfileId: {
         type: String,
         index: true,

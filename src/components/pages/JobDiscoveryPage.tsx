@@ -20,11 +20,11 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { mockCandidates } from '@/lib/mockData';
+import { passCompany, retrieveCompany } from '@/services/interactionService'; // New import
 
 
 const ITEMS_PER_BATCH = 3;
-const LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX = 'passedCompanies_';
-const LOCAL_STORAGE_TRASH_BIN_COMPANIES_KEY_PREFIX = 'trashBinCompanies_';
+// LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX and LOCAL_STORAGE_TRASH_BIN_COMPANIES_KEY_PREFIX are no longer needed
 
 interface CompanyWithRecruiterId extends Company {
   recruiterUserId?: string;
@@ -60,19 +60,17 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
-  const [trashBinCompanies, setTrashBinCompanies] = useState<CompanyWithRecruiterId[]>([]);
+  // trashBinCompanies state will now derive from passedCompanyProfileIdsFromContext and masterJobFeed
 
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
   const [likedCompanyProfileIds, setLikedCompanyProfileIds] = useState<Set<string>>(new Set());
-  const [passedCompanyProfileIds, setPassedCompanyProfileIds] = useState<Set<string>>(new Set());
+  // passedCompanyProfileIds will now come from context
 
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences();
+  const { mongoDbUserId, passedCompanyIds: passedCompanyProfileIdsFromContext, updatePassedCompanyIds, fetchAndSetUserPreferences } = useUserPreferences();
   const [jobSeekerRepresentedCandidateId, setJobSeekerRepresentedCandidateId] = useState<string | null>(null);
 
-  const getPassedKey = useCallback(() => `${LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
-  const getTrashBinKey = useCallback(() => `${LOCAL_STORAGE_TRASH_BIN_COMPANIES_KEY_PREFIX}${mongoDbUserId || 'guest'}`, [mongoDbUserId]);
 
   useEffect(() => {
      if (mongoDbUserId) {
@@ -80,8 +78,10 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
           ? JSON.parse(localStorage.getItem(`currentUserJobSeekerProfile`)!).id
           : null;
         setJobSeekerRepresentedCandidateId(storedCandidateId || (mockCandidates.length > 0 ? mockCandidates[0].id : `cand-user-${mongoDbUserId.slice(0,5)}`));
+         // Fetch/refresh user preferences (which includes passed IDs) when mongoDbUserId is available
+        fetchAndSetUserPreferences(mongoDbUserId);
     }
-  }, [mongoDbUserId]);
+  }, [mongoDbUserId, fetchAndSetUserPreferences]);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
@@ -109,28 +109,23 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       : fetchedJobs as CompanyWithRecruiterId[];
 
     setMasterJobFeed(jobsToSet);
-
-    const storedPassed = localStorage.getItem(getPassedKey());
-    if (storedPassed) setPassedCompanyProfileIds(new Set(JSON.parse(storedPassed)));
-
-    const storedTrash = localStorage.getItem(getTrashBinKey());
-    if (storedTrash && jobsToSet.length > 0) {
-        const trashIds: string[] = JSON.parse(storedTrash);
-        setTrashBinCompanies(jobsToSet.filter(c => trashIds.includes(c.id)) as CompanyWithRecruiterId[]);
-    }
-
     setIsInitialLoading(false);
     setIsLoading(false);
-  }, [toast, getPassedKey, getTrashBinKey]);
+  }, [toast]);
 
 
   useEffect(() => {
     loadAndSetInitialJobs();
   }, [loadAndSetInitialJobs]);
 
+  const trashBinCompanies = useMemo(() => {
+    if (isInitialLoading || masterJobFeed.length === 0 || !passedCompanyProfileIdsFromContext) return [];
+    return masterJobFeed.filter(c => passedCompanyProfileIdsFromContext.has(c.id));
+  }, [masterJobFeed, passedCompanyProfileIdsFromContext, isInitialLoading]);
+
 
   const filteredJobFeed = useMemo(() => {
-    if (isInitialLoading) return [];
+    if (isInitialLoading || !passedCompanyProfileIdsFromContext) return [];
     let companies = [...masterJobFeed];
 
     const lowerSearchTerm = searchTerm.toLowerCase();
@@ -159,8 +154,8 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         );
       });
     }
-    return companies.filter(c => !passedCompanyProfileIds.has(c.id));
-  }, [masterJobFeed, activeFilters, searchTerm, isInitialLoading, passedCompanyProfileIds]);
+    return companies.filter(c => !passedCompanyProfileIdsFromContext.has(c.id));
+  }, [masterJobFeed, activeFilters, searchTerm, isInitialLoading, passedCompanyProfileIdsFromContext]);
 
   const loadMoreCompaniesFromLocal = useCallback(() => {
     if (isLoading || !hasMore || currentIndex >= filteredJobFeed.length) {
@@ -252,39 +247,31 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         setLikedCompanyProfileIds(prev => { const newSet = new Set(prev); newSet.delete(recruiterOwnerId); return newSet; });
       }
     } else if (action === 'pass') {
-      setPassedCompanyProfileIds(prev => {
-        const newSet = new Set(prev).add(compositeCompanyJobId);
-        localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newSet)));
-        return newSet;
-      });
-      setTrashBinCompanies(prevTrash => {
-        const updatedTrash = [companyJob, ...prevTrash.filter(tc => tc.id !== compositeCompanyJobId)];
-        localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
-        return updatedTrash;
-      });
-      setDisplayedCompanies(prev => prev.filter(c => c.id !== compositeCompanyJobId));
-      toast({ title: `Moved job at ${companyJob.name} to Trash Bin`, variant: "default" });
+      try {
+        const response = await passCompany(mongoDbUserId, compositeCompanyJobId);
+        updatePassedCompanyIds(response.passedCompanyProfileIds || []);
+        setDisplayedCompanies(prev => prev.filter(c => c.id !== compositeCompanyJobId));
+        toast({ title: `Moved job at ${companyJob.name} to Trash Bin`, variant: "default" });
+      } catch (error: any) {
+        toast({ title: "Error Passing Company", description: error.message || "Could not pass company.", variant: "destructive" });
+      }
     }
   };
 
-  const handleRetrieveCompany = (compositeCompanyJobId: string) => {
-    setTrashBinCompanies(prevTrash => {
-        const updatedTrash = prevTrash.filter(c => c.id !== compositeCompanyJobId);
-        localStorage.setItem(getTrashBinKey(), JSON.stringify(updatedTrash.map(c => c.id)));
-        return updatedTrash;
-    });
-    setPassedCompanyProfileIds(prevPassed => {
-        const newPassed = new Set(prevPassed);
-        newPassed.delete(compositeCompanyJobId);
-        localStorage.setItem(getPassedKey(), JSON.stringify(Array.from(newPassed)));
-        return newPassed;
-    });
-
-    setCurrentIndex(0);
-    setDisplayedCompanies([]);
-    setHasMore(true);
-    toast({ title: "Job Retrieved", description: `${masterJobFeed.find(c=>c.id === compositeCompanyJobId)?.name || 'Job'} is back in the discovery feed.` });
-    setIsTrashBinOpen(false);
+  const handleRetrieveCompany = async (compositeCompanyJobId: string) => {
+    if (!mongoDbUserId) {
+      toast({ title: "Login Required", variant: "destructive" });
+      return;
+    }
+    try {
+      const response = await retrieveCompany(mongoDbUserId, compositeCompanyJobId);
+      updatePassedCompanyIds(response.passedCompanyProfileIds || []);
+      toast({ title: "Job Retrieved", description: `${masterJobFeed.find(c=>c.id === compositeCompanyJobId)?.name || 'Job'} is back in the discovery feed.` });
+      setIsTrashBinOpen(false);
+      // This will trigger re-computation of filteredJobFeed and subsequent UI update
+    } catch (error: any) {
+      toast({ title: "Error Retrieving Job", description: error.message || "Could not retrieve job.", variant: "destructive" });
+    }
   };
 
   const handleFilterChange = <K extends keyof JobFilters>(
@@ -388,7 +375,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         {displayedCompanies.map(company => (
           <div key={company.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden max-h-[calc(100vh-150px)] sm:max-h-[calc(100vh-160px)] ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'} -mt-[60px]`}>
-              <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)} />
+              <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)} isGuestMode={mongoDbUserId === null}/>
             </SwipeCard>
           </div>
         ))}
@@ -406,3 +393,4 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   );
 }
 
+    

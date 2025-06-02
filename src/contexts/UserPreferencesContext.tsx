@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, typ
 import type { User } from 'firebase/auth';
 // Firestore imports removed: import { doc, getDoc, setDoc } from 'firebase/firestore';
 // Firestore db import removed: import { db } from '@/lib/firebase';
-import type { UserPreferences, AIScriptTone } from '@/lib/types';
+import type { UserPreferences, AIScriptTone, BackendUser } from '@/lib/types'; // Added BackendUser
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -24,6 +24,11 @@ interface UserPreferencesContextType {
   setMongoDbUserId: (id: string | null) => void;
   fetchAndSetUserPreferences: (userId: string) => Promise<void>; // Takes MongoDB _id
   setPreferences: (newPrefs: Partial<UserPreferences>) => Promise<void>;
+  passedCandidateIds: Set<string>; // New state for passed candidate IDs
+  passedCompanyIds: Set<string>;   // New state for passed company IDs
+  updatePassedCandidateIds: (newIds: string[]) => void; // New setter
+  updatePassedCompanyIds: (newIds: string[]) => void;   // New setter
+  fullBackendUser: BackendUser | null; // New state to store full user data from backend
 }
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
@@ -45,6 +50,10 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
   const [preferences, setPreferencesState] = useState<UserPreferences>(defaultPreferences);
   const [loadingPreferences, setLoadingPreferences] = useState(true);
   const [mongoDbUserId, setMongoDbUserIdState] = useState<string | null>(null);
+  const [passedCandidateIds, setPassedCandidateIdsState] = useState<Set<string>>(new Set());
+  const [passedCompanyIds, setPassedCompanyIdsState] = useState<Set<string>>(new Set());
+  const [fullBackendUser, setFullBackendUserState] = useState<BackendUser | null>(null);
+
 
   const setMongoDbUserId = (id: string | null) => {
     setMongoDbUserIdState(id);
@@ -52,6 +61,9 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
       localStorage.setItem('mongoDbUserId', id);
     } else {
       localStorage.removeItem('mongoDbUserId');
+      setFullBackendUserState(null); // Clear full user data if mongoDbUserId is cleared
+      setPassedCandidateIdsState(new Set()); // Clear passed IDs
+      setPassedCompanyIdsState(new Set());   // Clear passed IDs
     }
   };
 
@@ -83,6 +95,9 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     if (!userIdToFetch) {
       setPreferencesState(defaultPreferences);
       applyTheme(defaultPreferences.theme);
+      setPassedCandidateIdsState(new Set());
+      setPassedCompanyIdsState(new Set());
+      setFullBackendUserState(null);
       setLoadingPreferences(false);
       return;
     }
@@ -90,28 +105,37 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
       if (response.ok) {
-        const userData = await response.json();
-        // Merge fetched preferences with defaults to ensure all keys exist
+        const userData: BackendUser = await response.json();
+        setFullBackendUserState(userData); // Store full backend user data
+
         const loadedPrefs = {
           ...defaultPreferences,
           ...userData.preferences,
-          // Ensure featureFlags is an object even if not present in userData.preferences
           featureFlags: { ...(defaultPreferences.featureFlags || {}), ...(userData.preferences?.featureFlags || {}) }
         };
         setPreferencesState(loadedPrefs);
         applyTheme(loadedPrefs.theme);
+        setPassedCandidateIdsState(new Set(userData.passedCandidateProfileIds || []));
+        setPassedCompanyIdsState(new Set(userData.passedCompanyProfileIds || []));
+
       } else {
         console.warn(`Failed to fetch preferences for user ${userIdToFetch}, status: ${response.status}. Using defaults.`);
         setPreferencesState(defaultPreferences);
         applyTheme(defaultPreferences.theme);
+        setPassedCandidateIdsState(new Set());
+        setPassedCompanyIdsState(new Set());
+        setFullBackendUserState(null);
         if (response.status === 404) {
-          setMongoDbUserId(null); // Clear invalid mongoDbUserId if user not found
+          setMongoDbUserId(null); 
         }
       }
     } catch (error) {
       console.error("Error fetching user preferences from MongoDB backend:", error);
       setPreferencesState(defaultPreferences);
       applyTheme(defaultPreferences.theme);
+      setPassedCandidateIdsState(new Set());
+      setPassedCompanyIdsState(new Set());
+      setFullBackendUserState(null);
     } finally {
       setLoadingPreferences(false);
     }
@@ -124,6 +148,9 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     } else if (!currentUser) { // Guest mode or no user
       setPreferencesState(defaultPreferences);
       applyTheme(defaultPreferences.theme);
+      setPassedCandidateIdsState(new Set());
+      setPassedCompanyIdsState(new Set());
+      setFullBackendUserState(null);
       setLoadingPreferences(false);
     }
     // If mongoDbUserId is null but currentUser exists, HomePage will try to fetch/create it
@@ -145,14 +172,34 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     if (newPrefsPartial.theme) {
       applyTheme(newPrefsPartial.theme);
     }
-    // Removed direct backend call from here.
-    // SettingsPage.tsx handleSaveSettings will persist all settings to the backend.
     console.log("UserPreferencesContext: Preferences updated locally. Backend save will occur via Settings page 'Save Settings' button.");
   };
 
+  const updatePassedCandidateIds = (newIds: string[]) => {
+    setPassedCandidateIdsState(new Set(newIds));
+  };
+
+  const updatePassedCompanyIds = (newIds: string[]) => {
+    setPassedCompanyIdsState(new Set(newIds));
+  };
+
+
   return (
-    <UserPreferencesContext.Provider value={{ preferences, loadingPreferences, mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences, setPreferences }}>
+    <UserPreferencesContext.Provider value={{
+      preferences,
+      loadingPreferences,
+      mongoDbUserId,
+      setMongoDbUserId,
+      fetchAndSetUserPreferences,
+      setPreferences,
+      passedCandidateIds,
+      passedCompanyIds,
+      updatePassedCandidateIds,
+      updatePassedCompanyIds,
+      fullBackendUser
+    }}>
       {children}
     </UserPreferencesContext.Provider>
   );
 };
+
