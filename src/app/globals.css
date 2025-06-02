@@ -7,6 +7,7 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
+    --foreground-hsl: 222.2 84% 4.9%; /* For HSLA conversion */
 
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
@@ -23,8 +24,8 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 256 70% 60%; /* Updated accent to a violet/purple shade */
-    --accent-foreground: 210 40% 98%; /* Text on accent */
+    --accent: 256 70% 60%; 
+    --accent-foreground: 210 40% 98%; 
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
@@ -33,16 +34,14 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
 
-    --radius: 0.75rem; /* Slightly more rounded for a softer look */
+    --radius: 0.75rem; 
 
-    /* Chart colors - can be adjusted if charts are used */
     --chart-1: 222.2 47.4% 11.2%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Sidebar specific colors - can be adjusted */
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -56,6 +55,7 @@
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
+    --foreground-hsl: 210 40% 98%; /* For HSLA conversion */
 
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
@@ -72,7 +72,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 256 70% 65%; /* Dark mode accent */
+    --accent: 256 70% 65%; 
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -82,14 +82,12 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
 
-    /* Chart colors for dark theme */
     --chart-1: 210 40% 98%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
 
-    /* Sidebar specific colors for dark theme */
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
@@ -110,10 +108,10 @@
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; /* Ensure Geist is default */
+    font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif; 
   }
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-montserrat), var(--font-geist-sans), sans-serif; /* Montserrat for headings */
+    font-family: var(--font-montserrat), var(--font-geist-sans), sans-serif;
   }
 }
 
@@ -121,9 +119,79 @@
   .shadow-3xl {
     box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.25), 0 15px 30px -10px rgba(0,0,0,0.15);
   }
+   .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  .hero-gradient-bg { background: linear-gradient(160deg, hsl(var(--primary) / 0.95) 0%, hsl(var(--accent) / 0.85) 70%, hsl(var(--secondary) / 0.7) 100%); }
+  .hero-gradient-bg-secondary { background: linear-gradient(135deg, hsl(var(--accent) / 0.9) 0%, hsl(var(--primary) / 0.75) 100%); }
+
+  .subtle-card-hover { @apply transition-all duration-300 ease-in-out; }
+  .subtle-card-hover:hover { @apply shadow-xl -translate-y-1; }
+
+  .subtle-button-hover { @apply transition-all duration-200 ease-in-out; }
+  .subtle-button-hover:hover { @apply scale-105 shadow-lg -translate-y-0.5 brightness-110; }
+  .subtle-button-hover:active { @apply scale-100 -translate-y-0 shadow-md brightness-95; }
+
+  .parallax-hero { background-attachment: fixed; background-position: center; background-repeat: no-repeat; background-size: cover; }
+
+  .typing-cursor::after { content: '|'; animation: blink 1s step-end infinite; }
+  @keyframes blink { from, to { color: transparent; } 50% { color: inherit; } }
 }
 
-/* Keep existing gradient and animation styles if still used elsewhere */
+/* Card Themes */
+.card-theme-ocean {
+  background: linear-gradient(135deg, hsla(210, 85%, 60%, 0.8) 0%, hsla(190, 70%, 45%, 0.85) 100%);
+  color: hsl(var(--primary-foreground)); /* Light text for dark background */
+}
+.card-theme-ocean .badge-secondary {
+  background-color: hsla(var(--primary-foreground-hsl), 0.15);
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.25);
+}
+
+.card-theme-sunset {
+  background: linear-gradient(135deg, hsla(25, 90%, 60%, 0.8) 0%, hsla(0, 80%, 55%, 0.85) 100%);
+  color: hsl(var(--primary-foreground));
+}
+.card-theme-sunset .badge-secondary {
+  background-color: hsla(var(--primary-foreground-hsl), 0.15);
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.25);
+}
+
+.card-theme-forest {
+  background: linear-gradient(135deg, hsla(120, 60%, 40%, 0.8) 0%, hsla(140, 50%, 30%, 0.85) 100%);
+  color: hsl(var(--primary-foreground));
+}
+.card-theme-forest .badge-secondary {
+  background-color: hsla(var(--primary-foreground-hsl), 0.15);
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.25);
+}
+
+.card-theme-lavender {
+  background: linear-gradient(135deg, hsla(250, 60%, 92%, 0.9) 0%, hsla(240, 50%, 85%, 0.95) 100%);
+  color: hsl(var(--foreground)); /* Dark text for light background */
+}
+.card-theme-lavender .badge-secondary {
+  background-color: hsla(var(--foreground-hsl), 0.08);
+  color: hsl(var(--foreground));
+  border-color: hsla(var(--foreground-hsl), 0.15);
+}
+
+.card-theme-professional-dark {
+  background-color: hsl(222.2, 84%, 5.9%); /* Slightly darker than default dark bg */
+  color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--border));
+}
+.card-theme-professional-dark .badge-secondary {
+  background-color: hsla(var(--primary-foreground-hsl), 0.15);
+  color: hsl(var(--primary-foreground));
+  border-color: hsla(var(--primary-foreground-hsl), 0.25);
+}
+
+
+/* Other global styles that were present */
 .dynamic-bg {
   background: linear-gradient(-45deg, hsl(var(--primary)), hsl(var(--accent)), hsl(290, 60%, 65%), hsl(var(--secondary)));
   background-size: 400% 400%;
@@ -160,22 +228,4 @@
 }
 .animate-pulse-selection { animation: pulseSelection 0.8s ease-out; }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Removed old card-theme-* definitions as the new ProfileCard has self-contained styling */
-
-.hero-gradient-bg { background: linear-gradient(160deg, hsl(var(--primary) / 0.95) 0%, hsl(var(--accent) / 0.85) 70%, hsl(var(--secondary) / 0.7) 100%); }
-.hero-gradient-bg-secondary { background: linear-gradient(135deg, hsl(var(--accent) / 0.9) 0%, hsl(var(--primary) / 0.75) 100%); }
-
-.subtle-card-hover { @apply transition-all duration-300 ease-in-out; }
-.subtle-card-hover:hover { @apply shadow-xl -translate-y-1; }
-
-.subtle-button-hover { @apply transition-all duration-200 ease-in-out; }
-.subtle-button-hover:hover { @apply scale-105 shadow-lg -translate-y-0.5 brightness-110; }
-.subtle-button-hover:active { @apply scale-100 -translate-y-0 shadow-md brightness-95; }
-
-.parallax-hero { background-attachment: fixed; background-position: center; background-repeat: no-repeat; background-size: cover; }
-
-.typing-cursor::after { content: '|'; animation: blink 1s step-end infinite; }
-@keyframes blink { from, to { color: transparent; } 50% { color: inherit; } }
+    
