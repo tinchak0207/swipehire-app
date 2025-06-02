@@ -33,17 +33,18 @@ export async function postJobToBackend(recruiterUserId: string, jobOpeningData: 
     });
 
     console.log(`[Frontend Service] Backend response status: ${response.status}`);
+    let errorDataTextForLog = ''; // For logging non-JSON errors
 
     if (!response.ok) {
       let errorData;
-      try {
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
         errorData = await response.json();
         console.error('[Frontend Service] Backend error response (JSON):', errorData);
-      } catch (e) {
-        // If response is not JSON, try to get text
-        const errorText = await response.text();
-        console.error('[Frontend Service] Backend error response (Non-JSON Text):', errorText);
-        errorData = { message: `Failed to post job. Server responded with non-JSON error. Status: ${response.status}. Response body: ${errorText.substring(0, 200)}...` };
+      } else {
+        errorDataTextForLog = await response.text();
+        console.error('[Frontend Service] Backend error response (Non-JSON Text):', errorDataTextForLog);
+        errorData = { message: `Failed to post job. Server responded with non-JSON error. Status: ${response.status}. Response body: ${errorDataTextForLog.substring(0, 200)}...` };
       }
       throw new Error(errorData.message || `Failed to post job. Status: ${response.status}`);
     }
@@ -64,7 +65,8 @@ export async function postJobToBackend(recruiterUserId: string, jobOpeningData: 
 export async function fetchJobsFromBackend(): Promise<{ jobs: Company[]; hasMore: boolean; nextCursor?: string }> {
   console.log('[Frontend Service] Calling fetchJobsFromBackend.');
   console.log('[Frontend Service] CUSTOM_BACKEND_URL for GET /api/jobs resolved to:', CUSTOM_BACKEND_URL);
-  const targetUrl = `${CUSTOM_BACKEND_URL}/api/jobs`;
+  // Add a cache-busting query parameter
+  const targetUrl = `${CUSTOM_BACKEND_URL}/api/jobs?timestamp=${new Date().getTime()}`;
   console.log('[Frontend Service] Target Backend URL for GET /api/jobs:', targetUrl);
 
   try {
@@ -73,7 +75,7 @@ export async function fetchJobsFromBackend(): Promise<{ jobs: Company[]; hasMore
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', 
+      // 'cache: no-store' is good, but the query parameter is more robust for all intermediaries
     });
 
     console.log(`[Frontend Service] GET /api/jobs - Backend response status: ${response.status}`);
