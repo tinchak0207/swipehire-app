@@ -31,6 +31,13 @@ if (!fs.existsSync(uploadsDir)) {
     console.log(`[File System] Uploads directory already exists at: ${uploadsDir}`);
 }
 
+const diaryUploadsDir = path.join(uploadsDir, 'diary'); // New subfolder for diary images
+if (!fs.existsSync(diaryUploadsDir)) {
+    fs.mkdirSync(diaryUploadsDir, { recursive: true });
+    console.log(`[File System] Created diary uploads directory at: ${diaryUploadsDir}`);
+}
+
+
 const ALLOWED_ORIGINS = [
   process.env.FRONTEND_URL,
   'https://studio--swipehire-3bscz.us-central1.hosted.app',
@@ -175,6 +182,18 @@ const videoFileFilter = (req, file, cb) => {
     else { cb(new Error('Not a video! Please upload only video files (e.g., mp4, webm).'), false); }
 };
 const uploadVideo = multer({ storage: storage, fileFilter: videoFileFilter, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit for videos
+
+// Multer storage configuration for DIARY IMAGES
+const diaryImageStorage = multer.diskStorage({
+    destination: function (req, file, cb) { cb(null, diaryUploadsDir); }, // Save to uploads/diary/
+    filename: function (req, file, cb) {
+        const fileExtension = path.extname(file.originalname);
+        const safeBaseName = path.basename(file.originalname, fileExtension).toLowerCase().replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
+        const finalFilename = `diary-${Date.now()}-${(safeBaseName || 'image')}${fileExtension}`;
+        cb(null, finalFilename);
+    }
+});
+const uploadDiaryImageMulter = multer({ storage: diaryImageStorage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit for diary images
 
 
 app.get('/', (req, res) => res.send('Welcome to SwipeHire Backend API!'));
@@ -328,6 +347,7 @@ app.post('/api/users/:userId/jobs', async (req, res) => {
         recruiter.selectedRole = 'recruiter';
         recruiter.companyNameForJobs = recruiter.companyNameForJobs || recruiter.name || 'Default Company Name From Post';
         recruiter.companyIndustryForJobs = recruiter.companyIndustryForJobs || 'Various From Post';
+        console.log(`[Backend POST Job] Before job add: Recruiter ${recruiter.name} (${recruiter._id}) - selectedRole=${recruiter.selectedRole}, companyNameForJobs=${recruiter.companyNameForJobs}`);
         
         const companyLogoForJob = recruiter.profileAvatarUrl; 
 
@@ -451,7 +471,7 @@ app.delete('/api/users/:userId/jobs/:jobId', async (req, res) => {
 });
 
 
-// GET all job openings from all recruiters
+// GET all job openings from all users (regardless of current role, if they have jobs)
 app.get('/api/jobs', async (req, res) => {
     try {
         const query = { 'jobOpenings.0': { $exists: true } };
@@ -555,6 +575,18 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
         res.json(candidates);
     } catch (error) { res.status(500).json({ message: 'Server error while fetching jobseeker profiles', error: error.message }); }
 });
+
+// New endpoint for uploading diary images
+app.post('/api/diary-posts/upload-image', uploadDiaryImageMulter.single('diaryImage'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No image file uploaded for diary post.' });
+    }
+    // The file is saved by multer. Return the path.
+    // The path will be relative to the '/uploads/diary/' directory served statically.
+    const imageUrl = `/uploads/diary/${req.file.filename}`;
+    res.json({ success: true, imageUrl: imageUrl });
+});
+
 
 app.post('/api/diary-posts', async (req, res) => {
     try {
@@ -862,6 +894,7 @@ server.listen(PORT, () => {
     
 
     
+
 
 
 

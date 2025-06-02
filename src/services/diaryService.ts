@@ -80,3 +80,30 @@ export async function toggleLikeDiaryPost(postId: string, userId: string): Promi
     throw error;
   }
 }
+
+// New function to upload diary image
+export async function uploadDiaryImage(imageFile: File): Promise<{ imageUrl: string }> {
+  const formData = new FormData();
+  formData.append('diaryImage', imageFile); // Ensure this key matches what backend expects
+
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/diary-posts/upload-image`, {
+      method: 'POST',
+      body: formData,
+      // No 'Content-Type' header for FormData, browser sets it with boundary
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to upload image. Status: ${response.status}` }));
+      throw new Error(errorData.message || `Image upload failed: ${response.statusText}`);
+    }
+    const result = await response.json();
+    if (!result.success || !result.imageUrl) {
+      throw new Error(result.message || 'Image upload succeeded but no URL was returned.');
+    }
+    return { imageUrl: result.imageUrl };
+  } catch (error) {
+    console.error("Error in uploadDiaryImage service:", error);
+    throw error; // Re-throw to be caught by the component
+  }
+}
