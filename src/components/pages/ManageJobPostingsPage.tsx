@@ -6,24 +6,23 @@ import type { CompanyJobOpening, Company } from '@/lib/types';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { fetchRecruiterJobs, updateRecruiterJob, deleteRecruiterJob } from '@/services/jobService';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle as ShadCardTitle } from '@/components/ui/card'; // Renamed CardTitle to avoid conflict
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle as ShadCardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle } from '@/components/ui/alert-dialog'; // Renamed AlertDialogTitle
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Eye, MapPin, Building, DollarSign, Tag, UploadCloud, X, Lock, Code2, CalendarDays, Percent, Sparkles, FileText } from 'lucide-react'; // Added FileText
+import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Eye, MapPin, Building, DollarSign, Tag, UploadCloud, X, Lock, Code2, CalendarDays, Percent, Sparkles, FileText } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Added ScrollArea import
 import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
-import { WorkExperienceLevel, JobType } from '@/lib/types'; // Import WorkExperienceLevel and JobType
+import { WorkExperienceLevel, JobType } from '@/lib/types';
 
 const JobFormSchema = z.object({
   _id: z.string().optional(),
@@ -44,7 +43,6 @@ interface ManageJobPostingsPageProps {
   isGuestMode?: boolean;
 }
 
-// Simplified CircularProgressBar for preview (no hover, static display)
 const CircularProgressBarPreview = ({ percentage, size = 80, displayText }: { percentage: number, size?: number, displayText?: string }) => {
   const radius = size / 2;
   const strokeWidth = 6;
@@ -234,7 +232,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   if (isGuestMode) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
-        <Lock className="h-16 w-16 text-red-400 mb-6" />
+        <Lock className="mr-2 h-16 w-16 text-red-400 mb-6" />
         <h2 className="text-2xl font-semibold text-red-500 mb-3">Access Restricted</h2>
         <p className="text-muted-foreground max-w-md">
           Managing job postings is a feature for registered recruiters. Please sign in.
@@ -311,15 +309,14 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
           setIsEditModalOpen(isOpen);
           if (!isOpen) setEditingJob(null);
       }}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-lg flex flex-col max-h-[calc(100vh-8rem)]">
+          <DialogHeader className="shrink-0">
             <DialogTitle className="flex items-center"><Edit3 className="mr-2 h-5 w-5 text-primary" /> Edit Job Posting</DialogTitle>
             <DialogDescription>Make changes to your job posting details below.</DialogDescription>
           </DialogHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmitEditForm)}>
-              <ScrollArea className="max-h-[60vh] p-1 pr-3 -mr-2 mb-4">
-                <div className="space-y-4 py-2 pr-1">
+          <div className="flex-grow overflow-y-auto min-h-0 pr-2 -mr-4 pl-1">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmitEditForm)} className="space-y-4 py-2 pr-1">
                   <FormField control={form.control} name="title" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Job Title</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="description" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Description</FormLabel> <FormControl><Textarea {...field} className="min-h-[100px]" /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="location" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Location</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
@@ -346,16 +343,16 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                     <FormMessage>{form.formState.errors.actualTags?.message || form.formState.errors.actualTags?.root?.message}</FormMessage>
                   </FormItem>
                    <FormField control={form.control} name="videoOrImageUrl" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><UploadCloud className="mr-2 h-4 w-4 text-muted-foreground" />Image/Video URL (Optional)</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
-                </div>
-              </ScrollArea>
-              <DialogFooter className="pt-4">
-                <DialogClose asChild><Button type="button" variant="outline" onClick={() => {setIsEditModalOpen(false); setEditingJob(null);}}>Cancel</Button></DialogClose>
-                <Button type="submit" disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}</Button>
-              </DialogFooter>
-            </form>
-          </Form>
+              </form>
+            </Form>
+          </div>
+          <DialogFooter className="shrink-0 border-t pt-4 mt-auto">
+            <DialogClose asChild><Button type="button" variant="outline" onClick={() => {setIsEditModalOpen(false); setEditingJob(null);}}>Cancel</Button></DialogClose>
+            <Button type="submit" form="editJobForm" disabled={isSubmitting}>{isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : "Save Changes"}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
+
 
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
@@ -445,6 +442,5 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     </div>
   );
 }
-
 
     
