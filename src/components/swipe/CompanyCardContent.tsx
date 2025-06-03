@@ -382,6 +382,39 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const showQuestionMark = !isLoadingAiAnalysis && !aiJobFitAnalysis && !analysisTriggered;
   const displayPercentage = Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0);
 
+  // Image rendering logic
+  const logoUrlToRender = company.logoUrl;
+  const companyNameToRender = company.name || "Company";
+  const dataAiHintToRender = company.dataAiHint || "company logo";
+
+  let useRawImgTag = false;
+  let isUnoptimizedForNextImage = false;
+
+  const configuredHostnamesForNextImage = [
+    'placehold.co', 'lh3.googleusercontent.com', 'storage.googleapis.com', 'upload.wikimedia.org',
+    // Assuming your next.config.ts contains patterns for these or similar for your backend
+    '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+  ];
+
+  if (logoUrlToRender && !logoUrlToRender.startsWith('/') && logoUrlToRender !== 'https://placehold.co/500x350.png') {
+    try {
+      const url = new URL(logoUrlToRender);
+      if (url.hostname === 'localhost') {
+        isUnoptimizedForNextImage = true; 
+      } else if (!configuredHostnamesForNextImage.includes(url.hostname)) {
+        useRawImgTag = true; 
+      }
+    } catch (e) {
+      useRawImgTag = true; // Fallback for invalid URLs
+      console.warn("Invalid logo URL, attempting raw img:", logoUrlToRender, e);
+    }
+  } else if (logoUrlToRender && logoUrlToRender.startsWith('/uploads/')) {
+    if (typeof CUSTOM_BACKEND_URL === 'string' && CUSTOM_BACKEND_URL.includes('localhost')) {
+      isUnoptimizedForNextImage = true;
+    }
+  }
+
+
   return (
     <>
       <div
@@ -398,8 +431,26 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             {categoryText}
           </Badge>
           <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-8">
-            {company.logoUrl && company.logoUrl !== 'https://placehold.co/500x350.png' ? (
-              <Image src={company.logoUrl} alt={`${company.name} logo`} width={36} height={36} className="object-contain" data-ai-hint={company.dataAiHint || "company logo"}/>
+            {logoUrlToRender && logoUrlToRender !== 'https://placehold.co/500x350.png' ? (
+              useRawImgTag ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img 
+                  src={logoUrlToRender} 
+                  alt={`${companyNameToRender} logo`} 
+                  style={{ width: '36px', height: '36px', objectFit: 'contain' }} 
+                  data-ai-hint={dataAiHintToRender} 
+                />
+              ) : (
+                <Image 
+                  src={logoUrlToRender} 
+                  alt={`${companyNameToRender} logo`} 
+                  width={36} 
+                  height={36} 
+                  className="object-contain" 
+                  data-ai-hint={dataAiHintToRender}
+                  unoptimized={isUnoptimizedForNextImage}
+                />
+              )
             ) : (<Code2 className="text-white h-7 w-7" />)}
           </div>
         </div>
