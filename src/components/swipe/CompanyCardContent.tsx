@@ -47,7 +47,7 @@ const incrementAnalytic = (key: string) => {
 
 const CircularProgressBar = ({ percentage, size = 110, displayText, isRingHovered }: { percentage: number, size?: number, displayText?: string, isRingHovered?: boolean }) => {
   const radius = size / 2;
-  const strokeWidth = 8; // Increased for better hover visibility
+  const strokeWidth = 8;
   const normalizedRadius = radius - strokeWidth / 2;
   const circumference = normalizedRadius * 2 * Math.PI;
   const effectivePercentage = displayText === "?" ? 0 : percentage;
@@ -63,7 +63,7 @@ const CircularProgressBar = ({ percentage, size = 110, displayText, isRingHovere
       <circle
         className={cn(
           "fill-transparent transition-[stroke] duration-300 ease-in-out",
-          isRingHovered ? "stroke-purple-400" : "stroke-white/20" // Dynamic stroke for hover
+          isRingHovered ? "stroke-purple-400" : "stroke-white/20"
         )}
         strokeWidth={strokeWidth}
         r={normalizedRadius}
@@ -85,8 +85,8 @@ const CircularProgressBar = ({ percentage, size = 110, displayText, isRingHovere
       )}
       <defs>
         <linearGradient id="progressGradientCompanyCard" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#A78BFA" /> 
-          <stop offset="100%" stopColor="#6366F1" /> 
+          <stop offset="0%" stopColor="#A78BFA" />
+          <stop offset="100%" stopColor="#6366F1" />
         </linearGradient>
       </defs>
       <text
@@ -96,7 +96,7 @@ const CircularProgressBar = ({ percentage, size = 110, displayText, isRingHovere
         textAnchor="middle"
         className={cn(
           "font-bold fill-white transform rotate-90 origin-center",
-          size >= 110 ? "text-3xl" : (size >= 100 ? "text-3xl" : "text-2xl") // Adjusted for 110 size
+          size >= 110 ? "text-3xl" : (size >= 100 ? "text-3xl" : "text-2xl")
         )}
       >
         {displayText ? displayText : `${Math.round(percentage)}%`}
@@ -109,7 +109,7 @@ const CircularProgressBar = ({ percentage, size = 110, displayText, isRingHovere
           textAnchor="middle"
           className={cn(
             "fill-white/80 transform rotate-90 origin-center",
-            size >= 110 ? "text-sm" : (size >= 100 ? "text-sm" : "text-xs") // Adjusted for 110 size
+            size >= 110 ? "text-sm" : (size >= 100 ? "text-sm" : "text-xs")
           )}
         >
           match
@@ -139,7 +139,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const [showFullCompanyDescriptionInModal, setShowFullCompanyDescriptionInModal] = useState(false);
   const [activeAccordionItem, setActiveAccordionItem] = useState<string | undefined>(undefined);
   const [currentUserProfileForAI, setCurrentUserProfileForAI] = useState<CandidateProfileForAI | null>(null);
-  
+
   const [isHoveringMatchArea, setIsHoveringMatchArea] = useState(false);
   const [simulatedProgress, setSimulatedProgress] = useState(0);
   const analysisInitiatedFromCardClickRef = useRef(false);
@@ -152,15 +152,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleDetailsButtonClick = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-      fetchAiAnalysis(true, false); 
+      fetchAiAnalysis(true, false);
     } else if (isGuestMode) {
       setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       setIsLoadingAiAnalysis(false);
-      setActiveAccordionItem(undefined); 
+      setActiveAccordionItem(undefined);
     }
     setIsDetailsModalOpen(true);
   };
-  
+
   const fetchCurrentUserProfileForAI = useCallback(async () => {
     if (!mongoDbUserId || isGuestMode) return null;
     try {
@@ -197,7 +197,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       if (isGuestMode) setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
       return;
     }
-    setAnalysisTriggered(true); // Analysis attempt has started
+    setAnalysisTriggered(true);
     let candidateForAI = currentUserProfileForAI;
     if (!candidateForAI) {
       setIsLoadingAiAnalysis(true);
@@ -208,12 +208,12 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "AI Analysis Error", description: "Your profile could not be loaded for analysis.", variant: "destructive" });
       return;
     }
-    
+
     setIsLoadingAiAnalysis(true);
     if (isCardClick) {
       analysisInitiatedFromCardClickRef.current = true;
     }
-    setSimulatedProgress(0); 
+    setSimulatedProgress(0);
 
     try {
       const jobCriteria: JobCriteriaForAI = {
@@ -238,15 +238,15 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
           }
       }
       const result = await recommendProfile({ candidateProfile: candidateForAI, jobCriteria: jobCriteria, userAIWeights: userAIWeights });
-      
+
       const currentSimulatedProgress = simulatedProgress;
-      const remainingSimulatedTime = (100 - currentSimulatedProgress) * 40; 
-      
+      const remainingSimulatedTime = (100 - currentSimulatedProgress) * 40;
+
       setTimeout(() => {
-        setSimulatedProgress(100); 
+        setSimulatedProgress(100);
         if (result.candidateJobFitAnalysis) setAiJobFitAnalysis(result.candidateJobFitAnalysis);
         else setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "AI analysis did not provide specific job-to-candidate fit details.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
-        setIsLoadingAiAnalysis(false); 
+        setIsLoadingAiAnalysis(false);
       }, Math.max(0, remainingSimulatedTime));
 
 
@@ -255,7 +255,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       toast({ title: "AI Analysis Error", description: `Failed to get AI insights. ${error.message || 'Ensure your profile is up to date.'}`, variant: "destructive" });
       setAiJobFitAnalysis({ matchScoreForCandidate: 0, reasoningForCandidate: "Error during AI analysis.", weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }});
       setIsLoadingAiAnalysis(false);
-      analysisInitiatedFromCardClickRef.current = false; 
+      analysisInitiatedFromCardClickRef.current = false;
     }
   }, [company, jobOpening, isGuestMode, toast, currentUserProfileForAI, fetchCurrentUserProfileForAI, simulatedProgress]);
 
@@ -263,33 +263,33 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     if (!isLoadingAiAnalysis && aiJobFitAnalysis && analysisInitiatedFromCardClickRef.current) {
       setIsDetailsModalOpen(true);
       setActiveAccordionItem("ai-fit-analysis");
-      analysisInitiatedFromCardClickRef.current = false; 
+      analysisInitiatedFromCardClickRef.current = false;
     }
   }, [isLoadingAiAnalysis, aiJobFitAnalysis]);
-  
+
   useEffect(() => {
     if (isDetailsModalOpen && !isGuestMode && !aiJobFitAnalysis && !isLoadingAiAnalysis) {
-      fetchAiAnalysis(true, false); 
+      fetchAiAnalysis(true, false);
     } else if (isGuestMode && isDetailsModalOpen) {
-      setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, growthOpportunityScore:0, jobConditionFitScore:0}});
-      setIsLoadingAiAnalysis(false); 
-      setActiveAccordionItem(undefined); 
+      setAiJobFitAnalysis({matchScoreForCandidate: 0, reasoningForCandidate: "AI Analysis disabled in Guest Mode.", weightedScoresForCandidate: {cultureFitScore:0, jobRelevanceScore:0, jobConditionFitScore:0}});
+      setIsLoadingAiAnalysis(false);
+      setActiveAccordionItem(undefined);
     }
   }, [isDetailsModalOpen, isGuestMode, aiJobFitAnalysis, isLoadingAiAnalysis, fetchAiAnalysis]);
 
   useEffect(() => {
     let progressInterval: NodeJS.Timeout | undefined;
     if (isLoadingAiAnalysis && !isGuestMode) {
-      let currentProgress = simulatedProgress; 
+      let currentProgress = simulatedProgress;
       progressInterval = setInterval(() => {
-        currentProgress += 2.5; 
+        currentProgress += 2.5;
         if (currentProgress <= 100) {
           setSimulatedProgress(currentProgress);
         } else {
           clearInterval(progressInterval);
-          if (isLoadingAiAnalysis) setSimulatedProgress(100); 
+          if (isLoadingAiAnalysis) setSimulatedProgress(100);
         }
-      }, 100); 
+      }, 100);
     }
     return () => clearInterval(progressInterval);
   }, [isLoadingAiAnalysis, isGuestMode, simulatedProgress]);
@@ -298,7 +298,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const handleLocalSwipeAction = (actionType: 'like' | 'pass' | 'details') => {
     if (actionType === 'like') incrementAnalytic('analytics_company_likes');
     else if (actionType === 'pass') incrementAnalytic('analytics_company_passes');
-    if (actionType === 'details') { 
+    if (actionType === 'details') {
         handleDetailsButtonClick();
     } else {
         onSwipeAction(company.id, actionType as 'like' | 'pass');
@@ -316,18 +316,18 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
         } else if (targetElement.closest('[data-interactive-match-area="true"]') && !isLoadingAiAnalysis && !isGuestMode) {
             return;
         } else if (targetElement.closest('button, a, [data-no-drag="true"], [role="dialog"], input, textarea, [role="listbox"], [role="option"], [data-radix-scroll-area-viewport]')) {
-           return; 
+           return;
         }
     }
     e.preventDefault(); setIsDragging(true); setStartX(e.clientX); setCurrentX(e.clientX);
     if (cardRootRef.current) { cardRootRef.current.style.cursor = 'grabbing'; cardRootRef.current.style.transition = 'none';}
     document.body.style.userSelect = 'none';
    };
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => { 
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardRootRef.current || isGuestMode) return;
     setCurrentX(e.clientX);
    };
-  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => { 
+  const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!isDragging || !cardRootRef.current || isGuestMode) return;
     const deltaX = currentX - startX;
     cardRootRef.current.style.transition = 'transform 0.3s ease-out'; cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
@@ -336,7 +336,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     if (cardRootRef.current) cardRootRef.current.style.cursor = 'grab';
     document.body.style.userSelect = '';
    };
-  const getCardTransform = () => { 
+  const getCardTransform = () => {
     if (!isDragging || isGuestMode) return 'translateX(0px) rotateZ(0deg)';
     const deltaX = currentX - startX; const rotationFactor = Math.min(Math.abs(deltaX) / (SWIPE_THRESHOLD * 2), 1);
     const rotation = MAX_ROTATION * (deltaX > 0 ? 1 : -1) * rotationFactor; return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
@@ -358,9 +358,9 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
       setAiAnswer("Sorry, I couldn't process that question right now.");
     } finally { setIsAskingQuestion(false); }
   };
-  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => { 
+  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
     if (isGuestMode) { toast({ title: "Feature Locked", description: "Sign in to share.", variant: "default" }); return; }
-    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/company/${company.id}/job/${jobOpening?.title.replace(/\s+/g, '-') || 'general'}` : 'https://swipehire-app.com'; 
+    const profileUrl = typeof window !== 'undefined' ? `${window.location.origin}/company/${company.id}/job/${jobOpening?.title.replace(/\s+/g, '-') || 'general'}` : 'https://swipehire-app.com';
     const shareText = `Check out this job opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role!'}. Visit ${profileUrl}`;
     const emailSubject = `Job Opportunity at ${company.name}: ${jobOpening?.title || 'Exciting Role!'}`;
     const emailBody = `I found this job opportunity on SwipeHire and thought you might be interested:\n\nCompany: ${company.name}\nRole: ${jobOpening?.title || 'Exciting Role!'}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
@@ -378,40 +378,59 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const jobDescriptionForModal = jobOpening?.description || "No job description available.";
   const displayedJobDescriptionInModal = showFullJobDescriptionInModal || jobDescriptionForModal.length <= MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL
     ? jobDescriptionForModal : jobDescriptionForModal.substring(0, MAX_JOB_DESCRIPTION_LENGTH_MODAL_INITIAL) + "...";
-    
+
   const showQuestionMark = !isLoadingAiAnalysis && !aiJobFitAnalysis && !analysisTriggered;
   const displayPercentage = Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0);
 
-  // Image rendering logic
-  const logoUrlToRender = company.logoUrl;
+
+  const logoUrlFromCompany = company.logoUrl;
   const companyNameToRender = company.name || "Company";
   const dataAiHintToRender = company.dataAiHint || "company logo";
 
   let useRawImgTag = false;
   let isUnoptimizedForNextImage = false;
+  let finalEffectiveLogoUrl = logoUrlFromCompany;
 
-  const configuredHostnamesForNextImage = [
-    'placehold.co', 'lh3.googleusercontent.com', 'storage.googleapis.com', 'upload.wikimedia.org',
-    // Assuming your next.config.ts contains patterns for these or similar for your backend
-    '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
-  ];
+  // This console.log helps trace the initial URL from the company data.
+  // console.log(`[CompanyCardContent: ${company.name}] Initial logoUrl:`, logoUrlFromCompany);
 
-  if (logoUrlToRender && !logoUrlToRender.startsWith('/') && logoUrlToRender !== 'https://placehold.co/500x350.png') {
-    try {
-      const url = new URL(logoUrlToRender);
-      if (url.hostname === 'localhost') {
-        isUnoptimizedForNextImage = true; 
-      } else if (!configuredHostnamesForNextImage.includes(url.hostname)) {
-        useRawImgTag = true; 
+  if (logoUrlFromCompany && logoUrlFromCompany !== 'https://placehold.co/500x350.png' && logoUrlFromCompany !== 'https://placehold.co/100x100.png') {
+    if (logoUrlFromCompany.startsWith('/uploads/')) {
+      finalEffectiveLogoUrl = `${CUSTOM_BACKEND_URL}${logoUrlFromCompany}`;
+      // console.log(`[CompanyCardContent: ${company.name}] Using backend URL: ${finalEffectiveLogoUrl}`);
+      if (CUSTOM_BACKEND_URL.includes('localhost')) {
+        isUnoptimizedForNextImage = true;
       }
-    } catch (e) {
-      useRawImgTag = true; // Fallback for invalid URLs
-      console.warn("Invalid logo URL, attempting raw img:", logoUrlToRender, e);
+    } else if (logoUrlFromCompany.startsWith('http://') || logoUrlFromCompany.startsWith('https://')) {
+      // console.log(`[CompanyCardContent: ${company.name}] Is absolute URL: ${logoUrlFromCompany}`);
+      try {
+        const url = new URL(logoUrlFromCompany);
+        if (url.hostname === 'localhost') {
+          isUnoptimizedForNextImage = true;
+        } else if (
+          url.hostname === 'placehold.co' ||
+          url.hostname === 'lh3.googleusercontent.com' ||
+          url.hostname === 'storage.googleapis.com' ||
+          url.hostname === 'upload.wikimedia.org' ||
+          url.hostname.includes('cloudworkstations.dev') // More generic for these dev URLs
+        ) {
+          // console.log(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is common/known, using Next/Image.`);
+          // These are generally fine with Next/Image if configured in next.config.js
+        } else {
+          // For truly external, unconfigured domains like 'lf-flow-web-cdn.doubao.com'
+          useRawImgTag = true;
+          // console.log(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is external/uncommon. Using raw <img>. CHECK BROWSER CONSOLE FOR CORS/NETWORK ERRORS IF BROKEN.`);
+        }
+      } catch (e) {
+        useRawImgTag = true;
+        console.warn(`[CompanyCardContent: ${company.name}] Invalid URL "${logoUrlFromCompany}", falling back to raw <img>. Error:`, e);
+      }
+    } else {
+      // console.warn(`[CompanyCardContent: ${company.name}] Logo URL "${logoUrlFromCompany}" is unusual (not /uploads, not absolute). Next/Image will attempt to resolve from /public.`);
     }
-  } else if (logoUrlToRender && logoUrlToRender.startsWith('/uploads/')) {
-    if (typeof CUSTOM_BACKEND_URL === 'string' && CUSTOM_BACKEND_URL.includes('localhost')) {
-      isUnoptimizedForNextImage = true;
-    }
+  } else {
+    finalEffectiveLogoUrl = undefined; // No valid logo, will fall back to icon
+    // console.log(`[CompanyCardContent: ${company.name}] No valid logoUrl, using fallback icon.`);
   }
 
 
@@ -419,7 +438,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     <>
       <div
         ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white" 
+        className="flex flex-col h-full overflow-hidden relative bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white"
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUpOrLeave}
@@ -431,24 +450,32 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             {categoryText}
           </Badge>
           <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-8">
-            {logoUrlToRender && logoUrlToRender !== 'https://placehold.co/500x350.png' ? (
+            {finalEffectiveLogoUrl ? (
               useRawImgTag ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={logoUrlToRender} 
-                  alt={`${companyNameToRender} logo`} 
-                  style={{ width: '36px', height: '36px', objectFit: 'contain' }} 
-                  data-ai-hint={dataAiHintToRender} 
+                <img
+                  src={finalEffectiveLogoUrl}
+                  alt={`${companyNameToRender} logo`}
+                  style={{ width: '36px', height: '36px', objectFit: 'contain', display: 'block' }}
+                  data-ai-hint={dataAiHintToRender}
+                  onError={(e) => {
+                    console.error(`[CompanyCardContent: ${company.name}] Raw <img> tag failed to load src: ${finalEffectiveLogoUrl}. Potential CORS or network issue. See browser console (Network tab). This might also be a 404 or 403 from the image server.`);
+                    // To hide the broken image icon, you might set display to none, though it's tricky to re-render a fallback here without state.
+                    // e.currentTarget.style.display = 'none';
+                  }}
                 />
               ) : (
-                <Image 
-                  src={logoUrlToRender} 
-                  alt={`${companyNameToRender} logo`} 
-                  width={36} 
-                  height={36} 
-                  className="object-contain" 
+                <Image
+                  src={finalEffectiveLogoUrl}
+                  alt={`${companyNameToRender} logo`}
+                  width={36}
+                  height={36}
+                  className="object-contain"
                   data-ai-hint={dataAiHintToRender}
                   unoptimized={isUnoptimizedForNextImage}
+                  onError={(e) => {
+                     console.error(`[CompanyCardContent: ${company.name}] Next/Image failed to load src: ${finalEffectiveLogoUrl}. If external, ensure hostname is in next.config.js remotePatterns. If internal, check path and backend serving. Error:`, e);
+                  }}
                 />
               )
             ) : (<Code2 className="text-white h-7 w-7" />)}
@@ -466,11 +493,11 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             {jobOpening?.location && jobOpening?.jobType && <span className="text-white/50 mx-0.5">•</span>}
             {jobOpening?.jobType && (<span className="flex items-center"><BriefcaseIcon className="h-4 w-4 mr-1 text-white/70" /> {jobOpening.jobType.replace(/_/g, ' ')}</span>)}
           </div>
-          
+
            <div
             data-interactive-match-area="true"
             className={cn(
-              "my-4 mx-auto flex flex-col items-center justify-center group transition-all duration-300 ease-in-out min-h-[110px] w-[110px] relative", // Added relative for text overlay
+              "my-4 mx-auto flex flex-col items-center justify-center group transition-all duration-300 ease-in-out min-h-[110px] w-[110px] relative",
               isGuestMode && "cursor-not-allowed opacity-70",
               !isGuestMode && "cursor-pointer"
             )}
@@ -482,7 +509,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             onMouseLeave={() => setIsHoveringMatchArea(false)}
             onClick={() => {
               if (!isGuestMode && !isLoadingAiAnalysis) {
-                fetchAiAnalysis(false, true); 
+                fetchAiAnalysis(false, true);
                 setIsHoveringMatchArea(false);
               }
             }}
@@ -521,8 +548,8 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
               {jobOpening.requiredExperienceLevel.replace(/_/g, ' ')} experience preferred
             </p>
           )}
-          
-          <div className="mt-auto pt-4"> 
+
+          <div className="mt-auto pt-4">
             <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-6">TOP SKILLS</p>
             <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
               {jobOpening?.tags?.slice(0, 3).map((tag) => (
@@ -533,14 +560,14 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
             </div>
           </div>
         </div>
-            
+
         <CardFooter className="mt-auto p-4 grid grid-cols-4 gap-4 border-t border-white/10 bg-transparent justify-items-center">
           <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
             <Button variant="ghost" onClick={(e) => { e.stopPropagation(); if(!isGuestMode) handleLocalSwipeAction('pass'); else toast({title: "Guest Mode", description: "Interactions disabled."}) }} disabled={isGuestMode}
               className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-red-300 hover:bg-red-500/20 hover:border-red-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
               aria-label={`Pass on ${company.name}`} data-no-drag="true"> {isGuestMode ? <Lock className="h-6 w-6 mb-1"/> : <X className="h-6 w-6 mb-1 text-white/90" />} <span className="text-sm">Pass</span> </Button>
           </TooltipTrigger> <TooltipContent className="bg-slate-800 text-white border-slate-700"><p>Not Interested</p></TooltipContent> </Tooltip> </TooltipProvider>
-          
+
           <TooltipProvider> <Tooltip> <TooltipTrigger asChild>
             <Button variant="ghost" onClick={handleDetailsButtonClick}
               className="flex flex-col items-center justify-center w-[72px] h-[72px] rounded-2xl text-sm font-medium text-white/80 hover:text-blue-300 hover:bg-blue-500/20 hover:border-blue-400/50 transition-colors border border-white/20 bg-white/10 shadow-md hover:shadow-lg backdrop-blur-sm"
