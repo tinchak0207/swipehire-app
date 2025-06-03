@@ -168,7 +168,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 <User className="mr-2 h-5 w-5" /> Continue as Guest
               </Button>
             </div>
-            {/* "Already have an account? Log In" button removed from here */}
             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-70 cursor-pointer" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
               <ChevronDown className="h-8 w-8" />
             </div>
@@ -339,6 +338,22 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           </div>
         </section>
       </main>
+
+      <section className="py-10 bg-background text-center" data-aos="fade-up">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-xl font-semibold text-foreground mb-3">We are LaunchGenius Monthly Champions!</h3>
+          <div className="flex justify-center">
+            <iframe 
+              src="https://www.launchgns.com/badge?id=eab381b0-e1e8-450f-bf3d-768012770a82&style=default&theme=light&period=daily&showRank=false&showScore=true&target=_blank" 
+              width="300px" 
+              height="60px" 
+              frameBorder="0" 
+              scrolling="no"
+              title="LaunchGenius Monthly Champion Badge"
+            ></iframe>
+          </div>
+        </div>
+      </section>
 
       <footer className="py-10 bg-slate-900 text-slate-400">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
