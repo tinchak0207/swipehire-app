@@ -391,46 +391,49 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   let isUnoptimizedForNextImage = false;
   let finalEffectiveLogoUrl = logoUrlFromCompany;
 
-  // This console.log helps trace the initial URL from the company data.
-  // console.log(`[CompanyCardContent: ${company.name}] Initial logoUrl:`, logoUrlFromCompany);
+  // Known hostnames that are configured for Next/Image
+  const KNOWN_NEXT_IMAGE_HOSTNAMES = [
+    'placehold.co',
+    'lh3.googleusercontent.com',
+    'storage.googleapis.com',
+    'upload.wikimedia.org',
+    '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev', // Example for cloud workstation
+  ];
+
 
   if (logoUrlFromCompany && logoUrlFromCompany !== 'https://placehold.co/500x350.png' && logoUrlFromCompany !== 'https://placehold.co/100x100.png') {
+    console.log(`[CompanyCardContent: ${company.name}] Processing logoUrl:`, logoUrlFromCompany);
     if (logoUrlFromCompany.startsWith('/uploads/')) {
       finalEffectiveLogoUrl = `${CUSTOM_BACKEND_URL}${logoUrlFromCompany}`;
-      // console.log(`[CompanyCardContent: ${company.name}] Using backend URL: ${finalEffectiveLogoUrl}`);
-      if (CUSTOM_BACKEND_URL.includes('localhost')) {
+      console.log(`[CompanyCardContent: ${company.name}] Is internal /uploads/ path. Final URL: ${finalEffectiveLogoUrl}`);
+      if (CUSTOM_BACKEND_URL.includes('localhost') || CUSTOM_BACKEND_URL.includes('cloudworkstations.dev')) {
         isUnoptimizedForNextImage = true;
+        console.log(`[CompanyCardContent: ${company.name}] Marking as unoptimized for Next/Image because backend is localhost or cloud workstation.`);
       }
     } else if (logoUrlFromCompany.startsWith('http://') || logoUrlFromCompany.startsWith('https://')) {
-      // console.log(`[CompanyCardContent: ${company.name}] Is absolute URL: ${logoUrlFromCompany}`);
+      console.log(`[CompanyCardContent: ${company.name}] Is absolute URL.`);
       try {
         const url = new URL(logoUrlFromCompany);
         if (url.hostname === 'localhost') {
           isUnoptimizedForNextImage = true;
-        } else if (
-          url.hostname === 'placehold.co' ||
-          url.hostname === 'lh3.googleusercontent.com' ||
-          url.hostname === 'storage.googleapis.com' ||
-          url.hostname === 'upload.wikimedia.org' ||
-          url.hostname.includes('cloudworkstations.dev') // More generic for these dev URLs
-        ) {
-          // console.log(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is common/known, using Next/Image.`);
-          // These are generally fine with Next/Image if configured in next.config.js
+          console.log(`[CompanyCardContent: ${company.name}] Hostname is localhost. Marking as unoptimized for Next/Image.`);
+        } else if (KNOWN_NEXT_IMAGE_HOSTNAMES.some(knownHost => url.hostname.endsWith(knownHost))) {
+          console.log(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is in known Next/Image list. Using Next/Image.`);
         } else {
-          // For truly external, unconfigured domains like 'lf-flow-web-cdn.doubao.com'
           useRawImgTag = true;
-          // console.log(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is external/uncommon. Using raw <img>. CHECK BROWSER CONSOLE FOR CORS/NETWORK ERRORS IF BROKEN.`);
+          console.warn(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is not in known Next/Image list. Falling back to raw <img> tag. Ensure this domain allows hotlinking or add to next.config.js remotePatterns if trustworthy.`);
         }
       } catch (e) {
         useRawImgTag = true;
         console.warn(`[CompanyCardContent: ${company.name}] Invalid URL "${logoUrlFromCompany}", falling back to raw <img>. Error:`, e);
       }
     } else {
-      // console.warn(`[CompanyCardContent: ${company.name}] Logo URL "${logoUrlFromCompany}" is unusual (not /uploads, not absolute). Next/Image will attempt to resolve from /public.`);
+       finalEffectiveLogoUrl = undefined; // Treat as no valid logo
+       console.warn(`[CompanyCardContent: ${company.name}] Logo URL "${logoUrlFromCompany}" is neither /uploads/ nor absolute. Treating as no logo.`);
     }
   } else {
     finalEffectiveLogoUrl = undefined; // No valid logo, will fall back to icon
-    // console.log(`[CompanyCardContent: ${company.name}] No valid logoUrl, using fallback icon.`);
+    console.log(`[CompanyCardContent: ${company.name}] No valid logoUrl or placeholder detected, will use fallback icon.`);
   }
 
 
@@ -456,12 +459,10 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 <img
                   src={finalEffectiveLogoUrl}
                   alt={`${companyNameToRender} logo`}
-                  style={{ width: '36px', height: '36px', objectFit: 'contain', display: 'block' }}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                   data-ai-hint={dataAiHintToRender}
                   onError={(e) => {
                     console.error(`[CompanyCardContent: ${company.name}] Raw <img> tag failed to load src: ${finalEffectiveLogoUrl}. Potential CORS or network issue. See browser console (Network tab). This might also be a 404 or 403 from the image server.`);
-                    // To hide the broken image icon, you might set display to none, though it's tricky to re-render a fallback here without state.
-                    // e.currentTarget.style.display = 'none';
                   }}
                 />
               ) : (
@@ -655,7 +656,7 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                    <Separator className="my-3 bg-slate-700" />
                 </>
               )}
-              <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onValueChange={setActiveAccordionItem}>
+              <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onOpenChange={setActiveAccordionItem}>
                 <AccordionItem value="ai-fit-analysis" className="border-b-0">
                   <AccordionTrigger className="text-lg font-semibold text-custom-light-purple-text hover:no-underline data-[state=open]:text-custom-primary-purple"><div className="flex items-center"><Brain className="mr-2 h-5 w-5" /> AI: How This Job Fits You <ChevronsUpDown className="ml-auto h-4 w-4 text-slate-400/70" /></div></AccordionTrigger>
                   <AccordionContent className="pt-1 pb-3">
@@ -696,3 +697,4 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
+
