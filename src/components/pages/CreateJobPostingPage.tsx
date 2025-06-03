@@ -11,25 +11,23 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock, X } from 'lucide-react';
+import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock, X, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { CompanyJobOpening } from '@/lib/types'; 
 import { postJobToBackend } from '@/services/jobService';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { Badge } from '@/components/ui/badge';
+import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
   description: z.string().min(20, "Description must be at least 20 characters."),
   compensation: z.string().min(1, "Please specify compensation or prize."),
-  // The 'tags' field in the Zod schema is for the temporary input string, 
-  // 'actualTags' will be used for the validated array of tags for submission.
-  tags: z.string().optional(), // User types into this, but it's not directly submitted as the final tags array
+  tags: z.string().optional(), 
   actualTags: z.array(z.string().min(1, "Tag cannot be empty.").max(20, "Tag too long.").regex(/^[a-zA-Z0-9-]+$/, "Tag can only contain letters, numbers, and hyphens.")).optional().default([]),
-  mediaFile: z.custom<FileList>((val) => val === undefined || (val instanceof FileList && val.length <= 1), "Only one file can be uploaded.")
-    .refine(files => files === undefined || files.length === 0 || files?.[0]?.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
-    .refine(files => files === undefined || files.length === 0 || files?.[0]?.type.startsWith("image/") || files?.[0]?.type.startsWith("video/"), "Please upload a valid image or video file.")
-    .optional(),
+  mediaFile: z.instanceof(File).optional() // Changed from FileList to File
+    .refine(file => !file || file.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
+    .refine(file => !file || file.type.startsWith("image/") || file.type.startsWith("video/"), "Please upload a valid image or video file."),
   location: z.string().optional(),
 });
 
@@ -42,7 +40,7 @@ interface CreateJobPostingPageProps {
 
 export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [fileName, setFileName] = useState<string | null>(null);
+  // fileName state is no longer needed as CustomFileInput will get it from RHF
   const [isPostingAllowed, setIsPostingAllowed] = useState(false);
   const { toast } = useToast();
   const { mongoDbUserId } = useUserPreferences();
@@ -66,25 +64,18 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
       title: "",
       description: "",
       compensation: "",
-      tags: "", // For the input field
-      actualTags: [], // For validation and submission
+      tags: "", 
+      actualTags: [], 
       location: "",
+      mediaFile: undefined,
     },
   });
 
+  const watchedMediaFile = form.watch('mediaFile'); // Watch the mediaFile field
+
   useEffect(() => {
-    // Sync tagList with RHF's actualTags for validation
     form.setValue('actualTags', tagList);
   }, [tagList, form]);
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setFileName(file.name);
-    } else {
-      setFileName(null);
-    }
-  };
 
   const handleAddTag = () => {
     const newTag = currentTagInput.trim().toLowerCase().replace(/\s+/g, '-');
@@ -126,27 +117,30 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
     setIsLoading(true);
 
-    // Use the validated `data.actualTags` (which is synced from `tagList`) for the payload
     const jobOpeningData: Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id'> = {
       title: data.title,
       description: data.description,
       salaryRange: data.compensation,
-      tags: data.actualTags, // Use the validated array from form data
+      tags: data.actualTags, 
       location: data.location || undefined,
-      videoOrImageUrl: data.mediaFile && data.mediaFile.length > 0 ? 'https://placehold.co/600x400.png' : undefined,
-      dataAiHint: data.mediaFile && data.mediaFile.length > 0 ? data.title.substring(0,20) || 'job media' : undefined,
+      // TODO: Handle actual file upload for data.mediaFile and get a URL
+      videoOrImageUrl: data.mediaFile ? 'https://placehold.co/600x400.png' : undefined, 
+      dataAiHint: data.mediaFile ? data.title.substring(0,20) || 'job media' : undefined,
     };
     
     try {
+      // If data.mediaFile exists, you would typically upload it here first
+      // and then use the returned URL in jobOpeningData.
+      // For now, it uses a placeholder if a file is selected.
+
       await postJobToBackend(mongoDbUserId, jobOpeningData);
       toast({
         title: "Job Posted!",
         description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
       form.reset();
-      setTagList([]); // Clear displayed tag list
-      setCurrentTagInput(''); // Clear tag input field
-      setFileName(null);
+      setTagList([]); 
+      setCurrentTagInput(''); 
     } catch (error: any) {
       console.error("Error posting job:", error);
       toast({
@@ -255,7 +249,6 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                 )}
               />
 
-              {/* Tags Field */}
               <FormItem>
                 <FormLabel className="text-lg flex items-center"><Tag className="mr-2 h-5 w-5 text-muted-foreground" />Tags</FormLabel>
                 <div className="flex flex-wrap gap-2 mb-2">
@@ -276,19 +269,18 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                     </Badge>
                   ))}
                 </div>
-                 {/* This is the input for typing new tags */}
                 <FormField
                   control={form.control}
-                  name="tags" // This 'tags' field in Zod schema is just for the input, not direct submission
+                  name="tags" 
                   render={({ field }) => (
                     <div className="flex items-center gap-2">
                     <Input
-                      id="tags-input-field" // Unique ID for the input field
+                      id="tags-input-field" 
                       placeholder="Type a tag (e.g., react) and press Enter or comma"
                       value={currentTagInput}
                       onChange={(e) => {
                         setCurrentTagInput(e.target.value);
-                        field.onChange(e); // RHF tracks the input field's value if needed, but we use currentTagInput for actual tag addition logic
+                        field.onChange(e); 
                       }}
                       onKeyDown={handleTagInputKeyDown}
                       disabled={!isPostingAllowed || tagList.length >= 10}
@@ -301,38 +293,28 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                 <FormDescription>
                   Help categorize your job. Add up to 10 tags (letters, numbers, hyphens only, max 20 chars each).
                 </FormDescription>
-                 {/* This 'actualTags' field is what Zod validates as an array */}
                 <FormField
                   control={form.control}
                   name="actualTags" 
-                  render={() => null} // No need to render, it's for validation of the tagList
+                  render={() => null} 
                 />
-                {/* Display validation errors for actualTags */}
                 <FormMessage>{form.formState.errors.actualTags?.message || form.formState.errors.actualTags?.root?.message}</FormMessage>
               </FormItem>
               
               <FormField
                 control={form.control}
                 name="mediaFile"
-                render={({ field: { onChange, value, ...rest } }) => (
-                  <FormItem>
-                    <FormLabel className="text-lg flex items-center"><UploadCloud className="mr-2 h-5 w-5 text-muted-foreground" />Optional: Picture or Video (Max 5MB)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="file"
-                        accept="image/*,video/*"
-                        onChange={(e) => {
-                            onChange(e.target.files);
-                            handleFileChange(e);
-                        }}
-                        className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
-                        {...rest}
-                        disabled={!isPostingAllowed}
-                      />
-                    </FormControl>
-                    {fileName && <p className="text-sm text-muted-foreground mt-1">Selected file: {fileName}</p>}
-                    <FormMessage />
-                  </FormItem>
+                render={({ field }) => (
+                  <CustomFileInput
+                    id="jobMediaFile"
+                    fieldLabel="Optional: Picture or Video (Max 5MB)"
+                    buttonText="Upload Media"
+                    buttonIcon={<ImageIcon className="mr-2 h-4 w-4"/>}
+                    selectedFileName={watchedMediaFile?.name}
+                    onFileSelected={(file) => field.onChange(file)}
+                    inputProps={{ accept: "image/*,video/*" }}
+                    disabled={!isPostingAllowed}
+                  />
                 )}
               />
 
@@ -353,4 +335,3 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     </div>
   );
 }
-

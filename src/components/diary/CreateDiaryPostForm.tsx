@@ -8,9 +8,10 @@ import { DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { uploadDiaryImage } from '@/services/diaryService'; // Import the new service
-import Image from 'next/image'; // For image preview
-import { Loader2, UploadCloud } from 'lucide-react'; // For loading state
+import { uploadDiaryImage } from '@/services/diaryService'; 
+import Image from 'next/image'; 
+import { Loader2, UploadCloud, Image as ImageIcon } from 'lucide-react'; 
+import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
 
 interface CreateDiaryPostFormProps {
   onPostCreated: (newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>) => void;
@@ -22,7 +23,7 @@ interface CreateDiaryPostFormProps {
 export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUserMongoId, currentUserAvatarUrl }: CreateDiaryPostFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [imageUrlInput, setImageUrlInput] = useState(''); // For manual URL input
+  const [imageUrlInput, setImageUrlInput] = useState(''); 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [diaryImageHint, setDiaryImageHint] = useState('');
@@ -30,17 +31,18 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
 
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleFileSelected = (file: File | null) => {
     if (file) {
       if (file.size > 5 * 1024 * 1024) { // 5MB limit
         toast({ title: "File Too Large", description: "Image must be less than 5MB.", variant: "destructive" });
-        event.target.value = ''; // Clear the input
+        setImageFile(null);
+        setImagePreview(null);
         return;
       }
       if (!file.type.startsWith("image/")) {
         toast({ title: "Invalid File Type", description: "Please select an image file.", variant: "destructive" });
-        event.target.value = ''; // Clear the input
+        setImageFile(null);
+        setImagePreview(null);
         return;
       }
       setImageFile(file);
@@ -65,7 +67,7 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
         description: "User information is missing. Please ensure your profile is complete and try again.",
         variant: "destructive",
       });
-      setIsSubmitting(false); // Ensure loading state is reset
+      setIsSubmitting(false); 
       return;
     }
     if (!title.trim() || !content.trim()) {
@@ -94,7 +96,7 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
         isFeatured: Math.random() < 0.1,
       };
       onPostCreated(newPostData);
-      // Clear form fields
+      
       setTitle('');
       setContent('');
       setImageUrlInput('');
@@ -120,17 +122,16 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
         <Textarea id="postContent" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Today was an interesting day because..." required rows={5} disabled={isSubmitting} />
       </div>
       
-      <div>
-        <label htmlFor="postImageUpload" className="block text-sm font-medium text-foreground mb-1">Upload Image (Optional, Max 5MB)</label>
-        <Input 
-          id="postImageUpload" 
-          type="file" 
-          accept="image/*" 
-          onChange={handleFileChange} 
-          className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
-          disabled={isSubmitting}
-        />
-      </div>
+      <CustomFileInput
+        id="postImageUpload"
+        fieldLabel="Upload Image (Optional, Max 5MB)"
+        buttonText="Choose Image"
+        buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
+        selectedFileName={imageFile?.name}
+        onFileSelected={handleFileSelected}
+        inputProps={{ accept: "image/*" }}
+        disabled={isSubmitting}
+      />
 
       {imagePreview && (
         <div className="mt-2">
@@ -163,5 +164,3 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
     </form>
   );
 }
-
-    

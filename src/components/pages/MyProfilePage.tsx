@@ -10,13 +10,14 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X } from 'lucide-react';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X, UploadCloud } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate } from '@/lib/types';
 import NextImage from 'next/image';
-import ProfileCard from '@/components/cards/ProfileCard'; // Changed import from SwipeCard/CandidateCardContent
+import ProfileCard from '@/components/cards/ProfileCard'; 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
 
 const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
@@ -68,7 +69,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
   const [salaryExpectationMin, setSalaryExpectationMin] = useState<string>('');
   const [salaryExpectationMax, setSalaryExpectationMax] = useState<string>('');
-  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default'); // This is for candidate's own card theming choice, ProfileCard itself doesn't use this directly for its base style
+  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default'); 
 
 
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +88,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
     const loadProfile = async () => {
       setIsFetchingProfile(true);
-      setAvatarPreview(null); // Reset preview before loading
+      setAvatarPreview(null); 
       if (mongoDbUserId) {
         try {
           const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
@@ -108,7 +109,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
             setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
             setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
-            setSelectedCardTheme(userData.profileCardTheme || 'default'); // Load chosen theme
+            setSelectedCardTheme(userData.profileCardTheme || 'default'); 
             setIsFetchingProfile(false);
             return;
           } else {
@@ -129,7 +130,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             });
         }
       }
-      // If mongoDbUserId is not available or fetch failed, keep fields as default/empty
+      
       setProfileHeadline('');
       setExperienceSummary('');
       setSkillList([]);
@@ -153,17 +154,18 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
   }, [isGuestMode, mongoDbUserId, toast]);
 
-  const handleAvatarFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+  const handleAvatarFileSelected = (file: File | null) => {
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
         toast({ title: "File Too Large", description: "Avatar image must be less than 5MB.", variant: "destructive" });
-        event.target.value = '';
+        setAvatarFile(null);
+        setAvatarPreview(avatarUrl || null); // Revert to previous server URL if new file is invalid
         return;
       }
       if (!file.type.startsWith("image/")) {
         toast({ title: "Invalid File Type", description: "Please select an image file (PNG, JPG, GIF).", variant: "destructive" });
-        event.target.value = '';
+        setAvatarFile(null);
+        setAvatarPreview(avatarUrl || null);
         return;
       }
       setAvatarFile(file);
@@ -175,7 +177,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       toast({ title: "Avatar Preview Updated", description: "Click 'Update & Publish My Profile' to save changes including the new avatar." });
     } else {
       setAvatarFile(null);
-      setAvatarPreview(null);
+      setAvatarPreview(null); // Or revert to avatarUrl if desired when clearing
     }
   };
 
@@ -220,13 +222,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const handleAddJobTypePreference = () => {
     const newJobType = currentSelectedJobType as JobType;
     if (newJobType && jobTypeEnumOptions.includes(newJobType) && !jobTypePreferenceList.includes(newJobType)) {
-      if (jobTypePreferenceList.length < 5) { // Limit to 5 preferences
+      if (jobTypePreferenceList.length < 5) { 
         setJobTypePreferenceList([...jobTypePreferenceList, newJobType]);
       } else {
         toast({ title: "Limit Reached", description: "You can select up to 5 job type preferences.", variant: "default"});
       }
     }
-    setCurrentSelectedJobType(""); // Reset select
+    setCurrentSelectedJobType(""); 
   };
   
   const handleRemoveJobTypePreference = (jobTypeToRemove: JobType) => {
@@ -360,7 +362,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     ? avatarPreview
     : avatarUrl && avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${avatarUrl}`
-      : avatarUrl || `https://placehold.co/96x96.png?text=${profileHeadline?.[0] || 'P'}`; // Changed placeholder size
+      : avatarUrl || `https://placehold.co/96x96.png?text=${profileHeadline?.[0] || 'P'}`; 
   
 
   const candidatePreviewData: Candidate = {
@@ -371,7 +373,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     skills: skillList,
     avatarUrl: currentDisplayAvatarUrl,
     videoResumeUrl: videoPortfolioLink || undefined,
-    location: 'Your Location (Preview)', // You might want to add a form field for actual location
+    location: 'Your Location (Preview)', 
     desiredWorkStyle: desiredWorkStyle,
     pastProjects,
     workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
@@ -382,11 +384,11 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     salaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax) : undefined,
     availability: availability as Availability,
     jobTypePreference: jobTypePreferenceList,
-    cardTheme: selectedCardTheme, // This will be passed to ProfileCard but ProfileCard doesn't use it directly
-    profileStrength: 80, // Example value
-    personalityAssessment: [], // Example value
-    optimalWorkStyles: [], // Example value
-    isUnderestimatedTalent: false, // Example value
+    cardTheme: selectedCardTheme, 
+    profileStrength: 80, 
+    personalityAssessment: [], 
+    optimalWorkStyles: [], 
+    isUnderestimatedTalent: false, 
   };
 
 
@@ -410,32 +412,32 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="avatarUpload" className="text-base flex items-center">
-              <ImageIcon className="mr-2 h-4 w-4 text-muted-foreground" /> My Avatar (Upload Image)
-            </Label>
             <div className="flex items-center gap-4">
-              {currentDisplayAvatarUrl ? (
-                <NextImage 
-                  src={currentDisplayAvatarUrl} 
-                  alt="Avatar Preview" 
-                  width={80} 
-                  height={80} 
-                  className="rounded-full object-cover border" 
-                  data-ai-hint="user avatar" 
-                  unoptimized={currentDisplayAvatarUrl.startsWith(CUSTOM_BACKEND_URL) || currentDisplayAvatarUrl.startsWith('http://localhost')}
+                {currentDisplayAvatarUrl ? (
+                    <NextImage 
+                    src={currentDisplayAvatarUrl} 
+                    alt="Avatar Preview" 
+                    width={80} 
+                    height={80} 
+                    className="rounded-full object-cover border" 
+                    data-ai-hint="user avatar" 
+                    unoptimized={currentDisplayAvatarUrl.startsWith(CUSTOM_BACKEND_URL) || currentDisplayAvatarUrl.startsWith('http://localhost')}
+                    />
+                ) : (
+                    <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
+                )}
+                <CustomFileInput
+                    id="avatarUpload"
+                    fieldLabel="My Avatar"
+                    buttonText="Upload New Avatar"
+                    buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
+                    selectedFileName={avatarFile?.name}
+                    onFileSelected={handleAvatarFileSelected}
+                    inputProps={{ accept: "image/*" }}
+                    fieldDescription="Max 5MB. PNG, JPG, GIF."
+                    className="flex-grow"
                 />
-              ) : (
-                <UserCircle className="h-20 w-20 text-muted-foreground border rounded-full p-1" />
-              )}
-              <Input
-                id="avatarUpload"
-                type="file"
-                accept="image/*"
-                onChange={handleAvatarFileChange}
-                className="file:text-primary file:font-semibold file:bg-primary/10 file:hover:bg-primary/20 file:rounded-md file:px-3 file:py-1.5 file:mr-3 file:border-none"
-              />
             </div>
-            <p className="text-xs text-muted-foreground">Max 5MB. PNG, JPG, GIF.</p>
           </div>
 
           <div className="space-y-1">
@@ -666,7 +668,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               onChange={(e) => setVideoPortfolioLink(e.target.value)}
             />
           </div>
-          {/* Card Theme selection is removed as ProfileCard doesn't use themes the same way CompanyCardContent does. ProfileCard has a fixed style. */}
+          
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
           <Button variant="outline" onClick={() => setIsPreviewModalOpen(true)}>
@@ -685,10 +687,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="w-full max-w-sm mx-auto aspect-[9/16] sm:aspect-auto sm:h-auto">
                 <ProfileCard
                     candidate={candidatePreviewData}
-                    onAction={() => {}} // No-op for preview
-                    isLiked={false} // Not relevant for preview
-                    isGuestMode={true} // To show locked buttons
-                    isPreviewMode={true} // Ensures ProfileCard disables its own interactions
+                    onAction={() => {}} 
+                    isLiked={false} 
+                    isGuestMode={true} 
+                    isPreviewMode={true} 
                 />
             </div>
         </DialogContent>
