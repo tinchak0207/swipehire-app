@@ -20,7 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ScrollArea } from '../ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area'; // Added ScrollArea import
 import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
 import { WorkExperienceLevel, JobType } from '@/lib/types'; // Import WorkExperienceLevel and JobType
@@ -382,7 +382,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
             </DialogHeader>
             
             <div className="p-0 bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white">
-              <div className="aspect-[10/13] flex flex-col"> {/* Mimic SwipeCard aspect ratio and flex column */}
+              <div className="aspect-[10/13] flex flex-col"> 
                 <div className="p-4 pt-5 text-center relative">
                   <Badge className="absolute top-3 left-3 bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
                     {fullBackendUser?.companyIndustryForJobs || previewingJob.companyIndustryForJob || 'General'}
@@ -446,3 +446,5 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   );
 }
 
+
+    
