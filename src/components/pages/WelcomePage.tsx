@@ -341,8 +341,8 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
       <section className="py-10 bg-background text-center" data-aos="fade-up">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <h3 className="text-xl font-semibold text-foreground mb-3">We are LaunchGenius Monthly Champions!</h3>
-          <div className="flex justify-center">
+          <h3 className="text-xl font-semibold text-foreground mb-3">We are Award-Winning!</h3>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8">
             <iframe 
               src="https://www.launchgns.com/badge?id=eab381b0-e1e8-450f-bf3d-768012770a82&style=default&theme=light&period=daily&showRank=false&showScore=true&target=_blank" 
               width="300px" 
@@ -350,7 +350,18 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               frameBorder="0" 
               scrolling="no"
               title="LaunchGenius Monthly Champion Badge"
+              className="shadow-md rounded"
             ></iframe>
+            <a href="https://www.producthunt.com/products/swipehire?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-swipehire" target="_blank" rel="noopener noreferrer">
+              <img 
+                src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=973611&theme=dark&t=1748971139959" 
+                alt="SwipeHire - Tinder-like Video Resumes for AI-Powered Recruitment | Product Hunt" 
+                style={{width: "250px", height: "54px"}} 
+                width="250" 
+                height="54" 
+                className="shadow-md rounded"
+              />
+            </a>
           </div>
         </div>
       </section>
@@ -399,3 +410,4 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 }
 
     
+
