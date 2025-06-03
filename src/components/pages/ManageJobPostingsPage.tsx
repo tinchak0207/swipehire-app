@@ -316,7 +316,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
           </DialogHeader>
           <div className="flex-grow overflow-y-auto min-h-0 pr-2 -mr-4 pl-1">
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmitEditForm)} className="space-y-4 py-2 pr-1">
+              <form id="editJobForm" onSubmit={form.handleSubmit(onSubmitEditForm)} className="space-y-4 py-2 pr-1">
                   <FormField control={form.control} name="title" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Job Title</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="description" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><FileText className="mr-2 h-4 w-4 text-muted-foreground" />Description</FormLabel> <FormControl><Textarea {...field} className="min-h-[100px]" /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="location" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><MapPin className="mr-2 h-4 w-4 text-muted-foreground" />Location</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
@@ -442,5 +442,6 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     </div>
   );
 }
+    
 
     
