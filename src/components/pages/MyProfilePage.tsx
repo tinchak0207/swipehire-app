@@ -12,12 +12,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } f
 import { useToast } from '@/hooks/use-toast';
 import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X, UploadCloud } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate } from '@/lib/types';
+import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate, type BackendUser } from '@/lib/types';
 import NextImage from 'next/image';
 import ProfileCard from '@/components/cards/ProfileCard'; 
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
-import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
+import { CustomFileInput } from '@/components/ui/custom-file-input';
 
 const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
@@ -78,7 +78,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
 
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences();
+  const { mongoDbUserId, fullBackendUser } = useUserPreferences(); // Use fullBackendUser
 
   useEffect(() => {
     if (isGuestMode || typeof window === 'undefined') {
@@ -86,73 +86,65 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       return;
     }
 
-    const loadProfile = async () => {
-      setIsFetchingProfile(true);
-      setAvatarPreview(null); 
-      if (mongoDbUserId) {
-        try {
-          const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
-          if (response.ok) {
-            const userData = await response.json();
-            setProfileHeadline(userData.profileHeadline || '');
-            setExperienceSummary(userData.profileExperienceSummary || '');
-            setSkillList(userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-            setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
-            setPastProjects(userData.profilePastProjects || '');
-            setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
-            setAvatarUrl(userData.profileAvatarUrl || '');
-            setWorkExperienceLevel(userData.profileWorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
-            setEducationLevel(userData.profileEducationLevel || EducationLevel.UNSPECIFIED);
-            setLocationPreference(userData.profileLocationPreference || LocationPreference.UNSPECIFIED);
-            setLanguageList(userData.profileLanguages ? userData.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-            setAvailability(userData.profileAvailability || Availability.UNSPECIFIED);
-            setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
-            setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
-            setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
-            setSelectedCardTheme(userData.profileCardTheme || 'default'); 
-            setIsFetchingProfile(false);
-            return;
-          } else {
-            console.warn("Failed to fetch profile from backend, status:", response.status, ". Profile fields will be empty or default.");
-            toast({
-              title: "Profile Not Found or Error",
-              description: "Could not load your profile from the server. Please fill in your details.",
-              variant: "default",
-              duration: 7000,
-            });
-          }
-        } catch (error) {
-          console.error("Error fetching profile from backend:", error, ". Profile fields will be empty or default.");
-           toast({
-              title: "Error Loading Profile",
-              description: "An error occurred while trying to load your profile. Please check your connection or try again later.",
-              variant: "destructive",
-            });
-        }
-      }
-      
-      setProfileHeadline('');
-      setExperienceSummary('');
-      setSkillList([]);
-      setDesiredWorkStyle('');
-      setPastProjects('');
-      setVideoPortfolioLink('');
-      setAvatarUrl('');
-      setWorkExperienceLevel(WorkExperienceLevel.UNSPECIFIED);
-      setEducationLevel(EducationLevel.UNSPECIFIED);
-      setLocationPreference(LocationPreference.UNSPECIFIED);
-      setLanguageList([]);
-      setAvailability(Availability.UNSPECIFIED);
-      setJobTypePreferenceList([]);
-      setSalaryExpectationMin('');
-      setSalaryExpectationMax('');
-      setSelectedCardTheme('default');
-      setIsFetchingProfile(false);
-    };
+    setIsFetchingProfile(true);
+    setAvatarPreview(null); 
 
-    loadProfile();
+    if (fullBackendUser) {
+        setProfileHeadline(fullBackendUser.profileHeadline || '');
+        setExperienceSummary(fullBackendUser.profileExperienceSummary || '');
+        setSkillList(fullBackendUser.profileSkills ? fullBackendUser.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
+        setDesiredWorkStyle(fullBackendUser.profileDesiredWorkStyle || '');
+        setPastProjects(fullBackendUser.profilePastProjects || '');
+        setVideoPortfolioLink(fullBackendUser.profileVideoPortfolioLink || '');
+        setAvatarUrl(fullBackendUser.profileAvatarUrl || '');
+        setWorkExperienceLevel(fullBackendUser.profileWorkExperienceLevel as WorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
+        setEducationLevel(fullBackendUser.profileEducationLevel as EducationLevel || EducationLevel.UNSPECIFIED);
+        setLocationPreference(fullBackendUser.profileLocationPreference as LocationPreference || LocationPreference.UNSPECIFIED);
+        setLanguageList(fullBackendUser.profileLanguages ? fullBackendUser.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
+        setAvailability(fullBackendUser.profileAvailability as Availability || Availability.UNSPECIFIED);
+        setJobTypePreferenceList(fullBackendUser.profileJobTypePreference ? fullBackendUser.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
+        setSalaryExpectationMin(fullBackendUser.profileSalaryExpectationMin?.toString() || '');
+        setSalaryExpectationMax(fullBackendUser.profileSalaryExpectationMax?.toString() || '');
+        setSelectedCardTheme(fullBackendUser.profileCardTheme || 'default'); 
+        setIsFetchingProfile(false);
+    } else if (mongoDbUserId) { // Fallback to direct fetch if fullBackendUser isn't populated yet
+        const loadProfile = async () => {
+            try {
+                const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
+                if (response.ok) {
+                    const userData: BackendUser = await response.json();
+                    // Set all states as above using userData
+                    setProfileHeadline(userData.profileHeadline || '');
+                    setExperienceSummary(userData.profileExperienceSummary || '');
+                    setSkillList(userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
+                    setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
+                    setPastProjects(userData.profilePastProjects || '');
+                    setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
+                    setAvatarUrl(userData.profileAvatarUrl || '');
+                    setWorkExperienceLevel(userData.profileWorkExperienceLevel as WorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
+                    setEducationLevel(userData.profileEducationLevel as EducationLevel || EducationLevel.UNSPECIFIED);
+                    setLocationPreference(userData.profileLocationPreference as LocationPreference || LocationPreference.UNSPECIFIED);
+                    setLanguageList(userData.profileLanguages ? userData.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
+                    setAvailability(userData.profileAvailability as Availability || Availability.UNSPECIFIED);
+                    setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
+                    setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
+                    setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
+                    setSelectedCardTheme(userData.profileCardTheme || 'default');
+                } else {
+                     toast({ title: "Profile Not Found", description: "Could not load your profile. Please fill in details.", variant: "default"});
+                }
+            } catch (error) {
+                toast({ title: "Error Loading Profile", description: "Could not load your profile.", variant: "destructive" });
+            } finally {
+                setIsFetchingProfile(false);
+            }
+        };
+        loadProfile();
+    } else {
+        setIsFetchingProfile(false); // No mongoDbUserId and no fullBackendUser
+    }
 
-  }, [isGuestMode, mongoDbUserId, toast]);
+  }, [isGuestMode, mongoDbUserId, fullBackendUser, toast]);
 
   const handleAvatarFileSelected = (file: File | null) => {
     if (file) {
@@ -367,13 +359,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
   const candidatePreviewData: Candidate = {
     id: mongoDbUserId || 'preview-user',
-    name: 'Your Name (Preview)', 
+    name: fullBackendUser?.name || 'Your Name (Preview)', 
     role: profileHeadline,
     experienceSummary,
     skills: skillList,
     avatarUrl: currentDisplayAvatarUrl,
     videoResumeUrl: videoPortfolioLink || undefined,
-    location: 'Your Location (Preview)', 
+    location: fullBackendUser?.address && fullBackendUser?.country ? `${fullBackendUser.address}, ${fullBackendUser.country}` : (fullBackendUser?.country || 'Your Location (Preview)'), 
     desiredWorkStyle: desiredWorkStyle,
     pastProjects,
     workExperienceLevel: workExperienceLevel as WorkExperienceLevel,
@@ -698,3 +690,5 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     </div>
   );
 }
+
+    

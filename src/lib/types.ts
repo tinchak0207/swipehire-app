@@ -80,6 +80,27 @@ export interface BackendUser {
   profileCardTheme?: string; // New field for card theme
   createdAt?: string;
   updatedAt?: string;
+  // Adding fields that would be populated by ResumeCreationFlow
+  profileVideoResumeUrl?: string; // URL to the recorded video
+  profileAvatarWithScriptUrl?: string; // URL to the generated avatar (if chosen)
+  profileFinalScript?: string; // The finalized script
+  profileResumeText?: string; // The original resume text/summary
+  // These fields were already there but ensure they are part of BackendUser
+  profileHeadline?: string; 
+  profileExperienceSummary?: string;
+  profileSkills?: string; // Comma-separated
+  profileDesiredWorkStyle?: string;
+  profilePastProjects?: string;
+  profileVideoPortfolioLink?: string;
+  profileAvatarUrl?: string;
+  profileWorkExperienceLevel?: string;
+  profileEducationLevel?: string;
+  profileLocationPreference?: string;
+  profileLanguages?: string; // Comma-separated
+  profileAvailability?: string;
+  profileJobTypePreference?: string; // Comma-separated
+  profileSalaryExpectationMin?: number;
+  profileSalaryExpectationMax?: number;
 }
 
 
@@ -112,6 +133,7 @@ export interface Candidate { // This remains as the structure for mockData.ts ca
 }
 
 export interface CompanyJobOpening {
+  _id?: string; // Added _id for job subdocuments managed by backend
   title: string;
   description: string;
   location?: string;
@@ -128,10 +150,16 @@ export interface CompanyJobOpening {
   salaryMax?: number;
   companyCultureKeywords?: string[];
   companyIndustry?: string;
+  // Fields that will be populated by backend based on the recruiter User document
+  companyNameForJob?: string;
+  companyLogoForJob?: string;
+  companyIndustryForJob?: string;
+  postedAt?: string | Date; // Allow Date for easier sorting, backend will provide ISO string
 }
 
 export interface Company { // This remains as the structure for mockData.ts companies
   id: string; // This is 'comp1', 'comp2' etc. from mockData
+  recruiterUserId?: string; // MongoDB _id of the User who represents/posted this company/jobs
   name: string;
   industry: string;
   description: string;
@@ -143,6 +171,7 @@ export interface Company { // This remains as the structure for mockData.ts comp
   companyNeeds?: string;
   salaryRange?: string; 
   jobType?: JobType; 
+  jobMatchPercentage?: number; // For frontend display based on AI
 }
 
 // Updated Match interface to align with backend Match model
@@ -218,15 +247,15 @@ export interface DiaryPost {
   content: string;
   imageUrl?: string;
   diaryImageHint?: string;
-  timestamp?: number;
+  timestamp?: number; // Kept for potential legacy frontend use, prefer createdAt
   tags?: string[];
   likes: number;
-  likedBy?: string[];
+  likedBy?: string[]; // Array of User MongoDB _ids
   views?: number;
   commentsCount?: number;
   isFeatured?: boolean;
-  createdAt?: string;
-  updatedAt?: string;
+  createdAt?: string; // ISO Date string from backend
+  updatedAt?: string; // ISO Date string from backend
 }
 
 
@@ -346,12 +375,13 @@ export interface CompanyQAOutput {
 // For the new like interaction endpoint
 export interface RecordLikePayload {
   likingUserId: string; // MongoDB _id of the user performing the like
-  likedProfileId: string; // e.g., 'cand1' or 'comp1'
+  likedProfileId: string; // If company, this is the Recruiter's User._id. If candidate, this is the JobSeeker's User._id.
   likedProfileType: 'candidate' | 'company';
   likingUserRole: UserRole; // Role of the liking user
-  // These are hints for the backend to find the "other user" based on mock profile IDs
-  likingUserRepresentsCandidateId?: string; // If jobseeker, their 'candX' ID from mockData
-  likingUserRepresentsCompanyId?: string;   // If recruiter, their 'compX' ID from mockData
+  // These are the *display profile IDs* from mockData or equivalent (e.g., 'cand1', 'comp1')
+  // They help the backend correctly form the Match document if both users use mock profile IDs.
+  likingUserRepresentsCandidateId?: string; // If jobseeker, their 'candX' display ID
+  likingUserRepresentsCompanyId?: string;   // If recruiter, their 'compX' display ID
 }
 
 export interface RecordLikeResponse {
@@ -361,3 +391,4 @@ export interface RecordLikeResponse {
   matchDetails?: Match; // Full match details if one was created
 }
 
+    
