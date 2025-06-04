@@ -383,52 +383,52 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
   const displayPercentage = Math.round(aiJobFitAnalysis?.matchScoreForCandidate ?? company.jobMatchPercentage ?? 0);
 
 
-  // Determine which image URL and hint to use
-  const imageUrlToDisplay = jobOpening?.videoOrImageUrl || company.logoUrl;
-  const dataAiHintToDisplay = jobOpening?.videoOrImageUrl ? (jobOpening.dataAiHint || 'job image') : (company.dataAiHint || 'company logo');
+  // Determine which image URL and hint to use -- REVERTED LOGIC
+  const imageUrlToDisplay = company.logoUrl;
+  const dataAiHintToDisplay = company.dataAiHint || 'company logo';
 
   let useRawImgTag = false;
   let isUnoptimizedForNextImage = false;
-  let finalEffectiveImageUrl = imageUrlToDisplay;
+  let finalEffectiveImageUrl = imageUrlToDisplay; // This will now be based directly on company.logoUrl after processing
 
   const KNOWN_NEXT_IMAGE_HOSTNAMES = [
     'placehold.co', 'lh3.googleusercontent.com', 'storage.googleapis.com', 'upload.wikimedia.org',
-    '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev', // Example
+    '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
   ];
 
   if (finalEffectiveImageUrl && !['https://placehold.co/500x350.png', 'https://placehold.co/100x100.png'].includes(finalEffectiveImageUrl)) {
-    console.log(`[CompanyCardContent: ${company.name}] Processing imageUrlToDisplay:`, finalEffectiveImageUrl);
+    console.log(`[CompanyCardContent REVERTED: ${company.name}] Processing logoUrl:`, finalEffectiveImageUrl);
     if (finalEffectiveImageUrl.startsWith('/uploads/')) {
       finalEffectiveImageUrl = `${CUSTOM_BACKEND_URL}${finalEffectiveImageUrl}`;
-      console.log(`[CompanyCardContent: ${company.name}] Path is internal /uploads/. Final URL: ${finalEffectiveImageUrl}`);
+      console.log(`[CompanyCardContent REVERTED: ${company.name}] Path is internal /uploads/. Final URL: ${finalEffectiveImageUrl}`);
       if (CUSTOM_BACKEND_URL.includes('localhost') || CUSTOM_BACKEND_URL.includes('cloudworkstations.dev')) {
         isUnoptimizedForNextImage = true;
-        console.log(`[CompanyCardContent: ${company.name}] Marking as unoptimized for Next/Image (backend is localhost or cloud workstation).`);
+        console.log(`[CompanyCardContent REVERTED: ${company.name}] Marking as unoptimized for Next/Image (backend is localhost or cloud workstation).`);
       }
     } else if (finalEffectiveImageUrl.startsWith('http://') || finalEffectiveImageUrl.startsWith('https://')) {
-      console.log(`[CompanyCardContent: ${company.name}] Path is absolute URL.`);
+      console.log(`[CompanyCardContent REVERTED: ${company.name}] Path is absolute URL.`);
       try {
         const url = new URL(finalEffectiveImageUrl);
         if (url.hostname === 'localhost') {
           isUnoptimizedForNextImage = true;
-          console.log(`[CompanyCardContent: ${company.name}] Hostname is localhost. Marking as unoptimized for Next/Image.`);
+          console.log(`[CompanyCardContent REVERTED: ${company.name}] Hostname is localhost. Marking as unoptimized for Next/Image.`);
         } else if (KNOWN_NEXT_IMAGE_HOSTNAMES.some(knownHost => url.hostname.endsWith(knownHost))) {
-          console.log(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} is in known Next/Image list. Using Next/Image.`);
+          console.log(`[CompanyCardContent REVERTED: ${company.name}] Hostname ${url.hostname} is in known Next/Image list. Using Next/Image.`);
         } else {
           useRawImgTag = true;
-          console.warn(`[CompanyCardContent: ${company.name}] Hostname ${url.hostname} not in known Next/Image list. Falling back to raw <img> tag. Ensure domain allows hotlinking or add to next.config.js.`);
+          console.warn(`[CompanyCardContent REVERTED: ${company.name}] Hostname ${url.hostname} not in known Next/Image list. Falling back to raw <img> tag for company logo. Ensure domain allows hotlinking or add to next.config.js.`);
         }
       } catch (e) {
         useRawImgTag = true;
-        console.warn(`[CompanyCardContent: ${company.name}] Invalid URL "${finalEffectiveImageUrl}", falling back to raw <img>. Error:`, e);
+        console.warn(`[CompanyCardContent REVERTED: ${company.name}] Invalid URL "${finalEffectiveImageUrl}", falling back to raw <img>. Error:`, e);
       }
     } else {
        finalEffectiveImageUrl = undefined; 
-       console.warn(`[CompanyCardContent: ${company.name}] Image URL "${finalEffectiveImageUrl}" is neither /uploads/ nor absolute. Treating as no image.`);
+       console.warn(`[CompanyCardContent REVERTED: ${company.name}] Logo URL "${finalEffectiveImageUrl}" is neither /uploads/ nor absolute. Treating as no image.`);
     }
   } else {
     finalEffectiveImageUrl = undefined; // No valid image, will fall back to icon
-    console.log(`[CompanyCardContent: ${company.name}] No valid image URL or only placeholder detected. Will use fallback icon.`);
+    console.log(`[CompanyCardContent REVERTED: ${company.name}] No valid company logo URL or only placeholder detected. Will use fallback icon.`);
   }
 
 
@@ -453,24 +453,24 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={finalEffectiveImageUrl}
-                  alt={`${company.name} logo or job image`}
+                  alt={`${company.name} logo`}
                   style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block' }}
                   data-ai-hint={dataAiHintToDisplay}
                   onError={(e) => {
-                    console.error(`[CompanyCardContent: ${company.name}] Raw <img> tag failed to load src: ${finalEffectiveImageUrl}. Potential CORS or network issue. See browser console (Network tab). This might also be a 404 or 403 from the image server.`);
+                    console.error(`[CompanyCardContent REVERTED: ${company.name}] Raw <img> tag failed to load src: ${finalEffectiveImageUrl}. Potential CORS or network issue. See browser console (Network tab).`);
                   }}
                 />
               ) : (
                 <Image
                   src={finalEffectiveImageUrl}
-                  alt={`${company.name} logo or job image`}
+                  alt={`${company.name} logo`}
                   width={36}
                   height={36}
                   className="object-contain"
                   data-ai-hint={dataAiHintToDisplay}
                   unoptimized={isUnoptimizedForNextImage}
                   onError={(e) => {
-                     console.error(`[CompanyCardContent: ${company.name}] Next/Image failed to load src: ${finalEffectiveImageUrl}. If external, ensure hostname is in next.config.js remotePatterns. If internal, check path and backend serving. Error:`, e);
+                     console.error(`[CompanyCardContent REVERTED: ${company.name}] Next/Image failed to load src: ${finalEffectiveImageUrl}. If external, ensure hostname is in next.config.js remotePatterns. If internal, check path and backend serving. Error:`, e);
                   }}
                 />
               )
