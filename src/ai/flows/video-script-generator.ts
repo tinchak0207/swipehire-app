@@ -16,7 +16,8 @@ const ToneAndStyleEnum = z.enum([
   "professional", 
   "friendly", 
   "technical", 
-  "sales"
+  "sales",
+  "general" // Added general
 ]);
 const IndustryTemplateEnum = z.enum([
   "technology", 
@@ -65,6 +66,7 @@ For other specific details like name, position, specific achievements, hobbies, 
 - If 'friendly': Use conversational, warm, and approachable language. Let personality shine through.
 - If 'technical': Be precise, use industry-specific jargon appropriately if the target audience is technical. Clearly explain technical contributions.
 - If 'sales': Be persuasive, confident, and benefit-oriented. Focus on what you can bring to the company.
+- If 'general': Maintain a broadly applicable professional tone, focusing on transferable skills and general achievements.
 
 **Industry-Specific Focus ('{{{industryTemplate}}}'):**
 - If 'technology': Emphasize technology stack, specific project experience with technical challenges and solutions, innovative thinking, and problem-solving skills.
@@ -114,7 +116,22 @@ const generateVideoScriptFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return output!;
+    if (!output || !output.script || output.script.trim() === "") {
+      console.warn("Video script generator returned empty script for input:", input);
+      // Provide a default placeholder script if the AI returns empty
+      return { 
+        script: `[Script Placeholder] The AI couldn't generate a script based on your input. 
+Tips for a good script:
+1. Introduction: Briefly introduce yourself and your main goal.
+2. Core Strengths: Highlight 2-3 key skills or experiences relevant to your desired role. Use specific examples if possible.
+3. Work Style/Values: Briefly mention your preferred work style or a core professional value.
+4. Call to Action: End with a clear call to action, like inviting viewers to connect or check your portfolio.
+
+Please go back to Step 1 to refine your experience details, or edit this placeholder to create your script manually. Aim for about 150 words for a 1-minute video.`
+      };
+    }
+    return output;
   }
 );
+
 

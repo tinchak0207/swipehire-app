@@ -57,7 +57,7 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
         toast({
             title: "Resume Text Too Short",
             description: "Please provide at least 50 characters for your resume/experience highlights.",
-            variant: "default" // Use default or warning, not destructive unless it's a critical error
+            variant: "destructive"
         });
         return;
     }
@@ -65,7 +65,7 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
         toast({
             title: "Work Style Too Short",
             description: "Please describe your desired work style in at least 5 characters.",
-            variant: "default"
+            variant: "destructive"
         });
         return;
     }
