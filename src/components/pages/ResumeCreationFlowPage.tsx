@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
 import { StepIndicator } from '@/components/resume-creation/StepIndicator';
 import { Step1_ResumeInput } from '@/components/resume-creation/Step1_ResumeInput';
 import { Step2_ScriptEditor } from '@/components/resume-creation/Step2_ScriptEditor';
