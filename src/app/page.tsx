@@ -158,7 +158,7 @@ function AppContent() {
         setIsGuestMode(false);
         setMongoDbUserId(null);
         localStorage.removeItem('recruiterProfileComplete');
-        setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true'); 
+        setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true');
       }
       if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
@@ -182,7 +182,7 @@ function AppContent() {
         if (!initialAuthCheckDone.current) {
             const guestStillActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
             if (!auth.currentUser && !guestStillActive) {
-                 if(!showWelcomePage) setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true'); 
+                 if(!showWelcomePage) setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true');
             } else if (guestStillActive && !auth.currentUser) {
                 if(!isGuestMode) handleGuestMode();
                 if(showWelcomePage) setShowWelcomePage(false);
@@ -203,12 +203,12 @@ function AppContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleStartExploring = () => { 
+  const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-    setShowWelcomePage(false); 
+    setShowWelcomePage(false);
   };
 
-  const handleLoginBypass = async () => { 
+  const handleLoginBypass = async () => {
     const mockUid = `mock-bypass-user-${Date.now()}`;
     const mockUser: User = {
       uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)',
@@ -218,7 +218,7 @@ function AppContent() {
       getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }),
       reload: () => Promise.resolve(), toJSON: () => ({ uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }),
     };
-    setCurrentUser(mockUser); 
+    setCurrentUser(mockUser);
     setIsAuthenticated(true);
     setIsGuestMode(false); localStorage.removeItem(GUEST_MODE_KEY);
     setUserPhotoURL(mockUser.photoURL);
@@ -226,25 +226,25 @@ function AppContent() {
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
       fetchAndSetUserPreferences(fetchedMongoId);
-      if (!userRole) { 
+      if (!userRole) {
          const defaultRole = 'jobseeker';
-         await handleRoleSelect(defaultRole, fetchedMongoId); 
+         await handleRoleSelect(defaultRole, fetchedMongoId);
       }
-    } else { 
-      setUserRole('jobseeker'); 
+    } else {
+      setUserRole('jobseeker');
       setUserName(mockUser.displayName);
     }
 
-    setShowWelcomePage(false); 
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true'); 
-    if (!initialAuthCheckDone.current) { 
+    setShowWelcomePage(false);
+    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+    if (!initialAuthCheckDone.current) {
         initialAuthCheckDone.current = true;
         setIsInitialLoading(false);
     }
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   };
 
-  const handleGuestMode = () => { 
+  const handleGuestMode = () => {
     localStorage.setItem(GUEST_MODE_KEY, 'true');
     setIsGuestMode(true);
     setIsAuthenticated(false);
@@ -294,15 +294,15 @@ function AppContent() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); 
+      await signOut(auth);
       localStorage.removeItem(GUEST_MODE_KEY);
       localStorage.removeItem('recruiterProfileComplete');
-      localStorage.removeItem('mongoDbUserId'); 
+      localStorage.removeItem('mongoDbUserId');
       localStorage.removeItem(HAS_SEEN_WELCOME_KEY); // Ensure welcome page is shown next
-      setMongoDbUserId(null); 
-      setIsGuestMode(false); 
+      setMongoDbUserId(null);
+      setIsGuestMode(false);
       setUserPhotoURL(null);
-      setActiveTab('findJobs'); 
+      setActiveTab('findJobs');
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
       // onAuthStateChanged will now naturally lead to WelcomePage
     } catch (error) {
@@ -311,7 +311,7 @@ function AppContent() {
     }
   };
 
-  const handleLoginRequest = () => { 
+  const handleLoginRequest = () => {
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
@@ -386,8 +386,8 @@ function AppContent() {
     if (showWelcomePage) {
       return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />;
     }
-    
-    if (!isAuthenticated && !isGuestMode) { 
+
+    if (!isAuthenticated && !isGuestMode) {
       return (
         <div className="animate-fadeInPage" key="login_page_wrapper">
           <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />
@@ -449,6 +449,13 @@ function AppContent() {
           </Tabs>
         </main>
         <footer className="text-center p-4 text-sm text-muted-foreground border-t">
+          <div className="mb-4">
+            {/* TrustBox widget - Review Collector */}
+            <div className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6840338e0d1dfb766b149a4b" data-style-height="52px" data-style-width="100%">
+              <a href="https://www.trustpilot.com/review/studio--swipehire-3bscz.us-central1.hosted.app" target="_blank" rel="noopener">Trustpilot</a>
+            </div>
+            {/* End TrustBox widget */}
+          </div>
           <div className="flex justify-center items-center gap-x-4 mb-1">
               <span className="hover:text-primary cursor-pointer">Privacy Policy</span>
               <span className="hover:text-primary cursor-pointer">Terms of Service</span>
@@ -524,5 +531,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
-

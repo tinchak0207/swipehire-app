@@ -5,6 +5,7 @@ import { GeistMono } from 'geist/font/mono';
 import { Montserrat } from 'next/font/google'; // Import Montserrat
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import Script from 'next/script'; // Import Next.js Script component
 
 const geistSans = GeistSans;
 const geistMono = GeistMono;
@@ -30,6 +31,14 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta name="trustpilot-one-time-domain-verification-id" content="e5d7bcf9-aeda-4aa9-9def-923a0bf35fa1"/>
+        {/* TrustBox script */}
+        <Script
+          type="text/javascript"
+          src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
+          strategy="afterInteractive" // Loads after the page becomes interactive
+          async
+        />
+        {/* End TrustBox script */}
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased`}>
         {children}
