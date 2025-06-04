@@ -1,15 +1,23 @@
 
 // src/services/matchService.ts
-'use server'; // Or remove if not exclusively for server-side in Next.js 13+ App Router
+'use server'; 
 
 import type { Match, RecordLikePayload, RecordLikeResponse } from '@/lib/types';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL_FROM_ENV = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const CUSTOM_BACKEND_URL = CUSTOM_BACKEND_URL_FROM_ENV || 'http://localhost:5000';
 
 export async function recordLike(payload: RecordLikePayload): Promise<RecordLikeResponse> {
   try {
-    console.log("Frontend: Calling recordLike service with payload:", payload);
-    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/interactions/like`, {
+    const targetUrl = `${CUSTOM_BACKEND_URL}/api/interactions/like`;
+    
+    // Enhanced server-side logging for Server Action context
+    console.log(`[Server Action - recordLike] ENV NEXT_PUBLIC_CUSTOM_BACKEND_URL: ${CUSTOM_BACKEND_URL_FROM_ENV}`);
+    console.log(`[Server Action - recordLike] Effective CUSTOM_BACKEND_URL for fetch: ${CUSTOM_BACKEND_URL}`);
+    console.log(`[Server Action - recordLike] Target URL for fetch: ${targetUrl}`);
+    console.log("[Server Action - recordLike] Payload received:", JSON.stringify(payload));
+
+    const response = await fetch(targetUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -22,11 +30,11 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
     if (response.ok) {
       if (contentType && contentType.includes("application/json")) {
         const responseData = await response.json();
-        console.log("Frontend: recordLike service success response:", responseData);
+        console.log("[Server Action - recordLike] Service success response:", responseData);
         return responseData as RecordLikeResponse;
       } else {
         const textResponse = await response.text();
-        console.warn("Frontend: recordLike service success response was not JSON. Received text:", textResponse.substring(0, 200) + "...");
+        console.warn("[Server Action - recordLike] Service success response was not JSON. Received text:", textResponse.substring(0, 200) + "...");
         throw new Error(`Unexpected response format from server. Status: ${response.status}. Response: ${textResponse.substring(0,100)}...`);
       }
     } else {
@@ -36,18 +44,18 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
 
       if (contentType && contentType.includes("application/json")) {
         errorData = await response.json();
-        console.error("Frontend: recordLike service error (JSON response):", errorData);
+        console.error("[Server Action - recordLike] Service error (JSON response):", errorData);
         errorMessage = errorData.message || errorMessage;
       } else {
         const textError = await response.text();
-        console.error("Frontend: recordLike service error (Non-JSON response). Status:", response.status, "Body:", textError.substring(0, 500) + "...");
+        console.error("[Server Action - recordLike] Service error (Non-JSON response). Status:", response.status, "Body:", textError.substring(0, 500) + "...");
         
         const titleMatch = textError.match(/<title>(.*?)<\/title>/i);
         const h1Match = textError.match(/<h1>(.*?)<\/h1>/i);
-        const preMatch = textError.match(/<pre>(.*?)<\/pre>/is); // Check for <pre> tag content
+        const preMatch = textError.match(/<pre>(.*?)<\/pre>/is); 
 
         let extractedMessage = "Server returned non-JSON error.";
-        if (preMatch && preMatch[1]) { // Prefer <pre> content as it often contains the direct Express error
+        if (preMatch && preMatch[1]) { 
             extractedMessage = preMatch[1].trim();
         } else if (titleMatch && titleMatch[1]) {
             extractedMessage = titleMatch[1].trim();
@@ -59,7 +67,7 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
       throw new Error(errorMessage);
     }
   } catch (error) {
-    console.error("Error in recordLike service (catch block):", error);
+    console.error("[Server Action - recordLike] Error in service (catch block):", error);
     if (error instanceof Error) {
       throw error;
     } else {
@@ -70,12 +78,16 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
 
 export async function fetchMatches(userId: string): Promise<Match[]> {
   if (!userId) {
-    console.warn("fetchMatches called without a userId.");
+    console.warn("[Server Action - fetchMatches] Called without a userId.");
     return [];
   }
   try {
-    console.log("Frontend: Calling fetchMatches service for userId:", userId);
-    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/matches/${userId}`, {
+    const targetUrl = `${CUSTOM_BACKEND_URL}/api/matches/${userId}`;
+    console.log(`[Server Action - fetchMatches] ENV NEXT_PUBLIC_CUSTOM_BACKEND_URL: ${CUSTOM_BACKEND_URL_FROM_ENV}`);
+    console.log(`[Server Action - fetchMatches] Effective CUSTOM_BACKEND_URL for fetch: ${CUSTOM_BACKEND_URL}`);
+    console.log(`[Server Action - fetchMatches] Target URL for fetch: ${targetUrl}`);
+    
+    const response = await fetch(targetUrl, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
@@ -86,13 +98,13 @@ export async function fetchMatches(userId: string): Promise<Match[]> {
     const responseData = await response.json(); 
 
     if (!response.ok) {
-      console.error("Frontend: fetchMatches service error response:", responseData);
+      console.error("[Server Action - fetchMatches] Service error response:", responseData);
       throw new Error(responseData.message || `Failed to fetch matches. Status: ${response.status}`);
     }
-    console.log("Frontend: fetchMatches service success, count:", responseData.length);
+    console.log("[Server Action - fetchMatches] Service success, count:", responseData.length);
     return responseData as Match[];
   } catch (error) {
-    console.error("Error in fetchMatches service:", error);
+    console.error("[Server Action - fetchMatches] Error in service:", error);
     throw error;
   }
 }
