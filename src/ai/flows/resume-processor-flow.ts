@@ -9,11 +9,11 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
-import { generateVideoScript, type GenerateVideoScriptInput } from './video-script-generator'; // Assuming it exports this
+import { z } from 'zod';
+import { generateVideoScript, type GenerateVideoScriptInput } from './video-script-generator'; 
 
 // Define Zod enums matching those in video-script-generator.ts for validation
-const ToneAndStyleEnum = z.enum(["professional", "friendly", "technical", "sales"]);
+const ToneAndStyleEnum = z.enum(["professional", "friendly", "technical", "sales", "general"]);
 const IndustryTemplateEnum = z.enum(["technology", "creative", "finance", "education", "general"]);
 
 
@@ -36,22 +36,22 @@ export async function processResumeAndGenerateScript(input: ResumeProcessorInput
   return resumeProcessorFlow(input);
 }
 
-// Placeholder simple prompt for skill suggestion and summary
-// In a real scenario, this might be more sophisticated or use multiple prompts.
 const resumeAnalysisPrompt = ai.definePrompt({
     name: 'resumeAnalysisPrompt',
-    input: { schema: z.object({ resumeText: z.string() }) },
+    input: { schema: z.object({ resumeText: z.string(), desiredWorkStyle: z.string() }) }, // Added desiredWorkStyle
     output: { schema: z.object({
-        suggestedSkills: z.array(z.string()).describe("List 3-5 key skills or technologies apparent from the text."),
-        experienceSummaryForScript: z.string().describe("Summarize the core experience in 2-3 concise bullet points suitable for a video script introduction."),
+        suggestedSkills: z.array(z.string()).describe("List 3-5 key skills, technologies, or core competencies apparent from the resume text. If very little text is provided, list generic skills like 'Communication', 'Teamwork', 'Problem-solving'."),
+        experienceSummaryForScript: z.string().describe("Summarize the core experience from the resume text in 2-3 concise bullet points or a short paragraph (max 100 words) suitable for a video script introduction. Consider the desired work style: {{{desiredWorkStyle}}} when framing the summary."),
     })},
-    prompt: `Analyze the following resume text.
+    prompt: `Analyze the following resume text and desired work style.
 Based on this text:
-1. Identify and list 3-5 key skills, technologies, or core competencies mentioned.
-2. Provide a very concise summary of the candidate's core experience in 2-3 bullet points. This summary will be used to help generate a video script.
+1. Identify and list 3-5 key skills, technologies, or core competencies mentioned. If the text is too short or uninformative, suggest general professional skills like "Communication", "Teamwork", "Problem-solving", "Adaptability".
+2. Provide a concise summary of the candidate's core experience in 2-3 bullet points or a short paragraph (around 50-100 words). This summary will be used to help generate a video script. Tailor the summary slightly based on their desired work style: "{{desiredWorkStyle}}".
 
 Resume Text:
 {{{resumeText}}}
+
+Desired Work Style: {{{desiredWorkStyle}}}
 `,
 });
 
@@ -63,33 +63,35 @@ const resumeProcessorFlow = ai.defineFlow(
     outputSchema: ResumeProcessorOutputSchema,
   },
   async (input: ResumeProcessorInput) => {
-    // 1. Analyze resume text for skills and summary (simulated for now)
-    // In a real implementation, this would involve a more complex NLP/AI step.
-    // For now, we'll use a simple Genkit prompt.
-    
     let analysisOutput;
     try {
-        const { output } = await resumeAnalysisPrompt({ resumeText: input.resumeText });
-        if (!output) throw new Error("AI analysis of resume text failed.");
+        console.log("resumeProcessorFlow: Calling resumeAnalysisPrompt with resumeText length:", input.resumeText.length, "and work style:", input.desiredWorkStyle);
+        const { output } = await resumeAnalysisPrompt({ resumeText: input.resumeText, desiredWorkStyle: input.desiredWorkStyle });
+        if (!output || !output.suggestedSkills || !output.experienceSummaryForScript) {
+          console.warn("resumeProcessorFlow: AI analysis of resume text returned incomplete data. Using fallback.", output);
+          throw new Error("AI analysis of resume text failed to return expected structure.");
+        }
         analysisOutput = output;
+        console.log("resumeProcessorFlow: resumeAnalysisPrompt success. Skills:", analysisOutput.suggestedSkills.length, "Summary length:", analysisOutput.experienceSummaryForScript.length);
     } catch (error) {
-        console.error("Error during resumeAnalysisPrompt:", error);
-        // Fallback if analysis fails
+        console.error("Error during resumeAnalysisPrompt in resumeProcessorFlow:", error);
         analysisOutput = {
-            suggestedSkills: ["Problem Solving", "Teamwork", "Communication"], // Generic fallback
-            experienceSummaryForScript: input.resumeText.substring(0, 200) + (input.resumeText.length > 200 ? "..." : "") // Simple truncation
+            suggestedSkills: ["Communication", "Teamwork", "Problem Solving", "Adaptability"], // Generic fallback
+            experienceSummaryForScript: input.resumeText.length > 20 ? input.resumeText.substring(0, 200) + (input.resumeText.length > 200 ? "..." : "") : "Experienced professional seeking new opportunities." // Simple truncation or generic summary
         };
+        console.log("resumeProcessorFlow: Using fallback analysisOutput.");
     }
 
-    // 2. Generate video script using the (potentially summarized) experience
     const videoScriptInput: GenerateVideoScriptInput = {
-      experience: analysisOutput.experienceSummaryForScript, // Use summarized experience
+      experience: analysisOutput.experienceSummaryForScript,
       desiredWorkStyle: input.desiredWorkStyle,
       toneAndStyle: input.toneAndStyle,
       industryTemplate: input.industryTemplate,
     };
     
+    console.log("resumeProcessorFlow: Calling generateVideoScript with summary:", videoScriptInput.experience.substring(0, 50) + "...");
     const scriptResult = await generateVideoScript(videoScriptInput);
+    console.log("resumeProcessorFlow: generateVideoScript success. Script length:", scriptResult.script.length);
 
     return {
       suggestedSkills: analysisOutput.suggestedSkills,

@@ -1,16 +1,18 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input'; // Input will be for work style, etc.
+import { Input } from '@/components/ui/input'; 
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { ResumeData } from '@/components/pages/ResumeCreationFlowPage';
 import type { ResumeProcessorInput } from '@/ai/flows/resume-processor-flow';
 import { Loader2, Wand2, Info } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge'; // Added Badge import
+import { useToast } from '@/hooks/use-toast'; // Added useToast import
 
 interface Step1Props {
   initialData?: Partial<ResumeData>;
@@ -23,6 +25,7 @@ const toneAndStyleOptions: { value: ResumeProcessorInput['toneAndStyle'], label:
   { value: "friendly", label: "Relaxed & Friendly" },
   { value: "technical", label: "Technology-Oriented" },
   { value: "sales", label: "Sales-Oriented" },
+  { value: "general", label: "General (Versatile)"},
 ];
 
 const industryTemplateOptions: { value: ResumeProcessorInput['industryTemplate'], label: string }[] = [
@@ -39,9 +42,33 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
   const [desiredWorkStyle, setDesiredWorkStyle] = useState(initialData?.desiredWorkStyle || '');
   const [toneAndStyle, setToneAndStyle] = useState<ResumeProcessorInput['toneAndStyle']>(initialData?.toneAndStyle || 'professional');
   const [industryTemplate, setIndustryTemplate] = useState<ResumeProcessorInput['industryTemplate']>(initialData?.industryTemplate || 'general');
+  const { toast } = useToast();
+
+  useEffect(() => {
+    setResumeText(initialData?.resumeText || '');
+    setDesiredWorkStyle(initialData?.desiredWorkStyle || '');
+    setToneAndStyle(initialData?.toneAndStyle || 'professional');
+    setIndustryTemplate(initialData?.industryTemplate || 'general');
+  }, [initialData]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (resumeText.length < 50) {
+        toast({
+            title: "Resume Text Too Short",
+            description: "Please provide at least 50 characters for your resume/experience highlights.",
+            variant: "default" // Use default or warning, not destructive unless it's a critical error
+        });
+        return;
+    }
+    if (desiredWorkStyle.length < 5) {
+        toast({
+            title: "Work Style Too Short",
+            description: "Please describe your desired work style in at least 5 characters.",
+            variant: "default"
+        });
+        return;
+    }
     onSubmit({ resumeText, desiredWorkStyle, toneAndStyle, industryTemplate });
   };
 
@@ -83,7 +110,7 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
           required
           disabled={isProcessing}
         />
-        <p className="text-xs text-muted-foreground mt-1">Briefly describe your preferred work environment or style.</p>
+        <p className="text-xs text-muted-foreground mt-1">Minimum 5 characters. Briefly describe your preferred work environment or style.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -107,15 +134,15 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
         </div>
       </div>
       
-      {/* Placeholder for suggested skills if AI extracts them - for future iteration */}
       {initialData?.suggestedSkills && initialData.suggestedSkills.length > 0 && !isProcessing && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-md">
-            <h4 className="text-sm font-semibold text-green-700 mb-1">AI Suggested Skills (Editable in Profile):</h4>
+            <h4 className="text-sm font-semibold text-green-700 mb-1">AI Suggested Skills (from previous run):</h4>
             <div className="flex flex-wrap gap-1.5">
                 {initialData.suggestedSkills.map(skill => (
-                    <span key={skill} className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">{skill}</span>
+                    <Badge key={skill} variant="secondary" className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">{skill}</Badge>
                 ))}
             </div>
+            <p className="text-xs text-green-600 mt-1">These can be edited in your main profile later.</p>
         </div>
       )}
 
