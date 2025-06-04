@@ -6,7 +6,7 @@ import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole } from "@/lib/types";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon, FileText as ResumeIcon } from 'lucide-react'; // Added ResumeIcon
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
@@ -29,7 +29,7 @@ const ManageJobPostingsPage = dynamic(() => import('@/components/pages/ManageJob
 const StaffDiaryPage = dynamic(() => import('@/components/pages/StaffDiaryPage').then(mod => mod.StaffDiaryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(mod => mod.WelcomePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').then(mod => mod.MyProfilePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const ResumeCreationFlowPage = dynamic(() => import('@/components/pages/ResumeCreationFlowPage').then(mod => mod.ResumeCreationFlowPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+// ResumeCreationFlowPage is no longer directly linked in tabs, but AiToolsPage will import it.
 
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
@@ -340,7 +340,6 @@ function AppContent() {
 
   const jobseekerTabItems = [
     { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} key={`job-discovery-${userRole}-${mongoDbUserId}`} /> },
-    { value: "createResume", label: "Create Resume", icon: ResumeIcon, component: <ResumeCreationFlowPage isGuestMode={isGuestMode} /> },
     { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage isGuestMode={isGuestMode} /> },
     { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestMode} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} /> },
     ...baseTabItems,
@@ -533,5 +532,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
     
