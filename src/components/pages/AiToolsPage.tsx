@@ -3,14 +3,14 @@
 
 import { useState, useEffect } from 'react';
 import type { UserRole } from '@/lib/types'; 
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction } from 'lucide-react';
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle } from 'lucide-react'; // Added PlayCircle
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge"; 
 import { cn } from '@/lib/utils';
-import { ResumeCreationFlowPage } from '@/components/pages/ResumeCreationFlowPage'; // Import the flow page
+import { ResumeCreationFlowPage } from '@/components/pages/ResumeCreationFlowPage';
 
 type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor';
 
@@ -18,7 +18,6 @@ interface AiTool {
   key: ToolKey;
   title: string;
   Icon: React.ElementType;
-  // Component: React.ElementType; // Removed as we launch the flow page
   bgClass: string;
   description: string;
 }
@@ -28,7 +27,6 @@ const aiToolsData: AiTool[] = [
     key: 'script',
     title: 'Write a Video Script',
     Icon: Wand2,
-    // Component: VideoScriptGenerator, // Removed
     bgClass: 'ai-tool-bg-script',
     description: "Get a tailored script for your video resume.",
   },
@@ -36,7 +34,6 @@ const aiToolsData: AiTool[] = [
     key: 'avatar',
     title: 'Generate an Avatar',
     Icon: UserSquare2,
-    // Component: AvatarGenerator, // Removed
     bgClass: 'ai-tool-bg-avatar',
     description: "Create a professional virtual avatar.",
   },
@@ -44,7 +41,6 @@ const aiToolsData: AiTool[] = [
     key: 'recorder',
     title: 'Record Your Video',
     Icon: Camera,
-    // Component: VideoRecorderUI, // Removed
     bgClass: 'ai-tool-bg-recorder',
     description: "Use our interface to record your video resume.",
   },
@@ -52,7 +48,6 @@ const aiToolsData: AiTool[] = [
     key: 'editor',
     title: 'Rate Your Video',
     Icon: Clapperboard,
-    // Component: VideoEditor, // Removed
     bgClass: 'ai-tool-bg-editor',
     description: "Get AI feedback and suggestions on your video.",
   },
@@ -78,10 +73,9 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     }
   }, [isGuestMode]);
 
-  const handleToolSelect = (tool: AiTool) => {
+  const handleLaunchFlow = () => {
     if (isGuestMode) return; 
     setShowResumeCreationFlow(true);
-    // Potentially pass tool.key or tool.title to ResumeCreationFlowPage if it needs to know the entry point
   };
 
   const handleBackToGrid = () => {
@@ -113,7 +107,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
             <li><strong>Record Video:</strong> Our built-in recorder makes it easy to capture your video resume. Practice and re-record until you're happy.</li>
             <li><strong>Rate Video:</strong> Get instant AI feedback on your recorded video. Improve your delivery, presentation, and overall impact.</li>
           </ul>
-          <p className="mt-2">Select any tool below to begin crafting a standout video profile!</p>
+          <p className="mt-2">Click the button below to start the guided Resume Creation Flow!</p>
         </>
       );
     } else if (currentUserRole === 'recruiter') {
@@ -139,7 +133,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
           <li><strong>Record Video:</strong> Easily record videos using our interface.</li>
           <li><strong>Rate Video:</strong> Get AI feedback on your recordings.</li>
         </ul>
-        <p className="mt-2">Click any tool card below to start the guided Resume Creation Flow!</p>
+        <p className="mt-2">Click the button below to start the guided Resume Creation Flow!</p>
       </>
     );
   };
@@ -174,10 +168,10 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
             <Button
               onClick={handleBackToGrid}
               variant="outline"
-              className={cn("mb-6 text-sm self-start")} // Standard outline button
+              className={cn("mb-6 text-sm self-start")} 
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to AI Tools
+              Back to AI Tools Overview
             </Button>
             <div className="flex-grow relative">
                 <ResumeCreationFlowPage isGuestMode={isGuestMode} />
@@ -193,44 +187,45 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                  "AI Video & Profile Tools"}
               </h1>
               <p className="text-md text-muted-foreground mt-2 max-w-2xl mx-auto">
-                {currentUserRole === 'jobseeker' ? "Click any tool to start the guided Resume Creation Flow." : "Explore the tools candidates use to create their profiles."}
+                {currentUserRole === 'jobseeker' ? "Use our guided flow to craft a compelling video resume using the tools showcased below." : "These are the tools job seekers use. Recruiters, your specialized tools are coming soon!"}
               </p>
+            </div>
+
+            <div className="my-8 text-center">
+              <Button 
+                onClick={handleLaunchFlow} 
+                size="lg" 
+                className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-8 py-3 subtle-button-hover shadow-lg"
+                disabled={isGuestMode}
+              >
+                {isGuestMode ? <Lock className="mr-2 h-5 w-5" /> : <PlayCircle className="mr-2 h-5 w-5" />}
+                {isGuestMode ? "Sign In to Create" : "Start Your AI-Powered Video Resume"}
+              </Button>
               {isGuestMode && (
-                <p className="text-md text-red-500 mt-2 font-semibold">
-                  AI Tools are locked in Guest Mode. Please sign in or register to use them.
+                <p className="text-sm text-red-500 mt-2 font-semibold">
+                  The Resume Creation Flow is locked in Guest Mode.
                 </p>
               )}
             </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-4xl mx-auto w-full">
               {aiToolsData.map((tool) => (
-                <TooltipProvider key={tool.key}>
-                  <Tooltip delayDuration={isGuestMode ? 0 : 300}>
-                    <TooltipTrigger asChild>
-                      <Card
-                        onClick={() => handleToolSelect(tool)}
-                        className={cn(
-                          "cursor-pointer hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] relative",
-                          tool.bgClass,
-                          isGuestMode && "opacity-60 border-2 border-red-400 cursor-not-allowed hover:transform-none"
-                        )}
-                        aria-disabled={isGuestMode}
-                        tabIndex={isGuestMode ? -1 : 0}
-                      >
-                        {isGuestMode && <GuestLockOverlay message="Sign In to Use This Tool" />}
-                        <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
-                        <CardTitle className="text-xl sm:text-2xl font-bold text-center">{tool.title}</CardTitle>
-                        <CardContent className="text-center p-0 mt-2 sm:mt-3">
-                          <p className="text-sm sm:text-base text-white/80">{tool.description}</p>
-                        </CardContent>
-                      </Card>
-                    </TooltipTrigger>
-                    {isGuestMode && (
-                      <TooltipContent side="top" className="bg-red-500 text-white border-red-600">
-                        <p>Sign in to unlock this AI tool</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
+                <Card
+                  key={tool.key}
+                  // Remove onClick and interactive props
+                  className={cn(
+                    "hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] relative",
+                    tool.bgClass,
+                    isGuestMode && "opacity-60 border-2 border-red-400 cursor-default hover:transform-none" // Style for guest mode, non-interactive
+                  )}
+                >
+                  {isGuestMode && <GuestLockOverlay message="Tool Preview (Sign In to Use)" />}
+                  <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
+                  <CardTitle className="text-xl sm:text-2xl font-bold text-center">{tool.title}</CardTitle>
+                  <CardContent className="text-center p-0 mt-2 sm:mt-3">
+                    <p className="text-sm sm:text-base text-white/80">{tool.description}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
@@ -286,4 +281,3 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     </div>
   );
 }
-
