@@ -1,6 +1,5 @@
 "use client"; // Make RootLayout a client component to use hooks
 
-import type { Metadata } from 'next';
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { Montserrat } from 'next/font/google';
@@ -25,10 +24,11 @@ const montserrat = Montserrat({
   variable: '--font-montserrat',
 });
 
-export const metadata: Metadata = {
-  title: 'SwipeHire',
-  description: 'AI-Powered Video Resumes and Tinder-Style Recruitment',
-};
+// Removed metadata export as this is a client component
+// export const metadata: Metadata = {
+//   title: 'SwipeHire',
+//   description: 'AI-Powered Video Resumes and Tinder-Style Recruitment',
+// };
 
 export default function RootLayout({
   children,
@@ -58,6 +58,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* You can add static meta tags directly here if needed, or manage dynamically */}
+        <title>SwipeHire</title>
+        <meta name="description" content="AI-Powered Video Resumes and Tinder-Style Recruitment" />
         <meta name="trustpilot-one-time-domain-verification-id" content="e5d7bcf9-aeda-4aa9-9def-923a0bf35fa1"/>
         <Script
           type="text/javascript"
