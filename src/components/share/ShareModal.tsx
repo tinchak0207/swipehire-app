@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -15,11 +16,12 @@ interface ShareModalProps {
   title: string;
   itemName: string;
   itemDescription?: string;
-  itemType: string; // e.g., "profile", "job opportunity"
-  shareUrl?: string; // Specific URL to share, if different from generic app link
+  itemType: string; 
+  shareUrl?: string; 
+  qrCodeLogoUrl?: string; // New optional prop for the logo in QR code
 }
 
-const BITLY_URL = "bit.ly/swipehire"; // Your specific Bitly URL
+const BITLY_URL = "bit.ly/swipehire"; 
 
 export function ShareModal({
   isOpen,
@@ -29,6 +31,7 @@ export function ShareModal({
   itemDescription,
   itemType,
   shareUrl,
+  qrCodeLogoUrl, // Use the new prop
 }: ShareModalProps) {
   const { toast } = useToast();
   const [appOrigin, setAppOrigin] = useState('');
@@ -40,8 +43,8 @@ export function ShareModal({
     }
   }, []);
 
-  const urlToShareWithUser = shareUrl || appOrigin || `https://swipehire-app.com`; // Use specific shareUrl if provided
-  const urlToDisplay = BITLY_URL; // Always display Bitly for simplicity, but share specific if available
+  const urlToShareWithUser = shareUrl || appOrigin || `https://swipehire-app.com`; 
+  const urlToDisplay = BITLY_URL; 
   const qrCodeValue = urlToShareWithUser;
 
   const shareTextGeneric = `Check out this ${itemType} on SwipeHire: ${itemName}${itemDescription ? ` (${itemDescription})` : ''}. Visit ${urlToDisplay} or scan the QR code. Direct link: ${urlToShareWithUser}`;
@@ -79,8 +82,8 @@ export function ShareModal({
       try {
         const canvas = await html2canvas(shareCardRef.current, {
           useCORS: true,
-          backgroundColor: '#ffffff', // Ensure background is white for PNG
-          scale: 2, // Increase scale for better resolution
+          backgroundColor: '#ffffff', 
+          scale: 2, 
         });
         const image = canvas.toDataURL('image/png');
         const link = document.createElement('a');
@@ -118,9 +121,9 @@ export function ShareModal({
             ref={shareCardRef}
             id="shareCardContent"
             className="p-6 rounded-lg border bg-background shadow-md overflow-hidden text-center space-y-3"
-            style={{ width: '380px', margin: '0 auto' }} // Fixed width for consistent image generation
+            style={{ width: '380px', margin: '0 auto' }} 
           >
-            <FileVideo2 className="h-12 w-12 text-primary mx-auto mb-2" /> {/* App Icon */}
+            <FileVideo2 className="h-12 w-12 text-primary mx-auto mb-2" /> 
             <h3 className="text-xl font-bold text-foreground truncate" title={itemName}>{itemName}</h3>
             {itemDescription && <p className="text-sm text-muted-foreground truncate" title={itemDescription}>{itemDescription}</p>}
             
@@ -128,14 +131,14 @@ export function ShareModal({
               <QRCodeStylized
                 value={qrCodeValue}
                 size={120}
-                level="M" // Error correction level
-                bgColor="#ffffff" // QR code background
-                fgColor="#1E293B" // QR code foreground (dark slate)
-                imageSettings={qrCodeValue ? {
-                    src: "/assets/logo-favicon.png", // Path to your small app logo in /public/assets/
+                level="M" 
+                bgColor="#ffffff" 
+                fgColor="#1E293B" 
+                imageSettings={qrCodeValue && qrCodeLogoUrl ? { 
+                    src: qrCodeLogoUrl,
                     height: 28,
                     width: 28,
-                    excavate: true, // Cut out space for logo
+                    excavate: true, 
                 } : undefined}
               />
             </div>
@@ -178,3 +181,4 @@ export function ShareModal({
   );
 }
     
+

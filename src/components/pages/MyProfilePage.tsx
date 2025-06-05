@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
@@ -17,7 +18,7 @@ import ProfileCard from '@/components/cards/ProfileCard';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CustomFileInput } from '@/components/ui/custom-file-input';
-import { ShareModal } from '@/components/share/ShareModal'; // Added ShareModal import
+import { ShareModal } from '@/components/share/ShareModal';
 
 const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
@@ -75,8 +76,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
-  const [isShareProfileModalOpen, setIsShareProfileModalOpen] = useState(false); // New state for share modal
-  const [profileVisibility, setProfileVisibility] = useState<string>("public"); // New state for privacy
+  const [isShareProfileModalOpen, setIsShareProfileModalOpen] = useState(false); 
+  const [profileVisibility, setProfileVisibility] = useState<string>("public"); 
 
 
   const { toast } = useToast();
@@ -108,7 +109,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         setSalaryExpectationMin(fullBackendUser.profileSalaryExpectationMin?.toString() || '');
         setSalaryExpectationMax(fullBackendUser.profileSalaryExpectationMax?.toString() || '');
         setSelectedCardTheme(fullBackendUser.profileCardTheme || 'default');
-        // Note: profileVisibility would ideally also be loaded from fullBackendUser.preferences if stored there
+        
         setIsFetchingProfile(false);
     } else if (mongoDbUserId) { 
         const loadProfile = async () => {
@@ -132,7 +133,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                     setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
                     setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
                     setSelectedCardTheme(userData.profileCardTheme || 'default');
-                    // setProfileVisibility(userData.preferences?.profileVisibility || 'public'); // Conceptual
+                    
                 } else {
                      toast({ title: "Profile Not Found", description: "Could not load your profile. Please fill in details.", variant: "default"});
                 }
@@ -169,7 +170,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         setAvatarPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-      toast({ title: "Avatar Preview Updated", description: "Click 'Update &amp; Publish My Profile' to save changes including the new avatar." });
+      toast({ title: "Avatar Preview Updated", description: "Click 'Update & Publish My Profile' to save changes including the new avatar." });
     } else {
       setAvatarFile(null);
       setAvatarPreview(null);
@@ -279,7 +280,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileSalaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin, 10) : undefined,
       profileSalaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax, 10) : undefined,
       profileCardTheme: selectedCardTheme,
-      // preferences: { ...(fullBackendUser?.preferences || {}), profileVisibility } // Conceptual: Save privacy setting
+      
     };
 
     try {
@@ -296,8 +297,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
       if (savedUserResponse.user && savedUserResponse.user.profileCardTheme) setSelectedCardTheme(savedUserResponse.user.profileCardTheme);
       setAvatarFile(null); setAvatarPreview(null); 
-      localStorage.setItem('currentUserJobSeekerProfile', JSON.stringify({ id: mongoDbUserId, name: fullBackendUser?.name || "User", role: profileHeadline, avatarUrl: finalAvatarUrl })); // Update local cache
-      toast({ title: 'Profile Updated &amp; Published!', description: 'Your profile has been saved to the backend and is visible to recruiters.'});
+      localStorage.setItem('currentUserJobSeekerProfile', JSON.stringify({ id: mongoDbUserId, name: fullBackendUser?.name || "User", role: profileHeadline, avatarUrl: finalAvatarUrl })); 
+      toast({ title: 'Profile Updated & Published!', description: 'Your profile has been saved to the backend and is visible to recruiters.'});
     } catch (error: any) {
       console.error("Error saving profile:", error);
       toast({ title: 'Error Saving Profile', description: error.message || "An unknown error occurred while saving to backend.", variant: "destructive"});
@@ -639,7 +640,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             />
           </div>
           
-           {/* Privacy Control Section (Conceptual) */}
+          
           <div className="space-y-1 pt-4 border-t">
             <Label htmlFor="profileVisibility" className="text-base flex items-center">
               <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" /> Profile Visibility (Conceptual)
@@ -667,12 +668,12 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           </div>
           <Button onClick={handleSaveProfile} size="lg" disabled={isLoading || !mongoDbUserId}>
             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-            Update &amp; Publish My Profile
+            Update & Publish My Profile
           </Button>
         </CardFooter>
       </Card>
 
-      {/* Profile Engagement Statistics (Conceptual) */}
+      
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
@@ -716,6 +717,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         itemDescription={profileHeadline || "Check out my profile on SwipeHire!"}
         itemType="profile"
         shareUrl={mongoDbUserId ? `${appOriginForShare}/user/${mongoDbUserId}` : undefined}
+        qrCodeLogoUrl="/assets/logo-favicon.png" 
       />
     </div>
   );

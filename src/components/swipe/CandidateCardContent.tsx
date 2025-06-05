@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput, UserAIWeights, RecruiterPerspectiveWeights } from '@/lib/types';
@@ -17,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, Di
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from '@/components/ui/progress';
-import { ShareModal } from '@/components/share/ShareModal'; // Added ShareModal import
+import { ShareModal } from '@/components/share/ShareModal';
 
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -61,7 +62,7 @@ function CandidateDetailsModal({
     activeAccordionItem,
     setActiveAccordionItem,
     onFetchAiAnalysis,
-    onShareProfile, // New prop
+    onShareProfile, 
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -74,7 +75,7 @@ function CandidateDetailsModal({
     activeAccordionItem: string | undefined;
     setActiveAccordionItem: (value: string | undefined) => void;
     onFetchAiAnalysis: () => void;
-    onShareProfile: () => void; // New prop
+    onShareProfile: () => void; 
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
@@ -386,7 +387,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [aiRecruiterReasoning, setAiRecruiterReasoning] = useState<string | null>(null);
   const [aiRecruiterWeightedScores, setAiRecruiterWeightedScores] = useState<RecruiterWeightedScores | null>(null);
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
-  const [isShareCandidateModalOpen, setIsShareCandidateModalOpen] = useState(false); // State for ShareModal for candidate
+  const [isShareCandidateModalOpen, setIsShareCandidateModalOpen] = useState(false); 
 
   const isThemedCard = !!(candidate.cardTheme && candidate.cardTheme !== 'default');
   const isProfessionalDarkTheme = candidate.cardTheme === 'professional-dark';
@@ -603,7 +604,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 if (action !== 'share_trigger') {
                     handleLocalSwipeAction(action as 'like' | 'pass');
                 } else {
-                    openShareModalForCandidate(); // Directly open modal for share trigger
+                    openShareModalForCandidate(); 
                 }
             } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
                 toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
@@ -628,7 +629,15 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
       </Tooltip></TooltipProvider>
     );
   };
-  const appOriginForShare = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com';
+  const [appOriginForShare, setAppOriginForShare] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setAppOriginForShare(window.location.origin);
+    } else {
+      setAppOriginForShare('https://swipehire-app.com'); 
+    }
+  }, []);
 
 
   return (
@@ -720,7 +729,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         activeAccordionItem={activeAccordionItemModal}
         setActiveAccordionItem={setActiveAccordionItemModal}
         onFetchAiAnalysis={fetchAiRecruiterAnalysis}
-        onShareProfile={openShareModalForCandidate} // Pass handler to open share modal
+        onShareProfile={openShareModalForCandidate} 
       />
       <ShareModal
         isOpen={isShareCandidateModalOpen}
@@ -730,6 +739,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         itemDescription={candidate.role}
         itemType="candidate profile"
         shareUrl={candidate.id ? `${appOriginForShare}/candidate/${candidate.id}` : undefined}
+        qrCodeLogoUrl="/assets/logo-favicon.png" 
       />
     </>
   );
