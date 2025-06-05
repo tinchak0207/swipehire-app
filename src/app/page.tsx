@@ -63,13 +63,11 @@ function AppContent() {
   const [profileSetupStep, setProfileSetupStep] = useState<'role' | 'recruiter_onboarding' | 'jobseeker_profile' | null>(null);
   const hasScrolledAndModalTriggeredRef = useRef(false);
 
-  // New state and refs for managing initial load and WelcomePage display
-  const [showWelcomePage, setShowWelcomePage] = useState(false);
+  const [showWelcomePage, setShowWelcomePage] = useState(false); // Initialize to false
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const initialAuthStateReceived = useRef(false);
   const initialRedirectResultProcessed = useRef(false);
 
-  // --- Notification Banner Logic ---
   useEffect(() => {
     if (preferences.notificationChannels?.inAppBanner && !isGuestMode) {
       const latestUnreadUrgent = mockNotifications
@@ -89,7 +87,6 @@ function AppContent() {
     localStorage.setItem(DISMISSED_BANNER_NOTIF_ID_KEY, notificationId);
   };
 
-  // --- User Fetching and Profile Setup Logic ---
   const fetchUserFromMongo = useCallback(async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`);
@@ -119,7 +116,6 @@ function AppContent() {
     setUserRole(null); setUserName(firebaseDisplayName || firebaseEmail); setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY); return null;
   }, [setMongoDbUserId, toast]);
 
-
   const checkAndSetLoadingComplete = useCallback(() => {
     if (initialAuthStateReceived.current && initialRedirectResultProcessed.current) {
       const finalUser = auth.currentUser;
@@ -127,19 +123,24 @@ function AppContent() {
       const welcomeSeen = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
 
       if (finalUser) {
-        setShowWelcomePage(false);
+        setIsAuthenticated(true); // Ensure this is set if user exists
+        setIsGuestMode(false);    // Ensure guest mode is off
+        setShowWelcomePage(false); // Authenticated user should not see welcome page
       } else if (guestActive) {
-        setShowWelcomePage(false);
-         if (!isGuestMode) { // Ensure guest mode state is properly set if derived from localStorage
-            setIsGuestMode(true); setIsAuthenticated(false);
+        setIsAuthenticated(false); // Not authenticated
+        setIsGuestMode(true);     // Is guest
+        setShowWelcomePage(false); // Guest has bypassed welcome
+         if (!isGuestMode) { 
             setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
             setUserRole(null); setUserName('Guest User'); setUserPhotoURL(null);
             setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
         }
-      } else {
-        setShowWelcomePage(!welcomeSeen);
-        // Ensure auth states are cleared if no user and not guest
-        setCurrentUser(null); setIsAuthenticated(false); setIsGuestMode(false);
+      } else { // No Firebase user, not guest
+        setIsAuthenticated(false);
+        setIsGuestMode(false);
+        setShowWelcomePage(!welcomeSeen); // Show welcome if not seen
+        // Clear auth states if no user and not guest
+        setCurrentUser(null);
         setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
       }
       setIsInitialLoading(false);
@@ -147,15 +148,14 @@ function AppContent() {
   }, [isGuestMode, setMongoDbUserId]);
 
   useEffect(() => {
-    setIsInitialLoading(true); // Explicitly set to true on mount
+    setIsInitialLoading(true);
     initialAuthStateReceived.current = false;
     initialRedirectResultProcessed.current = false;
 
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setCurrentUser(user);
-        setIsAuthenticated(true);
-        setIsGuestMode(false);
+        // setIsAuthenticated(true) and setIsGuestMode(false) will be handled by checkAndSetLoadingComplete
         localStorage.removeItem(GUEST_MODE_KEY);
         setUserPhotoURL(user.photoURL);
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
@@ -163,8 +163,7 @@ function AppContent() {
           await fetchAndSetUserPreferences(fetchedMongoId);
         }
       } else {
-        // If no user from onAuthStateChanged, still wait for getRedirectResult
-        // The final decision is made in checkAndSetLoadingComplete
+        // No user from onAuthStateChanged, state clearing will be handled by checkAndSetLoadingComplete
       }
       initialAuthStateReceived.current = true;
       checkAndSetLoadingComplete();
@@ -174,7 +173,6 @@ function AppContent() {
       .then(async (result) => {
         if (result?.user) {
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${result.user.displayName || result.user.email}!` });
-          // onAuthStateChanged will handle user state updates.
         }
       })
       .catch((error) => {
@@ -187,11 +185,9 @@ function AppContent() {
       });
 
     return () => unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchUserFromMongo, fetchAndSetUserPreferences, toast, checkAndSetLoadingComplete]);
 
 
-  // Scroll listener for profile setup modal
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -206,7 +202,7 @@ function AppContent() {
         if (step) {
           setProfileSetupStep(step); setIsProfileSetupModalOpen(true);
           hasScrolledAndModalTriggeredRef.current = true;
-        } else { // Profile seems complete for the role, mark as triggered to prevent re-check on this session
+        } else { 
             hasScrolledAndModalTriggeredRef.current = true;
         }
       }
@@ -220,7 +216,7 @@ function AppContent() {
       if (needsSetup && !hasScrolledAndModalTriggeredRef.current) {
         window.addEventListener('scroll', handleScroll, { once: true });
         return () => window.removeEventListener('scroll', handleScroll);
-      } else if (!needsSetup) { // If setup is not needed, mark as triggered so listener is not added.
+      } else if (!needsSetup) { 
           hasScrolledAndModalTriggeredRef.current = true;
       }
     }
@@ -230,7 +226,7 @@ function AppContent() {
    useEffect(() => {
     if (isAuthenticated && !isGuestMode && fullBackendUser && !preferences.loadingPreferences) {
       if (fullBackendUser.selectedRole === 'recruiter' && !fullBackendUser.companyProfileComplete && pathname !== '/recruiter-onboarding') {
-        if (!isProfileSetupModalOpen) {
+        if (!isProfileSetupModalOpen) { // Only redirect if modal isn't already trying to handle it
             router.push('/recruiter-onboarding');
         }
       }
@@ -246,8 +242,8 @@ function AppContent() {
 
   const handleStartExploring = useCallback(() => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-    setShowWelcomePage(false);
-    // After this, AppContent re-renders. Since user is not auth/guest, LoginPage will show.
+    setShowWelcomePage(false); // This will hide WelcomePage
+    // AppContent will re-render. Since user is not auth/guest, LoginPage will show.
   }, []);
 
   const handleLoginBypass = useCallback(async () => {
@@ -257,10 +253,9 @@ function AppContent() {
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) { await fetchAndSetUserPreferences(fetchedMongoId); }
     setShowWelcomePage(false); localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-    // Ensure loading state is correctly handled if bypass circumvents normal flow
-    if (initialRedirectResultProcessed.current && initialAuthStateReceived.current) setIsInitialLoading(false);
+    if (isInitialLoading) setIsInitialLoading(false); // Ensure loading is false after bypass
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
-  }, [fetchUserFromMongo, fetchAndSetUserPreferences, toast]);
+  }, [fetchUserFromMongo, fetchAndSetUserPreferences, toast, isInitialLoading]);
 
   const activateGuestMode = useCallback(() => {
     localStorage.setItem(GUEST_MODE_KEY, 'true');
@@ -269,9 +264,10 @@ function AppContent() {
     setUserRole(null); setUserName('Guest User'); setUserPhotoURL(null);
     setShowWelcomePage(false);
     setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
-    hasScrolledAndModalTriggeredRef.current = true; // No profile setup for guests
+    hasScrolledAndModalTriggeredRef.current = true; 
+    if (isInitialLoading) setIsInitialLoading(false); // Ensure loading is false
     toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
-  }, [setMongoDbUserId, toast]);
+  }, [setMongoDbUserId, toast, isInitialLoading]);
 
   const handleGuestMode = useCallback(() => {
     activateGuestMode();
@@ -286,25 +282,25 @@ function AppContent() {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), });
         if (!response.ok) { const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`})); throw new Error(errorData.message); }
         const savedUser = await response.json();
-        setUserRole(role);
+        setUserRole(role); // Update local state immediately
         localStorage.setItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY, (role === 'recruiter' && savedUser.user?.companyProfileComplete) ? 'true' : 'false');
         await fetchAndSetUserPreferences(idToUse); // Re-fetch to get updated fullBackendUser
 
         if (role === 'recruiter' && !savedUser.user?.companyProfileComplete) {
-          // Modal logic will handle the next step, or direct navigation if already on main page
+          // If modal was open, it will close. Redirect will occur from useEffect.
+          toast({ title: "Role Updated to Recruiter", description: "Please complete your company profile next.", duration: 5000});
           if(pathname !== '/recruiter-onboarding') router.push('/recruiter-onboarding');
         } else if (role === 'jobseeker' && (!savedUser.user?.profileHeadline || !savedUser.user?.profileExperienceSummary)) {
-          setActiveTab("myProfile");
-          toast({ title: "Complete Your Profile", description: "Help recruiters find you by completing your professional profile!", duration: 7000 });
+          setActiveTab("myProfile"); // Switch to profile tab
+          toast({ title: "Role Updated to Job Seeker", description: "Help recruiters find you by completing your professional profile!", duration: 7000 });
         } else {
           toast({ title: "Role Selected", description: `You are now a ${role}.` });
         }
       } catch (error: any) { console.error("Error saving role:", error); toast({ title: "Error Saving Role", description: error.message || "Could not save role selection.", variant: "destructive" }); }
     }
-    // Ensure UI reflects choice even if backend fails, for modal dismissal
-    if (!isGuestMode) setUserRole(role);
-    setIsProfileSetupModalOpen(false); // Close modal after role selection
-    hasScrolledAndModalTriggeredRef.current = true; // Mark setup as initiated
+    if (!isGuestMode) setUserRole(role); // Update UI even if backend fails, for modal dismissal
+    setIsProfileSetupModalOpen(false); 
+    hasScrolledAndModalTriggeredRef.current = true; 
   };
 
 
@@ -315,24 +311,27 @@ function AppContent() {
       localStorage.removeItem('mongoDbUserId'); localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
       localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
       setMongoDbUserId(null); setIsGuestMode(false); setUserPhotoURL(null); setActiveTab('findJobs');
-      hasScrolledAndModalTriggeredRef.current = false; // Reset for next login
-      initialAuthStateReceived.current = false; initialRedirectResultProcessed.current = false; // Reset initial load flags
-      setShowWelcomePage(true); // Explicitly set to show welcome page logic again
+      hasScrolledAndModalTriggeredRef.current = false; 
+      initialAuthStateReceived.current = false; initialRedirectResultProcessed.current = false; 
+      // Critical: These ensure the flow restarts correctly
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+      setShowWelcomePage(true); // Force re-evaluation which should show WelcomePage
       setIsInitialLoading(true); // Re-trigger initial loading sequence on logout
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) { console.error("Error signing out:", error); toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" }); }
   };
 
-  const handleLoginRequest = () => { // Called from AppHeader when guest clicks "Login"
+  const handleLoginRequest = () => { 
     localStorage.removeItem(GUEST_MODE_KEY);
     setIsGuestMode(false);
-    // Critical: to force WelcomePage or LoginPage logic again, ensure HAS_SEEN_WELCOME_KEY and auth state trigger it
-    localStorage.removeItem(HAS_SEEN_WELCOME_KEY); // Allow WelcomePage to show again if they haven't seen it
-    setShowWelcomePage(true); // Trigger re-evaluation
-    setIsInitialLoading(true); // And re-trigger loading sequence
+    localStorage.removeItem(HAS_SEEN_WELCOME_KEY); 
+    // Critical: These ensure the flow restarts correctly
+    setCurrentUser(null);
+    setIsAuthenticated(false);
+    setShowWelcomePage(true); // Force re-evaluation
+    setIsInitialLoading(true); 
     initialAuthStateReceived.current = false; initialRedirectResultProcessed.current = false;
-    // The main useEffect will now run checkAndSetLoadingComplete, which will find no user, guestActive false,
-    // and HAS_SEEN_WELCOME_KEY false, thus showing WelcomePage.
   };
 
   const baseTabItems = [
@@ -358,8 +357,7 @@ function AppContent() {
         setActiveTab(defaultTabForCurrentContext);
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole, isGuestMode, isAuthenticated, isInitialLoading]); // Removed activeTab
+  }, [userRole, isGuestMode, isAuthenticated, isInitialLoading, activeTab, jobseekerTabItems, recruiterTabItems]);
 
   const mainContentRender = () => {
     if (isInitialLoading || (!isGuestMode && isAuthenticated && preferences.loadingPreferences)) {
@@ -369,6 +367,7 @@ function AppContent() {
     if (showWelcomePage) { return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />; }
     if (!isAuthenticated && !isGuestMode) { return ( <div className="animate-fadeInPage" key="login_page_wrapper"> <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} /> </div> ); }
 
+    // Main App Content
     const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
     return (
       <div className={mainAppContainerClasses}>
@@ -437,5 +436,5 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
+    
     
