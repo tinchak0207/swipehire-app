@@ -14,13 +14,14 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing } from 'lucide-react'; // Added notification icons
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown } from 'lucide-react'; // Added HeartHandshake and ChevronDown
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; // Added Accordion
 import { NotificationHistoryList } from '@/components/notifications/NotificationHistoryList'; // Added NotificationHistoryList
+import { NotificationItemType } from '@/lib/types'; // Ensure this is imported
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
