@@ -266,7 +266,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 <div className="text-center mb-16" data-aos="fade-up">
                     <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading flex items-center justify-center">
                       <Gift className="mr-3 h-10 w-10 text-green-500" />
-                      SwipeHire is Now <span className="text-green-500 underline decoration-wavy decoration-green-500/70 underline-offset-4 ml-2">Completely Free!</span>
+                      SwipeHire is Now <span className="text-green-500 underline decoration-wavy decoration-green-500/70 underline-offset-4 ml-2">completely free for job seekers!</span>
                     </h2>
                     <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
                       That's right! All features, for everyone. We believe in democratizing access to powerful hiring and job-seeking tools.
