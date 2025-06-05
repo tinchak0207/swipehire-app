@@ -5,13 +5,17 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Video, Zap, Lightbulb, HelpCircle, CameraOff, CheckCircle, RefreshCw, PlayCircle, TimerIcon, Download, Film, Save, Loader2 } from 'lucide-react'; // Added Save, Loader2
+import { Video, Zap, Lightbulb, HelpCircle, CameraOff, CheckCircle, RefreshCw, PlayCircle, TimerIcon, Download, Film, Save, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
+import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-export function VideoRecorderUI() {
+interface VideoRecorderUIProps {
+  onRecordingComplete?: (videoDataUrl: string) => void; // New prop
+}
+
+export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const [recordedChunks, setRecordedChunks] = useState<Blob[]>([]);
@@ -19,12 +23,12 @@ export function VideoRecorderUI() {
   
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [isRecordingComplete, setIsRecordingComplete] = useState(false);
+  const [isRecordingCompleteState, setIsRecordingCompleteState] = useState(false); // Renamed to avoid conflict
   const [elapsedTime, setElapsedTime] = useState(0);
-  const recordingDuration = 60; // 1 minute, can be adjusted
+  const recordingDuration = 60; 
 
-  const [isSavingVideo, setIsSavingVideo] = useState(false); // New state for saving
-  const { mongoDbUserId } = useUserPreferences(); // Get MongoDB User ID
+  const [isSavingVideo, setIsSavingVideo] = useState(false);
+  const { mongoDbUserId } = useUserPreferences(); 
 
   const { toast } = useToast();
 
@@ -39,7 +43,7 @@ export function VideoRecorderUI() {
   const requestCameraPermission = useCallback(async () => {
     setHasCameraPermission(null); 
     setRecordedVideoUrl(null);
-    setIsRecordingComplete(false);
+    setIsRecordingCompleteState(false);
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('getUserMedia is not supported in this browser.');
@@ -138,7 +142,7 @@ export function VideoRecorderUI() {
 
     setRecordedChunks([]);
     setRecordedVideoUrl(null);
-    setIsRecordingComplete(false);
+    setIsRecordingCompleteState(false);
     setElapsedTime(0);
 
     try {
@@ -167,7 +171,10 @@ export function VideoRecorderUI() {
         const videoBlob = new Blob(recordedChunks, { type: options.mimeType });
         const videoUrl = URL.createObjectURL(videoBlob);
         setRecordedVideoUrl(videoUrl);
-        setIsRecordingComplete(true);
+        setIsRecordingCompleteState(true);
+        if (onRecordingComplete) { // Call new prop
+          onRecordingComplete(videoUrl);
+        }
         
         if (videoRef.current) { 
             videoRef.current.srcObject = null; 
@@ -199,13 +206,17 @@ export function VideoRecorderUI() {
   
   const handleReRecord = async () => {
     setIsRecording(false);
-    setIsRecordingComplete(false);
+    setIsRecordingCompleteState(false);
     setRecordedChunks([]);
     setRecordedVideoUrl(null);
+    if (onRecordingComplete) { // Notify parent that current recording is void
+      onRecordingComplete(""); 
+    }
     setElapsedTime(0);
     if (videoRef.current) {
         videoRef.current.controls = false; 
         videoRef.current.loop = false;
+        videoRef.current.src = ""; // Clear src for video tag
     }
     stopCameraStream(); 
     await requestCameraPermission(); 
@@ -220,7 +231,6 @@ export function VideoRecorderUI() {
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      // Do not revokeObjectURL here if video is still needed for saving or preview
       toast({ title: "Download Started", description: "Your video is downloading." });
     } else {
       toast({ title: "No Recording Found", description: "Please record a video first.", variant: "destructive"});
@@ -244,12 +254,11 @@ export function VideoRecorderUI() {
       const videoFile = new File([videoBlob], `video-resume-${Date.now()}.webm`, { type: videoBlob.type });
   
       const formData = new FormData();
-      formData.append('videoResume', videoFile); // Field name must match backend (uploadVideo.single('videoResume'))
+      formData.append('videoResume', videoFile); 
   
       const uploadResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/video-resume`, {
         method: 'POST',
         body: formData,
-        // No 'Content-Type' header for FormData, browser sets it with boundary
       });
   
       if (!uploadResponse.ok) {
@@ -259,11 +268,6 @@ export function VideoRecorderUI() {
   
       const result = await uploadResponse.json();
       toast({ title: "Video Saved!", description: "Your video resume has been saved to your profile." });
-      // console.log("Video saved, server response:", result);
-      // If the user navigates to MyProfilePage, it will fetch the latest profile including this new video link.
-      // To update the preview here, you could use:
-      // if (result.videoUrl) setRecordedVideoUrl(CUSTOM_BACKEND_URL + result.videoUrl); 
-      // But be careful with blob URLs vs server URLs logic.
 
     } catch (error: any) {
       console.error("Error saving video resume:", error);
@@ -315,7 +319,7 @@ export function VideoRecorderUI() {
                     <p className="text-sm">Could not start video. Please check troubleshooting tips below.</p>
                 </div>
             )}
-            {isRecordingComplete && recordedVideoUrl && (
+            {isRecordingCompleteState && recordedVideoUrl && (
                 <div className="absolute bottom-2 left-2 bg-black/50 text-white px-2 py-1 rounded text-xs">
                     Previewing Recorded Video
                 </div>
@@ -360,7 +364,7 @@ export function VideoRecorderUI() {
           </div>
 
           <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-            {!isRecording && !isRecordingComplete && (
+            {!isRecording && !isRecordingCompleteState && (
                 <Button onClick={handleStartRecording} size="lg" disabled={hasCameraPermission !== true}>
                     <PlayCircle className="mr-2 h-5 w-5" /> Start Recording
                 </Button>
@@ -371,24 +375,24 @@ export function VideoRecorderUI() {
                 </Button>
             )}
 
-            {(isRecordingComplete || !isRecording) && (
+            {(isRecordingCompleteState || !isRecording) && (
                 <Button onClick={handleReRecord} variant="outline" size="lg" disabled={isRecording || hasCameraPermission !== true}>
                   <RefreshCw className="mr-2 h-5 w-5" /> Re-record
                 </Button>
             )}
             
-            <Button onClick={handleDownload} variant="default" size="lg" className="bg-green-600 hover:bg-green-700" disabled={!isRecordingComplete || isRecording}>
+            <Button onClick={handleDownload} variant="default" size="lg" className="bg-green-600 hover:bg-green-700" disabled={!isRecordingCompleteState || isRecording}>
               <Download className="mr-2 h-5 w-5" /> Download
             </Button>
             
-            {isRecordingComplete && recordedVideoUrl && (
+            {isRecordingCompleteState && recordedVideoUrl && (
               <Button onClick={handleSaveVideoResume} variant="default" size="lg" disabled={isSavingVideo || !mongoDbUserId}>
                 {isSavingVideo ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
                 Save Video Resume
               </Button>
             )}
           </div>
-           {isRecordingComplete && recordedVideoUrl && (
+           {isRecordingCompleteState && recordedVideoUrl && (
              <p className="text-sm text-muted-foreground">Recording complete. You can now preview, download, or save to your profile.</p>
            )}
         </div>
@@ -403,4 +407,3 @@ export function VideoRecorderUI() {
     </Card>
   );
 }
-

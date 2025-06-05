@@ -7,13 +7,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
 import { VideoRecorderUI } from '@/components/video/VideoRecorderUI';
-import { AvatarGenerator, type AvatarGeneratorInput } from '@/components/ai/AvatarGenerator'; // Ensure this path is correct
+import { AvatarGenerator, type AvatarGeneratorInput } from '@/components/ai/AvatarGenerator';
 import type { AvatarGeneratorOutput } from '@/ai/flows/avatar-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Video, UserSquare2, Info, CheckCircle, Loader2, Palette } from 'lucide-react'; // Added Palette
+import { Video, UserSquare2, Info, CheckCircle, Loader2, Palette, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { generateAvatar } from '@/ai/flows/avatar-generator';
 import NextImage from 'next/image';
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Added Dialog components
+import { VideoEditor } from '@/components/ai/VideoEditor'; // Import VideoEditor
+import { Input } from '@/components/ui/input'; // Keep Input if still used for avatar data URI display conceptually
+import { Textarea } from '@/components/ui/textarea'; // Keep Textarea for script display
 
 
 interface Step3Props {
@@ -23,35 +27,26 @@ interface Step3Props {
 
 export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) {
   const [presentationMethod, setPresentationMethod] = useState<'video' | 'avatar' | null>(null);
-  const [recordedVideoUrl, setRecordedVideoUrl] = useState<string | null>(null); // Will be set by VideoRecorderUI callback
-  const [avatarDataUri, setAvatarDataUri] = useState<string | null>(null);
-  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+  const [flowRecordedVideoUrl, setFlowRecordedVideoUrl] = useState<string | null>(null); // URL from VideoRecorderUI
+  const [avatarDataUri, setAvatarDataUri] = useState<string | null>(null); // URL from AvatarGenerator
+  
+  const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false); // Kept if manual generation is still an option outside AvatarGenerator component
 
   const { toast } = useToast();
 
-  const handleAvatarGenerated = (uri: string) => { // Callback for AvatarGenerator
-    setAvatarDataUri(uri);
-  };
-  
-  // This is a simplified version. AvatarGenerator component would internally call generateAvatar.
-  // If AvatarGenerator is a full form, this manual call might not be needed here,
-  // but placed for showing the flow if we trigger avatar generation from this parent.
-  const handleGenerateNewAvatar = async () => {
-    setIsGeneratingAvatar(true);
-    try {
-      // Simplified input for demonstration. In a real scenario, AvatarGenerator would have its own form.
-      const avatarInput: AvatarGeneratorInput = {
-        appearanceDetails: "A professional and friendly looking person, suitable for a tech company.",
-        // Add other optional fields if needed: gender, ageRange, etc.
-      };
-      const result: AvatarGeneratorOutput = await generateAvatar(avatarInput);
-      setAvatarDataUri(result.avatarDataUri);
-      toast({ title: "Avatar Generated!", description: "Your new virtual avatar is ready." });
-    } catch (error: any) {
-      toast({ title: "Avatar Generation Failed", description: error.message || "Could not generate avatar.", variant: "destructive" });
-    } finally {
-      setIsGeneratingAvatar(false);
+  const handleRecordingComplete = (videoUrl: string) => {
+    setFlowRecordedVideoUrl(videoUrl);
+    if (videoUrl) {
+      toast({ title: "Recording Complete", description: "You can now analyze or proceed." });
+    } else {
+      toast({ title: "Recording Reset", description: "Previous recording cleared." });
     }
+  };
+
+  // Conceptual: If AvatarGenerator directly provides output via prop
+  const handleAvatarGeneratedByComponent = (uri: string) => {
+    setAvatarDataUri(uri);
   };
 
   const handleSubmit = () => {
@@ -59,19 +54,19 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
       toast({ title: "Selection Required", description: "Please choose a presentation method.", variant: "destructive" });
       return;
     }
-    if (presentationMethod === 'video' && !recordedVideoUrl) {
-      // VideoRecorderUI handles its own state. This is a fallback.
-      // For now, assume VideoRecorderUI might provide a way to get the URL or we rely on a conceptual "save" within it.
-      // For this step, we'll assume if 'video' is chosen, the user has completed recording.
-      // A real implementation would need tighter integration with VideoRecorderUI's output.
+    if (presentationMethod === 'video' && !flowRecordedVideoUrl) {
       toast({ title: "Recording Needed", description: "Please record your video or ensure it's saved.", variant: "destructive" });
-      // return; // Commenting out for now to allow progression with conceptual video.
+      return; 
     }
     if (presentationMethod === 'avatar' && !avatarDataUri) {
       toast({ title: "Avatar Needed", description: "Please generate an avatar.", variant: "destructive" });
       return;
     }
-    onSubmit({ presentationMethod, videoUrl: recordedVideoUrl || undefined, avatarDataUri: avatarDataUri || undefined });
+    onSubmit({ 
+      presentationMethod, 
+      videoUrl: presentationMethod === 'video' ? flowRecordedVideoUrl || undefined : undefined, 
+      avatarDataUri: presentationMethod === 'avatar' ? avatarDataUri || undefined : undefined 
+    });
   };
 
 
@@ -107,14 +102,14 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
         <Card className="mt-4">
           <CardHeader><CardTitle>Record Video</CardTitle></CardHeader>
           <CardContent>
-            <VideoRecorderUI />
-            {/* Conceptual: VideoRecorderUI would need a way to pass the recordedVideoUrl back up
-                e.g., via a prop like onRecordingComplete={(url) => setRecordedVideoUrl(url)} 
-                For now, we are not fully integrating its output into this flow's state management automatically.
-                The user would record, and we assume the URL is available conceptually.
-            */}
-             <Input type="text" value={recordedVideoUrl || ""} onChange={(e) => setRecordedVideoUrl(e.target.value)} placeholder="Video URL (will be auto-filled by recorder)" className="mt-2" />
-             <p className="text-xs text-muted-foreground mt-1">After recording, the video URL will appear here. (Conceptual)</p>
+            <VideoRecorderUI onRecordingComplete={handleRecordingComplete} />
+            {flowRecordedVideoUrl && (
+              <div className="mt-4 flex flex-col sm:flex-row gap-2">
+                 <Button onClick={() => setShowAnalysisDialog(true)} variant="outline" className="flex-1">
+                    <Wand2 className="mr-2 h-4 w-4" /> Analyze Your Video with AI
+                  </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
@@ -126,14 +121,12 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
             <CardDescription>Use the AI tool below to generate and preview your virtual presenter.</CardDescription>
           </CardHeader>
           <CardContent>
-            <AvatarGenerator />
-            {/* 
-              Similar to VideoRecorderUI, AvatarGenerator would manage its own state.
-              If we want its output (avatarDataUri) to be part of the overall resumeData,
-              it would need a callback like onAvatarGenerated={handleAvatarGenerated} 
-              For now, this is a manual/conceptual link. The user generates, then we'd "use" it.
-            */}
-             <Input type="text" value={avatarDataUri || ""} onChange={(e) => setAvatarDataUri(e.target.value)} placeholder="Avatar Data URI (will be auto-filled)" className="mt-2" />
+            {/* AvatarGenerator will manage its own state including avatarDataUri.
+                If we need the URI here, AvatarGenerator needs an onAvatarGenerated prop */}
+            <AvatarGenerator /> 
+            
+            {/* This input is conceptual for displaying the URI if AvatarGenerator provided it back */}
+             <Input type="text" value={avatarDataUri || ""} onChange={(e) => setAvatarDataUri(e.target.value)} placeholder="Avatar Data URI (will be auto-filled by generator)" className="mt-2" />
              <p className="text-xs text-muted-foreground mt-1">After generation, the avatar data will appear here. (Conceptual)</p>
 
             {finalScript && (
@@ -147,12 +140,39 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
       )}
       
       <div className="flex justify-end mt-6">
-        <Button onClick={handleSubmit} size="lg" disabled={!presentationMethod || (presentationMethod === 'avatar' && !avatarDataUri /* && ! conceptual recorded video */)}>
+        <Button 
+          onClick={handleSubmit} 
+          size="lg" 
+          disabled={!presentationMethod || 
+                    (presentationMethod === 'video' && !flowRecordedVideoUrl) ||
+                    (presentationMethod === 'avatar' && !avatarDataUri) /* Update based on how avatarDataUri is actually set */}
+        >
           <CheckCircle className="mr-2 h-5 w-5" /> Use This Presentation & Proceed
         </Button>
       </div>
+
+      {showAnalysisDialog && flowRecordedVideoUrl && (
+        <Dialog open={showAnalysisDialog} onOpenChange={setShowAnalysisDialog}>
+          <DialogContent className="sm:max-w-2xl flex flex-col max-h-[90vh]">
+            <DialogHeader className="shrink-0">
+              <ShadDialogTitle className="flex items-center">
+                <Wand2 className="mr-2 h-5 w-5 text-primary"/> AI Video Analysis
+              </ShadDialogTitle>
+              <ShadDialogDescription>
+                Review AI feedback on your recorded video. You can re-record or proceed.
+              </ShadDialogDescription>
+            </DialogHeader>
+            <div className="flex-grow overflow-y-auto min-h-0 pr-2 -mr-4 pl-1">
+              <VideoEditor initialVideoDataUri={flowRecordedVideoUrl} />
+            </div>
+            <DialogFooter className="shrink-0 border-t pt-4 mt-auto">
+               <DialogClose asChild>
+                 <Button type="button" variant="outline">Close Analysis</Button>
+               </DialogClose>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
-
-    
