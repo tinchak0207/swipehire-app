@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import type { UserRole } from '@/lib/types'; 
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle } from 'lucide-react'; // Added PlayCircle
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle, Star as StarIcon } from 'lucide-react'; // Added StarIcon
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -163,6 +163,16 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
           </Alert>
         )}
 
+        {currentUserRole === 'jobseeker' && !isGuestMode && !showResumeCreationFlow && (
+          <Alert variant="default" className="mb-6 bg-green-50 border-green-500 text-green-700">
+            <StarIcon className="h-5 w-5 !text-green-600" />
+            <AlertTitle className="font-semibold text-green-800">Full Access for Job Seekers!</AlertTitle>
+            <AlertDescription className="text-green-700/90">
+              As a job seeker, all AI tools and core features on SwipeHire are available to you for free. Use the button below to start creating your video resume.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {showResumeCreationFlow && !isGuestMode ? (
            <div className="w-full flex-grow flex flex-col">
             <Button
@@ -212,11 +222,10 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
               {aiToolsData.map((tool) => (
                 <Card
                   key={tool.key}
-                  // Remove onClick and interactive props
                   className={cn(
                     "hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] relative",
                     tool.bgClass,
-                    isGuestMode && "opacity-60 border-2 border-red-400 cursor-default hover:transform-none" // Style for guest mode, non-interactive
+                    isGuestMode && "opacity-60 border-2 border-red-400 cursor-default hover:transform-none"
                   )}
                 >
                   {isGuestMode && <GuestLockOverlay message="Tool Preview (Sign In to Use)" />}
@@ -281,3 +290,4 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     </div>
   );
 }
+
