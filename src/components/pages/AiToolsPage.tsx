@@ -60,7 +60,6 @@ interface AiToolsPageProps {
 
 export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) {
   const [showResumeCreationFlow, setShowResumeCreationFlow] = useState<boolean>(false);
-  // Removed showGuide and related logic, as guidance is now integrated into the permanent job seeker alert.
 
   const handleLaunchFlow = () => {
     if (isGuestMode) return; 
@@ -82,23 +81,6 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
   return (
     <div className={cn("p-4 md:p-6 space-y-8 min-h-[calc(100vh-200px)] flex flex-col bg-background relative")}>
       <div className="relative z-10 flex flex-col flex-grow">
-        {currentUserRole === 'jobseeker' && !isGuestMode && !showResumeCreationFlow && (
-          <Alert variant="default" className="mb-6 bg-green-50 border-green-500 text-green-700">
-            <StarIcon className="h-5 w-5 !text-green-600" />
-            <AlertTitle className="font-semibold text-green-800 text-lg">Your AI Career Co-Pilot - Completely Free!</AlertTitle>
-            <AlertDescription className="text-green-700/90 space-y-2 mt-1">
-              <p>As a job seeker, all AI tools on SwipeHire are here to help you shine, <strong>for free!</strong></p>
-              <p>Follow these steps to create a standout video profile:</p>
-              <ul className="list-decimal list-inside pl-5 space-y-1 text-sm">
-                <li><strong>Start the Flow:</strong> Click the "Start Your AI-Powered Video Resume" button below.</li>
-                <li><strong>AI Scripting:</strong> Our AI will help you craft a compelling script from your experience.</li>
-                <li><strong>Present Yourself:</strong> Choose to record your video or generate a professional AI avatar.</li>
-                <li><strong>Get Feedback:</strong> Let AI rate your video and provide improvement tips.</li>
-              </ul>
-              <p className="font-medium pt-1">The tool cards below illustrate these capabilities. Launch the guided flow to get started!</p>
-            </AlertDescription>
-          </Alert>
-        )}
          {currentUserRole === 'recruiter' && !isGuestMode && !showResumeCreationFlow && (
             <Alert variant="default" className="mb-6 bg-blue-50 border-blue-500 text-blue-700">
                 <Info className="h-5 w-5 !text-blue-600" />
@@ -209,4 +191,3 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     </div>
   );
 }
-
