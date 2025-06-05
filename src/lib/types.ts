@@ -95,6 +95,23 @@ export interface UserPreferences {
   };
 }
 
+export enum CompanyScale {
+    SCALE_1_10 = "1-10 employees",
+    SCALE_11_50 = "11-50 employees",
+    SCALE_51_200 = "51-200 employees",
+    SCALE_201_500 = "201-500 employees",
+    SCALE_501_1000 = "501-1000 employees",
+    SCALE_1001_PLUS = "1001+ employees",
+    UNSPECIFIED = "Unspecified"
+}
+
+export interface CompanyVerificationDocument {
+    type: 'business_license' | 'organization_code' | 'other';
+    fileName: string;
+    fileUrl?: string; // Conceptual, would be set after upload
+    uploadedAt: string; // ISO Date string
+}
+
 // Representing User data from MongoDB, including new fields for likes and profile representation
 export interface BackendUser {
   _id: string; // MongoDB ID
@@ -115,6 +132,24 @@ export interface BackendUser {
   profileCardTheme?: string; // New field for card theme
   createdAt?: string;
   updatedAt?: string;
+  
+  // Recruiter-specific company profile fields (populated by onboarding)
+  companyName?: string; // Official company name
+  companyIndustry?: string;
+  companyScale?: CompanyScale;
+  companyAddress?: string; // Full address including city, country
+  companyWebsite?: string;
+  companyDescription?: string; // For the company profile page
+  companyCultureHighlights?: string[]; // For the company profile page
+  companyLogoUrl?: string; // For the company profile page and job cards
+  companyVerificationDocuments?: CompanyVerificationDocument[]; // Conceptual
+  companyProfileComplete?: boolean; // Flag to indicate if recruiter onboarding is done
+
+  // Fields for User's job postings (if recruiter) - these are defaults when creating new jobs
+  companyNameForJobs?: string;
+  companyIndustryForJobs?: string;
+  jobOpenings?: CompanyJobOpening[];
+
   // Adding fields that would be populated by ResumeCreationFlow
   profileVideoResumeUrl?: string; // URL to the recorded video
   profileAvatarWithScriptUrl?: string; // URL to the generated avatar (if chosen)
@@ -138,10 +173,6 @@ export interface BackendUser {
   profileSalaryExpectationMax?: number;
   passedCandidateProfileIds?: string[];
   passedCompanyProfileIds?: string[];
-  companyNameForJobs?: string;
-  companyIndustryForJobs?: string;
-  jobOpenings?: CompanyJobOpening[];
-
 }
 
 
@@ -465,4 +496,22 @@ export interface CompanyReview {
   timestamp: string; // ISO Date string
 }
 
+// Data collected during recruiter onboarding
+export interface RecruiterOnboardingData {
+    companyName: string;
+    companyIndustry: string;
+    companyScale: CompanyScale;
+    companyAddress: string;
+    companyWebsite?: string;
+    companyDescription?: string; // For profile page
+    companyCultureHighlights?: string[]; // For profile page
     
+    // Conceptual: File objects or URLs after upload
+    businessLicense?: File | { name: string; url?: string }; 
+    organizationCode?: File | { name: string; url?: string };
+    
+    recruiterFullName: string;
+    recruiterJobTitle: string;
+    recruiterContactPhone?: string;
+}
+

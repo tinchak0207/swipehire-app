@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem } from '@/lib/types'; // Added NotificationItem
-import { mockNotifications } from '@/lib/mockData'; // Added mockNotifications
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem } from '@/lib/types'; 
+import { mockNotifications } from '@/lib/mockData'; 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,14 +14,15 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown } from 'lucide-react'; // Added HeartHandshake and ChevronDown
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown, Building2 } from 'lucide-react'; 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; // Added Accordion
-import { NotificationHistoryList } from '@/components/notifications/NotificationHistoryList'; // Added NotificationHistoryList
-import { NotificationItemType } from '@/lib/types'; // Ensure this is imported
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; 
+import { NotificationHistoryList } from '@/components/notifications/NotificationHistoryList'; 
+import { NotificationItemType } from '@/lib/types'; 
+import { useRouter } from 'next/navigation'; // Added useRouter
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -84,7 +85,8 @@ const discoveryItemsPerPageOptions = [5, 10, 15, 20];
 
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
-  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId } = useUserPreferences();
+  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId, fullBackendUser } = useUserPreferences();
+  const router = useRouter();
 
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
@@ -146,45 +148,35 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     setIsLoadingSettings(true);
     const user = auth.currentUser;
 
+    // Use fullBackendUser from context if available, otherwise fetch
     if (user && mongoDbUserId) {
-      fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`)
-        .then(res => {
-          if (!res.ok) throw new Error(`User not found in MongoDB or backend error: ${res.status}`);
-          return res.json();
-        })
-        .then(data => {
-          setUserName(data.name || user.displayName || '');
-          setUserEmail(data.email || user.email || '');
-          setSelectedRoleInSettings(data.selectedRole || currentUserRole || null);
-          setAddress(data.address || '');
-          setCountry(data.country || '');
-          setDocumentId(data.documentId || '');
-          setRecruiterWeights(data.recruiterAIWeights || defaultRecruiterWeights);
-          setJobSeekerWeights(data.jobSeekerAIWeights || defaultJobSeekerWeights);
-        })
-        .catch(error => {
-          console.error("Error fetching user settings from MongoDB backend:", error);
-          toast({ title: "Error Loading Settings", description: "Could not load your saved settings. Please ensure your profile is complete.", variant: "destructive" });
-          setUserName(user.displayName || '');
-          setUserEmail(user.email || '');
-          setSelectedRoleInSettings(currentUserRole || null);
-          setRecruiterWeights(defaultRecruiterWeights);
-          setJobSeekerWeights(defaultJobSeekerWeights);
-        })
-        .finally(() => {
-          setIsLoadingSettings(false);
-        });
-    } else if (user && !mongoDbUserId) {
+        const sourceUser = fullBackendUser || user; // Prioritize fullBackendUser
+        const sourceData = fullBackendUser || (user ? { name: user.displayName, email: user.email } : {});
+
+        setUserName(sourceData.name || '');
+        setUserEmail(sourceData.email || '');
+        setSelectedRoleInSettings(fullBackendUser?.selectedRole || currentUserRole || null);
+        setAddress(fullBackendUser?.address || '');
+        setCountry(fullBackendUser?.country || '');
+        setDocumentId(fullBackendUser?.documentId || '');
+        setRecruiterWeights(fullBackendUser?.recruiterAIWeights || defaultRecruiterWeights);
+        setJobSeekerWeights(fullBackendUser?.jobSeekerAIWeights || defaultJobSeekerWeights);
+        setIsLoadingSettings(false);
+
+        // If fullBackendUser wasn't available from context, it implies it might not be fully loaded or initial user setup.
+        // Fetching from backend is now handled by the main AppContent useEffect hook.
+        // This effect now primarily relies on fullBackendUser from context.
+    } else if (user && !mongoDbUserId) { // Firebase user exists, but no mongoDB link yet
       setUserName(user.displayName || '');
       setUserEmail(user.email || '');
       setSelectedRoleInSettings(currentUserRole || null);
       setIsLoadingSettings(false);
        toast({ title: "Profile Sync Pending", description: "Your profile data is being synced. Some settings might be unavailable until sync is complete.", variant: "default", duration: 7000 });
-    } else {
+    } else { // No user at all
       setIsLoadingSettings(false);
     }
     loadAppStats();
-  }, [isGuestMode, currentUserRole, mongoDbUserId, toast]);
+  }, [isGuestMode, currentUserRole, mongoDbUserId, toast, fullBackendUser]);
 
   const loadAppStats = () => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -228,6 +220,12 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         recruiterAIWeights: recruiterWeights,
         jobSeekerAIWeights: jobSeekerWeights,
         preferences: currentPreferencesToSave,
+        // Add recruiter company details if role is recruiter
+        ...(selectedRoleInSettings === 'recruiter' && {
+            companyNameForJobs: fullBackendUser?.companyName || fullBackendUser?.companyNameForJobs || userName, // Default to user name if company name isn't set
+            companyIndustryForJobs: fullBackendUser?.companyIndustry || fullBackendUser?.companyIndustryForJobs || 'Unspecified',
+            companyProfileComplete: fullBackendUser?.companyProfileComplete || false, // Maintain existing or set default
+        })
       };
 
       try {
@@ -242,21 +240,21 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           throw new Error(errorData.message);
         }
 
-        await setContextPreferences(currentPreferencesToSave);
-
-        toast({
-          title: 'Settings Saved',
-          description: 'Your preferences and general information have been updated.',
-        });
-        if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
-          onRoleChange(selectedRoleInSettings);
-        }
-        if (selectedRoleInSettings === 'recruiter' && userName.trim() !== '' && userEmail.trim() !== '') {
-            localStorage.setItem('recruiterProfileComplete', 'true');
-        } else if (selectedRoleInSettings === 'recruiter') {
-            localStorage.setItem('recruiterProfileComplete', 'false');
+        const savedUserData = await response.json();
+        await setContextPreferences(currentPreferencesToSave); // Update context with new preferences
+        
+        // If role changed to recruiter and profile isn't complete, they should be taken to onboarding
+        if (selectedRoleInSettings === 'recruiter' && !savedUserData.user?.companyProfileComplete) {
+             localStorage.setItem('recruiterCompanyProfileComplete', 'false');
+             toast({ title: 'Role Updated', description: 'Your role is now Recruiter. Please complete company onboarding.', duration: 5000});
+             onRoleChange(selectedRoleInSettings); // Notify parent
+             router.push('/recruiter-onboarding'); // Redirect
         } else {
-             localStorage.removeItem('recruiterProfileComplete');
+            if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
+                 onRoleChange(selectedRoleInSettings); // Notify parent of role change
+            }
+            localStorage.setItem('recruiterCompanyProfileComplete', (selectedRoleInSettings === 'recruiter' && savedUserData.user?.companyProfileComplete) ? 'true' : 'false');
+            toast({ title: 'Settings Saved', description: 'Your preferences and general information have been updated.' });
         }
 
       } catch (error: any) {
@@ -356,8 +354,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       read: false,
       isUrgent: Math.random() < 0.3,
     };
-    // Add to mockNotifications for history, then show toast
-    // For real system, this would come from backend push or polling
     setDisplayedNotifications(prev => [newNotif, ...prev].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
     toast({
       title: newNotif.title,
@@ -379,6 +375,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   }
 
   const isAuthEmail = auth.currentUser && auth.currentUser.email === userEmail;
+  const showRecruiterOnboardingLink = selectedRoleInSettings === 'recruiter' && !fullBackendUser?.companyProfileComplete;
 
 
   return (
@@ -421,6 +418,15 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               </Label>
             </div>
           </RadioGroup>
+           {showRecruiterOnboardingLink && !isGuestMode && (
+            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+              <Info className="h-5 w-5 text-blue-600 inline mr-2" />
+              <span className="text-blue-700">As a recruiter, you need to complete your company profile.</span>
+              <Button variant="link" onClick={() => router.push('/recruiter-onboarding')} className="p-0 h-auto ml-1 text-blue-600 hover:underline">
+                Go to Company Onboarding
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
