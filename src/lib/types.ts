@@ -1,4 +1,3 @@
-
 // src/lib/types.ts
 
 export type UserRole = 'recruiter' | 'jobseeker';
@@ -174,6 +173,24 @@ export interface Company { // This remains as the structure for mockData.ts comp
   jobMatchPercentage?: number; // For frontend display based on AI
 }
 
+export enum ApplicationStage {
+  SUBMITTED = 'Submitted', // 已提交
+  COMPANY_VIEWED = 'Company Viewed', // 企業已查看
+  SHORTLISTED = 'Shortlisted', // 進入初選
+  INTERVIEW_SCHEDULED = 'Interview Scheduled', // 安排面試
+  INTERVIEW_COMPLETED = 'Interview Completed', // 面試完成
+  AWAITING_DECISION = 'Awaiting Decision', // 等待結果
+  OFFER_EXTENDED = 'Offer Extended', // 錄取通知
+  REJECTED = 'Rejected', // 已拒絕
+}
+
+export interface ApplicationStatusUpdate {
+  stage: ApplicationStage;
+  timestamp: string; // ISO Date string
+  description?: string; // e.g., "Interview scheduled with Hiring Manager"
+  nextStepSuggestion?: string; // e.g., "Prepare for your interview on [Date]"
+}
+
 // Updated Match interface to align with backend Match model
 export interface Match {
   _id: string; // MongoDB ID for the match document itself
@@ -185,6 +202,7 @@ export interface Match {
   matchedAt: string; // ISO Date string from backend
   status: 'active' | 'archived_by_A' | 'archived_by_B' | 'archived_by_both';
   uniqueMatchKey: string;
+  applicationStatusHistory?: ApplicationStatusUpdate[]; // Added for tracking
   // For frontend display, these will be populated by looking up IDs in mockCandidates/mockCompanies
   candidate?: Candidate;
   company?: Company;

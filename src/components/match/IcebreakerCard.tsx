@@ -1,29 +1,30 @@
-
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import type { Match, IcebreakerRequest, ChatMessage, Candidate, Company } from '@/lib/types';
+import type { Match, IcebreakerRequest, ChatMessage, Candidate, Company, ApplicationStatusUpdate } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; // Added Accordion
 import { generateIcebreakerQuestion } from '@/ai/flows/icebreaker-generator';
 import { sendMessage, fetchMessages } from '@/services/chatService';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw, Edit3, Check, CheckCheck } from 'lucide-react'; // Added Check, CheckCheck
+import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw, Edit3, Check, CheckCheck, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react'; // Added CalendarDays, ChevronDown, ChevronUp
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import io, { type Socket } from 'socket.io-client';
+import { ApplicationStatusTimeline } from './ApplicationStatusTimeline'; // Added import
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 let socket: Socket | null = null;
 
 
 interface IcebreakerCardProps {
-  match: Match & { candidate: Candidate; company: Company };
+  match: Match & { candidate: Candidate; company: Company; applicationStatusHistory?: ApplicationStatusUpdate[] };
 }
 
 const incrementAnalytic = (key: string) => {
@@ -49,6 +50,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false); // State for timeline accordion
 
   const contactName = mongoDbUserId === match.userA_Id ? match.company.name : match.candidate.name;
   const contactAvatar = mongoDbUserId === match.userA_Id ? match.company.logoUrl : match.candidate.avatarUrl;
@@ -314,11 +316,29 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
             <CardTitle className="text-xl text-primary">Match: {contactName}</CardTitle>
             <CardDescription className="text-sm text-muted-foreground">
               {mongoDbUserId === match.userA_Id ? `Matched with candidate ${match.candidate.name}` : `Matched with company ${match.company.name}`}
+              {match.jobOpeningTitle && <span className="block text-xs">For role: {match.jobOpeningTitle}</span>}
             </CardDescription>
           </div>
         </div>
       </CardHeader>
       <CardContent className="p-4 space-y-4 flex-grow">
+        {match.applicationStatusHistory && match.applicationStatusHistory.length > 0 && (
+          <Accordion type="single" collapsible className="w-full" value={isTimelineExpanded ? "status" : undefined} onValueChange={(value) => setIsTimelineExpanded(value === "status")}>
+            <AccordionItem value="status" className="border-b-0">
+              <AccordionTrigger className="text-md font-semibold text-primary hover:no-underline py-2 group -mx-1 px-1">
+                <div className="flex items-center">
+                  <CalendarDays className="mr-2 h-5 w-5 text-primary/80 group-hover:text-primary" />
+                  Application Progress
+                  {isTimelineExpanded ? <ChevronUp className="ml-auto h-5 w-5 text-muted-foreground/70 group-hover:text-primary transition-transform" /> : <ChevronDown className="ml-auto h-5 w-5 text-muted-foreground/70 group-hover:text-primary transition-transform" />}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="pt-2 pb-0 pl-1 pr-1">
+                <ApplicationStatusTimeline statusHistory={match.applicationStatusHistory} />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+
         {!icebreaker && !isLoadingIcebreaker && (
            <div className="text-center py-4">
             <Sparkles className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
@@ -420,4 +440,3 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     </Card>
   );
 }
-

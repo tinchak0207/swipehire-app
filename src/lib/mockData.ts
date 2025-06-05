@@ -1,4 +1,3 @@
-
 import {
   type Candidate,
   type Company,
@@ -10,6 +9,9 @@ import {
   JobType,
   type DiaryPost,
   type PersonalityTraitAssessment,
+  type Match, // Added Match
+  ApplicationStage, // Added ApplicationStage
+  type ApplicationStatusUpdate, // Added ApplicationStatusUpdate
 } from './types';
 
 export const mockCandidates: Candidate[] = [
@@ -150,6 +152,7 @@ export const mockCandidates: Candidate[] = [
 
 const mockJobOpeningsComp1: CompanyJobOpening[] = [
   {
+    _id: 'job1comp1',
     title: "Senior Frontend Developer",
     description: "Join our team to build amazing user interfaces with React and Next.js. Experience with TypeScript is a plus. You'll be responsible for developing new features, maintaining existing code, and collaborating with backend developers.",
     salaryRange: '$120k - $160k',
@@ -168,6 +171,7 @@ const mockJobOpeningsComp1: CompanyJobOpening[] = [
     companyIndustry: "SaaS Technology"
   },
   {
+    _id: 'job2comp1',
     title: "Backend Python Developer",
     description: "Help scale our infrastructure and build robust APIs using Python and Django. We are looking for someone with strong database skills and experience with cloud platforms like AWS.",
     salaryRange: '$110k - $150k',
@@ -187,6 +191,7 @@ const mockJobOpeningsComp1: CompanyJobOpening[] = [
 
 const mockJobOpeningsComp2: CompanyJobOpening[] = [
  {
+    _id: 'job1comp2',
     title: "Graphic Designer",
     description: "Create stunning visuals for various clients, including branding, web assets, and print materials. Proficiency in Adobe Creative Suite is required. A strong portfolio is a must.",
     salaryRange: '$70k - $90k',
@@ -203,6 +208,7 @@ const mockJobOpeningsComp2: CompanyJobOpening[] = [
     companyIndustry: "Marketing & Advertising"
   },
   {
+    _id: 'job2comp2',
     title: "Social Media Manager",
     description: "Develop and execute social media strategies to grow our clients' online presence. Experience with content creation, analytics, and community management is key.",
     salaryRange: '$60k - $80k',
@@ -221,6 +227,7 @@ const mockJobOpeningsComp2: CompanyJobOpening[] = [
 ];
 const mockJobOpeningsComp3: CompanyJobOpening[] = [
   {
+    _id: 'job1comp3',
     title: "Environmental Scientist",
     description: "Conduct research and develop solutions for environmental challenges. Requires a Master's degree in Environmental Science or related field and experience with data analysis.",
     salaryRange: '$90k - $130k',
@@ -237,6 +244,7 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
     companyIndustry: "Environmental Consulting"
   },
   {
+    _id: 'job2comp3',
     title: "Project Manager - Renewable Energy",
     description: "Lead exciting projects in the renewable energy sector. PMP certification and experience managing large-scale energy projects are preferred.",
     salaryRange: '$100k - $140k',
@@ -256,6 +264,7 @@ const mockJobOpeningsComp3: CompanyJobOpening[] = [
 
 const mockJobOpeningsComp4: CompanyJobOpening[] = [
   {
+    _id: 'job1comp4',
     title: "Lead Game Developer (Unity)",
     description: "Spearhead the development of our next hit mobile game. Must have 5+ years of experience with Unity and C#, and a passion for creating engaging gameplay experiences.",
     salaryRange: "$130k - $170k",
@@ -275,6 +284,7 @@ const mockJobOpeningsComp4: CompanyJobOpening[] = [
 
 const mockJobOpeningsComp5: CompanyJobOpening[] = [
   {
+    _id: 'job1comp5',
     title: "Junior Marketing Analyst",
     description: "Support our marketing team with data analysis, campaign tracking, and report generation. Entry-level position, great for learning and growth. Basic SQL knowledge is a plus.",
     salaryRange: "$55k - $70k",
@@ -366,6 +376,7 @@ const additionalMockCompanies: Company[] = [
     companyNeeds: "Looking for machine learning engineers and full-stack developers passionate about healthcare.",
     jobOpenings: [
       {
+        _id: 'job1comp6',
         title: "Machine Learning Engineer - Medical Imaging",
         description: "Develop and deploy ML models for analyzing medical images. PhD or MS in CS/EE preferred, with experience in Python, PyTorch/TensorFlow, and medical imaging standards.",
         salaryRange: "$140k - $180k",
@@ -394,6 +405,7 @@ const additionalMockCompanies: Company[] = [
     companyNeeds: "Hiring instructional designers, full-stack developers, and customer success managers.",
     jobOpenings: [
       {
+        _id: 'job1comp7',
         title: "Instructional Designer",
         description: "Design and develop engaging online course content for various subjects. Experience with LMS platforms and curriculum development required.",
         salaryRange: "$75k - $95k",
@@ -419,6 +431,7 @@ mockCompanies.push(...additionalMockCompanies.filter(ac => !mockCompanies.find(m
 export const mockDiaryPosts: DiaryPost[] = [
   {
     id: 'diary1',
+    _id: 'diary1mongo',
     authorId: 'cand1',
     authorName: 'Alice Wonderland',
     authorAvatarUrl: 'https://placehold.co/100x100.png',
@@ -428,14 +441,16 @@ export const mockDiaryPosts: DiaryPost[] = [
     imageUrl: 'https://placehold.co/600x400.png',
     diaryImageHint: 'ai project concept',
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 2, // 2 days ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
     tags: ['ai', 'learning', 'tensorflow'],
     likes: 15,
-    comments: 3,
+    commentsCount: 3,
     views: 120,
     isFeatured: true,
   },
   {
     id: 'diary2',
+    _id: 'diary2mongo',
     authorId: 'cand2',
     authorName: 'Bob The Builder',
     authorAvatarUrl: 'https://placehold.co/100x100.png',
@@ -444,14 +459,16 @@ export const mockDiaryPosts: DiaryPost[] = [
     content: 'Had an amazing brainstorming session with the team today for the new mobile app redesign. So many creative ideas flowing! We focused on user journey mapping and identifying pain points in the current app. Feeling inspired by the collaborative energy. #UXDesign #Teamwork #Creativity',
     diaryImageHint: 'team brainstorming', // Example, even if no imageUrl for now
     timestamp: Date.now() - 1000 * 60 * 60 * 10, // 10 hours ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 10).toISOString(),
     tags: ['ux', 'design', 'collaboration'],
     likes: 22,
-    comments: 5,
+    commentsCount: 5,
     views: 95,
     isFeatured: false,
   },
   {
     id: 'diary3',
+    _id: 'diary3mongo',
     authorId: 'cand1',
     authorName: 'Alice Wonderland',
     authorAvatarUrl: 'https://placehold.co/100x100.png',
@@ -461,14 +478,16 @@ export const mockDiaryPosts: DiaryPost[] = [
     imageUrl: 'https://placehold.co/600x400.png',
     diaryImageHint: 'coding screen abstract',
     timestamp: Date.now() - 1000 * 60 * 60 * 24 * 5, // 5 days ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
     tags: ['python', 'debugging', 'development'],
     likes: 30,
-    comments: 7,
+    commentsCount: 7,
     views: 250,
     isFeatured: true,
   },
   {
     id: 'diary4',
+    _id: 'diary4mongo',
     authorId: 'cand3',
     authorName: 'Charlie Brown',
     authorAvatarUrl: 'https://placehold.co/100x100.png',
@@ -477,9 +496,10 @@ export const mockDiaryPosts: DiaryPost[] = [
     content: 'Just finished a deep dive into our Q3 product strategy. Lots of market research and data analysis involved. It\'s crucial to stay agile and adapt to customer needs. Feeling confident about the roadmap ahead. #ProductManagement #Strategy #SaaS',
     diaryImageHint: 'strategy planning board', // Example
     timestamp: Date.now() - 1000 * 60 * 30, // 30 minutes ago
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
     tags: ['product', 'strategy', 'planning'],
     likes: 8,
-    comments: 1,
+    commentsCount: 1,
     views: 40,
     isFeatured: false,
   }
@@ -488,6 +508,77 @@ export const mockDiaryPosts: DiaryPost[] = [
 // Ensure all mock posts have default interaction counts if not specified
 mockDiaryPosts.forEach(post => {
   if (post.likes === undefined) post.likes = Math.floor(Math.random() * 50);
-  if (post.comments === undefined) post.comments = Math.floor(Math.random() * 10);
+  if (post.commentsCount === undefined) post.commentsCount = Math.floor(Math.random() * 10);
   if (post.views === undefined) post.views = Math.floor(Math.random() * 300);
+});
+
+// --- Mock Matches with Application Status History ---
+const dayMillis = 1000 * 60 * 60 * 24;
+
+export const mockMatches: Match[] = [
+  {
+    _id: "matchmock1",
+    userA_Id: "recruiterUserId1", // Represents recruiter's MongoDB User _id
+    userB_Id: "jobseekerUserId1", // Represents jobseeker's MongoDB User _id (Alice Wonderland)
+    candidateProfileIdForDisplay: "cand1", // Alice Wonderland's mock profile ID
+    companyProfileIdForDisplay: "comp1",   // Innovatech Solutions' mock profile ID
+    jobOpeningTitle: "Senior Frontend Developer",
+    matchedAt: new Date(Date.now() - 7 * dayMillis).toISOString(), // 7 days ago
+    status: 'active',
+    uniqueMatchKey: "recruiterUserId1-jobseekerUserId1", // Simplified, backend would sort ObjectIds
+    applicationStatusHistory: [
+      { stage: ApplicationStage.SUBMITTED, timestamp: new Date(Date.now() - 7 * dayMillis).toISOString(), description: "Application submitted for Senior Frontend Developer.", nextStepSuggestion: "Await company review. They typically respond within a week." },
+      { stage: ApplicationStage.COMPANY_VIEWED, timestamp: new Date(Date.now() - 5 * dayMillis).toISOString(), description: "Innovatech Solutions viewed your application.", nextStepSuggestion: "They might reach out soon if there's a fit." },
+      { stage: ApplicationStage.SHORTLISTED, timestamp: new Date(Date.now() - 3 * dayMillis).toISOString(), description: "You've been shortlisted for the first round!", nextStepSuggestion: "Prepare for a potential screening call." },
+      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 1 * dayMillis).toISOString(), description: "Interview scheduled for tomorrow at 10:00 AM with Jane Doe.", nextStepSuggestion: "Confirm your availability and prepare questions." },
+    ],
+    candidate: mockCandidates.find(c => c.id === 'cand1'),
+    company: mockCompanies.find(c => c.id === 'comp1'),
+  },
+  {
+    _id: "matchmock2",
+    userA_Id: "recruiterUserId2",
+    userB_Id: "jobseekerUserId2", // Bob The Builder
+    candidateProfileIdForDisplay: "cand2",
+    companyProfileIdForDisplay: "comp2",
+    jobOpeningTitle: "Graphic Designer",
+    matchedAt: new Date(Date.now() - 10 * dayMillis).toISOString(), // 10 days ago
+    status: 'active',
+    uniqueMatchKey: "recruiterUserId2-jobseekerUserId2",
+    applicationStatusHistory: [
+      { stage: ApplicationStage.SUBMITTED, timestamp: new Date(Date.now() - 10 * dayMillis).toISOString(), description: "Applied for Graphic Designer at Creative Spark Inc." },
+      { stage: ApplicationStage.COMPANY_VIEWED, timestamp: new Date(Date.now() - 8 * dayMillis).toISOString(), description: "Your application was viewed." },
+      // This one is over 72 hours with no further updates from "COMPANY_VIEWED"
+    ],
+    candidate: mockCandidates.find(c => c.id === 'cand2'),
+    company: mockCompanies.find(c => c.id === 'comp2'),
+  },
+  {
+    _id: "matchmock3",
+    userA_Id: "recruiterUserId3", // Represents recruiter's MongoDB User _id
+    userB_Id: "jobseekerUserId3", // Represents jobseeker's MongoDB User _id (Charlie Brown)
+    candidateProfileIdForDisplay: "cand3", // Charlie Brown's mock profile ID
+    companyProfileIdForDisplay: "comp3",   // GreenFuture Ltd.'s mock profile ID
+    jobOpeningTitle: "Project Manager - Renewable Energy",
+    matchedAt: new Date(Date.now() - 2 * dayMillis).toISOString(), // 2 days ago
+    status: 'active',
+    uniqueMatchKey: "recruiterUserId3-jobseekerUserId3",
+    applicationStatusHistory: [
+      { stage: ApplicationStage.SUBMITTED, timestamp: new Date(Date.now() - 2 * dayMillis).toISOString(), description: "Application submitted for Project Manager.", nextStepSuggestion: "You've applied! Good luck." },
+      { stage: ApplicationStage.COMPANY_VIEWED, timestamp: new Date(Date.now() - 1 * dayMillis).toISOString(), description: "GreenFuture Ltd. viewed your application.", nextStepSuggestion: "Wait for them to reach out." },
+      { stage: ApplicationStage.SHORTLISTED, timestamp: new Date(Date.now() - 0.5 * dayMillis).toISOString(), description: "Congratulations! You're shortlisted.", nextStepSuggestion: "Prepare for the next steps." },
+      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 0.2 * dayMillis).toISOString(), description: "Interview scheduled: Next Monday, 2 PM with Mr. Green.", nextStepSuggestion: "Ace that interview!" },
+      { stage: ApplicationStage.INTERVIEW_COMPLETED, timestamp: new Date(Date.now() - 0.1 * dayMillis).toISOString(), description: "Interview completed.", nextStepSuggestion: "Fingers crossed! Await their decision." },
+      { stage: ApplicationStage.AWAITING_DECISION, timestamp: new Date(Date.now() - 0.05 * dayMillis).toISOString(), description: "Your application is under final review.", nextStepSuggestion: "The company is making a decision. You should hear back soon." },
+
+    ],
+    candidate: mockCandidates.find(c => c.id === 'cand3'),
+    company: mockCompanies.find(c => c.id === 'comp3'),
+  },
+];
+
+// Ensure all matches have candidate and company details for the frontend
+mockMatches.forEach(match => {
+  if (!match.candidate) match.candidate = mockCandidates.find(c => c.id === match.candidateProfileIdForDisplay);
+  if (!match.company) match.company = mockCompanies.find(c => c.id === match.companyProfileIdForDisplay);
 });
