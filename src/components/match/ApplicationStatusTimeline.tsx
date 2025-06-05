@@ -2,7 +2,8 @@
 "use client";
 
 import React from 'react';
-import type { ApplicationStatusUpdate, ApplicationStage } from '@/lib/types';
+import type { ApplicationStatusUpdate } from '@/lib/types'; // Import ApplicationStatusUpdate as a type
+import { ApplicationStage } from '@/lib/types'; // Import ApplicationStage as a value
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow, differenceInHours, format } from 'date-fns';
 import { CheckCircle, Circle, Info, ChevronRight, Send, Briefcase, Eye, ListChecks, MessageCircle, CalendarCheck2, Hourglass, Award, XCircle } from 'lucide-react';
@@ -127,4 +128,3 @@ export function ApplicationStatusTimeline({ statusHistory }: ApplicationStatusTi
     </div>
   );
 }
-
