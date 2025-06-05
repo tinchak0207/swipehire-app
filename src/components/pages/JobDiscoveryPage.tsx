@@ -371,9 +371,9 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         </DialogContent>
       </Dialog>
 
-      <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
+      <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow pb-40" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCompanies.map(company => (
-          <div key={company.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
+          <div key={company.id} className="min-h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl aspect-[10/13] flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}>
               <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)} isGuestMode={mongoDbUserId === null}/>
             </SwipeCard>
@@ -394,4 +394,5 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
 }
 
     
+
 

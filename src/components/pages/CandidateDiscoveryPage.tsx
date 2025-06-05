@@ -757,9 +757,9 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
         />
       )}
 
-      <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
+      <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow pb-40" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
-          <div key={candidate.id} className="h-full snap-start snap-always flex flex-col items-center justify-center p-2 sm:p-4 bg-transparent">
+          <div key={candidate.id} className="min-h-full snap-start snap-always flex flex-col items-center justify-center p-2 sm:p-4 bg-transparent">
              <ProfileCard
                 candidate={candidate}
                 onAction={handleAction}
