@@ -241,46 +241,27 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
             <Card className="mt-10 col-span-1 sm:col-span-2 shadow-lg max-w-4xl mx-auto w-full bg-card border">
               <CardHeader>
                 <CardTitle className="flex items-center text-2xl text-primary">
-                  <Gem className="mr-3 h-6 w-6" />
-                  Premium AI Services (Future Offerings)
+                  <StarIcon className="mr-3 h-6 w-6 text-yellow-500 fill-yellow-400" />
+                  All AI Tools: Absolutely Free!
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Elevate your video resumes and profiles with our upcoming professional AI-powered optimization packages.
+                  At SwipeHire, we believe in empowering everyone. All our current and upcoming AI-powered tools are provided to you completely free of charge.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 text-sm text-muted-foreground">
-                <div className="p-3 border rounded-md bg-muted/30 relative">
-                  <Badge variant="outline" className="absolute top-2 right-2 text-xs border-amber-500 text-amber-600 bg-amber-500/10">Coming Soon</Badge>
-                  <h4 className="font-semibold text-md text-foreground mb-1">Basic Optimization Package</h4>
-                  <ul className="list-disc list-inside pl-2 space-y-0.5">
-                    <li>Automatic editing & rhythm adjustment</li>
-                    <li>Basic visual beautification (lighting, color)</li>
-                    <li>Standard subtitle generation & quality scoring</li>
-                  </ul>
-                </div>
-                <div className="p-3 border rounded-md bg-muted/30 relative">
-                  <Badge variant="outline" className="absolute top-2 right-2 text-xs border-amber-500 text-amber-600 bg-amber-500/10">Coming Soon</Badge>
-                  <h4 className="font-semibold text-md text-foreground mb-1">Professional Enhancement Package</h4>
-                  <ul className="list-disc list-inside pl-2 space-y-0.5">
-                    <li>Advanced editing effects & transitions</li>
-                    <li>Professional voice-over options & background music</li>
-                    <li>Multi-language subtitle support</li>
-                    <li>Industry-specific template application</li>
-                  </ul>
-                </div>
-                 <div className="p-3 border rounded-md bg-muted/30 relative">
-                  <Badge variant="outline" className="absolute top-2 right-2 text-xs border-amber-500 text-amber-600 bg-amber-500/10">Coming Soon</Badge>
-                  <h4 className="font-semibold text-md text-foreground mb-1">Enterprise Customization</h4>
-                  <ul className="list-disc list-inside pl-2 space-y-0.5">
-                    <li>Fully customized production & branding</li>
-                    <li>Professional coaching & photography guidance</li>
-                    <li>Multi-platform output & A/B testing</li>
-                  </ul>
-                </div>
+              <CardContent className="space-y-2 text-sm text-muted-foreground">
+                <p>We're committed to helping you succeed, whether you're a job seeker crafting the perfect video resume or a recruiter looking for the ideal candidate. Explore our full suite of AI tools without worrying about subscriptions or hidden fees.</p>
+                <ul className="list-disc list-inside pl-4 space-y-1 text-sm">
+                    <li>Video Script Generation</li>
+                    <li>AI Avatar Creation</li>
+                    <li>Video Recording Interface</li>
+                    <li>AI Video Analysis & Feedback</li>
+                    <li>And more to come!</li>
+                </ul>
               </CardContent>
               <CardFooter>
-                <Button disabled className="w-full sm:w-auto">
-                  <Construction className="mr-2 h-4 w-4" /> Stay Tuned for Updates!
+                <Button onClick={handleLaunchFlow} disabled={isGuestMode} className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
+                  {isGuestMode ? <Lock className="mr-2 h-4 w-4" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                  {isGuestMode ? "Sign In to Access Tools" : "Explore Free AI Tools Now"}
                 </Button>
               </CardFooter>
             </Card>
@@ -290,4 +271,5 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     </div>
   );
 }
+
 

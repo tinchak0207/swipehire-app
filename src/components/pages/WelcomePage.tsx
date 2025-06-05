@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap } from "lucide-react";
+import { ArrowRight, Brain, Briefcase, CheckCircle, ChevronDown, FileVideo2, HeartHandshake, Linkedin, LogIn, Mail, Rocket, Sparkles, Star, Twitter, User, Users, Wand2, Zap, Gift } from "lucide-react"; // Added Gift
 import Link from 'next/link';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
@@ -127,7 +127,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
           <nav className="hidden md:flex items-center space-x-6">
             <a href="#features" onClick={(e) => handleNavLinkClick(e, 'features')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
             <a href="#how-it-works" onClick={(e) => handleNavLinkClick(e, 'how-it-works')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How It Works</a>
-            <a href="#pricing" onClick={(e) => handleNavLinkClick(e, 'pricing')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
+            <a href="#pricing" onClick={(e) => handleNavLinkClick(e, 'pricing')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">It's Free!</a>
             <a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
           </nav>
           <div className="flex items-center gap-2">
@@ -264,64 +264,65 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         <section id="pricing" className="py-20 md:py-28 bg-muted/50" data-aos="fade-up">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16" data-aos="fade-up">
-                    <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading">Simple, Transparent Pricing</h2>
-                    <p className="mt-4 text-lg text-muted-foreground leading-relaxed">Choose the plan that's right for you. (Conceptual)</p>
+                    <h2 className="text-3xl md:text-4xl font-bold text-foreground font-heading flex items-center justify-center">
+                      <Gift className="mr-3 h-10 w-10 text-green-500" />
+                      SwipeHire is Now <span className="text-green-500 underline decoration-wavy decoration-green-500/70 underline-offset-4 ml-2">Completely Free!</span>
+                    </h2>
+                    <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-3xl mx-auto">
+                      That's right! All features, for everyone. We believe in democratizing access to powerful hiring and job-seeking tools.
+                      No tiers, no subscriptions, no hidden costs. Just pure value.
+                    </p>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
-                    <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-left" data-aos-delay="0">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-2xl text-primary font-heading">Job Seeker Basic</CardTitle>
-                            <CardDescription>Get started and find opportunities.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
-                            <p className="text-4xl font-bold text-foreground font-heading">Free</p>
-                            <ul className="space-y-2.5 text-sm text-muted-foreground">
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Create Profile & Video</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Swipe on Jobs</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Basic AI Tools</li>
-                            </ul>
-                        </CardContent>
-                        <CardFooter className="mt-auto pt-6 p-6">
-                            <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover font-semibold">Sign Up Free</Button>
-                        </CardFooter>
-                    </Card>
-                    <Card className="flex flex-col shadow-xl border-2 border-primary relative subtle-card-hover" data-aos="flip-up" data-aos-delay="100">
-                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold rounded-full shadow-md">Most Popular</div>
-                        <CardHeader className="pb-4 pt-8">
-                            <CardTitle className="text-2xl text-primary font-heading">Recruiter Pro</CardTitle>
-                            <CardDescription>Find top talent faster.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
-                            <p className="text-4xl font-bold text-foreground font-heading">$49<span className="text-sm font-normal text-muted-foreground">/mo</span></p>
-                            <ul className="space-y-2.5 text-sm text-muted-foreground">
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Post Unlimited Jobs</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Advanced Candidate Search</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Full AI Matching Insights</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Priority Support</li>
-                            </ul>
-                        </CardContent>
-                        <CardFooter className="mt-auto pt-6 p-6">
-                            <Button onClick={onStartExploring} className="w-full bg-primary hover:bg-primary/90 subtle-button-hover font-semibold">Get Started</Button>
-                        </CardFooter>
-                    </Card>
-                    <Card className="flex flex-col shadow-lg subtle-card-hover" data-aos="flip-right" data-aos-delay="200">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="text-2xl text-primary font-heading">Enterprise</CardTitle>
-                            <CardDescription>Custom solutions for your team.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-grow space-y-4">
-                            <p className="text-4xl font-bold text-foreground font-heading">Custom</p>
-                            <ul className="space-y-2.5 text-sm text-muted-foreground">
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Volume Hiring Tools</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> API Access & Integrations</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Dedicated Account Manager</li>
-                                <li className="flex items-center"><CheckCircle className="h-4 w-4 text-green-500 mr-2 shrink-0" /> Custom Branding</li>
-                            </ul>
-                        </CardContent>
-                        <CardFooter className="mt-auto pt-6 p-6">
-                           <Button onClick={() => alert('Contact sales for Enterprise plan!')} variant="outline" className="w-full subtle-button-hover font-semibold">Contact Sales</Button>
-                        </CardFooter>
-                    </Card>
+                <div className="max-w-4xl mx-auto bg-card p-8 sm:p-10 rounded-xl shadow-2xl border border-primary/20" data-aos="zoom-in-up">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div className="flex items-start">
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-3 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-foreground">AI Video Resume Builder</h3>
+                                <p className="text-sm text-muted-foreground">Craft compelling video intros with AI script assistance, avatar generation, and recording tools.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start">
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-3 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-foreground">Intelligent Candidate & Job Matching</h3>
+                                <p className="text-sm text-muted-foreground">Our AI connects job seekers with relevant roles and recruiters with ideal candidates.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start">
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-3 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-foreground">Unlimited Swipes & Connections</h3>
+                                <p className="text-sm text-muted-foreground">Explore as many profiles or job postings as you need to find your perfect match.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start">
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-3 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-foreground">Direct Messaging on Matches</h3>
+                                <p className="text-sm text-muted-foreground">Once a mutual interest is established, connect and chat directly within the platform.</p>
+                            </div>
+                        </div>
+                        <div className="flex items-start">
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-3 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-foreground">Dynamic Profile & Job Posting Creation</h3>
+                                <p className="text-sm text-muted-foreground">Full access for both job seekers to create rich profiles and recruiters to post detailed jobs.</p>
+                            </div>
+                        </div>
+                         <div className="flex items-start">
+                            <CheckCircle className="h-6 w-6 text-green-500 mr-3 shrink-0 mt-0.5" />
+                            <div>
+                                <h3 className="text-lg font-semibold text-foreground">Staff Diary & Community Access</h3>
+                                <p className="text-sm text-muted-foreground">Share insights, learn from peers, and engage with the professional community.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-10 text-center">
+                        <Button onClick={onStartExploring} size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground text-lg px-10 py-3 subtle-button-hover shadow-lg hover:shadow-xl font-semibold">
+                           <Sparkles className="mr-2 h-5 w-5"/> Join SwipeHire for Free
+                        </Button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -378,7 +379,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <ul className="space-y-2 text-sm">
                 <li><a href="#features" onClick={(e) => handleNavLinkClick(e, 'features')} className="hover:text-slate-200 transition-colors">Features</a></li>
                 <li><a href="#how-it-works" onClick={(e) => handleNavLinkClick(e, 'how-it-works')} className="hover:text-slate-200 transition-colors">How It Works</a></li>
-                <li><a href="#pricing" onClick={(e) => handleNavLinkClick(e, 'pricing')} className="hover:text-slate-200 transition-colors">Pricing</a></li>
+                <li><a href="#pricing" onClick={(e) => handleNavLinkClick(e, 'pricing')} className="hover:text-slate-200 transition-colors">It's Free!</a></li>
                 <li><a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="hover:text-slate-200 transition-colors">About Us (Conceptual)</a></li>
               </ul>
             </div>
@@ -410,4 +411,3 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 }
 
     
-
