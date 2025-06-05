@@ -10,14 +10,14 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { editVideo, type EditVideoInput } from '@/ai/flows/video-editor';
-import { Loader2, Clapperboard, Info, Scissors, Type, Sparkles, WandWielding, Film } from 'lucide-react'; // Added new icons
+import { Loader2, Clapperboard, Info, Scissors, Type, Sparkles, Wand, Film } from 'lucide-react'; // Changed WandWielding to Wand
 import { useToast } from '@/hooks/use-toast';
 import ReactMarkdown from 'react-markdown';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Textarea } from '@/components/ui/textarea'; // Added Textarea
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select
-import { Separator } from '@/components/ui/separator'; // Added Separator
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from '@/components/ui/separator';
 
 const FormSchema = z.object({
   videoFile: z.custom<FileList>((val) => val instanceof FileList && val.length > 0, {
@@ -190,7 +190,7 @@ export function VideoEditor({ initialVideoDataUri }: VideoEditorProps) {
             {/* Conceptual Editing Tools Section */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold flex items-center text-primary">
-                <WandWielding className="mr-2 h-5 w-5" /> Conceptual Editing Tools (UI Placeholders)
+                <Wand className="mr-2 h-5 w-5" /> Conceptual Editing Tools (UI Placeholders)
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 <Button variant="outline" onClick={() => handleConceptualEditAction("Trim Video")} disabled={!previewUrl}>
@@ -295,5 +295,7 @@ export function VideoEditor({ initialVideoDataUri }: VideoEditorProps) {
     </Card>
   );
 }
+
+    
 
     
