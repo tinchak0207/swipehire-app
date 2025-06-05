@@ -15,6 +15,18 @@ const defaultPreferences: UserPreferences = {
   defaultAIScriptTone: 'professional',
   discoveryItemsPerPage: 10,
   enableExperimentalFeatures: false,
+  notificationChannels: {
+    email: true,
+    sms: false,
+    inAppToast: true,
+    inAppBanner: true,
+  },
+  notificationSubscriptions: {
+    companyReplies: true,
+    matchUpdates: true,
+    applicationStatusChanges: true,
+    platformAnnouncements: true,
+  },
 };
 
 interface UserPreferencesContextType {
@@ -109,10 +121,23 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
         setFullBackendUserState(userData); // Store full backend user data
 
         const loadedPrefs = {
-          ...defaultPreferences,
-          ...userData.preferences,
-          featureFlags: { ...(defaultPreferences.featureFlags || {}), ...(userData.preferences?.featureFlags || {}) }
+          ...defaultPreferences, // Start with system defaults
+          ...(userData.preferences || {}), // Override with user-specific preferences if they exist
+          // Deep merge for nested objects like featureFlags and notificationChannels/Subscriptions
+          featureFlags: {
+            ...(defaultPreferences.featureFlags || {}),
+            ...(userData.preferences?.featureFlags || {}),
+          },
+          notificationChannels: {
+            ...(defaultPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true }), // Provide structure if default is missing
+            ...(userData.preferences?.notificationChannels || {}),
+          },
+          notificationSubscriptions: {
+            ...(defaultPreferences.notificationSubscriptions || { companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true }), // Provide structure if default is missing
+            ...(userData.preferences?.notificationSubscriptions || {}),
+          },
         };
+
         setPreferencesState(loadedPrefs);
         applyTheme(loadedPrefs.theme);
         setPassedCandidateIdsState(new Set(userData.passedCandidateProfileIds || []));
@@ -126,7 +151,7 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
         setPassedCompanyIdsState(new Set());
         setFullBackendUserState(null);
         if (response.status === 404) {
-          setMongoDbUserId(null); 
+          setMongoDbUserId(null);
         }
       }
     } catch (error) {
@@ -168,6 +193,26 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
 
   const setPreferences = async (newPrefsPartial: Partial<UserPreferences>) => {
     const updatedPreferences = { ...preferences, ...newPrefsPartial };
+    // Deep merge for nested preferences
+    if (newPrefsPartial.notificationChannels) {
+        updatedPreferences.notificationChannels = {
+            ...(preferences.notificationChannels || defaultPreferences.notificationChannels),
+            ...newPrefsPartial.notificationChannels,
+        };
+    }
+    if (newPrefsPartial.notificationSubscriptions) {
+        updatedPreferences.notificationSubscriptions = {
+            ...(preferences.notificationSubscriptions || defaultPreferences.notificationSubscriptions),
+            ...newPrefsPartial.notificationSubscriptions,
+        };
+    }
+    if (newPrefsPartial.featureFlags) {
+        updatedPreferences.featureFlags = {
+            ...(preferences.featureFlags || defaultPreferences.featureFlags),
+            ...newPrefsPartial.featureFlags,
+        };
+    }
+
     setPreferencesState(updatedPreferences);
     if (newPrefsPartial.theme) {
       applyTheme(newPrefsPartial.theme);
@@ -202,4 +247,3 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     </UserPreferencesContext.Provider>
   );
 };
-

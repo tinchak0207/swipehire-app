@@ -2,7 +2,8 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone } from '@/lib/types';
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem } from '@/lib/types'; // Added NotificationItem
+import { mockNotifications } from '@/lib/mockData'; // Added mockNotifications
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -10,20 +11,22 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { auth } from "@/lib/firebase"; 
+import { auth } from "@/lib/firebase";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings'; // New Import
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon } from 'lucide-react';
+import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings';
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing } from 'lucide-react'; // Added notification icons
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; // Added Accordion
+import { NotificationHistoryList } from '@/components/notifications/NotificationHistoryList'; // Added NotificationHistoryList
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
-  onRoleChange: (newRole: UserRole) => void; 
+  onRoleChange: (newRole: UserRole) => void;
   isGuestMode?: boolean;
 }
 
@@ -81,7 +84,7 @@ const discoveryItemsPerPageOptions = [5, 10, 15, 20];
 
 export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
   const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId } = useUserPreferences();
-  
+
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -94,10 +97,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [feedbackCategory, setFeedbackCategory] = useState('');
   const [feedbackMessage, setFeedbackMessage] = useState('');
 
-  // State for AI weights now managed in SettingsPage
   const [recruiterWeights, setRecruiterWeights] = useState<RecruiterPerspectiveWeights>(defaultRecruiterWeights);
   const [jobSeekerWeights, setJobSeekerWeights] = useState<JobSeekerPerspectiveWeights>(defaultJobSeekerWeights);
-  
+
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -106,6 +108,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [defaultAIScriptTone, setDefaultAIScriptTone] = useState<AIScriptTone>(contextPreferences.defaultAIScriptTone || 'professional');
   const [discoveryItemsPerPage, setDiscoveryItemsPerPage] = useState<number>(contextPreferences.discoveryItemsPerPage || 10);
   const [enableExperimentalFeatures, setEnableExperimentalFeatures] = useState<boolean>(contextPreferences.enableExperimentalFeatures || false);
+
+  const [notificationChannels, setNotificationChannels] = useState(contextPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true });
+  const [notificationSubscriptions, setNotificationSubscriptions] = useState(contextPreferences.notificationSubscriptions || { companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true });
+  const [displayedNotifications, setDisplayedNotifications] = useState<NotificationItem[]>(mockNotifications);
+
 
   const { toast } = useToast();
 
@@ -116,11 +123,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setDefaultAIScriptTone(contextPreferences.defaultAIScriptTone || 'professional');
       setDiscoveryItemsPerPage(contextPreferences.discoveryItemsPerPage || 10);
       setEnableExperimentalFeatures(contextPreferences.enableExperimentalFeatures || false);
-      // AI Weights might also come from contextPreferences if stored there in the future.
-      // For now, they are loaded from backend user data directly.
+      setNotificationChannels(contextPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true });
+      setNotificationSubscriptions(contextPreferences.notificationSubscriptions || { companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true });
     }
   }, [contextPreferences, contextLoading]);
-  
+
   useEffect(() => {
     if (isGuestMode || !auth.currentUser) {
       setUserName('Guest User');
@@ -136,9 +143,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     }
 
     setIsLoadingSettings(true);
-    const user = auth.currentUser; 
+    const user = auth.currentUser;
 
-    if (user && mongoDbUserId) { 
+    if (user && mongoDbUserId) {
       fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`)
         .then(res => {
           if (!res.ok) throw new Error(`User not found in MongoDB or backend error: ${res.status}`);
@@ -151,8 +158,6 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           setAddress(data.address || '');
           setCountry(data.country || '');
           setDocumentId(data.documentId || '');
-
-          // Set AI weights from fetched data or defaults
           setRecruiterWeights(data.recruiterAIWeights || defaultRecruiterWeights);
           setJobSeekerWeights(data.jobSeekerAIWeights || defaultJobSeekerWeights);
         })
@@ -161,9 +166,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           toast({ title: "Error Loading Settings", description: "Could not load your saved settings. Please ensure your profile is complete.", variant: "destructive" });
           setUserName(user.displayName || '');
           setUserEmail(user.email || '');
-          setSelectedRoleInSettings(currentUserRole || null); 
-          setRecruiterWeights(defaultRecruiterWeights); // Fallback
-          setJobSeekerWeights(defaultJobSeekerWeights); // Fallback
+          setSelectedRoleInSettings(currentUserRole || null);
+          setRecruiterWeights(defaultRecruiterWeights);
+          setJobSeekerWeights(defaultJobSeekerWeights);
         })
         .finally(() => {
           setIsLoadingSettings(false);
@@ -172,13 +177,13 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setUserName(user.displayName || '');
       setUserEmail(user.email || '');
       setSelectedRoleInSettings(currentUserRole || null);
-      setIsLoadingSettings(false); 
+      setIsLoadingSettings(false);
        toast({ title: "Profile Sync Pending", description: "Your profile data is being synced. Some settings might be unavailable until sync is complete.", variant: "default", duration: 7000 });
     } else {
-      setIsLoadingSettings(false); 
+      setIsLoadingSettings(false);
     }
     loadAppStats();
-  }, [isGuestMode, currentUserRole, mongoDbUserId, toast]); 
+  }, [isGuestMode, currentUserRole, mongoDbUserId, toast]);
 
   const loadAppStats = () => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -197,34 +202,33 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       toast({ title: "Feature Locked", description: "Settings cannot be changed in Guest Mode or if profile is not synced.", variant: "default" });
       return;
     }
-    // Validation for weights should be handled by the AiRecommendationSettings component,
-    // but we can add a check here if needed, or rely on its internal error state if passed up.
-    // For now, we assume the child component manages its own validation display.
-    
+
     setIsSaving(true);
-    const user = auth.currentUser; 
-    if (user && mongoDbUserId) { 
-      
+    const user = auth.currentUser;
+    if (user && mongoDbUserId) {
+
       const currentPreferencesToSave: UserPreferences = {
         theme: localTheme,
         featureFlags: localFeatureFlags,
         defaultAIScriptTone: defaultAIScriptTone,
         discoveryItemsPerPage: discoveryItemsPerPage,
         enableExperimentalFeatures: enableExperimentalFeatures,
+        notificationChannels: notificationChannels,
+        notificationSubscriptions: notificationSubscriptions,
       };
 
-      const settingsData: any = { 
+      const settingsData: any = {
         name: userName,
-        email: userEmail, 
+        email: userEmail,
         selectedRole: selectedRoleInSettings,
         address,
         country,
         documentId,
-        recruiterAIWeights: recruiterWeights, // These are now from SettingsPage state
-        jobSeekerAIWeights: jobSeekerWeights, // These are now from SettingsPage state
+        recruiterAIWeights: recruiterWeights,
+        jobSeekerAIWeights: jobSeekerWeights,
         preferences: currentPreferencesToSave,
       };
-      
+
       try {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${mongoDbUserId}/settings`, {
           method: 'POST',
@@ -236,15 +240,15 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           const errorData = await response.json().catch(() => ({ message: `Failed to save settings. Status: ${response.status}` }));
           throw new Error(errorData.message);
         }
-        
-        await setContextPreferences(currentPreferencesToSave); 
-        
+
+        await setContextPreferences(currentPreferencesToSave);
+
         toast({
           title: 'Settings Saved',
           description: 'Your preferences and general information have been updated.',
         });
         if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
-          onRoleChange(selectedRoleInSettings); 
+          onRoleChange(selectedRoleInSettings);
         }
         if (selectedRoleInSettings === 'recruiter' && userName.trim() !== '' && userEmail.trim() !== '') {
             localStorage.setItem('recruiterProfileComplete', 'true');
@@ -276,7 +280,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       analyticsKeys.forEach(key => {
         localStorage.removeItem(`analytics_${key}`);
       });
-      loadAppStats(); 
+      loadAppStats();
       toast({
         title: 'App Usage Stats Reset',
         description: 'The conceptual analytics have been cleared from local storage.',
@@ -306,10 +310,61 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     setFeedbackMessage('');
     setIsFeedbackModalOpen(false);
   };
-  
+
   const handleFeatureFlagChange = (flagName: string, checked: boolean) => {
     setLocalFeatureFlags(prev => ({...prev, [flagName]: checked }));
   };
+
+  const handleNotificationChannelChange = (channel: keyof UserPreferences['notificationChannels'], checked: boolean) => {
+    setNotificationChannels(prev => ({ ...prev!, [channel]: checked }));
+  };
+  
+  const handleNotificationSubscriptionChange = (subscription: keyof UserPreferences['notificationSubscriptions'], checked: boolean) => {
+    setNotificationSubscriptions(prev => ({ ...prev!, [subscription]: checked }));
+  };
+
+  const handleMarkNotificationAsRead = (notificationId: string) => {
+    setDisplayedNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
+    toast({ title: "Notification Marked as Read", description: "Conceptual action: marked as read.", duration: 2000 });
+  };
+  
+  const handleClearNotification = (notificationId: string) => {
+    setDisplayedNotifications(prev => prev.filter(n => n.id !== notificationId));
+    toast({ title: "Notification Cleared", description: "Conceptual action: notification removed from list.", duration: 2000 });
+  };
+
+  const handleMarkAllNotificationsAsRead = () => {
+    setDisplayedNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    toast({ title: "All Notifications Marked as Read", description: "Conceptual action: all marked as read.", duration: 2000 });
+  };
+
+  const handleClearAllNotifications = () => {
+    setDisplayedNotifications([]);
+    toast({ title: "All Notifications Cleared", description: "Conceptual action: list cleared.", duration: 2000 });
+  };
+
+  const handleSimulateNewNotification = () => {
+    const types = Object.values(NotificationItemType);
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const newNotif: NotificationItem = {
+      id: `sim-${Date.now()}`,
+      type: randomType,
+      title: `Simulated: ${randomType.replace('_', ' ')}`,
+      message: "This is a test notification to demonstrate the toast system.",
+      timestamp: new Date().toISOString(),
+      read: false,
+      isUrgent: Math.random() < 0.3,
+    };
+    // Add to mockNotifications for history, then show toast
+    // For real system, this would come from backend push or polling
+    setDisplayedNotifications(prev => [newNotif, ...prev].sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()));
+    toast({
+      title: newNotif.title,
+      description: newNotif.message,
+      variant: newNotif.isUrgent ? 'destructive' : 'default',
+    });
+  };
+
 
   const saveButtonText = isSaving ? "Saving..." : "Save Settings";
   const SaveButtonIcon = isSaving ? Loader2 : UserCog;
@@ -338,7 +393,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
-            <Users className="mr-2 h-5 w-5 text-primary" /> 
+            <Users className="mr-2 h-5 w-5 text-primary" />
             Your Role
           </CardTitle>
           <CardDescription>Select whether you are currently hiring or looking for a job. This changes the tools and features available to you.</CardDescription>
@@ -384,11 +439,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             <Label htmlFor="name" className={cn("text-base flex items-center", selectedRoleInSettings === 'recruiter' && "font-semibold")}>
               <User className="mr-2 h-4 w-4 text-muted-foreground" /> Full Name {selectedRoleInSettings === 'recruiter' && <StarIcon className="ml-1 h-3 w-3 text-destructive fill-destructive" />}
             </Label>
-            <Input 
-              id="name" 
-              placeholder="Enter your full name" 
-              value={userName} 
-              onChange={(e) => setUserName(e.target.value)} 
+            <Input
+              id="name"
+              placeholder="Enter your full name"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
               disabled={isGuestMode}
               className={cn(selectedRoleInSettings === 'recruiter' && !userName.trim() && "border-destructive focus-visible:ring-destructive")}
             />
@@ -397,12 +452,12 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             <Label htmlFor="email" className={cn("text-base flex items-center", selectedRoleInSettings === 'recruiter' && "font-semibold")}>
               <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> Email Address {selectedRoleInSettings === 'recruiter' && <StarIcon className="ml-1 h-3 w-3 text-destructive fill-destructive" />}
             </Label>
-            <Input 
-              id="email" 
-              type="email" 
-              placeholder="Enter your email address" 
-              value={userEmail} 
-              onChange={(e) => setUserEmail(e.target.value)} 
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email address"
+              value={userEmail}
+              onChange={(e) => setUserEmail(e.target.value)}
               disabled={isGuestMode || isAuthEmail}
               className={cn(selectedRoleInSettings === 'recruiter' && !userEmail.trim() && "border-destructive focus-visible:ring-destructive")}
             />
@@ -414,11 +469,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             <Label htmlFor="address" className="text-base flex items-center">
               <Home className="mr-2 h-4 w-4 text-muted-foreground" /> Street Address (Optional)
             </Label>
-            <Input 
-              id="address" 
-              placeholder="Enter your street address" 
-              value={address} 
-              onChange={(e) => setAddress(e.target.value)} 
+            <Input
+              id="address"
+              placeholder="Enter your street address"
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
               disabled={isGuestMode}
             />
           </div>
@@ -426,11 +481,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             <Label htmlFor="country" className="text-base flex items-center">
               <Globe className="mr-2 h-4 w-4 text-muted-foreground" /> Country (Optional)
             </Label>
-            <Input 
-              id="country" 
-              placeholder="Enter your country" 
-              value={country} 
-              onChange={(e) => setCountry(e.target.value)} 
+            <Input
+              id="country"
+              placeholder="Enter your country"
+              value={country}
+              onChange={(e) => setCountry(e.target.value)}
               disabled={isGuestMode}
             />
           </div>
@@ -438,11 +493,11 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
             <Label htmlFor="documentId" className="text-base flex items-center">
               <ScanLine className="mr-2 h-4 w-4 text-muted-foreground" /> Document ID (Optional, for verification concept)
             </Label>
-            <Input 
-              id="documentId" 
-              placeholder="Enter your document ID number" 
-              value={documentId} 
-              onChange={(e) => setDocumentId(e.target.value)} 
+            <Input
+              id="documentId"
+              placeholder="Enter your document ID number"
+              value={documentId}
+              onChange={(e) => setDocumentId(e.target.value)}
               disabled={isGuestMode}
             />
           </div>
@@ -552,7 +607,54 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </div>
         </CardContent>
       </Card>
-      
+
+      <Card className="shadow-lg">
+        <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+                <BellRing className="mr-2 h-5 w-5 text-primary" />
+                Notification Preferences
+            </CardTitle>
+            <CardDescription>Choose how and what you want to be notified about.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+            <div>
+                <Label className="text-base font-semibold mb-2 block">Notification Channels</Label>
+                <div className="space-y-2">
+                    {(Object.keys(notificationChannels) as Array<keyof UserPreferences['notificationChannels']>).map(channel => (
+                        <div key={channel} className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <Label htmlFor={`channel-${channel}`} className="text-sm capitalize flex items-center">
+                                {channel === 'email' && <Mail className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {channel === 'sms' && <MessageSquareText className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {channel === 'inAppToast' && <Bell className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {channel === 'inAppBanner' && <Info className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {channel.replace(/([A-Z])/g, ' $1').trim()}
+                            </Label>
+                            <Switch id={`channel-${channel}`} checked={notificationChannels[channel]} onCheckedChange={(checked) => handleNotificationChannelChange(channel, checked)} disabled={isGuestMode || channel === 'email' || channel === 'sms'}/>
+                        </div>
+                    ))}
+                    <p className="text-xs text-muted-foreground">Email and SMS notifications are conceptual for now.</p>
+                </div>
+            </div>
+            <div>
+                <Label className="text-base font-semibold mb-2 block">Notification Subscriptions</Label>
+                <div className="space-y-2">
+                    {(Object.keys(notificationSubscriptions) as Array<keyof UserPreferences['notificationSubscriptions']>).map(sub => (
+                         <div key={sub} className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <Label htmlFor={`sub-${sub}`} className="text-sm capitalize flex items-center">
+                                {sub === 'companyReplies' && <MessageSquareText className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {sub === 'matchUpdates' && <HeartHandshake className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {sub === 'applicationStatusChanges' && <ListChecks className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {sub === 'platformAnnouncements' && <BellRing className="mr-2 h-4 w-4 text-muted-foreground"/>}
+                                {sub.replace(/([A-Z])/g, ' $1').trim()}
+                            </Label>
+                            <Switch id={`sub-${sub}`} checked={notificationSubscriptions[sub]} onCheckedChange={(checked) => handleNotificationSubscriptionChange(sub, checked)} disabled={isGuestMode}/>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </CardContent>
+      </Card>
+
       <AiRecommendationSettings
         initialRecruiterWeights={recruiterWeights}
         initialJobSeekerWeights={jobSeekerWeights}
@@ -560,6 +662,37 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         onJobSeekerWeightsChange={setJobSeekerWeights}
         isGuestMode={isGuestMode}
       />
+
+      {!isGuestMode && (
+      <Accordion type="single" collapsible className="w-full" defaultValue={undefined}>
+          <Card className="shadow-lg">
+            <AccordionItem value="notification-history" className="border-b-0">
+              <AccordionTrigger className="px-6 py-4 text-xl font-semibold hover:no-underline group">
+                <div className="flex items-center">
+                  <Bell className="mr-2 h-5 w-5 text-primary group-hover:text-primary/80 transition-colors" />
+                  Notification History
+                  <ChevronDown className="h-5 w-5 ml-auto text-muted-foreground group-data-[state=open]:rotate-180 transition-transform" />
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <CardContent className="pt-0 pb-4 px-4">
+                  <NotificationHistoryList
+                    notifications={displayedNotifications}
+                    onMarkAsRead={handleMarkNotificationAsRead}
+                    onClearNotification={handleClearNotification}
+                  />
+                  {displayedNotifications.length > 0 && (
+                    <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                      <Button variant="outline" size="sm" onClick={handleMarkAllNotificationsAsRead} className="flex-1">Mark All as Read</Button>
+                      <Button variant="destructive" size="sm" onClick={handleClearAllNotifications} className="flex-1">Clear All Notifications</Button>
+                    </div>
+                  )}
+                </CardContent>
+              </AccordionContent>
+            </AccordionItem>
+          </Card>
+        </Accordion>
+      )}
 
       <Card className="shadow-lg">
         <CardHeader>
@@ -623,6 +756,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               </DialogFooter>
             </DialogContent>
           </Dialog>
+           {!isGuestMode && (
+            <Button variant="link" size="sm" onClick={handleSimulateNewNotification} className="mt-4 text-xs">Simulate New Notification (Dev)</Button>
+          )}
         </CardContent>
          {isGuestMode && (
           <CardFooter>
@@ -630,7 +766,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </CardFooter>
         )}
       </Card>
-      
+
       {!isGuestMode && (
         <Card className="shadow-lg">
           <CardHeader>
@@ -661,9 +797,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       )}
 
       <CardFooter className="flex justify-end pt-6">
-        <Button 
-          onClick={handleSaveSettings} 
-          size="lg" 
+        <Button
+          onClick={handleSaveSettings}
+          size="lg"
           disabled={isGuestMode || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode) || isSaving}
         >
           <SaveButtonIcon className={isSaving ? "mr-2 h-5 w-5 animate-spin" : "mr-2 h-5 w-5"} />

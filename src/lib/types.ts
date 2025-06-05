@@ -52,12 +52,47 @@ export interface PersonalityTraitAssessment {
 
 export type AIScriptTone = 'professional' | 'friendly' | 'technical' | 'sales' | 'general';
 
+export enum NotificationItemType {
+  INFO = 'info',
+  OFFER_EXTENDED = 'offer_extended',
+  NEW_MESSAGE = 'new_message',
+  INTERVIEW_SCHEDULED = 'interview_scheduled',
+  APPLICATION_VIEWED = 'application_viewed',
+  GENERAL_ALERT = 'general_alert',
+  SYSTEM_UPDATE = 'system_update',
+  FEEDBACK_REQUEST = 'feedback_request',
+}
+
+export interface NotificationItem {
+  id: string;
+  type: NotificationItemType;
+  title: string;
+  message: string;
+  timestamp: string; // ISO Date string
+  read: boolean;
+  link?: string; // Optional link for navigation
+  isUrgent?: boolean;
+}
+
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   featureFlags?: Record<string, boolean>;
   defaultAIScriptTone?: AIScriptTone;
   discoveryItemsPerPage?: number;
   enableExperimentalFeatures?: boolean;
+  // Notification Preferences
+  notificationChannels?: {
+    email: boolean; // Conceptual, not implemented for sending
+    sms: boolean;   // Conceptual, not implemented for sending
+    inAppToast: boolean;
+    inAppBanner: boolean;
+  };
+  notificationSubscriptions?: {
+    companyReplies: boolean;
+    matchUpdates: boolean;
+    applicationStatusChanges: boolean;
+    platformAnnouncements: boolean;
+  };
 }
 
 // Representing User data from MongoDB, including new fields for likes and profile representation
@@ -86,7 +121,7 @@ export interface BackendUser {
   profileFinalScript?: string; // The finalized script
   profileResumeText?: string; // The original resume text/summary
   // These fields were already there but ensure they are part of BackendUser
-  profileHeadline?: string; 
+  profileHeadline?: string;
   profileExperienceSummary?: string;
   profileSkills?: string; // Comma-separated
   profileDesiredWorkStyle?: string;
@@ -175,8 +210,8 @@ export interface Company { // This remains as the structure for mockData.ts comp
   introVideoUrl?: string;
   jobOpenings?: CompanyJobOpening[];
   companyNeeds?: string;
-  salaryRange?: string; 
-  jobType?: JobType; 
+  salaryRange?: string;
+  jobType?: JobType;
   jobMatchPercentage?: number; // For frontend display based on AI
 }
 
@@ -415,5 +450,3 @@ export interface RecordLikeResponse {
   matchMade?: boolean;
   matchDetails?: Match; // Full match details if one was created
 }
-
-    

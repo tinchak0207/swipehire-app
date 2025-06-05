@@ -5,7 +5,8 @@ import React, { useState, useEffect, useRef } from "react";
 import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { UserRole } from "@/lib/types";
+import type { UserRole, NotificationItem } from "@/lib/types";
+import { mockNotifications } from "@/lib/mockData"; // Import mockNotifications
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
@@ -13,6 +14,7 @@ import { onAuthStateChanged, signOut, type User, getRedirectResult } from "fireb
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { UserPreferencesProvider, useUserPreferences } from "@/contexts/UserPreferencesContext";
+import { TopNotificationBanner } from "@/components/notifications/TopNotificationBanner"; // Import TopNotificationBanner
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -34,6 +36,7 @@ const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').t
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 const GUEST_MODE_KEY = 'isGuestModeActive';
+const DISMISSED_BANNER_NOTIF_ID_KEY = 'dismissedBannerNotificationId';
 
 // Inner component to access UserPreferencesContext
 function AppContent() {
@@ -50,10 +53,34 @@ function AppContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [bannerNotification, setBannerNotification] = useState<NotificationItem | null>(null);
+
   const { toast } = useToast();
   const initialAuthCheckDone = useRef(false);
 
-  const { mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences } = useUserPreferences();
+  const { mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences, preferences } = useUserPreferences();
+
+  useEffect(() => {
+    if (preferences.notificationChannels?.inAppBanner && !isGuestMode) {
+      const latestUnreadUrgent = mockNotifications
+        .filter(n => !n.read && n.isUrgent && localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+      
+      const latestUnreadNormal = mockNotifications
+        .filter(n => !n.read && !n.isUrgent && localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+
+      setBannerNotification(latestUnreadUrgent || latestUnreadNormal || null);
+    } else {
+      setBannerNotification(null);
+    }
+  }, [mockNotifications, preferences.notificationChannels, isGuestMode]);
+
+  const handleDismissBanner = (notificationId: string) => {
+    setBannerNotification(null);
+    localStorage.setItem(DISMISSED_BANNER_NOTIF_ID_KEY, notificationId);
+  };
+
 
   const fetchUserFromMongo = async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
     try {
@@ -300,6 +327,7 @@ function AppContent() {
       localStorage.removeItem('recruiterProfileComplete');
       localStorage.removeItem('mongoDbUserId');
       localStorage.removeItem(HAS_SEEN_WELCOME_KEY); // Ensure welcome page is shown next
+      localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY); // Clear dismissed banner on logout
       setMongoDbUserId(null);
       setIsGuestMode(false);
       setUserPhotoURL(null);
@@ -316,6 +344,7 @@ function AppContent() {
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
+        localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY); // Clear dismissed banner on logout from guest
         // Setting HAS_SEEN_WELCOME_KEY to false (by removing it) will ensure WelcomePage is shown
         // if the user was in guest mode and then logs out/tries to sign in.
         localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
@@ -351,6 +380,7 @@ function AppContent() {
   } else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   } else if (isGuestMode) {
+    // Guests see job seeker view by default for exploration
     currentTabItems = jobseekerTabItems;
   }
 
@@ -361,14 +391,14 @@ function AppContent() {
         ? jobseekerTabItems
         : (isAuthenticated && userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
       const validTabValues = itemsForCurrentContext.map(item => item.value);
-      let defaultTabForCurrentContext = "findJobs";
+      let defaultTabForCurrentContext = "findJobs"; // Default for jobseeker and guest
       if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
         defaultTabForCurrentContext = "findTalent";
       }
       if (!validTabValues.includes(activeTab) ||
           (userRole === 'recruiter' && activeTab === 'findJobs') ||
           (userRole === 'jobseeker' && activeTab === 'findTalent') ||
-          (isGuestMode && activeTab === 'findTalent') ) {
+          (isGuestMode && activeTab === 'findTalent') ) { // Guests shouldn't land on findTalent
         setActiveTab(defaultTabForCurrentContext);
       }
     }
@@ -405,9 +435,10 @@ function AppContent() {
     }
 
     // Authenticated with role OR Guest mode: Show tabs and main app layout
-    const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background");
+    const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
     return (
       <div className={mainAppContainerClasses}>
+        <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
         <AppHeader
           isAuthenticated={isAuthenticated}
           isGuestMode={isGuestMode}
@@ -532,4 +563,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-    

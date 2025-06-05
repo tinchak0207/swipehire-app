@@ -13,6 +13,8 @@ import {
   type Match, // Added Match
   ApplicationStage, // Added ApplicationStage
   type ApplicationStatusUpdate, // Added ApplicationStatusUpdate
+  type NotificationItem, // Added NotificationItem
+  NotificationItemType, // Added NotificationItemType
 } from './types';
 
 export const mockCandidates: Candidate[] = [
@@ -584,3 +586,49 @@ mockMatches.forEach(match => {
   if (!match.company) match.company = mockCompanies.find(c => c.id === match.companyProfileIdForDisplay);
 });
 
+export const mockNotifications: NotificationItem[] = [
+  {
+    id: 'notif1',
+    type: NotificationItemType.OFFER_EXTENDED,
+    title: '🎉 Offer Extended from Innovatech Solutions!',
+    message: 'Congratulations! Innovatech Solutions has extended an offer for the Senior Frontend Developer role. Check My Matches for details.',
+    timestamp: new Date(Date.now() - (1000 * 60 * 30)).toISOString(), // 30 mins ago
+    read: false,
+    link: '/matches/matchmock1', // Conceptual link
+    isUrgent: true,
+  },
+  {
+    id: 'notif2',
+    type: NotificationItemType.NEW_MESSAGE,
+    title: 'New Message from GreenFuture Ltd.',
+    message: 'Mr. Green sent you a message regarding your Project Manager application. "Thanks for your time, we were impressed..."',
+    timestamp: new Date(Date.now() - (1000 * 60 * 60 * 2)).toISOString(), // 2 hours ago
+    read: false,
+    link: '/matches/matchmock3', // Conceptual link
+  },
+  {
+    id: 'notif3',
+    type: NotificationItemType.INTERVIEW_SCHEDULED,
+    title: 'Interview Scheduled with Creative Spark Inc.',
+    message: 'Your interview for the Graphic Designer role is scheduled for July 28th, 2024, at 2:00 PM. Good luck!',
+    timestamp: new Date(Date.now() - (1000 * 60 * 60 * 24)).toISOString(), // 1 day ago
+    read: true,
+  },
+  {
+    id: 'notif4',
+    type: NotificationItemType.APPLICATION_VIEWED,
+    title: 'PixelPlay Studios Viewed Your Application',
+    message: 'Your application for the Lead Game Developer role was viewed by PixelPlay Studios.',
+    timestamp: new Date(Date.now() - (1000 * 60 * 60 * 24 * 2)).toISOString(), // 2 days ago
+    read: true,
+  },
+  {
+    id: 'notif5',
+    type: NotificationItemType.SYSTEM_UPDATE,
+    title: 'Platform Update: New Features Added!',
+    message: 'We\'ve rolled out new AI tools and improved the matching algorithm. Explore now!',
+    timestamp: new Date(Date.now() - (1000 * 60 * 60 * 24 * 3)).toISOString(), // 3 days ago
+    read: false,
+    isUrgent: false,
+  },
+];
