@@ -6,20 +6,20 @@ import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole, NotificationItem } from "@/lib/types";
-import { mockNotifications } from "@/lib/mockData"; // Import mockNotifications
+import { mockNotifications } from "@/lib/mockData";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { UserPreferencesProvider, useUserPreferences } from "@/contexts/UserPreferencesContext";
-import { TopNotificationBanner } from "@/components/notifications/TopNotificationBanner"; // Import TopNotificationBanner
-import { useRouter, usePathname } from 'next/navigation'; // Added useRouter and usePathname
+// UserPreferencesProvider import removed as it's now in RootLayout
+import { useUserPreferences } from "@/contexts/UserPreferencesContext";
+import { TopNotificationBanner } from "@/components/notifications/TopNotificationBanner";
+import { useRouter, usePathname } from 'next/navigation';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-// Lazy load components
 const CandidateDiscoveryPage = dynamic(() => import('@/components/pages/CandidateDiscoveryPage').then(mod => mod.CandidateDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const JobDiscoveryPage = dynamic(() => import('@/components/pages/JobDiscoveryPage').then(mod => mod.JobDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const AiToolsPage = dynamic(() => import('@/components/pages/AiToolsPage').then(mod => mod.AiToolsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
@@ -158,7 +158,7 @@ function AppContent() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       const guestActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
 
-      if (user) { // Authenticated user
+      if (user) { 
         setCurrentUser(user);
         setIsAuthenticated(true);
         setIsGuestMode(false);
@@ -167,12 +167,11 @@ function AppContent() {
 
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
         if (fetchedMongoId) {
-          await fetchAndSetUserPreferences(fetchedMongoId); // Wait for preferences to load
+          await fetchAndSetUserPreferences(fetchedMongoId); 
         }
         setShowWelcomePage(false); 
-        // Redirection logic will be handled in the separate effect for fullBackendUser
-
-      } else if (guestActive) { // Guest mode is active
+        
+      } else if (guestActive) { 
         setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
         setIsAuthenticated(false);
         setUserRole(null);
@@ -182,7 +181,7 @@ function AppContent() {
         setMongoDbUserId(null);
         setShowWelcomePage(false); 
         localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
-      } else { // Not authenticated AND not guest mode
+      } else { 
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
@@ -264,13 +263,13 @@ function AppContent() {
 
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
-      await fetchAndSetUserPreferences(fetchedMongoId); // Wait for preferences
-      if (!userRole) { // userRole state, not fullBackendUser.selectedRole
+      await fetchAndSetUserPreferences(fetchedMongoId); 
+      if (!userRole) { 
          const defaultRole = 'jobseeker';
          await handleRoleSelect(defaultRole, fetchedMongoId);
       }
     } else {
-      setUserRole('jobseeker'); // Fallback if mongo fetch/create failed
+      setUserRole('jobseeker'); 
       setUserName(mockUser.displayName);
     }
 
@@ -311,7 +310,7 @@ function AppContent() {
         setUserRole(role);
         toast({ title: "Role Selected", description: `You are now a ${role}.` });
         localStorage.setItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY, (role === 'recruiter' && fullBackendUser?.companyProfileComplete) ? 'true' : 'false');
-        // Trigger a refresh of preferences to get latest fullBackendUser data including role and companyProfileComplete
+        
         await fetchAndSetUserPreferences(idToUse);
       } catch (error: any) {
         console.error("Error saving role to MongoDB backend:", error);
@@ -439,8 +438,6 @@ function AppContent() {
         );
     }
     
-    // If recruiter profile is not complete, and they are not on onboarding page, this should have been caught by redirection effect.
-    // But as a fallback, show a message if somehow they land here.
     if (isAuthenticated && userRole === 'recruiter' && !fullBackendUser?.companyProfileComplete) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
@@ -517,18 +514,10 @@ function AppContent() {
 }
 
 export default function HomePage() {
-  const [currentUserForProvider, setCurrentUserForProvider] = useState<User | null>(null);
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUserForProvider(user);
-    });
-    return () => unsubscribe();
-  }, []);
-
+  // currentUserForProvider state and useEffect removed from here
   return (
-    <UserPreferencesProvider currentUser={currentUserForProvider}>
-      <AppContent />
-    </UserPreferencesProvider>
+    // UserPreferencesProvider is no longer here; it's in RootLayout
+    <AppContent />
   );
 }
 
