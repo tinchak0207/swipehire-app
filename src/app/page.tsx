@@ -1,22 +1,22 @@
 
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { UserRole, NotificationItem } from "@/lib/types";
 import { mockNotifications } from "@/lib/mockData";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon } from 'lucide-react';
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon, Info, ChevronRight } from 'lucide-react'; // Added Info, ChevronRight
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-// UserPreferencesProvider import removed as it's now in RootLayout
 import { useUserPreferences } from "@/contexts/UserPreferencesContext";
 import { TopNotificationBanner } from "@/components/notifications/TopNotificationBanner";
 import { useRouter, usePathname } from 'next/navigation';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"; // Added Dialog components
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -25,7 +25,8 @@ const JobDiscoveryPage = dynamic(() => import('@/components/pages/JobDiscoveryPa
 const AiToolsPage = dynamic(() => import('@/components/pages/AiToolsPage').then(mod => mod.AiToolsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const MatchesPage = dynamic(() => import('@/components/pages/MatchesPage').then(mod => mod.MatchesPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const SettingsPage = dynamic(() => import('@/components/pages/SettingsPage').then(mod => mod.SettingsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const RoleSelectionPage = dynamic(() => import('@/components/pages/RoleSelectionPage').then(mod => mod.RoleSelectionPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+// RoleSelectionPage is no longer directly rendered here, but its logic is moved into the modal
+// const RoleSelectionPage = dynamic(() => import('@/components/pages/RoleSelectionPage').then(mod => mod.RoleSelectionPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const LoginPage = dynamic(() => import('@/components/pages/LoginPage').then(mod => mod.LoginPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage').then(mod => mod.CreateJobPostingPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
 const ManageJobPostingsPage = dynamic(() => import('@/components/pages/ManageJobPostingsPage').then(mod => mod.ManageJobPostingsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
@@ -46,7 +47,7 @@ function AppContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [showWelcomePage, setShowWelcomePage] = useState(false); 
+  const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
@@ -64,12 +65,17 @@ function AppContent() {
 
   const { mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences, preferences, fullBackendUser } = useUserPreferences();
 
+  // State for scroll-triggered profile setup modal
+  const [isProfileSetupModalOpen, setIsProfileSetupModalOpen] = useState(false);
+  const [profileSetupStep, setProfileSetupStep] = useState<'role' | 'recruiter_onboarding' | 'jobseeker_profile' | null>(null);
+  const hasScrolledAndModalTriggeredRef = useRef(false);
+
   useEffect(() => {
     if (preferences.notificationChannels?.inAppBanner && !isGuestMode) {
       const latestUnreadUrgent = mockNotifications
         .filter(n => !n.read && n.isUrgent && localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id)
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-      
+
       const latestUnreadNormal = mockNotifications
         .filter(n => !n.read && !n.isUrgent && localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id)
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
@@ -158,7 +164,7 @@ function AppContent() {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       const guestActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
 
-      if (user) { 
+      if (user) {
         setCurrentUser(user);
         setIsAuthenticated(true);
         setIsGuestMode(false);
@@ -167,11 +173,11 @@ function AppContent() {
 
         const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
         if (fetchedMongoId) {
-          await fetchAndSetUserPreferences(fetchedMongoId); 
+          await fetchAndSetUserPreferences(fetchedMongoId);
         }
-        setShowWelcomePage(false); 
-        
-      } else if (guestActive) { 
+        setShowWelcomePage(false); // Hide welcome page if user is authenticated
+
+      } else if (guestActive) {
         setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
         setIsAuthenticated(false);
         setUserRole(null);
@@ -179,9 +185,9 @@ function AppContent() {
         setUserPhotoURL(null);
         setIsGuestMode(true);
         setMongoDbUserId(null);
-        setShowWelcomePage(false); 
+        setShowWelcomePage(false); // Hide welcome page if in guest mode
         localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
-      } else { 
+      } else {
         setCurrentUser(null);
         setIsAuthenticated(false);
         setUserRole(null);
@@ -190,6 +196,7 @@ function AppContent() {
         setIsGuestMode(false);
         setMongoDbUserId(null);
         localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
+        // Show welcome page only if not seen and not authenticated/guest
         setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true');
       }
       if (!initialAuthCheckDone.current) {
@@ -202,6 +209,7 @@ function AppContent() {
       .then(async (result) => {
         if (result?.user) {
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${result.user.displayName || result.user.email}!` });
+          // Auth state change will handle the rest via onAuthStateChanged
         }
       })
       .catch((error) => {
@@ -212,10 +220,12 @@ function AppContent() {
         if (!initialAuthCheckDone.current) {
             const guestStillActive = localStorage.getItem(GUEST_MODE_KEY) === 'true';
             if (!auth.currentUser && !guestStillActive) {
+                 // If still not showing welcome, and it hasn't been seen, show it.
                  if(!showWelcomePage) setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true');
             } else if (guestStillActive && !auth.currentUser) {
-                if(!isGuestMode) handleGuestMode();
-                if(showWelcomePage) setShowWelcomePage(false);
+                // If guest mode is active from localStorage but not yet reflected in state
+                if(!isGuestMode) handleGuestMode(); // Call handleGuestMode to set state correctly
+                if(showWelcomePage) setShowWelcomePage(false); // Ensure welcome page is hidden if guest mode is on
             }
             initialAuthCheckDone.current = true;
             setIsInitialLoading(false);
@@ -223,15 +233,66 @@ function AppContent() {
       });
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, []); // Removed showWelcomePage and isGuestMode from deps as they are managed inside
 
-   useEffect(() => {
+
+  // Scroll listener for profile setup modal
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        isAuthenticated &&
+        !isGuestMode &&
+        fullBackendUser &&
+        !hasScrolledAndModalTriggeredRef.current
+      ) {
+        let step: typeof profileSetupStep = null;
+        if (!fullBackendUser.selectedRole) {
+          step = 'role';
+        } else if (fullBackendUser.selectedRole === 'recruiter' && !fullBackendUser.companyProfileComplete) {
+          step = 'recruiter_onboarding';
+        } else if (
+          fullBackendUser.selectedRole === 'jobseeker' &&
+          (!fullBackendUser.profileHeadline || !fullBackendUser.profileExperienceSummary)
+        ) {
+          step = 'jobseeker_profile';
+        }
+
+        if (step) {
+          setProfileSetupStep(step);
+          setIsProfileSetupModalOpen(true);
+          hasScrolledAndModalTriggeredRef.current = true;
+        }
+      }
+    };
+
     if (isAuthenticated && !isGuestMode && fullBackendUser && !preferences.loadingPreferences) {
-      if (fullBackendUser.selectedRole === 'recruiter' && !fullBackendUser.companyProfileComplete && pathname !== '/recruiter-onboarding') {
-        router.push('/recruiter-onboarding');
+      // Only add listener if setup might be needed and modal hasn't been triggered
+      if (!hasScrolledAndModalTriggeredRef.current &&
+          (!fullBackendUser.selectedRole ||
+           (fullBackendUser.selectedRole === 'recruiter' && !fullBackendUser.companyProfileComplete) ||
+           (fullBackendUser.selectedRole === 'jobseeker' && (!fullBackendUser.profileHeadline || !fullBackendUser.profileExperienceSummary)))
+         ) {
+        window.addEventListener('scroll', handleScroll, { once: true });
+        return () => window.removeEventListener('scroll', handleScroll);
       }
     }
-  }, [isAuthenticated, isGuestMode, fullBackendUser, preferences.loadingPreferences, pathname, router]);
+  }, [isAuthenticated, isGuestMode, fullBackendUser, preferences.loadingPreferences]);
+
+
+   useEffect(() => {
+    // This effect now only handles the recruiter onboarding page redirection
+    // The initial role selection or jobseeker profile prompt is handled by the scroll-triggered modal
+    if (isAuthenticated && !isGuestMode && fullBackendUser && !preferences.loadingPreferences) {
+      if (fullBackendUser.selectedRole === 'recruiter' && !fullBackendUser.companyProfileComplete && pathname !== '/recruiter-onboarding') {
+        // If modal for recruiter onboarding was already shown and dismissed, or if user directly lands on main page somehow
+        // we still might want to redirect. Or, this logic can be removed if the modal is the sole entry point.
+        // For now, let's keep it as a fallback.
+        if (!isProfileSetupModalOpen) { // Only redirect if modal isn't already up for this
+            router.push('/recruiter-onboarding');
+        }
+      }
+    }
+  }, [isAuthenticated, isGuestMode, fullBackendUser, preferences.loadingPreferences, pathname, router, isProfileSetupModalOpen]);
 
 
   useEffect(() => {
@@ -244,9 +305,11 @@ function AppContent() {
   const handleStartExploring = () => {
     localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
     setShowWelcomePage(false);
+    // No direct login/guest mode call here; AppContent will re-evaluate and show LoginPage
   };
 
   const handleLoginBypass = async () => {
+    // ... (keep existing bypass logic)
     const mockUid = `mock-bypass-user-${Date.now()}`;
     const mockUser: User = {
       uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)',
@@ -263,14 +326,11 @@ function AppContent() {
 
     const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
     if (fetchedMongoId) {
-      await fetchAndSetUserPreferences(fetchedMongoId); 
-      if (!userRole) { 
-         const defaultRole = 'jobseeker';
-         await handleRoleSelect(defaultRole, fetchedMongoId);
-      }
+      await fetchAndSetUserPreferences(fetchedMongoId);
+       // Role selection will be handled by scroll modal if needed
     } else {
-      setUserRole('jobseeker'); 
-      setUserName(mockUser.displayName);
+      // If fetchMongoUser didn't set a role (e.g. new user created by bypass),
+      // this will also be handled by scroll modal.
     }
 
     setShowWelcomePage(false);
@@ -307,11 +367,21 @@ function AppContent() {
           const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`}));
           throw new Error(errorData.message);
         }
-        setUserRole(role);
+        setUserRole(role); // Update local state immediately
         toast({ title: "Role Selected", description: `You are now a ${role}.` });
         localStorage.setItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY, (role === 'recruiter' && fullBackendUser?.companyProfileComplete) ? 'true' : 'false');
-        
-        await fetchAndSetUserPreferences(idToUse);
+
+        await fetchAndSetUserPreferences(idToUse); // Re-fetch to get potentially updated fullBackendUser
+
+        // Logic for post-role-selection guidance (previously here, now also in scroll modal)
+        if (role === 'recruiter' && !fullBackendUser?.companyProfileComplete) {
+          // The main useEffect will handle redirect to onboarding if path isn't already there
+          // Or, if modal handled it, this is just for reinforcement
+        } else if (role === 'jobseeker' && (!fullBackendUser?.profileHeadline || !fullBackendUser?.profileExperienceSummary)) {
+          setActiveTab("myProfile");
+          toast({ title: "Complete Your Profile", description: "Help recruiters find you by completing your professional profile!", duration: 7000 });
+        }
+
       } catch (error: any) {
         console.error("Error saving role to MongoDB backend:", error);
         toast({ title: "Error Saving Role", description: error.message || "Could not save role selection.", variant: "destructive" });
@@ -322,7 +392,7 @@ function AppContent() {
          toast({ title: "Action Disabled", description: "Role selection is not available in Guest Mode.", variant: "default"});
       }
     }
-    if (!isGuestMode) setUserRole(role);
+     if (!isGuestMode) setUserRole(role); // Ensure local userRole is updated even if backend fails, to reflect choice
   };
 
 
@@ -332,12 +402,13 @@ function AppContent() {
       localStorage.removeItem(GUEST_MODE_KEY);
       localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
       localStorage.removeItem('mongoDbUserId');
-      localStorage.removeItem(HAS_SEEN_WELCOME_KEY); 
-      localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY); 
+      localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
+      localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
       setMongoDbUserId(null);
       setIsGuestMode(false);
       setUserPhotoURL(null);
       setActiveTab('findJobs');
+      hasScrolledAndModalTriggeredRef.current = false; // Reset for next login session
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) {
       console.error("Error signing out:", error);
@@ -349,9 +420,12 @@ function AppContent() {
     if (isGuestMode) {
         localStorage.removeItem(GUEST_MODE_KEY);
         setIsGuestMode(false);
-        localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY); 
-        localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
-        setShowWelcomePage(true); 
+        localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
+        localStorage.removeItem(HAS_SEEN_WELCOME_KEY); // Remove welcome key so it can be shown again before login
+        hasScrolledAndModalTriggeredRef.current = false; // Reset
+        // AppContent will re-evaluate: user is not authenticated, not guest, HAS_SEEN_WELCOME_KEY is gone -> WelcomePage or LoginPage
+        // Effectively, this will make AppContent show LoginPage if welcome already seen, or WelcomePage if not.
+        setShowWelcomePage(localStorage.getItem(HAS_SEEN_WELCOME_KEY) !== 'true'); // Force re-evaluation
     }
   };
 
@@ -362,7 +436,7 @@ function AppContent() {
   ];
 
   const recruiterTabItems = [
-    { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} key={`cand-discovery-${userRole}-${mongoDbUserId}`} /> },
+    { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} key={`cand-discovery-${userRole}-${mongoDbUserId}`} isGuestMode={isGuestMode} /> },
     { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage isGuestMode={isGuestMode} /> },
     { value: "manageJobs", label: "Manage Jobs", icon: SettingsIcon, component: <ManageJobPostingsPage isGuestMode={isGuestMode} /> },
     ...baseTabItems,
@@ -381,7 +455,7 @@ function AppContent() {
   } else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') {
     currentTabItems = jobseekerTabItems;
   } else if (isGuestMode) {
-    currentTabItems = jobseekerTabItems;
+    currentTabItems = jobseekerTabItems; // Guests see jobseeker view by default
   }
 
 
@@ -391,14 +465,14 @@ function AppContent() {
         ? jobseekerTabItems
         : (isAuthenticated && userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
       const validTabValues = itemsForCurrentContext.map(item => item.value);
-      let defaultTabForCurrentContext = "findJobs"; 
+      let defaultTabForCurrentContext = "findJobs";
       if (!isGuestMode && isAuthenticated && userRole === 'recruiter') {
         defaultTabForCurrentContext = "findTalent";
       }
       if (!validTabValues.includes(activeTab) ||
           (userRole === 'recruiter' && activeTab === 'findJobs') ||
           (userRole === 'jobseeker' && activeTab === 'findTalent') ||
-          (isGuestMode && activeTab === 'findTalent') ) { 
+          (isGuestMode && activeTab === 'findTalent') ) {
         setActiveTab(defaultTabForCurrentContext);
       }
     }
@@ -413,8 +487,11 @@ function AppContent() {
         </div>
       );
     }
-    
+
     if (pathname === '/recruiter-onboarding') {
+        // If recruiter onboarding is handled via modal, this direct page might not be needed
+        // or it's a fallback. Ensure context provider wraps it if used directly.
+        // This component already receives user from context, so it's fine.
         return <RecruiterOnboardingPage />;
     }
 
@@ -430,25 +507,9 @@ function AppContent() {
       );
     }
 
-    if (isAuthenticated && !isGuestMode && !userRole && mongoDbUserId) {
-        return (
-          <div className="animate-fadeInPage" key="role_selection_page_wrapper">
-            <RoleSelectionPage onRoleSelect={(role) => handleRoleSelect(role, mongoDbUserId)} />
-          </div>
-        );
-    }
-    
-    if (isAuthenticated && userRole === 'recruiter' && !fullBackendUser?.companyProfileComplete) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
-                <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-                <p className="text-lg font-semibold">Redirecting to company onboarding...</p>
-                <p className="text-muted-foreground">Please complete your company profile to access recruiter tools.</p>
-            </div>
-        );
-    }
+    // RoleSelectionPage is no longer directly rendered here. Its logic is in the modal.
 
-
+    // Main app content (dashboard)
     const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
     return (
       <div className={mainAppContainerClasses}>
@@ -507,6 +568,90 @@ function AppContent() {
           </div>
           <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
         </footer>
+
+        {/* Profile Setup Modal */}
+        <Dialog open={isProfileSetupModalOpen} onOpenChange={(open) => {
+            if (!open) { // Allow closing, but it might reopen on next scroll if conditions still met
+                // Consider if we want to prevent closing until setup is "complete" for this step
+                // Or just let it close and the scroll listener might pick it up again.
+                // For now, allow simple close.
+                hasScrolledAndModalTriggeredRef.current = false; // Allow it to be triggered again if user closes without completing
+            }
+            setIsProfileSetupModalOpen(open);
+        }}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>
+                {profileSetupStep === 'role' && "Choose Your Path"}
+                {profileSetupStep === 'recruiter_onboarding' && "Complete Company Profile"}
+                {profileSetupStep === 'jobseeker_profile' && "Let's Complete Your Profile"}
+              </DialogTitle>
+              <DialogDescription>
+                {profileSetupStep === 'role' && "To get started, please tell us if you're primarily here to hire or to find a job."}
+                {profileSetupStep === 'recruiter_onboarding' && "Welcome, Recruiter! Please complete your company profile to access all hiring features."}
+                {profileSetupStep === 'jobseeker_profile' && "Help recruiters and companies find you by completing your professional profile."}
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4 space-y-4">
+              {profileSetupStep === 'role' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5"
+                    onClick={() => {
+                      handleRoleSelect('recruiter', mongoDbUserId);
+                      setIsProfileSetupModalOpen(false);
+                    }}
+                  >
+                    <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" />
+                    <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span>
+                    <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5"
+                    onClick={() => {
+                      handleRoleSelect('jobseeker', mongoDbUserId);
+                      setIsProfileSetupModalOpen(false);
+                    }}
+                  >
+                    <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" />
+                    <span className="font-semibold text-foreground">I'm Job Hunting</span>
+                    <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span>
+                  </Button>
+                </div>
+              )}
+              {profileSetupStep === 'recruiter_onboarding' && (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    router.push('/recruiter-onboarding');
+                    setIsProfileSetupModalOpen(false);
+                  }}
+                >
+                  Go to Company Onboarding <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+              {profileSetupStep === 'jobseeker_profile' && (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setActiveTab("myProfile");
+                    setIsProfileSetupModalOpen(false);
+                    toast({ title: "Let's build your profile!", description: "Switched to 'My Profile' tab.", duration: 4000});
+                  }}
+                >
+                  Complete My Profile <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            <DialogFooter className="sm:justify-center">
+              <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}>
+                Maybe Later
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   };
@@ -514,9 +659,7 @@ function AppContent() {
 }
 
 export default function HomePage() {
-  // currentUserForProvider state and useEffect removed from here
   return (
-    // UserPreferencesProvider is no longer here; it's in RootLayout
     <AppContent />
   );
 }
@@ -567,3 +710,5 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
+
+    
