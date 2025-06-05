@@ -533,7 +533,7 @@ export const mockMatches: Match[] = [
       { stage: ApplicationStage.SUBMITTED, timestamp: new Date(Date.now() - 7 * dayMillis).toISOString(), description: "Application submitted for Senior Frontend Developer.", nextStepSuggestion: "Await company review. They typically respond within a week." },
       { stage: ApplicationStage.COMPANY_VIEWED, timestamp: new Date(Date.now() - 5 * dayMillis).toISOString(), description: "Innovatech Solutions viewed your application.", nextStepSuggestion: "They might reach out soon if there's a fit." },
       { stage: ApplicationStage.SHORTLISTED, timestamp: new Date(Date.now() - 3 * dayMillis).toISOString(), description: "You've been shortlisted for the first round!", nextStepSuggestion: "Prepare for a potential screening call." },
-      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 1 * dayMillis).toISOString(), description: "Interview scheduled for tomorrow at 10:00 AM with Jane Doe.", nextStepSuggestion: "Confirm your availability and prepare questions." },
+      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 1 * dayMillis).toISOString(), description: "Interview scheduled for tomorrow at 10:00 AM with Jane Doe.", nextStepSuggestion: "Confirm your availability and prepare questions.", responseNeeded: true },
     ],
     candidate: mockCandidates.find(c => c.id === 'cand1'),
     company: mockCompanies.find(c => c.id === 'comp1'),
@@ -551,7 +551,8 @@ export const mockMatches: Match[] = [
     applicationStatusHistory: [
       { stage: ApplicationStage.SUBMITTED, timestamp: new Date(Date.now() - 10 * dayMillis).toISOString(), description: "Applied for Graphic Designer at Creative Spark Inc." },
       { stage: ApplicationStage.COMPANY_VIEWED, timestamp: new Date(Date.now() - 8 * dayMillis).toISOString(), description: "Your application was viewed." },
-      // This one is over 72 hours with no further updates from "COMPANY_VIEWED"
+      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 6 * dayMillis).toISOString(), description: "Interview scheduled: July 28th, 2:00 PM.", responseNeeded: false }, // Already responded to or confirmed
+      { stage: ApplicationStage.INTERVIEW_COMPLETED, timestamp: new Date(Date.now() - 4 * dayMillis).toISOString(), description: "Interview with Creative Spark Inc. completed." },
     ],
     candidate: mockCandidates.find(c => c.id === 'cand2'),
     company: mockCompanies.find(c => c.id === 'comp2'),
@@ -570,7 +571,7 @@ export const mockMatches: Match[] = [
       { stage: ApplicationStage.SUBMITTED, timestamp: new Date(Date.now() - 2 * dayMillis).toISOString(), description: "Application submitted for Project Manager.", nextStepSuggestion: "You've applied! Good luck." },
       { stage: ApplicationStage.COMPANY_VIEWED, timestamp: new Date(Date.now() - 1 * dayMillis).toISOString(), description: "GreenFuture Ltd. viewed your application.", nextStepSuggestion: "Wait for them to reach out." },
       { stage: ApplicationStage.SHORTLISTED, timestamp: new Date(Date.now() - 0.5 * dayMillis).toISOString(), description: "Congratulations! You're shortlisted.", nextStepSuggestion: "Prepare for the next steps." },
-      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 0.2 * dayMillis).toISOString(), description: "Interview scheduled: Next Monday, 2 PM with Mr. Green.", nextStepSuggestion: "Ace that interview!" },
+      { stage: ApplicationStage.INTERVIEW_SCHEDULED, timestamp: new Date(Date.now() - 0.2 * dayMillis).toISOString(), description: "Interview scheduled: Next Monday, 2 PM with Mr. Green.", nextStepSuggestion: "Ace that interview!", responseNeeded: false }, // Example of one not needing immediate action
       { stage: ApplicationStage.INTERVIEW_COMPLETED, timestamp: new Date(Date.now() - 0.1 * dayMillis).toISOString(), description: "Interview completed.", nextStepSuggestion: "Fingers crossed! Await their decision." },
       { stage: ApplicationStage.AWAITING_DECISION, timestamp: new Date(Date.now() - 0.05 * dayMillis).toISOString(), description: "Your application is under final review.", nextStepSuggestion: "The company is making a decision. You should hear back soon." },
 
@@ -632,3 +633,33 @@ export const mockNotifications: NotificationItem[] = [
     isUrgent: false,
   },
 ];
+
+// Example review data (conceptual)
+export const mockCompanyReviews = [
+    {
+        id: 'review1',
+        companyId: 'comp1', // Innovatech Solutions
+        jobId: 'job1comp1', // Senior Frontend Developer
+        reviewerUserId: 'userJobseeker1', // Alice Wonderland
+        responsivenessRating: 5,
+        attitudeRating: 3,
+        processExperienceRating: 4,
+        comments: "Innovatech was very quick to respond and the interviewer was professional. The technical questions were challenging but fair. Overall, a good experience.",
+        isAnonymous: false,
+        timestamp: new Date(Date.now() - 2 * dayMillis).toISOString()
+    },
+    {
+        id: 'review2',
+        companyId: 'comp2', // Creative Spark Inc.
+        jobId: 'job1comp2', // Graphic Designer
+        reviewerUserId: 'userJobseeker2', // Bob The Builder
+        responsivenessRating: 3,
+        attitudeRating: 2,
+        processExperienceRating: 3,
+        comments: "The process took a bit longer than expected, and communication was sometimes slow. The team seemed friendly, though. The design task was interesting.",
+        isAnonymous: true,
+        timestamp: new Date(Date.now() - 5 * dayMillis).toISOString()
+    }
+];
+
+    

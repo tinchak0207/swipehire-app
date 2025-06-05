@@ -231,6 +231,7 @@ export interface ApplicationStatusUpdate {
   timestamp: string; // ISO Date string
   description?: string; // e.g., "Interview scheduled with Hiring Manager"
   nextStepSuggestion?: string; // e.g., "Prepare for your interview on [Date]"
+  responseNeeded?: boolean; // New field to indicate if user action is required for this stage
 }
 
 // Updated Match interface to align with backend Match model
@@ -450,3 +451,18 @@ export interface RecordLikeResponse {
   matchMade?: boolean;
   matchDetails?: Match; // Full match details if one was created
 }
+
+export interface CompanyReview {
+  id?: string; // Frontend or DB ID
+  companyId: string; // ID of the company being reviewed
+  jobId?: string; // Optional: If the review is for a specific job application
+  reviewerUserId: string; // User who submitted the review
+  responsivenessRating: number; // 1-5
+  attitudeRating: number; // 1-3
+  processExperienceRating: number; // 1-5
+  comments: string;
+  isAnonymous: boolean;
+  timestamp: string; // ISO Date string
+}
+
+    

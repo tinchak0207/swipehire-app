@@ -12,13 +12,15 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { generateIcebreakerQuestion } from '@/ai/flows/icebreaker-generator';
 import { sendMessage, fetchMessages } from '@/services/chatService';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw, Edit3, Check, CheckCheck, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react'; // Added CalendarDays, ChevronDown, ChevronUp
+import { Loader2, MessageCircle, Sparkles, Send, Bot, RefreshCcw, Edit3, Check, CheckCheck, CalendarDays, ChevronDown, ChevronUp, ThumbsUp, ThumbsDown, CalendarPlus, Award, XCircle } from 'lucide-react'; // Added ThumbsUp, ThumbsDown, CalendarPlus, Award, XCircle
 import { useToast } from '@/hooks/use-toast';
 import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import io, { type Socket } from 'socket.io-client';
-import { ApplicationStatusTimeline } from './ApplicationStatusTimeline'; // Added import
+import { ApplicationStatusTimeline } from './ApplicationStatusTimeline'; 
+import { CompanyReviewForm } from '@/components/reviews/CompanyReviewForm'; // Added CompanyReviewForm
+import { ApplicationStage } from '@/lib/types'; // Added ApplicationStage for explicit check
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 let socket: Socket | null = null;
@@ -51,7 +53,12 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
-  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false); // State for timeline accordion
+  const [isTimelineExpanded, setIsTimelineExpanded] = useState(false); 
+  const [showSuggestTimeDialog, setShowSuggestTimeDialog] = useState(false);
+  const [suggestedTimeMessage, setSuggestedTimeMessage] = useState("");
+  const [showInterviewFeedbackDialog, setShowInterviewFeedbackDialog] = useState(false);
+  const [localApplicationStatusHistory, setLocalApplicationStatusHistory] = useState<ApplicationStatusUpdate[]>(match.applicationStatusHistory || []);
+
 
   const contactName = mongoDbUserId === match.userA_Id ? match.company.name : match.candidate.name;
   const contactAvatar = mongoDbUserId === match.userA_Id ? match.company.logoUrl : match.candidate.avatarUrl;
@@ -284,7 +291,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
   const handleChatOpenChange = (open: boolean) => {
     setIsChatOpen(open);
     if (open) {
-      if (icebreaker && messages.length === 0 && !currentMessage) { // Only prefill if chat input is empty
+      if (icebreaker && messages.length === 0 && !currentMessage) { 
         setCurrentMessage(icebreaker); 
       }
       setTypingUsers({}); 
@@ -305,6 +312,40 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
     .map(([_, userName]) => userName)
     .join(', ');
 
+  const handleInterviewResponse = (response: 'accepted' | 'declined') => {
+    // Conceptual: Update local state and show toast. Backend call would happen here.
+    const newStatus: ApplicationStatusUpdate = {
+        stage: response === 'accepted' ? ApplicationStage.INTERVIEW_SCHEDULED : ApplicationStage.REJECTED, // Or a new "DeclinedInterview" stage
+        timestamp: new Date().toISOString(),
+        description: `Interview ${response}.`,
+        responseNeeded: false // Action taken
+    };
+    setLocalApplicationStatusHistory(prev => [...prev, newStatus]);
+    toast({ title: `Interview ${response}`, description: `You have ${response} the interview invitation.` });
+  };
+
+  const handleSuggestTimeSubmit = () => {
+    // Conceptual: Send message, update local status
+    if (!suggestedTimeMessage.trim()) {
+        toast({title: "Empty Message", description: "Please enter your suggested times or message.", variant: "destructive"});
+        return;
+    }
+    console.log("Suggested time/message submitted:", suggestedTimeMessage);
+    const newStatus: ApplicationStatusUpdate = {
+        stage: ApplicationStage.INTERVIEW_SCHEDULED, 
+        timestamp: new Date().toISOString(),
+        description: `Suggested new time: ${suggestedTimeMessage.substring(0,50)}...`,
+        responseNeeded: false 
+    };
+    setLocalApplicationStatusHistory(prev => [...prev, newStatus]);
+    toast({ title: "Suggestion Sent", description: "Your time suggestion has been sent to the recruiter." });
+    setShowSuggestTimeDialog(false);
+    setSuggestedTimeMessage("");
+  };
+  
+  const latestStatus = localApplicationStatusHistory.length > 0 ? localApplicationStatusHistory[localApplicationStatusHistory.length - 1] : null;
+  const showInterviewResponseButtons = latestStatus?.stage === ApplicationStage.INTERVIEW_SCHEDULED && latestStatus.responseNeeded;
+  const showFeedbackButton = latestStatus?.stage === ApplicationStage.INTERVIEW_COMPLETED && mongoDbUserId === match.userB_Id; // Only job seeker gives feedback
 
   return (
     <Card className="w-full shadow-lg overflow-hidden flex flex-col">
@@ -323,7 +364,7 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
         </div>
       </CardHeader>
       <CardContent className="p-4 space-y-4 flex-grow">
-        {match.applicationStatusHistory && match.applicationStatusHistory.length > 0 && (
+        {localApplicationStatusHistory && localApplicationStatusHistory.length > 0 && (
           <Accordion type="single" collapsible className="w-full" value={isTimelineExpanded ? "status" : undefined} onValueChange={(value) => setIsTimelineExpanded(value === "status")}>
             <AccordionItem value="status" className="border-b-0">
               <AccordionTrigger className="text-md font-semibold text-primary hover:no-underline py-2 group -mx-1 px-1">
@@ -334,13 +375,39 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
                 </div>
               </AccordionTrigger>
               <AccordionContent className="pt-2 pb-0 pl-1 pr-1">
-                <ApplicationStatusTimeline statusHistory={match.applicationStatusHistory} />
+                <ApplicationStatusTimeline statusHistory={localApplicationStatusHistory} />
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         )}
 
-        {!icebreaker && !isLoadingIcebreaker && (
+        {showInterviewResponseButtons && (
+            <div className="p-3 border rounded-md bg-blue-50 border-blue-200 space-y-2">
+                <p className="text-sm font-medium text-blue-700">Action Required: Interview Invitation</p>
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Button size="sm" onClick={() => handleInterviewResponse('accepted')} className="bg-green-500 hover:bg-green-600 text-white flex-1">
+                        <ThumbsUp className="mr-2 h-4 w-4"/> Accept
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setShowSuggestTimeDialog(true)} className="border-amber-500 text-amber-600 hover:bg-amber-50 flex-1">
+                        <CalendarPlus className="mr-2 h-4 w-4"/> Suggest New Time
+                    </Button>
+                    <Button size="sm" variant="destructive" onClick={() => handleInterviewResponse('declined')} className="flex-1">
+                        <ThumbsDown className="mr-2 h-4 w-4"/> Decline
+                    </Button>
+                </div>
+            </div>
+        )}
+        {showFeedbackButton && (
+            <div className="p-3 border rounded-md bg-purple-50 border-purple-200">
+                <p className="text-sm font-medium text-purple-700 mb-2">Interview Completed! Share your feedback:</p>
+                 <Button size="sm" onClick={() => setShowInterviewFeedbackDialog(true)} className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+                    <Award className="mr-2 h-4 w-4"/> Provide Interview Feedback
+                </Button>
+            </div>
+        )}
+
+
+        {!icebreaker && !isLoadingIcebreaker && !showInterviewResponseButtons && !showFeedbackButton && (
            <div className="text-center py-4">
             <Sparkles className="mx-auto h-10 w-10 text-muted-foreground mb-2" />
             <p className="text-muted-foreground">Generate an AI icebreaker or start chatting!</p>
@@ -438,7 +505,59 @@ export function IcebreakerCard({ match }: IcebreakerCardProps) {
           </DialogContent>
         </Dialog>
       </CardFooter>
+
+      {/* Dialog for Suggesting New Time */}
+      <Dialog open={showSuggestTimeDialog} onOpenChange={setShowSuggestTimeDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Suggest New Interview Time</DialogTitle>
+            <CardDescription>Propose alternative times or add a note for {contactName}.</CardDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="e.g., 'Unfortunately, I'm unavailable at that time. Would Tuesday or Wednesday next week work? I'm free after 2 PM.'"
+            value={suggestedTimeMessage}
+            onChange={(e) => setSuggestedTimeMessage(e.target.value)}
+            rows={4}
+            className="my-4"
+          />
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+            <Button onClick={handleSuggestTimeSubmit} disabled={!suggestedTimeMessage.trim()}>Send Suggestion</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog for Interview Feedback */}
+      <Dialog open={showInterviewFeedbackDialog} onOpenChange={setShowInterviewFeedbackDialog}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Interview Feedback for {contactName}</DialogTitle>
+            <CardDescription>Share your experience about the interview process for the role: {match.jobOpeningTitle}.</CardDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <CompanyReviewForm
+                companyId={match.company.id} 
+                companyName={match.company.name}
+                jobId={match.jobOpeningTitle} // Or a specific job ID if available
+                jobTitle={match.jobOpeningTitle}
+                onReviewSubmitted={() => {
+                    setShowInterviewFeedbackDialog(false);
+                    // Optionally, update local status to reflect feedback submitted
+                    const newStatus: ApplicationStatusUpdate = {
+                        stage: ApplicationStage.INTERVIEW_COMPLETED, // Or a new "FeedbackSubmitted" stage
+                        timestamp: new Date().toISOString(),
+                        description: `Feedback submitted for interview.`,
+                        responseNeeded: false 
+                    };
+                    setLocalApplicationStatusHistory(prev => [...prev, newStatus]);
+                }}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
 
+
+    

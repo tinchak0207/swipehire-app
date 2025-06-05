@@ -3,7 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import type { UserRole } from '@/lib/types'; 
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle, Star as StarIcon } from 'lucide-react'; // Added StarIcon
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle, Star as StarIcon, HelpCircle, Brain } from 'lucide-react'; // Added HelpCircle, Brain
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -11,15 +11,17 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge"; 
 import { cn } from '@/lib/utils';
 import { ResumeCreationFlowPage } from '@/components/pages/ResumeCreationFlowPage';
+import { useToast } from '@/hooks/use-toast'; // Added useToast
 
-type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor';
+type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor' | 'prepHub';
 
 interface AiTool {
   key: ToolKey;
   title: string;
   Icon: React.ElementType;
-  bgClass: string;
+  bgClass?: string; // Optional for new card
   description: string;
+  isPlaceholder?: boolean; // New flag for conceptual tools
 }
 
 const aiToolsData: AiTool[] = [
@@ -51,6 +53,14 @@ const aiToolsData: AiTool[] = [
     bgClass: 'ai-tool-bg-editor',
     description: "Get AI feedback and suggestions on your video.",
   },
+  {
+    key: 'prepHub',
+    title: 'Interview Prep Hub',
+    Icon: Brain, // Using Brain icon
+    bgClass: 'bg-gradient-to-br from-teal-500 to-cyan-600', // Example gradient
+    description: "Access common questions, prep tips, and company insights to ace your next interview.",
+    isPlaceholder: true,
+  },
 ];
 
 interface AiToolsPageProps {
@@ -60,6 +70,7 @@ interface AiToolsPageProps {
 
 export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) {
   const [showResumeCreationFlow, setShowResumeCreationFlow] = useState<boolean>(false);
+  const { toast } = useToast(); // Initialize toast
 
   const handleLaunchFlow = () => {
     if (isGuestMode) return; 
@@ -68,6 +79,23 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
 
   const handleBackToGrid = () => {
     setShowResumeCreationFlow(false);
+  };
+
+  const handlePlaceholderToolClick = (toolTitle: string) => {
+    if (isGuestMode) {
+      toast({
+        title: "Feature Locked",
+        description: "Please sign in to use AI tools.",
+        variant: "default",
+      });
+      return;
+    }
+    toast({
+        title: `${toolTitle} (Coming Soon!)`,
+        description: "This feature is currently under development and will be available soon. Stay tuned!",
+        variant: "default",
+        duration: 5000,
+    });
   };
 
   const GuestLockOverlay = ({ message = "Sign In to Use This Tool" }: { message?: string }) => (
@@ -137,7 +165,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 max-w-4xl mx-auto w-full">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 max-w-4xl mx-auto w-full">
               {aiToolsData.map((tool) => (
                 <Card
                   key={tool.key}
@@ -145,8 +173,10 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                     "transition-all duration-300 overflow-hidden group text-white rounded-xl flex flex-col justify-center items-center p-6 sm:p-8 min-h-[280px] sm:min-h-[320px] relative",
                     tool.bgClass,
                     isGuestMode && "opacity-60 border-2 border-red-400 cursor-default",
-                    !isGuestMode && "hover:shadow-2xl hover:-translate-y-1" 
+                    !isGuestMode && tool.isPlaceholder && "cursor-pointer hover:opacity-90",
+                    !isGuestMode && !tool.isPlaceholder && "hover:shadow-2xl hover:-translate-y-1" 
                   )}
+                  onClick={tool.isPlaceholder ? () => handlePlaceholderToolClick(tool.title) : undefined}
                 >
                   {isGuestMode && <GuestLockOverlay message="Tool Preview (Sign In to Use)" />}
                   <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
@@ -154,6 +184,11 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                   <CardContent className="text-center p-0 mt-2 sm:mt-3">
                     <p className="text-sm sm:text-base text-white/80">{tool.description}</p>
                   </CardContent>
+                  {tool.isPlaceholder && !isGuestMode && (
+                    <Badge variant="outline" className="absolute top-3 right-3 bg-yellow-400 text-black text-xs px-2 py-1 font-semibold">
+                        Coming Soon
+                    </Badge>
+                  )}
                 </Card>
               ))}
             </div>
@@ -175,6 +210,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                     <li>AI Avatar Creation</li>
                     <li>Video Recording Interface</li>
                     <li>AI Video Analysis & Feedback</li>
+                    <li>Interview Preparation Hub (Coming Soon!)</li>
                     <li>And more to come!</li>
                 </ul>
               </CardContent>
@@ -191,3 +227,6 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
     </div>
   );
 }
+
+
+    
