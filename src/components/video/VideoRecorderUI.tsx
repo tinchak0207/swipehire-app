@@ -28,7 +28,7 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
   const recordingDuration = 60; 
 
   const [isSavingVideo, setIsSavingVideo] = useState(false);
-  const { mongoDbUserId } = useUserPreferences(); 
+  const { mongoDbUserId, updateFullBackendUserFields } = useUserPreferences(); 
 
   const { toast } = useToast();
 
@@ -267,6 +267,9 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
       }
   
       const result = await uploadResponse.json();
+      if (result.user && result.user.profileVideoPortfolioLink) {
+        updateFullBackendUserFields({ profileVideoPortfolioLink: result.user.profileVideoPortfolioLink });
+      }
       toast({ title: "Video Saved!", description: "Your video resume has been saved to your profile." });
 
     } catch (error: any) {

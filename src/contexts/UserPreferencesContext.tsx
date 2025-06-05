@@ -41,6 +41,7 @@ interface UserPreferencesContextType {
   updatePassedCandidateIds: (newIds: string[]) => void; // New setter
   updatePassedCompanyIds: (newIds: string[]) => void;   // New setter
   fullBackendUser: BackendUser | null; // New state to store full user data from backend
+  updateFullBackendUserFields: (updatedFields: Partial<BackendUser>) => void; // New function
 }
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
@@ -228,6 +229,13 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     setPassedCompanyIdsState(new Set(newIds));
   };
 
+  const updateFullBackendUserFields = (updatedFields: Partial<BackendUser>) => {
+    setFullBackendUserState(prevUser => {
+      if (!prevUser) return updatedFields as BackendUser; // Should ideally not happen if mongoDbUserId is set
+      return { ...prevUser, ...updatedFields };
+    });
+  };
+
 
   return (
     <UserPreferencesContext.Provider value={{
@@ -241,7 +249,8 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
       passedCompanyIds,
       updatePassedCandidateIds,
       updatePassedCompanyIds,
-      fullBackendUser
+      fullBackendUser,
+      updateFullBackendUserFields,
     }}>
       {children}
     </UserPreferencesContext.Provider>

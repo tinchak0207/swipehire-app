@@ -234,13 +234,11 @@ app.post('/api/users/:identifier/avatar', uploadAvatar.single('avatar'), async (
 });
 
 // Initialize GCS client
-// Ensure your GCLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS environment variables are set
-// or the client is initialized with appropriate credentials for GCS.
 const storageGCS = new Storage();
 const GCS_BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'YOUR_GCS_BUCKET_NAME_HERE'; // Replace with your bucket name
 
 app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single('videoResume'), async (req, res) => {
-    const { identifier } = req.params; // This could be MongoDB _id or Firebase UID
+    const { identifier } = req.params; 
     
     if (!req.file) {
         return res.status(400).json({ message: 'No video resume file uploaded.' });
@@ -269,12 +267,14 @@ app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single
         const safeBaseName = path.basename(originalFileName, fileExtension).toLowerCase().replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
         const gcsObjectName = `video-resumes/${userToUpdate._id}/${Date.now()}-${safeBaseName}${fileExtension}`;
         const file = bucket.file(gcsObjectName);
+        const gcsPublicUrl = `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${gcsObjectName}`;
+
 
         const stream = file.createWriteStream({
             metadata: {
                 contentType: req.file.mimetype,
             },
-            resumable: false, // Use simple upload for smaller files, or set to true for larger ones
+            resumable: false, 
         });
 
         stream.on('error', (err) => {
@@ -283,15 +283,7 @@ app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single
         });
 
         stream.on('finish', async () => {
-            // The file upload is complete.
-            // Make the file public (optional, adjust based on your access control needs)
-            // await file.makePublic(); 
-            // const gcsPublicUrl = `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${gcsObjectName}`;
-            // Or, more securely, you might generate signed URLs when the frontend needs to access it.
-            // For now, we'll just store the object name and bucket.
-
             try {
-                // Save metadata to MongoDB
                 const newVideoDoc = new Video({
                     gcsObjectName: gcsObjectName,
                     gcsBucketName: GCS_BUCKET_NAME,
@@ -299,26 +291,22 @@ app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single
                     contentType: req.file.mimetype,
                     size: req.file.size,
                     uploadedBy: userToUpdate._id,
-                    // gcsPublicUrl: gcsPublicUrl, // Uncomment if making public
+                    gcsPublicUrl: gcsPublicUrl, 
                 });
                 await newVideoDoc.save();
 
-                // Update user's profile with a reference to this new video
-                // This assumes you want to link the *latest* video resume directly on the User model.
-                // If a user can have multiple, you might push to an array on the User model instead.
-                userToUpdate.profileVideoPortfolioLink = `/gcs/${GCS_BUCKET_NAME}/${gcsObjectName}`; // Or a different way to reference
+                userToUpdate.profileVideoPortfolioLink = gcsPublicUrl; 
                 await userToUpdate.save();
 
                 res.json({
                     message: 'Video resume uploaded and GCS link saved successfully!',
-                    videoUrl: `/gcs/${GCS_BUCKET_NAME}/${gcsObjectName}`, // This is a conceptual path, actual serving might differ
+                    videoUrl: gcsPublicUrl, 
                     gcsObjectName: gcsObjectName,
                     videoId: newVideoDoc._id,
                     user: userToUpdate
                 });
             } catch (dbError) {
                 console.error('Error saving video metadata to MongoDB:', dbError);
-                // Attempt to delete the GCS object if DB save fails
                 try {
                     await bucket.file(gcsObjectName).delete();
                     console.log(`Orphaned GCS object ${gcsObjectName} deleted due to DB error.`);
