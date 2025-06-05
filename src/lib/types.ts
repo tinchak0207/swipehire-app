@@ -1,3 +1,4 @@
+
 // src/lib/types.ts
 
 export type UserRole = 'recruiter' | 'jobseeker';
@@ -100,6 +101,12 @@ export interface BackendUser {
   profileJobTypePreference?: string; // Comma-separated
   profileSalaryExpectationMin?: number;
   profileSalaryExpectationMax?: number;
+  passedCandidateProfileIds?: string[];
+  passedCompanyProfileIds?: string[];
+  companyNameForJobs?: string;
+  companyIndustryForJobs?: string;
+  jobOpenings?: CompanyJobOpening[];
+
 }
 
 

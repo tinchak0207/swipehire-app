@@ -1,3 +1,4 @@
+
 import {
   type Candidate,
   type Company,
@@ -582,3 +583,4 @@ mockMatches.forEach(match => {
   if (!match.candidate) match.candidate = mockCandidates.find(c => c.id === match.candidateProfileIdForDisplay);
   if (!match.company) match.company = mockCompanies.find(c => c.id === match.companyProfileIdForDisplay);
 });
+
