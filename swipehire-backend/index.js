@@ -8,10 +8,12 @@ const User = require('./User');
 const DiaryPost = require('./DiaryPost');
 const Match = require('./Match');
 const ChatMessage = require('./ChatMessage');
+const Video = require('./Video'); // Require the new Video model
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 
+const { Storage } = require('@google-cloud/storage'); // Google Cloud Storage
 const http = require('http'); // Required for socket.io
 const { Server } = require("socket.io"); // socket.io server
 const { createAdapter } = require("@socket.io/redis-adapter");
@@ -121,9 +123,13 @@ app.use(cors(corsOptions));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 console.log(`[Static Serving] Serving static files from ${path.join(__dirname, 'uploads')} at /uploads`);
 
+// Multer storage configuration for video uploads to memory
+const memoryStorage = multer.memoryStorage();
+// This instance is for general memory uploads if needed elsewhere, or can be specialized.
+const uploadToMemory = multer({ storage: memoryStorage }); 
 
-// Multer storage configuration for general files (like avatars)
-const storage = multer.diskStorage({
+// Multer storage configuration for general files (like avatars) to disk
+const diskStorage = multer.diskStorage({
     destination: function (req, file, cb) { cb(null, uploadsDir); },
     filename: function (req, file, cb) {
         const fileExtension = path.extname(file.originalname);
@@ -138,16 +144,25 @@ const imageFileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) { cb(null, true); }
     else { cb(new Error('Not an image! Please upload only images.'), false); }
 };
-const uploadAvatar = multer({ storage: storage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit for avatars
+const uploadAvatar = multer({ storage: diskStorage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit for avatars
 
-// Multer file filter for videos
+// Multer file filter for videos (used for disk storage)
 const videoFileFilter = (req, file, cb) => {
     if (file.mimetype.startsWith('video/')) { cb(null, true); }
     else { cb(new Error('Not a video! Please upload only video files (e.g., mp4, webm).'), false); }
 };
-const uploadVideo = multer({ storage: storage, fileFilter: videoFileFilter, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit for videos
+// This instance is for saving videos to disk (as it was previously)
+const uploadVideoToDisk = multer({ storage: diskStorage, fileFilter: videoFileFilter, limits: { fileSize: 50 * 1024 * 1024 } }); // 50MB limit for videos
 
-// Multer storage configuration for DIARY IMAGES
+// New Multer instance for handling video resumes in memory for GCS upload
+const uploadVideoResumeToMemory = multer({ 
+    storage: memoryStorage, 
+    fileFilter: videoFileFilter, 
+    limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit, adjust as needed
+});
+
+
+// Multer storage configuration for DIARY IMAGES to disk
 const diaryImageStorage = multer.diskStorage({
     destination: function (req, file, cb) { cb(null, diaryUploadsDir); }, // Save to uploads/diary/
     filename: function (req, file, cb) {
@@ -218,28 +233,110 @@ app.post('/api/users/:identifier/avatar', uploadAvatar.single('avatar'), async (
     }
 });
 
-app.post('/api/users/:identifier/video-resume', uploadVideo.single('videoResume'), async (req, res) => {
-    const { identifier } = req.params;
-    if (!req.file) return res.status(400).json({ message: 'No video resume file uploaded.' });
+// Initialize GCS client
+// Ensure your GCLOUD_PROJECT and GOOGLE_APPLICATION_CREDENTIALS environment variables are set
+// or the client is initialized with appropriate credentials for GCS.
+const storageGCS = new Storage();
+const GCS_BUCKET_NAME = process.env.GCS_BUCKET_NAME || 'YOUR_GCS_BUCKET_NAME_HERE'; // Replace with your bucket name
+
+app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single('videoResume'), async (req, res) => {
+    const { identifier } = req.params; // This could be MongoDB _id or Firebase UID
+    
+    if (!req.file) {
+        return res.status(400).json({ message: 'No video resume file uploaded.' });
+    }
+
+    if (GCS_BUCKET_NAME === 'YOUR_GCS_BUCKET_NAME_HERE') {
+        console.error("GCS_BUCKET_NAME is not configured in environment variables.");
+        return res.status(500).json({ message: 'Server configuration error: GCS bucket not specified.' });
+    }
+
+    let userToUpdate;
     try {
-        let userToUpdate;
-        if (mongoose.Types.ObjectId.isValid(identifier)) userToUpdate = await User.findById(identifier);
-        else userToUpdate = await User.findOne({ firebaseUid: identifier });
+        if (mongoose.Types.ObjectId.isValid(identifier)) {
+            userToUpdate = await User.findById(identifier);
+        } else {
+            userToUpdate = await User.findOne({ firebaseUid: identifier });
+        }
 
         if (!userToUpdate) {
-            fs.unlink(req.file.path, err => { if (err) console.error("[Video Resume Upload] Error deleting orphaned file:", err); });
             return res.status(404).json({ message: 'User not found' });
         }
 
-        const videoUrl = `/uploads/${req.file.filename}`;
-        userToUpdate.profileVideoPortfolioLink = videoUrl; 
-        await userToUpdate.save();
-        res.json({ message: 'Video resume uploaded successfully!', videoUrl: videoUrl, user: userToUpdate });
+        const bucket = storageGCS.bucket(GCS_BUCKET_NAME);
+        const originalFileName = req.file.originalname;
+        const fileExtension = path.extname(originalFileName);
+        const safeBaseName = path.basename(originalFileName, fileExtension).toLowerCase().replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
+        const gcsObjectName = `video-resumes/${userToUpdate._id}/${Date.now()}-${safeBaseName}${fileExtension}`;
+        const file = bucket.file(gcsObjectName);
+
+        const stream = file.createWriteStream({
+            metadata: {
+                contentType: req.file.mimetype,
+            },
+            resumable: false, // Use simple upload for smaller files, or set to true for larger ones
+        });
+
+        stream.on('error', (err) => {
+            console.error('Error uploading to GCS:', err);
+            res.status(500).json({ message: 'Failed to upload video to cloud storage.', error: err.message });
+        });
+
+        stream.on('finish', async () => {
+            // The file upload is complete.
+            // Make the file public (optional, adjust based on your access control needs)
+            // await file.makePublic(); 
+            // const gcsPublicUrl = `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${gcsObjectName}`;
+            // Or, more securely, you might generate signed URLs when the frontend needs to access it.
+            // For now, we'll just store the object name and bucket.
+
+            try {
+                // Save metadata to MongoDB
+                const newVideoDoc = new Video({
+                    gcsObjectName: gcsObjectName,
+                    gcsBucketName: GCS_BUCKET_NAME,
+                    originalFileName: originalFileName,
+                    contentType: req.file.mimetype,
+                    size: req.file.size,
+                    uploadedBy: userToUpdate._id,
+                    // gcsPublicUrl: gcsPublicUrl, // Uncomment if making public
+                });
+                await newVideoDoc.save();
+
+                // Update user's profile with a reference to this new video
+                // This assumes you want to link the *latest* video resume directly on the User model.
+                // If a user can have multiple, you might push to an array on the User model instead.
+                userToUpdate.profileVideoPortfolioLink = `/gcs/${GCS_BUCKET_NAME}/${gcsObjectName}`; // Or a different way to reference
+                await userToUpdate.save();
+
+                res.json({
+                    message: 'Video resume uploaded and GCS link saved successfully!',
+                    videoUrl: `/gcs/${GCS_BUCKET_NAME}/${gcsObjectName}`, // This is a conceptual path, actual serving might differ
+                    gcsObjectName: gcsObjectName,
+                    videoId: newVideoDoc._id,
+                    user: userToUpdate
+                });
+            } catch (dbError) {
+                console.error('Error saving video metadata to MongoDB:', dbError);
+                // Attempt to delete the GCS object if DB save fails
+                try {
+                    await bucket.file(gcsObjectName).delete();
+                    console.log(`Orphaned GCS object ${gcsObjectName} deleted due to DB error.`);
+                } catch (gcsDeleteError) {
+                    console.error(`Failed to delete orphaned GCS object ${gcsObjectName}:`, gcsDeleteError);
+                }
+                res.status(500).json({ message: 'Failed to save video metadata.', error: dbError.message });
+            }
+        });
+
+        stream.end(req.file.buffer);
+
     } catch (error) {
-        fs.unlink(req.file.path, err => { if (err) console.error("[Video Resume Upload] Error deleting file after DB error:", err); });
+        console.error('Error processing video resume upload:', error);
         res.status(500).json({ message: 'Server error while uploading video resume', error: error.message });
     }
 });
+
 
 app.post('/api/users/:identifier/profile', async (req, res) => {
     try {
@@ -849,3 +946,4 @@ server.listen(PORT, () => {
     console.log(`SwipeHire Backend Server with WebSocket support running on http://localhost:${PORT}`);
     console.log(`Frontend URLs allowed by CORS: ${JSON.stringify(ALLOWED_ORIGINS)}`);
 });
+
