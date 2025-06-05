@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from 'react';
@@ -10,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { StarRatingInput } from './StarRatingInput';
-import { submitCompanyReview } from '../../services/reviewService'; // Changed to relative path
+import { submitCompanyReview } from '@/services/reviewService'; // Reverted to alias path
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Send, ShieldQuestion, Clock, MessageSquareHeart, Briefcase } from 'lucide-react';
 import type { CompanyReview } from '@/lib/types';
@@ -178,4 +177,3 @@ export function CompanyReviewForm({
     </form>
   );
 }
-    
