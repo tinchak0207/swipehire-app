@@ -1,12 +1,10 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input"; // Input is not used, can be removed if not planned for future.
 import { useToast } from "@/hooks/use-toast";
-import { Copy, Mail, Linkedin, Twitter, Share2, Download, QrCode, ExternalLink, FileVideo2 } from "lucide-react"; // Added FileVideo2
+import { Copy, Mail, Linkedin, Twitter, Share2, Download, QrCode, ExternalLink, FileVideo2 } from "lucide-react";
 import { cn } from '@/lib/utils';
 import QRCodeStylized from 'qrcode.react';
 import html2canvas from 'html2canvas';
@@ -14,10 +12,11 @@ import html2canvas from 'html2canvas';
 interface ShareModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string; // e.g., "Share Candidate Profile"
-  itemName: string; // e.g., Candidate's Name or Job Title
-  itemDescription?: string; // e.g., Candidate's Role or Company Name
+  title: string;
+  itemName: string;
+  itemDescription?: string;
   itemType: string; // e.g., "profile", "job opportunity"
+  shareUrl?: string; // Specific URL to share, if different from generic app link
 }
 
 const BITLY_URL = "bit.ly/swipehire"; // Your specific Bitly URL
@@ -29,6 +28,7 @@ export function ShareModal({
   itemName,
   itemDescription,
   itemType,
+  shareUrl,
 }: ShareModalProps) {
   const { toast } = useToast();
   const [appOrigin, setAppOrigin] = useState('');
@@ -40,10 +40,11 @@ export function ShareModal({
     }
   }, []);
 
-  const urlToShare = appOrigin || `https://swipehire-app.com`; // Fallback
-  const qrCodeValue = urlToShare;
+  const urlToShareWithUser = shareUrl || appOrigin || `https://swipehire-app.com`; // Use specific shareUrl if provided
+  const urlToDisplay = BITLY_URL; // Always display Bitly for simplicity, but share specific if available
+  const qrCodeValue = urlToShareWithUser;
 
-  const shareTextGeneric = `Check out this ${itemType} on SwipeHire: ${itemName}${itemDescription ? ` (${itemDescription})` : ''}. Visit ${BITLY_URL} or scan the QR code.`;
+  const shareTextGeneric = `Check out this ${itemType} on SwipeHire: ${itemName}${itemDescription ? ` (${itemDescription})` : ''}. Visit ${urlToDisplay} or scan the QR code. Direct link: ${urlToShareWithUser}`;
   const emailSubject = `Interesting ${itemType} on SwipeHire: ${itemName}`;
   const emailBody = `${shareTextGeneric}`;
 
@@ -57,20 +58,20 @@ export function ShareModal({
   };
 
   const handleSocialShare = (platform: 'email' | 'linkedin' | 'twitter') => {
-    let url = '';
+    let socialShareUrl = '';
     switch (platform) {
       case 'email':
         window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
         return;
       case 'linkedin':
-        url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(urlToShare)}&title=${encodeURIComponent(shareTextGeneric)}`;
+        socialShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(urlToShareWithUser)}&title=${encodeURIComponent(shareTextGeneric)}`;
         break;
       case 'twitter':
-        url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTextGeneric)}&url=${encodeURIComponent(urlToShare)}`;
+        socialShareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTextGeneric)}&url=${encodeURIComponent(urlToShareWithUser)}`;
         break;
     }
-    window.open(url, '_blank', 'noopener,noreferrer');
-    onOpenChange(false); // Close modal after initiating share
+    window.open(socialShareUrl, '_blank', 'noopener,noreferrer');
+    onOpenChange(false);
   };
 
   const handleDownloadImage = async () => {
@@ -78,13 +79,13 @@ export function ShareModal({
       try {
         const canvas = await html2canvas(shareCardRef.current, {
           useCORS: true,
-          backgroundColor: '#ffffff',
-          scale: 2,
+          backgroundColor: '#ffffff', // Ensure background is white for PNG
+          scale: 2, // Increase scale for better resolution
         });
         const image = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = image;
-        link.download = `swipehire-share-${itemType.replace(' ', '-')}-${itemName.toLowerCase().replace(/\s+/g, '-')}.png`;
+        link.download = `swipehire-share-${itemType.replace(/\s+/g, '-')}-${itemName.toLowerCase().replace(/\s+/g, '-')}.png`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -117,7 +118,7 @@ export function ShareModal({
             ref={shareCardRef}
             id="shareCardContent"
             className="p-6 rounded-lg border bg-background shadow-md overflow-hidden text-center space-y-3"
-            style={{ width: '380px', margin: '0 auto' }}
+            style={{ width: '380px', margin: '0 auto' }} // Fixed width for consistent image generation
           >
             <FileVideo2 className="h-12 w-12 text-primary mx-auto mb-2" /> {/* App Icon */}
             <h3 className="text-xl font-bold text-foreground truncate" title={itemName}>{itemName}</h3>
@@ -127,21 +128,21 @@ export function ShareModal({
               <QRCodeStylized
                 value={qrCodeValue}
                 size={120}
-                level="M"
-                bgColor="#ffffff"
-                fgColor="#000000"
+                level="M" // Error correction level
+                bgColor="#ffffff" // QR code background
+                fgColor="#1E293B" // QR code foreground (dark slate)
                 imageSettings={qrCodeValue ? {
-                    src: "/assets/logo-favicon.png", // Conceptual path to small app logo
+                    src: "/assets/logo-favicon.png", // Path to your small app logo in /public/assets/
                     height: 28,
                     width: 28,
-                    excavate: true,
+                    excavate: true, // Cut out space for logo
                 } : undefined}
               />
             </div>
             <p className="text-xs text-muted-foreground">
               Scan the QR code or visit:
             </p>
-            <p className="text-md font-semibold text-accent break-all">{BITLY_URL}</p>
+            <p className="text-md font-semibold text-accent break-all">{urlToDisplay}</p>
             <p className="text-xs text-muted-foreground mt-2">Shared from SwipeHire</p>
           </div>
 
@@ -149,7 +150,7 @@ export function ShareModal({
             <Button onClick={handleDownloadImage} variant="default" size="lg" className="w-full sm:w-auto">
               <Download className="mr-2 h-5 w-5" /> Download Card
             </Button>
-            <Button onClick={() => handleCopyLink(BITLY_URL)} variant="outline" size="lg" className="w-full sm:w-auto">
+            <Button onClick={() => handleCopyLink(urlToShareWithUser)} variant="outline" size="lg" className="w-full sm:w-auto">
               <Copy className="mr-2 h-5 w-5" /> Copy Link
             </Button>
           </div>
@@ -168,7 +169,7 @@ export function ShareModal({
               </Button>
             </div>
              <p className="text-xs text-muted-foreground pt-2">
-              (Social shares will use the link. Download the card to share the image directly.)
+              (Social shares will use the specific link. Download the card to share the image directly.)
             </p>
           </div>
         </div>
@@ -176,5 +177,4 @@ export function ShareModal({
     </Dialog>
   );
 }
-
     

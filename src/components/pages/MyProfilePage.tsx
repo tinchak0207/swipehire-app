@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, type ChangeEvent, type KeyboardEvent } from 'react';
@@ -10,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X, UploadCloud } from 'lucide-react';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X, UploadCloud, Share2, ShieldCheck, BarChart3 } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate, type BackendUser } from '@/lib/types';
 import NextImage from 'next/image';
@@ -18,6 +17,7 @@ import ProfileCard from '@/components/cards/ProfileCard';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { CustomFileInput } from '@/components/ui/custom-file-input';
+import { ShareModal } from '@/components/share/ShareModal'; // Added ShareModal import
 
 const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL = (envBackendUrl && envBackendUrl.trim() !== "") ? envBackendUrl : 'http://localhost:5000';
@@ -30,7 +30,7 @@ interface MyProfilePageProps {
 const formatEnumLabel = (value: string) => {
   if (!value) return "";
   return value
-    .replace(/_/g, ' ') // Replace underscores with spaces
+    .replace(/_/g, ' ')
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
@@ -75,10 +75,12 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+  const [isShareProfileModalOpen, setIsShareProfileModalOpen] = useState(false); // New state for share modal
+  const [profileVisibility, setProfileVisibility] = useState<string>("public"); // New state for privacy
 
 
   const { toast } = useToast();
-  const { mongoDbUserId, fullBackendUser } = useUserPreferences(); // Use fullBackendUser
+  const { mongoDbUserId, fullBackendUser } = useUserPreferences();
 
   useEffect(() => {
     if (isGuestMode || typeof window === 'undefined') {
@@ -105,15 +107,15 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         setJobTypePreferenceList(fullBackendUser.profileJobTypePreference ? fullBackendUser.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
         setSalaryExpectationMin(fullBackendUser.profileSalaryExpectationMin?.toString() || '');
         setSalaryExpectationMax(fullBackendUser.profileSalaryExpectationMax?.toString() || '');
-        setSelectedCardTheme(fullBackendUser.profileCardTheme || 'default'); 
+        setSelectedCardTheme(fullBackendUser.profileCardTheme || 'default');
+        // Note: profileVisibility would ideally also be loaded from fullBackendUser.preferences if stored there
         setIsFetchingProfile(false);
-    } else if (mongoDbUserId) { // Fallback to direct fetch if fullBackendUser isn't populated yet
+    } else if (mongoDbUserId) { 
         const loadProfile = async () => {
             try {
                 const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
                 if (response.ok) {
                     const userData: BackendUser = await response.json();
-                    // Set all states as above using userData
                     setProfileHeadline(userData.profileHeadline || '');
                     setExperienceSummary(userData.profileExperienceSummary || '');
                     setSkillList(userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
@@ -130,6 +132,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                     setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
                     setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
                     setSelectedCardTheme(userData.profileCardTheme || 'default');
+                    // setProfileVisibility(userData.preferences?.profileVisibility || 'public'); // Conceptual
                 } else {
                      toast({ title: "Profile Not Found", description: "Could not load your profile. Please fill in details.", variant: "default"});
                 }
@@ -141,7 +144,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         };
         loadProfile();
     } else {
-        setIsFetchingProfile(false); // No mongoDbUserId and no fullBackendUser
+        setIsFetchingProfile(false);
     }
 
   }, [isGuestMode, mongoDbUserId, fullBackendUser, toast]);
@@ -151,7 +154,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       if (file.size > 5 * 1024 * 1024) {
         toast({ title: "File Too Large", description: "Avatar image must be less than 5MB.", variant: "destructive" });
         setAvatarFile(null);
-        setAvatarPreview(avatarUrl || null); // Revert to previous server URL if new file is invalid
+        setAvatarPreview(avatarUrl || null);
         return;
       }
       if (!file.type.startsWith("image/")) {
@@ -166,10 +169,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         setAvatarPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
-      toast({ title: "Avatar Preview Updated", description: "Click 'Update & Publish My Profile' to save changes including the new avatar." });
+      toast({ title: "Avatar Preview Updated", description: "Click 'Update &amp; Publish My Profile' to save changes including the new avatar." });
     } else {
       setAvatarFile(null);
-      setAvatarPreview(null); // Or revert to avatarUrl if desired when clearing
+      setAvatarPreview(null);
     }
   };
 
@@ -239,29 +242,24 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     }
 
     setIsLoading(true);
-
     let finalAvatarUrl = avatarUrl; 
 
     if (avatarFile) {
       const formData = new FormData();
       formData.append('avatar', avatarFile);
-
       try {
         const avatarUploadResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/avatar`, {
           method: 'POST',
           body: formData,
         });
-
         if (!avatarUploadResponse.ok) {
           const errorData = await avatarUploadResponse.json().catch(() => ({ message: "Avatar upload failed with non-JSON response." }));
           throw new Error(errorData.message || `Avatar upload failed: ${avatarUploadResponse.statusText}`);
         }
-
         const avatarUploadResult = await avatarUploadResponse.json();
         finalAvatarUrl = avatarUploadResult.profileAvatarUrl;
         setAvatarUrl(finalAvatarUrl); 
         toast({ title: "Avatar Uploaded!", description: "New avatar image saved to server." });
-
       } catch (uploadError: any) {
         console.error("Error uploading avatar:", uploadError);
         toast({
@@ -273,22 +271,15 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     }
 
     const profileData = {
-      profileHeadline,
-      profileExperienceSummary: experienceSummary,
-      profileSkills: skillList.join(','),
-      profileDesiredWorkStyle: desiredWorkStyle,
-      profilePastProjects: pastProjects,
-      profileVideoPortfolioLink: videoPortfolioLink,
-      profileAvatarUrl: finalAvatarUrl,
-      profileWorkExperienceLevel: workExperienceLevel,
-      profileEducationLevel: educationLevel,
-      profileLocationPreference: locationPreference,
-      profileLanguages: languageList.join(','),
-      profileAvailability: availability,
+      profileHeadline, profileExperienceSummary: experienceSummary, profileSkills: skillList.join(','),
+      profileDesiredWorkStyle: desiredWorkStyle, profilePastProjects: pastProjects, profileVideoPortfolioLink: videoPortfolioLink,
+      profileAvatarUrl: finalAvatarUrl, profileWorkExperienceLevel: workExperienceLevel, profileEducationLevel: educationLevel,
+      profileLocationPreference: locationPreference, profileLanguages: languageList.join(','), profileAvailability: availability,
       profileJobTypePreference: jobTypePreferenceList.join(','),
       profileSalaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin, 10) : undefined,
       profileSalaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax, 10) : undefined,
       profileCardTheme: selectedCardTheme,
+      // preferences: { ...(fullBackendUser?.preferences || {}), profileVisibility } // Conceptual: Save privacy setting
     };
 
     try {
@@ -297,34 +288,19 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(profileData),
       });
-
       if (!profileSaveResponse.ok) {
         const errorData = await profileSaveResponse.json().catch(() => ({ message: "An unknown error occurred while saving profile data." }));
         throw new Error(errorData.message || `Failed to save profile data: ${profileSaveResponse.statusText}`);
       }
-
       const savedUserResponse = await profileSaveResponse.json();
-      if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) {
-          setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
-      }
-      if (savedUserResponse.user && savedUserResponse.user.profileCardTheme) {
-          setSelectedCardTheme(savedUserResponse.user.profileCardTheme);
-      }
-      setAvatarFile(null); 
-      setAvatarPreview(null); 
-
-      toast({
-        title: 'Profile Updated & Published!',
-        description: 'Your profile has been saved to the backend and is visible to recruiters.',
-      });
-
+      if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
+      if (savedUserResponse.user && savedUserResponse.user.profileCardTheme) setSelectedCardTheme(savedUserResponse.user.profileCardTheme);
+      setAvatarFile(null); setAvatarPreview(null); 
+      localStorage.setItem('currentUserJobSeekerProfile', JSON.stringify({ id: mongoDbUserId, name: fullBackendUser?.name || "User", role: profileHeadline, avatarUrl: finalAvatarUrl })); // Update local cache
+      toast({ title: 'Profile Updated &amp; Published!', description: 'Your profile has been saved to the backend and is visible to recruiters.'});
     } catch (error: any) {
       console.error("Error saving profile:", error);
-      toast({
-        title: 'Error Saving Profile',
-        description: error.message || "An unknown error occurred while saving to backend.",
-        variant: "destructive",
-      });
+      toast({ title: 'Error Saving Profile', description: error.message || "An unknown error occurred while saving to backend.", variant: "destructive"});
     } finally {
       setIsLoading(false);
     }
@@ -382,6 +358,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     optimalWorkStyles: [], 
     isUnderestimatedTalent: false, 
   };
+
+  const appOriginForShare = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com';
 
 
   return (
@@ -661,17 +639,59 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             />
           </div>
           
+           {/* Privacy Control Section (Conceptual) */}
+          <div className="space-y-1 pt-4 border-t">
+            <Label htmlFor="profileVisibility" className="text-base flex items-center">
+              <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" /> Profile Visibility (Conceptual)
+            </Label>
+            <Select value={profileVisibility} onValueChange={setProfileVisibility} disabled={isGuestMode}>
+              <SelectTrigger id="profileVisibility"><SelectValue placeholder="Set profile visibility" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public">Public (Link Anyone Can View)</SelectItem>
+                <SelectItem value="recruiters_only">Recruiters Only (Conceptual)</SelectItem>
+                <SelectItem value="private">Only Me (Conceptual)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">This setting is conceptual and not yet enforced by the backend.</p>
+          </div>
+
         </CardContent>
         <CardFooter className="flex flex-col sm:flex-row justify-between items-center pt-6 gap-4">
-          <Button variant="outline" onClick={() => setIsPreviewModalOpen(true)}>
-            <Eye className="mr-2 h-4 w-4" /> Preview My Talent Card
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setIsPreviewModalOpen(true)}>
+              <Eye className="mr-2 h-4 w-4" /> Preview Card
+            </Button>
+            <Button variant="outline" onClick={() => setIsShareProfileModalOpen(true)} disabled={!mongoDbUserId || isGuestMode}>
+              <Share2 className="mr-2 h-4 w-4" /> Share Profile
+            </Button>
+          </div>
           <Button onClick={handleSaveProfile} size="lg" disabled={isLoading || !mongoDbUserId}>
             {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <Save className="mr-2 h-5 w-5" />}
-            Update & Publish My Profile
+            Update &amp; Publish My Profile
           </Button>
         </CardFooter>
       </Card>
+
+      {/* Profile Engagement Statistics (Conceptual) */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <BarChart3 className="mr-2 h-5 w-5 text-primary" /> Profile Engagement (Conceptual)
+          </CardTitle>
+          <CardDescription>See how your profile is performing (these are placeholders).</CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-2 gap-4 text-sm">
+          <div><span className="font-medium">Profile Views:</span> 234</div>
+          <div><span className="font-medium">Shares:</span> 56</div>
+          {videoPortfolioLink && (
+            <>
+              <div><span className="font-medium">Video Plays:</span> 102</div>
+              <div><span className="font-medium">Video Completion Rate:</span> 78%</div>
+            </>
+          )}
+        </CardContent>
+      </Card>
+
 
       <Dialog open={isPreviewModalOpen} onOpenChange={setIsPreviewModalOpen}>
         <DialogContent className="sm:max-w-sm p-0 bg-transparent border-none shadow-none data-[state=open]:animate-none data-[state=closed]:animate-none">
@@ -687,8 +707,16 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             </div>
         </DialogContent>
       </Dialog>
+
+      <ShareModal
+        isOpen={isShareProfileModalOpen}
+        onOpenChange={setIsShareProfileModalOpen}
+        title="Share Your Professional Profile"
+        itemName={fullBackendUser?.name || "My Profile"}
+        itemDescription={profileHeadline || "Check out my profile on SwipeHire!"}
+        itemType="profile"
+        shareUrl={mongoDbUserId ? `${appOriginForShare}/user/${mongoDbUserId}` : undefined}
+      />
     </div>
   );
 }
-
-    

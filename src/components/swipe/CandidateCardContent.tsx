@@ -1,8 +1,7 @@
-
 "use client";
 
 import type { Candidate, PersonalityTraitAssessment, JobCriteriaForAI, CandidateProfileForAI, ProfileRecommenderOutput, UserAIWeights, RecruiterPerspectiveWeights } from '@/lib/types';
-import NextImage from 'next/image'; // Renamed to NextImage to avoid conflict
+import NextImage from 'next/image'; 
 import { Badge } from '@/components/ui/badge';
 import { Briefcase, Lightbulb, MapPin, CheckCircle, XCircle as LucideXCircle, Sparkles, Share2, Brain, Loader2, ThumbsDown, Info, ThumbsUp, Lock, Video, ListChecks, Users2, ChevronsUpDown, Eye, TrendingUp, Star as StarIcon, Link as LinkIcon, Mail, Twitter, Linkedin, UserCircle as UserCircleIcon, BarChartHorizontal } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
@@ -14,10 +13,11 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog"; // Added DialogFooter, DialogClose
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogClose, DialogFooter } from "@/components/ui/dialog";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Progress } from '@/components/ui/progress';
+import { ShareModal } from '@/components/share/ShareModal'; // Added ShareModal import
 
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -27,7 +27,7 @@ interface CandidateCardContentProps {
   onSwipeAction: (candidateId: string, action: 'like' | 'pass') => void;
   isLiked: boolean;
   isGuestMode?: boolean;
-  isPreviewMode?: boolean; // Added for MyProfilePage preview
+  isPreviewMode?: boolean; 
 }
 
 const SWIPE_THRESHOLD = 75;
@@ -61,6 +61,7 @@ function CandidateDetailsModal({
     activeAccordionItem,
     setActiveAccordionItem,
     onFetchAiAnalysis,
+    onShareProfile, // New prop
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -73,6 +74,7 @@ function CandidateDetailsModal({
     activeAccordionItem: string | undefined;
     setActiveAccordionItem: (value: string | undefined) => void;
     onFetchAiAnalysis: () => void;
+    onShareProfile: () => void; // New prop
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
@@ -149,21 +151,26 @@ function CandidateDetailsModal({
                 </div>
             )}
           </div>
-          {candidate.isUnderestimatedTalent && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge variant="outline" className="ml-auto border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0 py-1 px-2">
-                    <Sparkles className="h-4 w-4 mr-1 text-yellow-500" />
-                    Hidden Gem
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
-                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
+          <div className="flex items-center gap-2">
+             {candidate.isUnderestimatedTalent && (
+                <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                    <Badge variant="outline" className="border-yellow-500 text-yellow-600 bg-yellow-500/10 cursor-default shrink-0 py-1 px-2">
+                        <Sparkles className="h-4 w-4 mr-1 text-yellow-500" />
+                        Hidden Gem
+                    </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                    <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
+                    </TooltipContent>
+                </Tooltip>
+                </TooltipProvider>
+            )}
+            <Button variant="outline" size="sm" onClick={onShareProfile} disabled={isGuestMode}>
+              <Share2 className="mr-1.5 h-4 w-4" /> Share
+            </Button>
+          </div>
         </DialogHeader>
 
         <div className="flex-1 min-h-0 overflow-y-auto bg-background">
@@ -378,8 +385,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
   const [aiRecruiterMatchScore, setAiRecruiterMatchScore] = useState<number | null>(null);
   const [aiRecruiterReasoning, setAiRecruiterReasoning] = useState<string | null>(null);
   const [aiRecruiterWeightedScores, setAiRecruiterWeightedScores] = useState<RecruiterWeightedScores | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
+  const [isShareCandidateModalOpen, setIsShareCandidateModalOpen] = useState(false); // State for ShareModal for candidate
 
   const isThemedCard = !!(candidate.cardTheme && candidate.cardTheme !== 'default');
   const isProfessionalDarkTheme = candidate.cardTheme === 'professional-dark';
@@ -510,26 +517,14 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
   const handleMouseUpOrLeave = (e: React.MouseEvent<HTMLDivElement>) => {
     if (isPreviewMode || !isDragging || !cardRootRef.current || isGuestMode) return;
-
     const deltaX = currentX - startX;
-
     cardRootRef.current.style.transition = 'transform 0.3s ease-out';
     cardRootRef.current.style.transform = 'translateX(0px) rotateZ(0deg)';
-
     if (Math.abs(deltaX) > SWIPE_THRESHOLD) {
-      if (deltaX < 0) {
-        handleLocalSwipeAction('pass');
-      } else {
-        handleLocalSwipeAction('like');
-      }
+      if (deltaX < 0) { handleLocalSwipeAction('pass'); } else { handleLocalSwipeAction('like'); }
     }
-
-    setIsDragging(false);
-    setStartX(0);
-    setCurrentX(0);
-    if (cardRootRef.current) {
-      cardRootRef.current.style.cursor = 'grab';
-    }
+    setIsDragging(false); setStartX(0); setCurrentX(0);
+    if (cardRootRef.current) { cardRootRef.current.style.cursor = 'grab';}
     document.body.style.userSelect = '';
   };
 
@@ -541,32 +536,12 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
     return `translateX(${deltaX}px) rotateZ(${rotation}deg)`;
   };
   
-  const handleShareAction = (action: 'copy' | 'email' | 'linkedin' | 'twitter') => {
+  const openShareModalForCandidate = () => {
     if (isPreviewMode || isGuestMode) {
       toast({ title: "Feature Locked", description: "Sign in to share profiles.", variant: "default" });
       return;
     }
-    const profileUrl = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com'; 
-    const shareText = `Check out this profile on SwipeHire: ${candidate.name} - ${candidate.role}. Visit ${profileUrl}`;
-    const emailSubject = `Interesting Profile on SwipeHire: ${candidate.name}`;
-    const emailBody = `I found this profile on SwipeHire and thought you might be interested:\n\nName: ${candidate.name}\nRole: ${candidate.role}\n\nView more at: ${profileUrl}\n\nShared from SwipeHire.`;
-
-    switch (action) {
-      case 'copy':
-        navigator.clipboard.writeText(profileUrl)
-          .then(() => toast({ title: "Link Copied!", description: "Profile link copied to clipboard." }))
-          .catch(() => toast({ title: "Copy Failed", description: "Could not copy link.", variant: "destructive" }));
-        break;
-      case 'email':
-        window.location.href = `mailto:?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`;
-        break;
-      case 'linkedin':
-        window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(profileUrl)}&title=${encodeURIComponent(shareText)}`, '_blank', 'noopener,noreferrer');
-        break;
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(profileUrl)}`, '_blank', 'noopener,noreferrer');
-        break;
-    }
+    setIsShareCandidateModalOpen(true);
   };
 
   const cardAvatarSrc = candidate.avatarUrl && candidate.avatarUrl.startsWith('/uploads/')
@@ -576,26 +551,13 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
 
 
   const ActionButton = ({
-    action,
-    Icon,
-    label,
-    className: extraClassName,
-    isSpecificActionLiked,
-  }: {
-    action: 'like' | 'pass' | 'details' | 'share_trigger';
-    Icon: React.ElementType;
-    label: string;
-    className?: string;
-    isSpecificActionLiked?: boolean;
-  }) => {
+    action, Icon, label, className: extraClassName, isSpecificActionLiked,
+  }: { action: 'like' | 'pass' | 'details' | 'share_trigger'; Icon: React.ElementType; label: string; className?: string; isSpecificActionLiked?: boolean;}) => {
     const baseClasses = "flex-col h-auto py-2.5 text-xs sm:text-sm group rounded-lg hover:scale-105 hover:shadow-md active:scale-95 transition-all duration-200 ease-in-out";
-    let colorClasses = "";
-    let hoverBgClass = "";
-    let iconFillClass = "";
+    let colorClasses = "", hoverBgClass = "", iconFillClass = "";
 
     if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
-        colorClasses = "text-white";
-        hoverBgClass = "hover:bg-red-500/80";
+        colorClasses = "text-white"; hoverBgClass = "hover:bg-red-500/80";
     } else if (isProfessionalDarkTheme) {
         colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-primary-foreground/90";
         iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-300" : "";
@@ -604,7 +566,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         else if (action === 'pass') colorClasses = cn(colorClasses, "hover:text-red-300");
         else if (action === 'details') colorClasses = cn(colorClasses, "hover:text-blue-300");
         else colorClasses = cn(colorClasses, "hover:text-primary-foreground");
-    } else if (isLavenderTheme) { // Light themes (lavender)
+    } else if (isLavenderTheme) { 
         colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-600" : "text-foreground/80";
         iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-600" : "";
         hoverBgClass = "hover:bg-black/5";
@@ -615,7 +577,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         if (action === 'pass') hoverBgClass = "hover:bg-destructive/10";
         if (action === 'like') hoverBgClass = "hover:bg-green-500/10";
         if (action === 'details') hoverBgClass = "hover:bg-primary/10";
-    } else if (isThemedCard) { // Other dark themes (ocean, sunset, forest)
+    } else if (isThemedCard) { 
         colorClasses = isSpecificActionLiked && action === 'like' ? "text-green-300" : "text-white";
         iconFillClass = isSpecificActionLiked && action === 'like' ? "fill-green-300" : "";
         hoverBgClass = "hover:bg-black/10";
@@ -623,8 +585,7 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         else if (action === 'pass') colorClasses = cn(colorClasses, "hover:text-red-300");
         else if (action === 'details') colorClasses = cn(colorClasses, "hover:text-blue-300");
         else colorClasses = cn(colorClasses, "hover:text-white");
-
-    } else { // Default card (light background from Tailwind's bg-card)
+    } else { 
        switch (action) {
         case 'like': colorClasses = isSpecificActionLiked ? "text-green-500" : "text-muted-foreground"; iconFillClass = isSpecificActionLiked ? "fill-green-500" : ""; hoverBgClass = "hover:text-green-500 hover:bg-green-500/10"; break;
         case 'pass': colorClasses = "text-destructive"; hoverBgClass = "hover:bg-destructive/10"; break;
@@ -641,6 +602,8 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             if (!isPreviewMode && !isGuestMode) {
                 if (action !== 'share_trigger') {
                     handleLocalSwipeAction(action as 'like' | 'pass');
+                } else {
+                    openShareModalForCandidate(); // Directly open modal for share trigger
                 }
             } else if (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) {
                 toast({ title: "Feature Locked", description: "Sign in to interact.", variant: "default" });
@@ -649,146 +612,55 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
             }
         };
 
-
     const buttonElement = (
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            baseClasses, 
-            colorClasses, 
-            hoverBgClass, 
-            isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400 !text-white", 
-            extraClassName
-          )}
-          onClick={action !== 'share_trigger' ? effectiveOnClick : undefined}
-          disabled={isPreviewMode || (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger'))}
-          aria-label={`${label} ${candidate.name}`}
-          data-no-drag="true"
-          data-modal-trigger={action === 'details' ? 'true' : undefined}
-        >
+        <Button variant="ghost" size="sm" className={cn(baseClasses, colorClasses, hoverBgClass, isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-400 !text-white", extraClassName)}
+          onClick={effectiveOnClick} disabled={isPreviewMode || (isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger'))}
+          aria-label={`${label} ${candidate.name}`} data-no-drag="true" data-modal-trigger={action === 'details' ? 'true' : undefined}>
           {(isGuestMode && (action === 'like' || action === 'pass' || action === 'share_trigger')) || isPreviewMode ? <Lock className="h-5 w-5 mb-1 group-hover:scale-110 transition-transform" /> : <Icon className={cn("h-5 w-5 mb-1 group-hover:scale-110 transition-transform", iconFillClass)} />}
           <span className="text-xs">{label}</span>
         </Button>
     );
-
-    if (action === 'share_trigger') {
-        return (
-            <DropdownMenu onOpenChange={setIsShareModalOpen}>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <DropdownMenuTrigger asChild>
-                                {buttonElement}
-                            </DropdownMenuTrigger>
-                        </TooltipTrigger>
-                         <TooltipContent side="bottom" className={cn((isGuestMode || isPreviewMode) && "bg-red-500 text-white border-red-600")}>
-                            <p>{(isGuestMode || isPreviewMode) ? "Sign in to share" : label}</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-                <DropdownMenuContent align="end" className="w-40" data-no-drag="true">
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('copy') }} data-no-drag="true">
-                        <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('email') }} data-no-drag="true">
-                        <Mail className="mr-2 h-4 w-4" /> Email
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('linkedin') }} data-no-drag="true">
-                        <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleShareAction('twitter') }} data-no-drag="true">
-                        <Twitter className="mr-2 h-4 w-4" /> X / Twitter
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        );
-    }
-
     return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            {buttonElement}
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className={cn((isGuestMode || isPreviewMode) && (action === 'like' || action === 'pass') && "bg-red-500 text-white border-red-600")}>
-              <p>{(isGuestMode || isPreviewMode) && (action === 'like' || action === 'pass') ? "Interaction disabled" : label}</p>
+      <TooltipProvider><Tooltip> <TooltipTrigger asChild>{buttonElement}</TooltipTrigger>
+          <TooltipContent side="bottom" className={cn((isGuestMode || isPreviewMode) && (action === 'like' || action === 'pass' || action === 'share_trigger') && "bg-red-500 text-white border-red-600")}>
+              <p>{(isGuestMode || isPreviewMode) && (action === 'like' || action === 'pass' || action === 'share_trigger') ? "Interaction disabled" : label}</p>
           </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      </Tooltip></TooltipProvider>
     );
   };
+  const appOriginForShare = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com';
+
 
   return (
     <>
-      <div
-        ref={cardRootRef}
-        className="flex flex-col h-full overflow-hidden" 
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUpOrLeave}
-        onMouseLeave={handleMouseUpOrLeave}
-        style={{
-          cursor: isGuestMode || isPreviewMode ? 'default' : 'grab',
-          transform: getCardTransform(),
-          transition: isDragging ? 'none' : 'transform 0.3s ease-out',
-        }}
-      >
-        <div className={cn(
-            "shrink-0 h-52 sm:h-56 flex justify-center items-center p-4 relative", 
-             isThemedCard ? getThemeClass(candidate.cardTheme) : 'bg-slate-100 dark:bg-slate-800'
-            )}>
+      <div ref={cardRootRef} className="flex flex-col h-full overflow-hidden" 
+        onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUpOrLeave} onMouseLeave={handleMouseUpOrLeave}
+        style={{ cursor: isGuestMode || isPreviewMode ? 'default' : 'grab', transform: getCardTransform(), transition: isDragging ? 'none' : 'transform 0.3s ease-out' }}>
+        <div className={cn("shrink-0 h-52 sm:h-56 flex justify-center items-center p-4 relative", isThemedCard ? getThemeClass(candidate.cardTheme) : 'bg-slate-100 dark:bg-slate-800')}>
             <div className="relative w-28 h-28 sm:w-32 sm:h-32"> 
                 {cardAvatarSrc && cardAvatarSrc !== 'https://placehold.co/500x700.png' ? (
-                <NextImage
-                    src={cardAvatarSrc || 'https://placehold.co/500x700.png'}
-                    alt={candidate.name}
-                    fill
-                    className={cn(
-                        "rounded-full object-cover shadow-lg border-2",
-                        isThemedCard && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender' ? "border-accent" : (isLavenderTheme ? "border-primary/30" : "border-accent") 
-                    )}
-                    data-ai-hint={candidate.dataAiHint || "person professional"}
-                    priority
-                    unoptimized={needsUnoptimizedCard}
-                />
+                <NextImage src={cardAvatarSrc || 'https://placehold.co/500x700.png'} alt={candidate.name} fill
+                    className={cn("rounded-full object-cover shadow-lg border-2", isThemedCard && candidate.cardTheme !== 'default' && candidate.cardTheme !== 'lavender' ? "border-accent" : (isLavenderTheme ? "border-primary/30" : "border-accent"))}
+                    data-ai-hint={candidate.dataAiHint || "person professional"} priority unoptimized={needsUnoptimizedCard} />
                 ) : (
                 <UserCircleIcon className="w-full h-full text-gray-300 dark:text-gray-500 bg-white dark:bg-slate-700 rounded-full p-1 shadow-lg border-2 border-accent" />
                 )}
             </div>
           {candidate.isUnderestimatedTalent && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
+            <TooltipProvider><Tooltip><TooltipTrigger asChild>
                   <Badge variant="default" className="absolute top-3 right-3 bg-yellow-400 hover:bg-yellow-500 text-black shadow-md cursor-default text-xs px-2 py-1">
-                    <Sparkles className="h-3.5 w-3.5 mr-1" />
-                    Gem
+                    <Sparkles className="h-3.5 w-3.5 mr-1" />Gem
                   </Badge>
-                </TooltipTrigger>
-                <TooltipContent side="bottom" className="max-w-xs bg-black text-white">
-                  <p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            </TooltipTrigger><TooltipContent side="bottom" className="max-w-xs bg-black text-white"><p className="text-xs">{candidate.underestimatedReasoning || "This candidate shows unique potential!"}</p></TooltipContent></Tooltip></TooltipProvider>
           )}
         </div>
-        
-        <div className={cn("w-full border-t-4", 
-             isThemedCard && isTextLightOnTheme ? "border-primary-foreground/30" 
-             : (isThemedCard && !isTextLightOnTheme ? "border-primary/20" : "border-primary")
-          )}></div>
-
+        <div className={cn("w-full border-t-4", isThemedCard && isTextLightOnTheme ? "border-primary-foreground/30" : (isThemedCard && !isTextLightOnTheme ? "border-primary/20" : "border-primary"))}></div>
         <div className="flex-1 p-4 pt-5 sm:p-5 space-y-2.5 sm:space-y-3 overflow-y-auto min-h-0">
             <div className="text-center mt-0 mb-3 sm:mb-4">
-                <CardTitle className={cn("text-2xl sm:text-3xl font-extrabold font-heading", 
-                    isTextLightOnTheme ? 'text-primary-foreground' : 'text-foreground'
-                )}>{candidate.name}</CardTitle>
-                <CardDescription className={cn("text-lg sm:text-xl font-medium mt-1 font-heading", 
-                    isTextLightOnTheme ? 'text-primary-foreground/80' : 'text-muted-foreground'
-                )}>{candidate.role}</CardDescription>
+                <CardTitle className={cn("text-2xl sm:text-3xl font-extrabold font-heading", isTextLightOnTheme ? 'text-primary-foreground' : 'text-foreground')}>{candidate.name}</CardTitle>
+                <CardDescription className={cn("text-lg sm:text-xl font-medium mt-1 font-heading", isTextLightOnTheme ? 'text-primary-foreground/80' : 'text-muted-foreground')}>{candidate.role}</CardDescription>
             </div>
             <Separator className="my-3 sm:my-4"/>
-
             <div className="space-y-2.5 text-sm">
                 {candidate.location && (
                     <div className={cn("flex items-center gap-2.5", isTextLightOnTheme ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
@@ -810,7 +682,6 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 )}
             </div>
             <Separator className="my-3 sm:my-4"/>
-            
             {candidate.experienceSummary && (
                 <div className="mt-2.5 pt-1 min-h-[3.5em]"> 
                     <p className={cn("text-sm line-clamp-3 sm:line-clamp-4 leading-relaxed", isTextLightOnTheme ? 'text-primary-foreground/80' : 'text-muted-foreground')}>
@@ -819,24 +690,17 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
                 </div>
             )}
             <Separator className="my-3 sm:my-4"/>
-            
             {candidate.skills && candidate.skills.length > 0 && (
                 <div className="pt-1.5 mt-2.5">
                     <h4 className={cn("text-xs font-semibold uppercase tracking-wider mb-2", isTextLightOnTheme ? 'text-primary-foreground/60' : 'text-muted-foreground')}>Top Skills</h4>
                     <div className="flex flex-wrap gap-2">
-                        {candidate.skills.slice(0, 4).map((skill) => (
-                          <Badge key={skill} variant="secondary" className="text-xs px-2.5 py-1">{skill}</Badge>
-                        ))}
+                        {candidate.skills.slice(0, 4).map((skill) => ( <Badge key={skill} variant="secondary" className="text-xs px-2.5 py-1">{skill}</Badge>))}
                         {candidate.skills.length > 4 && <Badge variant="outline" className="text-xs px-2.5 py-1">+{candidate.skills.length - 4}</Badge>}
                     </div>
                 </div>
             )}
         </div>
-            
-        <CardFooter className={cn(
-            "p-1.5 pt-3 sm:pt-4 grid grid-cols-4 gap-1.5 border-t shrink-0 no-swipe-area",
-            isThemedCard ? '' : 'bg-card' 
-        )}>
+        <CardFooter className={cn("p-1.5 pt-3 sm:pt-4 grid grid-cols-4 gap-1.5 border-t shrink-0 no-swipe-area", isThemedCard ? '' : 'bg-card' )}>
           <ActionButton action="pass" Icon={ThumbsDown} label="Pass" />
           <ActionButton action="details" Icon={Eye} label="Profile" />
           <ActionButton action="like" Icon={ThumbsUp} label="Like" isSpecificActionLiked={isLiked} />
@@ -856,9 +720,17 @@ export function CandidateCardContent({ candidate, onSwipeAction, isLiked, isGues
         activeAccordionItem={activeAccordionItemModal}
         setActiveAccordionItem={setActiveAccordionItemModal}
         onFetchAiAnalysis={fetchAiRecruiterAnalysis}
+        onShareProfile={openShareModalForCandidate} // Pass handler to open share modal
+      />
+      <ShareModal
+        isOpen={isShareCandidateModalOpen}
+        onOpenChange={setIsShareCandidateModalOpen}
+        title={`Share ${candidate.name}'s Profile`}
+        itemName={candidate.name}
+        itemDescription={candidate.role}
+        itemType="candidate profile"
+        shareUrl={candidate.id ? `${appOriginForShare}/candidate/${candidate.id}` : undefined}
       />
     </>
   );
 }
-
-    
