@@ -1,8 +1,8 @@
 
 "use client";
 
-import { useState, useEffect, ChangeEvent } from 'react';
-import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem } from '@/lib/types';
+import { useState, useEffect, ChangeEvent, KeyboardEvent } from 'react';
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem, BackendUser } from '@/lib/types';
 import { mockNotifications } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,12 +12,12 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth"; // Import signOut
+import { signOut } from "firebase/auth";
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown, Building2, ExternalLink, FileArchive, UserX, Gift, Newspaper, ShoppingBag } from 'lucide-react'; // Added Gift, Newspaper, ShoppingBag
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown, Building2, ExternalLink, FileArchive, UserX, Gift, Newspaper, ShoppingBag, Tag, X } from 'lucide-react'; // Added Tag, X
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; // Added AlertDialog
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
@@ -26,13 +26,13 @@ import { NotificationHistoryList } from '@/components/notifications/Notification
 import { NotificationItemType } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { deleteUserAccount, requestDataExport } from '@/services/userService'; // Import new services
+import { deleteUserAccount, requestDataExport } from '@/services/userService';
+import { Badge } from '@/components/ui/badge'; // Added Badge
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
-  // onRoleChange: (newRole: UserRole) => void; // This prop might become less critical if role changes are primarily handled via backend save
   isGuestMode?: boolean;
 }
 
@@ -121,12 +121,22 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
 
   const [notificationChannels, setNotificationChannels] = useState(contextPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true });
   const [notificationSubscriptions, setNotificationSubscriptions] = useState(
-    contextPreferences.notificationSubscriptions || { 
+    contextPreferences.notificationSubscriptions || {
       companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true,
       welcomeAndOnboardingEmails: true, contentAndBlogUpdates: false, featureAndPromotionUpdates: false,
     }
   );
   const [displayedNotifications, setDisplayedNotifications] = useState<NotificationItem[]>(mockNotifications);
+
+  // Company Information State (for Recruiters)
+  const [companyName, setCompanyName] = useState('');
+  const [companyIndustry, setCompanyIndustry] = useState('');
+  const [companyAddress, setCompanyAddress] = useState('');
+  const [companyWebsite, setCompanyWebsite] = useState('');
+  const [companyDescription, setCompanyDescription] = useState('');
+  const [currentCompanyCultureHighlightInput, setCurrentCompanyCultureHighlightInput] = useState('');
+  const [companyCultureHighlightsList, setCompanyCultureHighlightsList] = useState<string[]>([]);
+  const [companyNeeds, setCompanyNeeds] = useState('');
 
 
   const { toast } = useToast();
@@ -139,7 +149,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
       setDiscoveryItemsPerPage(contextPreferences.discoveryItemsPerPage || 10);
       setEnableExperimentalFeatures(contextPreferences.enableExperimentalFeatures || false);
       setNotificationChannels(contextPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true });
-      setNotificationSubscriptions(contextPreferences.notificationSubscriptions || { 
+      setNotificationSubscriptions(contextPreferences.notificationSubscriptions || {
         companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true,
         welcomeAndOnboardingEmails: true, contentAndBlogUpdates: false, featureAndPromotionUpdates: false,
       });
@@ -148,14 +158,9 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
 
   useEffect(() => {
     if (isGuestMode || !auth.currentUser) {
-      setUserName('Guest User');
-      setUserEmail('');
-      setSelectedRoleInSettings(null);
-      setAddress('');
-      setCountry('');
-      setDocumentId('');
-      setRecruiterWeights(defaultRecruiterWeights);
-      setJobSeekerWeights(defaultJobSeekerWeights);
+      setUserName('Guest User'); setUserEmail(''); setSelectedRoleInSettings(null); setAddress(''); setCountry(''); setDocumentId('');
+      setCompanyName(''); setCompanyIndustry(''); setCompanyAddress(''); setCompanyWebsite(''); setCompanyDescription(''); setCompanyCultureHighlightsList([]); setCurrentCompanyCultureHighlightInput(''); setCompanyNeeds('');
+      setRecruiterWeights(defaultRecruiterWeights); setJobSeekerWeights(defaultJobSeekerWeights);
       setIsLoadingSettings(false);
       return;
     }
@@ -164,25 +169,24 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
     const user = auth.currentUser;
 
     if (user && mongoDbUserId && fullBackendUser) {
-        setUserName(fullBackendUser.name || '');
-        setUserEmail(fullBackendUser.email || '');
-        setSelectedRoleInSettings(fullBackendUser.selectedRole || currentUserRole || null);
-        setAddress(fullBackendUser.address || '');
-        setCountry(fullBackendUser.country || '');
-        setDocumentId(fullBackendUser.documentId || '');
-        setRecruiterWeights(fullBackendUser.recruiterAIWeights || defaultRecruiterWeights);
-        setJobSeekerWeights(fullBackendUser.jobSeekerAIWeights || defaultJobSeekerWeights);
+        setUserName(fullBackendUser.name || ''); setUserEmail(fullBackendUser.email || ''); setSelectedRoleInSettings(fullBackendUser.selectedRole || currentUserRole || null);
+        setAddress(fullBackendUser.address || ''); setCountry(fullBackendUser.country || ''); setDocumentId(fullBackendUser.documentId || '');
+        setRecruiterWeights(fullBackendUser.recruiterAIWeights || defaultRecruiterWeights); setJobSeekerWeights(fullBackendUser.jobSeekerAIWeights || defaultJobSeekerWeights);
+        
+        setCompanyName(fullBackendUser.companyName || '');
+        setCompanyIndustry(fullBackendUser.companyIndustry || '');
+        setCompanyAddress(fullBackendUser.companyAddress || '');
+        setCompanyWebsite(fullBackendUser.companyWebsite || '');
+        setCompanyDescription(fullBackendUser.companyDescription || '');
+        setCompanyCultureHighlightsList(fullBackendUser.companyCultureHighlights || []);
+        setCompanyNeeds(fullBackendUser.companyNeeds || '');
+
         setIsLoadingSettings(false);
     } else if (user && !fullBackendUser && !contextLoading) {
-      setUserName(user.displayName || '');
-      setUserEmail(user.email || '');
-      setSelectedRoleInSettings(currentUserRole || null);
-      setRecruiterWeights(defaultRecruiterWeights);
-      setJobSeekerWeights(defaultJobSeekerWeights);
+      setUserName(user.displayName || ''); setUserEmail(user.email || ''); setSelectedRoleInSettings(currentUserRole || null);
+      setRecruiterWeights(defaultRecruiterWeights); setJobSeekerWeights(defaultJobSeekerWeights);
       setIsLoadingSettings(false);
-      if (mongoDbUserId) {
-        toast({ title: "Profile Data Syncing", description: "Some settings are using defaults until your full profile loads.", variant: "default", duration: 5000 });
-      }
+      if (mongoDbUserId) toast({ title: "Profile Data Syncing", description: "Some settings are using defaults until your full profile loads.", variant: "default", duration: 5000 });
     } else if (!contextLoading) {
       setIsLoadingSettings(false);
     }
@@ -200,6 +204,28 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
       setAppStats(initialAppStats);
     }
   };
+
+  const handleAddCultureHighlight = () => {
+    const newHighlight = currentCompanyCultureHighlightInput.trim();
+    if (newHighlight && !companyCultureHighlightsList.includes(newHighlight) && companyCultureHighlightsList.length < 10) {
+      setCompanyCultureHighlightsList([...companyCultureHighlightsList, newHighlight]);
+    } else if (companyCultureHighlightsList.length >= 10) {
+      toast({ title: "Limit Reached", description: "Max 10 culture highlights.", variant: "default"});
+    }
+    setCurrentCompanyCultureHighlightInput('');
+  };
+
+  const handleCultureHighlightInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === 'Enter' || event.key === ',') {
+      event.preventDefault();
+      handleAddCultureHighlight();
+    }
+  };
+
+  const handleRemoveCultureHighlight = (highlightToRemove: string) => {
+    setCompanyCultureHighlightsList(companyCultureHighlightsList.filter(h => h !== highlightToRemove));
+  };
+
 
   const handleSaveSettings = async () => {
     if (isGuestMode || !auth.currentUser || !mongoDbUserId) {
@@ -221,7 +247,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
         notificationSubscriptions: notificationSubscriptions,
       };
 
-      const settingsData: any = {
+      const settingsData: Partial<BackendUser> = {
         name: userName,
         email: userEmail,
         selectedRole: selectedRoleInSettings,
@@ -231,12 +257,24 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
         recruiterAIWeights: recruiterWeights,
         jobSeekerAIWeights: jobSeekerWeights,
         preferences: currentPreferencesToSave,
-        ...(selectedRoleInSettings === 'recruiter' && {
-            companyNameForJobs: fullBackendUser?.companyName || fullBackendUser?.companyNameForJobs || userName,
-            companyIndustryForJobs: fullBackendUser?.companyIndustry || fullBackendUser?.companyIndustryForJobs || 'Unspecified',
-            companyProfileComplete: fullBackendUser?.companyProfileComplete === undefined ? false : fullBackendUser.companyProfileComplete,
-        })
       };
+
+      if (selectedRoleInSettings === 'recruiter') {
+        settingsData.companyName = companyName.trim();
+        settingsData.companyIndustry = companyIndustry.trim();
+        settingsData.companyAddress = companyAddress.trim();
+        settingsData.companyWebsite = companyWebsite.trim();
+        settingsData.companyDescription = companyDescription.trim();
+        settingsData.companyCultureHighlights = companyCultureHighlightsList.filter(h => h.trim() !== '');
+        settingsData.companyNeeds = companyNeeds.trim();
+        // The backend will determine companyProfileComplete based on required fields
+        settingsData.companyProfileComplete = !!(companyName.trim()); // Simple check, backend might be more complex
+
+        // Ensure default company info for jobs is also updated if user is recruiter
+        settingsData.companyNameForJobs = companyName.trim() || userName;
+        settingsData.companyIndustryForJobs = companyIndustry.trim() || 'Various';
+      }
+
 
       try {
         const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${mongoDbUserId}/settings`, {
@@ -252,7 +290,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
 
         const savedUserData = await response.json();
         if (savedUserData.user) {
-          updateFullBackendUserFields(savedUserData.user); 
+          updateFullBackendUserFields(savedUserData.user);
         }
         await setContextPreferences(currentPreferencesToSave);
 
@@ -384,12 +422,12 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
       toast({ title: "Account Deletion Requested", description: "Your account is scheduled for deletion. You will be logged out." });
       await signOut(auth);
       if (typeof window !== 'undefined') {
-        localStorage.clear(); 
+        localStorage.clear();
         sessionStorage.clear();
       }
-      setContextMongoDbUserId(null); 
-      updateFullBackendUserFields(null); 
-      router.push('/'); 
+      setContextMongoDbUserId(null);
+      updateFullBackendUserFields(null);
+      router.push('/');
     } catch (error: any) {
       toast({ title: "Deletion Failed", description: error.message || "Could not delete your account.", variant: "destructive" });
     } finally {
@@ -415,7 +453,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
 
 
   const saveButtonText = isSaving ? "Saving..." : "Save All Settings";
-  const SaveButtonIcon = isSaving ? Loader2 : Save; 
+  const SaveButtonIcon = isSaving ? Loader2 : Save;
 
   if ((isLoadingSettings || contextLoading) && !isGuestMode) {
     return (
@@ -480,6 +518,79 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
           )}
         </CardContent>
       </Card>
+
+      {selectedRoleInSettings === 'recruiter' && !isGuestMode && (
+        <Card className="shadow-lg">
+          <CardHeader>
+            <CardTitle className="flex items-center text-xl">
+              <Building2 className="mr-2 h-5 w-5 text-primary" /> Company Information
+            </CardTitle>
+            <CardDescription>
+              Provide details about your company. This information will be visible on your job postings.
+              The Company Name is required to use features like the AI Human Resources Assistant.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-1">
+              <Label htmlFor="companyName" className="text-base flex items-center font-semibold">
+                <Building2 className="mr-2 h-4 w-4 text-muted-foreground" /> Company Name <StarIcon className="ml-1 h-3 w-3 text-destructive fill-destructive" />
+              </Label>
+              <Input id="companyName" placeholder="Your Company LLC" value={companyName} onChange={(e) => setCompanyName(e.target.value)}
+                     className={cn(!companyName.trim() && "border-destructive focus-visible:ring-destructive")} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="companyIndustry" className="text-base flex items-center">
+                <Globe className="mr-2 h-4 w-4 text-muted-foreground" /> Company Industry
+              </Label>
+              <Input id="companyIndustry" placeholder="e.g., Software, Marketing, Healthcare" value={companyIndustry} onChange={(e) => setCompanyIndustry(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="companyDescription" className="text-base flex items-center">
+                 <Info className="mr-2 h-4 w-4 text-muted-foreground" /> Company Description (Brief)
+              </Label>
+              <Textarea id="companyDescription" placeholder="Tell us about your company's mission and vision..." value={companyDescription} onChange={(e) => setCompanyDescription(e.target.value)} className="min-h-[80px]" />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="companyCultureHighlightsInput" className="text-base flex items-center">
+                <Tag className="mr-2 h-4 w-4 text-muted-foreground" /> Company Culture Highlights (add one by one)
+              </Label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {companyCultureHighlightsList.map((highlight, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1 text-sm py-1 px-2">
+                    {highlight}
+                    <Button type="button" variant="ghost" size="icon" className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={() => handleRemoveCultureHighlight(highlight)} aria-label={`Remove highlight ${highlight}`}>
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <Input id="companyCultureHighlightsInput" placeholder="e.g., Innovative, Collaborative" value={currentCompanyCultureHighlightInput} onChange={(e) => setCurrentCompanyCultureHighlightInput(e.target.value)} onKeyDown={handleCultureHighlightInputKeyDown} className="flex-grow"/>
+                <Button type="button" onClick={handleAddCultureHighlight} variant="outline" size="sm" disabled={companyCultureHighlightsList.length >= 10}>Add</Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Max 10 highlights. Helps AI understand your company vibe.</p>
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="companyNeeds" className="text-base flex items-center">
+                <ListChecks className="mr-2 h-4 w-4 text-muted-foreground" /> Current Company Focus/Needs
+              </Label>
+              <Input id="companyNeeds" placeholder="e.g., Expanding engineering team, Launching new product line" value={companyNeeds} onChange={(e) => setCompanyNeeds(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="companyAddress" className="text-base flex items-center">
+                <Home className="mr-2 h-4 w-4 text-muted-foreground" /> Company Address
+              </Label>
+              <Input id="companyAddress" placeholder="123 Main St, Anytown, USA" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="companyWebsite" className="text-base flex items-center">
+                <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Company Website
+              </Label>
+              <Input id="companyWebsite" type="url" placeholder="https://yourcompany.com" value={companyWebsite} onChange={(e) => setCompanyWebsite(e.target.value)} />
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card className="shadow-lg">
         <CardHeader>
@@ -756,7 +867,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
           </Card>
         </Accordion>
       )}
-      
+
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
