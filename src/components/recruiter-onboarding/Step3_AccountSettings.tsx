@@ -30,7 +30,7 @@ interface Step3Props {
 }
 
 export function Step3_AccountSettings({ initialData, onSubmit }: Step3Props) {
-  const { fullBackendUser } = useUserPreferences(); // Get user's name from context
+  const { fullBackendUser } = useUserPreferences(); 
 
   const form = useForm<AccountSettingsFormValues>({
     resolver: zodResolver(AccountSettingsSchema),
@@ -41,13 +41,14 @@ export function Step3_AccountSettings({ initialData, onSubmit }: Step3Props) {
     },
   });
 
-  const handleSubmit: SubmitHandler<AccountSettingsFormValues> = (data) => {
+  const internalFormSubmitHandler: SubmitHandler<AccountSettingsFormValues> = (data) => {
     onSubmit(data);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 animate-fadeInPage">
+      {/* Add id="step3Form" here */}
+      <form id="step3Form" onSubmit={form.handleSubmit(internalFormSubmitHandler)} className="space-y-6 animate-fadeInPage">
         <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-700">
           <Info className="h-5 w-5 !text-blue-600" />
           <AlertTitle className="font-semibold text-blue-800">Step 3: Your Account Details</AlertTitle>
@@ -97,7 +98,7 @@ export function Step3_AccountSettings({ initialData, onSubmit }: Step3Props) {
             </p>
             <Button variant="outline" disabled>Invite Team Members (Coming Soon)</Button>
         </div>
-        {/* The "Next Step" button is in the parent RecruiterOnboardingPage component */}
+        {/* No separate submit button here; parent's button will submit this form via its id */}
       </form>
     </Form>
   );

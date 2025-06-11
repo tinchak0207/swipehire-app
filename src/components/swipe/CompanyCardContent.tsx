@@ -4,7 +4,7 @@
 import type { Company, ProfileRecommenderOutput, CandidateProfileForAI, JobCriteriaForAI, CompanyQAInput, UserAIWeights, JobSeekerPerspectiveWeights, Candidate } from '@/lib/types';
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
-import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart, Code2, UserCircle as UserCircleIcon } from 'lucide-react';
+import { Building, MapPin, Briefcase as BriefcaseIcon, DollarSign, HelpCircle, Sparkles, Percent, Loader2, Share2, MessageSquare, Info, Brain, ThumbsUp, ThumbsDown, Lock, Video, ListChecks, ChevronsUpDown, Users2, CalendarDays, X, Link as LinkIcon, Mail, Twitter, Linkedin, Eye, Clock, Tag, Heart, Code2, UserCircle as UserCircleIcon, CheckCircle as CheckCircleIcon, AlertTriangle, TrendingUp } from 'lucide-react';
 import { CardDescription, CardHeader, CardTitle, CardFooter } from '../ui/card';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
@@ -431,6 +431,13 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     console.log(`[CompanyCardContent REVERTED: ${company.name}] No valid company logo URL or only placeholder detected. Will use fallback icon.`);
   }
 
+  const reputationGuaranteePromises = [
+    "72小時內必定回復您的申請 (Will definitely reply to your application within 72 hours)",
+    "提供具體且有建設性的回覆 (Provide specific and constructive replies)",
+    "透明的招聘流程和時程 (Transparent recruitment process and timeline)",
+    "尊重應聘者的時間和努力 (Respect applicants' time and effort)"
+  ];
+
 
   return (
     <>
@@ -652,6 +659,50 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
                 </>
               )}
               <Accordion type="single" collapsible className="w-full" value={activeAccordionItem} onOpenChange={setActiveAccordionItem}>
+                <AccordionItem value="reputation-guarantee" className="border-b-0">
+                  <AccordionTrigger className="text-lg font-semibold text-custom-light-purple-text hover:no-underline data-[state=open]:text-custom-primary-purple">
+                    <div className="flex items-center"><CheckCircleIcon className="mr-2 h-5 w-5 text-green-400" /> 信譽保障 (Reputation Guarantee) <ChevronsUpDown className="ml-auto h-4 w-4 text-slate-400/70" /></div>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-1 pb-3">
+                    <div className="p-3 border border-slate-700 rounded-lg bg-slate-700/30 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                           <div className="flex items-center text-lg font-semibold text-white">
+                            <TrendingUp className="mr-1.5 h-5 w-5 text-green-400" />
+                            {company.reputationScore || 80} 分
+                          </div>
+                          <p className="text-xs text-slate-400">企業信譽等級: {company.reputationGrade || "良好"}</p>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm font-medium text-slate-300">及時回復率 (Timely Reply Rate)</span>
+                          <span className="text-sm font-semibold text-green-400">{company.timelyReplyRate || 80}%</span>
+                        </div>
+                        <Progress value={company.timelyReplyRate || 80} className="h-2 [&>div]:bg-green-500" />
+                        <p className="text-xs text-slate-400 mt-0.5">該企業在72小時內回復應聘者的比例</p>
+                      </div>
+                      {company.commonRejectionReasons && company.commonRejectionReasons.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-medium text-slate-300 mb-1 flex items-center"><AlertTriangle className="mr-1.5 h-4 w-4 text-yellow-400" /> 常見被拒原因 (Common Rejection Reasons)</h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {company.commonRejectionReasons.map(reason => (
+                              <Badge key={reason} variant="outline" className="text-xs border-yellow-400/50 text-yellow-300 bg-yellow-400/10">{reason}</Badge>
+                            ))}
+                          </div>
+                          <p className="text-xs text-slate-400 mt-0.5">了解常見被拒原因, 提升申請成功率</p>
+                        </div>
+                      )}
+                      <div>
+                        <h4 className="text-sm font-medium text-slate-300 mb-1.5 flex items-center"><Clock className="mr-1.5 h-4 w-4 text-slate-400" /> 信譽保障承諾 (Reputation Guarantee Promise)</h4>
+                        <ul className="list-disc list-inside space-y-1 text-xs text-slate-300 pl-1">
+                          {reputationGuaranteePromises.map((promise, index) => <li key={index}>{promise}</li>)}
+                        </ul>
+                      </div>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                <Separator className="my-3 bg-slate-700" />
                 <AccordionItem value="ai-fit-analysis" className="border-b-0">
                   <AccordionTrigger className="text-lg font-semibold text-custom-light-purple-text hover:no-underline data-[state=open]:text-custom-primary-purple"><div className="flex items-center"><Brain className="mr-2 h-5 w-5" /> AI: How This Job Fits You <ChevronsUpDown className="ml-auto h-4 w-4 text-slate-400/70" /></div></AccordionTrigger>
                   <AccordionContent className="pt-1 pb-3">
@@ -692,4 +743,3 @@ export function CompanyCardContent({ company, onSwipeAction, isLiked, isGuestMod
     </>
   );
 }
-

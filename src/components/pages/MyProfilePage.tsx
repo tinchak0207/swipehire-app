@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle } from "@/components/ui/dialog";
 import { useToast } from '@/hooks/use-toast';
-import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X, UploadCloud, Share2, ShieldCheck, BarChart3 } from 'lucide-react';
+import { UserCircle, Briefcase, TrendingUp, Star, Edit3, Link as LinkIcon, Save, Lock, Loader2, Image as ImageIcon, Globe, Clock, CalendarDays, Type, DollarSign, LanguagesIcon, Eye, Palette as PaletteIcon, X, UploadCloud, Share2, ShieldCheck, BarChart3, Activity } from 'lucide-react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, type Candidate, type BackendUser } from '@/lib/types';
 import NextImage from 'next/image';
@@ -27,7 +27,6 @@ interface MyProfilePageProps {
   isGuestMode?: boolean;
 }
 
-// Helper function to format enum values for display
 const formatEnumLabel = (value: string) => {
   if (!value) return "";
   return value
@@ -39,6 +38,14 @@ const formatEnumLabel = (value: string) => {
 
 const jobTypeEnumOptions = Object.values(JobType).filter(jt => jt !== JobType.UNSPECIFIED);
 
+const cardThemeOptions = [
+  { value: 'default', label: 'Default Theme' },
+  { value: 'ocean', label: 'Ocean Breeze' },
+  { value: 'sunset', label: 'Sunset Glow' },
+  { value: 'forest', label: 'Forest Green' },
+  { value: 'professional-dark', label: 'Professional Dark' },
+  { value: 'lavender', label: 'Lavender Bliss' },
+];
 
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [profileHeadline, setProfileHeadline] = useState('');
@@ -67,21 +74,53 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
   const [jobTypePreferenceList, setJobTypePreferenceList] = useState<JobType[]>([]);
   const [currentSelectedJobType, setCurrentSelectedJobType] = useState<JobType | string>("");
 
-
   const [salaryExpectationMin, setSalaryExpectationMin] = useState<string>('');
   const [salaryExpectationMax, setSalaryExpectationMax] = useState<string>('');
-  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default'); 
-
+  
+  const [profileVisibility, setProfileVisibility] = useState<string>("public");
+  const [selectedCardTheme, setSelectedCardTheme] = useState<string>('default');
+  
+  // Client-side conceptual analytics
+  const [profileViews, setProfileViews] = useState(0);
+  const [profileShares, setProfileShares] = useState(0);
+  const [videoPlays, setVideoPlays] = useState(0);
+  const [videoCompletionRate, setVideoCompletionRate] = useState(0);
 
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [isShareProfileModalOpen, setIsShareProfileModalOpen] = useState(false); 
-  const [profileVisibility, setProfileVisibility] = useState<string>("public"); 
-
 
   const { toast } = useToast();
-  const { mongoDbUserId, fullBackendUser } = useUserPreferences();
+  const { mongoDbUserId, fullBackendUser, updateFullBackendUserFields } = useUserPreferences();
+
+  // Load client-side conceptual analytics on mount
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    setProfileViews(parseInt(localStorage.getItem(`profileViews_${mongoDbUserId || 'guest'}`) || '234', 10));
+    setProfileShares(parseInt(localStorage.getItem(`profileShares_${mongoDbUserId || 'guest'}`) || '56', 10));
+    setVideoPlays(parseInt(localStorage.getItem(`videoPlays_${mongoDbUserId || 'guest'}`) || '102', 10));
+    setVideoCompletionRate(parseInt(localStorage.getItem(`videoCompletionRate_${mongoDbUserId || 'guest'}`) || '78', 10));
+  }, [mongoDbUserId, isGuestMode]);
+
+  // Save client-side conceptual analytics when they change
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    localStorage.setItem(`profileViews_${mongoDbUserId || 'guest'}`, profileViews.toString());
+  }, [profileViews, mongoDbUserId, isGuestMode]);
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    localStorage.setItem(`profileShares_${mongoDbUserId || 'guest'}`, profileShares.toString());
+  }, [profileShares, mongoDbUserId, isGuestMode]);
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    localStorage.setItem(`videoPlays_${mongoDbUserId || 'guest'}`, videoPlays.toString());
+  }, [videoPlays, mongoDbUserId, isGuestMode]);
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    localStorage.setItem(`videoCompletionRate_${mongoDbUserId || 'guest'}`, videoCompletionRate.toString());
+  }, [videoCompletionRate, mongoDbUserId, isGuestMode]);
+
 
   useEffect(() => {
     if (isGuestMode || typeof window === 'undefined') {
@@ -92,55 +131,48 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     setIsFetchingProfile(true);
     setAvatarPreview(null); 
 
-    if (fullBackendUser) {
-        setProfileHeadline(fullBackendUser.profileHeadline || '');
-        setExperienceSummary(fullBackendUser.profileExperienceSummary || '');
-        setSkillList(fullBackendUser.profileSkills ? fullBackendUser.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-        setDesiredWorkStyle(fullBackendUser.profileDesiredWorkStyle || '');
-        setPastProjects(fullBackendUser.profilePastProjects || '');
-        setVideoPortfolioLink(fullBackendUser.profileVideoPortfolioLink || '');
-        setAvatarUrl(fullBackendUser.profileAvatarUrl || '');
-        setWorkExperienceLevel(fullBackendUser.profileWorkExperienceLevel as WorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
-        setEducationLevel(fullBackendUser.profileEducationLevel as EducationLevel || EducationLevel.UNSPECIFIED);
-        setLocationPreference(fullBackendUser.profileLocationPreference as LocationPreference || LocationPreference.UNSPECIFIED);
-        setLanguageList(fullBackendUser.profileLanguages ? fullBackendUser.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-        setAvailability(fullBackendUser.profileAvailability as Availability || Availability.UNSPECIFIED);
-        setJobTypePreferenceList(fullBackendUser.profileJobTypePreference ? fullBackendUser.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
-        setSalaryExpectationMin(fullBackendUser.profileSalaryExpectationMin?.toString() || '');
-        setSalaryExpectationMax(fullBackendUser.profileSalaryExpectationMax?.toString() || '');
-        setSelectedCardTheme(fullBackendUser.profileCardTheme || 'default');
-        
+    const populateProfileData = (userData: BackendUser | null) => {
+        if (userData) {
+            setProfileHeadline(userData.profileHeadline || '');
+            setExperienceSummary(userData.profileExperienceSummary || '');
+            setSkillList(userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
+            setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
+            setPastProjects(userData.profilePastProjects || '');
+            setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
+            setAvatarUrl(userData.profileAvatarUrl || '');
+            setWorkExperienceLevel(userData.profileWorkExperienceLevel as WorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
+            setEducationLevel(userData.profileEducationLevel as EducationLevel || EducationLevel.UNSPECIFIED);
+            setLocationPreference(userData.profileLocationPreference as LocationPreference || LocationPreference.UNSPECIFIED);
+            setLanguageList(userData.profileLanguages ? userData.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
+            setAvailability(userData.profileAvailability as Availability || Availability.UNSPECIFIED);
+            setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
+            setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
+            setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
+            setSelectedCardTheme(userData.profileCardTheme || 'default');
+            setProfileVisibility(userData.profileVisibility || 'public');
+        } else {
+             toast({ title: "Profile Not Found", description: "Could not load your profile. Please fill in details.", variant: "default"});
+        }
         setIsFetchingProfile(false);
+    };
+
+
+    if (fullBackendUser) {
+        populateProfileData(fullBackendUser);
     } else if (mongoDbUserId) { 
         const loadProfile = async () => {
             try {
                 const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}`);
                 if (response.ok) {
                     const userData: BackendUser = await response.json();
-                    setProfileHeadline(userData.profileHeadline || '');
-                    setExperienceSummary(userData.profileExperienceSummary || '');
-                    setSkillList(userData.profileSkills ? userData.profileSkills.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-                    setDesiredWorkStyle(userData.profileDesiredWorkStyle || '');
-                    setPastProjects(userData.profilePastProjects || '');
-                    setVideoPortfolioLink(userData.profileVideoPortfolioLink || '');
-                    setAvatarUrl(userData.profileAvatarUrl || '');
-                    setWorkExperienceLevel(userData.profileWorkExperienceLevel as WorkExperienceLevel || WorkExperienceLevel.UNSPECIFIED);
-                    setEducationLevel(userData.profileEducationLevel as EducationLevel || EducationLevel.UNSPECIFIED);
-                    setLocationPreference(userData.profileLocationPreference as LocationPreference || LocationPreference.UNSPECIFIED);
-                    setLanguageList(userData.profileLanguages ? userData.profileLanguages.split(',').map((s:string) => s.trim()).filter((s:string) => s) : []);
-                    setAvailability(userData.profileAvailability as Availability || Availability.UNSPECIFIED);
-                    setJobTypePreferenceList(userData.profileJobTypePreference ? userData.profileJobTypePreference.split(',').map((s:string) => s.trim() as JobType).filter((s:JobType) => s && Object.values(JobType).includes(s)) : []);
-                    setSalaryExpectationMin(userData.profileSalaryExpectationMin?.toString() || '');
-                    setSalaryExpectationMax(userData.profileSalaryExpectationMax?.toString() || '');
-                    setSelectedCardTheme(userData.profileCardTheme || 'default');
-                    
+                    populateProfileData(userData);
+                    updateFullBackendUserFields(userData); // Update context after fetch
                 } else {
-                     toast({ title: "Profile Not Found", description: "Could not load your profile. Please fill in details.", variant: "default"});
+                     populateProfileData(null); // To show toast and set defaults
                 }
             } catch (error) {
                 toast({ title: "Error Loading Profile", description: "Could not load your profile.", variant: "destructive" });
-            } finally {
-                setIsFetchingProfile(false);
+                 populateProfileData(null);
             }
         };
         loadProfile();
@@ -148,7 +180,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         setIsFetchingProfile(false);
     }
 
-  }, [isGuestMode, mongoDbUserId, fullBackendUser, toast]);
+  }, [isGuestMode, mongoDbUserId, fullBackendUser, toast, updateFullBackendUserFields]);
 
   const handleAvatarFileSelected = (file: File | null) => {
     if (file) {
@@ -231,7 +263,6 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     setJobTypePreferenceList(jobTypePreferenceList.filter(jt => jt !== jobTypeToRemove));
   };
 
-
   const handleSaveProfile = async () => {
     if (isGuestMode) {
       toast({ title: "Action Disabled", description: "Please sign in to save your profile.", variant: "default"});
@@ -280,7 +311,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       profileSalaryExpectationMin: salaryExpectationMin ? parseInt(salaryExpectationMin, 10) : undefined,
       profileSalaryExpectationMax: salaryExpectationMax ? parseInt(salaryExpectationMax, 10) : undefined,
       profileCardTheme: selectedCardTheme,
-      
+      profileVisibility: profileVisibility,
     };
 
     try {
@@ -294,8 +325,12 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         throw new Error(errorData.message || `Failed to save profile data: ${profileSaveResponse.statusText}`);
       }
       const savedUserResponse = await profileSaveResponse.json();
-      if (savedUserResponse.user && savedUserResponse.user.profileAvatarUrl) setAvatarUrl(savedUserResponse.user.profileAvatarUrl);
-      if (savedUserResponse.user && savedUserResponse.user.profileCardTheme) setSelectedCardTheme(savedUserResponse.user.profileCardTheme);
+      if (savedUserResponse.user) {
+        updateFullBackendUserFields(savedUserResponse.user); // Update context
+        setAvatarUrl(savedUserResponse.user.profileAvatarUrl || finalAvatarUrl); // Ensure local state matches
+        setSelectedCardTheme(savedUserResponse.user.profileCardTheme || 'default');
+        setProfileVisibility(savedUserResponse.user.profileVisibility || 'public');
+      }
       setAvatarFile(null); setAvatarPreview(null); 
       localStorage.setItem('currentUserJobSeekerProfile', JSON.stringify({ id: mongoDbUserId, name: fullBackendUser?.name || "User", role: profileHeadline, avatarUrl: finalAvatarUrl })); 
       toast({ title: 'Profile Updated & Published!', description: 'Your profile has been saved to the backend and is visible to recruiters.'});
@@ -306,6 +341,21 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       setIsLoading(false);
     }
   };
+
+  const handleSimulateProfileActivity = () => {
+    if (isGuestMode) {
+      toast({ title: "Action Disabled", description: "Activity simulation is for logged-in users.", variant: "default"});
+      return;
+    }
+    setProfileViews(prev => prev + Math.floor(Math.random() * 10) + 1);
+    setProfileShares(prev => prev + Math.floor(Math.random() * 3) + 1);
+    if (videoPortfolioLink) {
+      setVideoPlays(prev => prev + Math.floor(Math.random() * 5) + 1);
+      setVideoCompletionRate(prev => Math.min(100, prev + Math.floor(Math.random() * 10) + 1));
+    }
+    toast({ title: "Activity Simulated!", description: "Profile engagement stats updated (client-side conceptual)." });
+  };
+
 
   if (isGuestMode) {
     return (
@@ -354,7 +404,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     availability: availability as Availability,
     jobTypePreference: jobTypePreferenceList,
     cardTheme: selectedCardTheme, 
-    profileStrength: 80, 
+    profileStrength: Math.round((Object.values({profileHeadline, experienceSummary, skillList, desiredWorkStyle, pastProjects, videoPortfolioLink, avatarUrl, workExperienceLevel, educationLevel, locationPreference, languageList, availability, jobTypePreferenceList, salaryExpectationMin, salaryExpectationMax }).filter(v => v && (typeof v !== 'string' || v.trim() !== '') && (typeof v !== 'object' || (Array.isArray(v) ? v.length > 0 : Object.keys(v).length > 0 ))).length / 18) * 80) + 20,
     personalityAssessment: [], 
     optimalWorkStyles: [], 
     isUnderestimatedTalent: false, 
@@ -369,7 +419,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         <UserCircle className="mx-auto h-12 w-12 text-primary mb-3" />
         <h1 className="text-3xl md:text-4xl font-bold tracking-tight">My Professional Profile</h1>
         <p className="text-lg text-muted-foreground mt-2">
-          Craft your profile to stand out to recruiters. This information will be visible to them.
+          Craft your profile to stand out to recruiters. This information will be visible to recruiters.
         </p>
       </div>
 
@@ -640,10 +690,24 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             />
           </div>
           
+          <div className="space-y-1 pt-4 border-t">
+            <Label htmlFor="selectedCardTheme" className="text-base flex items-center">
+              <PaletteIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Profile Card Theme
+            </Label>
+            <Select value={selectedCardTheme} onValueChange={setSelectedCardTheme} disabled={isGuestMode}>
+              <SelectTrigger id="selectedCardTheme"><SelectValue placeholder="Select card theme" /></SelectTrigger>
+              <SelectContent>
+                {cardThemeOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">This theme will be applied to your profile card visible to recruiters.</p>
+          </div>
           
           <div className="space-y-1 pt-4 border-t">
             <Label htmlFor="profileVisibility" className="text-base flex items-center">
-              <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" /> Profile Visibility (Conceptual)
+              <ShieldCheck className="mr-2 h-4 w-4 text-muted-foreground" /> Profile Visibility
             </Label>
             <Select value={profileVisibility} onValueChange={setProfileVisibility} disabled={isGuestMode}>
               <SelectTrigger id="profileVisibility"><SelectValue placeholder="Set profile visibility" /></SelectTrigger>
@@ -653,7 +717,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 <SelectItem value="private">Only Me (Conceptual)</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">This setting is conceptual and not yet enforced by the backend.</p>
+            <p className="text-xs text-muted-foreground">Controls who can see your profile. This setting is now saved to your backend profile.</p>
           </div>
 
         </CardContent>
@@ -677,20 +741,25 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle className="flex items-center text-xl">
-            <BarChart3 className="mr-2 h-5 w-5 text-primary" /> Profile Engagement (Conceptual)
+            <BarChart3 className="mr-2 h-5 w-5 text-primary" /> Profile Engagement (Client-Side Conceptual)
           </CardTitle>
-          <CardDescription>See how your profile is performing (these are placeholders).</CardDescription>
+          <CardDescription>See how your profile is performing (these are placeholders stored in your browser).</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-2 gap-4 text-sm">
-          <div><span className="font-medium">Profile Views:</span> 234</div>
-          <div><span className="font-medium">Shares:</span> 56</div>
+          <div><span className="font-medium">Profile Views:</span> {profileViews}</div>
+          <div><span className="font-medium">Shares:</span> {profileShares}</div>
           {videoPortfolioLink && (
             <>
-              <div><span className="font-medium">Video Plays:</span> 102</div>
-              <div><span className="font-medium">Video Completion Rate:</span> 78%</div>
+              <div><span className="font-medium">Video Plays:</span> {videoPlays}</div>
+              <div><span className="font-medium">Video Completion Rate:</span> {videoCompletionRate}%</div>
             </>
           )}
         </CardContent>
+        <CardFooter>
+            <Button variant="outline" size="sm" onClick={handleSimulateProfileActivity} disabled={isGuestMode}>
+              <Activity className="mr-2 h-4 w-4"/> Simulate Activity
+            </Button>
+        </CardFooter>
       </Card>
 
 

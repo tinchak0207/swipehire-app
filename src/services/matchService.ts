@@ -1,4 +1,3 @@
-
 // src/services/matchService.ts
 'use server'; 
 
@@ -11,7 +10,6 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
   try {
     const targetUrl = `${CUSTOM_BACKEND_URL}/api/interactions/like`;
     
-    // Enhanced server-side logging for Server Action context
     console.log(`[Server Action - recordLike] ENV NEXT_PUBLIC_CUSTOM_BACKEND_URL: ${CUSTOM_BACKEND_URL_FROM_ENV}`);
     console.log(`[Server Action - recordLike] Effective CUSTOM_BACKEND_URL for fetch: ${CUSTOM_BACKEND_URL}`);
     console.log(`[Server Action - recordLike] Target URL for fetch: ${targetUrl}`);
@@ -38,7 +36,6 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
         throw new Error(`Unexpected response format from server. Status: ${response.status}. Response: ${textResponse.substring(0,100)}...`);
       }
     } else {
-      // Handle non-ok responses (4xx, 5xx)
       let errorData;
       let errorMessage = `Failed to record like. Status: ${response.status}.`;
 
@@ -76,14 +73,13 @@ export async function recordLike(payload: RecordLikePayload): Promise<RecordLike
   }
 }
 
-export async function fetchMatches(userId: string): Promise<Match[]> {
+export async function fetchMatches(userId: string): Promise<{ data: Match[] | null; error: string | null; }> {
   if (!userId) {
     console.warn("[Server Action - fetchMatches] Called without a userId.");
-    return [];
+    return { data: [], error: "User ID not provided." };
   }
   try {
     const targetUrl = `${CUSTOM_BACKEND_URL}/api/matches/${userId}`;
-    console.log(`[Server Action - fetchMatches] ENV NEXT_PUBLIC_CUSTOM_BACKEND_URL: ${CUSTOM_BACKEND_URL_FROM_ENV}`);
     console.log(`[Server Action - fetchMatches] Effective CUSTOM_BACKEND_URL for fetch: ${CUSTOM_BACKEND_URL}`);
     console.log(`[Server Action - fetchMatches] Target URL for fetch: ${targetUrl}`);
     
@@ -95,16 +91,42 @@ export async function fetchMatches(userId: string): Promise<Match[]> {
       cache: 'no-store', 
     });
 
-    const responseData = await response.json(); 
-
     if (!response.ok) {
-      console.error("[Server Action - fetchMatches] Service error response:", responseData);
-      throw new Error(responseData.message || `Failed to fetch matches. Status: ${response.status}`);
+      const errorData = await response.json().catch(() => ({ message: `Failed to fetch matches. Status: ${response.status}` }));
+      console.error("[Server Action - fetchMatches] Service error response:", errorData);
+      return { data: null, error: errorData.message || `Failed to fetch matches. Status: ${response.status}` };
     }
+    
+    const responseData = await response.json(); 
     console.log("[Server Action - fetchMatches] Service success, count:", responseData.length);
-    return responseData as Match[];
-  } catch (error) {
+    return { data: responseData as Match[], error: null };
+  } catch (error: any) {
     console.error("[Server Action - fetchMatches] Error in service:", error);
+    return { data: null, error: error.message || "An unknown error occurred while fetching matches." };
+  }
+}
+
+export async function archiveMatch(matchId: string, archivingUserId: string): Promise<Match> {
+  if (!matchId || !archivingUserId) {
+    throw new Error("Match ID and Archiving User ID are required.");
+  }
+  try {
+    const targetUrl = `${CUSTOM_BACKEND_URL}/api/matches/${matchId}/archive`;
+    console.log(`[Server Action - archiveMatch] Target URL: ${targetUrl}`);
+    const response = await fetch(targetUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archivingUserId }),
+    });
+    const responseData = await response.json();
+    if (!response.ok) {
+      console.error("[Server Action - archiveMatch] Service error response:", responseData);
+      throw new Error(responseData.message || `Failed to archive match. Status: ${response.status}`);
+    }
+    console.log("[Server Action - archiveMatch] Match archived successfully:", responseData.match?._id);
+    return responseData.match as Match;
+  } catch (error) {
+    console.error("[Server Action - archiveMatch] Error in service:", error);
     throw error;
   }
 }

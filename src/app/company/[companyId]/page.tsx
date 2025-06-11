@@ -8,38 +8,58 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Image from 'next/image';
-import { Building2, MapPin, Globe, Users, Info, Briefcase, ExternalLink, Loader2 } from 'lucide-react';
-import type { Company, CompanyJobOpening } from '@/lib/types'; // Import necessary types
-import { mockCompanies } from '@/lib/mockData'; // For placeholder data
+import { Building2, MapPin, Globe, Users, Info, Briefcase, ExternalLink, Loader2, Star } from 'lucide-react'; // Added Star
+import type { Company, CompanyJobOpening, CompanyReview } from '@/lib/types'; 
+import { mockCompanies } from '@/lib/mockData'; 
+import { getCompanyReviews, getCompanyReviewSummary } from '@/services/reviewService'; // Added review services
+import { StarRatingInput } from '@/components/reviews/StarRatingInput'; // To display stars
 
 // Conceptual: This page would fetch company data based on companyId
-// For now, it will be a placeholder.
+
+interface ReviewSummary {
+  averageResponsiveness: number;
+  averageAttitude: number;
+  averageProcessExperience: number;
+  totalReviews: number;
+}
 
 export default function CompanyProfilePage() {
   const params = useParams();
-  const companyId = params.companyId as string;
+  const companyId = params.companyId as string; // This is the mock ID like 'comp1' or slug from URL
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [reviews, setReviews] = useState<CompanyReview[]>([]);
+  const [reviewSummary, setReviewSummary] = useState<ReviewSummary | null>(null);
+  const [isLoadingReviews, setIsLoadingReviews] = useState(false);
 
   useEffect(() => {
     setIsLoading(true);
-    // Simulate fetching company data
-    // In a real app, you'd fetch from your backend:
-    // fetch(`/api/companies/${companyId}`).then(res => res.json()).then(data => { ... })
     const mockCompany = mockCompanies.find(c => c.id === companyId) || 
                         mockCompanies.find(c => c.name.toLowerCase().replace(/\s+/g, '-') === companyId.toLowerCase()) ||
-                        mockCompanies[0]; // Fallback to first mock company
+                        mockCompanies[0]; 
     
     if (mockCompany) {
-      // Simulate a delay for loading state
       setTimeout(() => {
         setCompanyData(mockCompany);
         setIsLoading(false);
+        // Conceptual: Fetch reviews if companyData.recruiterUserId (as company owner's User ID) exists
+        // if (mockCompany.recruiterUserId) {
+        //   setIsLoadingReviews(true);
+        //   Promise.all([
+        //     getCompanyReviews(mockCompany.recruiterUserId),
+        //     getCompanyReviewSummary(mockCompany.recruiterUserId)
+        //   ]).then(([fetchedReviews, summary]) => {
+        //     setReviews(fetchedReviews);
+        //     setReviewSummary(summary);
+        //   }).catch(err => {
+        //     console.error("Failed to load reviews for company:", mockCompany.name, err);
+        //     // Potentially show a toast
+        //   }).finally(() => setIsLoadingReviews(false));
+        // }
       }, 1000);
     } else {
-      // Handle case where no company (even mock) is found
       setTimeout(() => {
-        setCompanyData(null); // Explicitly set to null if not found
+        setCompanyData(null); 
         setIsLoading(false);
       }, 1000);
     }
@@ -132,7 +152,32 @@ export default function CompanyProfilePage() {
               </section>
             )}
             
-            {/* Conceptual: Placeholder for job openings for this company */}
+            {/* Conceptual: Placeholder for Reviews Section */}
+            {/* {isLoadingReviews && (
+              <section className="text-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></section>
+            )} */}
+            {/* {!isLoadingReviews && reviewSummary && reviews && (
+              <section>
+                <h2 className="text-xl font-semibold text-primary mb-3 flex items-center">
+                  <Star className="mr-2 h-5 w-5 text-yellow-500" /> Candidate Reviews ({reviewSummary.totalReviews})
+                </h2>
+                <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                  <p className="text-sm">Responsiveness: <StarRatingInput rating={reviewSummary.averageResponsiveness} size={16} disabled /> ({reviewSummary.averageResponsiveness.toFixed(1)})</p>
+                  <p className="text-sm">Attitude: <StarRatingInput rating={reviewSummary.averageAttitude} maxRating={3} size={16} disabled /> ({reviewSummary.averageAttitude.toFixed(1)})</p>
+                  <p className="text-sm">Process Experience: <StarRatingInput rating={reviewSummary.averageProcessExperience} size={16} disabled /> ({reviewSummary.averageProcessExperience.toFixed(1)})</p>
+                </div>
+                <div className="mt-4 space-y-3 max-h-60 overflow-y-auto">
+                  {reviews.map(review => (
+                    <div key={review._id} className="p-3 border rounded-md text-sm">
+                      <p className="font-semibold">{review.isAnonymous ? "Anonymous Reviewer" : `Review by User ${review.reviewerUserId.slice(-4)}`}</p>
+                      <p className="text-muted-foreground mt-1">{review.comments}</p>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )} */}
+
+
             {jobOpenings && jobOpenings.length > 0 && (
               <section>
                 <h2 className="text-xl font-semibold text-primary mb-3 flex items-center">
@@ -164,3 +209,4 @@ export default function CompanyProfilePage() {
     </div>
   );
 }
+

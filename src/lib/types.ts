@@ -61,6 +61,10 @@ export enum NotificationItemType {
   GENERAL_ALERT = 'general_alert',
   SYSTEM_UPDATE = 'system_update',
   FEEDBACK_REQUEST = 'feedback_request',
+  // Email Marketing Types (can also trigger in-app notifications if desired)
+  WELCOME_EMAIL = 'welcome_email',
+  CONTENT_UPDATE_EMAIL = 'content_update_email',
+  FEATURE_PROMO_EMAIL = 'feature_promo_email',
 }
 
 export interface NotificationItem {
@@ -77,13 +81,13 @@ export interface NotificationItem {
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   featureFlags?: Record<string, boolean>;
+  isLoading?: boolean;
   defaultAIScriptTone?: AIScriptTone;
   discoveryItemsPerPage?: number;
   enableExperimentalFeatures?: boolean;
-  // Notification Preferences
   notificationChannels?: {
-    email: boolean; // Conceptual, not implemented for sending
-    sms: boolean;   // Conceptual, not implemented for sending
+    email: boolean;
+    sms: boolean;
     inAppToast: boolean;
     inAppBanner: boolean;
   };
@@ -92,7 +96,13 @@ export interface UserPreferences {
     matchUpdates: boolean;
     applicationStatusChanges: boolean;
     platformAnnouncements: boolean;
+    // New granular email marketing preferences
+    welcomeAndOnboardingEmails?: boolean;
+    contentAndBlogUpdates?: boolean;
+    featureAndPromotionUpdates?: boolean;
   };
+  hasAiHumanResourcesFeature?: boolean;
+  aiHumanResourcesTier?: 'per_reply' | 'monthly' | 'none';
 }
 
 export enum CompanyScale {
@@ -108,13 +118,12 @@ export enum CompanyScale {
 export interface CompanyVerificationDocument {
     type: 'business_license' | 'organization_code' | 'other';
     fileName: string;
-    fileUrl?: string; // Conceptual, would be set after upload
-    uploadedAt: string; // ISO Date string
+    fileUrl?: string;
+    uploadedAt: string;
 }
 
-// Representing User data from MongoDB, including new fields for likes and profile representation
 export interface BackendUser {
-  _id: string; // MongoDB ID
+  _id: string;
   name: string;
   email: string;
   firebaseUid?: string;
@@ -125,40 +134,36 @@ export interface BackendUser {
   recruiterAIWeights?: RecruiterPerspectiveWeights;
   jobSeekerAIWeights?: JobSeekerPerspectiveWeights;
   preferences?: UserPreferences;
-  likedCandidateIds?: string[]; // Array of Candidate profile IDs (e.g., 'cand1')
-  likedCompanyIds?: string[];   // Array of Company profile IDs (e.g., 'comp1')
-  representedCandidateProfileId?: string; // For job seeker, their profile ID from mockData e.g. 'cand1'
-  representedCompanyProfileId?: string;   // For recruiter, company profile ID they represent e.g. 'comp1'
-  profileCardTheme?: string; // New field for card theme
+  likedCandidateIds?: string[];
+  likedCompanyIds?: string[];
+  representedCandidateProfileId?: string;
+  representedCompanyProfileId?: string;
+  profileCardTheme?: string;
   createdAt?: string;
   updatedAt?: string;
-  
-  // Recruiter-specific company profile fields (populated by onboarding)
-  companyName?: string; // Official company name
+
+  companyName?: string;
   companyIndustry?: string;
   companyScale?: CompanyScale;
-  companyAddress?: string; // Full address including city, country
+  companyAddress?: string;
   companyWebsite?: string;
-  companyDescription?: string; // For the company profile page
-  companyCultureHighlights?: string[]; // For the company profile page
-  companyLogoUrl?: string; // For the company profile page and job cards
-  companyVerificationDocuments?: CompanyVerificationDocument[]; // Conceptual
-  companyProfileComplete?: boolean; // Flag to indicate if recruiter onboarding is done
+  companyDescription?: string;
+  companyCultureHighlights?: string[];
+  companyLogoUrl?: string;
+  companyVerificationDocuments?: CompanyVerificationDocument[];
+  companyProfileComplete?: boolean;
 
-  // Fields for User's job postings (if recruiter) - these are defaults when creating new jobs
   companyNameForJobs?: string;
   companyIndustryForJobs?: string;
   jobOpenings?: CompanyJobOpening[];
 
-  // Adding fields that would be populated by ResumeCreationFlow
-  profileVideoResumeUrl?: string; // URL to the recorded video
-  profileAvatarWithScriptUrl?: string; // URL to the generated avatar (if chosen)
-  profileFinalScript?: string; // The finalized script
-  profileResumeText?: string; // The original resume text/summary
-  // These fields were already there but ensure they are part of BackendUser
+  profileVideoResumeUrl?: string;
+  profileAvatarWithScriptUrl?: string;
+  profileFinalScript?: string;
+  profileResumeText?: string;
   profileHeadline?: string;
   profileExperienceSummary?: string;
-  profileSkills?: string; // Comma-separated
+  profileSkills?: string;
   profileDesiredWorkStyle?: string;
   profilePastProjects?: string;
   profileVideoPortfolioLink?: string;
@@ -166,18 +171,19 @@ export interface BackendUser {
   profileWorkExperienceLevel?: string;
   profileEducationLevel?: string;
   profileLocationPreference?: string;
-  profileLanguages?: string; // Comma-separated
+  profileLanguages?: string;
   profileAvailability?: string;
-  profileJobTypePreference?: string; // Comma-separated
+  profileJobTypePreference?: string;
   profileSalaryExpectationMin?: number;
   profileSalaryExpectationMax?: number;
   passedCandidateProfileIds?: string[];
   passedCompanyProfileIds?: string[];
+  profileVisibility?: 'public' | 'recruiters_only' | 'private';
 }
 
 
-export interface Candidate { // This remains as the structure for mockData.ts candidates
-  id: string; // This is 'cand1', 'cand2' etc. from mockData
+export interface Candidate {
+  id: string;
   name: string;
   role: string;
   experienceSummary: string;
@@ -201,11 +207,11 @@ export interface Candidate { // This remains as the structure for mockData.ts ca
   optimalWorkStyles?: string[];
   isUnderestimatedTalent?: boolean;
   underestimatedReasoning?: string;
-  cardTheme?: string; // New field for card theme
+  cardTheme?: string;
 }
 
 export interface CompanyJobOpening {
-  _id?: string; // Added _id for job subdocuments managed by backend
+  _id?: string;
   title: string;
   description: string;
   location?: string;
@@ -222,16 +228,16 @@ export interface CompanyJobOpening {
   salaryMax?: number;
   companyCultureKeywords?: string[];
   companyIndustry?: string;
-  // Fields that will be populated by backend based on the recruiter User document
   companyNameForJob?: string;
   companyLogoForJob?: string;
   companyIndustryForJob?: string;
-  postedAt?: string | Date; // Allow Date for easier sorting, backend will provide ISO string
+  postedAt?: string | Date;
+  status?: 'draft' | 'active' | 'paused' | 'expired' | 'filled' | 'closed';
 }
 
-export interface Company { // This remains as the structure for mockData.ts companies
-  id: string; // This is 'comp1', 'comp2' etc. from mockData
-  recruiterUserId?: string; // MongoDB _id of the User who represents/posted this company/jobs
+export interface Company {
+  id: string;
+  recruiterUserId?: string;
   name: string;
   industry: string;
   description: string;
@@ -243,43 +249,46 @@ export interface Company { // This remains as the structure for mockData.ts comp
   companyNeeds?: string;
   salaryRange?: string;
   jobType?: JobType;
-  jobMatchPercentage?: number; // For frontend display based on AI
+  jobMatchPercentage?: number;
+  reputationScore?: number;
+  reputationGrade?: string;
+  timelyReplyRate?: number;
+  commonRejectionReasons?: string[];
 }
 
 export enum ApplicationStage {
-  SUBMITTED = 'Submitted', // 已提交
-  COMPANY_VIEWED = 'Company Viewed', // 企業已查看
-  SHORTLISTED = 'Shortlisted', // 進入初選
-  INTERVIEW_SCHEDULED = 'Interview Scheduled', // 安排面試
-  INTERVIEW_COMPLETED = 'Interview Completed', // 面試完成
-  AWAITING_DECISION = 'Awaiting Decision', // 等待結果
-  OFFER_EXTENDED = 'Offer Extended', // 錄取通知
-  REJECTED = 'Rejected', // 已拒絕
+  SUBMITTED = 'Submitted',
+  COMPANY_VIEWED = 'Company Viewed',
+  SHORTLISTED = 'Shortlisted',
+  INTERVIEW_SCHEDULED = 'Interview Scheduled',
+  INTERVIEW_COMPLETED = 'Interview Completed',
+  AWAITING_DECISION = 'Awaiting Decision',
+  OFFER_EXTENDED = 'Offer Extended',
+  REJECTED = 'Rejected',
 }
 
 export interface ApplicationStatusUpdate {
   stage: ApplicationStage;
-  timestamp: string; // ISO Date string
-  description?: string; // e.g., "Interview scheduled with Hiring Manager"
-  nextStepSuggestion?: string; // e.g., "Prepare for your interview on [Date]"
-  responseNeeded?: boolean; // New field to indicate if user action is required for this stage
+  timestamp: string;
+  description?: string;
+  nextStepSuggestion?: string;
+  responseNeeded?: boolean;
 }
 
-// Updated Match interface to align with backend Match model
 export interface Match {
-  _id: string; // MongoDB ID for the match document itself
-  userA_Id: string; // MongoDB User ID (e.g., recruiter)
-  userB_Id: string; // MongoDB User ID (e.g., job seeker)
-  candidateProfileIdForDisplay: string; // e.g., 'cand1' (from mockData)
-  companyProfileIdForDisplay: string; // e.g., 'comp1' (from mockData)
+  _id: string;
+  userA_Id: string;
+  userB_Id: string;
+  candidateProfileIdForDisplay: string;
+  companyProfileIdForDisplay: string;
   jobOpeningTitle?: string;
-  matchedAt: string; // ISO Date string from backend
+  matchedAt: string;
+  applicationTimestamp?: string;
   status: 'active' | 'archived_by_A' | 'archived_by_B' | 'archived_by_both';
   uniqueMatchKey: string;
-  applicationStatusHistory?: ApplicationStatusUpdate[]; // Added for tracking
-  // For frontend display, these will be populated by looking up IDs in mockCandidates/mockCompanies
-  candidate?: Candidate;
-  company?: Company;
+  applicationStatusHistory?: ApplicationStatusUpdate[];
+  candidate: Candidate; // Assuming these will be populated or available
+  company: Company;   // Assuming these will be populated or available
 }
 
 
@@ -316,18 +325,32 @@ export interface JobPosting {
 }
 
 export interface ChatMessage {
-  _id?: string; // MongoDB ID
-  id?: string; // Frontend ID, can be same as _id after fetch
-  matchId: string; // Links to the Match document's _id
-  senderId: string; // MongoDB User ID of the sender
-  receiverId: string; // MongoDB User ID of the receiver
+  _id?: string;
+  id?: string;
+  matchId: string;
+  senderId: string;
+  receiverId: string;
   text: string;
-  timestamp: string; // ISO Date string
-  read?: boolean; // New field for read status
-  // for frontend display only, not in DB
-  senderType?: 'user' | 'contact'; // 'user' is the current logged-in user, 'contact' is the other person
+  timestamp: string;
+  read?: boolean;
+  isAiSuggestion?: boolean;
+  senderType?: 'user' | 'contact' | 'ai_suggestion';
 }
 
+export interface DiaryComment {
+  _id: string; // Now explicitly making _id required for update/delete
+  userId: string;
+  userName: string;
+  userAvatarUrl?: string;
+  text: string;
+  timestamp: string;
+}
+
+export enum DiaryPostStatus {
+  APPROVED = 'approved',
+  PENDING_REVIEW = 'pending_review',
+  REJECTED = 'rejected',
+}
 export interface DiaryPost {
   _id?: string;
   id?: string;
@@ -339,15 +362,17 @@ export interface DiaryPost {
   content: string;
   imageUrl?: string;
   diaryImageHint?: string;
-  timestamp?: number; // Kept for potential legacy frontend use, prefer createdAt
+  timestamp?: number;
   tags?: string[];
   likes: number;
-  likedBy?: string[]; // Array of User MongoDB _ids
+  likedBy?: string[];
   views?: number;
   commentsCount?: number;
+  comments?: DiaryComment[];
   isFeatured?: boolean;
-  createdAt?: string; // ISO Date string from backend
-  updatedAt?: string; // ISO Date string from backend
+  createdAt?: string;
+  updatedAt?: string;
+  status?: DiaryPostStatus; // Added for content moderation
 }
 
 
@@ -464,54 +489,53 @@ export interface CompanyQAOutput {
   aiAnswer: string;
 }
 
-// For the new like interaction endpoint
 export interface RecordLikePayload {
-  likingUserId: string; // MongoDB _id of the user performing the like
-  likedProfileId: string; // If company, this is the Recruiter's User._id. If candidate, this is the JobSeeker's User._id.
+  likingUserId: string;
+  likedProfileId: string;
   likedProfileType: 'candidate' | 'company';
-  likingUserRole: UserRole; // Role of the liking user
-  // These are the *display profile IDs* from mockData or equivalent (e.g., 'cand1', 'comp1')
-  // They help the backend correctly form the Match document if both users use mock profile IDs.
-  likingUserRepresentsCandidateId?: string; // If jobseeker, their 'candX' display ID
-  likingUserRepresentsCompanyId?: string;   // If recruiter, their 'compX' display ID
+  likingUserRole: UserRole;
+  likingUserRepresentsCandidateId?: string;
+  likingUserRepresentsCompanyId?: string;
+  jobOpeningTitle?: string; // Added this field
 }
 
 export interface RecordLikeResponse {
   success: boolean;
   message: string;
   matchMade?: boolean;
-  matchDetails?: Match; // Full match details if one was created
+  matchDetails?: Match;
 }
 
 export interface CompanyReview {
-  id?: string; // Frontend or DB ID
-  companyId: string; // ID of the company being reviewed
-  jobId?: string; // Optional: If the review is for a specific job application
-  reviewerUserId: string; // User who submitted the review
-  responsivenessRating: number; // 1-5
-  attitudeRating: number; // 1-3
-  processExperienceRating: number; // 1-5
+  id?: string;
+  _id?: string;
+  companyId: string;
+  jobId?: string;
+  reviewerUserId: string;
+  responsivenessRating: number;
+  attitudeRating: number;
+  processExperienceRating: number;
   comments: string;
   isAnonymous: boolean;
-  timestamp: string; // ISO Date string
+  timestamp: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Data collected during recruiter onboarding
 export interface RecruiterOnboardingData {
     companyName: string;
     companyIndustry: string;
     companyScale: CompanyScale;
     companyAddress: string;
     companyWebsite?: string;
-    companyDescription?: string; // For profile page
-    companyCultureHighlights?: string[]; // For profile page
-    
-    // Conceptual: File objects or URLs after upload
-    businessLicense?: File | { name: string; url?: string }; 
+    companyDescription?: string;
+    companyCultureHighlights?: string[];
+
+    businessLicense?: File | { name: string; url?: string };
     organizationCode?: File | { name: string; url?: string };
-    
+    companyVerificationDocuments?: CompanyVerificationDocument[];
+
     recruiterFullName: string;
     recruiterJobTitle: string;
     recruiterContactPhone?: string;
 }
-

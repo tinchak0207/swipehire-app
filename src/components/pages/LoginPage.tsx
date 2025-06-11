@@ -11,19 +11,18 @@ import { GoogleAuthProvider, signInWithPopup, type UserCredential, type Firebase
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation'; 
 
 interface LoginPageProps {
   onLoginBypass: () => void;
   onGuestMode: () => void;
 }
 
-// Key used to track if the welcome page has been seen. Must match src/app/page.tsx
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 
 export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
   const { toast } = useToast();
-  const router = useRouter(); // Initialize router
+  const router = useRouter(); 
   const [isLoadingGoogleSignIn, setIsLoadingGoogleSignIn] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -37,7 +36,6 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         title: "Sign-In Successful!",
         description: `Welcome, ${result.user.displayName || result.user.email}!`,
       });
-      // No explicit redirect here; onAuthStateChanged in page.tsx will handle it.
     } catch (error) {
       const firebaseError = error as FirebaseError;
       console.error("Error during Google Sign-In (Popup):", firebaseError.code, firebaseError.message);
@@ -83,7 +81,7 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
     if (typeof window !== 'undefined') {
       localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
     }
-    router.push('/'); // Navigate to root, AppContent will re-evaluate
+    router.push('/'); 
   };
 
   return (
@@ -92,16 +90,13 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
       style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
     >
       <header className="w-full p-4 sm:p-6 z-20 shrink-0">
-        {/* Updated Link to use onClick handler */}
         <a onClick={handleLogoClick} className="flex items-center gap-2 text-white hover:opacity-80 transition-opacity cursor-pointer">
           <FileVideo2 className="h-8 w-8" />
           <span className="text-2xl font-bold">SwipeHire</span>
         </a>
       </header>
 
-      {/* Overlay div 1 (darker bottom gradient) */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent z-0"></div>
-      {/* Overlay div 2 (colored side gradient) */}
       <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 via-indigo-800/40 to-transparent opacity-80 z-0"></div>
       
       <main className="flex flex-grow items-center justify-center relative z-10">
@@ -111,9 +106,11 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         )}>
           <CardHeader className="text-center space-y-2 pt-8">
             <Sparkles className="mx-auto h-12 w-12 text-yellow-300" />
-            <CardTitle className="text-3xl font-bold animate-text-glow text-white">Welcome to SwipeHire</CardTitle>
+            <CardTitle className="text-3xl font-bold text-white">
+              <h1>Welcome to SwipeHire</h1>
+            </CardTitle>
             <CardDescription className="text-md text-slate-300 pt-1">
-              Sign in to discover your next opportunity or top talent.
+              Sign in to leverage AI recruitment software, create video resumes, or swipe to find jobs and top talent.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6 py-6 px-6 sm:px-8">
@@ -123,9 +120,9 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
                 Join us to:
               </h3>
               <ul className="space-y-1.5 text-sm text-slate-300 list-none pl-1">
-                <li className="flex items-start"><Sparkles className="h-4 w-4 text-yellow-400 mr-2 shrink-0 mt-0.5" /> <span>Access powerful AI Profile Tools.</span></li>
-                <li className="flex items-start"><Sparkles className="h-4 w-4 text-yellow-400 mr-2 shrink-0 mt-0.5" /> <span>Discover personalized matches.</span></li>
-                <li className="flex items-start"><Sparkles className="h-4 w-4 text-yellow-400 mr-2 shrink-0 mt-0.5" /> <span>Engage in direct messaging.</span></li>
+                <li className="flex items-start"><Sparkles className="h-4 w-4 text-yellow-400 mr-2 shrink-0 mt-0.5" /> <span>Access powerful AI Profile Tools for video resumes.</span></li>
+                <li className="flex items-start"><Sparkles className="h-4 w-4 text-yellow-400 mr-2 shrink-0 mt-0.5" /> <span>Discover personalized matches with our talent matching system.</span></li>
+                <li className="flex items-start"><Sparkles className="h-4 w-4 text-yellow-400 mr-2 shrink-0 mt-0.5" /> <span>Engage in direct messaging on our privacy recruitment platform.</span></li>
               </ul>
             </div>
 

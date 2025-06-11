@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { UserRole } from '@/lib/types';
 import { Users, Briefcase } from 'lucide-react';
+import { cn } from '@/lib/utils'; // Ensure cn is imported if used
 
 interface RoleSelectionPageProps {
   onRoleSelect: (role: UserRole) => void;
@@ -23,14 +24,19 @@ export function RoleSelectionPage({ onRoleSelect }: RoleSelectionPageProps) {
   return (
     <div className="flex flex-col min-h-screen items-center justify-center overflow-hidden">
       <div className="my-8 text-center px-4">
+        {/* Removed animate-text-glow from h1 */}
         <h1 className="text-4xl md:text-5xl font-bold text-primary mb-2">Welcome to SwipeHire</h1>
         <p className="text-lg md:text-xl text-muted-foreground">Choose your path to connect and succeed.</p>
       </div>
 
+      {/* Changed to flex-col for mobile, md:flex-row for medium screens and up */}
       <div className="flex flex-col md:flex-row w-full flex-grow relative">
         {/* Recruiter Section */}
         <div
-          className={`recruiter-role-bg flex-1 flex flex-col items-center justify-center p-8 text-white text-center cursor-pointer transition-all duration-300 ease-in-out hover:opacity-90 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-orange-400/70 relative overflow-hidden group ${selectedRoleVisual === 'recruiter' ? 'animate-pulse-selection' : ''}`}
+          className={cn(
+            `recruiter-role-bg flex-1 flex flex-col items-center justify-center p-8 text-white text-center cursor-pointer transition-all duration-300 ease-in-out hover:opacity-90 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-orange-400/70 relative overflow-hidden group`,
+            selectedRoleVisual === 'recruiter' ? 'animate-pulse-selection' : ''
+          )}
           onClick={() => handleSelect('recruiter')}
           onKeyDown={(e) => e.key === 'Enter' && handleSelect('recruiter')}
           tabIndex={0}
@@ -46,12 +52,12 @@ export function RoleSelectionPage({ onRoleSelect }: RoleSelectionPageProps) {
           <p className="text-md sm:text-lg drop-shadow-sm opacity-90">Post jobs, discover talent, and build your dream team.</p>
         </div>
 
-        {/* Custom SVG Divider */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10">
+        {/* Custom SVG Divider - remains for md screens */}
+        <div className="absolute inset-0 md:flex items-center justify-center pointer-events-none z-10 hidden">
           <svg 
             viewBox="0 0 50 600" 
             xmlns="http://www.w3.org/2000/svg" 
-            className="h-[110%] w-auto stroke-current text-black/70 hidden md:block mx-auto" 
+            className="h-[110%] w-auto stroke-current text-black/70 mx-auto" 
             style={{ filter: 'drop-shadow(2px 2px 2px rgba(0,0,0,0.2))', transform: 'rotate(-5deg)' }}
           >
             <path 
@@ -62,12 +68,17 @@ export function RoleSelectionPage({ onRoleSelect }: RoleSelectionPageProps) {
               fill="none"
             />
           </svg>
-          <div className="w-full h-1 bg-black/60 md:hidden shadow-md my-4"></div>
         </div>
+        {/* Simple divider for mobile screens */}
+        <div className="w-full h-1 bg-black/60 md:hidden shadow-md my-0"></div>
+
 
         {/* Job Seeker Section */}
         <div
-          className={`jobseeker-role-bg flex-1 flex flex-col items-center justify-center p-8 text-white text-center cursor-pointer transition-all duration-300 ease-in-out hover:opacity-90 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-300/70 relative overflow-hidden group ${selectedRoleVisual === 'jobseeker' ? 'animate-pulse-selection' : ''}`}
+          className={cn(
+            `jobseeker-role-bg flex-1 flex flex-col items-center justify-center p-8 text-white text-center cursor-pointer transition-all duration-300 ease-in-out hover:opacity-90 hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-green-300/70 relative overflow-hidden group`,
+            selectedRoleVisual === 'jobseeker' ? 'animate-pulse-selection' : ''
+          )}
           onClick={() => handleSelect('jobseeker')}
           onKeyDown={(e) => e.key === 'Enter' && handleSelect('jobseeker')}
           tabIndex={0}

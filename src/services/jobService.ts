@@ -1,39 +1,67 @@
 
 // src/services/jobService.ts
-'use server'; 
+// 'use server'; // Removed this directive
 
 import type { Company, CompanyJobOpening } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
+interface JobOpeningPayload extends Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id' | 'videoOrImageUrl' | 'dataAiHint' | 'actualTags'> {
+  actualTags?: string[]; // This comes from the form's derived state
+  videoOrImageUrl?: string; // This might be a URL string if no file
+  dataAiHint?: string;
+}
 
-export async function postJobToBackend(recruiterUserId: string, jobOpeningData: Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id'>): Promise<CompanyJobOpening> {
+
+export async function postJobToBackend(
+  recruiterUserId: string, 
+  jobOpeningData: JobOpeningPayload,
+  mediaFile?: File 
+): Promise<CompanyJobOpening> {
   console.log('[Frontend Service] Attempting to post job.');
   console.log('[Frontend Service] Recruiter User ID:', recruiterUserId);
-  console.log('[Frontend Service] Initial Job Opening Data:', JSON.stringify(jobOpeningData, null, 2));
+  console.log('[Frontend Service] Initial Job Opening Data (text fields):', JSON.stringify(jobOpeningData, null, 2));
+  if (mediaFile) {
+    console.log('[Frontend Service] Media File to be uploaded:', mediaFile.name, mediaFile.type, mediaFile.size);
+  }
   console.log('[Frontend Service] CUSTOM_BACKEND_URL resolved to:', CUSTOM_BACKEND_URL);
 
   const targetUrl = `${CUSTOM_BACKEND_URL}/api/users/${recruiterUserId}/jobs`;
   console.log('[Frontend Service] Target Backend URL for POST:', targetUrl);
   
-  // Ensure tags are an array, even if it was an empty string or undefined from the form
-  const payload = {
-    ...jobOpeningData,
-    tags: Array.isArray(jobOpeningData.tags) ? jobOpeningData.tags : (jobOpeningData.tags ? (jobOpeningData.tags as unknown as string).split(',').map(tag => tag.trim()).filter(tag => tag) : [])
-  };
-  console.log('[Frontend Service] Final payload being sent:', JSON.stringify(payload, null, 2));
+  const formData = new FormData();
+
+  // Append all text fields from jobOpeningData
+  Object.entries(jobOpeningData).forEach(([key, value]) => {
+    if (key === 'actualTags' && Array.isArray(value)) {
+      // Multer typically expects array fields to be sent like: tags=tag1&tags=tag2
+      // Or by appending multiple times with the same key
+      value.forEach(tag => formData.append('actualTags[]', tag)); // Or just 'tags[]' if backend expects that
+    } else if (value !== undefined && value !== null) {
+      formData.append(key, String(value));
+    }
+  });
+
+  if (mediaFile) {
+    formData.append('mediaFile', mediaFile, mediaFile.name);
+  }
+  
+  console.log('[Frontend Service] FormData prepared. Keys:');
+  for (let pair of formData.entries()) {
+    console.log(`  ${pair[0]}: ${pair[1] instanceof File ? `File(${pair[1].name})` : pair[1]}`);
+  }
+
 
   try {
     const response = await fetch(targetUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
+      // DO NOT set Content-Type header manually when using FormData,
+      // the browser will set it correctly with the boundary.
+      body: formData,
     });
 
     console.log(`[Frontend Service] Backend response status: ${response.status}`);
-    let errorDataTextForLog = ''; // For logging non-JSON errors
+    let errorDataTextForLog = ''; 
 
     if (!response.ok) {
       let errorData;
@@ -55,8 +83,7 @@ export async function postJobToBackend(recruiterUserId: string, jobOpeningData: 
 
   } catch (error: any) {
     console.error("[Frontend Service] Error in postJobToBackend:", error.message);
-    console.error("[Frontend Service] Full error object:", error);
-    // Re-throw the error so the component can catch it and display an appropriate toast
+    console.error("[Frontend Service] Full error object for postJobToBackend:", error);
     throw error;
   }
 }
@@ -65,7 +92,6 @@ export async function postJobToBackend(recruiterUserId: string, jobOpeningData: 
 export async function fetchJobsFromBackend(): Promise<{ jobs: Company[]; hasMore: boolean; nextCursor?: string }> {
   console.log('[Frontend Service] Calling fetchJobsFromBackend.');
   console.log('[Frontend Service] CUSTOM_BACKEND_URL for GET /api/jobs resolved to:', CUSTOM_BACKEND_URL);
-  // Add a cache-busting query parameter
   const targetUrl = `${CUSTOM_BACKEND_URL}/api/jobs?timestamp=${new Date().getTime()}`;
   console.log('[Frontend Service] Target Backend URL for GET /api/jobs:', targetUrl);
 
@@ -75,7 +101,6 @@ export async function fetchJobsFromBackend(): Promise<{ jobs: Company[]; hasMore
       headers: {
         'Content-Type': 'application/json',
       },
-      // 'cache: no-store' is good, but the query parameter is more robust for all intermediaries
     });
 
     console.log(`[Frontend Service] GET /api/jobs - Backend response status: ${response.status}`);
@@ -126,11 +151,11 @@ export async function updateRecruiterJob(recruiterUserId: string, jobId: string,
   if (!recruiterUserId || !jobId) {
     throw new Error('Recruiter user ID and Job ID are required for update.');
   }
-  const targetUrl = `${CUSTOM_BACKEND_URL}/api/users/${recruiterUserId}/jobs/${jobId}`;
-  console.log('[Frontend Service] Updating job:', jobId, 'for recruiter:', recruiterUserId, 'URL:', targetUrl);
+  const targetUrl = `${CUSTOM_BACKEND_URL}/api/users/${recruiterUserId}/jobs/${jobId}/update`; // Changed path
+  console.log('[Frontend Service] Updating job (POST):', jobId, 'for recruiter:', recruiterUserId, 'URL:', targetUrl);
   try {
     const response = await fetch(targetUrl, {
-      method: 'PUT',
+      method: 'POST', // Changed method to POST
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(jobData),
     });
@@ -172,5 +197,3 @@ export async function deleteRecruiterJob(recruiterUserId: string, jobId: string)
     throw error;
   }
 }
-
-

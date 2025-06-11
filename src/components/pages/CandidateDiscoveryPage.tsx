@@ -14,7 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { recordLike } from '@/services/matchService';
 import NextImage from 'next/image';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"; // Removed DialogClose explicitly
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { passCandidate, retrieveCandidate } from '@/services/interactionService';
 import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType } from '@/lib/types';
@@ -25,6 +25,7 @@ import { recommendProfile } from '@/ai/flows/profile-recommender';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from '@/components/ui/progress';
 import { Label } from '@/components/ui/label';
+import { ShareModal } from '@/components/share/ShareModal';
 
 
 const ITEMS_PER_BATCH = 3;
@@ -65,6 +66,7 @@ function CandidateDetailsModal({
     setActiveAccordionItem,
     onFetchAiAnalysis,
     onPassCandidate,
+    onShareProfile,
 }: {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
@@ -78,6 +80,7 @@ function CandidateDetailsModal({
     setActiveAccordionItem: (value: string | undefined) => void;
     onFetchAiAnalysis: () => void;
     onPassCandidate: (candidateId: string) => void;
+    onShareProfile: () => void;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
@@ -122,9 +125,12 @@ function CandidateDetailsModal({
     }
   };
 
-  const modalAvatarSrc = candidate.avatarUrl && candidate.avatarUrl.startsWith('/uploads/')
-  ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
-  : candidate.avatarUrl;
+  const modalAvatarSrc = candidate.avatarUrl
+    ? candidate.avatarUrl.startsWith('/uploads/')
+      ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
+      : candidate.avatarUrl
+    : `https://placehold.co/80x80.png`;
+
   const needsUnoptimizedModal = modalAvatarSrc?.startsWith(CUSTOM_BACKEND_URL) || modalAvatarSrc?.startsWith('http://localhost');
 
   const handleSaveForLater = () => {
@@ -160,7 +166,7 @@ function CandidateDetailsModal({
         <DialogHeader className="p-4 sm:p-6 bg-gradient-to-br from-purple-50 via-indigo-50 to-blue-50 flex flex-row items-start space-x-4 relative rounded-t-xl">
           <div className="relative shrink-0">
             <NextImage
-              src={modalAvatarSrc || 'https://placehold.co/80x80.png'}
+              src={modalAvatarSrc}
               alt={candidate.name}
               width={80}
               height={80}
@@ -380,6 +386,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   const [aiRecruiterWeightedScoresModal, setAiRecruiterWeightedScoresModal] = useState<RecruiterWeightedScores | null>(null);
   const [isLoadingAiAnalysisModal, setIsLoadingAiAnalysisModal] = useState(false);
   const [activeAccordionItemModal, setActiveAccordionItemModal] = useState<string | undefined>(undefined);
+  const [isShareCandidateModalOpen, setIsShareCandidateModalOpen] = useState(false);
 
 
   const { toast } = useToast();
@@ -392,42 +399,61 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   const fetchBackendCandidates = useCallback(async () => {
     setIsInitialLoading(true);
     setIsLoading(true);
+    console.log(`[CandidateDiscovery] Starting fetchBackendCandidates. isGuestMode: ${isGuestMode}, mongoDbUserId: ${mongoDbUserId}`);
     try {
-      if (!mongoDbUserId && !isGuestMode) {
-        console.log("[CandidateDiscovery] Skipping backend fetch: no mongoDbUserId and not in guest mode. Using mock data.");
+      if (isGuestMode && !mongoDbUserId) {
+        console.log("[CandidateDiscovery] Guest mode active. Using mock data for candidates.");
         setAllCandidates([...mockCandidates]);
+        setIsInitialLoading(false);
+        setIsLoading(false);
         return;
       }
-      console.log("[CandidateDiscovery] Fetching candidates from backend...");
+      
+      console.log("[CandidateDiscovery] Attempting to fetch candidates from backend...");
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/profiles/jobseekers`);
-      if (!response.ok) throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
+      console.log(`[CandidateDiscovery] Backend response status for jobseekers: ${response.status}`);
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error(`[CandidateDiscovery] Failed to fetch candidate profiles: ${response.status} - ${errorBody.substring(0, 200)}`);
+        throw new Error(`Failed to fetch candidate profiles: ${response.status}`);
+      }
       const data: Candidate[] = await response.json();
-      setAllCandidates(data.length > 0 ? data.map(c => ({...c, id: (c as any)._id || c.id })) : [...mockCandidates]);
-      console.log(`[CandidateDiscovery] Fetched candidates from backend: ${data.length}`);
+      
+      if (data && data.length > 0) {
+        console.log(`[CandidateDiscovery] Successfully fetched ${data.length} candidates from backend.`);
+        setAllCandidates(data.map(c => ({...c, id: (c as any)._id || c.id })));
+      } else {
+        console.log("[CandidateDiscovery] Backend returned 0 candidates. Logging success but empty. Falling back to mock data.");
+        toast({ title: "No Live Candidates Found", description: "Showing sample candidate profiles. Your database might be empty or filters too restrictive.", variant: "default", duration: 7000 });
+        setAllCandidates([...mockCandidates]);
+      }
     } catch (error) {
-      console.error("Error fetching candidates from backend:", error);
-      toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles. Using mock data.", variant: "destructive", duration: 7000 });
+      console.error("[CandidateDiscovery] Error fetching candidates from backend:", error);
+      toast({ title: "Error Loading Candidates", description: "Could not load candidate profiles from backend. Using mock data.", variant: "destructive", duration: 7000 });
       setAllCandidates([...mockCandidates]);
     } finally {
       setIsInitialLoading(false);
       setIsLoading(false);
+      console.log("[CandidateDiscovery] fetchBackendCandidates finished.");
     }
   }, [toast, mongoDbUserId, isGuestMode]);
 
   useEffect(() => {
-    fetchBackendCandidates();
-  }, [fetchBackendCandidates]);
+    if (!isGuestMode || mongoDbUserId) {
+        fetchBackendCandidates();
+    } else if (isGuestMode) { 
+        fetchBackendCandidates(); 
+    }
+  }, [fetchBackendCandidates, isGuestMode, mongoDbUserId]);
 
 
   useEffect(() => {
     if (mongoDbUserId) {
         const storedCompanyId = localStorage.getItem(`user_${mongoDbUserId}_representedCompanyId`);
         setRecruiterRepresentedCompanyId(storedCompanyId || 'comp-placeholder-recruiter');
-        if(!passedCandidateProfileIdsFromContext || passedCandidateProfileIdsFromContext.size === 0) {
-            fetchAndSetUserPreferences(mongoDbUserId);
-        }
     }
-  }, [mongoDbUserId, fetchAndSetUserPreferences, passedCandidateProfileIdsFromContext]);
+  }, [mongoDbUserId, passedCandidateProfileIdsFromContext]);
 
   const trashBinCandidates = useMemo(() => {
     if (isInitialLoading || allCandidates.length === 0 || !passedCandidateProfileIdsFromContext) return [];
@@ -483,7 +509,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     setIsLoading(true);
     const nextBatch = filteredCandidatesMemo.slice(currentIndex, currentIndex + ITEMS_PER_BATCH);
 
-    setDisplayedCandidates(prev => [...prev, ...nextBatch]);
+    setDisplayedCandidates(prev => [...prev, ...nextBatch.filter(item => !prev.find(p => p.id === item.id))]);
     setCurrentIndex(prev => prev + nextBatch.length);
     setHasMore(currentIndex + nextBatch.length < filteredCandidatesMemo.length);
     setIsLoading(false);
@@ -530,7 +556,7 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
         skills: selectedCandidateForDetails.skills || [], location: selectedCandidateForDetails.location || undefined, desiredWorkStyle: selectedCandidateForDetails.desiredWorkStyle || undefined,
         pastProjects: selectedCandidateForDetails.pastProjects || undefined, workExperienceLevel: selectedCandidateForDetails.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
         educationLevel: selectedCandidateForDetails.educationLevel || EducationLevel.UNSPECIFIED, locationPreference: selectedCandidateForDetails.locationPreference || LocationPreference.UNSPECIFIED,
-        languages: selectedCandidateForDetails.languages || [], salaryExpectationMin: selectedCandidateForDetails.salaryExpectationMin, salaryExpectationMax: selectedCandidateForDetails.salaryExpectationMax,
+        languages: selectedCandidateForDetails.languages || [], salaryExpectationMin: selectedCandidateForDetails.salaryExpectationMax, salaryExpectationMax: selectedCandidateForDetails.salaryExpectationMax,
         availability: selectedCandidateForDetails.availability || Availability.UNSPECIFIED, jobTypePreference: selectedCandidateForDetails.jobTypePreference || [],
         personalityAssessment: selectedCandidateForDetails.personalityAssessment || [],
       };
@@ -644,6 +670,15 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
     }
   };
 
+  const openShareModal = () => {
+    if (selectedCandidateForDetails) {
+        setIsShareCandidateModalOpen(true);
+    } else {
+        toast({ title: "No Candidate Selected", description: "Open a candidate's profile to share it.", variant: "default" });
+    }
+  };
+
+
   const handleFilterChange = <K extends keyof CandidateFilters>(
     filterType: K,
     value: CandidateFilters[K] extends Set<infer T> ? T : never,
@@ -664,6 +699,8 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   const handleApplyFilters = () => setIsFilterSheetOpen(false);
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
   const fixedElementsHeight = '120px';
+  const appOriginForShare = typeof window !== 'undefined' ? window.location.origin : 'https://swipehire-app.com';
+
 
   if (isInitialLoading) {
     return <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
@@ -754,8 +791,22 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
             setActiveAccordionItem={setActiveAccordionItemModal}
             onFetchAiAnalysis={fetchAiRecruiterAnalysisForModal}
             onPassCandidate={(candidateId) => handleAction(candidateId, 'pass')}
+            onShareProfile={openShareModal}
         />
       )}
+      {selectedCandidateForDetails && (
+        <ShareModal
+            isOpen={isShareCandidateModalOpen}
+            onOpenChange={setIsShareCandidateModalOpen}
+            title={`Share ${selectedCandidateForDetails.name}'s Profile`}
+            itemName={selectedCandidateForDetails.name}
+            itemDescription={selectedCandidateForDetails.role}
+            itemType="candidate profile"
+            shareUrl={selectedCandidateForDetails.id ? `${appOriginForShare}/candidate/${selectedCandidateForDetails.id}` : undefined}
+            qrCodeLogoUrl="/assets/logo-favicon.png"
+        />
+      )}
+
 
       <div className="w-full snap-y snap-mandatory overflow-y-auto scroll-smooth no-scrollbar flex-grow pb-40" style={{ height: `calc(100vh - ${fixedElementsHeight})` }} tabIndex={0}>
         {displayedCandidates.map((candidate) => (
@@ -784,6 +835,3 @@ export function CandidateDiscoveryPage({ searchTerm = "", isGuestMode }: Candida
   );
 }
 
-    
-
-    

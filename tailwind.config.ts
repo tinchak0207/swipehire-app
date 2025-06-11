@@ -8,23 +8,40 @@ export default {
     "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
-  safelist: [ // Ensure these grid column classes are generated
+  safelist: [ 
     'grid-cols-3',
     'grid-cols-4',
     'grid-cols-5', 
     'grid-cols-6',
-    'grid-cols-7', // Added for recruiter tabs (Find Talent, Post Job, Manage Jobs, AI Tools, My Matches, Settings)
+    'grid-cols-7',
+    // Card theme classes - ensure these are generated if only used via JS
+    'card-theme-ocean',
+    'card-theme-sunset',
+    'card-theme-forest',
+    'card-theme-professional-dark',
+    'card-theme-lavender',
+    // Specific text/bg colors for themes if not covered by utilities directly
+    'text-cyan-200', 'text-blue-100/90', 'bg-cyan-700/80', 'text-cyan-100', 'border-cyan-600',
+    'from-cyan-300', 'to-blue-300',
+    'text-pink-200', 'text-orange-100/90', 'bg-red-700/80', 'text-red-100', 'border-red-600',
+    'from-pink-300', 'to-orange-300',
+    'text-lime-200', 'text-green-100/90', 'bg-emerald-800/80', 'text-emerald-100', 'border-emerald-700',
+    'from-lime-300', 'to-green-300', 'text-yellow-300', 'hover:bg-yellow-400/30', 'border-yellow-400/50', 'bg-yellow-500/40', 'border-yellow-300', 'ring-yellow-200',
+    'text-sky-400', 'text-slate-400', 'bg-slate-600', 'text-slate-200', 'border-slate-500',
+    'from-sky-500', 'to-blue-500',
+    'text-indigo-700', 'text-slate-600', 'bg-indigo-200/80', 'text-indigo-800', 'border-indigo-300',
+    'from-indigo-500', 'to-purple-500',
+    'bg-purple-200/50', 'bg-red-500/20', 'bg-green-500/20', 'bg-white/50', 'border-purple-300/70',
+    'bg-green-200/80',
   ],
   theme: {
   	extend: {
   		colors: {
-        // Custom colors for new Job Card design
         'custom-primary-purple': '#6C63FF',
         'custom-dark-purple-blue': '#2A2486',
         'custom-light-purple-text': '#9D99FF',
         'custom-light-gray-ring': '#E0E0E0',
         'custom-light-purple-skill-bg': '#F0EEFF',
-        // Existing theme colors
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -76,6 +93,12 @@ export default {
   				ring: 'hsl(var(--sidebar-ring))'
   			}
   		},
+      backgroundImage: { // For card themes if using direct bg utilities
+        'card-theme-ocean': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        'card-theme-sunset': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        'card-theme-forest': 'linear-gradient(to bottom right, var(--tw-gradient-stops))',
+        // professional-dark and lavender might be solid colors or simpler gradients
+      },
   		borderRadius: {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
@@ -98,7 +121,7 @@ export default {
   					height: '0'
   				}
   			},
-        'text-glow': { // Added new keyframes for text glow
+        'text-glow': { 
           '0%, 100%': { textShadow: '0 0 5px hsl(var(--primary) / 0.5), 0 0 10px hsl(var(--primary) / 0.3)' },
           '50%': { textShadow: '0 0 10px hsl(var(--primary) / 0.7), 0 0 20px hsl(var(--primary) / 0.5)' },
         },
@@ -106,7 +129,7 @@ export default {
   		animation: {
   			'accordion-down': 'accordion-down 0.2s ease-out',
   			'accordion-up': 'accordion-up 0.2s ease-out',
-        'text-glow': 'text-glow 2.5s ease-in-out infinite alternate', // Added new animation utility
+        'text-glow': 'text-glow 2.5s ease-in-out infinite alternate', 
   		}
   	}
   },
@@ -115,4 +138,3 @@ export default {
     require('@tailwindcss/typography'),
   ],
 } satisfies Config;
-

@@ -2,8 +2,8 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent } from 'react';
-import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem } from '@/lib/types'; 
-import { mockNotifications } from '@/lib/mockData'; 
+import type { UserRole, RecruiterPerspectiveWeights, JobSeekerPerspectiveWeights, UserPreferences, AIScriptTone, NotificationItem } from '@/lib/types';
+import { mockNotifications } from '@/lib/mockData';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,23 +12,27 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth"; // Import signOut
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { AiRecommendationSettings } from '@/components/settings/AiRecommendationSettings';
-import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown, Building2 } from 'lucide-react'; 
+import { UserCog, Briefcase, Users, ShieldCheck, Mail, User, Home, Globe, ScanLine, Save, MessageSquareText, DollarSign, BarChart3, Sparkles, Film, Brain, Info, TrendingUp, Trash2, MessageCircleQuestion, AlertCircle, Loader2, Construction, ListChecks, Rocket, Palette, Moon, Sun, Laptop, SlidersHorizontal, Bot, BookOpen, Star as StarIcon, Bell, BellOff, BellRing, HeartHandshake, ChevronDown, Building2, ExternalLink, FileArchive, UserX, Gift, Newspaper, ShoppingBag } from 'lucide-react'; // Added Gift, Newspaper, ShoppingBag
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"; // Added AlertDialog
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from '@/lib/utils';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"; 
-import { NotificationHistoryList } from '@/components/notifications/NotificationHistoryList'; 
-import { NotificationItemType } from '@/lib/types'; 
-import { useRouter } from 'next/navigation'; // Added useRouter
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { NotificationHistoryList } from '@/components/notifications/NotificationHistoryList';
+import { NotificationItemType } from '@/lib/types';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { deleteUserAccount, requestDataExport } from '@/services/userService'; // Import new services
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
-  onRoleChange: (newRole: UserRole) => void;
+  // onRoleChange: (newRole: UserRole) => void; // This prop might become less critical if role changes are primarily handled via backend save
   isGuestMode?: boolean;
 }
 
@@ -84,8 +88,8 @@ const defaultAIScriptToneOptions: { value: AIScriptTone; label: string }[] = [
 const discoveryItemsPerPageOptions = [5, 10, 15, 20];
 
 
-export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: SettingsPageProps) {
-  const { preferences: contextPreferences, setPreferences: setContextPreferences, loadingPreferences: contextLoading, mongoDbUserId, fullBackendUser } = useUserPreferences();
+export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps) {
+  const { preferences: contextPreferences, setPreferences: setContextPreferences, updateFullBackendUserFields, loadingPreferences: contextLoading, mongoDbUserId, fullBackendUser, setMongoDbUserId: setContextMongoDbUserId } = useUserPreferences();
   const router = useRouter();
 
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
@@ -105,6 +109,9 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
 
   const [isLoadingSettings, setIsLoadingSettings] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isRequestingExport, setIsRequestingExport] = useState(false);
+
 
   const [localTheme, setLocalTheme] = useState<UserPreferences['theme']>(contextPreferences.theme);
   const [localFeatureFlags, setLocalFeatureFlags] = useState<Record<string, boolean>>(contextPreferences.featureFlags || {});
@@ -113,7 +120,12 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const [enableExperimentalFeatures, setEnableExperimentalFeatures] = useState<boolean>(contextPreferences.enableExperimentalFeatures || false);
 
   const [notificationChannels, setNotificationChannels] = useState(contextPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true });
-  const [notificationSubscriptions, setNotificationSubscriptions] = useState(contextPreferences.notificationSubscriptions || { companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true });
+  const [notificationSubscriptions, setNotificationSubscriptions] = useState(
+    contextPreferences.notificationSubscriptions || { 
+      companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true,
+      welcomeAndOnboardingEmails: true, contentAndBlogUpdates: false, featureAndPromotionUpdates: false,
+    }
+  );
   const [displayedNotifications, setDisplayedNotifications] = useState<NotificationItem[]>(mockNotifications);
 
 
@@ -127,7 +139,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
       setDiscoveryItemsPerPage(contextPreferences.discoveryItemsPerPage || 10);
       setEnableExperimentalFeatures(contextPreferences.enableExperimentalFeatures || false);
       setNotificationChannels(contextPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true });
-      setNotificationSubscriptions(contextPreferences.notificationSubscriptions || { companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true });
+      setNotificationSubscriptions(contextPreferences.notificationSubscriptions || { 
+        companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true,
+        welcomeAndOnboardingEmails: true, contentAndBlogUpdates: false, featureAndPromotionUpdates: false,
+      });
     }
   }, [contextPreferences, contextLoading]);
 
@@ -148,35 +163,31 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     setIsLoadingSettings(true);
     const user = auth.currentUser;
 
-    // Use fullBackendUser from context if available, otherwise fetch
-    if (user && mongoDbUserId) {
-        const sourceUser = fullBackendUser || user; // Prioritize fullBackendUser
-        const sourceData = fullBackendUser || (user ? { name: user.displayName, email: user.email } : {});
-
-        setUserName(sourceData.name || '');
-        setUserEmail(sourceData.email || '');
-        setSelectedRoleInSettings(fullBackendUser?.selectedRole || currentUserRole || null);
-        setAddress(fullBackendUser?.address || '');
-        setCountry(fullBackendUser?.country || '');
-        setDocumentId(fullBackendUser?.documentId || '');
-        setRecruiterWeights(fullBackendUser?.recruiterAIWeights || defaultRecruiterWeights);
-        setJobSeekerWeights(fullBackendUser?.jobSeekerAIWeights || defaultJobSeekerWeights);
+    if (user && mongoDbUserId && fullBackendUser) {
+        setUserName(fullBackendUser.name || '');
+        setUserEmail(fullBackendUser.email || '');
+        setSelectedRoleInSettings(fullBackendUser.selectedRole || currentUserRole || null);
+        setAddress(fullBackendUser.address || '');
+        setCountry(fullBackendUser.country || '');
+        setDocumentId(fullBackendUser.documentId || '');
+        setRecruiterWeights(fullBackendUser.recruiterAIWeights || defaultRecruiterWeights);
+        setJobSeekerWeights(fullBackendUser.jobSeekerAIWeights || defaultJobSeekerWeights);
         setIsLoadingSettings(false);
-
-        // If fullBackendUser wasn't available from context, it implies it might not be fully loaded or initial user setup.
-        // Fetching from backend is now handled by the main AppContent useEffect hook.
-        // This effect now primarily relies on fullBackendUser from context.
-    } else if (user && !mongoDbUserId) { // Firebase user exists, but no mongoDB link yet
+    } else if (user && !fullBackendUser && !contextLoading) {
       setUserName(user.displayName || '');
       setUserEmail(user.email || '');
       setSelectedRoleInSettings(currentUserRole || null);
+      setRecruiterWeights(defaultRecruiterWeights);
+      setJobSeekerWeights(defaultJobSeekerWeights);
       setIsLoadingSettings(false);
-       toast({ title: "Profile Sync Pending", description: "Your profile data is being synced. Some settings might be unavailable until sync is complete.", variant: "default", duration: 7000 });
-    } else { // No user at all
+      if (mongoDbUserId) {
+        toast({ title: "Profile Data Syncing", description: "Some settings are using defaults until your full profile loads.", variant: "default", duration: 5000 });
+      }
+    } else if (!contextLoading) {
       setIsLoadingSettings(false);
     }
     loadAppStats();
-  }, [isGuestMode, currentUserRole, mongoDbUserId, toast, fullBackendUser]);
+  }, [isGuestMode, currentUserRole, mongoDbUserId, toast, fullBackendUser, contextLoading]);
 
   const loadAppStats = () => {
     if (typeof window !== 'undefined' && !isGuestMode) {
@@ -220,11 +231,10 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         recruiterAIWeights: recruiterWeights,
         jobSeekerAIWeights: jobSeekerWeights,
         preferences: currentPreferencesToSave,
-        // Add recruiter company details if role is recruiter
         ...(selectedRoleInSettings === 'recruiter' && {
-            companyNameForJobs: fullBackendUser?.companyName || fullBackendUser?.companyNameForJobs || userName, // Default to user name if company name isn't set
+            companyNameForJobs: fullBackendUser?.companyName || fullBackendUser?.companyNameForJobs || userName,
             companyIndustryForJobs: fullBackendUser?.companyIndustry || fullBackendUser?.companyIndustryForJobs || 'Unspecified',
-            companyProfileComplete: fullBackendUser?.companyProfileComplete || false, // Maintain existing or set default
+            companyProfileComplete: fullBackendUser?.companyProfileComplete === undefined ? false : fullBackendUser.companyProfileComplete,
         })
       };
 
@@ -241,19 +251,20 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
         }
 
         const savedUserData = await response.json();
-        await setContextPreferences(currentPreferencesToSave); // Update context with new preferences
-        
-        // If role changed to recruiter and profile isn't complete, they should be taken to onboarding
-        if (selectedRoleInSettings === 'recruiter' && !savedUserData.user?.companyProfileComplete) {
-             localStorage.setItem('recruiterCompanyProfileComplete', 'false');
-             toast({ title: 'Role Updated', description: 'Your role is now Recruiter. Please complete company onboarding.', duration: 5000});
-             onRoleChange(selectedRoleInSettings); // Notify parent
-             router.push('/recruiter-onboarding'); // Redirect
+        if (savedUserData.user) {
+          updateFullBackendUserFields(savedUserData.user); 
+        }
+        await setContextPreferences(currentPreferencesToSave);
+
+        const companyProfileIsComplete = selectedRoleInSettings === 'recruiter' && savedUserData.user?.companyProfileComplete;
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('userSelectedRole', selectedRoleInSettings || '');
+            localStorage.setItem('recruiterCompanyProfileComplete', companyProfileIsComplete ? 'true' : 'false');
+        }
+
+        if (selectedRoleInSettings === 'recruiter' && !companyProfileIsComplete) {
+             toast({ title: 'Settings Saved', description: 'Role updated to Recruiter. Your company profile setup is still pending. You can complete it via the link below or you might be redirected.', duration: 8000});
         } else {
-            if (selectedRoleInSettings && selectedRoleInSettings !== currentUserRole) {
-                 onRoleChange(selectedRoleInSettings); // Notify parent of role change
-            }
-            localStorage.setItem('recruiterCompanyProfileComplete', (selectedRoleInSettings === 'recruiter' && savedUserData.user?.companyProfileComplete) ? 'true' : 'false');
             toast({ title: 'Settings Saved', description: 'Your preferences and general information have been updated.' });
         }
 
@@ -317,7 +328,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   const handleNotificationChannelChange = (channel: keyof UserPreferences['notificationChannels'], checked: boolean) => {
     setNotificationChannels(prev => ({ ...prev!, [channel]: checked }));
   };
-  
+
   const handleNotificationSubscriptionChange = (subscription: keyof UserPreferences['notificationSubscriptions'], checked: boolean) => {
     setNotificationSubscriptions(prev => ({ ...prev!, [subscription]: checked }));
   };
@@ -326,7 +337,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     setDisplayedNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
     toast({ title: "Notification Marked as Read", description: "Conceptual action: marked as read.", duration: 2000 });
   };
-  
+
   const handleClearNotification = (notificationId: string) => {
     setDisplayedNotifications(prev => prev.filter(n => n.id !== notificationId));
     toast({ title: "Notification Cleared", description: "Conceptual action: notification removed from list.", duration: 2000 });
@@ -362,9 +373,49 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
     });
   };
 
+  const handleDeleteAccount = async () => {
+    if (isGuestMode || !mongoDbUserId) {
+      toast({ title: "Action Disabled", variant: "default" });
+      return;
+    }
+    setIsDeletingAccount(true);
+    try {
+      await deleteUserAccount(mongoDbUserId);
+      toast({ title: "Account Deletion Requested", description: "Your account is scheduled for deletion. You will be logged out." });
+      await signOut(auth);
+      if (typeof window !== 'undefined') {
+        localStorage.clear(); 
+        sessionStorage.clear();
+      }
+      setContextMongoDbUserId(null); 
+      updateFullBackendUserFields(null); 
+      router.push('/'); 
+    } catch (error: any) {
+      toast({ title: "Deletion Failed", description: error.message || "Could not delete your account.", variant: "destructive" });
+    } finally {
+      setIsDeletingAccount(false);
+    }
+  };
 
-  const saveButtonText = isSaving ? "Saving..." : "Save Settings";
-  const SaveButtonIcon = isSaving ? Loader2 : UserCog;
+  const handleDataExportRequest = async () => {
+    if (isGuestMode || !mongoDbUserId) {
+      toast({ title: "Action Disabled", variant: "default" });
+      return;
+    }
+    setIsRequestingExport(true);
+    try {
+      const result = await requestDataExport(mongoDbUserId);
+      toast({ title: "Data Export Requested", description: result.message });
+    } catch (error: any) {
+      toast({ title: "Export Request Failed", description: error.message || "Could not request data export.", variant: "destructive" });
+    } finally {
+      setIsRequestingExport(false);
+    }
+  };
+
+
+  const saveButtonText = isSaving ? "Saving..." : "Save All Settings";
+  const SaveButtonIcon = isSaving ? Loader2 : Save; 
 
   if ((isLoadingSettings || contextLoading) && !isGuestMode) {
     return (
@@ -375,7 +426,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
   }
 
   const isAuthEmail = auth.currentUser && auth.currentUser.email === userEmail;
-  const showRecruiterOnboardingLink = selectedRoleInSettings === 'recruiter' && !fullBackendUser?.companyProfileComplete;
+  const showRecruiterOnboardingLink = selectedRoleInSettings === 'recruiter' && fullBackendUser && fullBackendUser.companyProfileComplete === false && !isGuestMode;
 
 
   return (
@@ -418,13 +469,13 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
               </Label>
             </div>
           </RadioGroup>
-           {showRecruiterOnboardingLink && !isGuestMode && (
+           {showRecruiterOnboardingLink && (
             <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-              <Info className="h-5 w-5 text-blue-600 inline mr-2" />
-              <span className="text-blue-700">As a recruiter, you need to complete your company profile.</span>
-              <Button variant="link" onClick={() => router.push('/recruiter-onboarding')} className="p-0 h-auto ml-1 text-blue-600 hover:underline">
-                Go to Company Onboarding
-              </Button>
+              <Building2 className="h-5 w-5 text-blue-600 inline mr-2" />
+              <span className="text-blue-700 font-medium">Your company profile is incomplete.</span>
+              <Link href="/recruiter-onboarding" className="ml-1 text-blue-600 hover:underline font-semibold inline-flex items-center">
+                  Complete Company Onboarding <ExternalLink className="ml-1 h-3.5 w-3.5"/>
+              </Link>
             </div>
           )}
         </CardContent>
@@ -621,7 +672,7 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
                 <BellRing className="mr-2 h-5 w-5 text-primary" />
                 Notification Preferences
             </CardTitle>
-            <CardDescription>Choose how and what you want to be notified about.</CardDescription>
+            <CardDescription>Choose how and what you want to be notified about. Email marketing preferences are managed here.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
             <div>
@@ -643,18 +694,23 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
                 </div>
             </div>
             <div>
-                <Label className="text-base font-semibold mb-2 block">Notification Subscriptions</Label>
+                <Label className="text-base font-semibold mb-2 block">Notification & Email Subscriptions</Label>
                 <div className="space-y-2">
-                    {(Object.keys(notificationSubscriptions) as Array<keyof UserPreferences['notificationSubscriptions']>).map(sub => (
-                         <div key={sub} className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
-                            <Label htmlFor={`sub-${sub}`} className="text-sm capitalize flex items-center">
-                                {sub === 'companyReplies' && <MessageSquareText className="mr-2 h-4 w-4 text-muted-foreground"/>}
-                                {sub === 'matchUpdates' && <HeartHandshake className="mr-2 h-4 w-4 text-muted-foreground"/>}
-                                {sub === 'applicationStatusChanges' && <ListChecks className="mr-2 h-4 w-4 text-muted-foreground"/>}
-                                {sub === 'platformAnnouncements' && <BellRing className="mr-2 h-4 w-4 text-muted-foreground"/>}
-                                {sub.replace(/([A-Z])/g, ' $1').trim()}
+                    {[
+                        { key: 'companyReplies', label: 'Company Replies & Direct Messages', Icon: MessageSquareText },
+                        { key: 'matchUpdates', label: 'New Matches & Compatibility Updates', Icon: HeartHandshake },
+                        { key: 'applicationStatusChanges', label: 'Application Status Changes', Icon: ListChecks },
+                        { key: 'platformAnnouncements', label: 'Platform News & Important Announcements', Icon: BellRing },
+                        { key: 'welcomeAndOnboardingEmails', label: 'Welcome & Onboarding Guidance Emails', Icon: Gift },
+                        { key: 'contentAndBlogUpdates', label: 'Content Updates & Blog Posts', Icon: Newspaper },
+                        { key: 'featureAndPromotionUpdates', label: 'New Features & Promotional Offers', Icon: ShoppingBag },
+                    ].map(subItem => (
+                         <div key={subItem.key} className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
+                            <Label htmlFor={`sub-${subItem.key}`} className="text-sm flex items-center">
+                                <subItem.Icon className="mr-2 h-4 w-4 text-muted-foreground"/>
+                                {subItem.label}
                             </Label>
-                            <Switch id={`sub-${sub}`} checked={notificationSubscriptions[sub]} onCheckedChange={(checked) => handleNotificationSubscriptionChange(sub, checked)} disabled={isGuestMode}/>
+                            <Switch id={`sub-${subItem.key}`} checked={notificationSubscriptions[subItem.key as keyof UserPreferences['notificationSubscriptions']]} onCheckedChange={(checked) => handleNotificationSubscriptionChange(subItem.key as keyof UserPreferences['notificationSubscriptions'], checked)} disabled={isGuestMode}/>
                         </div>
                     ))}
                 </div>
@@ -700,6 +756,54 @@ export function SettingsPage({ currentUserRole, onRoleChange, isGuestMode }: Set
           </Card>
         </Accordion>
       )}
+      
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <ShieldCheck className="mr-2 h-5 w-5 text-primary" />
+            Account Management
+          </CardTitle>
+          <CardDescription>Manage your account data and status.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Button onClick={handleDataExportRequest} variant="outline" className="w-full sm:w-auto" disabled={isGuestMode || isRequestingExport}>
+            {isRequestingExport ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <FileArchive className="mr-2 h-4 w-4" />}
+            {isRequestingExport ? "Requesting Export..." : "Request Data Export"}
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full sm:w-auto" disabled={isGuestMode || isDeletingAccount}>
+                <UserX className="mr-2 h-4 w-4" /> Delete My Account
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <ShadAlertDialogTitle>Are you absolutely sure?</ShadAlertDialogTitle>
+                <AlertDialogDescription>
+                  This action is permanent and cannot be undone. All your data, including profile, matches, and activity, will be deleted.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeletingAccount}>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  disabled={isDeletingAccount}
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                >
+                  {isDeletingAccount ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  Yes, Delete My Account
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+        <CardFooter>
+          <p className="text-xs text-muted-foreground">
+            Account deletion and data export are conceptual and will not perform real operations in this prototype.
+          </p>
+        </CardFooter>
+      </Card>
+
 
       <Card className="shadow-lg">
         <CardHeader>

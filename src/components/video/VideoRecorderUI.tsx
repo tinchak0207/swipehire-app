@@ -12,7 +12,7 @@ import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface VideoRecorderUIProps {
-  onRecordingComplete?: (videoDataUrl: string) => void; // New prop
+  onRecordingComplete?: (videoDataUrl: string) => void;
 }
 
 export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
@@ -23,7 +23,7 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
   
   const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [isRecordingCompleteState, setIsRecordingCompleteState] = useState(false); // Renamed to avoid conflict
+  const [isRecordingCompleteState, setIsRecordingCompleteState] = useState(false);
   const [elapsedTime, setElapsedTime] = useState(0);
   const recordingDuration = 60; 
 
@@ -44,6 +44,15 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
     setHasCameraPermission(null); 
     setRecordedVideoUrl(null);
     setIsRecordingCompleteState(false);
+
+    // Reset video element to ensure it's ready for a live stream
+    if (videoRef.current) {
+      videoRef.current.src = "";
+      videoRef.current.removeAttribute('src');
+      videoRef.current.controls = false;
+      videoRef.current.loop = false;
+      videoRef.current.muted = true; // Important for preview
+    }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       console.error('getUserMedia is not supported in this browser.');
@@ -172,7 +181,7 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
         const videoUrl = URL.createObjectURL(videoBlob);
         setRecordedVideoUrl(videoUrl);
         setIsRecordingCompleteState(true);
-        if (onRecordingComplete) { // Call new prop
+        if (onRecordingComplete) { 
           onRecordingComplete(videoUrl);
         }
         
@@ -209,18 +218,25 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
     setIsRecordingCompleteState(false);
     setRecordedChunks([]);
     setRecordedVideoUrl(null);
-    if (onRecordingComplete) { // Notify parent that current recording is void
+    if (onRecordingComplete) { 
       onRecordingComplete(""); 
     }
     setElapsedTime(0);
+
     if (videoRef.current) {
-        videoRef.current.controls = false; 
-        videoRef.current.loop = false;
-        videoRef.current.src = ""; // Clear src for video tag
+      videoRef.current.src = ""; 
+      videoRef.current.removeAttribute('src');
+      videoRef.current.controls = false;
+      videoRef.current.loop = false;
+      videoRef.current.muted = true; 
     }
+
     stopCameraStream(); 
-    await requestCameraPermission(); 
-    toast({ title: "Ready to Re-record", description: "Camera reset. Click Start Recording." });
+
+    const permissionGranted = await requestCameraPermission(); 
+    if (permissionGranted) {
+      toast({ title: "Ready to Re-record", description: "Camera reset. Click Start Recording." });
+    }
   };
 
   const handleDownload = () => {

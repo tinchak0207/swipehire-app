@@ -1,3 +1,4 @@
+
 // src/services/reviewService.ts
 'use server';
 
@@ -5,7 +6,7 @@ import type { CompanyReview } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-interface SubmitReviewPayload extends Omit<CompanyReview, 'id' | 'timestamp' | 'reviewerUserId'> {
+interface SubmitReviewPayload extends Omit<CompanyReview, 'id' | 'timestamp' | 'reviewerUserId' | '_id' | 'createdAt' | 'updatedAt'> {
   // companyId, jobId, ratings, comments, isAnonymous are already in Omit
 }
 
@@ -15,29 +16,64 @@ export async function submitCompanyReview(
 ): Promise<{ success: boolean; message: string; review?: CompanyReview }> {
   console.log('[Service: submitCompanyReview] Called with userId:', reviewerUserId, 'Payload:', payload);
   
-  // Placeholder: Simulate backend call
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  if (!reviewerUserId) {
+    console.error('[Service: submitCompanyReview] Reviewer User ID is missing.');
+    throw new Error('User not identified. Cannot submit review.');
+  }
 
-  // In a real scenario, you would make a fetch call to your backend:
-  // const response = await fetch(`${CUSTOM_BACKEND_URL}/api/companies/${payload.companyId}/reviews`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({ ...payload, reviewerUserId }),
-  // });
-  // if (!response.ok) {
-  //   const errorData = await response.json().catch(() => ({ message: 'Failed to submit review.'}));
-  //   throw new Error(errorData.message);
-  // }
-  // const savedReview = await response.json();
-  // return { success: true, message: 'Review submitted successfully!', review: savedReview };
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/reviews/company`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...payload, reviewerUserId }),
+    });
 
-  // Mock success response:
-  const mockSavedReview: CompanyReview = {
-    id: `rev_${Date.now()}`,
-    reviewerUserId,
-    timestamp: new Date().toISOString(),
-    ...payload,
-  };
-  console.log('[Service: submitCompanyReview] Mock success, returning:', mockSavedReview);
-  return { success: true, message: 'Review submitted successfully! (Mocked)', review: mockSavedReview };
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      console.error('[Service: submitCompanyReview] Backend error:', responseData);
+      throw new Error(responseData.message || 'Failed to submit review.');
+    }
+    
+    console.log('[Service: submitCompanyReview] Review submitted successfully via backend:', responseData.review);
+    return { success: true, message: 'Review submitted successfully!', review: responseData.review };
+
+  } catch (error: any) {
+    console.error('[Service: submitCompanyReview] Catch block error:', error);
+    throw error; 
+  }
 }
+
+export async function getCompanyReviews(companyUserId: string): Promise<CompanyReview[]> {
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/reviews/company/${companyUserId}`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to fetch reviews. Status: ${response.status}` }));
+      throw new Error(errorData.message);
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching company reviews:", error);
+    throw error;
+  }
+}
+
+export async function getCompanyReviewSummary(companyUserId: string): Promise<{
+  averageResponsiveness: number;
+  averageAttitude: number;
+  averageProcessExperience: number;
+  totalReviews: number;
+}> {
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/reviews/company/${companyUserId}/summary`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to fetch review summary. Status: ${response.status}` }));
+      throw new Error(errorData.message);
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error fetching company review summary:", error);
+    throw error;
+  }
+}
+

@@ -2,7 +2,7 @@
 // src/services/diaryService.ts
 'use server';
 
-import type { DiaryPost } from '@/lib/types';
+import type { DiaryPost, DiaryComment } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -18,6 +18,13 @@ interface CreateDiaryPostPayload {
   isFeatured?: boolean;
 }
 
+export interface AddCommentPayload {
+  userId: string;
+  userName: string;
+  userAvatarUrl?: string;
+  text: string;
+}
+
 export async function fetchDiaryPosts(): Promise<DiaryPost[]> {
   try {
     const response = await fetch(`${CUSTOM_BACKEND_URL}/api/diary-posts`, {
@@ -25,14 +32,14 @@ export async function fetchDiaryPosts(): Promise<DiaryPost[]> {
       headers: {
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', // Ensure fresh data
+      cache: 'no-store', 
     });
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: `Failed to fetch diary posts. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
     const posts: DiaryPost[] = await response.json();
-    return posts.map(post => ({ ...post, id: post._id })); // Map _id to id for frontend use
+    return posts.map(post => ({ ...post, id: post._id })); 
   } catch (error) {
     console.error("Error in fetchDiaryPosts:", error);
     throw error;
@@ -55,17 +62,16 @@ export async function createDiaryPost(postData: CreateDiaryPostPayload): Promise
       if (contentType && contentType.includes("application/json")) {
         errorData = await response.json();
       } else {
-        // Attempt to get text if not JSON, for better debugging
         const errorText = await response.text();
-        errorData = { message: `Server error: ${response.status}. Response: ${errorText.substring(0, 100)}...` }; // Truncate long HTML errors
+        errorData = { message: `Server error: ${response.status}. Response: ${errorText.substring(0, 100)}...` };
       }
       throw new Error(errorData.message || `Failed to create diary post. Status: ${response.status}`);
     }
     const newPost: DiaryPost = await response.json();
-    return { ...newPost, id: newPost._id }; // Map _id to id
+    return { ...newPost, id: newPost._id };
   } catch (error) {
     console.error("Error in createDiaryPost:", error);
-    throw error; // Re-throw the error to be caught by the component
+    throw error;
   }
 }
 
@@ -83,23 +89,21 @@ export async function toggleLikeDiaryPost(postId: string, userId: string): Promi
       throw new Error(errorData.message);
     }
     const updatedPost: DiaryPost = await response.json();
-    return { ...updatedPost, id: updatedPost._id }; // Map _id to id
+    return { ...updatedPost, id: updatedPost._id };
   } catch (error) {
     console.error("Error in toggleLikeDiaryPost:", error);
     throw error;
   }
 }
 
-// New function to upload diary image
 export async function uploadDiaryImage(imageFile: File): Promise<{ imageUrl: string }> {
   const formData = new FormData();
-  formData.append('diaryImage', imageFile); // Ensure this key matches what backend expects
+  formData.append('diaryImage', imageFile);
 
   try {
     const response = await fetch(`${CUSTOM_BACKEND_URL}/api/diary-posts/upload-image`, {
       method: 'POST',
       body: formData,
-      // No 'Content-Type' header for FormData, browser sets it with boundary
     });
 
     if (!response.ok) {
@@ -113,6 +117,76 @@ export async function uploadDiaryImage(imageFile: File): Promise<{ imageUrl: str
     return { imageUrl: result.imageUrl };
   } catch (error) {
     console.error("Error in uploadDiaryImage service:", error);
-    throw error; // Re-throw to be caught by the component
+    throw error;
   }
 }
+
+export async function addCommentToDiaryPost(
+  postId: string,
+  commentData: AddCommentPayload
+): Promise<DiaryPost> {
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/diary-posts/${postId}/comments`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(commentData),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to add comment. Status: ${response.status}` }));
+      throw new Error(errorData.message);
+    }
+    const updatedPost: DiaryPost = await response.json();
+    return { ...updatedPost, id: updatedPost._id }; 
+  } catch (error) {
+    console.error("Error in addCommentToDiaryPost service:", error);
+    throw error;
+  }
+}
+
+export async function updateDiaryComment(
+  postId: string,
+  commentId: string,
+  userId: string, // User ID of the person making the request
+  text: string
+): Promise<DiaryPost> {
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/diary-posts/${postId}/comments/${commentId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, text }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to update comment. Status: ${response.status}` }));
+      throw new Error(errorData.message);
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error updating diary comment:", error);
+    throw error;
+  }
+}
+
+export async function deleteDiaryComment(
+  postId: string,
+  commentId: string,
+  userId: string // User ID of the person making the request
+): Promise<DiaryPost> {
+  try {
+    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/diary-posts/${postId}/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }), // Send userId in body for DELETE for auth purposes
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ message: `Failed to delete comment. Status: ${response.status}` }));
+      throw new Error(errorData.message);
+    }
+    return response.json();
+  } catch (error) {
+    console.error("Error deleting diary comment:", error);
+    throw error;
+  }
+}
+    

@@ -6,12 +6,14 @@ import type { DiaryPost } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { BookOpenText, PlusCircle, Edit3, Search, Lock, Star, BadgeInfo, Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; // Added Select
+import { BookOpenText, PlusCircle, Edit3, Search, Lock, Star, BadgeInfo, Loader2, SortAsc, Heart, MessageSquare } from 'lucide-react'; // Added SortAsc, Heart, MessageSquare
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
-import { fetchDiaryPosts, createDiaryPost, toggleLikeDiaryPost } from '@/services/diaryService';
+import { fetchDiaryPosts, createDiaryPost, toggleLikeDiaryPost, addCommentToDiaryPost } from '@/services/diaryService';
 import { DiaryPostCard } from '@/components/diary/DiaryPostCard';
 import { CreateDiaryPostForm } from '@/components/diary/CreateDiaryPostForm';
+import { CardSkeleton } from '@/components/common/CardSkeleton'; // Added CardSkeleton
 
 interface StaffDiaryPageProps {
   isGuestMode?: boolean;
@@ -20,9 +22,12 @@ interface StaffDiaryPageProps {
   currentUserAvatarUrl: string | null;
 }
 
+type SortOrder = 'newest' | 'mostLiked' | 'mostCommented';
+
 export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoId, currentUserAvatarUrl }: StaffDiaryPageProps) {
   const [allPosts, setAllPosts] = useState<DiaryPost[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('newest'); // Added sortOrder state
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const [isLoadingPosts, setIsLoadingPosts] = useState(true);
   const { toast } = useToast();
@@ -31,7 +36,7 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
     setIsLoadingPosts(true);
     try {
       const fetchedPosts = await fetchDiaryPosts();
-      setAllPosts(fetchedPosts.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()));
+      setAllPosts(fetchedPosts); // Sorting will be handled by useMemo
     } catch (error) {
       console.error("Failed to load diary posts:", error);
       toast({ title: "Error Loading Diary", description: "Could not fetch diary entries.", variant: "destructive" });
@@ -44,23 +49,23 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
     if (!isGuestMode) {
       loadPosts();
     } else {
-      setAllPosts([]); 
+      setAllPosts([]);
       setIsLoadingPosts(false);
     }
   }, [isGuestMode, loadPosts]);
 
-  const handlePostCreated = async (newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>) => {
+  const handlePostCreated = async (newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy' | 'comments'>) => {
     try {
       await createDiaryPost(newPostData);
       toast({ title: "Diary Post Created!", description: "Your new entry has been added." });
       setIsCreatePostOpen(false);
-      loadPosts(); 
+      loadPosts();
     } catch (error) {
       console.error("Failed to create post:", error);
       toast({ title: "Error Creating Post", description: "Could not save your diary entry.", variant: "destructive" });
     }
   };
-  
+
   const handleLikePost = useCallback(async (postId: string) => {
     if (isGuestMode || !currentUserMongoId) {
       toast({ title: "Feature Locked", description: "Please sign in to like posts.", variant: "default" });
@@ -68,35 +73,51 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
     }
     try {
       const updatedPost = await toggleLikeDiaryPost(postId, currentUserMongoId);
-      setAllPosts(prevPosts => 
-        prevPosts.map(p => (p._id === postId ? updatedPost : p))
-                 .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime())
+      setAllPosts(prevPosts =>
+        prevPosts.map(p => (p._id === postId ? { ...p, ...updatedPost } : p)) // Ensure to merge fields correctly
       );
     } catch (error) {
       console.error("Failed to like post:", error);
       toast({ title: "Error Liking Post", description: "Could not update like status.", variant: "destructive" });
     }
   }, [isGuestMode, currentUserMongoId, toast]);
-  
-  const postsMatchingSearch = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return allPosts;
-    }
-    return allPosts.filter(post => 
-      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      post.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+
+  const handleCommentAdded = useCallback((postId: string, updatedPostWithNewComment: DiaryPost) => {
+    setAllPosts(prevPosts =>
+      prevPosts.map(p => (p._id === postId ? { ...p, ...updatedPostWithNewComment } : p))
     );
-  }, [allPosts, searchTerm]);
+  }, []);
+
+
+  const postsToDisplay = useMemo(() => {
+    let filtered = allPosts;
+    if (searchTerm.trim()) {
+      filtered = allPosts.filter(post =>
+        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        post.authorName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (post.tags && post.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())))
+      );
+    }
+
+    switch (sortOrder) {
+      case 'mostLiked':
+        return [...filtered].sort((a, b) => (b.likes || 0) - (a.likes || 0));
+      case 'mostCommented':
+        return [...filtered].sort((a, b) => (b.commentsCount || 0) - (a.commentsCount || 0));
+      case 'newest':
+      default:
+        return [...filtered].sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+    }
+  }, [allPosts, searchTerm, sortOrder]);
 
   const featuredPosts = useMemo(() => {
-    return postsMatchingSearch.filter(post => post.isFeatured === true);
-  }, [postsMatchingSearch]);
+    return postsToDisplay.filter(post => post.isFeatured === true);
+  }, [postsToDisplay]);
 
   const regularPostsToDisplay = useMemo(() => {
-    return postsMatchingSearch.filter(post => !post.isFeatured);
-  }, [postsMatchingSearch]);
+    return postsToDisplay.filter(post => !post.isFeatured);
+  }, [postsToDisplay]);
 
 
   const handleCreatePostClick = () => {
@@ -119,14 +140,6 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
         <p className="text-muted-foreground max-w-md">
           Creating and viewing staff diary entries is a feature for registered users. Please sign in using the Login button in the header to participate.
         </p>
-      </div>
-    );
-  }
-  
-  if (isLoadingPosts) {
-    return (
-      <div className="flex min-h-[calc(100vh-200px)] items-center justify-center bg-background">
-        <Loader2 className="h-16 w-16 animate-spin text-primary" />
       </div>
     );
   }
@@ -155,8 +168,8 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
                 Create New Diary Entry
               </DialogTitle>
             </DialogHeader>
-            <CreateDiaryPostForm 
-              onPostCreated={handlePostCreated} 
+            <CreateDiaryPostForm
+              onPostCreated={handlePostCreated}
               currentUserName={currentUserName}
               currentUserMongoId={currentUserMongoId}
               currentUserAvatarUrl={currentUserAvatarUrl}
@@ -165,77 +178,98 @@ export function StaffDiaryPage({ isGuestMode, currentUserName, currentUserMongoI
         </Dialog>
       </header>
 
-      <div className="relative">
-        <Input 
-          type="text"
-          placeholder="Search diary posts by title, content, author, or tag..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+      <div className="flex flex-col sm:flex-row gap-2 items-center">
+        <div className="relative flex-grow w-full sm:w-auto">
+          <Input
+            type="text"
+            placeholder="Search diary posts..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 h-10"
+          />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+        </div>
+        <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
+          <SelectTrigger className="w-full sm:w-[180px] h-10">
+             <SortAsc className="mr-2 h-4 w-4 text-muted-foreground" />
+            <SelectValue placeholder="Sort by..." />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="newest">Newest First</SelectItem>
+            <SelectItem value="mostLiked"><Heart className="mr-2 h-4 w-4 text-red-500 inline-block"/>Most Liked</SelectItem>
+            <SelectItem value="mostCommented"><MessageSquare className="mr-2 h-4 w-4 text-blue-500 inline-block"/>Most Commented</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {featuredPosts.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-2xl font-semibold text-primary flex items-center">
-            <Star className="mr-2 h-6 w-6 text-yellow-500 fill-yellow-400" />
-            Featured Insights
-          </h2>
-          <div className="space-y-6">
-            {featuredPosts.map(post => (
-              <DiaryPostCard 
-                key={post._id} 
-                post={post} 
-                onLikePost={handleLikePost}
-                isLikedByCurrentUser={currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false}
-                isGuestMode={isGuestMode} 
-                currentUserId={currentUserMongoId}
-              />
-            ))}
-          </div>
-          <Separator className="my-8" />
-        </section>
-      )}
-      
-      <section className="space-y-4">
-        {featuredPosts.length > 0 && regularPostsToDisplay.length > 0 && (
-            <h2 className="text-2xl font-semibold text-foreground">
-                All Diary Entries
-            </h2>
-        )}
+      {isLoadingPosts ? (
+        <div className="space-y-6">
+          <CardSkeleton count={3} showHeader={true} linesInContent={4} showFooter={true} />
+        </div>
+      ) : (
+        <>
+          {featuredPosts.length > 0 && (
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold text-primary flex items-center">
+                <Star className="mr-2 h-6 w-6 text-yellow-500 fill-yellow-400" />
+                Featured Insights
+              </h2>
+              <div className="space-y-6">
+                {featuredPosts.map(post => (
+                  <DiaryPostCard
+                    key={post._id}
+                    post={post}
+                    onLikePost={handleLikePost}
+                    onCommentAdded={handleCommentAdded}
+                    isLikedByCurrentUser={currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false}
+                    isGuestMode={isGuestMode}
+                    currentUserId={currentUserMongoId}
+                  />
+                ))}
+              </div>
+              <Separator className="my-8" />
+            </section>
+          )}
 
-        {postsMatchingSearch.length === 0 && !isLoadingPosts ? (
-          <div className="text-center py-10 col-span-full">
-            <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <p className="text-muted-foreground text-lg">
-              {searchTerm ? "No diary posts match your search." : (isGuestMode ? "Sign in to view and create diary posts." : "No diary posts yet. Be the first to share!")}
-            </p>
-          </div>
-        ) : regularPostsToDisplay.length === 0 && featuredPosts.length > 0 && !isLoadingPosts ? (
-            <div className="text-center py-10 col-span-full">
+          <section className="space-y-4">
+            {featuredPosts.length > 0 && regularPostsToDisplay.length > 0 && (
+                <h2 className="text-2xl font-semibold text-foreground">
+                    All Diary Entries
+                </h2>
+            )}
+
+            {postsToDisplay.length === 0 ? (
+              <div className="text-center py-10 col-span-full">
                 <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
                 <p className="text-muted-foreground text-lg">
-                    {searchTerm ? "No other entries match your search." : "No other entries yet beyond the featured ones."}
+                  {searchTerm ? "No diary posts match your search." : (isGuestMode ? "Sign in to view and create diary posts." : "No diary posts yet. Be the first to share!")}
                 </p>
-            </div>
-        ) : (
-          <div className="space-y-6">
-            {regularPostsToDisplay.map(post => (
-              <DiaryPostCard 
-                key={post._id} 
-                post={post} 
-                onLikePost={handleLikePost}
-                isLikedByCurrentUser={currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false}
-                isGuestMode={isGuestMode}
-                currentUserId={currentUserMongoId}
-              />
-            ))}
-          </div>
-        )}
-      </section>
+              </div>
+            ) : regularPostsToDisplay.length === 0 && featuredPosts.length > 0 ? (
+                <div className="text-center py-10 col-span-full">
+                    <BadgeInfo className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground text-lg">
+                        {searchTerm ? "No other entries match your search." : "No other entries yet beyond the featured ones."}
+                    </p>
+                </div>
+            ) : (
+              <div className="space-y-6">
+                {regularPostsToDisplay.map(post => (
+                  <DiaryPostCard
+                    key={post._id}
+                    post={post}
+                    onLikePost={handleLikePost}
+                    onCommentAdded={handleCommentAdded}
+                    isLikedByCurrentUser={currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false}
+                    isGuestMode={isGuestMode}
+                    currentUserId={currentUserMongoId}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }
-
-    

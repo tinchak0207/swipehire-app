@@ -3,10 +3,10 @@
 
 import React, { useRef, useState, useEffect } from 'react';
 import NextImage from 'next/image';
-import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2, Link as LinkIcon, Mail, Linkedin, Twitter as TwitterIcon, Star, Lock, Video } from 'lucide-react';
+import { MapPin, Briefcase, BarChart3, ThumbsDown, Eye, ThumbsUp, Share2, Link as LinkIcon, Mail, Linkedin, Twitter as TwitterIcon, Star, Lock, Video, UserCircle as UserCircleIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import type { Candidate } from '@/lib/types';
+import type { Candidate, PersonalityTraitAssessment } from '@/lib/types';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from '@/hooks/use-toast';
@@ -20,7 +20,8 @@ interface ProfileCardProps {
   onAction: (candidateId: string, action: 'like' | 'pass' | 'viewProfile') => void;
   isLiked?: boolean;
   isGuestMode?: boolean;
-  isPreviewMode?: boolean; // New prop
+  isPreviewMode?: boolean;
+  className?: string;
 }
 
 const SWIPE_THRESHOLD = 75;
@@ -33,12 +34,23 @@ const incrementAnalytic = (key: string) => {
   }
 };
 
-const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode }: ProfileCardProps) => {
+const getThemeClass = (themeKey?: string) => {
+  if (!themeKey || themeKey === 'default') return '';
+  return `card-theme-${themeKey}`;
+};
+
+
+const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode, className }: ProfileCardProps) => {
   const { toast } = useToast();
   const cardRootRef = useRef<HTMLDivElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
+
+  const themeClass = getThemeClass(candidate.cardTheme);
+  const isThemedCard = !!(candidate.cardTheme && candidate.cardTheme !== 'default');
+  const isDarkThemeActive = themeClass && (themeClass.includes('ocean') || themeClass.includes('sunset') || themeClass.includes('forest') || themeClass.includes('professional-dark'));
+
 
   const avatarDisplayUrl = candidate.avatarUrl
     ? candidate.avatarUrl.startsWith('/uploads/')
@@ -155,15 +167,24 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
     if (skill.toLowerCase() === 'c++') {
       return 'bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 border-blue-300 hover:from-blue-200 hover:to-blue-300';
     }
+    if (isThemedCard) {
+        if (candidate.cardTheme === 'lavender') return 'bg-purple-200/70 text-purple-800 border-purple-300 hover:bg-purple-300/70';
+        return 'bg-white/20 text-white border-white/30 hover:bg-white/30'; 
+    }
     return 'bg-indigo-100 text-indigo-700 border-indigo-300 hover:bg-indigo-200';
   };
   
   const lockedButtonClasses = "bg-rose-100 text-rose-600 border-rose-200 hover:bg-rose-200 hover:border-rose-300 cursor-not-allowed";
 
+
   return (
     <div 
       ref={cardRootRef}
-      className="max-w-sm w-full mx-auto bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100 rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-3xl"
+      className={cn(
+        "max-w-sm w-full mx-auto rounded-3xl shadow-2xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-3xl",
+        themeClass || "bg-gradient-to-br from-violet-50 via-blue-50 to-indigo-100",
+        className
+      )}
       onMouseDown={!isPreviewMode ? handleMouseDown : undefined}
       onMouseMove={!isPreviewMode ? handleMouseMove : undefined}
       onMouseUp={!isPreviewMode ? handleMouseUpOrLeave : undefined}
@@ -174,24 +195,30 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
         transition: isDragging ? 'none' : 'transform 0.3s ease-out, box-shadow 0.3s ease-out, scale 0.3s ease-out',
       }}
     >
-      {/* Header Section with Profile Image */}
-      <div className="relative pt-8 pb-6 bg-gradient-to-r from-violet-500 via-purple-500 to-blue-500">
-        <div className="absolute inset-0 bg-black/10"></div>
+      <div className={cn(
+        "relative pt-8 pb-6",
+        isThemedCard ? (isDarkThemeActive ? "card-header-themed" : "card-header-themed") : "bg-gradient-to-r from-violet-500 via-purple-500 to-blue-500"
+      )}>
+        {!isThemedCard && <div className="absolute inset-0 bg-black/10"></div>}
         <div className="relative flex justify-center">
           <div className="relative">
             <div className="w-24 h-24 rounded-full ring-4 ring-white/50 overflow-hidden shadow-xl">
-              <NextImage
-                src={avatarDisplayUrl}
-                alt={candidate.name || "Candidate Avatar"}
-                width={96}
-                height={96}
-                className="w-full h-full object-cover"
-                data-ai-hint={candidate.dataAiHint || "person portrait"}
-                unoptimized={needsUnoptimized}
-                priority
-              />
+               {avatarDisplayUrl !== `https://placehold.co/96x96.png?text=${encodeURIComponent(candidate.name?.[0] || 'P')}` ? (
+                <NextImage
+                    src={avatarDisplayUrl}
+                    alt={candidate.name || "Candidate Avatar"}
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
+                    data-ai-hint={candidate.dataAiHint || "person portrait"}
+                    unoptimized={needsUnoptimized}
+                    priority
+                />
+                ) : (
+                    <UserCircleIcon className="w-full h-full text-gray-300 bg-gray-100 p-1" />
+                )}
             </div>
-            {candidate.isUnderestimatedTalent && !isPreviewMode ? ( // Hide gem in preview to match screenshot
+            {candidate.isUnderestimatedTalent && !isPreviewMode ? ( 
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -211,49 +238,52 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
         </div>
       </div>
 
-      {/* Profile Information */}
       <div className="px-6 py-6 space-y-4">
-        {/* Name and Title */}
         <div className="text-center space-y-2">
-          <h2 className={cn("text-2xl font-bold tracking-tight", isPreviewMode && !candidate.name ? "text-gray-300" : "text-gray-800")}>
+          <h2 className={cn(
+            "text-2xl font-bold tracking-tight", 
+            isPreviewMode && !candidate.name ? "text-gray-300" : (isDarkThemeActive ? "text-white" : "text-gray-800")
+          )}>
             {isPreviewMode && !candidate.name ? "Your Name (Preview)" : candidate.name || "N/A"}
           </h2>
-          <p className={cn("font-medium text-sm uppercase tracking-wide", isPreviewMode && !candidate.role ? "text-gray-300" : "text-indigo-600")}>
+          <p className={cn(
+            "font-medium text-sm uppercase tracking-wide", 
+            isPreviewMode && !candidate.role ? "text-gray-300" : (isDarkThemeActive ? (candidate.cardTheme === 'professional-dark' ? "text-sky-400" : "text-indigo-300") : "text-indigo-600")
+          )}>
              {isPreviewMode && !candidate.role ? "Your Role (Preview)" : candidate.role || "Role not specified"}
           </p>
         </div>
 
-        {/* Info Cards */}
         <div className="space-y-3">
           {(candidate.location || isPreviewMode) && (
-            <div className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-              <MapPin className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span className={cn("text-sm font-medium truncate", isPreviewMode && !candidate.location ? "text-gray-400 italic" : "text-gray-700")}>
+            <div className={cn("flex items-center gap-3 p-3 rounded-xl border shadow-sm", isDarkThemeActive ? "bg-white/10 border-white/20 backdrop-blur-sm" : "bg-white/60 border-white/20 backdrop-blur-sm")}>
+              <MapPin className={cn("w-4 h-4 shrink-0", isDarkThemeActive ? "text-indigo-300" : "text-indigo-500")} />
+              <span className={cn("text-sm font-medium truncate", isPreviewMode && !candidate.location ? "text-gray-400 italic" : (isDarkThemeActive ? "text-gray-200" : "text-gray-700"))}>
                 {candidate.location || (isPreviewMode ? "Your Location (Preview)" : "Not specified")}
               </span>
             </div>
           )}
           
           {(candidate.workExperienceLevel && candidate.workExperienceLevel !== "unspecified" || isPreviewMode) && (
-            <div className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-              <Briefcase className="w-4 h-4 text-indigo-500 shrink-0" />
-              <span className={cn("text-sm font-medium truncate", isPreviewMode && (!candidate.workExperienceLevel || candidate.workExperienceLevel === "unspecified") ? "text-gray-400 italic" : "text-gray-700")}>
+            <div className={cn("flex items-center gap-3 p-3 rounded-xl border shadow-sm", isDarkThemeActive ? "bg-white/10 border-white/20 backdrop-blur-sm" : "bg-white/60 border-white/20 backdrop-blur-sm")}>
+              <Briefcase className={cn("w-4 h-4 shrink-0", isDarkThemeActive ? "text-indigo-300" : "text-indigo-500")} />
+              <span className={cn("text-sm font-medium truncate", isPreviewMode && (!candidate.workExperienceLevel || candidate.workExperienceLevel === "unspecified") ? "text-gray-400 italic" : (isDarkThemeActive ? "text-gray-200" : "text-gray-700"))}>
                  {candidate.workExperienceLevel && candidate.workExperienceLevel !== "unspecified" ? candidate.workExperienceLevel : (isPreviewMode ? "Experience Level (Preview)" : "Not specified")}
               </span>
             </div>
           )}
           
           {(candidate.profileStrength !== undefined || isPreviewMode) && (
-            <div className="flex items-center gap-3 p-3 bg-white/60 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-              <BarChart3 className="w-4 h-4 text-indigo-500 shrink-0" />
+            <div className={cn("flex items-center gap-3 p-3 rounded-xl border shadow-sm", isDarkThemeActive ? "bg-white/10 border-white/20 backdrop-blur-sm" : "bg-white/60 border-white/20 backdrop-blur-sm")}>
+              <BarChart3 className={cn("w-4 h-4 shrink-0", isDarkThemeActive ? "text-indigo-300" : "text-indigo-500")} />
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
-                  <span className={cn("text-sm font-medium",isPreviewMode && candidate.profileStrength === undefined ? "text-gray-400 italic": "text-gray-700")}>Profile Strength</span>
-                  <span className="text-indigo-600 text-sm font-bold">{candidate.profileStrength ?? (isPreviewMode ? 80 : 0)}%</span>
+                  <span className={cn("text-sm font-medium", isPreviewMode && candidate.profileStrength === undefined ? "text-gray-400 italic" : (isDarkThemeActive ? "text-gray-200" : "text-gray-700"))}>Profile Strength</span>
+                  <span className={cn("text-sm font-bold", isDarkThemeActive ? "text-indigo-300" : "text-indigo-600")}>{candidate.profileStrength ?? (isPreviewMode ? 80 : 0)}%</span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
+                <div className={cn("w-full rounded-full h-2", isDarkThemeActive ? "bg-gray-600" : "bg-gray-200")}>
                   <div
-                    className="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all duration-500"
+                    className={cn("h-2 rounded-full transition-all duration-500", isDarkThemeActive ? "progress-bar-themed" : "bg-gradient-to-r from-indigo-500 to-purple-500")}
                     style={{ width: `${candidate.profileStrength ?? (isPreviewMode ? 80 : 0)}%` }}
                   ></div>
                 </div>
@@ -262,25 +292,25 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
           )}
         </div>
 
-        {/* Experience */}
         {(candidate.experienceSummary || isPreviewMode) && (
-          <div className="p-4 bg-white/40 backdrop-blur-sm rounded-xl border border-white/20 shadow-sm">
-            <p className={cn("text-sm leading-relaxed line-clamp-3", isPreviewMode && !candidate.experienceSummary ? "text-gray-400 italic" : "text-gray-600")}>
+          <div className={cn("p-4 rounded-xl border shadow-sm", isDarkThemeActive ? "bg-white/5 border-white/10 backdrop-blur-sm" : "bg-white/40 border-white/20 backdrop-blur-sm")}>
+            <p className={cn("text-sm leading-relaxed line-clamp-3", isPreviewMode && !candidate.experienceSummary ? "text-gray-400 italic" : (isDarkThemeActive ? "text-gray-300" : "text-gray-600"))}>
               {candidate.experienceSummary || (isPreviewMode ? "Your experience summary goes here..." : "No experience summary provided.")}
             </p>
           </div>
         )}
 
-        {/* Skills */}
         {((candidate.skills && candidate.skills.length > 0) || isPreviewMode) && (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Top Skills</h3>
+            <h3 className={cn("text-sm font-semibold uppercase tracking-wide", isDarkThemeActive ? "text-gray-300" : "text-gray-700")}>Top Skills</h3>
             <div className="flex flex-wrap gap-2">
               {(candidate.skills && candidate.skills.length > 0 ? candidate.skills.slice(0, 5) : (isPreviewMode ? ["Example Skill 1", "Example Skill 2"] : [])).map(skill => (
                 <Badge
                   key={skill}
                   variant="secondary"
-                  className={cn("transition-all duration-200 shadow-sm", getSkillBadgeClass(skill))}
+                  className={cn("transition-all duration-200 shadow-sm", 
+                    isThemedCard ? 'badge-themed-skill' : getSkillBadgeClass(skill)
+                  )}
                 >
                   {skill}
                 </Badge>
@@ -289,15 +319,16 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className={cn("grid gap-2 pt-4 no-swipe-area", isPreviewMode ? "grid-cols-3" : "grid-cols-4")} data-no-drag="true">
           <Button
             data-no-drag="true"
-            variant={isPreviewMode ? "default" : "outline"}
+            variant={isPreviewMode ? "default" : (isThemedCard ? "outline" : "outline")}
             size="sm"
             className={cn(
                 "flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
-                isPreviewMode ? lockedButtonClasses : "bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                isPreviewMode ? lockedButtonClasses : 
+                isThemedCard ? "action-button-pass-themed" : 
+                "bg-white/60 backdrop-blur-sm border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
             )}
             onClick={(e) => { if (!isPreviewMode) { e.stopPropagation(); onAction(candidate.id, 'pass'); } }}
             disabled={isGuestMode || isPreviewMode}
@@ -309,9 +340,12 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
           {!isPreviewMode && (
             <Button
               data-no-drag="true"
-              variant="outline"
+              variant={isThemedCard ? "outline" : "outline"}
               size="sm"
-              className="flex flex-col items-center gap-1 p-3 h-auto bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 hover:scale-105 active:scale-95 shadow-md"
+              className={cn("flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md", 
+                isThemedCard ? "action-button-themed" : 
+                "bg-white/60 backdrop-blur-sm border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300"
+              )}
               onClick={(e) => { e.stopPropagation(); onAction(candidate.id, 'viewProfile'); }}
             >
               <Eye className="w-5 h-5" />
@@ -321,19 +355,20 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
           
           <Button
             data-no-drag="true"
-            variant={isPreviewMode ? "default" : "outline"}
+            variant={isPreviewMode ? "default" : (isThemedCard ? "outline" : "outline")}
             size="sm"
             className={cn(
                 "flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
                 isPreviewMode ? lockedButtonClasses : cn(
-                    "bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300",
-                    isLiked && "bg-green-100 border-green-400 ring-2 ring-green-500"
+                  isThemedCard ? (isLiked ? "action-button-like-themed liked" : "action-button-like-themed") : 
+                  "bg-white/60 backdrop-blur-sm border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300",
+                  isLiked && !isThemedCard && "bg-green-100 border-green-400 ring-2 ring-green-500"
                 )
             )}
             onClick={(e) => { if (!isPreviewMode) { e.stopPropagation(); onAction(candidate.id, 'like'); } }}
             disabled={isGuestMode || isPreviewMode}
           >
-            {(isGuestMode || isPreviewMode) ? <Lock className="w-5 h-5" /> : <ThumbsUp className={cn("w-5 h-5", isLiked && "fill-green-500")} />}
+            {(isGuestMode || isPreviewMode) ? <Lock className="w-5 h-5" /> : <ThumbsUp className={cn("w-5 h-5", isLiked && (isThemedCard ? "" : "fill-green-500"))} />}
             <span className="text-xs">Like</span>
           </Button>
           
@@ -344,11 +379,13 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
                   <DropdownMenuTrigger asChild>
                     <Button
                       data-no-drag="true"
-                      variant={isPreviewMode ? "default" : "outline"}
+                      variant={isPreviewMode ? "default" : (isThemedCard ? "outline" : "outline")}
                       size="sm"
                       className={cn(
                         "flex flex-col items-center gap-1 p-3 h-auto transition-all duration-200 hover:scale-105 active:scale-95 shadow-md",
-                        isPreviewMode ? lockedButtonClasses : "bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
+                        isPreviewMode ? lockedButtonClasses : 
+                        isThemedCard ? "action-button-themed" :
+                        "bg-white/60 backdrop-blur-sm border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300"
                       )}
                       disabled={isGuestMode || isPreviewMode}
                       onClick={(e) => e.stopPropagation()} 
@@ -366,17 +403,17 @@ const ProfileCard = ({ candidate, onAction, isLiked, isGuestMode, isPreviewMode 
               </Tooltip>
             </TooltipProvider>
            {!isPreviewMode && (
-            <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg rounded-md" data-no-drag="true">
-              <DropdownMenuItem onClick={() => handleShareOptionClick('copy')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
+            <DropdownMenuContent align="end" className={cn("w-48 shadow-lg rounded-md", isDarkThemeActive ? "bg-slate-700 border-slate-600 text-slate-200" : "bg-background border") } data-no-drag="true">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('copy')} className={cn("cursor-pointer", isDarkThemeActive ? "hover:bg-slate-600" : "hover:bg-muted")} data-no-drag="true">
                 <LinkIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Copy Link
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShareOptionClick('email')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('email')} className={cn("cursor-pointer", isDarkThemeActive ? "hover:bg-slate-600" : "hover:bg-muted")} data-no-drag="true">
                 <Mail className="mr-2 h-4 w-4 text-muted-foreground" /> Share via Email
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShareOptionClick('linkedin')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('linkedin')} className={cn("cursor-pointer", isDarkThemeActive ? "hover:bg-slate-600" : "hover:bg-muted")} data-no-drag="true">
                 <Linkedin className="mr-2 h-4 w-4 text-muted-foreground" /> Share on LinkedIn
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleShareOptionClick('twitter')} className="cursor-pointer hover:bg-muted" data-no-drag="true">
+              <DropdownMenuItem onClick={() => handleShareOptionClick('twitter')} className={cn("cursor-pointer", isDarkThemeActive ? "hover:bg-slate-600" : "hover:bg-muted")} data-no-drag="true">
                 <TwitterIcon className="mr-2 h-4 w-4 text-muted-foreground" /> Share on X
               </DropdownMenuItem>
             </DropdownMenuContent>

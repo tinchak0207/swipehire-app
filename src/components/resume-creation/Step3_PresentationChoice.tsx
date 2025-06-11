@@ -7,17 +7,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
 import { VideoRecorderUI } from '@/components/video/VideoRecorderUI';
-import { AvatarGenerator, type AvatarGeneratorInput } from '@/components/ai/AvatarGenerator';
-import type { AvatarGeneratorOutput } from '@/ai/flows/avatar-generator';
+import { AvatarGenerator } from '@/components/ai/AvatarGenerator'; // No type import needed here
+// AvatarGeneratorOutput is not directly used here, but by Step3
+// import type { AvatarGeneratorOutput } from '@/ai/flows/avatar-generator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Video, UserSquare2, Info, CheckCircle, Loader2, Palette, Wand2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { generateAvatar } from '@/ai/flows/avatar-generator';
+// generateAvatar and AvatarGeneratorInput are not directly used here after refactor
+// import { generateAvatar, type AvatarGeneratorInput } from '@/ai/flows/avatar-generator';
 import NextImage from 'next/image';
-import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog"; // Added Dialog components
-import { VideoEditor } from '@/components/ai/VideoEditor'; // Import VideoEditor
-import { Input } from '@/components/ui/input'; // Keep Input if still used for avatar data URI display conceptually
-import { Textarea } from '@/components/ui/textarea'; // Keep Textarea for script display
+import { Dialog, DialogContent, DialogHeader, DialogTitle as ShadDialogTitle, DialogDescription as ShadDialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
+import { VideoEditor } from '@/components/ai/VideoEditor';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 
 interface Step3Props {
@@ -27,11 +29,12 @@ interface Step3Props {
 
 export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) {
   const [presentationMethod, setPresentationMethod] = useState<'video' | 'avatar' | null>(null);
-  const [flowRecordedVideoUrl, setFlowRecordedVideoUrl] = useState<string | null>(null); // URL from VideoRecorderUI
-  const [avatarDataUri, setAvatarDataUri] = useState<string | null>(null); // URL from AvatarGenerator
+  const [flowRecordedVideoUrl, setFlowRecordedVideoUrl] = useState<string | null>(null);
+  const [avatarDataUriFromGenerator, setAvatarDataUriFromGenerator] = useState<string | null>(null);
   
   const [showAnalysisDialog, setShowAnalysisDialog] = useState(false);
-  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false); // Kept if manual generation is still an option outside AvatarGenerator component
+  // isGeneratingAvatar state is now managed within AvatarGenerator component
+  // const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
 
   const { toast } = useToast();
 
@@ -44,9 +47,9 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
     }
   };
 
-  // Conceptual: If AvatarGenerator directly provides output via prop
   const handleAvatarGeneratedByComponent = (uri: string) => {
-    setAvatarDataUri(uri);
+    setAvatarDataUriFromGenerator(uri);
+    toast({ title: "Avatar Ready", description: "Your AI avatar has been generated!"});
   };
 
   const handleSubmit = () => {
@@ -58,14 +61,14 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
       toast({ title: "Recording Needed", description: "Please record your video or ensure it's saved.", variant: "destructive" });
       return; 
     }
-    if (presentationMethod === 'avatar' && !avatarDataUri) {
-      toast({ title: "Avatar Needed", description: "Please generate an avatar.", variant: "destructive" });
+    if (presentationMethod === 'avatar' && !avatarDataUriFromGenerator) {
+      toast({ title: "Avatar Needed", description: "Please generate an avatar using the tool.", variant: "destructive" });
       return;
     }
     onSubmit({ 
       presentationMethod, 
       videoUrl: presentationMethod === 'video' ? flowRecordedVideoUrl || undefined : undefined, 
-      avatarDataUri: presentationMethod === 'avatar' ? avatarDataUri || undefined : undefined 
+      avatarDataUri: presentationMethod === 'avatar' ? avatarDataUriFromGenerator || undefined : undefined 
     });
   };
 
@@ -121,13 +124,16 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
             <CardDescription>Use the AI tool below to generate and preview your virtual presenter.</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* AvatarGenerator will manage its own state including avatarDataUri.
-                If we need the URI here, AvatarGenerator needs an onAvatarGenerated prop */}
-            <AvatarGenerator /> 
+            <AvatarGenerator onAvatarGenerated={handleAvatarGeneratedByComponent} /> 
             
-            {/* This input is conceptual for displaying the URI if AvatarGenerator provided it back */}
-             <Input type="text" value={avatarDataUri || ""} onChange={(e) => setAvatarDataUri(e.target.value)} placeholder="Avatar Data URI (will be auto-filled by generator)" className="mt-2" />
-             <p className="text-xs text-muted-foreground mt-1">After generation, the avatar data will appear here. (Conceptual)</p>
+             <Input 
+                type="text" 
+                value={avatarDataUriFromGenerator || ""} 
+                readOnly 
+                placeholder="Avatar Data URI (will be auto-filled by generator)" 
+                className="mt-4 text-xs bg-muted/50" 
+              />
+             <p className="text-xs text-muted-foreground mt-1">After generation, the avatar data URI will appear here.</p>
 
             {finalScript && (
               <div className="mt-4 pt-4 border-t">
@@ -145,7 +151,7 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
           size="lg" 
           disabled={!presentationMethod || 
                     (presentationMethod === 'video' && !flowRecordedVideoUrl) ||
-                    (presentationMethod === 'avatar' && !avatarDataUri) /* Update based on how avatarDataUri is actually set */}
+                    (presentationMethod === 'avatar' && !avatarDataUriFromGenerator)}
         >
           <CheckCircle className="mr-2 h-5 w-5" /> Use This Presentation & Proceed
         </Button>

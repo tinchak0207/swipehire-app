@@ -1,21 +1,19 @@
 
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Added useEffect and useCallback
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card'; // Added CardFooter
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { StepIndicator } from '@/components/resume-creation/StepIndicator';
 import { Step1_ResumeInput } from '@/components/resume-creation/Step1_ResumeInput';
 import { Step2_ScriptEditor } from '@/components/resume-creation/Step2_ScriptEditor';
 import { Step3_PresentationChoice } from '@/components/resume-creation/Step3_PresentationChoice';
 import { Step4_ReviewAndFinish } from '@/components/resume-creation/Step4_ReviewAndFinish';
 import type { ResumeProcessorInput, ResumeProcessorOutput } from '@/ai/flows/resume-processor-flow';
-// AvatarGeneratorOutput is not directly used here, but by Step3
-// import type { AvatarGeneratorOutput } from '@/ai/flows/avatar-generator';
-import { FileText, Loader2, ArrowLeft, ArrowRight, CheckCircle, Lock } from 'lucide-react'; // Added Lock
+import { FileText, Loader2, ArrowLeft, ArrowRight, CheckCircle, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { processResumeAndGenerateScript } from '@/ai/flows/resume-processor-flow';
-
+import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added context
 
 export interface ResumeData {
   resumeText?: string;
@@ -36,6 +34,9 @@ export interface ResumeData {
 }
 
 const TOTAL_STEPS = 4;
+const LOCAL_STORAGE_KEY = 'swipeHireResumeBuilderProgress_v2';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+
 
 interface ResumeCreationFlowPageProps {
   isGuestMode?: boolean;
@@ -45,6 +46,37 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
   const [currentStep, setCurrentStep] = useState(1);
   const [resumeData, setResumeData] = useState<ResumeData>({});
   const { toast } = useToast();
+  const { mongoDbUserId, updateFullBackendUserFields } = useUserPreferences(); // Get user ID and update function
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    try {
+      const savedProgress = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (savedProgress) {
+        const parsedProgress = JSON.parse(savedProgress);
+        if (parsedProgress.data) setResumeData(parsedProgress.data);
+        if (parsedProgress.step) setCurrentStep(parsedProgress.step);
+        console.log("Loaded resume builder progress from localStorage:", parsedProgress);
+      }
+    } catch (error) {
+      console.error("Error loading resume builder progress from localStorage:", error);
+      localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear corrupted data
+    }
+  }, [isGuestMode]);
+
+  // Save to localStorage whenever resumeData or currentStep changes
+  useEffect(() => {
+    if (isGuestMode || typeof window === 'undefined') return;
+    try {
+      const progressToSave = JSON.stringify({ data: resumeData, step: currentStep });
+      localStorage.setItem(LOCAL_STORAGE_KEY, progressToSave);
+      console.log("Saved resume builder progress to localStorage:", { data: resumeData, step: currentStep });
+    } catch (error) {
+      console.error("Error saving resume builder progress to localStorage:", error);
+    }
+  }, [resumeData, currentStep, isGuestMode]);
+
 
   const handleNextStep = () => {
     setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
@@ -54,9 +86,9 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
     setCurrentStep((prev) => Math.max(prev - 1, 1));
   };
 
-  const updateResumeData = (newData: Partial<ResumeData>) => {
+  const updateResumeData = useCallback((newData: Partial<ResumeData>) => {
     setResumeData((prev) => ({ ...prev, ...newData }));
-  };
+  }, []);
 
   const handleStep1Submit = async (data: Pick<ResumeProcessorInput, 'resumeText' | 'desiredWorkStyle' | 'toneAndStyle' | 'industryTemplate'>) => {
     updateResumeData({ isProcessingResume: true, ...data });
@@ -92,9 +124,68 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
     handleNextStep();
   };
 
-  const handleFinish = () => {
-    console.log("Final Resume Data:", resumeData);
-    toast({ title: "Resume Creation Complete!", description: "Your video resume profile elements are ready (conceptual save).", duration: 5000 });
+  const handleActualFinish = async () => {
+    if (isGuestMode || !mongoDbUserId) {
+      toast({ title: "Sign In Required", description: "Please sign in to save your profile.", variant: "destructive" });
+      return;
+    }
+    console.log("Attempting to finish and save resume data:", resumeData);
+    updateResumeData({ isProcessingResume: true });
+
+    const payload: Partial<any> = {
+      profileFinalScript: resumeData.finalScript,
+    };
+    if (resumeData.presentationMethod === 'video' && resumeData.recordedVideoUrl) {
+      // This assumes the video was ALREADY uploaded in Step 3 and recordedVideoUrl is a persistent URL (e.g., GCS)
+      // If recordedVideoUrl is a blob URL from VideoRecorderUI, Step 3 needs to handle the upload
+      // and provide a persistent URL to be saved here.
+      // For this iteration, we'll assume recordedVideoUrl is the persistent one if available.
+      // If it's a local blob, saving it directly here without re-upload is tricky.
+      // The VideoRecorderUI already has a "Save Video Resume" button that handles upload.
+      // This flow should ideally leverage that by making Step 3 ensure the video is saved to profile first.
+      // For now, we'll save what we have.
+      payload.profileVideoPortfolioLink = resumeData.recordedVideoUrl;
+    }
+    if (resumeData.presentationMethod === 'avatar' && resumeData.avatarDataUri) {
+      payload.profileAvatarUrl = resumeData.avatarDataUri; // Assuming avatarDataUri can be directly saved or is a URL
+                                                            // If it's a base64 data URI, backend might need to handle it.
+                                                            // For simplicity, we assume profileAvatarUrl can take it, or Step3 has already uploaded and provided a URL.
+    }
+    
+    // Add resume text and other relevant fields to be saved on the user's profile
+    if(resumeData.resumeText) payload.profileResumeText = resumeData.resumeText;
+    if(resumeData.desiredWorkStyle) payload.profileDesiredWorkStyle = resumeData.desiredWorkStyle;
+    if(resumeData.suggestedSkills && resumeData.suggestedSkills.length > 0) payload.profileSkills = resumeData.suggestedSkills.join(',');
+
+
+    try {
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: "Failed to save resume profile data." }));
+        throw new Error(errorData.message);
+      }
+      const savedUserData = await response.json();
+      if (savedUserData.user) {
+        updateFullBackendUserFields(savedUserData.user);
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
+      setResumeData({});
+      setCurrentStep(1);
+      toast({ title: "Resume Profile Saved!", description: "Your key resume elements have been saved to your profile.", duration: 5000 });
+
+    } catch (error: any) {
+      console.error("Error saving resume profile:", error);
+      toast({ title: "Error Saving Profile", description: error.message || "Could not save resume profile.", variant: "destructive" });
+    } finally {
+      updateResumeData({ isProcessingResume: false });
+    }
   };
 
 
@@ -107,7 +198,7 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
       case 3:
         return <Step3_PresentationChoice finalScript={resumeData.finalScript || "Please complete step 2 for your script."} onSubmit={handleStep3Submit} />;
       case 4:
-        return <Step4_ReviewAndFinish resumeData={resumeData} onFinish={handleFinish} />;
+        return <Step4_ReviewAndFinish resumeData={resumeData} onFinish={handleActualFinish} />; // Changed prop
       default:
         return <p>Unknown step</p>;
     }
@@ -125,10 +216,17 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
 
   const isNextDisabled = () => {
     if (resumeData.isProcessingResume) return true;
-    if (currentStep === 1 && (!resumeData.resumeText || resumeData.resumeText.length < 50 || !resumeData.desiredWorkStyle || !resumeData.initialScript)) return true;
-    if (currentStep === 2 && (!resumeData.finalScript || resumeData.finalScript.trim().length === 0)) return true;
-    if (currentStep === 3 && !resumeData.presentationMethod) return true;
-    // Step 4, the "Next" button is "Finish", always enabled unless processing elsewhere.
+    if (currentStep === 1) {
+        return !resumeData.initialScript;
+    }
+    if (currentStep === 2) {
+        return !resumeData.finalScript || resumeData.finalScript.trim().length === 0;
+    }
+    if (currentStep === 3) {
+        return !resumeData.presentationMethod ||
+               (resumeData.presentationMethod === 'video' && !resumeData.recordedVideoUrl) ||
+               (resumeData.presentationMethod === 'avatar' && !resumeData.avatarDataUri);
+    }
     return false;
   };
 
@@ -160,24 +258,7 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
           </Button>
           {currentStep < TOTAL_STEPS ? (
             <Button
-              onClick={() => {
-                // This button now acts as a visual cue or a direct "next" if the step's primary action is already done.
-                // The primary action (like submitting form in Step 1) is handled by the step component itself.
-                if (currentStep === 1 && resumeData.initialScript) handleNextStep(); // Allow next if AI already processed.
-                else if (currentStep === 2 && resumeData.finalScript) handleNextStep();
-                else if (currentStep === 3 && resumeData.presentationMethod) handleNextStep();
-                else if (currentStep === 1 && (!resumeData.resumeText || !resumeData.desiredWorkStyle)) {
-                     toast({title: "Missing Information", description: "Please complete Step 1 fields and generate script ideas.", variant: "default"});
-                } else if (currentStep === 1 && !resumeData.initialScript) {
-                    // This case implies form is filled but AI processing hasn't happened/completed yet.
-                    // The form's own submit button should be used. This button can be a no-op or show a hint.
-                    toast({title: "Process Resume", description: "Please click 'Generate Script Ideas' in Step 1.", variant: "default"});
-                } else if (currentStep === 2 && !resumeData.finalScript) {
-                     toast({title: "Finalize Script", description: "Please use the 'Finalize Script' button in Step 2.", variant: "default"});
-                } else if (currentStep === 3 && !resumeData.presentationMethod) {
-                     toast({title: "Choose Presentation", description: "Please choose and confirm your presentation method in Step 3.", variant: "default"});
-                }
-              }}
+              onClick={handleNextStep}
               disabled={isNextDisabled()}
             >
               {resumeData.isProcessingResume && currentStep === 1 ? (
@@ -188,8 +269,9 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
               Next Step
             </Button>
           ) : (
-            <Button onClick={handleFinish} disabled={resumeData.isProcessingResume}>
-              <CheckCircle className="mr-2 h-4 w-4" /> Finish & Review
+            <Button onClick={handleActualFinish} disabled={resumeData.isProcessingResume || !mongoDbUserId}>
+              {resumeData.isProcessingResume ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+              Finish & Save Profile
             </Button>
           )}
         </CardFooter>

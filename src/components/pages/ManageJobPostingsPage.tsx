@@ -8,13 +8,13 @@ import { fetchRecruiterJobs, updateRecruiterJob, deleteRecruiterJob } from '@/se
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle as ShadCardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle as ShadAlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Eye, MapPin, Building, DollarSign, Tag, UploadCloud, X, Lock, Code2, CalendarDays, Percent, Sparkles, FileText } from 'lucide-react';
+import { Briefcase, Edit3, Trash2, PlusCircle, Loader2, Eye, MapPin, Building, DollarSign, Tag, UploadCloud, X, Lock, Code2, CalendarDays, Percent, Sparkles, FileText, BarChart3, Info, Film, Image as ImageIcon, CheckCircle, Archive, PowerOff, Play, Pause } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useForm, type SubmitHandler } from 'react-hook-form';
@@ -23,6 +23,13 @@ import { z } from 'zod';
 import NextImage from 'next/image';
 import { cn } from '@/lib/utils';
 import { WorkExperienceLevel, JobType } from '@/lib/types';
+import { ReputationScoreCard } from '@/components/recruiter/ReputationScoreCard';
+import { Alert, AlertDescription as ShadAlertDescription, AlertTitle as ShadAlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Added Select
+
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+
+const JobStatusEnum = z.enum(['draft', 'active', 'paused', 'expired', 'filled', 'closed']);
 
 const JobFormSchema = z.object({
   _id: z.string().optional(),
@@ -32,9 +39,10 @@ const JobFormSchema = z.object({
   tags: z.string().optional(),
   actualTags: z.array(z.string().min(1).max(20).regex(/^[a-zA-Z0-9-]+$/)).optional().default([]),
   location: z.string().optional(),
-  videoOrImageUrl: z.string().url().optional().or(z.literal('')), 
+  videoOrImageUrl: z.string().url("Invalid URL format, or leave empty if not applicable.").optional().or(z.literal('')),
   jobType: z.string().optional(),
   requiredExperienceLevel: z.string().optional(),
+  status: JobStatusEnum.optional(), // Added status to form schema
 });
 
 type JobFormValues = z.infer<typeof JobFormSchema>;
@@ -64,8 +72,8 @@ const CircularProgressBarPreview = ({ percentage, size = 80, displayText }: { pe
       )}
       <defs>
         <linearGradient id="previewProgressGradientCompanyCard" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#A78BFA" /> 
-          <stop offset="100%" stopColor="#6366F1" /> 
+          <stop offset="0%" stopColor="#A78BFA" />
+          <stop offset="100%" stopColor="#6366F1" />
         </linearGradient>
       </defs>
       <text x="50%" y={displayText ? "50%" : "48%"} dy=".3em" textAnchor="middle" className={cn("font-bold fill-white transform rotate-90 origin-center", size >= 80 ? "text-xl" : "text-lg" )}>
@@ -88,12 +96,18 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   const [editingJob, setEditingJob] = useState<CompanyJobOpening | null>(null);
   const [jobToDelete, setJobToDelete] = useState<CompanyJobOpening | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isAlertOpen, setIsAlertOpen] = useState(false); 
-  const [tagInput, setTagInput] = useState(''); 
-  const [currentTags, setCurrentTags] = useState<string[]>([]); 
+  const [isAlertOpen, setIsAlertOpen] = useState(false);
+  const [tagInput, setTagInput] = useState('');
+  const [currentTags, setCurrentTags] = useState<string[]>([]);
 
   const [previewingJob, setPreviewingJob] = useState<CompanyJobOpening | null>(null);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
+
+  const [reputationScore, setReputationScore] = useState(82);
+  const [replyRate, setReplyRate] = useState(90);
+  const [effectiveReplyRate, setEffectiveReplyRate] = useState(95);
+  const [boostStatus, setBoostStatus] = useState<'increased' | 'decreased' | null>('increased');
+
 
   const { mongoDbUserId, fullBackendUser } = useUserPreferences();
   const { toast } = useToast();
@@ -101,10 +115,10 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   const form = useForm<JobFormValues>({
     resolver: zodResolver(JobFormSchema),
     defaultValues: {
-      title: "", description: "", salaryRange: "", tags: "", actualTags: [], location: "", videoOrImageUrl: "", jobType: "", requiredExperienceLevel: ""
+      title: "", description: "", salaryRange: "", tags: "", actualTags: [], location: "", videoOrImageUrl: "", jobType: "", requiredExperienceLevel: "", status: "active"
     },
   });
-  
+
   const loadJobs = useCallback(async () => {
     if (isGuestMode || !mongoDbUserId) {
       setJobs([]);
@@ -125,11 +139,11 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
   useEffect(() => {
     loadJobs();
   }, [loadJobs]);
-  
+
   useEffect(() => {
     if (editingJob) {
       form.reset({
-        _id: (editingJob as any)._id, 
+        _id: (editingJob as any)._id,
         title: editingJob.title,
         description: editingJob.description,
         salaryRange: editingJob.salaryRange || "",
@@ -139,10 +153,11 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
         videoOrImageUrl: editingJob.videoOrImageUrl || "",
         jobType: editingJob.jobType || "",
         requiredExperienceLevel: editingJob.requiredExperienceLevel || "",
+        status: editingJob.status || "active",
       });
       setCurrentTags(editingJob.tags || []);
     } else {
-      form.reset({ title: "", description: "", salaryRange: "", tags: "", actualTags: [], location: "", videoOrImageUrl: "", jobType: "", requiredExperienceLevel: "" });
+      form.reset({ title: "", description: "", salaryRange: "", tags: "", actualTags: [], location: "", videoOrImageUrl: "", jobType: "", requiredExperienceLevel: "", status: "active" });
       setCurrentTags([]);
     }
   }, [editingJob, form]);
@@ -162,7 +177,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     try {
       await deleteRecruiterJob(mongoDbUserId, (jobToDelete as any)._id);
       toast({ title: "Job Deleted", description: `"${jobToDelete.title}" has been removed.` });
-      loadJobs(); 
+      loadJobs();
     } catch (error: any) {
       toast({ title: "Error Deleting Job", description: error.message, variant: "destructive" });
     } finally {
@@ -174,18 +189,19 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
 
   const onSubmitEditForm: SubmitHandler<JobFormValues> = async (data) => {
     if (!editingJob || !mongoDbUserId || !(editingJob as any)._id) return;
-    
+
     setIsSubmitting(true);
-    
+
     const jobDataToUpdate: Partial<CompanyJobOpening> = {
         title: data.title,
         description: data.description,
         salaryRange: data.salaryRange,
-        tags: data.actualTags, 
+        tags: data.actualTags,
         location: data.location,
         videoOrImageUrl: data.videoOrImageUrl || undefined,
         jobType: data.jobType as JobType || undefined,
         requiredExperienceLevel: data.requiredExperienceLevel as WorkExperienceLevel || undefined,
+        status: data.status || 'active',
     };
 
     try {
@@ -193,13 +209,28 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
       toast({ title: "Job Updated", description: `"${data.title}" has been successfully updated.` });
       setIsEditModalOpen(false);
       setEditingJob(null);
-      loadJobs(); 
+      loadJobs();
     } catch (error: any) {
       toast({ title: "Error Updating Job", description: error.message, variant: "destructive" });
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  const handleChangeJobStatus = async (jobId: string, newStatus: CompanyJobOpening['status']) => {
+      if (!mongoDbUserId || !jobId) return;
+      setIsSubmitting(true); // Can use a more specific loading state if needed
+      try {
+        await updateRecruiterJob(mongoDbUserId, jobId, { status: newStatus });
+        toast({ title: "Job Status Updated", description: `Job status changed to ${newStatus}.` });
+        loadJobs();
+      } catch (error: any) {
+        toast({ title: "Error Updating Status", description: error.message, variant: "destructive" });
+      } finally {
+        setIsSubmitting(false);
+      }
+  };
+
 
   const handleAddTagInEdit = () => {
     const newTag = tagInput.trim().toLowerCase().replace(/\s+/g, '-');
@@ -229,6 +260,40 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     setIsPreviewModalOpen(true);
   };
 
+  const getMediaType = (url?: string): 'image' | 'video' | 'unknown' => {
+    if (!url) return 'unknown';
+    if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return 'image';
+    if (/\.(mp4|webm|ogv|mov)$/i.test(url)) return 'video';
+    return 'unknown';
+  };
+  
+  const getStatusBadgeVariant = (status?: CompanyJobOpening['status']): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status) {
+      case 'active': return "default"; // Primary
+      case 'paused': return "secondary";
+      case 'filled': return "outline"; // Green-ish if customized
+      case 'expired':
+      case 'closed':
+        return "destructive";
+      case 'draft': return "secondary";
+      default: return "secondary";
+    }
+  };
+
+  const getStatusBadgeClasses = (status?: CompanyJobOpening['status']): string => {
+    switch (status) {
+        case 'active': return "bg-green-500 hover:bg-green-600 text-white";
+        case 'paused': return "bg-yellow-500 hover:bg-yellow-600 text-black";
+        case 'filled': return "bg-blue-500 hover:bg-blue-600 text-white";
+        case 'expired':
+        case 'closed':
+            return "bg-red-500 hover:bg-red-600 text-white";
+        case 'draft': return "bg-gray-400 hover:bg-gray-500 text-white";
+        default: return "bg-gray-300 text-gray-700";
+    }
+  };
+
+
   if (isGuestMode) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] text-center p-6 bg-background">
@@ -240,7 +305,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
       </div>
     );
   }
-  
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-64"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
   }
@@ -256,6 +321,14 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
         </div>
       </div>
 
+      <ReputationScoreCard
+        score={reputationScore}
+        replyRate={replyRate}
+        effectiveReplyRate={effectiveReplyRate}
+        boostStatus={boostStatus}
+      />
+
+
       {jobs.length === 0 ? (
         <div className="text-center py-10 bg-card shadow rounded-lg">
           <Briefcase className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
@@ -266,12 +339,23 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
         </div>
       ) : (
         <div className="space-y-4">
-          {jobs.map((job) => (
+          {jobs.map((job) => {
+            const mediaType = getMediaType(job.videoOrImageUrl);
+            const fullMediaUrl = job.videoOrImageUrl?.startsWith('/uploads/')
+                ? `${CUSTOM_BACKEND_URL}${job.videoOrImageUrl}`
+                : job.videoOrImageUrl;
+
+            return (
             <Card key={(job as any)._id} className="shadow-md">
               <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div>
-                    <ShadCardTitle className="text-xl text-primary">{job.title}</ShadCardTitle>
+                <div className="flex justify-between items-start gap-2">
+                  <div className="flex-grow min-w-0">
+                    <div className="flex items-center gap-2">
+                      <ShadCardTitle className="text-xl text-primary truncate" title={job.title}>{job.title}</ShadCardTitle>
+                      <Badge className={cn("text-xs capitalize", getStatusBadgeClasses(job.status))}>
+                        {job.status || 'Unknown'}
+                      </Badge>
+                    </div>
                     <CardDescription className="text-sm">
                       {job.location || 'Not specified'} - {job.jobType || 'Not specified'}
                       <span className="text-xs text-muted-foreground/80 block mt-0.5">
@@ -279,7 +363,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                       </span>
                     </CardDescription>
                   </div>
-                   <div className="flex gap-2 shrink-0">
+                  <div className="flex flex-col sm:flex-row gap-2 shrink-0 items-end sm:items-center">
                     <Button variant="outline" size="sm" onClick={() => handlePreviewJob(job)}>
                       <Eye className="mr-1.5 h-4 w-4" /> Preview
                     </Button>
@@ -292,16 +376,49 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="text-sm">
-                <p className="text-muted-foreground line-clamp-2">{job.description}</p>
-                {job.tags && job.tags.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                        {job.tags.map(tag => <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>)}
-                    </div>
+              <CardContent className="text-sm flex items-start gap-4">
+                {fullMediaUrl && (
+                  <div className="shrink-0 w-20 h-20 sm:w-24 sm:h-24 bg-muted rounded-md overflow-hidden flex items-center justify-center">
+                    {mediaType === 'image' ? (
+                      <NextImage src={fullMediaUrl} alt={job.title} width={96} height={96} className="object-cover w-full h-full" data-ai-hint={job.dataAiHint || 'job post image'} unoptimized={fullMediaUrl.startsWith(CUSTOM_BACKEND_URL) || fullMediaUrl.startsWith('http://localhost')} />
+                    ) : mediaType === 'video' ? (
+                      <Film className="h-10 w-10 text-muted-foreground" />
+                    ) : (
+                      <ImageIcon className="h-10 w-10 text-muted-foreground" />
+                    )}
+                  </div>
                 )}
+                <div className="flex-grow">
+                  <p className="text-muted-foreground line-clamp-2">{job.description}</p>
+                  {job.tags && job.tags.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                          {job.tags.map(tag => <Badge key={tag} variant="secondary" className="text-xs">{tag}</Badge>)}
+                      </div>
+                  )}
+                </div>
               </CardContent>
+               <CardFooter className="border-t pt-3 pb-3">
+                    <Select 
+                        value={job.status || 'active'} 
+                        onValueChange={(newStatus: CompanyJobOpening['status']) => handleChangeJobStatus((job as any)._id, newStatus)}
+                        disabled={isSubmitting}
+                    >
+                        <SelectTrigger className="w-full sm:w-[200px] h-9 text-xs">
+                            <SelectValue placeholder="Change Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="active"><Play className="inline h-3.5 w-3.5 mr-1.5 text-green-500"/>Active</SelectItem>
+                            <SelectItem value="paused"><Pause className="inline h-3.5 w-3.5 mr-1.5 text-yellow-500"/>Paused</SelectItem>
+                            <SelectItem value="filled"><CheckCircle className="inline h-3.5 w-3.5 mr-1.5 text-blue-500"/>Filled</SelectItem>
+                            <SelectItem value="closed"><PowerOff className="inline h-3.5 w-3.5 mr-1.5 text-red-500"/>Closed</SelectItem>
+                            <SelectItem value="draft" disabled><Edit3 className="inline h-3.5 w-3.5 mr-1.5 text-gray-400"/>Draft (soon)</SelectItem>
+                            <SelectItem value="expired" disabled><Archive className="inline h-3.5 w-3.5 mr-1.5 text-gray-400"/>Expired (auto)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </CardFooter>
             </Card>
-          ))}
+          );
+        })}
         </div>
       )}
 
@@ -323,7 +440,25 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                   <FormField control={form.control} name="jobType" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />Job Type</FormLabel> <FormControl><Input {...field} placeholder="e.g., Full-time, Contract" /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="requiredExperienceLevel" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><CalendarDays className="mr-2 h-4 w-4 text-muted-foreground" />Required Experience</FormLabel> <FormControl><Input {...field} placeholder="e.g., 3-5 years, Senior" /></FormControl> <FormMessage /> </FormItem>)} />
                   <FormField control={form.control} name="salaryRange" render={({ field }) => ( <FormItem> <FormLabel className="flex items-center"><DollarSign className="mr-2 h-4 w-4 text-muted-foreground" />Compensation</FormLabel> <FormControl><Input {...field} /></FormControl> <FormMessage /> </FormItem>)} />
-                  
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center"><Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />Job Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl><SelectTrigger><SelectValue placeholder="Select job status" /></SelectTrigger></FormControl>
+                          <SelectContent>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="paused">Paused</SelectItem>
+                            <SelectItem value="filled">Filled</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   <FormItem>
                     <FormLabel className="flex items-center"><Tag className="mr-2 h-4 w-4 text-muted-foreground" />Tags</FormLabel>
                     <div className="flex flex-wrap gap-1 mb-1">
@@ -377,22 +512,31 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
             <DialogHeader className="p-4 sm:p-5 bg-slate-800 text-white rounded-t-2xl">
               <DialogTitle className="flex items-center text-lg"><Eye className="mr-2 h-5 w-5" />Job Posting Preview</DialogTitle>
             </DialogHeader>
-            
+
             <div className="p-0 bg-gradient-to-br from-purple-500 via-indigo-500 to-sky-500 text-white">
-              <div className="aspect-[10/13] flex flex-col"> 
+              <div className="aspect-[10/13] flex flex-col">
                 <div className="p-4 pt-5 text-center relative">
                   <Badge className="absolute top-3 left-3 bg-white/10 text-white border border-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full text-xs shadow-md font-medium">
                     {fullBackendUser?.companyIndustryForJobs || previewingJob.companyIndustryForJob || 'General'}
                   </Badge>
                   <div className="w-[64px] h-[64px] rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center shadow-lg border border-white/20 mx-auto mt-8">
-                    {fullBackendUser?.profileAvatarUrl ? (
-                      <NextImage src={fullBackendUser.profileAvatarUrl.startsWith('/uploads/') ? `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}${fullBackendUser.profileAvatarUrl}` : fullBackendUser.profileAvatarUrl} alt={fullBackendUser.companyNameForJobs || fullBackendUser.name || 'Company'} width={36} height={36} className="object-contain" data-ai-hint="company logo" unoptimized={fullBackendUser.profileAvatarUrl?.startsWith(process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000') || fullBackendUser.profileAvatarUrl?.startsWith('http://localhost')} />
+                    {previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl ? (
+                      <NextImage
+                        src={(previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl)?.startsWith('/uploads/')
+                          ? `${CUSTOM_BACKEND_URL}${previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl}`
+                          : (previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl!)}
+                        alt={fullBackendUser?.companyNameForJobs || previewingJob.companyNameForJob || fullBackendUser?.name || 'Company'}
+                        width={36}
+                        height={36}
+                        className="object-contain"
+                        data-ai-hint="company logo"
+                        unoptimized={(previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl)?.startsWith(CUSTOM_BACKEND_URL) || (previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl)?.startsWith('http://localhost')} />
                     ) : (<Code2 className="text-white h-7 w-7" />)}
                   </div>
                 </div>
 
                 <div className="p-4 pt-2 text-center flex-grow flex flex-col">
-                  <p className="text-purple-200 text-lg font-semibold uppercase tracking-wider mt-4">{fullBackendUser?.companyNameForJobs || previewingJob.companyNameForJob || fullBackendUser?.name || 'Your Company'}</p>
+                  <p className="text-custom-light-purple-text text-lg font-semibold uppercase tracking-wider mt-4">{fullBackendUser?.companyNameForJobs || previewingJob.companyNameForJob || fullBackendUser?.name || 'Your Company'}</p>
                   <h1 className="text-white text-3xl sm:text-4xl font-bold mt-1 leading-tight break-words">
                     {previewingJob.title.split('(')[0].trim()}
                     {previewingJob.title.includes('(') && (<span className="block text-2xl font-bold">{`(${previewingJob.title.split('(')[1]}`}</span>)}
@@ -402,7 +546,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                     {previewingJob.location && previewingJob.jobType && <span className="text-white/50 mx-0.5">•</span>}
                     {previewingJob.jobType && (<span className="flex items-center"><Briefcase className="h-4 w-4 mr-1 text-white/70" /> {previewingJob.jobType.replace(/_/g, ' ')}</span>)}
                   </div>
-                  
+
                   <div className="my-4 mx-auto flex flex-col items-center justify-center group transition-all duration-300 ease-in-out min-h-[110px] w-[110px] relative">
                      <CircularProgressBarPreview percentage={85} displayText="?" size={110} />
                      <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm rounded-full p-2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
@@ -416,9 +560,9 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                       {previewingJob.requiredExperienceLevel.replace(/_/g, ' ')} experience preferred
                     </p>
                   )}
-                  
-                  <div className="mt-auto pt-4"> 
-                    <p className="text-purple-200 text-sm font-semibold uppercase tracking-wider mt-6">TOP SKILLS</p>
+
+                  <div className="mt-auto pt-4">
+                    <p className="text-custom-light-purple-text text-sm font-semibold uppercase tracking-wider mt-6">TOP SKILLS</p>
                     <div className="flex flex-wrap justify-center gap-2.5 mt-2.5">
                       {previewingJob.tags?.slice(0, 3).map((tag) => (
                         <Badge key={tag} className="bg-purple-200/80 text-purple-800 text-base px-5 py-2.5 rounded-full font-semibold shadow-sm">
@@ -442,6 +586,3 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     </div>
   );
 }
-    
-
-    

@@ -23,7 +23,12 @@ const CompanyJobOpeningSchema = new mongoose.Schema({
     companyNameForJob: { type: String, required: true },
     companyLogoForJob: { type: String },
     companyIndustryForJob: { type: String },
-    postedAt: { type: Date, default: Date.now }
+    postedAt: { type: Date, default: Date.now },
+    status: { // Added job status
+        type: String,
+        enum: ['draft', 'active', 'paused', 'expired', 'filled', 'closed'],
+        default: 'active',
+    }
 }, { _id: true }); // Ensure subdocuments get their own _id for potential future direct manipulation
 
 
@@ -104,24 +109,44 @@ const UserSchema = new mongoose.Schema({
             type: Boolean,
             default: false,
         },
+        notificationChannels: { // Added structure for clarity
+            email: { type: Boolean, default: true },
+            sms: { type: Boolean, default: false },
+            inAppToast: { type: Boolean, default: true },
+            inAppBanner: { type: Boolean, default: true },
+        },
+        notificationSubscriptions: { // Added structure for clarity
+            companyReplies: { type: Boolean, default: true },
+            matchUpdates: { type: Boolean, default: true },
+            applicationStatusChanges: { type: Boolean, default: true },
+            platformAnnouncements: { type: Boolean, default: true },
+            welcomeAndOnboardingEmails: { type: Boolean, default: true },
+            contentAndBlogUpdates: { type: Boolean, default: false },
+            featureAndPromotionUpdates: { type: Boolean, default: false },
+        },
     },
-    profileCardTheme: { 
+    profileVisibility: { // Added by user instruction
+        type: String,
+        enum: ['public', 'recruiters_only', 'private'],
+        default: 'public',
+    },
+    profileCardTheme: { // Added now
         type: String,
         trim: true,
-        default: 'default', 
+        default: 'default',
     },
-    likedCandidateIds: [{ 
-        type: String, // Should ideally be mongoose.Schema.Types.ObjectId, ref: 'User' if candidates are also Users
+    likedCandidateIds: [{
+        type: String,
     }],
-    likedCompanyIds: [{ 
-        type: String, // Should ideally be mongoose.Schema.Types.ObjectId, ref: 'User' if companies are represented by Users (recruiters)
+    likedCompanyIds: [{
+        type: String,
     }],
-    passedCandidateProfileIds: { // New field
-        type: [String], // Stores candidate IDs (e.g., 'cand1', 'cand2')
+    passedCandidateProfileIds: {
+        type: [String],
         default: []
     },
-    passedCompanyProfileIds: { // New field
-        type: [String], // Stores company IDs (e.g., 'comp1', 'comp2')
+    passedCompanyProfileIds: {
+        type: [String],
         default: []
     },
     representedCandidateProfileId: {
@@ -134,27 +159,45 @@ const UserSchema = new mongoose.Schema({
         index: true,
         sparse: true,
     },
-    profileHeadline: { 
+    // Recruiter Company Profile Fields (from onboarding)
+    // TODO: In a future iteration, create a separate Companies collection
+    // and link recruiters to it (many-to-many or one-to-many if a company has multiple recruiters).
+    // This would allow more robust company profile management.
+    companyName: { type: String, trim: true },
+    companyIndustry: { type: String, trim: true },
+    companyScale: { type: String, trim: true }, // Enum values from CompanyScale
+    companyAddress: { type: String, trim: true },
+    companyWebsite: { type: String, trim: true },
+    companyDescription: { type: String, trim: true },
+    companyCultureHighlights: { type: [String], default: [] },
+    companyLogoUrl: { type: String, trim: true }, // Potentially from GCS
+    companyVerificationDocuments: { type: Array, default: [] }, // Array of objects
+    companyProfileComplete: { // Flag to indicate if recruiter onboarding is done
+        type: Boolean,
+        default: false, // Ensure this defaults to false
+    },
+    // Job Seeker Profile Fields
+    profileHeadline: {
         type: String,
         trim: true,
     },
-    profileExperienceSummary: { 
+    profileExperienceSummary: {
         type: String,
         trim: true,
     },
-    profileSkills: { 
+    profileSkills: {
         type: String,
         trim: true,
     },
-    profileDesiredWorkStyle: { 
+    profileDesiredWorkStyle: {
         type: String,
         trim: true,
     },
-    profilePastProjects: { 
+    profilePastProjects: {
         type: String,
         trim: true,
     },
-    profileVideoPortfolioLink: { 
+    profileVideoPortfolioLink: {
         type: String,
         trim: true,
     },
@@ -168,17 +211,17 @@ const UserSchema = new mongoose.Schema({
     profileEducationLevel: {
         type: String,
     },
-    profileLocationPreference: { 
+    profileLocationPreference: {
         type: String,
     },
-    profileLanguages: { 
+    profileLanguages: {
         type: String,
         trim: true,
     },
     profileAvailability: {
         type: String,
     },
-    profileJobTypePreference: { 
+    profileJobTypePreference: {
         type: String,
         trim: true,
     },
@@ -187,10 +230,8 @@ const UserSchema = new mongoose.Schema({
     },
     profileSalaryExpectationMax: {
         type: Number,
-    }
+    },
 }, { timestamps: true });
 
 
 module.exports = mongoose.model('User', UserSchema);
-
-    

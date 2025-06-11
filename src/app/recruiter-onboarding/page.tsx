@@ -14,7 +14,7 @@ import type { RecruiterOnboardingData } from '@/lib/types';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 import { submitCompanyRegistration } from '@/services/recruiterService';
-import { ArrowLeft, ArrowRight, CheckCircle, Loader2, Building2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, Loader2, Building2, Home } from 'lucide-react';
 
 const TOTAL_STEPS = 4;
 
@@ -24,15 +24,14 @@ export default function RecruiterOnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { mongoDbUserId, fullBackendUser, fetchAndSetUserPreferences } = useUserPreferences();
+  const { mongoDbUserId, fullBackendUser, fetchAndSetUserPreferences, preferences } = useUserPreferences();
 
   useEffect(() => {
-    if (fullBackendUser?.companyProfileComplete) {
-      toast({ title: "Onboarding Complete", description: "Your company profile is already set up."});
-      router.push('/'); 
-    }
-    // Pre-fill from existing user data if available
-    if (fullBackendUser) {
+    if (!preferences.loadingPreferences) {
+      if (fullBackendUser?.selectedRole !== 'recruiter' || fullBackendUser?.companyProfileComplete === true) {
+        toast({ title: "Onboarding Not Needed", description: "Redirecting to dashboard.", duration: 3000 });
+        router.push('/');
+      } else if (fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
         setOnboardingData(prev => ({
             ...prev,
             companyName: fullBackendUser.companyName || fullBackendUser.companyNameForJobs || '',
@@ -43,10 +42,10 @@ export default function RecruiterOnboardingPage() {
             companyDescription: fullBackendUser.companyDescription || '',
             companyCultureHighlights: fullBackendUser.companyCultureHighlights || [],
             recruiterFullName: fullBackendUser.name || '',
-            // recruiterJobTitle and recruiterContactPhone are not directly on BackendUser yet
         }));
+      }
     }
-  }, [fullBackendUser, router, toast]);
+  }, [fullBackendUser, preferences.loadingPreferences, router, toast]);
 
 
   const handleNextStep = () => {
@@ -66,7 +65,7 @@ export default function RecruiterOnboardingPage() {
     handleNextStep();
   };
 
-  const handleStep2Submit = (data: Partial<RecruiterOnboardingData>) => {
+  const handleStep2DataUpdateAndProceed = (data: Partial<RecruiterOnboardingData>) => {
     updateOnboardingData(data);
     handleNextStep();
   };
@@ -83,23 +82,31 @@ export default function RecruiterOnboardingPage() {
     }
     setIsSubmitting(true);
     try {
-      // Conceptual submission
-      const result = await submitCompanyRegistration(mongoDbUserId, onboardingData as RecruiterOnboardingData);
-      console.log("Company Registration Submitted (Conceptual):", result);
-
-      // Update UserPreferencesContext or local storage to mark onboarding as complete
-      localStorage.setItem('recruiterCompanyProfileComplete', 'true');
-      if (fetchAndSetUserPreferences && mongoDbUserId) {
-         // Trigger a refresh of user data, which should now include companyProfileComplete: true
-        await fetchAndSetUserPreferences(mongoDbUserId); 
+      if (!onboardingData.companyName || !onboardingData.businessLicense || !onboardingData.recruiterFullName) {
+          toast({ title: "Incomplete Information", description: "Please complete all required steps.", variant: "destructive" });
+          setIsSubmitting(false);
+          return;
       }
+
+      const result = await submitCompanyRegistration(mongoDbUserId, onboardingData as RecruiterOnboardingData);
+      console.log("Company Registration Submitted:", result);
+
+      if (fetchAndSetUserPreferences && mongoDbUserId) {
+        await fetchAndSetUserPreferences(mongoDbUserId); // This should update fullBackendUser in context
+      }
+
+      // For consistency, also update the localStorage flag that CreateJobPostingPage might initially check
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('recruiterCompanyProfileComplete', 'true');
+      }
+
 
       toast({
         title: "Onboarding Complete!",
-        description: "Your company profile has been set up (conceptually). You can now post jobs.",
+        description: "Your company profile has been set up. You can now post jobs.",
         duration: 5000,
       });
-      router.push('/'); // Redirect to dashboard or main app page
+      router.push('/');
     } catch (error: any) {
       console.error("Error finishing onboarding:", error);
       toast({
@@ -112,12 +119,43 @@ export default function RecruiterOnboardingPage() {
     }
   };
 
+  const getCurrentStepFormId = () => {
+    if (currentStep === 1) return "step1Form";
+    if (currentStep === 3) return "step3Form";
+    return undefined;
+  };
+
+  const handleFooterNextClick = () => {
+    if (currentStep === 2) {
+      if (!onboardingData.businessLicense) {
+        toast({ title: "Missing Document", description: "Please upload a business license for Step 2.", variant: "destructive"});
+        return;
+      }
+      const step2DataForSubmission = {
+        businessLicense: onboardingData.businessLicense,
+        organizationCode: onboardingData.organizationCode,
+        companyVerificationDocuments: onboardingData.companyVerificationDocuments,
+      };
+      handleStep2DataUpdateAndProceed(step2DataForSubmission); // This now also calls handleNextStep
+    }
+    // For steps 1 and 3, the button's type="submit" and form attribute handle form submission via RHF.
+    // The step component's onSubmit (e.g., handleStep1Submit) then calls handleNextStep itself.
+  };
+
+  const isNextButtonDisabled = () => {
+    if (isSubmitting) return true;
+    if (currentStep === 2 && !onboardingData.businessLicense) return true;
+    return false;
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
         return <Step1_BasicInfoForm initialData={onboardingData} onSubmit={handleStep1Submit} />;
       case 2:
-        return <Step2_CompanyVerification initialData={onboardingData} onSubmit={handleStep2Submit} />;
+        // onSubmit for Step2_CompanyVerification now simply updates the parent's data.
+        // The actual progression to the next step is handled by handleFooterNextClick.
+        return <Step2_CompanyVerification initialData={onboardingData} onSubmit={updateOnboardingData} />;
       case 3:
         return <Step3_AccountSettings initialData={onboardingData} onSubmit={handleStep3Submit} />;
       case 4:
@@ -126,14 +164,21 @@ export default function RecruiterOnboardingPage() {
         return <p>Unknown step</p>;
     }
   };
-  
-  const isNextDisabled = () => {
-    if (currentStep === 1 && (!onboardingData.companyName || !onboardingData.companyIndustry || !onboardingData.companyScale || !onboardingData.companyAddress)) return true;
-    // Add more validation for other steps if needed
-    if (currentStep === 2 && (!onboardingData.businessLicense || !onboardingData.organizationCode )) return true; // Conceptual check
-    if (currentStep === 3 && (!onboardingData.recruiterFullName || !onboardingData.recruiterJobTitle)) return true;
-    return false;
+
+  const handleSkipToDashboard = () => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('skippedRecruiterOnboardingOnce', 'true');
+    }
+    router.push('/');
   };
+
+  if (preferences.loadingPreferences || !fullBackendUser) {
+    return (
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-gray-50 to-slate-200">
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+        </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-50 to-slate-200 flex flex-col items-center justify-center p-4 md:p-6">
@@ -153,27 +198,38 @@ export default function RecruiterOnboardingPage() {
             {renderStepContent()}
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between pt-6 border-t bg-gray-50">
+        <CardFooter className="flex justify-between items-center pt-6 border-t bg-gray-50">
           <Button
-            variant="outline"
-            onClick={handlePreviousStep}
-            disabled={currentStep === 1 || isSubmitting}
+            variant="ghost"
+            onClick={handleSkipToDashboard}
+            disabled={isSubmitting}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+            <Home className="mr-2 h-4 w-4" /> Skip & Go to Dashboard
           </Button>
-          {currentStep < TOTAL_STEPS ? (
+          <div className="flex gap-2">
             <Button
-              onClick={handleNextStep}
-              disabled={isNextDisabled() || isSubmitting}
+                variant="outline"
+                onClick={handlePreviousStep}
+                disabled={currentStep === 1 || isSubmitting}
             >
-              Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
-          ) : (
-            <Button onClick={handleFinishOnboarding} disabled={isSubmitting}>
-              {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
-              {isSubmitting ? "Finalizing..." : "Complete Onboarding"}
-            </Button>
-          )}
+            {currentStep < TOTAL_STEPS ? (
+                <Button
+                  type={currentStep === 1 || currentStep === 3 ? "submit" : "button"}
+                  form={getCurrentStepFormId()}
+                  onClick={currentStep === 2 ? handleFooterNextClick : undefined}
+                  disabled={isNextButtonDisabled()}
+                >
+                  Next Step <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+            ) : (
+                <Button onClick={handleFinishOnboarding} disabled={isSubmitting}>
+                {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <CheckCircle className="mr-2 h-4 w-4" />}
+                {isSubmitting ? "Finalizing..." : "Complete Onboarding"}
+                </Button>
+            )}
+          </div>
         </CardFooter>
       </Card>
     </div>

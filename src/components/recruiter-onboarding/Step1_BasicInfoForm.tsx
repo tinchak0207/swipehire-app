@@ -5,7 +5,7 @@ import React from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+// Button removed as submit is handled by parent
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -48,13 +48,16 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
     },
   });
 
-  const handleSubmit: SubmitHandler<BasicInfoFormValues> = (data) => {
-    onSubmit(data);
+  // This 'internalFormSubmitHandler' is called when the form is submitted
+  // (e.g., by the parent's button with type="submit" and form="step1Form")
+  const internalFormSubmitHandler: SubmitHandler<BasicInfoFormValues> = (data) => {
+    onSubmit(data); // This will call handleStep1Submit in the parent
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6 animate-fadeInPage">
+      {/* Add id="step1Form" here */}
+      <form id="step1Form" onSubmit={form.handleSubmit(internalFormSubmitHandler)} className="space-y-6 animate-fadeInPage">
         <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-700">
           <Info className="h-5 w-5 !text-blue-600" />
           <AlertTitle className="font-semibold text-blue-800">Step 1: Company Information</AlertTitle>
@@ -127,7 +130,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
             </FormItem>
           )}
         />
-        {/* The "Next Step" button is in the parent RecruiterOnboardingPage component */}
+        {/* No separate submit button here; parent's button will submit this form via its id */}
       </form>
     </Form>
   );

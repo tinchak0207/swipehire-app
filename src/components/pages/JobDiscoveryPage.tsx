@@ -7,7 +7,7 @@ import { mockCompanies } from '@/lib/mockData'; // Ensure mockCompanies is impor
 import { SwipeCard } from '@/components/swipe/SwipeCard';
 import { CompanyCardContent } from '@/components/swipe/CompanyCardContent';
 import { Button } from '@/components/ui/button';
-import { Loader2, SearchX, Filter, RotateCcw } from 'lucide-react';
+import { Loader2, SearchX, Filter, RotateCcw, Trash2 as TrashIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { JobFilterPanel } from "@/components/filters/JobFilterPanel";
@@ -20,25 +20,14 @@ import Image from 'next/image';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card } from '@/components/ui/card';
 import { mockCandidates } from '@/lib/mockData';
-import { passCompany, retrieveCompany } from '@/services/interactionService'; // New import
+import { passCompany, retrieveCompany } from '@/services/interactionService';
 
 
 const ITEMS_PER_BATCH = 3;
-// LOCAL_STORAGE_PASSED_COMPANIES_KEY_PREFIX and LOCAL_STORAGE_TRASH_BIN_COMPANIES_KEY_PREFIX are no longer needed
 
 interface CompanyWithRecruiterId extends Company {
-  recruiterUserId?: string;
+  recruiterUserId?: string; // Ensure this is part of the type if backend sends it
 }
-
-const TrashIcon = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-    <line x1="10" y1="11" x2="10" y2="17" />
-    <line x1="14" y1="11" x2="14" y2="17" />
-  </svg>
-);
 
 interface JobDiscoveryPageProps {
   searchTerm?: string;
@@ -60,28 +49,25 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
-  // trashBinCompanies state will now derive from passedCompanyProfileIdsFromContext and masterJobFeed
 
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
   const [likedCompanyProfileIds, setLikedCompanyProfileIds] = useState<Set<string>>(new Set());
-  // passedCompanyProfileIds will now come from context
 
   const { toast } = useToast();
-  const { mongoDbUserId, passedCompanyIds: passedCompanyProfileIdsFromContext, updatePassedCompanyIds, fetchAndSetUserPreferences } = useUserPreferences();
+  const { mongoDbUserId, passedCompanyIds: passedCompanyProfileIdsFromContext, updatePassedCompanyIds, fullBackendUser } = useUserPreferences();
   const [jobSeekerRepresentedCandidateId, setJobSeekerRepresentedCandidateId] = useState<string | null>(null);
 
 
   useEffect(() => {
      if (mongoDbUserId) {
-        const storedCandidateId = localStorage.getItem(`currentUserJobSeekerProfile`)
-          ? JSON.parse(localStorage.getItem(`currentUserJobSeekerProfile`)!).id
-          : null;
+        const storedCandidateId = fullBackendUser?.representedCandidateProfileId ||
+                                  (typeof window !== 'undefined' && localStorage.getItem('currentUserJobSeekerProfile')
+                                    ? JSON.parse(localStorage.getItem('currentUserJobSeekerProfile')!).id
+                                    : null);
         setJobSeekerRepresentedCandidateId(storedCandidateId || (mockCandidates.length > 0 ? mockCandidates[0].id : `cand-user-${mongoDbUserId.slice(0,5)}`));
-         // Fetch/refresh user preferences (which includes passed IDs) when mongoDbUserId is available
-        fetchAndSetUserPreferences(mongoDbUserId);
     }
-  }, [mongoDbUserId, fetchAndSetUserPreferences]);
+  }, [mongoDbUserId, fullBackendUser]);
 
   const observer = useRef<IntersectionObserver | null>(null);
   const loadMoreTriggerRef = useRef<HTMLDivElement | null>(null);
@@ -90,11 +76,13 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     setIsInitialLoading(true);
     setIsLoading(true);
     let errorOccurred = false;
-    let fetchedJobs: Company[] = [];
+    let fetchedJobs: CompanyWithRecruiterId[] = [];
 
     try {
       const backendResponse = await fetchJobsFromBackend();
-      fetchedJobs = backendResponse.jobs;
+      // The backend already structures the job data within a Company-like object.
+      // Ensure the type matches what `fetchJobsFromBackend` is declared to return.
+      fetchedJobs = backendResponse.jobs as CompanyWithRecruiterId[]; 
     } catch (error) {
       console.error("Failed to load initial jobs from backend:", error);
       toast({ title: "Error Loading Jobs", description: "Could not load job listings from the backend. Using mock data as fallback.", variant: "destructive" });
@@ -104,9 +92,10 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     const jobsToSet = (fetchedJobs.length === 0 || errorOccurred)
       ? mockCompanies.map(mc => ({
           ...mc,
-          recruiterUserId: mc.recruiterUserId || `mock-recruiter-${mc.id}` // Ensure mock companies have a placeholder
+          // Ensure recruiterUserId is present for mock data if needed by other logic
+          recruiterUserId: mc.recruiterUserId || `mock-recruiter-${mc.id}` 
         })) as CompanyWithRecruiterId[]
-      : fetchedJobs as CompanyWithRecruiterId[];
+      : fetchedJobs;
 
     setMasterJobFeed(jobsToSet);
     setIsInitialLoading(false);
@@ -143,14 +132,15 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     }
     if (searchTerm.trim()) {
       companies = companies.filter(company => {
-        const jobOpening = company.jobOpenings && company.jobOpenings[0];
         return (
           company.name.toLowerCase().includes(lowerSearchTerm) ||
           (company.industry && company.industry.toLowerCase().includes(lowerSearchTerm)) ||
-          (jobOpening && jobOpening.title.toLowerCase().includes(lowerSearchTerm)) ||
-          (jobOpening && jobOpening.description.toLowerCase().includes(lowerSearchTerm)) ||
-          (jobOpening && jobOpening.tags && jobOpening.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm))) ||
-          (jobOpening && jobOpening.location && jobOpening.location.toLowerCase().includes(lowerSearchTerm))
+          (company.jobOpenings && company.jobOpenings.some(job => 
+            job.title.toLowerCase().includes(lowerSearchTerm) ||
+            job.description.toLowerCase().includes(lowerSearchTerm) ||
+            (job.tags && job.tags.some(tag => tag.toLowerCase().includes(lowerSearchTerm))) ||
+            (job.location && job.location.toLowerCase().includes(lowerSearchTerm))
+          ))
         );
       });
     }
@@ -163,7 +153,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       return;
     }
     setIsLoading(true);
-    setTimeout(() => {
+    setTimeout(() => { // Simulate network delay for loading more
       const newLoadIndex = currentIndex + ITEMS_PER_BATCH;
       const newBatch = filteredJobFeed.slice(currentIndex, newLoadIndex);
       setDisplayedCompanies(prev => [...prev, ...newBatch.filter(item => !prev.find(p => p.id === item.id))]);
@@ -174,16 +164,17 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
   }, [isLoading, hasMore, currentIndex, filteredJobFeed]);
 
   useEffect(() => {
-    if (isInitialLoading) return;
-    setDisplayedCompanies([]);
-    setCurrentIndex(0);
+    if (isInitialLoading) return; // Don't run if initial data isn't even loaded
+    setDisplayedCompanies([]); // Reset displayed when filters or search term change
+    setCurrentIndex(0); // Reset index
     const hasFilteredItems = filteredJobFeed.length > 0;
-    setHasMore(hasFilteredItems);
+    setHasMore(hasFilteredItems); // Update hasMore based on the new filtered list
     if (hasFilteredItems) {
+        // Load the first batch from the new filtered list
         loadMoreCompaniesFromLocal();
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredJobFeed, isInitialLoading]);
+  }, [filteredJobFeed, isInitialLoading]); // Depend on filteredJobFeed and isInitialLoading
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -191,7 +182,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       if (entries[0].isIntersecting && hasMore && !isLoading && !isInitialLoading) {
         loadMoreCompaniesFromLocal();
       }
-    }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' });
+    }, { threshold: 0.1, rootMargin: '0px 0px 300px 0px' }); // Trigger when nearing the end
     if (loadMoreTriggerRef.current) observer.current.observe(loadMoreTriggerRef.current);
     return () => { if (observer.current) observer.current.disconnect(); };
   }, [hasMore, isLoading, isInitialLoading, loadMoreCompaniesFromLocal]);
@@ -201,18 +192,26 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       toast({ title: "Login Required", description: "Please login to interact.", variant: "destructive" });
       return;
     }
+    // The compositeCompanyJobId is the company.id (e.g., `comp-user-${user._id.toString()}-job-${jobIdString}`)
+    const company = masterJobFeed.find(c => c.id === compositeCompanyJobId);
+    if (!company) {
+      toast({ title: "Error", description: "Company details not found for action.", variant: "destructive" });
+      return;
+    }
+
     if (action === 'share' || action === 'details') {
         console.log(`${action} action for company-job ${compositeCompanyJobId}`);
+        // Details action is handled by SwipeCard's internal modal logic (CompanyCardContent)
         return;
     }
 
-    const companyJob = masterJobFeed.find(c => c.id === compositeCompanyJobId);
-    if (!companyJob || !companyJob.recruiterUserId) {
-        toast({ title: "Error", description: "Could not find job details or recruiter information.", variant: "destructive" });
-        return;
+    const recruiterOwnerId = company.recruiterUserId; // This should be the actual MongoDB _id of the recruiter User
+    if (!recruiterOwnerId) {
+      toast({ title: "Error", description: "Recruiter for this company not identified.", variant: "destructive" });
+      return;
     }
 
-    const recruiterOwnerId = companyJob.recruiterUserId;
+    const jobOpening = company.jobOpenings && company.jobOpenings.length > 0 ? company.jobOpenings[0] : null;
 
 
     if (action === 'like') {
@@ -220,21 +219,22 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         toast({ title: "Profile Incomplete", description: "Your job seeker profile needs to be set up to make matches. Please complete it in 'My Profile'.", variant: "destructive" });
         return;
       }
-      setLikedCompanyProfileIds(prev => new Set(prev).add(recruiterOwnerId));
+      setLikedCompanyProfileIds(prev => new Set(prev).add(recruiterOwnerId)); // Track like by recruiter's User ID
       try {
         const response = await recordLike({
           likingUserId: mongoDbUserId,
-          likedProfileId: recruiterOwnerId,
-          likedProfileType: 'company',
+          likedProfileId: recruiterOwnerId, 
+          likedProfileType: 'company', // Liked profile is the recruiter representing the company/job
           likingUserRole: 'jobseeker',
           likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId,
+          jobOpeningTitle: jobOpening?.title, 
         });
         if (response.success) {
-          toast({ title: `Interested in job at ${companyJob.name}` });
+          toast({ title: `Interested in job at ${company.name}` });
           if (response.matchMade) {
             toast({
               title: "🎉 It's a Mutual Match!",
-              description: `You and ${companyJob.name} are both interested! Check 'My Matches'.`,
+              description: `You and ${company.name} are both interested! Check 'My Matches'.`,
               duration: 7000,
             });
           }
@@ -251,7 +251,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         const response = await passCompany(mongoDbUserId, compositeCompanyJobId);
         updatePassedCompanyIds(response.passedCompanyProfileIds || []);
         setDisplayedCompanies(prev => prev.filter(c => c.id !== compositeCompanyJobId));
-        toast({ title: `Moved job at ${companyJob.name} to Trash Bin`, variant: "default" });
+        toast({ title: `Moved job at ${company.name} to Trash Bin`, variant: "default" });
       } catch (error: any) {
         toast({ title: "Error Passing Company", description: error.message || "Could not pass company.", variant: "destructive" });
       }
@@ -267,8 +267,7 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
       const response = await retrieveCompany(mongoDbUserId, compositeCompanyJobId);
       updatePassedCompanyIds(response.passedCompanyProfileIds || []);
       toast({ title: "Job Retrieved", description: `${masterJobFeed.find(c=>c.id === compositeCompanyJobId)?.name || 'Job'} is back in the discovery feed.` });
-      setIsTrashBinOpen(false);
-      // This will trigger re-computation of filteredJobFeed and subsequent UI update
+      setIsTrashBinOpen(false); // Close trash bin after retrieving
     } catch (error: any) {
       toast({ title: "Error Retrieving Job", description: error.message || "Could not retrieve job.", variant: "destructive" });
     }
@@ -289,11 +288,11 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
 
   const handleClearFilters = () => {
       setActiveFilters(initialJobFilters);
-      setIsSheetOpen(false);
+      setIsSheetOpen(false); // Close sheet after clearing
   };
-  const handleApplyFilters = () => setIsSheetOpen(false);
+  const handleApplyFilters = () => setIsSheetOpen(false); // Close sheet after applying
   const numActiveFilters = Object.values(activeFilters).reduce((acc, set) => acc + set.size, 0);
-  const fixedElementsHeight = '120px';
+  const fixedElementsHeight = '120px'; // Approximate height of header + tabs
 
   if (isInitialLoading) {
     return <div className="flex flex-grow items-center justify-center bg-background" style={{ height: `calc(100vh - ${fixedElementsHeight})` }}><Loader2 className="h-16 w-16 animate-spin text-primary" /></div>;
@@ -375,12 +374,15 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
         {displayedCompanies.map(company => (
           <div key={company.id} className="min-h-full snap-start snap-always flex flex-col items-center justify-center p-1 sm:p-2 bg-background">
             <SwipeCard className={`w-full max-w-md sm:max-w-lg md:max-w-xl aspect-[10/13] flex flex-col shadow-xl rounded-2xl bg-card overflow-hidden ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'ring-2 ring-green-500 shadow-green-500/30' : 'shadow-lg hover:shadow-xl'}`}>
+              {/* Pass the company object which contains jobOpenings to CompanyCardContent */}
               <CompanyCardContent company={company} onSwipeAction={handleAction} isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)} isGuestMode={mongoDbUserId === null}/>
             </SwipeCard>
           </div>
         ))}
         {isLoading && !isInitialLoading && <div className="h-full snap-start snap-always flex items-center justify-center p-4"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>}
+        {/* Ensure loadMoreTriggerRef is present to trigger loading more items */}
         {hasMore && !isLoading && !isInitialLoading && filteredJobFeed.length > 0 && displayedCompanies.length < filteredJobFeed.length && <div ref={loadMoreTriggerRef} className="h-1 opacity-0">Load More</div>}
+        
         {!isLoading && !isInitialLoading && displayedCompanies.length === 0 && (
             <div className="h-full snap-start snap-always flex flex-col items-center justify-center p-6 text-center bg-background">
                 <SearchX className="h-20 w-20 text-muted-foreground mb-6" />
@@ -392,7 +394,3 @@ export function JobDiscoveryPage({ searchTerm = "" }: JobDiscoveryPageProps) {
     </div>
   );
 }
-
-    
-
-

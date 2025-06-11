@@ -11,24 +11,26 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, UploadCloud, Tag, DollarSign, FileText, Briefcase, AlertTriangle, Lock, X, Image as ImageIcon, Building2, ExternalLink } from 'lucide-react'; // Added Building2, ExternalLink
 import { useToast } from '@/hooks/use-toast';
-import type { CompanyJobOpening } from '@/lib/types'; 
+import type { CompanyJobOpening } from '@/lib/types';
 import { postJobToBackend } from '@/services/jobService';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { Badge } from '@/components/ui/badge';
-import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
+import { CustomFileInput } from '@/components/ui/custom-file-input';
+import Link from 'next/link'; // Added Link
 
 const FormSchema = z.object({
   title: z.string().min(5, "Job title must be at least 5 characters."),
   description: z.string().min(20, "Description must be at least 20 characters."),
   compensation: z.string().min(1, "Please specify compensation or prize."),
-  tags: z.string().optional(), 
+  tags: z.string().optional(),
   actualTags: z.array(z.string().min(1, "Tag cannot be empty.").max(20, "Tag too long.").regex(/^[a-zA-Z0-9-]+$/, "Tag can only contain letters, numbers, and hyphens.")).optional().default([]),
-  mediaFile: z.instanceof(File).optional() // Changed from FileList to File
-    .refine(file => !file || file.size <= 5 * 1024 * 1024, `Max file size is 5MB.`) 
+  mediaFile: z.instanceof(File).optional()
+    .refine(file => !file || file.size <= 10 * 1024 * 1024, `Max file size is 10MB.`)
     .refine(file => !file || file.type.startsWith("image/") || file.type.startsWith("video/"), "Please upload a valid image or video file."),
   location: z.string().optional(),
+  videoOrImageUrl: z.string().url("Please enter a valid URL if not uploading a file.").optional().or(z.literal('')),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
@@ -40,23 +42,15 @@ interface CreateJobPostingPageProps {
 
 export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
   const [isLoading, setIsLoading] = useState(false);
-  // fileName state is no longer needed as CustomFileInput will get it from RHF
-  const [isPostingAllowed, setIsPostingAllowed] = useState(false);
   const { toast } = useToast();
-  const { mongoDbUserId } = useUserPreferences();
+  const { mongoDbUserId, fullBackendUser } = useUserPreferences(); // Use context
 
   const [currentTagInput, setCurrentTagInput] = useState('');
   const [tagList, setTagList] = useState<string[]>([]);
 
+  // isPostingAllowed is now derived from context
+  const isPostingAllowed = !isGuestMode && !!mongoDbUserId && !!fullBackendUser && fullBackendUser.companyProfileComplete === true;
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && !isGuestMode) {
-      const profileComplete = localStorage.getItem('recruiterProfileComplete') === 'true';
-      setIsPostingAllowed(profileComplete);
-    } else {
-      setIsPostingAllowed(false); 
-    }
-  }, [isGuestMode]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -64,14 +58,15 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
       title: "",
       description: "",
       compensation: "",
-      tags: "", 
-      actualTags: [], 
+      tags: "",
+      actualTags: [],
       location: "",
       mediaFile: undefined,
+      videoOrImageUrl: "",
     },
   });
 
-  const watchedMediaFile = form.watch('mediaFile'); // Watch the mediaFile field
+  const watchedMediaFile = form.watch('mediaFile');
 
   useEffect(() => {
     form.setValue('actualTags', tagList);
@@ -106,8 +101,8 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
         toast({ title: "Feature Locked", description: "Please sign in as a recruiter to post jobs.", variant: "default" });
         return;
     }
-    if (!isPostingAllowed) {
-        toast({ title: "Profile Incomplete", description: "Please complete your recruiter profile in Settings to post a job.", variant: "destructive" });
+    if (!isPostingAllowed) { // Check the derived state
+        toast({ title: "Profile Incomplete", description: "Please complete your recruiter company profile to post a job. You can do this via Settings or the Onboarding flow.", variant: "destructive", duration: 7000 });
         return;
     }
     if (!mongoDbUserId) {
@@ -117,30 +112,24 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
     setIsLoading(true);
 
-    const jobOpeningData: Omit<CompanyJobOpening, 'companyNameForJob' | 'companyLogoForJob' | 'companyIndustryForJob' | 'postedAt' | '_id'> = {
+    const jobDataForService = {
       title: data.title,
       description: data.description,
       salaryRange: data.compensation,
-      tags: data.actualTags, 
+      actualTags: data.actualTags,
       location: data.location || undefined,
-      // TODO: Handle actual file upload for data.mediaFile and get a URL
-      videoOrImageUrl: data.mediaFile ? 'https://placehold.co/600x400.png' : undefined, 
-      dataAiHint: data.mediaFile ? data.title.substring(0,20) || 'job media' : undefined,
+      videoOrImageUrl: data.mediaFile ? undefined : data.videoOrImageUrl,
     };
-    
-    try {
-      // If data.mediaFile exists, you would typically upload it here first
-      // and then use the returned URL in jobOpeningData.
-      // For now, it uses a placeholder if a file is selected.
 
-      await postJobToBackend(mongoDbUserId, jobOpeningData);
+    try {
+      await postJobToBackend(mongoDbUserId, jobDataForService, data.mediaFile);
       toast({
         title: "Job Posted!",
         description: `Your job "${data.title}" has been submitted. It will appear in the 'Find Jobs' section shortly.`,
       });
       form.reset();
-      setTagList([]); 
-      setCurrentTagInput(''); 
+      setTagList([]);
+      setCurrentTagInput('');
     } catch (error: any) {
       console.error("Error posting job:", error);
       toast({
@@ -167,12 +156,19 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto">
-      {!isPostingAllowed && !isGuestMode && ( 
+      {!isPostingAllowed && !isGuestMode && (
         <Alert variant="destructive" className="mb-6">
           <AlertTriangle className="h-5 w-5" />
-          <AlertTitle>Profile Incomplete to Post Jobs</AlertTitle>
+          <AlertTitle>Company Profile Incomplete to Post Jobs</AlertTitle>
           <AlertDescription>
-            Please complete your Name and Email in the <strong>Settings</strong> page to enable job posting.
+            Please complete your Company Profile.
+            {fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false ? (
+              <Link href="/recruiter-onboarding" className="ml-1 text-destructive-foreground hover:underline font-semibold inline-flex items-center">
+                Complete Onboarding Now <ExternalLink className="ml-1 h-3.5 w-3.5"/>
+              </Link>
+            ) : (
+              " You can typically do this via Settings or an onboarding flow if prompted."
+            )}
           </AlertDescription>
         </Alert>
       )}
@@ -271,16 +267,16 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                 </div>
                 <FormField
                   control={form.control}
-                  name="tags" 
+                  name="tags"
                   render={({ field }) => (
                     <div className="flex items-center gap-2">
                     <Input
-                      id="tags-input-field" 
+                      id="tags-input-field"
                       placeholder="Type a tag (e.g., react) and press Enter or comma"
                       value={currentTagInput}
                       onChange={(e) => {
                         setCurrentTagInput(e.target.value);
-                        field.onChange(e); 
+                        field.onChange(e);
                       }}
                       onKeyDown={handleTagInputKeyDown}
                       disabled={!isPostingAllowed || tagList.length >= 10}
@@ -295,28 +291,46 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
                 </FormDescription>
                 <FormField
                   control={form.control}
-                  name="actualTags" 
-                  render={() => null} 
+                  name="actualTags"
+                  render={() => null}
                 />
                 <FormMessage>{form.formState.errors.actualTags?.message || form.formState.errors.actualTags?.root?.message}</FormMessage>
               </FormItem>
-              
+
               <FormField
                 control={form.control}
                 name="mediaFile"
-                render={({ field }) => (
+                render={({ field: { onChange, value, ...restField } }) => (
                   <CustomFileInput
                     id="jobMediaFile"
-                    fieldLabel="Optional: Picture or Video (Max 5MB)"
+                    fieldLabel="Optional: Picture or Video (Max 10MB)"
                     buttonText="Upload Media"
                     buttonIcon={<ImageIcon className="mr-2 h-4 w-4"/>}
-                    selectedFileName={watchedMediaFile?.name}
-                    onFileSelected={(file) => field.onChange(file)}
-                    inputProps={{ accept: "image/*,video/*" }}
-                    disabled={!isPostingAllowed}
+                    selectedFileName={value?.name}
+                    onFileSelected={(file) => onChange(file)}
+                    inputProps={{ accept: "image/*,video/*", ...restField }}
+                    disabled={!isPostingAllowed || !!form.watch("videoOrImageUrl")}
                   />
                 )}
               />
+              <FormField
+                control={form.control}
+                name="videoOrImageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm">Or Enter Media URL</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="https://example.com/image.png or /video.mp4"
+                        {...field}
+                        disabled={!isPostingAllowed || !!watchedMediaFile}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
 
             </CardContent>
             <CardFooter>

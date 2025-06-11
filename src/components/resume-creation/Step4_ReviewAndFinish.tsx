@@ -6,12 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import type { ResumeData } from '@/components/pages/ResumeCreationFlowPage';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, Video, UserSquare2, Info, FileText } from 'lucide-react';
+import { CheckCircle, Video, UserSquare2, Info, FileText, Loader2 } from 'lucide-react'; // Added Loader2
 import NextImage from 'next/image';
 
 interface Step4Props {
   resumeData: ResumeData;
-  onFinish: () => void;
+  onFinish: () => void; // This will now call handleActualFinish
 }
 
 export function Step4_ReviewAndFinish({ resumeData, onFinish }: Step4Props) {
@@ -21,8 +21,8 @@ export function Step4_ReviewAndFinish({ resumeData, onFinish }: Step4Props) {
         <Info className="h-5 w-5 !text-green-600" />
         <AlertTitle className="font-semibold text-green-800">Step 4: Review & Finish</AlertTitle>
         <AlertDescription className="text-green-700/90">
-          Almost there! Review your selections below. If everything looks good, click "Finish" to complete your AI-powered resume profile elements.
-          (Conceptual: Saving this full package would typically involve backend storage.)
+          Almost there! Review your selections below. If everything looks good, click "Finish & Save Profile" to complete your AI-powered resume profile elements.
+          This will save your script and presentation choice to your SwipeHire profile.
         </AlertDescription>
       </Alert>
 
@@ -50,10 +50,15 @@ export function Step4_ReviewAndFinish({ resumeData, onFinish }: Step4Props) {
 
           {resumeData.presentationMethod === 'video' && resumeData.recordedVideoUrl && (
             <div>
-              <h4 className="text-md font-semibold mb-1">Your Recorded Video:</h4>
-              <video controls src={resumeData.recordedVideoUrl} className="w-full max-w-sm rounded-md shadow-md" data-ai-hint="recorded video preview">
-                Your browser does not support the video tag.
-              </video>
+              <h4 className="text-md font-semibold mb-1">Your Recorded Video Link:</h4>
+              {/* Displaying the link as text instead of video player for review, or a small thumbnail if it's an image-like URL */}
+              {resumeData.recordedVideoUrl.startsWith('blob:') ? (
+                 <p className="text-sm text-muted-foreground italic">Video recorded. Link will be processed on save.</p>
+              ) : (
+                <a href={resumeData.recordedVideoUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline break-all">
+                    {resumeData.recordedVideoUrl}
+                </a>
+              )}
             </div>
           )}
 
@@ -74,6 +79,7 @@ export function Step4_ReviewAndFinish({ resumeData, onFinish }: Step4Props) {
                         <span key={skill} className="text-xs bg-secondary text-secondary-foreground px-2 py-0.5 rounded-full">{skill}</span>
                     ))}
                 </div>
+                <p className="text-xs text-muted-foreground mt-1">These will be added to your profile skills if not already present.</p>
             </div>
            )}
 
@@ -81,8 +87,9 @@ export function Step4_ReviewAndFinish({ resumeData, onFinish }: Step4Props) {
       </Card>
 
       <div className="flex justify-end mt-6">
-        <Button onClick={onFinish} size="lg">
-          <CheckCircle className="mr-2 h-5 w-5" /> Finish & Complete (Conceptual)
+        <Button onClick={onFinish} size="lg" disabled={resumeData.isProcessingResume}>
+          {resumeData.isProcessingResume ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : <CheckCircle className="mr-2 h-5 w-5" />}
+          {resumeData.isProcessingResume ? "Saving Profile..." : "Finish & Save Profile"}
         </Button>
       </div>
     </div>

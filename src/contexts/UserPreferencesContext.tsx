@@ -1,17 +1,16 @@
 
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-// Firestore imports removed: import { doc, getDoc, setDoc } from 'firebase/firestore';
-// Firestore db import removed: import { db } from '@/lib/firebase';
-import type { UserPreferences, AIScriptTone, BackendUser } from '@/lib/types'; // Added BackendUser
+import type { UserPreferences, AIScriptTone, BackendUser } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
-const defaultPreferences: UserPreferences = {
-  theme: 'light', // Default theme set to light
+const initialDefaultPreferences: UserPreferences = {
+  theme: 'light',
   featureFlags: {},
+  isLoading: true, // Start as true, will be set to false once initial check is done
   defaultAIScriptTone: 'professional',
   discoveryItemsPerPage: 10,
   enableExperimentalFeatures: false,
@@ -26,22 +25,24 @@ const defaultPreferences: UserPreferences = {
     matchUpdates: true,
     applicationStatusChanges: true,
     platformAnnouncements: true,
+    welcomeAndOnboardingEmails: true, // Default for welcome emails
+    contentAndBlogUpdates: false,    // Default to opt-out for content
+    featureAndPromotionUpdates: false, // Default to opt-out for promos
   },
 };
 
 interface UserPreferencesContextType {
   preferences: UserPreferences;
-  loadingPreferences: boolean;
-  mongoDbUserId: string | null; // To store MongoDB _id
+  mongoDbUserId: string | null;
   setMongoDbUserId: (id: string | null) => void;
-  fetchAndSetUserPreferences: (userId: string) => Promise<void>; // Takes MongoDB _id
+  fetchAndSetUserPreferences: (userId: string) => Promise<void>;
   setPreferences: (newPrefs: Partial<UserPreferences>) => Promise<void>;
-  passedCandidateIds: Set<string>; // New state for passed candidate IDs
-  passedCompanyIds: Set<string>;   // New state for passed company IDs
-  updatePassedCandidateIds: (newIds: string[]) => void; // New setter
-  updatePassedCompanyIds: (newIds: string[]) => void;   // New setter
-  fullBackendUser: BackendUser | null; // New state to store full user data from backend
-  updateFullBackendUserFields: (updatedFields: Partial<BackendUser>) => void; // New function
+  passedCandidateIds: Set<string>;
+  passedCompanyIds: Set<string>;
+  updatePassedCandidateIds: (newIds: string[]) => void;
+  updatePassedCompanyIds: (newIds: string[]) => void;
+  fullBackendUser: BackendUser | null;
+  updateFullBackendUserFields: (updatedFields: Partial<BackendUser> | null) => void;
 }
 
 const UserPreferencesContext = createContext<UserPreferencesContextType | undefined>(undefined);
@@ -60,131 +61,162 @@ interface UserPreferencesProviderProps {
 }
 
 export const UserPreferencesProvider = ({ children, currentUser }: UserPreferencesProviderProps) => {
-  const [preferences, setPreferencesState] = useState<UserPreferences>(defaultPreferences);
-  const [loadingPreferences, setLoadingPreferences] = useState(true);
+  const [preferences, setPreferencesState] = useState<UserPreferences>(initialDefaultPreferences);
   const [mongoDbUserId, setMongoDbUserIdState] = useState<string | null>(null);
   const [passedCandidateIds, setPassedCandidateIdsState] = useState<Set<string>>(new Set());
   const [passedCompanyIds, setPassedCompanyIdsState] = useState<Set<string>>(new Set());
   const [fullBackendUser, setFullBackendUserState] = useState<BackendUser | null>(null);
 
+  const applyTheme = useCallback((themeSetting?: UserPreferences['theme']) => {
+    if (typeof window !== 'undefined') {
+        document.documentElement.classList.remove('dark', 'light');
+        if (themeSetting === 'dark') {
+        document.documentElement.classList.add('dark');
+        } else if (themeSetting === 'light') {
+        document.documentElement.classList.add('light');
+        } else {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (systemPrefersDark) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.add('light');
+        }
+        }
+    }
+  }, []);
 
-  const setMongoDbUserId = (id: string | null) => {
+  const setMongoDbUserId = useCallback((id: string | null) => {
+    console.log("[UserPreferencesContext] setMongoDbUserId called with id:", id);
     setMongoDbUserIdState(id);
     if (id) {
-      localStorage.setItem('mongoDbUserId', id);
+      if (typeof window !== 'undefined') localStorage.setItem('mongoDbUserId', id);
     } else {
-      localStorage.removeItem('mongoDbUserId');
-      setFullBackendUserState(null); // Clear full user data if mongoDbUserId is cleared
-      setPassedCandidateIdsState(new Set()); // Clear passed IDs
-      setPassedCompanyIdsState(new Set());   // Clear passed IDs
-    }
-  };
-
-  useEffect(() => {
-    const storedMongoId = localStorage.getItem('mongoDbUserId');
-    if (storedMongoId) {
-      setMongoDbUserIdState(storedMongoId);
-    }
-  }, []);
-
-
-  const applyTheme = useCallback((themeSetting: UserPreferences['theme']) => {
-    document.documentElement.classList.remove('dark', 'light'); // Remove both first
-    if (themeSetting === 'dark') {
-      document.documentElement.classList.add('dark');
-    } else if (themeSetting === 'light') {
-      document.documentElement.classList.add('light');
-    } else { // system
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      if (systemPrefersDark) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.add('light'); // Default to light if system isn't dark
-      }
+      if (typeof window !== 'undefined') localStorage.removeItem('mongoDbUserId');
+      setFullBackendUserState(null);
+      setPassedCandidateIdsState(new Set());
+      setPassedCompanyIdsState(new Set());
+      setPreferencesState(prev => {
+        const newPrefs = {
+          ...initialDefaultPreferences,
+          theme: prev.theme, 
+          isLoading: false 
+        };
+        console.log("[UserPreferencesContext] mongoDbUserId cleared. Preferences reset (theme preserved), isLoading set to false.", newPrefs);
+        return newPrefs;
+      });
     }
   }, []);
 
-  const fetchAndSetUserPreferences = useCallback(async (userIdToFetch: string) => { // Expects MongoDB _id
+  const fetchAndSetUserPreferences = useCallback(async (userIdToFetch: string) => {
+    console.log("[UserPreferencesContext] fetchAndSetUserPreferences called for userId:", userIdToFetch);
+
     if (!userIdToFetch) {
-      setPreferencesState(defaultPreferences);
-      applyTheme(defaultPreferences.theme);
+      console.warn("[UserPreferencesContext] No userIdToFetch provided. Resetting to defaults and setting isLoading to false.");
+      setPreferencesState(prev => ({ ...initialDefaultPreferences, theme: prev.theme, isLoading: false }));
+      applyTheme(initialDefaultPreferences.theme);
       setPassedCandidateIdsState(new Set());
       setPassedCompanyIdsState(new Set());
       setFullBackendUserState(null);
-      setLoadingPreferences(false);
       return;
     }
-    setLoadingPreferences(true);
+    
+    setPreferencesState(prev => ({ ...prev, isLoading: true }));
+    console.log(`[UserPreferencesContext] Fetching user data from ${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
+      console.log(`[UserPreferencesContext] Fetch response status for user ${userIdToFetch}: ${response.status}`);
+
       if (response.ok) {
-        const userData: BackendUser = await response.json();
-        setFullBackendUserState(userData); // Store full backend user data
+        const userData = await response.json();
+        console.log("[UserPreferencesContext] User data fetched successfully:", JSON.stringify(userData).substring(0, 200) + "...");
 
-        const loadedPrefs = {
-          ...defaultPreferences, // Start with system defaults
-          ...(userData.preferences || {}), // Override with user-specific preferences if they exist
-          // Deep merge for nested objects like featureFlags and notificationChannels/Subscriptions
-          featureFlags: {
-            ...(defaultPreferences.featureFlags || {}),
-            ...(userData.preferences?.featureFlags || {}),
-          },
-          notificationChannels: {
-            ...(defaultPreferences.notificationChannels || { email: true, sms: false, inAppToast: true, inAppBanner: true }), // Provide structure if default is missing
-            ...(userData.preferences?.notificationChannels || {}),
-          },
-          notificationSubscriptions: {
-            ...(defaultPreferences.notificationSubscriptions || { companyReplies: true, matchUpdates: true, applicationStatusChanges: true, platformAnnouncements: true }), // Provide structure if default is missing
-            ...(userData.preferences?.notificationSubscriptions || {}),
-          },
+        const completeUserData: BackendUser = {
+          ...userData,
+          companyProfileComplete: userData.companyProfileComplete === undefined ? false : userData.companyProfileComplete,
         };
+        setFullBackendUserState(completeUserData);
 
+        const loadedPrefsBase = completeUserData.preferences || {};
+        const loadedPrefs: UserPreferences = {
+          ...initialDefaultPreferences, 
+          ...loadedPrefsBase, 
+          featureFlags: { ...(initialDefaultPreferences.featureFlags || {}), ...(loadedPrefsBase.featureFlags || {}), },
+          notificationChannels: { ...(initialDefaultPreferences.notificationChannels), ...(loadedPrefsBase.notificationChannels || {}), },
+          notificationSubscriptions: { ...(initialDefaultPreferences.notificationSubscriptions), ...(loadedPrefsBase.notificationSubscriptions || {}), },
+          isLoading: false, 
+        };
         setPreferencesState(loadedPrefs);
         applyTheme(loadedPrefs.theme);
-        setPassedCandidateIdsState(new Set(userData.passedCandidateProfileIds || []));
-        setPassedCompanyIdsState(new Set(userData.passedCompanyProfileIds || []));
-
+        setPassedCandidateIdsState(new Set(completeUserData.passedCandidateProfileIds || []));
+        setPassedCompanyIdsState(new Set(completeUserData.passedCompanyProfileIds || []));
+        console.log("[UserPreferencesContext] Preferences and user data applied for user:", userIdToFetch);
       } else {
-        console.warn(`Failed to fetch preferences for user ${userIdToFetch}, status: ${response.status}. Using defaults.`);
-        setPreferencesState(defaultPreferences);
-        applyTheme(defaultPreferences.theme);
-        setPassedCandidateIdsState(new Set());
-        setPassedCompanyIdsState(new Set());
-        setFullBackendUserState(null);
-        if (response.status === 404) {
+        console.warn(`[UserPreferencesContext] Failed to fetch preferences for user ${userIdToFetch}, status: ${response.status}.`);
+        setFullBackendUserState(null); 
+        if (response.status === 404 && mongoDbUserId === userIdToFetch) { 
           setMongoDbUserId(null);
         }
+         setPreferencesState(prev => ({ ...prev, isLoading: false })); // Ensure isLoading is false on fetch error
       }
     } catch (error) {
-      console.error("Error fetching user preferences from MongoDB backend:", error);
-      setPreferencesState(defaultPreferences);
-      applyTheme(defaultPreferences.theme);
-      setPassedCandidateIdsState(new Set());
-      setPassedCompanyIdsState(new Set());
+      console.error("[UserPreferencesContext] Critical error in fetchAndSetUserPreferences for user " + userIdToFetch + ":", error);
       setFullBackendUserState(null);
-    } finally {
-      setLoadingPreferences(false);
+      setPreferencesState(prev => ({ ...prev, isLoading: false })); // Ensure isLoading is false on catch
     }
-  }, [applyTheme]);
+  }, [applyTheme, mongoDbUserId, setMongoDbUserId]);
 
-  // Automatically fetch preferences if mongoDbUserId is available
   useEffect(() => {
+    console.log("[UserPreferencesContext] Effect for localStorage mongoDbUserId. currentUser?.uid:", currentUser?.uid);
+    if (typeof window !== 'undefined') {
+        const storedMongoId = localStorage.getItem('mongoDbUserId');
+        if (storedMongoId) {
+            console.log("[UserPreferencesContext] Found storedMongoId in localStorage:", storedMongoId);
+            if (mongoDbUserId !== storedMongoId) { 
+                 setMongoDbUserIdState(storedMongoId);
+            }
+        } else if (!currentUser && !mongoDbUserId && preferences.isLoading) { // Initial load, no user, no stored ID, but context says loading
+             console.log("[UserPreferencesContext] No storedMongoId, no currentUser, but context isLoading is true. Deferring isLoading=false decision.");
+        } else if (!currentUser && !mongoDbUserId && !preferences.isLoading) { // Truly initial state with no user and not loading
+             console.log("[UserPreferencesContext] No storedMongoId and no currentUser and not loading. Ensuring isLoading is false.");
+             setPreferencesState(prev => ({ ...initialDefaultPreferences, theme: prev.theme, isLoading: false }));
+        }
+    }
+  }, [currentUser, mongoDbUserId, preferences.isLoading]);
+
+  useEffect(() => {
+    console.log("[UserPreferencesContext] Main Auth/MongoID Effect | mongoDbUserId:", mongoDbUserId, "| currentUser?.uid:", currentUser?.uid);
     if (mongoDbUserId) {
       fetchAndSetUserPreferences(mongoDbUserId);
-    } else if (!currentUser) { // Guest mode or no user
-      setPreferencesState(defaultPreferences);
-      applyTheme(defaultPreferences.theme);
+    } else {
+      // mongoDbUserId is null
+      let newIsLoadingState;
+      if (currentUser?.uid) {
+        // Firebase user is present, but mongoDbUserId is not (yet).
+        // This means AppContent's onAuthStateChanged might be in the process of setting it.
+        // Keep isLoading true.
+        newIsLoadingState = true;
+        console.log("[UserPreferencesContext] Main Auth/MongoID Effect: Firebase user exists, mongoDbUserId is null. Maintaining isLoading: true (waiting for mongoDbUserId).");
+      } else {
+        // No mongoDbUserId AND no Firebase currentUser. User is definitively logged out or app is in initial state.
+        newIsLoadingState = false;
+        console.log("[UserPreferencesContext] Main Auth/MongoID Effect: No mongoDbUserId and no currentUser. Setting isLoading: false.");
+      }
+
+      setPreferencesState(prev => ({
+        ...initialDefaultPreferences,
+        theme: prev.theme, // Preserve theme choice
+        isLoading: newIsLoadingState
+      }));
+      applyTheme(initialDefaultPreferences.theme);
       setPassedCandidateIdsState(new Set());
       setPassedCompanyIdsState(new Set());
       setFullBackendUserState(null);
-      setLoadingPreferences(false);
     }
-    // If mongoDbUserId is null but currentUser exists, HomePage will try to fetch/create it
-  }, [mongoDbUserId, currentUser, fetchAndSetUserPreferences, applyTheme]);
+  }, [mongoDbUserId, currentUser?.uid, fetchAndSetUserPreferences, applyTheme]);
 
 
   useEffect(() => {
-    if (preferences.theme === 'system') {
+    if (preferences.theme === 'system' && typeof window !== 'undefined') {
       const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = () => applyTheme('system');
       mediaQuery.addEventListener('change', handleChange);
@@ -192,67 +224,88 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     }
   }, [preferences.theme, applyTheme]);
 
-  const setPreferences = async (newPrefsPartial: Partial<UserPreferences>) => {
-    const updatedPreferences = { ...preferences, ...newPrefsPartial };
-    // Deep merge for nested preferences
-    if (newPrefsPartial.notificationChannels) {
-        updatedPreferences.notificationChannels = {
-            ...(preferences.notificationChannels || defaultPreferences.notificationChannels),
-            ...newPrefsPartial.notificationChannels,
+  const setPreferences = useCallback(async (newPrefsPartial: Partial<UserPreferences>) => {
+    setPreferencesState(prevPreferences => {
+        const updatedPreferences: UserPreferences = {
+            ...prevPreferences,
+            ...newPrefsPartial,
+            isLoading: newPrefsPartial.isLoading !== undefined ? newPrefsPartial.isLoading : prevPreferences.isLoading,
         };
-    }
-    if (newPrefsPartial.notificationSubscriptions) {
-        updatedPreferences.notificationSubscriptions = {
-            ...(preferences.notificationSubscriptions || defaultPreferences.notificationSubscriptions),
-            ...newPrefsPartial.notificationSubscriptions,
-        };
-    }
-    if (newPrefsPartial.featureFlags) {
-        updatedPreferences.featureFlags = {
-            ...(preferences.featureFlags || defaultPreferences.featureFlags),
-            ...newPrefsPartial.featureFlags,
-        };
-    }
-
-    setPreferencesState(updatedPreferences);
-    if (newPrefsPartial.theme) {
-      applyTheme(newPrefsPartial.theme);
-    }
-    console.log("UserPreferencesContext: Preferences updated locally. Backend save will occur via Settings page 'Save Settings' button.");
-  };
-
-  const updatePassedCandidateIds = (newIds: string[]) => {
-    setPassedCandidateIdsState(new Set(newIds));
-  };
-
-  const updatePassedCompanyIds = (newIds: string[]) => {
-    setPassedCompanyIdsState(new Set(newIds));
-  };
-
-  const updateFullBackendUserFields = (updatedFields: Partial<BackendUser>) => {
-    setFullBackendUserState(prevUser => {
-      if (!prevUser) return updatedFields as BackendUser; // Should ideally not happen if mongoDbUserId is set
-      return { ...prevUser, ...updatedFields };
+        if (newPrefsPartial.notificationChannels) {
+            updatedPreferences.notificationChannels = {
+                ...(prevPreferences.notificationChannels || initialDefaultPreferences.notificationChannels),
+                ...newPrefsPartial.notificationChannels,
+            };
+        }
+        if (newPrefsPartial.notificationSubscriptions) {
+            updatedPreferences.notificationSubscriptions = {
+                ...(prevPreferences.notificationSubscriptions || initialDefaultPreferences.notificationSubscriptions),
+                ...newPrefsPartial.notificationSubscriptions,
+            };
+        }
+        if (newPrefsPartial.featureFlags) {
+            updatedPreferences.featureFlags = {
+                ...(prevPreferences.featureFlags || initialDefaultPreferences.featureFlags),
+                ...newPrefsPartial.featureFlags,
+            };
+        }
+        if (newPrefsPartial.theme) {
+          applyTheme(newPrefsPartial.theme);
+        }
+        console.log("[UserPreferencesContext] Preferences updated locally. Backend save via Settings page. New isLoading:", updatedPreferences.isLoading);
+        return updatedPreferences;
     });
-  };
+  }, [applyTheme]);
 
+  const updatePassedCandidateIds = useCallback((newIds: string[]) => {
+    setPassedCandidateIdsState(new Set(newIds));
+  }, []);
+
+  const updatePassedCompanyIds = useCallback((newIds: string[]) => {
+    setPassedCompanyIdsState(new Set(newIds));
+  }, []);
+
+  const updateFullBackendUserFields = useCallback((updatedFields: Partial<BackendUser> | null) => {
+    setFullBackendUserState(prevUser => {
+      if (updatedFields === null) return null; 
+      if (!prevUser && mongoDbUserId) {
+        const newUser: BackendUser = {
+          _id: mongoDbUserId,
+          name: '', email: '', selectedRole: null, companyProfileComplete: false,
+          ...updatedFields
+        };
+        return newUser;
+      }
+      if (prevUser) {
+        return { ...prevUser, ...updatedFields };
+      }
+      return null; 
+    });
+  }, [mongoDbUserId]);
+
+  const contextValue = useMemo(() => ({
+    preferences,
+    mongoDbUserId,
+    setMongoDbUserId,
+    fetchAndSetUserPreferences,
+    setPreferences,
+    passedCandidateIds,
+    passedCompanyIds,
+    updatePassedCandidateIds,
+    updatePassedCompanyIds,
+    fullBackendUser,
+    updateFullBackendUserFields,
+  }), [
+    preferences, mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences, setPreferences,
+    passedCandidateIds, passedCompanyIds, updatePassedCandidateIds, updatePassedCompanyIds,
+    fullBackendUser, updateFullBackendUserFields
+  ]);
 
   return (
-    <UserPreferencesContext.Provider value={{
-      preferences,
-      loadingPreferences,
-      mongoDbUserId,
-      setMongoDbUserId,
-      fetchAndSetUserPreferences,
-      setPreferences,
-      passedCandidateIds,
-      passedCompanyIds,
-      updatePassedCandidateIds,
-      updatePassedCompanyIds,
-      fullBackendUser,
-      updateFullBackendUserFields,
-    }}>
+    <UserPreferencesContext.Provider value={contextValue}>
       {children}
     </UserPreferencesContext.Provider>
   );
 };
+
+    

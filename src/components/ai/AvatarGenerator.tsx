@@ -13,10 +13,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { generateAvatar, type AvatarGeneratorInput } from '@/ai/flows/avatar-generator';
 import Image from 'next/image';
-import { Loader2, UserSquare2, Smile, Briefcase, PersonStanding, ImageIcon, Palette, User, Info } from 'lucide-react'; // Added Info
+import { Loader2, UserSquare2, Smile, Briefcase, PersonStanding, ImageIcon, Palette, User, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip components
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const genderOptions = [
   { value: "male", label: "Male" },
@@ -76,7 +76,11 @@ const FormSchema = z.object({
   jobTypeHint: z.string().max(50, "Job type hint too long.").optional(),
 });
 
-export function AvatarGenerator() {
+interface AvatarGeneratorProps {
+  onAvatarGenerated?: (avatarDataUri: string) => void;
+}
+
+export function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorProps) {
   const [avatarDataUri, setAvatarDataUri] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -105,6 +109,9 @@ export function AvatarGenerator() {
       };
       const result = await generateAvatar(payload);
       setAvatarDataUri(result.avatarDataUri);
+      if (onAvatarGenerated) {
+        onAvatarGenerated(result.avatarDataUri);
+      }
       toast({
         title: "Avatar Generated!",
         description: "Your virtual avatar is ready.",

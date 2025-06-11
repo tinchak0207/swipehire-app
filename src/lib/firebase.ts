@@ -15,7 +15,7 @@ const firebaseConfig = {
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || "swipehire-3bscz.firebasestorage.app", // Updated to user-provided value
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || "651970541195",
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || "1:651970541195:web:02b8393984dc48972e068e",
-  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-XVV3TNSXXZ"
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-KZMH3C52P7" 
 };
 
 // Initialize Firebase

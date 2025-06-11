@@ -5,9 +5,9 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import type { UserRole, NotificationItem } from "@/lib/types";
+import type { UserRole, NotificationItem, BackendUser } from "@/lib/types";
 import { mockNotifications } from "@/lib/mockData";
-import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon, Info, ChevronRight } from 'lucide-react';
+import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon, Info, ChevronRight, Building2, ExternalLink } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut, type User, getRedirectResult } from "firebase/auth";
@@ -17,32 +17,39 @@ import { useUserPreferences } from "@/contexts/UserPreferencesContext";
 import { TopNotificationBanner } from "@/components/notifications/TopNotificationBanner";
 import { useRouter, usePathname } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import Link from 'next/link';
+import { OnboardingStepsModal } from "@/components/common/OnboardingStepsModal";
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const loadingComponent = () => <div className="flex justify-center items-center min-h-[calc(100vh-250px)]"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
 
-const CandidateDiscoveryPage = dynamic(() => import('@/components/pages/CandidateDiscoveryPage').then(mod => mod.CandidateDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const JobDiscoveryPage = dynamic(() => import('@/components/pages/JobDiscoveryPage').then(mod => mod.JobDiscoveryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const AiToolsPage = dynamic(() => import('@/components/pages/AiToolsPage').then(mod => mod.AiToolsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const MatchesPage = dynamic(() => import('@/components/pages/MatchesPage').then(mod => mod.MatchesPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const SettingsPage = dynamic(() => import('@/components/pages/SettingsPage').then(mod => mod.SettingsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const LoginPage = dynamic(() => import('@/components/pages/LoginPage').then(mod => mod.LoginPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage').then(mod => mod.CreateJobPostingPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const ManageJobPostingsPage = dynamic(() => import('@/components/pages/ManageJobPostingsPage').then(mod => mod.ManageJobPostingsPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const StaffDiaryPage = dynamic(() => import('@/components/pages/StaffDiaryPage').then(mod => mod.StaffDiaryPage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(mod => mod.WelcomePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').then(mod => mod.MyProfilePage), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
-const RecruiterOnboardingPage = dynamic(() => import('@/app/recruiter-onboarding/page'), { loading: () => <Loader2 className="h-8 w-8 animate-spin mx-auto mt-10" /> });
+
+const CandidateDiscoveryPage = dynamic(() => import('@/components/pages/CandidateDiscoveryPage').then(mod => mod.CandidateDiscoveryPage), {
+  loading: loadingComponent,
+  ssr: false
+});
+const JobDiscoveryPage = dynamic(() => import('@/components/pages/JobDiscoveryPage').then(mod => mod.JobDiscoveryPage), {
+  loading: loadingComponent,
+  ssr: false
+});
+const AiToolsPage = dynamic(() => import('@/components/pages/AiToolsPage').then(mod => mod.AiToolsPage), { loading: loadingComponent, ssr: false });
+const MatchesPage = dynamic(() => import('@/components/pages/MatchesPage').then(mod => mod.MatchesPage), { loading: loadingComponent, ssr: false });
+const SettingsPage = dynamic(() => import('@/components/pages/SettingsPage').then(mod => mod.SettingsPage), { loading: loadingComponent, ssr: false });
+const LoginPage = dynamic(() => import('@/components/pages/LoginPage').then(mod => mod.LoginPage), { loading: loadingComponent, ssr: false });
+const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage').then(mod => mod.CreateJobPostingPage), { loading: loadingComponent, ssr: false });
+const ManageJobPostingsPage = dynamic(() => import('@/components/pages/ManageJobPostingsPage').then(mod => mod.ManageJobPostingsPage), { loading: loadingComponent, ssr: false });
+const StaffDiaryPage = dynamic(() => import('@/components/pages/StaffDiaryPage').then(mod => mod.StaffDiaryPage), { loading: loadingComponent, ssr: false });
+const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(mod => mod.WelcomePage), { loading: loadingComponent, ssr: false });
+const MyProfilePage = dynamic(() => import('@/components/pages/MyProfilePage').then(mod => mod.MyProfilePage), { loading: loadingComponent, ssr: false });
+const RecruiterOnboardingPage = dynamic(() => import('@/app/recruiter-onboarding/page'), { loading: loadingComponent, ssr: false });
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 const GUEST_MODE_KEY = 'isGuestModeActive';
 const DISMISSED_BANNER_NOTIF_ID_KEY = 'dismissedBannerNotificationId';
-const RECRUITER_COMPANY_PROFILE_COMPLETE_KEY = 'recruiterCompanyProfileComplete';
+const HAS_SEEN_ONBOARDING_MODAL_KEY = 'hasSeenSwipeHireOnboardingV1';
 
 function AppContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userRole, setUserRole] = useState<UserRole | null>(null);
-  const [isGuestMode, setIsGuestMode] = useState(false);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
 
@@ -54,45 +61,62 @@ function AppContent() {
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
-  const { mongoDbUserId, setMongoDbUserId, fetchAndSetUserPreferences, preferences, fullBackendUser } = useUserPreferences();
+  const { mongoDbUserId, setMongoDbUserId, preferences, fullBackendUser, fetchAndSetUserPreferences, updateFullBackendUserFields } = useUserPreferences();
 
   const [isProfileSetupModalOpen, setIsProfileSetupModalOpen] = useState(false);
   const [profileSetupStep, setProfileSetupStep] = useState<'role' | null>(null);
   const hasScrolledAndModalTriggeredRef = useRef(false);
+  const [showWelcomePage, setShowWelcomePage] = useState(false);
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
-  const [showWelcomePage, setShowWelcomePage] = useState(false); // Initialize to false
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-  const initialAuthStateReceived = useRef(false);
-  const initialRedirectResultProcessed = useRef(false);
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [firebaseAuthStateResolved, setFirebaseAuthStateResolved] = useState(false);
+  const [firebaseRedirectResultResolved, setFirebaseRedirectResultResolved] = useState(false);
+
+  const [isGuestModeActive, setIsGuestModeActive] = useState(false);
+  const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
+  const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
-    if (preferences.notificationChannels?.inAppBanner && !isGuestMode) {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (hasMounted) {
+      setIsGuestModeActive(localStorage.getItem(GUEST_MODE_KEY) === 'true');
+      setHasSeenWelcome(localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true');
+    }
+  }, [hasMounted]);
+
+
+  useEffect(() => {
+    if (hasMounted && preferences.notificationChannels?.inAppBanner && preferences.isLoading === false && (fullBackendUser?.selectedRole !== null && fullBackendUser?.selectedRole !== undefined) ) {
       const latestUnreadUrgent = mockNotifications
-        .filter(n => !n.read && n.isUrgent && localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id)
+        .filter(n => !n.read && n.isUrgent && (localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id))
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
       const latestUnreadNormal = mockNotifications
-        .filter(n => !n.read && !n.isUrgent && localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id)
+        .filter(n => !n.read && !n.isUrgent && (localStorage.getItem(DISMISSED_BANNER_NOTIF_ID_KEY) !== n.id))
         .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
       setBannerNotification(latestUnreadUrgent || latestUnreadNormal || null);
     } else {
       setBannerNotification(null);
     }
-  }, [mockNotifications, preferences.notificationChannels, isGuestMode]);
+  }, [preferences.notificationChannels, preferences.isLoading, fullBackendUser, hasMounted]);
 
   const handleDismissBanner = (notificationId: string) => {
     setBannerNotification(null);
-    localStorage.setItem(DISMISSED_BANNER_NOTIF_ID_KEY, notificationId);
+    if (hasMounted) {
+      localStorage.setItem(DISMISSED_BANNER_NOTIF_ID_KEY, notificationId);
+    }
   };
 
-  const fetchUserFromMongo = useCallback(async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
+  const fetchUserFromBackendAndSetContext = useCallback(async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`);
       if (response.ok) {
-        const userData = await response.json();
-        setUserRole(userData.selectedRole || null);
-        setUserName(userData.name || firebaseDisplayName || firebaseEmail);
+        const userData: BackendUser = await response.json();
         setMongoDbUserId(userData._id);
-        localStorage.setItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY, (userData.selectedRole === 'recruiter' && userData.companyProfileComplete) ? 'true' : 'false');
+        updateFullBackendUserFields(userData);
         return userData._id;
       } else if (response.status === 404) {
         const createUserResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users`, {
@@ -100,311 +124,421 @@ function AppContent() {
           body: JSON.stringify({ name: firebaseDisplayName || firebaseEmail || 'New User', email: firebaseEmail, firebaseUid: firebaseUid, preferences: { theme: 'light', featureFlags: {} } }),
         });
         if (createUserResponse.ok) {
-          const responseData = await createUserResponse.json(); const createdUser = responseData.user || responseData;
+          const responseData = await createUserResponse.json();
+          const createdUser = responseData.user || responseData;
           if (createdUser && createdUser._id) {
-            setUserRole(createdUser.selectedRole || null); setUserName(createdUser.name); setMongoDbUserId(createdUser._id);
-            localStorage.setItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY, (createdUser.selectedRole === 'recruiter' && createdUser.companyProfileComplete) ? 'true' : 'false');
+            setMongoDbUserId(createdUser._id);
+            updateFullBackendUserFields(createdUser);
             toast({ title: "Profile Initialized", description: "Your basic profile has been set up."});
             return createdUser._id;
-          } else { console.error("Failed to create user in MongoDB: User object or _id missing", responseData); toast({ title: "Profile Creation Failed", description: "Could not initialize profile: backend error.", variant: "destructive"});}
-        } else { const errorData = await createUserResponse.json().catch(()=>({})); console.error("Failed to create user in MongoDB:", errorData.message || createUserResponse.statusText); toast({ title: "Profile Creation Failed", description: `Could not initialize profile: ${errorData.message || 'Please try again.'}`, variant: "destructive"});}
-      } else { const errorData = await response.json().catch(()=>({})); console.error("Error fetching user from MongoDB:", errorData.message || response.statusText); toast({ title: "Error Loading Profile", description: "Could not load profile.", variant: "destructive"});}
-    } catch (error: any) { console.error("Error in fetchUserFromMongo:", error); toast({ title: "Network/Backend Error", description: error.message || "Could not connect to backend.", variant: "destructive"});}
-    setUserRole(null); setUserName(firebaseDisplayName || firebaseEmail); setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY); return null;
-  }, [setMongoDbUserId, toast]);
-
-
-  const performFinalSetup = useCallback(() => {
-    const finalUser = auth.currentUser;
-    const guestActiveFromStorage = localStorage.getItem(GUEST_MODE_KEY) === 'true';
-    const welcomeSeen = localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true';
-
-    if (finalUser) {
-      setIsAuthenticated(true);
-      setIsGuestMode(false);
-      setShowWelcomePage(false);
-      // User specific setup like mongoDbUserId is handled by onAuthStateChanged -> fetchUserFromMongo
-    } else if (guestActiveFromStorage) {
-      setIsAuthenticated(false);
-      setIsGuestMode(true); // Set the state
-      setShowWelcomePage(false);
-      // Set up guest user details:
-      setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
-      setUserRole(null); setUserName('Guest User'); setUserPhotoURL(null);
-      setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
-      hasScrolledAndModalTriggeredRef.current = true; // Don't show profile setup for guests
-    } else {
-      setIsAuthenticated(false);
-      setIsGuestMode(false);
-      setShowWelcomePage(!welcomeSeen);
-      setCurrentUser(null);
+          } else {
+            console.error("Failed to create user in MongoDB: User object or _id missing", responseData);
+            toast({ title: "Profile Creation Failed", description: "Could not initialize profile: backend error.", variant: "destructive"});
+            setMongoDbUserId(null);
+            updateFullBackendUserFields(null);
+            return null;
+          }
+        } else {
+          const errorData = await createUserResponse.json().catch(()=>({}));
+          console.error("Failed to create user in MongoDB:", errorData.message || createUserResponse.statusText);
+          toast({ title: "Profile Creation Failed", description: `Could not initialize profile: ${errorData.message || 'Please try again.'}`, variant: "destructive"});
+          setMongoDbUserId(null);
+          updateFullBackendUserFields(null);
+          return null;
+        }
+      } else {
+        const errorData = await response.json().catch(()=>({}));
+        console.error("Error fetching user from MongoDB (non-404):", errorData.message || response.statusText);
+        toast({ title: "Error Loading Profile", description: "Could not load profile data.", variant: "destructive"});
+        setMongoDbUserId(null);
+        updateFullBackendUserFields(null);
+        return null;
+      }
+    } catch (error: any) {
+      console.error("[AppContent] Error in fetchUserFromBackendAndSetContext (catch block):", error);
+      toast({ title: "Network/Backend Error", description: error.message || "Could not connect to backend.", variant: "destructive"});
       setMongoDbUserId(null);
-      localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
+      updateFullBackendUserFields(null);
+      return null;
     }
-    setIsInitialLoading(false);
-  }, [setMongoDbUserId]);
+  }, [setMongoDbUserId, toast, updateFullBackendUserFields]);
+
 
   useEffect(() => {
-    setIsInitialLoading(true); // Set loading true at the start
-    initialAuthStateReceived.current = false;
-    initialRedirectResultProcessed.current = false;
-
-    const checkCompletion = () => {
-        if (initialAuthStateReceived.current && initialRedirectResultProcessed.current) {
-            performFinalSetup();
-        }
-    };
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
       if (user) {
-        setCurrentUser(user);
-        localStorage.removeItem(GUEST_MODE_KEY); // Clear guest mode if a user logs in
-        setUserPhotoURL(user.photoURL);
-        const fetchedMongoId = await fetchUserFromMongo(user.uid, user.displayName, user.email);
-        if (fetchedMongoId) {
-          await fetchAndSetUserPreferences(fetchedMongoId);
+        const currentMongoId = await fetchUserFromBackendAndSetContext(user.uid, user.displayName, user.email);
+        if (currentMongoId && hasMounted && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
+          setShowOnboardingModal(true);
         }
+      } else {
+        setMongoDbUserId(null);
+        updateFullBackendUserFields(null);
       }
-      initialAuthStateReceived.current = true;
-      checkCompletion();
+      setFirebaseAuthStateResolved(true);
     });
 
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${result.user.displayName || result.user.email}!` });
-          // onAuthStateChanged will handle user state updates and subsequent data fetching.
         }
       })
       .catch((error) => {
-        console.error("HomePage useEffect: Error during getRedirectResult:", error);
+        console.error("[AppContent] Error during getRedirectResult:", error);
         toast({ title: "Sign-In Issue During Redirect", description: error.message || "Could not complete sign-in after redirect.", variant: "destructive"});
       })
       .finally(() => {
-        initialRedirectResultProcessed.current = true;
-        checkCompletion();
+        setFirebaseRedirectResultResolved(true);
       });
 
-    return () => unsubscribe();
-  }, [fetchUserFromMongo, fetchAndSetUserPreferences, toast, performFinalSetup]);
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchUserFromBackendAndSetContext, setMongoDbUserId, toast, updateFullBackendUserFields, hasMounted, isGuestModeActive]);
 
+  const handleCloseOnboardingModal = () => {
+    setShowOnboardingModal(false);
+    if (hasMounted) {
+      localStorage.setItem(HAS_SEEN_ONBOARDING_MODAL_KEY, 'true');
+    }
+  };
+
+  useEffect(() => {
+    if (fullBackendUser) {
+      setUserName(fullBackendUser.name || fullBackendUser.email || (currentUser?.displayName || currentUser?.email) || "User");
+      let finalPhotoURL = currentUser?.photoURL || null;
+      if (fullBackendUser.profileAvatarUrl) {
+        if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
+          finalPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
+        } else {
+          finalPhotoURL = fullBackendUser.profileAvatarUrl;
+        }
+      }
+      setUserPhotoURL(finalPhotoURL);
+    } else if (!mongoDbUserId && !currentUser) {
+      setUserName(null);
+      setUserPhotoURL(null);
+    }
+  }, [fullBackendUser, currentUser, mongoDbUserId]);
+
+  useEffect(() => {
+    if (firebaseAuthStateResolved && firebaseRedirectResultResolved) {
+      setIsAppLoading(false);
+    }
+  }, [firebaseAuthStateResolved, firebaseRedirectResultResolved]);
+
+  useEffect(() => {
+    if (isAppLoading || !hasMounted) {
+        return;
+    }
+
+    if (currentUser && mongoDbUserId && !showOnboardingModal) { 
+      if (typeof window !== 'undefined') localStorage.removeItem(GUEST_MODE_KEY);
+      setIsGuestModeActive(false);
+      setShowWelcomePage(false);
+    } else if (isGuestModeActive) {
+      setShowWelcomePage(false);
+      if (!currentUser) {
+        setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
+      }
+    } else if (!showOnboardingModal) { 
+      setShowWelcomePage(!hasSeenWelcome);
+    }
+  }, [isAppLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]);
 
   useEffect(() => {
     const handleScroll = () => {
       if (
-        isAuthenticated && !isGuestMode && fullBackendUser &&
-        !hasScrolledAndModalTriggeredRef.current && !preferences.loadingPreferences
+        currentUser && mongoDbUserId && fullBackendUser &&
+        !isGuestModeActive &&
+        !hasScrolledAndModalTriggeredRef.current &&
+        preferences.isLoading === false &&
+        !fullBackendUser.selectedRole &&
+        !showOnboardingModal 
       ) {
-        let step: typeof profileSetupStep = null;
-        if (!fullBackendUser.selectedRole) {
-          step = 'role';
-        }
-        // No longer force other steps via this modal, only role selection
-
-        if (step) {
-          setProfileSetupStep(step);
-          setIsProfileSetupModalOpen(true);
-          hasScrolledAndModalTriggeredRef.current = true;
-        } else {
-          // If role is set, or no other compulsory step identified for *this modal*, mark as "done" for this session
-          hasScrolledAndModalTriggeredRef.current = true;
-        }
+        setProfileSetupStep('role');
+        setIsProfileSetupModalOpen(true);
+        hasScrolledAndModalTriggeredRef.current = true; 
+      } else if (currentUser && mongoDbUserId && fullBackendUser?.selectedRole && !hasScrolledAndModalTriggeredRef.current) {
+         hasScrolledAndModalTriggeredRef.current = true; 
       }
     };
 
-    if (isAuthenticated && !isGuestMode && fullBackendUser && !preferences.loadingPreferences) {
+    if (hasMounted && currentUser && mongoDbUserId && preferences.isLoading === false && fullBackendUser && !showOnboardingModal) {
       const needsRoleSetup = !fullBackendUser.selectedRole;
-
       if (needsRoleSetup && !hasScrolledAndModalTriggeredRef.current) {
         window.addEventListener('scroll', handleScroll, { once: true });
         return () => window.removeEventListener('scroll', handleScroll);
       } else if (!needsRoleSetup) {
-        hasScrolledAndModalTriggeredRef.current = true;
+         hasScrolledAndModalTriggeredRef.current = true;
       }
     }
-  }, [isAuthenticated, isGuestMode, fullBackendUser, preferences.loadingPreferences]);
+  }, [currentUser, mongoDbUserId, fullBackendUser, preferences.isLoading, isGuestModeActive, hasMounted, showOnboardingModal]);
 
   useEffect(() => {
-    if (isAuthenticated && !isGuestMode && fullBackendUser && !preferences.loadingPreferences) {
-      if (fullBackendUser.selectedRole === 'recruiter' && !fullBackendUser.companyProfileComplete && pathname !== '/recruiter-onboarding') {
-        router.push('/recruiter-onboarding');
+    if (isAppLoading || preferences.isLoading !== false || (currentUser && !isGuestModeActive && !fullBackendUser) || showOnboardingModal) {
+      return;
+    }
+
+    if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
+        if (pathname !== '/recruiter-onboarding') {
+            if (typeof window !== 'undefined') {
+                const skippedOnce = sessionStorage.getItem('skippedRecruiterOnboardingOnce');
+                if (skippedOnce === 'true') {
+                    sessionStorage.removeItem('skippedRecruiterOnboardingOnce');
+                    return;
+                }
+            }
+            router.push('/recruiter-onboarding');
+            return;
+        }
+    }
+
+    if (pathname === '/recruiter-onboarding') {
+      if (isGuestModeActive || !currentUser) {
+        router.push('/'); return;
+      }
+      if (fullBackendUser?.selectedRole !== 'recruiter' || fullBackendUser?.companyProfileComplete === true) {
+        router.push('/'); return;
       }
     }
-  }, [isAuthenticated, isGuestMode, fullBackendUser, preferences.loadingPreferences, pathname, router]);
-
+  }, [isAppLoading, pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile(); window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
+    if (hasMounted) {
+      checkMobile(); window.addEventListener('resize', checkMobile);
+      return () => window.removeEventListener('resize', checkMobile);
+    }
+  }, [hasMounted]);
 
   const handleStartExploring = useCallback(() => {
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-    setShowWelcomePage(false); 
-    // The main useEffect will re-evaluate and likely show LoginPage
-  }, []);
+    if (hasMounted) {
+      localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+    }
+    setHasSeenWelcome(true);
+    setShowWelcomePage(false);
+  }, [hasMounted]);
 
   const handleLoginBypass = useCallback(async () => {
     const mockUid = `mock-bypass-user-${Date.now()}`;
-    const mockUser: User = { uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)', emailVerified: true, isAnonymous: false, metadata: {creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber: null, photoURL: null, providerData: [], providerId: 'firebase', refreshToken: 'mock-refresh-token', tenantId: null, delete: () => Promise.resolve(), getIdToken: () => Promise.resolve('mock-id-token'), getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }), reload: () => Promise.resolve(), toJSON: () => ({ uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }), };
-    setCurrentUser(mockUser);
-    setIsAuthenticated(true);
-    setIsGuestMode(false);
-    localStorage.removeItem(GUEST_MODE_KEY);
-    setUserPhotoURL(mockUser.photoURL);
-    const fetchedMongoId = await fetchUserFromMongo(mockUid, mockUser.displayName, mockUser.email);
-    if (fetchedMongoId) { await fetchAndSetUserPreferences(fetchedMongoId); }
-    setShowWelcomePage(false);
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
-    
-    initialAuthStateReceived.current = true; // Simulate auth checks completed
-    initialRedirectResultProcessed.current = true;
-    performFinalSetup(); // Call to finalize loading state
+    const mockUserInstance: User = { uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)', emailVerified: true, isAnonymous: false, metadata: {creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber: null, photoURL: null, providerData: [], providerId: 'firebase', refreshToken: 'mock-refresh-token', tenantId: null, delete: () => Promise.resolve(), getIdToken: () => Promise.resolve('mock-id-token'), getIdTokenResult: () => Promise.resolve({ token: 'mock-id-token', expirationTime: '', authTime: '', issuedAtTime: '', signInProvider: null, signInSecondFactor: null, claims: {} }), reload: () => Promise.resolve(), toJSON: () => ({ uid: mockUid, email: 'dev.user@example.com', displayName: 'Dev User (Bypass)' }), };
 
+    if (hasMounted) {
+      localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+      localStorage.removeItem(GUEST_MODE_KEY);
+      localStorage.setItem(HAS_SEEN_ONBOARDING_MODAL_KEY, 'true'); 
+    }
+    setHasSeenWelcome(true);
+    setIsGuestModeActive(false);
+    setShowOnboardingModal(false); 
+
+    setCurrentUser(mockUserInstance);
+    setFirebaseAuthStateResolved(true);
+    setFirebaseRedirectResultResolved(true);
+
+    await fetchUserFromBackendAndSetContext(mockUid, mockUserInstance.displayName, mockUserInstance.email);
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
-  }, [fetchUserFromMongo, fetchAndSetUserPreferences, toast, performFinalSetup]);
+  }, [fetchUserFromBackendAndSetContext, toast, hasMounted]);
 
-  const activateGuestMode = useCallback(() => {
-    localStorage.setItem(GUEST_MODE_KEY, 'true');
-    setIsGuestMode(true);
-    setIsAuthenticated(false);
-    setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
-    setUserRole(null); setUserName('Guest User'); setUserPhotoURL(null);
-    setShowWelcomePage(false);
-    setMongoDbUserId(null); localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
-    hasScrolledAndModalTriggeredRef.current = true; 
-    
-    initialAuthStateReceived.current = true; // Simulate auth checks completed for guest path
-    initialRedirectResultProcessed.current = true;
-    performFinalSetup(); // Call to finalize loading state
+  const activateGuestMode = useCallback(async () => {
+    if (hasMounted) {
+      localStorage.setItem(GUEST_MODE_KEY, 'true');
+      localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
+      localStorage.setItem(HAS_SEEN_ONBOARDING_MODAL_KEY, 'true'); 
+    }
+    setIsGuestModeActive(true);
+    setHasSeenWelcome(true);
+    setShowOnboardingModal(false); 
+
+    setCurrentUser(null);
+    setMongoDbUserId(null);
+    updateFullBackendUserFields(null);
+
+    setFirebaseAuthStateResolved(true);
+    setFirebaseRedirectResultResolved(true);
+
     toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
-  }, [performFinalSetup, setMongoDbUserId, toast]);
+  }, [setMongoDbUserId, toast, hasMounted, updateFullBackendUserFields]);
 
   const handleGuestMode = useCallback(() => {
     activateGuestMode();
-    localStorage.setItem(HAS_SEEN_WELCOME_KEY, 'true');
   }, [activateGuestMode]);
 
   const handleRoleSelect = async (role: UserRole, currentMongoId?: string | null) => {
     const idToUse = currentMongoId || mongoDbUserId;
-    if (!isGuestMode && isAuthenticated && currentUser && idToUse) {
-      try {
-        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedRole: role, name: userName || currentUser.displayName, email: currentUser.email }), });
-        if (!response.ok) { const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`})); throw new Error(errorData.message); }
-        const savedUser = await response.json();
-        setUserRole(role); 
-        localStorage.setItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY, (role === 'recruiter' && savedUser.user?.companyProfileComplete) ? 'true' : 'false');
-        await fetchAndSetUserPreferences(idToUse); 
-
-        if (role === 'recruiter' && !savedUser.user?.companyProfileComplete) {
-          toast({ title: "Role Updated to Recruiter", description: "Redirecting to company onboarding.", duration: 5000});
-          // The useEffect for recruiter onboarding will handle the redirect.
-        } else if (role === 'jobseeker') {
-          toast({ title: "Role Updated to Job Seeker", description: "Welcome! You can complete your profile details in 'My Profile' anytime.", duration: 7000 });
-        } else {
-          toast({ title: "Role Selected", description: `You are now a ${role}.` });
-        }
-      } catch (error: any) { console.error("Error saving role:", error); toast({ title: "Error Saving Role", description: error.message || "Could not save role selection.", variant: "destructive" }); }
+    if (isGuestModeActive || !currentUser || !idToUse) {
+        toast({title: "Error", description: "Action requires login and profile.", variant: "destructive"});
+        return;
     }
-    if (!isGuestMode) setUserRole(role); 
-    setIsProfileSetupModalOpen(false); 
+    try {
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedRole: role, name: fullBackendUser?.name || currentUser.displayName, email: fullBackendUser?.email || currentUser.email }), });
+      if (!response.ok) { const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`})); throw new Error(errorData.message); }
+
+      const savedUserData = await response.json();
+      if(savedUserData.user){
+         updateFullBackendUserFields(savedUserData.user); 
+         await fetchAndSetUserPreferences(idToUse); 
+          if (typeof window !== 'undefined') { 
+            localStorage.setItem('userSelectedRole', role);
+        }
+      }
+
+      const companyProfileIsComplete = role === 'recruiter' && savedUserData.user?.companyProfileComplete;
+
+      if (role === 'recruiter' && !companyProfileIsComplete) {
+        toast({ title: "Role Set to Recruiter", description: "Please complete your company profile. You might be redirected.", duration: 8000});
+      } else if (role === 'recruiter' && companyProfileIsComplete) {
+        toast({ title: "Role Set to Recruiter", description: "Your company profile is complete."});
+      } else if (role === 'jobseeker') {
+        toast({ title: "Role Set to Job Seeker", description: "Welcome! You can fill out your detailed profile in 'My Profile'.", duration: 7000 });
+      } else {
+        toast({ title: "Role Selected", description: `You are now a ${role}.` });
+      }
+    } catch (error: any) { console.error("Error saving role:", error); toast({ title: "Error Saving Role", description: error.message || "Could not save role selection.", variant: "destructive" }); }
+    setIsProfileSetupModalOpen(false);
     hasScrolledAndModalTriggeredRef.current = true; 
   };
 
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      // Clear all relevant local storage and state
-      localStorage.removeItem(GUEST_MODE_KEY);
-      localStorage.removeItem(RECRUITER_COMPANY_PROFILE_COMPLETE_KEY);
-      localStorage.removeItem('mongoDbUserId');
-      localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
-      localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
-      
+      if (hasMounted) {
+        localStorage.removeItem(GUEST_MODE_KEY);
+        localStorage.removeItem('mongoDbUserId');
+        localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
+        localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
+        localStorage.removeItem(HAS_SEEN_ONBOARDING_MODAL_KEY); 
+        sessionStorage.removeItem('skippedRecruiterOnboardingOnce');
+      }
+      setIsGuestModeActive(false);
+      setHasSeenWelcome(false);
+      setShowOnboardingModal(false); 
+
       setMongoDbUserId(null);
-      setIsGuestMode(false);
+      setCurrentUser(null);
+      updateFullBackendUserFields(null);
+      setFirebaseAuthStateResolved(false);
+      setFirebaseRedirectResultResolved(false);
+
+      setUserName(null);
       setUserPhotoURL(null);
-      setActiveTab('findJobs'); // Reset tab
+      setActiveTab('findJobs');
       hasScrolledAndModalTriggeredRef.current = false;
-      
-      // Critical: Reset auth flags and re-trigger initial loading sequence
-      initialAuthStateReceived.current = false;
-      initialRedirectResultProcessed.current = false;
-      setCurrentUser(null); // This should trigger onAuthStateChanged
-      setIsAuthenticated(false); // Explicitly set
-      // setShowWelcomePage will be determined by performFinalSetup
-      setIsInitialLoading(true); // Force re-evaluation
+
+      setShowWelcomePage(true);
+      setIsAppLoading(true);
 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) { console.error("Error signing out:", error); toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" }); }
   };
 
-  const handleLoginRequest = () => { 
-    localStorage.removeItem(GUEST_MODE_KEY);
-    localStorage.removeItem(HAS_SEEN_WELCOME_KEY); 
-    
-    setIsGuestMode(false);
-    // Reset auth flags and re-trigger initial loading sequence
-    initialAuthStateReceived.current = false;
-    initialRedirectResultProcessed.current = false;
+  const handleLoginRequest = () => {
+    if (hasMounted) {
+      localStorage.removeItem(GUEST_MODE_KEY);
+    }
+    setIsGuestModeActive(false);
+    setShowOnboardingModal(false); 
+
     setCurrentUser(null);
-    setIsAuthenticated(false);
-    // setShowWelcomePage will be determined by performFinalSetup
-    setIsInitialLoading(true);
+    setMongoDbUserId(null);
+    updateFullBackendUserFields(null);
+    setFirebaseAuthStateResolved(false);
+    setFirebaseRedirectResultResolved(false);
+
+    setShowWelcomePage(false);
+    setIsAppLoading(true);
   };
 
   const baseTabItems = [
-    { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage isGuestMode={isGuestMode} currentUserRole={userRole} /> },
-    { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage isGuestMode={isGuestMode} /> },
-    { value: "settings", label: "Settings", icon: UserCog, component: <SettingsPage isGuestMode={isGuestMode} currentUserRole={userRole} onRoleChange={(role) => handleRoleSelect(role, mongoDbUserId)} /> },
+    { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage isGuestMode={isGuestModeActive} currentUserRole={fullBackendUser?.selectedRole || null} /> },
+    { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage isGuestMode={isGuestModeActive} /> },
+    { value: "settings", label: "Settings", icon: UserCog, component: <SettingsPage isGuestMode={isGuestModeActive} currentUserRole={fullBackendUser?.selectedRole || null} /> },
   ];
-  const recruiterTabItems = [ { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} key={`cand-discovery-${userRole}-${mongoDbUserId}`} isGuestMode={isGuestMode} /> }, { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage isGuestMode={isGuestMode} /> }, { value: "manageJobs", label: "Manage Jobs", icon: SettingsIcon, component: <ManageJobPostingsPage isGuestMode={isGuestMode} /> }, ...baseTabItems, ];
-  const jobseekerTabItems = [ { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} key={`job-discovery-${userRole}-${mongoDbUserId}`} /> }, { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage isGuestMode={isGuestMode} /> }, { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestMode} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} /> }, ...baseTabItems, ];
+  const recruiterTabItems = [ { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} key={`cand-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`} isGuestMode={isGuestModeActive} /> }, { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage isGuestMode={isGuestModeActive} /> }, { value: "manageJobs", label: "Manage Jobs", icon: SettingsIcon, component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} /> }, ...baseTabItems, ];
+  const jobseekerTabItems = [ { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} key={`job-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`} /> }, { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage isGuestMode={isGuestModeActive} /> }, { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestModeActive} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} /> }, ...baseTabItems, ];
+
+  const currentRoleForTabs = fullBackendUser?.selectedRole;
   let currentTabItems = jobseekerTabItems;
-  if (!isGuestMode && isAuthenticated && userRole === 'recruiter') { currentTabItems = recruiterTabItems; }
-  else if (!isGuestMode && isAuthenticated && userRole === 'jobseeker') { currentTabItems = jobseekerTabItems; }
-  else if (isGuestMode) { currentTabItems = jobseekerTabItems; }
+
+  if (!isGuestModeActive && currentUser && currentRoleForTabs === 'recruiter') { currentTabItems = recruiterTabItems; }
+  else if (!isGuestModeActive && currentUser && currentRoleForTabs === 'jobseeker') { currentTabItems = jobseekerTabItems; }
+  else if (isGuestModeActive) { currentTabItems = jobseekerTabItems; }
 
   useEffect(() => {
-    if (!isInitialLoading) {
-      const itemsForCurrentContext = isGuestMode ? jobseekerTabItems : (isAuthenticated && userRole === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
-      const validTabValues = itemsForCurrentContext.map(item => item.value);
-      let defaultTabForCurrentContext = "findJobs";
-      if (!isGuestMode && isAuthenticated && userRole === 'recruiter') defaultTabForCurrentContext = "findTalent";
-      if (!validTabValues.includes(activeTab) || (userRole === 'recruiter' && activeTab === 'findJobs') || (userRole === 'jobseeker' && activeTab === 'findTalent') || (isGuestMode && activeTab === 'findTalent') ) {
-        setActiveTab(defaultTabForCurrentContext);
-      }
+    if (isAppLoading || preferences.isLoading !== false || !hasMounted) return;
+
+    const itemsForCurrentContext = isGuestModeActive ? jobseekerTabItems : (currentUser && currentRoleForTabs === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
+    const validTabValues = itemsForCurrentContext.map(item => item.value);
+
+    let defaultTabForCurrentContext = "findJobs";
+    if (!isGuestModeActive && currentUser && currentRoleForTabs === 'recruiter') {
+      defaultTabForCurrentContext = "findTalent";
     }
-  }, [userRole, isGuestMode, isAuthenticated, isInitialLoading, activeTab, jobseekerTabItems, recruiterTabItems]);
+
+    if (!validTabValues.includes(activeTab) ||
+        (currentRoleForTabs === 'recruiter' && activeTab === 'findJobs') ||
+        (currentRoleForTabs === 'jobseeker' && activeTab === 'findTalent') ||
+        (isGuestModeActive && activeTab === 'findTalent')) {
+      setActiveTab(defaultTabForCurrentContext);
+    }
+  }, [currentRoleForTabs, isGuestModeActive, currentUser, isAppLoading, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]);
 
   const mainContentRender = () => {
-    if (isInitialLoading || (!isGuestMode && isAuthenticated && preferences.loadingPreferences)) {
+    if (!hasMounted) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
-    if (pathname === '/recruiter-onboarding') { return <RecruiterOnboardingPage />; }
-    if (showWelcomePage) { return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />; }
-    if (!isAuthenticated && !isGuestMode) { return ( <div className="animate-fadeInPage" key="login_page_wrapper"> <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} /> </div> ); }
 
-    const mainAppContainerClasses = cn("flex flex-col min-h-screen bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
+
+    if (isAppLoading) {
+      return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
+    }
+
+    if (currentUser && !isGuestModeActive && preferences.isLoading !== false) {
+      return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
+    }
+
+    if (pathname === '/recruiter-onboarding') {
+        if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
+             return <RecruiterOnboardingPage />;
+        }
+        return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
+    }
+
+    if (showOnboardingModal && !isGuestModeActive) {
+      return <OnboardingStepsModal isOpen={showOnboardingModal} onClose={handleCloseOnboardingModal} />;
+    }
+
+    if (showWelcomePage) { return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />; }
+    if (!currentUser && !isGuestModeActive) { return ( <div className="animate-fadeInPage" key="login_page_wrapper"> <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} /> </div> ); }
+
+    const mainAppContainerClasses = cn("flex flex-col flex-grow bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
     return (
       <div className={mainAppContainerClasses}>
         <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
-        <AppHeader isAuthenticated={isAuthenticated} isGuestMode={isGuestMode} onLoginRequest={handleLoginRequest} onLogout={handleLogout} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} userName={userName} userPhotoURL={userPhotoURL} />
-        <main className="flex-grow container mx-auto px-0 sm:px-4 py-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <AppHeader isAuthenticated={!!currentUser} isGuestMode={isGuestModeActive} onLoginRequest={handleLoginRequest} onLogout={handleLogout} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} userName={userName} userPhotoURL={userPhotoURL} />
+        <main className="flex-grow container mx-auto px-0 sm:px-4 py-4 flex flex-col">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
             {isMobile ? ( <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
             ) : (
-              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1`}>
+              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1 shrink-0`}>
                 {currentTabItems.map(item => ( <TabsTrigger key={item.value} value={item.value} className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"> <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" /> <span className="truncate">{item.label}</span> </TabsTrigger> ))}
               </TabsList>
             )}
-            {currentTabItems.map(item => ( <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg">
-                {React.cloneElement(item.component, { ...((item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }), isGuestMode, ...((item.value === 'settings') && { currentUserRole: userRole, onRoleChange: (role) => handleRoleSelect(role, mongoDbUserId) }), ...((item.value === 'aiTools') && { currentUserRole: userRole }), ...((item.value === 'myDiary') && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL }) })}
+            {currentTabItems.map(item => ( <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg flex-grow flex flex-col">
+                {React.cloneElement(item.component, {
+                    ...((item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
+                    isGuestMode: isGuestModeActive,
+                    ...((item.value === 'settings') && { currentUserRole: fullBackendUser?.selectedRole || null }), 
+                    ...((item.value === 'aiTools') && { currentUserRole: fullBackendUser?.selectedRole || null }),
+                    ...((item.value === 'myDiary') && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
+                })}
             </TabsContent> ))}
           </Tabs>
         </main>
-        <footer className="text-center p-4 text-sm text-muted-foreground border-t">
+        <footer className="text-center p-4 text-sm text-muted-foreground border-t shrink-0">
           <div className="mb-4"> <div className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6840338e0d1dfb766b149a4b" data-style-height="52px" data-style-width="100%"> <a href="https://www.trustpilot.com/review/studio--swipehire-3bscz.us-central1.hosted.app" target="_blank" rel="noopener">Trustpilot</a> </div> </div>
           <div className="flex justify-center items-center gap-x-4 mb-1"> <span className="hover:text-primary cursor-pointer">Privacy Policy</span> <span className="hover:text-primary cursor-pointer">Terms of Service</span> <span className="hover:text-primary cursor-pointer">AI Ethics</span> </div>
           <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
@@ -420,15 +554,15 @@ function AppContent() {
               </DialogDescription>
             </DialogHeader>
             <div className="py-4 space-y-4">
-              {profileSetupStep === 'role' && ( 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> 
-                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('recruiter', mongoDbUserId); }}> <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" /> <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span> <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span> </Button> 
-                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('jobseeker', mongoDbUserId); }}> <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" /> <span className="font-semibold text-foreground">I'm Job Hunting</span> <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span> </Button> 
-                </div> 
+              {profileSetupStep === 'role' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('recruiter', mongoDbUserId); }}> <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" /> <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span> <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span> </Button>
+                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('jobseeker', mongoDbUserId); }}> <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" /> <span className="font-semibold text-foreground">I'm Job Hunting</span> <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span> </Button>
+                </div>
               )}
             </div>
-            <DialogFooter className="sm:justify-center"> 
-              <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}> Maybe Later </Button> 
+            <DialogFooter className="sm:justify-center">
+              <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}> Maybe Later </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -455,8 +589,4 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-    
-    
 
-    
-    
