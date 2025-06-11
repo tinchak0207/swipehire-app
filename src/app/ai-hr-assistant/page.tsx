@@ -191,7 +191,7 @@ export default function AiHrAssistantPage() {
                   <span><span className="font-semibold">Guaranteed Reply Within 72 Hours:</span> Helps maintain high company reputation scores.</span>
                 </li>
               </ul>
-              <Link href="/ai-hr-payment" passHref className="block mt-8"> {/* Increased margin here */}
+              <Link href="/ai-hr-payment" passHref className="block mt-8">
                 <Button
                   size="lg"
                   className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white w-full sm:w-auto text-lg px-10 py-3 subtle-button-hover shadow-lg hover:shadow-xl font-semibold transform hover:scale-105 transition-all duration-300"
@@ -206,7 +206,7 @@ export default function AiHrAssistantPage() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 mb-4">
-                      <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                      <Bot className="h-5 w-5 text-purple-400 animate-spin" />
                       <span className="text-white font-medium">AI Assistant working...</span>
                     </div>
                     
