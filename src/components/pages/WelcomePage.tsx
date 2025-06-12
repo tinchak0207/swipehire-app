@@ -154,7 +154,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
 
           <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight font-heading" data-aos="fade-up">
-              Unlock Your Career Potential <span className="text-accent">✨</span> Discover Top Talent.
+              Unlock Your Career <br />
+              Potential <span className="text-accent">✨</span> <br />
+              Discover Top Talent.
             </h1>
             <p className="text-base sm:text-lg md:text-xl text-slate-200 max-w-3xl mx-auto mb-10 leading-relaxed" data-aos="fade-up" data-aos-delay="100">
               SwipeHire revolutionizes recruitment with AI-powered video resumes and intelligent talent matching. Create your AI resume, find remote job opportunities, or connect with efficient recruitment software.
