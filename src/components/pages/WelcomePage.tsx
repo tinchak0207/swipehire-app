@@ -345,15 +345,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h3 className="text-xl font-semibold text-foreground mb-3">We are Award-Winning!</h3>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 flex-wrap">
-            <iframe
-              src="https://www.launchgns.com/badge?id=eab381b0-e1e8-450f-bf3d-768012770a82&style=default&theme=light&period=daily&showRank=false&showScore=true&target=_blank"
-              width="300px"
-              height="60px"
-              frameBorder="0"
-              scrolling="no"
-              title="LaunchGenius Monthly Champion Badge"
-              className="shadow-md rounded"
-            ></iframe>
+            {/* LaunchGNS iframe removed */}
             <a href="https://www.producthunt.com/products/swipehire?embed=true&utm_source=badge-featured&utm_medium=badge&utm_source=badge-swipehire" target="_blank" rel="noopener noreferrer">
               <Image
                 src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=973611&theme=dark&t=1748971139959"
