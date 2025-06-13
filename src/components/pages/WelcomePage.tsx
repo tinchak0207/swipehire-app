@@ -169,6 +169,17 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 <User className="mr-2 h-5 w-5" /> Continue as Guest
               </Button>
             </div>
+            <div className="flex justify-center mt-6" data-aos="fade-up" data-aos-delay="300">
+              <a href="https://fazier.com/launches/swipehire" target="_blank" rel="noopener noreferrer">
+                <Image 
+                  src="https://fazier.com/api/v1/public/badges/embed_image.svg?launch_id=4627&badge_type=daily&theme=light" 
+                  width={270} 
+                  height={54} 
+                  alt="Fazier badge" 
+                  className="shadow-md rounded hover:opacity-90 transition-opacity" 
+                />
+              </a>
+            </div>
             <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-bounce opacity-70 cursor-pointer" onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}>
               <ChevronDown className="h-8 w-8" />
             </div>
@@ -356,8 +367,8 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 className="shadow-md rounded"
               />
             </a>
-            <a href="https://fazier.com" target="_blank" rel="noopener noreferrer">
-              <Image src="https://fazier.com/api/v1//public/badges/launch_badges.svg?badge_type=featured&theme=dark" width={250} height={54} alt="Fazier badge" className="shadow-md rounded" />
+            <a href="https://fazier.com/launches/swipehire" target="_blank" rel="noopener noreferrer">
+              <Image src="https://fazier.com/api/v1/public/badges/embed_image.svg?launch_id=4627&badge_type=daily&theme=light" width={270} height={54} alt="Fazier badge" className="shadow-md rounded" />
             </a>
             <a href='https://www.saashub.com/swipehire?utm_source=badge&utm_campaign=badge&utm_content=swipehire&badge_variant=color&badge_kind=approved' target='_blank' rel="noopener noreferrer">
               <Image src="https://cdn-b.saashub.com/img/badges/approved-color.png?v=1" alt="SwipeHire badge" width={150} height={52} style={{maxWidth: "150px"}} className="shadow-md rounded"/>

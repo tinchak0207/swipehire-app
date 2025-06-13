@@ -7,7 +7,7 @@ import {googleAI} from '@genkit-ai/googleai';
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig(); // This line ensures .env is loaded
 
-const apiKey = process.env.GOOGLE_API_KEY;
+const apiKey = process.env.GOOGLE_API_KEY||"AIzaSyD7QbZ5y-WAPK6EI5dwyun2E0DE6HUFI-Y";
 
 // Log the status of the API key AT THE TIME OF MODULE INITIALIZATION
 if (!apiKey) {

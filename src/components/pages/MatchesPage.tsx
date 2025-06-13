@@ -224,7 +224,18 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
               </div>
             </div>
           </TabsContent>
-          <TabsContent value="ai_hr_tool" className="flex-grow mt-0 overflow-y-auto p-1 min-h-0"><AiHumanResourcesTab /></TabsContent>
+          <TabsContent value="ai_hr_tool" className="flex-grow mt-0 overflow-y-auto p-1 min-h-0">
+            {fullBackendUser?.aiHrToolEnabled ? (
+              <AiHumanResourcesTab />
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full">
+                <p className="mb-4 text-lg text-center">AI HR Tool is not enabled for your account.</p>
+                <Button onClick={() => window.location.href = '/ai-hr-assistant'}>
+                  Enable AI HR Tool
+                </Button>
+              </div>
+            )}
+          </TabsContent>
         </Tabs>
         <Alert variant="destructive" className="mx-0 mt-4 text-sm shrink-0 bg-red-50 border-red-200 text-red-700">
           <AlertTriangle className="h-4 w-4 !text-red-600" /><AlertTitle className="font-semibold text-red-800">Important Reminder</AlertTitle>
