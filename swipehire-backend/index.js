@@ -48,10 +48,13 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+    console.log(`[CORS Check] Request origin: ${origin}`); // Log the origin for every request
+    const isAllowed = !origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV !== 'production' && origin && origin.startsWith('http://localhost:')); // Allow all localhost in non-prod for dev flexibility
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
-      console.warn(`[CORS Blocked] Origin: ${origin}`);
+      console.warn(`[CORS Blocked] Origin: ${origin}. Allowed origins: ${allowedOrigins.join(', ')}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
