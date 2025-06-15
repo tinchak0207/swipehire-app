@@ -69,9 +69,9 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
-  const [isAppLoading, setIsAppLoading] = useState(true);
-  const [firebaseAuthStateResolved, setFirebaseAuthStateResolved] = useState(false);
-  const [firebaseRedirectResultResolved, setFirebaseRedirectResultResolved] = useState(false);
+  // const [isAppLoading, setIsAppLoading] = useState(true); // Removed
+  // const [firebaseAuthStateResolved, setFirebaseAuthStateResolved] = useState(false); // Removed
+  // const [firebaseRedirectResultResolved, setFirebaseRedirectResultResolved] = useState(false); // Removed
 
   const [isGuestModeActive, setIsGuestModeActive] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
@@ -192,9 +192,9 @@ function AppContent() {
     }
 
     // setFirebaseAuthStateResolved indicates that AppContent has processed the current auth state from context.
-    setFirebaseAuthStateResolved(true);
+    // setFirebaseAuthStateResolved(true); // Removed: No longer managing this local state
 
-  }, [currentUser, hasMounted, fetchUserFromBackendAndSetContext, isGuestModeActive, setShowOnboardingModal]); // mongoDbUserId removed as direct dependency for triggering fetch, but used inside for onboarding.
+  }, [currentUser, hasMounted, fetchUserFromBackendAndSetContext, isGuestModeActive, setShowOnboardingModal, mongoDbUserId]);
 
   // useEffect for getRedirectResult (runs once on mount)
   useEffect(() => {
@@ -219,9 +219,9 @@ function AppContent() {
       })
       .finally(() => {
         // This was part of the original AppContent loading logic
-        setFirebaseRedirectResultResolved(true);
+        // setFirebaseRedirectResultResolved(true); // Removed: No longer managing this local state
       });
-  }, [hasMounted, toast]); // Removed auth from dependencies as it's stable
+  }, [hasMounted, toast]);
 
 
   const handleCloseOnboardingModal = () => {
@@ -249,14 +249,16 @@ function AppContent() {
     }
   }, [fullBackendUser, currentUser, mongoDbUserId]);
 
+  // useEffect for determining when main app content can be shown (was isAppLoading)
+  // This effect now primarily ensures that hasMounted is true and preferences.isLoading is false.
   useEffect(() => {
-    if (firebaseAuthStateResolved && firebaseRedirectResultResolved) {
-      setIsAppLoading(false);
-    }
-  }, [firebaseAuthStateResolved, firebaseRedirectResultResolved]);
+    // The actual rendering logic in mainContentRender will use preferences.isLoading
+    // No direct state like setIsAppLoading(false) is needed here anymore.
+  }, [preferences.isLoading, hasMounted]);
 
   useEffect(() => {
-    if (isAppLoading || !hasMounted) {
+    // Logic for showing welcome page or main content
+    if (preferences.isLoading || !hasMounted) { // Use preferences.isLoading
         return;
     }
 
@@ -273,7 +275,7 @@ function AppContent() {
     } else if (!showOnboardingModal) { 
       setShowWelcomePage(!hasSeenWelcome);
     }
-  }, [isAppLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]);
+  }, [preferences.isLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]); // Replaced isAppLoading with preferences.isLoading
 
   useEffect(() => {
     const handleScroll = () => {
@@ -305,7 +307,18 @@ function AppContent() {
   }, [currentUser, mongoDbUserId, fullBackendUser, preferences.isLoading, isGuestModeActive, hasMounted, showOnboardingModal]);
 
   useEffect(() => {
-    if (isAppLoading || preferences.isLoading !== false || (currentUser && !isGuestModeActive && !fullBackendUser) || showOnboardingModal) {
+    // This effect's dependency on isAppLoading was removed.
+    // It should now depend on preferences.isLoading and other relevant states.
+    // Ensure fullBackendUser check is robust for redirection logic.
+    if (preferences.isLoading || !hasMounted || showOnboardingModal) { // Added !hasMounted, removed complex currentUser/fullBackendUser check for initial guard
+      return;
+    }
+    // Specific logic for redirection can then check currentUser and fullBackendUser
+    if (currentUser && !isGuestModeActive && !fullBackendUser && !preferences.isLoading) {
+      // If we have a Firebase user, not in guest mode, but no fullBackendUser yet, and not actively loading,
+      // it might mean fetchUserFromBackendAndSetContext is still pending or failed.
+      // This state should ideally be covered by preferences.isLoading. If not, this indicates a potential gap.
+      // For now, we assume preferences.isLoading covers this.
       return;
     }
 
@@ -331,7 +344,7 @@ function AppContent() {
         router.push('/'); return;
       }
     }
-  }, [isAppLoading, pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal]);
+  }, [pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal, hasMounted]); // Removed isAppLoading, added hasMounted
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -483,12 +496,11 @@ function AppContent() {
     setMongoDbUserId(null);
     updateFullBackendUserFields(null);
     // These are reset when context currentUser becomes null if still needed by RootLayout/context
-    // For AppContent, firebaseAuthStateResolved is now set based on context currentUser processing.
-    // setFirebaseAuthStateResolved(false);
-    // setFirebaseRedirectResultResolved(false);
+    // For AppContent, firebaseAuthStateResolved and setFirebaseRedirectResultResolved are no longer used.
+    // Their purpose is effectively replaced by observing currentUser and preferences.isLoading from context.
 
     setShowWelcomePage(false);
-    setIsAppLoading(true); // Keep this for login, as it indicates a state change is in progress
+    // setIsAppLoading(true); // This was related to the old local loading state, not needed.
   };
 
   const baseTabItems = [
@@ -507,7 +519,8 @@ function AppContent() {
   else if (isGuestModeActive) { currentTabItems = jobseekerTabItems; }
 
   useEffect(() => {
-    if (isAppLoading || preferences.isLoading !== false || !hasMounted) return;
+    // isAppLoading removed from dependency array and condition
+    if (preferences.isLoading || !hasMounted) return; // Simplified condition: if still loading OR not mounted, bail.
 
     const itemsForCurrentContext = isGuestModeActive ? jobseekerTabItems : (currentUser && currentRoleForTabs === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
     const validTabValues = itemsForCurrentContext.map(item => item.value);
@@ -523,21 +536,20 @@ function AppContent() {
         (isGuestModeActive && activeTab === 'findTalent')) {
       setActiveTab(defaultTabForCurrentContext);
     }
-  }, [currentRoleForTabs, isGuestModeActive, currentUser, isAppLoading, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]);
+  }, [currentRoleForTabs, isGuestModeActive, currentUser, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]); // Removed isAppLoading
 
   const mainContentRender = () => {
     if (!hasMounted) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
-
-    if (isAppLoading) {
+    // Primary loading state check using preferences.isLoading
+    if (preferences.isLoading) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
-    if (currentUser && !isGuestModeActive && preferences.isLoading !== false) {
-      return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
-    }
+    // The specific check for (currentUser && !isGuestModeActive && preferences.isLoading !== false) was removed
+    // as preferences.isLoading should cover the state where essential backend data (fullBackendUser) is still loading.
 
     if (pathname === '/recruiter-onboarding') {
         if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
