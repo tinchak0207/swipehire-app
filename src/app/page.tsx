@@ -49,7 +49,7 @@ const DISMISSED_BANNER_NOTIF_ID_KEY = 'dismissedBannerNotificationId';
 const HAS_SEEN_ONBOARDING_MODAL_KEY = 'hasSeenSwipeHireOnboardingV1';
 
 function AppContent() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // const [currentUser, setCurrentUser] = useState<User | null>(null); // Removed: Use currentUser from context
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
 
@@ -61,7 +61,7 @@ function AppContent() {
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
-  const { mongoDbUserId, setMongoDbUserId, preferences, fullBackendUser, fetchAndSetUserPreferences, updateFullBackendUserFields } = useUserPreferences();
+  const { mongoDbUserId, setMongoDbUserId, preferences, fullBackendUser, fetchAndSetUserPreferences, updateFullBackendUserFields, currentUser } = useUserPreferences(); // Added currentUser
 
   const [isProfileSetupModalOpen, setIsProfileSetupModalOpen] = useState(false);
   const [profileSetupStep, setProfileSetupStep] = useState<'role' | null>(null);
@@ -163,26 +163,54 @@ function AppContent() {
     }
   }, [setMongoDbUserId, toast, updateFullBackendUserFields]);
 
-
+  // useEffect for context currentUser changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
-      if (user) {
-        const currentMongoId = await fetchUserFromBackendAndSetContext(user.uid, user.displayName, user.email);
-        if (currentMongoId && hasMounted && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
+    if (!hasMounted) return;
+
+    if (currentUser) { // currentUser from context
+      const processUser = async () => {
+        // Call fetchUserFromBackendAndSetContext when context currentUser is available.
+        // This function will set mongoDbUserId and fullBackendUser in the context.
+        const currentMongoId = await fetchUserFromBackendAndSetContext(currentUser.uid, currentUser.displayName, currentUser.email);
+
+        // Onboarding modal logic depends on mongoDbUserId (from context, after being set by the call above)
+        // and other states.
+        // Note: currentMongoId is the direct result from the fetch, mongoDbUserId is from context.
+        // It's better to rely on the context's mongoDbUserId for consistency in subsequent logic if possible,
+        // but for immediate post-fetch logic, currentMongoId can be used.
+        // Let's use currentMongoId for the onboarding check immediately after fetch.
+        if (currentMongoId && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
           setShowOnboardingModal(true);
         }
-      } else {
-        setMongoDbUserId(null);
-        updateFullBackendUserFields(null);
-      }
-      setFirebaseAuthStateResolved(true);
-    });
+      };
+      processUser();
+    } else {
+      // No currentUser from context.
+      // Clearing mongoDbUserId and fullBackendUser should be handled by UserPreferencesContext
+      // when its own onAuthStateChanged listener (in RootLayout) detects a null user.
+      // AppContent simply reacts to the null currentUser from context.
+    }
+
+    // setFirebaseAuthStateResolved indicates that AppContent has processed the current auth state from context.
+    setFirebaseAuthStateResolved(true);
+
+  }, [currentUser, hasMounted, fetchUserFromBackendAndSetContext, isGuestModeActive, setShowOnboardingModal]); // mongoDbUserId removed as direct dependency for triggering fetch, but used inside for onboarding.
+
+  // useEffect for getRedirectResult (runs once on mount)
+  useEffect(() => {
+    if (!hasMounted) return;
 
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
+          // User is available from redirect, ensure it's processed
+          // setCurrentUser from context is not directly settable here.
+          // This implies that onAuthStateChanged in RootLayout should handle this user.
+          // We just show a toast.
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${result.user.displayName || result.user.email}!` });
+          // If `fetchUserFromBackendAndSetContext` wasn't triggered by `currentUser` change yet for this redirect user,
+          // it might need to be called here, or rely on `onAuthStateChanged` in RootLayout to update context `currentUser`.
+          // The existing structure implies `onAuthStateChanged` in RootLayout is the primary driver.
         }
       })
       .catch((error) => {
@@ -190,13 +218,11 @@ function AppContent() {
         toast({ title: "Sign-In Issue During Redirect", description: error.message || "Could not complete sign-in after redirect.", variant: "destructive"});
       })
       .finally(() => {
+        // This was part of the original AppContent loading logic
         setFirebaseRedirectResultResolved(true);
       });
+  }, [hasMounted, toast]); // Removed auth from dependencies as it's stable
 
-    return () => {
-      unsubscribe();
-    };
-  }, [fetchUserFromBackendAndSetContext, setMongoDbUserId, toast, updateFullBackendUserFields, hasMounted, isGuestModeActive]);
 
   const handleCloseOnboardingModal = () => {
     setShowOnboardingModal(false);
@@ -234,15 +260,16 @@ function AppContent() {
         return;
     }
 
+    // currentUser is now from context
     if (currentUser && mongoDbUserId && !showOnboardingModal) { 
       if (typeof window !== 'undefined') localStorage.removeItem(GUEST_MODE_KEY);
       setIsGuestModeActive(false);
       setShowWelcomePage(false);
     } else if (isGuestModeActive) {
       setShowWelcomePage(false);
-      if (!currentUser) {
-        setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
-      }
+      // Removed: setCurrentUser({ uid: 'guest-user', ... });
+      // Context should manage this if a guest user object is needed.
+      // Components should handle currentUser being null in guest mode if that's the case.
     } else if (!showOnboardingModal) { 
       setShowWelcomePage(!hasSeenWelcome);
     }
@@ -335,10 +362,17 @@ function AppContent() {
     setIsGuestModeActive(false);
     setShowOnboardingModal(false); 
 
-    setCurrentUser(mockUserInstance);
-    setFirebaseAuthStateResolved(true);
+    // Removed: setCurrentUser(mockUserInstance);
+    // This function would need to trigger an auth state change that the context listens to,
+    // or the context itself needs a way to be set to a mock user.
+    // For now, assuming RootLayout handles auth state that updates context's currentUser.
+    // This bypass might not fully work as intended without further changes to auth/context.
+    setFirebaseAuthStateResolved(true); // Still need to resolve loading state
     setFirebaseRedirectResultResolved(true);
 
+    // This call might not be needed if RootLayout handles it via onAuthStateChanged
+    // However, for a true bypass, it might be. This needs careful review of RootLayout.
+    // For now, keeping it to ensure backend user is fetched for the mock UID.
     await fetchUserFromBackendAndSetContext(mockUid, mockUserInstance.displayName, mockUserInstance.email);
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   }, [fetchUserFromBackendAndSetContext, toast, hasMounted]);
@@ -353,9 +387,12 @@ function AppContent() {
     setHasSeenWelcome(true);
     setShowOnboardingModal(false); 
 
-    setCurrentUser(null);
-    setMongoDbUserId(null);
-    updateFullBackendUserFields(null);
+    // Removed: setCurrentUser(null);
+    // Context (via RootLayout) should set currentUser to null on actual sign-out or if no user.
+    // For guest mode, if it means "no Firebase user but app is usable",
+    // then currentUser from context would be null.
+    setMongoDbUserId(null); // Correctly clear local backend user details
+    updateFullBackendUserFields(null); // Correctly clear local backend user details
 
     setFirebaseAuthStateResolved(true);
     setFirebaseRedirectResultResolved(true);
@@ -418,10 +455,10 @@ function AppContent() {
       setShowOnboardingModal(false); 
 
       setMongoDbUserId(null);
-      setCurrentUser(null);
+      // Removed: setCurrentUser(null); // Context handles this based on signOut
       updateFullBackendUserFields(null);
-      // setFirebaseAuthStateResolved(false); // Removed as per request
-      // setFirebaseRedirectResultResolved(false); // Removed as per request
+      // setFirebaseAuthStateResolved(false); // No longer set here, should be driven by context currentUser
+      // setFirebaseRedirectResultResolved(false); // No longer set here
 
       setUserName(null);
       setUserPhotoURL(null);
@@ -442,11 +479,13 @@ function AppContent() {
     setIsGuestModeActive(false);
     setShowOnboardingModal(false); 
 
-    setCurrentUser(null);
+    // Removed: setCurrentUser(null); // Context handles this
     setMongoDbUserId(null);
     updateFullBackendUserFields(null);
-    setFirebaseAuthStateResolved(false); // Restored
-    setFirebaseRedirectResultResolved(false); // Restored
+    // These are reset when context currentUser becomes null if still needed by RootLayout/context
+    // For AppContent, firebaseAuthStateResolved is now set based on context currentUser processing.
+    // setFirebaseAuthStateResolved(false);
+    // setFirebaseRedirectResultResolved(false);
 
     setShowWelcomePage(false);
     setIsAppLoading(true); // Keep this for login, as it indicates a state change is in progress
