@@ -49,7 +49,7 @@ const DISMISSED_BANNER_NOTIF_ID_KEY = 'dismissedBannerNotificationId';
 const HAS_SEEN_ONBOARDING_MODAL_KEY = 'hasSeenSwipeHireOnboardingV1';
 
 function AppContent() {
-  // const [currentUser, setCurrentUser] = useState<User | null>(null); // Removed: Use currentUser from context
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
 
@@ -61,7 +61,7 @@ function AppContent() {
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
-  const { mongoDbUserId, setMongoDbUserId, preferences, fullBackendUser, fetchAndSetUserPreferences, updateFullBackendUserFields, currentUser } = useUserPreferences(); // Added currentUser
+  const { mongoDbUserId, setMongoDbUserId, preferences, fullBackendUser, fetchAndSetUserPreferences, updateFullBackendUserFields } = useUserPreferences();
 
   const [isProfileSetupModalOpen, setIsProfileSetupModalOpen] = useState(false);
   const [profileSetupStep, setProfileSetupStep] = useState<'role' | null>(null);
@@ -69,9 +69,9 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
-  // const [isAppLoading, setIsAppLoading] = useState(true); // Removed
-  // const [firebaseAuthStateResolved, setFirebaseAuthStateResolved] = useState(false); // Removed
-  // const [firebaseRedirectResultResolved, setFirebaseRedirectResultResolved] = useState(false); // Removed
+  const [isAppLoading, setIsAppLoading] = useState(true);
+  const [firebaseAuthStateResolved, setFirebaseAuthStateResolved] = useState(false);
+  const [firebaseRedirectResultResolved, setFirebaseRedirectResultResolved] = useState(false);
 
   const [isGuestModeActive, setIsGuestModeActive] = useState(false);
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
@@ -163,54 +163,26 @@ function AppContent() {
     }
   }, [setMongoDbUserId, toast, updateFullBackendUserFields]);
 
-  // useEffect for context currentUser changes
+
   useEffect(() => {
-    if (!hasMounted) return;
-
-    if (currentUser) { // currentUser from context
-      const processUser = async () => {
-        // Call fetchUserFromBackendAndSetContext when context currentUser is available.
-        // This function will set mongoDbUserId and fullBackendUser in the context.
-        const currentMongoId = await fetchUserFromBackendAndSetContext(currentUser.uid, currentUser.displayName, currentUser.email);
-
-        // Onboarding modal logic depends on mongoDbUserId (from context, after being set by the call above)
-        // and other states.
-        // Note: currentMongoId is the direct result from the fetch, mongoDbUserId is from context.
-        // It's better to rely on the context's mongoDbUserId for consistency in subsequent logic if possible,
-        // but for immediate post-fetch logic, currentMongoId can be used.
-        // Let's use currentMongoId for the onboarding check immediately after fetch.
-        if (currentMongoId && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        const currentMongoId = await fetchUserFromBackendAndSetContext(user.uid, user.displayName, user.email);
+        if (currentMongoId && hasMounted && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
           setShowOnboardingModal(true);
         }
-      };
-      processUser();
-    } else {
-      // No currentUser from context.
-      // Clearing mongoDbUserId and fullBackendUser should be handled by UserPreferencesContext
-      // when its own onAuthStateChanged listener (in RootLayout) detects a null user.
-      // AppContent simply reacts to the null currentUser from context.
-    }
-
-    // setFirebaseAuthStateResolved indicates that AppContent has processed the current auth state from context.
-    // setFirebaseAuthStateResolved(true); // Removed: No longer managing this local state
-
-  }, [currentUser, hasMounted, fetchUserFromBackendAndSetContext, isGuestModeActive, setShowOnboardingModal, mongoDbUserId]);
-
-  // useEffect for getRedirectResult (runs once on mount)
-  useEffect(() => {
-    if (!hasMounted) return;
+      } else {
+        setMongoDbUserId(null);
+        updateFullBackendUserFields(null);
+      }
+      setFirebaseAuthStateResolved(true);
+    });
 
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
-          // User is available from redirect, ensure it's processed
-          // setCurrentUser from context is not directly settable here.
-          // This implies that onAuthStateChanged in RootLayout should handle this user.
-          // We just show a toast.
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${result.user.displayName || result.user.email}!` });
-          // If `fetchUserFromBackendAndSetContext` wasn't triggered by `currentUser` change yet for this redirect user,
-          // it might need to be called here, or rely on `onAuthStateChanged` in RootLayout to update context `currentUser`.
-          // The existing structure implies `onAuthStateChanged` in RootLayout is the primary driver.
         }
       })
       .catch((error) => {
@@ -218,11 +190,13 @@ function AppContent() {
         toast({ title: "Sign-In Issue During Redirect", description: error.message || "Could not complete sign-in after redirect.", variant: "destructive"});
       })
       .finally(() => {
-        // This was part of the original AppContent loading logic
-        // setFirebaseRedirectResultResolved(true); // Removed: No longer managing this local state
+        setFirebaseRedirectResultResolved(true);
       });
-  }, [hasMounted, toast]);
 
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchUserFromBackendAndSetContext, setMongoDbUserId, toast, updateFullBackendUserFields, hasMounted, isGuestModeActive]);
 
   const handleCloseOnboardingModal = () => {
     setShowOnboardingModal(false);
@@ -249,33 +223,30 @@ function AppContent() {
     }
   }, [fullBackendUser, currentUser, mongoDbUserId]);
 
-  // useEffect for determining when main app content can be shown (was isAppLoading)
-  // This effect now primarily ensures that hasMounted is true and preferences.isLoading is false.
   useEffect(() => {
-    // The actual rendering logic in mainContentRender will use preferences.isLoading
-    // No direct state like setIsAppLoading(false) is needed here anymore.
-  }, [preferences.isLoading, hasMounted]);
+    if (firebaseAuthStateResolved && firebaseRedirectResultResolved) {
+      setIsAppLoading(false);
+    }
+  }, [firebaseAuthStateResolved, firebaseRedirectResultResolved]);
 
   useEffect(() => {
-    // Logic for showing welcome page or main content
-    if (preferences.isLoading || !hasMounted) { // Use preferences.isLoading
+    if (isAppLoading || !hasMounted) {
         return;
     }
 
-    // currentUser is now from context
     if (currentUser && mongoDbUserId && !showOnboardingModal) { 
       if (typeof window !== 'undefined') localStorage.removeItem(GUEST_MODE_KEY);
       setIsGuestModeActive(false);
       setShowWelcomePage(false);
     } else if (isGuestModeActive) {
       setShowWelcomePage(false);
-      // Removed: setCurrentUser({ uid: 'guest-user', ... });
-      // Context should manage this if a guest user object is needed.
-      // Components should handle currentUser being null in guest mode if that's the case.
+      if (!currentUser) {
+        setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
+      }
     } else if (!showOnboardingModal) { 
       setShowWelcomePage(!hasSeenWelcome);
     }
-  }, [preferences.isLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]); // Replaced isAppLoading with preferences.isLoading
+  }, [isAppLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -307,18 +278,7 @@ function AppContent() {
   }, [currentUser, mongoDbUserId, fullBackendUser, preferences.isLoading, isGuestModeActive, hasMounted, showOnboardingModal]);
 
   useEffect(() => {
-    // This effect's dependency on isAppLoading was removed.
-    // It should now depend on preferences.isLoading and other relevant states.
-    // Ensure fullBackendUser check is robust for redirection logic.
-    if (preferences.isLoading || !hasMounted || showOnboardingModal) { // Added !hasMounted, removed complex currentUser/fullBackendUser check for initial guard
-      return;
-    }
-    // Specific logic for redirection can then check currentUser and fullBackendUser
-    if (currentUser && !isGuestModeActive && !fullBackendUser && !preferences.isLoading) {
-      // If we have a Firebase user, not in guest mode, but no fullBackendUser yet, and not actively loading,
-      // it might mean fetchUserFromBackendAndSetContext is still pending or failed.
-      // This state should ideally be covered by preferences.isLoading. If not, this indicates a potential gap.
-      // For now, we assume preferences.isLoading covers this.
+    if (isAppLoading || preferences.isLoading !== false || (currentUser && !isGuestModeActive && !fullBackendUser) || showOnboardingModal) {
       return;
     }
 
@@ -344,7 +304,7 @@ function AppContent() {
         router.push('/'); return;
       }
     }
-  }, [pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal, hasMounted]); // Removed isAppLoading, added hasMounted
+  }, [isAppLoading, pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal]);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -375,17 +335,10 @@ function AppContent() {
     setIsGuestModeActive(false);
     setShowOnboardingModal(false); 
 
-    // Removed: setCurrentUser(mockUserInstance);
-    // This function would need to trigger an auth state change that the context listens to,
-    // or the context itself needs a way to be set to a mock user.
-    // For now, assuming RootLayout handles auth state that updates context's currentUser.
-    // This bypass might not fully work as intended without further changes to auth/context.
-    setFirebaseAuthStateResolved(true); // Still need to resolve loading state
+    setCurrentUser(mockUserInstance);
+    setFirebaseAuthStateResolved(true);
     setFirebaseRedirectResultResolved(true);
 
-    // This call might not be needed if RootLayout handles it via onAuthStateChanged
-    // However, for a true bypass, it might be. This needs careful review of RootLayout.
-    // For now, keeping it to ensure backend user is fetched for the mock UID.
     await fetchUserFromBackendAndSetContext(mockUid, mockUserInstance.displayName, mockUserInstance.email);
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
   }, [fetchUserFromBackendAndSetContext, toast, hasMounted]);
@@ -400,12 +353,9 @@ function AppContent() {
     setHasSeenWelcome(true);
     setShowOnboardingModal(false); 
 
-    // Removed: setCurrentUser(null);
-    // Context (via RootLayout) should set currentUser to null on actual sign-out or if no user.
-    // For guest mode, if it means "no Firebase user but app is usable",
-    // then currentUser from context would be null.
-    setMongoDbUserId(null); // Correctly clear local backend user details
-    updateFullBackendUserFields(null); // Correctly clear local backend user details
+    setCurrentUser(null);
+    setMongoDbUserId(null);
+    updateFullBackendUserFields(null);
 
     setFirebaseAuthStateResolved(true);
     setFirebaseRedirectResultResolved(true);
@@ -468,10 +418,10 @@ function AppContent() {
       setShowOnboardingModal(false); 
 
       setMongoDbUserId(null);
-      // Removed: setCurrentUser(null); // Context handles this based on signOut
+      setCurrentUser(null);
       updateFullBackendUserFields(null);
-      // setFirebaseAuthStateResolved(false); // No longer set here, should be driven by context currentUser
-      // setFirebaseRedirectResultResolved(false); // No longer set here
+      setFirebaseAuthStateResolved(false);
+      setFirebaseRedirectResultResolved(false);
 
       setUserName(null);
       setUserPhotoURL(null);
@@ -479,7 +429,7 @@ function AppContent() {
       hasScrolledAndModalTriggeredRef.current = false;
 
       setShowWelcomePage(true);
-      // setIsAppLoading(true); // Removed as per request
+      setIsAppLoading(true);
 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) { console.error("Error signing out:", error); toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" }); }
@@ -492,15 +442,14 @@ function AppContent() {
     setIsGuestModeActive(false);
     setShowOnboardingModal(false); 
 
-    // Removed: setCurrentUser(null); // Context handles this
+    setCurrentUser(null);
     setMongoDbUserId(null);
     updateFullBackendUserFields(null);
-    // These are reset when context currentUser becomes null if still needed by RootLayout/context
-    // For AppContent, firebaseAuthStateResolved and setFirebaseRedirectResultResolved are no longer used.
-    // Their purpose is effectively replaced by observing currentUser and preferences.isLoading from context.
+    setFirebaseAuthStateResolved(false);
+    setFirebaseRedirectResultResolved(false);
 
     setShowWelcomePage(false);
-    // setIsAppLoading(true); // This was related to the old local loading state, not needed.
+    setIsAppLoading(true);
   };
 
   const baseTabItems = [
@@ -519,8 +468,7 @@ function AppContent() {
   else if (isGuestModeActive) { currentTabItems = jobseekerTabItems; }
 
   useEffect(() => {
-    // isAppLoading removed from dependency array and condition
-    if (preferences.isLoading || !hasMounted) return; // Simplified condition: if still loading OR not mounted, bail.
+    if (isAppLoading || preferences.isLoading !== false || !hasMounted) return;
 
     const itemsForCurrentContext = isGuestModeActive ? jobseekerTabItems : (currentUser && currentRoleForTabs === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
     const validTabValues = itemsForCurrentContext.map(item => item.value);
@@ -536,20 +484,21 @@ function AppContent() {
         (isGuestModeActive && activeTab === 'findTalent')) {
       setActiveTab(defaultTabForCurrentContext);
     }
-  }, [currentRoleForTabs, isGuestModeActive, currentUser, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]); // Removed isAppLoading
+  }, [currentRoleForTabs, isGuestModeActive, currentUser, isAppLoading, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]);
 
   const mainContentRender = () => {
     if (!hasMounted) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
-    // Primary loading state check using preferences.isLoading
-    if (preferences.isLoading) {
+
+    if (isAppLoading) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
-    // The specific check for (currentUser && !isGuestModeActive && preferences.isLoading !== false) was removed
-    // as preferences.isLoading should cover the state where essential backend data (fullBackendUser) is still loading.
+    if (currentUser && !isGuestModeActive && preferences.isLoading !== false) {
+      return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
+    }
 
     if (pathname === '/recruiter-onboarding') {
         if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
