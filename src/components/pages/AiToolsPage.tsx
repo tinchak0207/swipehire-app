@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from '@/lib/utils';
 import { ResumeCreationFlowPage } from '@/components/pages/ResumeCreationFlowPage';
 import { useToast } from '@/hooks/use-toast';
-import { useUserPreferences } from '@/contexts/UserPreferencesContext'; // Added
+// Removed: import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 
 type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor' | 'prepHub';
 
@@ -65,36 +65,25 @@ const aiToolsData: AiTool[] = [
 ];
 
 interface AiToolsPageProps {
-  isGuestMode?: boolean; // Will be replaced by context derived value
-  currentUserRole?: UserRole | null; // Will be replaced by context derived value
+  isGuestMode?: boolean;
+  currentUserRole?: UserRole | null;
 }
 
-export function AiToolsPage({
-  isGuestMode: propIsGuestMode, // Keep prop for now, but prioritize context
-  currentUserRole: propCurrentUserRole // Keep prop for now, but prioritize context
-}: AiToolsPageProps) {
+export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) { // Reverted to use props directly
   const [showResumeCreationFlow, setShowResumeCreationFlow] = useState<boolean>(false);
   const { toast } = useToast();
-  const { fullBackendUser, preferences, currentUser } = useUserPreferences(); // Use context
-
-  // Derive guest mode and role from context if currentUser is available
-  const derivedIsGuestMode = currentUser === null; // currentUser from context will be null if not logged in
-  const derivedCurrentUserRole = fullBackendUser?.selectedRole || null;
-
-  // Use derived values, but fall back to props if context currentUser is unexpectedly undefined (should not happen if context is set up)
-  const isGuestMode = currentUser !== undefined ? derivedIsGuestMode : propIsGuestMode;
-  const currentUserRole = currentUser !== undefined ? derivedCurrentUserRole : propCurrentUserRole;
-
+  // Removed: const { fullBackendUser, preferences, currentUser } = useUserPreferences();
+  // Removed: Derived isGuestMode and currentUserRole
 
   const handleLaunchFlow = () => {
     if (isGuestMode) {
-      toast({ title: "Feature Locked", description: "Please sign in to create a video resume.", variant: "default" });
+      // The button is already disabled and shows "Sign In to Create", so a toast here might be redundant
+      // or could be simplified if it was part of the original design.
+      // For rollback, let's assume a simpler check or no toast if the button handles the visual state.
+      // If a toast is desired for guest mode attempt, it can be added back based on original behavior.
       return;
     }
-    if (!isGuestMode && (preferences.isLoading || !fullBackendUser)) {
-      toast({ title: "Loading user data...", description: "Please wait until your profile is fully loaded before starting." });
-      return;
-    }
+    // Removed: Check for preferences.isLoading and fullBackendUser
     setShowResumeCreationFlow(true);
   };
 
@@ -186,11 +175,7 @@ export function AiToolsPage({
               )}
             </div>
 
-            {/* DEVELOPER NOTE: Individual AI tool components launched from this page
-                that make backend calls depending on the user's full profile (fullBackendUser)
-                should also use useUserPreferences() and ensure !preferences.isLoading and fullBackendUser
-                are validated before making such calls. Show appropriate loading/disabled states within the tool itself.
-            */}
+            {/* DEVELOPER NOTE: Removed */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 max-w-4xl mx-auto w-full">
               {aiToolsData.map((tool) => (
                 <Card
