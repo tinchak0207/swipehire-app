@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
@@ -49,7 +48,7 @@ const DISMISSED_BANNER_NOTIF_ID_KEY = 'dismissedBannerNotificationId';
 const HAS_SEEN_ONBOARDING_MODAL_KEY = 'hasSeenSwipeHireOnboardingV1';
 
 function AppContent() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null); // Restored local state
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
 
@@ -61,6 +60,7 @@ function AppContent() {
   const { toast } = useToast();
   const router = useRouter();
   const pathname = usePathname();
+  // currentUser from context removed from destructuring
   const { mongoDbUserId, setMongoDbUserId, preferences, fullBackendUser, fetchAndSetUserPreferences, updateFullBackendUserFields } = useUserPreferences();
 
   const [isProfileSetupModalOpen, setIsProfileSetupModalOpen] = useState(false);
@@ -69,6 +69,7 @@ function AppContent() {
   const [showWelcomePage, setShowWelcomePage] = useState(false);
   const [showOnboardingModal, setShowOnboardingModal] = useState(false);
 
+  // Restored local loading states
   const [isAppLoading, setIsAppLoading] = useState(true);
   const [firebaseAuthStateResolved, setFirebaseAuthStateResolved] = useState(false);
   const [firebaseRedirectResultResolved, setFirebaseRedirectResultResolved] = useState(false);
@@ -87,7 +88,6 @@ function AppContent() {
       setHasSeenWelcome(localStorage.getItem(HAS_SEEN_WELCOME_KEY) === 'true');
     }
   }, [hasMounted]);
-
 
   useEffect(() => {
     if (hasMounted && preferences.notificationChannels?.inAppBanner && preferences.isLoading === false && (fullBackendUser?.selectedRole !== null && fullBackendUser?.selectedRole !== undefined) ) {
@@ -163,10 +163,10 @@ function AppContent() {
     }
   }, [setMongoDbUserId, toast, updateFullBackendUserFields]);
 
-
+  // Restored useEffect for onAuthStateChanged and getRedirectResult (manages local currentUser and local loading flags)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      setCurrentUser(user);
+      setCurrentUser(user); // Sets local currentUser
       if (user) {
         const currentMongoId = await fetchUserFromBackendAndSetContext(user.uid, user.displayName, user.email);
         if (currentMongoId && hasMounted && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
@@ -176,7 +176,7 @@ function AppContent() {
         setMongoDbUserId(null);
         updateFullBackendUserFields(null);
       }
-      setFirebaseAuthStateResolved(true);
+      setFirebaseAuthStateResolved(true); // local state
     });
 
     getRedirectResult(auth)
@@ -190,7 +190,7 @@ function AppContent() {
         toast({ title: "Sign-In Issue During Redirect", description: error.message || "Could not complete sign-in after redirect.", variant: "destructive"});
       })
       .finally(() => {
-        setFirebaseRedirectResultResolved(true);
+        setFirebaseRedirectResultResolved(true); // local state
       });
 
     return () => {
@@ -207,8 +207,8 @@ function AppContent() {
 
   useEffect(() => {
     if (fullBackendUser) {
-      setUserName(fullBackendUser.name || fullBackendUser.email || (currentUser?.displayName || currentUser?.email) || "User");
-      let finalPhotoURL = currentUser?.photoURL || null;
+      setUserName(fullBackendUser.name || fullBackendUser.email || (currentUser?.displayName || currentUser?.email) || "User"); // Uses local currentUser
+      let finalPhotoURL = currentUser?.photoURL || null; // Uses local currentUser
       if (fullBackendUser.profileAvatarUrl) {
         if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
           finalPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
@@ -217,12 +217,13 @@ function AppContent() {
         }
       }
       setUserPhotoURL(finalPhotoURL);
-    } else if (!mongoDbUserId && !currentUser) {
+    } else if (!mongoDbUserId && !currentUser) { // Uses local currentUser
       setUserName(null);
       setUserPhotoURL(null);
     }
-  }, [fullBackendUser, currentUser, mongoDbUserId]);
+  }, [fullBackendUser, currentUser, mongoDbUserId]); // Uses local currentUser
 
+  // Restored useEffect for managing local isAppLoading state
   useEffect(() => {
     if (firebaseAuthStateResolved && firebaseRedirectResultResolved) {
       setIsAppLoading(false);
@@ -230,28 +231,28 @@ function AppContent() {
   }, [firebaseAuthStateResolved, firebaseRedirectResultResolved]);
 
   useEffect(() => {
-    if (isAppLoading || !hasMounted) {
+    if (isAppLoading || !hasMounted) { // Uses local isAppLoading
         return;
     }
 
-    if (currentUser && mongoDbUserId && !showOnboardingModal) { 
+    if (currentUser && mongoDbUserId && !showOnboardingModal) { // Uses local currentUser
       if (typeof window !== 'undefined') localStorage.removeItem(GUEST_MODE_KEY);
       setIsGuestModeActive(false);
       setShowWelcomePage(false);
     } else if (isGuestModeActive) {
       setShowWelcomePage(false);
-      if (!currentUser) {
+      if (!currentUser) { // Uses local currentUser
         setCurrentUser({ uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User', emailVerified: false, isAnonymous:true, metadata:{creationTime: new Date().toISOString(), lastSignInTime: new Date().toISOString()}, phoneNumber:null, photoURL:null, providerData:[], providerId:'guest', refreshToken:'', tenantId:null, delete:async () => {}, getIdToken: async () => '', getIdTokenResult: async () => ({} as any), reload: async () => {}, toJSON: () => ({uid: 'guest-user', email: 'guest@example.com', displayName: 'Guest User'})} as User);
       }
     } else if (!showOnboardingModal) { 
       setShowWelcomePage(!hasSeenWelcome);
     }
-  }, [isAppLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]);
+  }, [isAppLoading, currentUser, mongoDbUserId, isGuestModeActive, hasSeenWelcome, hasMounted, showOnboardingModal]); // Uses local isAppLoading and currentUser
 
   useEffect(() => {
     const handleScroll = () => {
       if (
-        currentUser && mongoDbUserId && fullBackendUser &&
+        currentUser && mongoDbUserId && fullBackendUser && // Uses local currentUser
         !isGuestModeActive &&
         !hasScrolledAndModalTriggeredRef.current &&
         preferences.isLoading === false &&
@@ -261,12 +262,12 @@ function AppContent() {
         setProfileSetupStep('role');
         setIsProfileSetupModalOpen(true);
         hasScrolledAndModalTriggeredRef.current = true; 
-      } else if (currentUser && mongoDbUserId && fullBackendUser?.selectedRole && !hasScrolledAndModalTriggeredRef.current) {
+      } else if (currentUser && mongoDbUserId && fullBackendUser?.selectedRole && !hasScrolledAndModalTriggeredRef.current) { // Uses local currentUser
          hasScrolledAndModalTriggeredRef.current = true; 
       }
     };
 
-    if (hasMounted && currentUser && mongoDbUserId && preferences.isLoading === false && fullBackendUser && !showOnboardingModal) {
+    if (hasMounted && currentUser && mongoDbUserId && preferences.isLoading === false && fullBackendUser && !showOnboardingModal) { // Uses local currentUser
       const needsRoleSetup = !fullBackendUser.selectedRole;
       if (needsRoleSetup && !hasScrolledAndModalTriggeredRef.current) {
         window.addEventListener('scroll', handleScroll, { once: true });
@@ -275,14 +276,15 @@ function AppContent() {
          hasScrolledAndModalTriggeredRef.current = true;
       }
     }
-  }, [currentUser, mongoDbUserId, fullBackendUser, preferences.isLoading, isGuestModeActive, hasMounted, showOnboardingModal]);
+  }, [currentUser, mongoDbUserId, fullBackendUser, preferences.isLoading, isGuestModeActive, hasMounted, showOnboardingModal]); // Uses local currentUser
 
   useEffect(() => {
+    // Uses local isAppLoading and local currentUser
     if (isAppLoading || preferences.isLoading !== false || (currentUser && !isGuestModeActive && !fullBackendUser) || showOnboardingModal) {
       return;
     }
 
-    if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
+    if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) { // Uses local currentUser
         if (pathname !== '/recruiter-onboarding') {
             if (typeof window !== 'undefined') {
                 const skippedOnce = sessionStorage.getItem('skippedRecruiterOnboardingOnce');
@@ -297,14 +299,14 @@ function AppContent() {
     }
 
     if (pathname === '/recruiter-onboarding') {
-      if (isGuestModeActive || !currentUser) {
+      if (isGuestModeActive || !currentUser) { // Uses local currentUser
         router.push('/'); return;
       }
       if (fullBackendUser?.selectedRole !== 'recruiter' || fullBackendUser?.companyProfileComplete === true) {
         router.push('/'); return;
       }
     }
-  }, [isAppLoading, pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal]);
+  }, [isAppLoading, pathname, currentUser, fullBackendUser, preferences.isLoading, router, isGuestModeActive, showOnboardingModal, hasMounted]); // Uses local isAppLoading and currentUser
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -335,9 +337,10 @@ function AppContent() {
     setIsGuestModeActive(false);
     setShowOnboardingModal(false); 
 
-    setCurrentUser(mockUserInstance);
-    setFirebaseAuthStateResolved(true);
-    setFirebaseRedirectResultResolved(true);
+    setCurrentUser(mockUserInstance); // local state
+    setFirebaseAuthStateResolved(true); // local state
+    setFirebaseRedirectResultResolved(true); // local state
+    setIsAppLoading(false); // local state, bypass implies app is not in initial loading sequence
 
     await fetchUserFromBackendAndSetContext(mockUid, mockUserInstance.displayName, mockUserInstance.email);
     toast({ title: "Dev Bypass Active", description: "Proceeding with a mock development user." });
@@ -353,12 +356,13 @@ function AppContent() {
     setHasSeenWelcome(true);
     setShowOnboardingModal(false); 
 
-    setCurrentUser(null);
+    setCurrentUser(null); // local state
     setMongoDbUserId(null);
     updateFullBackendUserFields(null);
 
-    setFirebaseAuthStateResolved(true);
-    setFirebaseRedirectResultResolved(true);
+    setFirebaseAuthStateResolved(true); // local state
+    setFirebaseRedirectResultResolved(true); // local state
+    setIsAppLoading(false); // Guest mode means app is ready to show guest content
 
     toast({ title: "Guest Mode Activated", description: "You are browsing as a guest."});
   }, [setMongoDbUserId, toast, hasMounted, updateFullBackendUserFields]);
@@ -369,11 +373,12 @@ function AppContent() {
 
   const handleRoleSelect = async (role: UserRole, currentMongoId?: string | null) => {
     const idToUse = currentMongoId || mongoDbUserId;
-    if (isGuestModeActive || !currentUser || !idToUse) {
+    if (isGuestModeActive || !currentUser || !idToUse) { // Uses local currentUser
         toast({title: "Error", description: "Action requires login and profile.", variant: "destructive"});
         return;
     }
     try {
+      // Uses local currentUser
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${idToUse}/role`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ selectedRole: role, name: fullBackendUser?.name || currentUser.displayName, email: fullBackendUser?.email || currentUser.email }), });
       if (!response.ok) { const errorData = await response.json().catch(() => ({ message: `Failed to save role. Status: ${response.status}`})); throw new Error(errorData.message); }
 
@@ -417,22 +422,43 @@ function AppContent() {
       setHasSeenWelcome(false);
       setShowOnboardingModal(false); 
 
-      setMongoDbUserId(null);
-      setCurrentUser(null);
-      updateFullBackendUserFields(null);
-      setFirebaseAuthStateResolved(false);
-      setFirebaseRedirectResultResolved(false);
+      setMongoDbUserId(null); // context
+      setCurrentUser(null);   // local state
+      updateFullBackendUserFields(null); // context
+
+      // DO NOT setFirebaseAuthStateResolved(false) or firebaseRedirectResultResolved(false) here
+      // DO NOT set isAppLoading(true) here
 
       setUserName(null);
       setUserPhotoURL(null);
-      setActiveTab('findJobs');
+      setActiveTab('findJobs'); // Or appropriate default
       hasScrolledAndModalTriggeredRef.current = false;
 
-      setShowWelcomePage(true);
-      setIsAppLoading(true);
+      setShowWelcomePage(true); // Navigate to welcome/login
 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
-    } catch (error) { console.error("Error signing out:", error); toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" }); }
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" });
+
+      // Ensure a clean state and exit loading even on error
+      setCurrentUser(null); // local state
+      setMongoDbUserId(null); // Call context function
+      updateFullBackendUserFields(null); // Call context function
+      setIsGuestModeActive(false); // Reset guest mode if applicable
+
+      setIsAppLoading(false); // Turn off main spinner (local state)
+      setShowWelcomePage(true); // Attempt to show Welcome/Login page
+
+      // Optional resets
+      setUserName(null);
+      setUserPhotoURL(null);
+      setActiveTab('findJobs');
+      if (hasScrolledAndModalTriggeredRef.current) {
+         hasScrolledAndModalTriggeredRef.current = false;
+      }
+      setShowOnboardingModal(false);
+    }
   };
 
   const handleLoginRequest = () => {
@@ -442,14 +468,16 @@ function AppContent() {
     setIsGuestModeActive(false);
     setShowOnboardingModal(false); 
 
-    setCurrentUser(null);
-    setMongoDbUserId(null);
-    updateFullBackendUserFields(null);
-    setFirebaseAuthStateResolved(false);
-    setFirebaseRedirectResultResolved(false);
+    setCurrentUser(null); // local state
+    setMongoDbUserId(null); // context
+    updateFullBackendUserFields(null); // context
+
+    // Restore local loading flags for a new login attempt
+    setFirebaseAuthStateResolved(false); // local state
+    setFirebaseRedirectResultResolved(false); // local state
+    setIsAppLoading(true); // local state
 
     setShowWelcomePage(false);
-    setIsAppLoading(true);
   };
 
   const baseTabItems = [
@@ -463,18 +491,18 @@ function AppContent() {
   const currentRoleForTabs = fullBackendUser?.selectedRole;
   let currentTabItems = jobseekerTabItems;
 
-  if (!isGuestModeActive && currentUser && currentRoleForTabs === 'recruiter') { currentTabItems = recruiterTabItems; }
-  else if (!isGuestModeActive && currentUser && currentRoleForTabs === 'jobseeker') { currentTabItems = jobseekerTabItems; }
+  if (!isGuestModeActive && currentUser && currentRoleForTabs === 'recruiter') { currentTabItems = recruiterTabItems; } // Uses local currentUser
+  else if (!isGuestModeActive && currentUser && currentRoleForTabs === 'jobseeker') { currentTabItems = jobseekerTabItems; } // Uses local currentUser
   else if (isGuestModeActive) { currentTabItems = jobseekerTabItems; }
 
   useEffect(() => {
-    if (isAppLoading || preferences.isLoading !== false || !hasMounted) return;
+    if (isAppLoading || preferences.isLoading !== false || !hasMounted) return; // Uses local isAppLoading
 
-    const itemsForCurrentContext = isGuestModeActive ? jobseekerTabItems : (currentUser && currentRoleForTabs === 'recruiter' ? recruiterTabItems : jobseekerTabItems);
+    const itemsForCurrentContext = isGuestModeActive ? jobseekerTabItems : (currentUser && currentRoleForTabs === 'recruiter' ? recruiterTabItems : jobseekerTabItems); // Uses local currentUser
     const validTabValues = itemsForCurrentContext.map(item => item.value);
 
     let defaultTabForCurrentContext = "findJobs";
-    if (!isGuestModeActive && currentUser && currentRoleForTabs === 'recruiter') {
+    if (!isGuestModeActive && currentUser && currentRoleForTabs === 'recruiter') { // Uses local currentUser
       defaultTabForCurrentContext = "findTalent";
     }
 
@@ -484,24 +512,25 @@ function AppContent() {
         (isGuestModeActive && activeTab === 'findTalent')) {
       setActiveTab(defaultTabForCurrentContext);
     }
-  }, [currentRoleForTabs, isGuestModeActive, currentUser, isAppLoading, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]);
+  }, [currentRoleForTabs, isGuestModeActive, currentUser, isAppLoading, activeTab, jobseekerTabItems, recruiterTabItems, preferences.isLoading, hasMounted]); // Uses local isAppLoading and currentUser
 
   const mainContentRender = () => {
     if (!hasMounted) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
-
-    if (isAppLoading) {
+    if (isAppLoading) { // Uses local isAppLoading
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
+    // This check uses local currentUser. If preferences.isLoading is still true when isAppLoading is false,
+    // it might briefly show content before context is fully ready. This was the original behavior.
     if (currentUser && !isGuestModeActive && preferences.isLoading !== false) {
       return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
     }
 
     if (pathname === '/recruiter-onboarding') {
-        if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
+        if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) { // Uses local currentUser
              return <RecruiterOnboardingPage />;
         }
         return ( <div className="flex min-h-screen items-center justify-center bg-background"> <Loader2 className="h-16 w-16 animate-spin text-primary" /> </div> );
@@ -512,12 +541,13 @@ function AppContent() {
     }
 
     if (showWelcomePage) { return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />; }
-    if (!currentUser && !isGuestModeActive) { return ( <div className="animate-fadeInPage" key="login_page_wrapper"> <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} /> </div> ); }
+    if (!currentUser && !isGuestModeActive) { return ( <div className="animate-fadeInPage" key="login_page_wrapper"> <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} /> </div> ); } // Uses local currentUser
 
     const mainAppContainerClasses = cn("flex flex-col flex-grow bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
     return (
       <div className={mainAppContainerClasses}>
         <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
+        {/* Uses local currentUser for isAuthenticated */}
         <AppHeader isAuthenticated={!!currentUser} isGuestMode={isGuestModeActive} onLoginRequest={handleLoginRequest} onLogout={handleLogout} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} userName={userName} userPhotoURL={userPhotoURL} />
         <main className="flex-grow container mx-auto px-0 sm:px-4 py-4 flex flex-col">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
@@ -589,4 +619,3 @@ function MobileNavMenu({ activeTab, setActiveTab, tabItems }: MobileNavMenuProps
     </div>
   );
 }
-
