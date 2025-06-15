@@ -43,6 +43,7 @@ const DiaryPostSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        index: true,
     },
     authorName: {
         type: String,
@@ -93,6 +94,7 @@ const DiaryPostSchema = new mongoose.Schema({
         type: String,
         enum: ['approved', 'pending_review', 'rejected'],
         default: 'approved',
+        index: true,
     }
 }, { timestamps: true }); // Enable timestamps for createdAt and updatedAt
 

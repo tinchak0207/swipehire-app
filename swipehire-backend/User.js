@@ -44,17 +44,20 @@ const UserSchema = new mongoose.Schema({
         unique: true,
         lowercase: true,
         trim: true,
+        index: true,
     },
     firebaseUid: {
         type: String,
-        required: false,
+        required: true, // Changed from false to true as per instruction
         unique: true,
-        sparse: true,
+        index: true, // Added index
+        // sparse: true, // Sparse can be removed if required:true ensures it's always there
     },
     selectedRole: {
         type: String,
         enum: ['recruiter', 'jobseeker', null],
         default: null,
+        index: true,
     },
     // Recruiter specific fields for company context
     companyNameForJobs: { // Used as the default company name for jobs posted by this recruiter
@@ -129,6 +132,7 @@ const UserSchema = new mongoose.Schema({
         type: String,
         enum: ['public', 'recruiters_only', 'private'],
         default: 'public',
+        index: true,
     },
     profileCardTheme: { // Added now
         type: String,
@@ -137,9 +141,11 @@ const UserSchema = new mongoose.Schema({
     },
     likedCandidateIds: [{
         type: String,
+        index: true,
     }],
     likedCompanyIds: [{
         type: String,
+        index: true,
     }],
     passedCandidateProfileIds: {
         type: [String],

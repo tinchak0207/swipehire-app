@@ -6,13 +6,15 @@ const MatchSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        index: true,
     },
     userB_Id: { // MongoDB _id of the other user in the match (e.g., job seeker)
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        index: true,
     },
-    candidateProfileIdForDisplay: { 
+    candidateProfileIdForDisplay: {
         type: String,
         required: true,
     },
@@ -31,12 +33,13 @@ const MatchSchema = new mongoose.Schema({
         type: String,
         enum: ['active', 'archived_by_A', 'archived_by_B', 'archived_by_both'],
         default: 'active',
+        index: true,
     },
     uniqueMatchKey: {
         type: String,
         unique: true,
-        required: true,
-        index: true,
+        required: true, // ensure required is still here as per original
+        index: true, // unique implies index, but explicit is fine
     },
     // Added for application tracking directly on the match
     applicationStatusHistory: {
