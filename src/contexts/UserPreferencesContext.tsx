@@ -188,26 +188,18 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     if (mongoDbUserId) {
       fetchAndSetUserPreferences(mongoDbUserId);
     } else {
-      // mongoDbUserId is null
-      let newIsLoadingState;
-      if (currentUser?.uid) {
-        // Firebase user is present, but mongoDbUserId is not (yet).
-        // This means AppContent's onAuthStateChanged might be in the process of setting it.
-        // Keep isLoading true.
-        newIsLoadingState = true;
-        console.log("[UserPreferencesContext] Main Auth/MongoID Effect: Firebase user exists, mongoDbUserId is null. Maintaining isLoading: true (waiting for mongoDbUserId).");
-      } else {
-        // No mongoDbUserId AND no Firebase currentUser. User is definitively logged out or app is in initial state.
-        newIsLoadingState = false;
-        console.log("[UserPreferencesContext] Main Auth/MongoID Effect: No mongoDbUserId and no currentUser. Setting isLoading: false.");
-      }
-
+      // mongoDbUserId is null.
+      // Regardless of whether currentUser (Firebase user) exists, if we don't have a mongoDbUserId,
+      // the process of loading/linking to a backend profile is not actively in progress *via this context's primary mechanism*.
+      // AppContent might be trying to get mongoDbUserId if currentUser exists (which would then trigger the `if (mongoDbUserId)` block above).
+      // But UserPreferencesContext itself should reflect isLoading:false if mongoDbUserId is definitively null at this point in its own effect.
+      console.log("[UserPreferencesContext] Main Auth/MongoID Effect: mongoDbUserId is null. Setting isLoading: false.");
       setPreferencesState(prev => ({
         ...initialDefaultPreferences,
         theme: prev.theme, // Preserve theme choice
-        isLoading: newIsLoadingState
+        isLoading: false // Key change: always false if mongoDbUserId is null here
       }));
-      applyTheme(initialDefaultPreferences.theme);
+      applyTheme(initialDefaultPreferences.theme); // Apply default theme or preserved theme
       setPassedCandidateIdsState(new Set());
       setPassedCompanyIdsState(new Set());
       setFullBackendUserState(null);
