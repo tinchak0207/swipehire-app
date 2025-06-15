@@ -7,7 +7,7 @@ const ChatMessageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Match',
         required: true,
-        index: true,
+        index: true, // Already indexed, preserved
     },
     senderId: { // MongoDB User _id of the sender
         type: mongoose.Schema.Types.ObjectId,
@@ -18,6 +18,7 @@ const ChatMessageSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
         required: true,
+        index: true, // Added index
     },
     text: {
         type: String,
@@ -27,6 +28,7 @@ const ChatMessageSchema = new mongoose.Schema({
     read: { // New field for read status
         type: Boolean,
         default: false,
+        index: true, // Added index
     }
 }, { timestamps: true }); // Adds createdAt and updatedAt automatically
 

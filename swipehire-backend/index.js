@@ -48,7 +48,9 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: function (origin, callback) {
-    console.log(`[CORS Check] Request origin: ${origin}`); // Log the origin for every request
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[CORS Check] Request origin: ${origin}`); // Log the origin for every request
+    }
     const isAllowed = !origin || allowedOrigins.includes(origin) || (process.env.NODE_ENV !== 'production' && origin && origin.startsWith('http://localhost:')); // Allow all localhost in non-prod for dev flexibility
     
     if (isAllowed) {
@@ -124,7 +126,8 @@ const diaryImageStorage = multer.diskStorage({
         cb(null, finalFilename);
     }
 });
-const uploadDiaryImageMulter = multer({ storage: diaryImageStorage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+// Changed to memoryStorage for conditional GCS upload
+const uploadDiaryImageMulter = multer({ storage: memoryStorage, fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
 
 const uploadJobMediaToMemory = multer({
     storage: memoryStorage,
@@ -167,6 +170,58 @@ const io = new Server(server, {
 })();
 
 // --- ROUTES ---
+
+// Helper function to select specific fields from a user object
+const selectUserFields = (userObject) => {
+    if (!userObject) return null;
+    // Ensure jobOpenings are also lean if they exist and are complex
+    const jobOpenings = userObject.jobOpenings ? userObject.jobOpenings.map(job => {
+        const { ...restJob } = job; // Shallow copy, or select specific job fields if needed
+        return restJob;
+    }) : [];
+
+    return {
+        _id: userObject._id,
+        name: userObject.name,
+        email: userObject.email, // Contextually included, review if sensitive
+        selectedRole: userObject.selectedRole,
+        profileAvatarUrl: userObject.profileAvatarUrl,
+        profileHeadline: userObject.profileHeadline,
+        profileExperienceSummary: userObject.profileExperienceSummary,
+        profileSkills: userObject.profileSkills,
+        country: userObject.country,
+        address: userObject.address, // Review if too sensitive for all contexts
+        profileDesiredWorkStyle: userObject.profileDesiredWorkStyle,
+        profilePastProjects: userObject.profilePastProjects,
+        profileWorkExperienceLevel: userObject.profileWorkExperienceLevel,
+        profileEducationLevel: userObject.profileEducationLevel,
+        profileLocationPreference: userObject.profileLocationPreference,
+        profileLanguages: userObject.profileLanguages,
+        profileAvailability: userObject.profileAvailability,
+        profileJobTypePreference: userObject.profileJobTypePreference,
+        profileSalaryExpectationMin: userObject.profileSalaryExpectationMin,
+        profileSalaryExpectationMax: userObject.profileSalaryExpectationMax,
+        companyName: userObject.companyName, // Renamed from companyNameForJobs for consistency
+        companyIndustry: userObject.companyIndustry, // Renamed from companyIndustryForJobs
+        companyLogoUrl: userObject.companyLogoUrl,
+        jobOpenings: jobOpenings, // Array of job openings
+        profileVisibility: userObject.profileVisibility,
+        representedCandidateProfileId: userObject.representedCandidateProfileId,
+        representedCompanyProfileId: userObject.representedCompanyProfileId,
+        companyNameForJobs: userObject.companyNameForJobs, // Keep if distinct from companyName
+        companyIndustryForJobs: userObject.companyIndustryForJobs, // Keep if distinct from companyIndustry
+        preferences: userObject.preferences, // Include preferences as it might be needed by frontend
+        createdAt: userObject.createdAt,
+        updatedAt: userObject.updatedAt,
+        // Explicitly exclude sensitive fields:
+        // firebaseUid, likedCandidateIds, likedCompanyIds, passedCandidateProfileIds, passedCompanyProfileIds, etc.
+        // If firebaseUid is needed (e.g., for specific admin tasks or if it's the identifier), it should be added conditionally.
+    };
+};
+
+const publicUserFieldsSelection = 'name email selectedRole profileAvatarUrl profileHeadline profileExperienceSummary profileSkills country address profileDesiredWorkStyle profilePastProjects profileWorkExperienceLevel profileEducationLevel profileLocationPreference profileLanguages profileAvailability profileJobTypePreference profileSalaryExpectationMin profileSalaryExpectationMax companyName companyIndustry companyLogoUrl jobOpenings profileVisibility representedCandidateProfileId representedCompanyProfileId companyNameForJobs companyIndustryForJobs preferences createdAt updatedAt';
+
+
 app.get('/', (req, res) => res.send('Welcome to SwipeHire Backend API!'));
 
 
@@ -213,7 +268,11 @@ app.put('/api/admin/diary-posts/:postId/status', async (req, res) => {
 
 
 app.post('/api/users', async (req, res) => {
-    console.log("[API /api/users Create] Request received. Body:", JSON.stringify(req.body).substring(0, 300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log("[API /api/users Create] Request received. Body:", JSON.stringify(req.body).substring(0, 300) + "...");
+    } else {
+        console.log("[API /api/users Create] Request received.");
+    }
     try {
         const { name, email, preferences, firebaseUid, selectedRole, representedCandidateProfileId, representedCompanyProfileId } = req.body;
 
@@ -230,10 +289,12 @@ app.post('/api/users', async (req, res) => {
              return res.status(400).json({ message: 'Firebase UID is required and must be a non-empty string.' });
         }
 
-        const existingUser = await User.findOne({ $or: [{ email }, { firebaseUid }] });
+        const existingUserQuery = User.findOne({ $or: [{ email }, { firebaseUid }] }).select(publicUserFieldsSelection).lean();
+        const existingUser = await existingUserQuery;
+
         if (existingUser) {
             console.log(`[API /api/users Create] User already exists with email ${email} or UID ${firebaseUid}. Existing ID: ${existingUser._id}`);
-            return res.status(200).json({ message: 'User already exists with this email or Firebase UID', user: existingUser }); // Changed to 200 for idempotency
+            return res.status(200).json({ message: 'User already exists with this email or Firebase UID', user: existingUser });
         }
 
         let finalRepCandidateId = representedCandidateProfileId;
@@ -260,7 +321,8 @@ app.post('/api/users', async (req, res) => {
         const newUser = new User(newUserPayload);
         await newUser.save();
         console.log(`[API /api/users Create] New user created. ID: ${newUser._id}, Firebase UID: ${firebaseUid}`);
-        res.status(201).json({ message: 'User created!', user: newUser });
+        const userToReturn = selectUserFields(newUser.toObject()); // Apply selection to the newly created user
+        res.status(201).json({ message: 'User created!', user: userToReturn });
     } catch (error) {
         console.error("[API /api/users Create] Server error:", error);
         if (error.code === 11000) { // Duplicate key error
@@ -275,20 +337,27 @@ app.get('/api/users/:identifier', async (req, res) => {
     console.log(`[API /api/users/:identifier Get] Request for identifier: ${req.params.identifier}`);
     try {
         const identifier = req.params.identifier;
-        let user;
+        let userQuery;
 
         if (mongoose.Types.ObjectId.isValid(identifier)) {
-            user = await User.findById(identifier);
+            userQuery = User.findById(identifier);
+        } else {
+            // If identifier is not an ObjectId, assume it's a firebaseUid.
+            // Include firebaseUid in selection if it's the identifier, otherwise exclude.
+            const selection = publicUserFieldsSelection + (mongoose.Types.ObjectId.isValid(identifier) ? '' : ' firebaseUid');
+            userQuery = User.findOne({ firebaseUid: identifier }).select(selection);
         }
-        if (!user) {
-            user = await User.findOne({ firebaseUid: identifier });
-        }
+
+        const user = await userQuery.lean(); // Use .lean() for performance
 
         if (!user) {
             console.warn(`[API /api/users/:identifier Get] User not found for identifier: ${identifier}`);
             return res.status(404).json({ message: 'User not found' });
         }
         console.log(`[API /api/users/:identifier Get] User found: ${user._id}`);
+        // selectUserFields is not strictly needed here if .select().lean() is comprehensive
+        // but can be used for consistency if manual adjustments are common post-fetch.
+        // For now, direct lean object is fine.
         res.json(user);
     } catch (error) {
         console.error(`[API /api/users/:identifier Get] Error fetching user ${req.params.identifier}:`, error);
@@ -349,8 +418,9 @@ app.post('/api/users/:identifier/avatar', uploadAvatarToMemory.single('avatar'),
             try {
                 userToUpdate.profileAvatarUrl = gcsPublicUrl;
                 await userToUpdate.save();
+                const userToReturn = selectUserFields(userToUpdate.toObject());
                 console.log(`[API Avatar Upload] Avatar for user ${userToUpdate._id} uploaded to GCS and URL saved: ${gcsPublicUrl}`);
-                res.json({ message: 'Avatar uploaded successfully to GCS!', profileAvatarUrl: gcsPublicUrl, user: userToUpdate });
+                res.json({ message: 'Avatar uploaded successfully to GCS!', profileAvatarUrl: gcsPublicUrl, user: userToReturn });
             } catch (dbError) {
                 console.error('[API Avatar Upload] Error saving avatar GCS URL to MongoDB:', dbError);
                 try { await bucket.file(gcsObjectName).delete(); console.log(`[API Avatar Upload] Orphaned GCS avatar ${gcsObjectName} deleted due to DB error.`); }
@@ -424,13 +494,14 @@ app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single
 
                 userToUpdate.profileVideoPortfolioLink = gcsPublicUrl;
                 await userToUpdate.save();
+                const userToReturn = selectUserFields(userToUpdate.toObject());
 
                 res.json({
                     message: 'Video resume uploaded and GCS link saved successfully!',
                     videoUrl: gcsPublicUrl,
                     gcsObjectName: gcsObjectName,
                     videoId: newVideoDoc._id,
-                    user: userToUpdate
+                    user: userToReturn
                 });
             } catch (dbError) {
                 console.error('Error saving video metadata to MongoDB:', dbError);
@@ -449,7 +520,11 @@ app.post('/api/users/:identifier/video-resume', uploadVideoResumeToMemory.single
 });
 
 app.post('/api/users/:identifier/profile', async (req, res) => {
-    console.log(`[API /api/users/:identifier/profile Post] Request for ${req.params.identifier}. Body:`, JSON.stringify(req.body).substring(0,300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[API /api/users/:identifier/profile Post] Request for ${req.params.identifier}. Body:`, JSON.stringify(req.body).substring(0,300) + "...");
+    } else {
+        console.log(`[API /api/users/:identifier/profile Post] Request for ${req.params.identifier}.`);
+    }
     try {
         const { identifier } = req.params;
         const profileData = req.body;
@@ -482,9 +557,10 @@ app.post('/api/users/:identifier/profile', async (req, res) => {
             userToUpdate.companyIndustryForJobs = 'Various';
         }
 
-        const updatedUser = await userToUpdate.save();
-        console.log(`[API /api/users/:identifier/profile Post] Profile updated for user ${updatedUser._id}`);
-        res.json({ message: 'User profile updated successfully!', user: updatedUser });
+        const savedUser = await userToUpdate.save();
+        const userToReturn = selectUserFields(savedUser.toObject());
+        console.log(`[API /api/users/:identifier/profile Post] Profile updated for user ${userToReturn._id}`);
+        res.json({ message: 'User profile updated successfully!', user: userToReturn });
     } catch (error) {
         console.error(`[API /api/users/:identifier/profile Post] Error updating profile for ${req.params.identifier}:`, error);
         res.status(500).json({ message: 'Server error while updating profile', error: error.message });
@@ -511,8 +587,9 @@ app.post('/api/users/:userId/profile/visibility', async (req, res) => {
         if (!updatedUser) {
             return res.status(404).json({ message: 'User not found.' });
         }
+        const userToReturn = selectUserFields(updatedUser.toObject());
         console.log(`[Profile Visibility] Updated visibility for user ${userId} to ${profileVisibility}.`);
-        res.status(200).json({ message: 'Profile visibility updated successfully.', user: updatedUser });
+        res.status(200).json({ message: 'Profile visibility updated successfully.', user: userToReturn });
     } catch (error) {
         console.error(`[Profile Visibility] Error updating visibility for user ${req.params.userId}:`, error);
         res.status(500).json({ message: 'Server error updating profile visibility.', error: error.message });
@@ -522,7 +599,9 @@ app.post('/api/users/:userId/profile/visibility', async (req, res) => {
 // This is the user update endpoint (was PUT, now POST)
 app.post('/api/users/:identifier/update', async (req, res) => {
     console.log(`[API POST /api/users/:identifier/update] Request for ${req.params.identifier}.`);
-    console.log(`[API POST /api/users/:identifier/update] Request Body:`, JSON.stringify(req.body).substring(0,300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[API POST /api/users/:identifier/update] Request Body:`, JSON.stringify(req.body).substring(0,300) + "...");
+    }
     try {
         const identifier = req.params.identifier;
         const update = req.body;
@@ -542,20 +621,28 @@ app.post('/api/users/:identifier/update', async (req, res) => {
             }
         }
 
-        console.log(`[API POST /api/users/:identifier/update] Attempting update with payload:`, JSON.stringify(updatePayload).substring(0,300) + "...");
+        if (process.env.NODE_ENV !== 'production') {
+            console.log(`[API POST /api/users/:identifier/update] Attempting update with payload:`, JSON.stringify(updatePayload).substring(0,300) + "...");
+        }
 
+        let userQuery;
         if (mongoose.Types.ObjectId.isValid(identifier)) {
-            updatedUser = await User.findByIdAndUpdate(identifier, { $set: updatePayload }, { new: true, runValidators: true });
+            userQuery = User.findByIdAndUpdate(identifier, { $set: updatePayload }, { new: true, runValidators: true });
+        } else {
+            userQuery = User.findOneAndUpdate({ firebaseUid: identifier }, { $set: updatePayload }, { new: true, runValidators: true });
         }
-        if (!updatedUser) {
-            updatedUser = await User.findOneAndUpdate({ firebaseUid: identifier }, { $set: updatePayload }, { new: true, runValidators: true });
-        }
+        // Add select and lean to the query
+        updatedUser = await userQuery.select(publicUserFieldsSelection).lean();
+
 
         if (!updatedUser) {
             console.warn(`[API POST /api/users/:identifier/update] User ${identifier} not found.`);
             return res.status(404).json({ message: 'User not found' });
         }
         console.log(`[API POST /api/users/:identifier/update] User ${updatedUser._id} updated.`);
+        // No need for selectUserFields if .select().lean() is used, but ensure consistency.
+        // If selectUserFields provides additional logic (like conditional field inclusion not possible with simple .select string), then use it.
+        // For now, assuming publicUserFieldsSelection is sufficient.
         res.json({ message: 'User updated!', user: updatedUser });
     } catch (error) {
         console.error(`[API POST /api/users/:identifier/update] Error updating user ${req.params.identifier}:`, error);
@@ -609,7 +696,11 @@ app.post('/api/users/:userId/request-data-export', async (req, res) => {
 
 // Job Postings by a Recruiter (User)
 app.post('/api/users/:userId/jobs', uploadJobMediaToMemory.single('mediaFile'), async (req, res) => {
-    console.log(`[API Job Create] Request for user ${req.params.userId}. Body text fields:`, JSON.stringify(req.body).substring(0, 300) + "...", "File:", req.file ? req.file.originalname : "No file");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[API Job Create] Request for user ${req.params.userId}. Body text fields:`, JSON.stringify(req.body).substring(0, 300) + "...", "File:", req.file ? req.file.originalname : "No file");
+    } else {
+        console.log(`[API Job Create] Request for user ${req.params.userId}. File: ${req.file ? req.file.originalname : "No file"}`);
+    }
     const { userId } = req.params;
     const jobOpeningDataFromRequest = req.body;
 
@@ -719,12 +810,16 @@ app.get('/api/users/:userId/jobs', async (req, res) => {
         if (!mongoose.Types.ObjectId.isValid(userId)) {
             return res.status(400).json({ message: 'Invalid user ID format.' });
         }
-        const user = await User.findById(userId).lean();
+        // Select only jobOpenings and minimal user fields like name for context if needed
+        // For now, focusing on jobOpenings as the primary data.
+        // If other user fields were to be returned alongside jobs, publicUserFieldsSelection would be used.
+        const user = await User.findById(userId).select('jobOpenings').lean();
         if (!user) {
             return res.status(404).json({ message: 'User not found.' });
         }
         const jobs = user.jobOpenings || [];
-        res.status(200).json(jobs.sort((a, b) => new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime()));
+        // Sorting is done client-side or should be part of aggregation if this becomes complex
+        res.status(200).json(jobs.sort((a, b) => new Date(b.postedAt || 0).getTime() - new Date(a.postedAt || 0).getTime()));
     } catch (error) {
         console.error(`[API /api/users/:userId/jobs Get] Error fetching jobs for user ${req.params.userId}:`, error);
         res.status(500).json({ message: 'Server error fetching user jobs', error: error.message });
@@ -733,7 +828,11 @@ app.get('/api/users/:userId/jobs', async (req, res) => {
 
 // Update a specific job posting for a recruiter
 app.post('/api/users/:userId/jobs/:jobId/update', async (req, res) => {
-    console.log(`[API POST /api/users/:userId/jobs/:jobId/update] Request for user ${req.params.userId}, job ${req.params.jobId}. Body:`, JSON.stringify(req.body).substring(0,300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log(`[API POST /api/users/:userId/jobs/:jobId/update] Request for user ${req.params.userId}, job ${req.params.jobId}. Body:`, JSON.stringify(req.body).substring(0,300) + "...");
+    } else {
+        console.log(`[API POST /api/users/:userId/jobs/:jobId/update] Request for user ${req.params.userId}, job ${req.params.jobId}.`);
+    }
     try {
         const { userId, jobId } = req.params;
         const updatedJobData = req.body;
@@ -819,75 +918,88 @@ app.delete('/api/users/:userId/jobs/:jobId', async (req, res) => {
 
 // Publicly accessible job listings
 app.get('/api/jobs', async (req, res) => {
-    console.log('[GET /api/jobs] Request received.');
+    console.log('[GET /api/jobs] Request received. Query:', req.query);
     try {
-        const queryConditions = {
-            selectedRole: 'recruiter',
-            'jobOpenings.0': { $exists: true },
-            'jobOpenings.status': 'active'
-        };
-        console.log('[GET /api/jobs] Executing query for User model:', JSON.stringify(queryConditions));
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
 
-        const usersWithJobs = await User.find(queryConditions).lean();
-        console.log(`[GET /api/jobs] Found ${usersWithJobs.length} users matching criteria.`);
-
-        if (usersWithJobs.length > 0) {
-            console.log(`[GET /api/jobs] First raw document snippet: _id=${usersWithJobs[0]._id}, selectedRole=${usersWithJobs[0].selectedRole}, profileVisibility=${usersWithJobs[0].profileVisibility}`);
-        }
-
-        if (!usersWithJobs || usersWithJobs.length === 0) {
-            console.log('[GET /api/jobs] No job seekers found matching criteria.');
-            return res.json([]);
-        }
-
-        const allJobs = usersWithJobs.flatMap(user => {
-            if (!user.jobOpenings || user.jobOpenings.length === 0) {
-                console.log(`[GET /api/jobs] User ${user._id} has no jobOpenings array or it's empty.`);
-                return [];
-            }
-
-            const activeUserJobs = user.jobOpenings.filter(job => job.status === 'active');
-            if (activeUserJobs.length === 0) {
-                 console.log(`[GET /api/jobs] User ${user._id} has jobOpenings, but none are currently 'active'. Count: ${user.jobOpenings.length}`);
-                return [];
-            }
-            console.log(`[GET /api/jobs] User ${user._id} has ${activeUserJobs.length} active jobs. Processing them.`);
-
-            return activeUserJobs.map(job => {
-                const jobIdString = job._id ? job._id.toString() : `generated-${Math.random().toString(36).substring(2, 15)}`;
-                const jobObject = job;
-
-                const companyName = job.companyNameForJob || user.companyNameForJobs || user.name || 'Unknown Company';
-                const companyIndustry = job.companyIndustryForJob || user.companyIndustryForJobs || 'Various';
-                const companyLogo = job.companyLogoForJob || user.companyLogoUrl || user.profileAvatarUrl || 'https://placehold.co/100x100.png';
-
-                return {
-                    id: `comp-user-${user._id.toString()}-job-${jobIdString}`,
-                    recruiterUserId: user._id.toString(),
-                    name: companyName,
-                    industry: companyIndustry,
-                    description: `Job posting by ${user.name || 'a recruiter'}`,
-                    cultureHighlights: job.companyCultureKeywords || [],
-                    logoUrl: companyLogo,
+        const aggregationPipeline = [
+            {
+                $match: {
+                    selectedRole: 'recruiter',
+                    'jobOpenings.0': { $exists: true } // Ensure there's at least one job opening
+                }
+            },
+            { $unwind: '$jobOpenings' },
+            { $match: { 'jobOpenings.status': 'active' } },
+            { $sort: { 'jobOpenings.postedAt': -1 } },
+            {
+                $project: {
+                    _id: 0, // Exclude the original user _id from the root of the job document
+                    id: { $concat: ["comp-user-", { $toString: "$_id" }, "-job-", { $toString: "$jobOpenings._id" }] },
+                    recruiterUserId: { $toString: "$_id" },
+                    name: { $ifNull: ["$jobOpenings.companyNameForJob", "$companyNameForJobs", "$name", "Unknown Company"] },
+                    industry: { $ifNull: ["$jobOpenings.companyIndustryForJob", "$companyIndustryForJobs", "Various"] },
+                    description: { $concat: ["Job posting by ", { $ifNull: ["$name", "a recruiter"] }] },
+                    cultureHighlights: { $ifNull: ["$jobOpenings.companyCultureKeywords", []] },
+                    logoUrl: { $ifNull: ["$jobOpenings.companyLogoForJob", "$companyLogoUrl", "$profileAvatarUrl", "https://placehold.co/100x100.png"] },
                     dataAiHint: 'company logo',
-                    jobOpenings: [{ ...jobObject, _id: jobIdString, postedAt: job.postedAt || new Date() }],
-                    reputationScore: user.preferences?.featureFlags?.reputationScore || 80,
-                    reputationGrade: "良好",
-                    timelyReplyRate: 90,
-                    commonRejectionReasons: ["經驗不符"],
-                };
-            });
-        });
+                    jobOpenings: { // Keep jobOpenings as an array with one element as per original structure
+                        _id: { $toString: "$jobOpenings._id" },
+                        title: "$jobOpenings.title",
+                        description: "$jobOpenings.description",
+                        location: "$jobOpenings.location",
+                        salaryRange: "$jobOpenings.salaryRange",
+                        jobType: "$jobOpenings.jobType",
+                        tags: "$jobOpenings.tags",
+                        videoOrImageUrl: "$jobOpenings.videoOrImageUrl",
+                        dataAiHint: "$jobOpenings.dataAiHint",
+                        requiredExperienceLevel: "$jobOpenings.requiredExperienceLevel",
+                        requiredEducationLevel: "$jobOpenings.requiredEducationLevel",
+                        workLocationType: "$jobOpenings.workLocationType",
+                        requiredLanguages: "$jobOpenings.requiredLanguages",
+                        salaryMin: "$jobOpenings.salaryMin",
+                        salaryMax: "$jobOpenings.salaryMax",
+                        companyCultureKeywords: "$jobOpenings.companyCultureKeywords",
+                        companyNameForJob: { $ifNull: ["$jobOpenings.companyNameForJob", "$companyNameForJobs", "$name", "Unknown Company"] },
+                        companyLogoForJob: { $ifNull: ["$jobOpenings.companyLogoForJob", "$companyLogoUrl", "$profileAvatarUrl", "https://placehold.co/100x100.png"] },
+                        companyIndustryForJob: { $ifNull: ["$jobOpenings.companyIndustryForJob", "$companyIndustryForJobs", "Various"] },
+                        postedAt: { $ifNull: ["$jobOpenings.postedAt", new Date()] },
+                        status: "$jobOpenings.status",
+                    },
+                    reputationScore: { $ifNull: ["$preferences.featureFlags.reputationScore", 80] },
+                    reputationGrade: "良好", // Assuming this is static or derived differently
+                    timelyReplyRate: 90, // Assuming this is static or derived differently
+                    commonRejectionReasons: ["經驗不符"], // Assuming this is static or derived differently
+                }
+            },
+            // Facet stage for pagination and total count
+            {
+                $facet: {
+                    paginatedResults: [{ $skip: skip }, { $limit: limit }],
+                    totalCount: [{ $count: 'count' }]
+                }
+            }
+        ];
 
-        allJobs.sort((a, b) => {
-            const dateA = a.jobOpenings[0].postedAt ? new Date(a.jobOpenings[0].postedAt) : new Date(0);
-            const dateB = b.jobOpenings[0].postedAt ? new Date(b.jobOpenings[0].postedAt) : new Date(0);
-            return dateB.getTime() - dateA.getTime();
-        });
+        console.log('[GET /api/jobs] Executing aggregation pipeline for User model.');
+        const results = await User.aggregate(aggregationPipeline).exec();
 
-        console.log(`[GET /api/jobs] Returning ${allJobs.length} active jobs to frontend.`);
+        const allJobs = results[0].paginatedResults;
+        const totalJobs = results[0].totalCount.length > 0 ? results[0].totalCount[0].count : 0;
+
+        console.log(`[GET /api/jobs] Returning ${allJobs.length} active jobs of ${totalJobs} total to frontend for page ${page}.`);
         console.log("Conceptual: Tracked job listing view event for multiple jobs.");
-        res.json(allJobs);
+        res.json({
+            data: allJobs,
+            pagination: {
+                page,
+                limit,
+                total: totalJobs,
+                totalPages: Math.ceil(totalJobs / limit)
+            }
+        });
     } catch (error) {
         console.error("[API /api/jobs Get] Server error fetching jobs:", error);
         res.status(500).json({ message: 'Server error fetching jobs', error: error.message });
@@ -895,87 +1007,54 @@ app.get('/api/jobs', async (req, res) => {
 });
 
 
-// Proxy endpoints to avoid CORS issues
-app.post('/api/proxy/users/:identifier/role', async (req, res) => {
-  const { identifier } = req.params;
-  console.log(`[API Proxy /api/proxy/users/:identifier/role Post] Forwarding request for ${identifier}. Body:`, JSON.stringify(req.body).substring(0,300) + "...");
-  try {
-    const internalResponse = await fetch(`http://localhost:${PORT}/api/users/${identifier}/update`, {
-      method: 'POST', // Changed from PUT to POST
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await internalResponse.json();
-    if (!internalResponse.ok) {
-      console.error(`[API Proxy /api/proxy/users/:identifier/role Post] Target responded with ${internalResponse.status}:`, responseData);
-      return res.status(internalResponse.status).json(responseData);
-    }
-    res.status(internalResponse.status).json(responseData);
-  } catch (error) {
-    console.error(`[API Proxy /api/proxy/users/:identifier/role Post] Fetch error details:`, error.message, error.stack);
-    res.status(500).json({ message: 'Proxy error while updating user role', errorDetails: error.message || 'Unknown proxy fetch error', errorStack: error.stack });
-  }
-});
-
-app.post('/api/proxy/users/:identifier/settings', async (req, res) => {
-  const { identifier } = req.params;
-  console.log(`[API Proxy /api/proxy/users/:identifier/settings Post] Forwarding request for ${identifier}. Body:`, JSON.stringify(req.body).substring(0,300) + "...");
-  try {
-    // Ensure the internal call is to the correct, updated endpoint if User update was changed to POST and path adjusted
-    const internalResponse = await fetch(`http://localhost:${PORT}/api/users/${identifier}/update`, {
-      method: 'POST', // Changed from PUT to POST
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body)
-    });
-    const responseData = await internalResponse.json();
-    if (!internalResponse.ok) {
-       console.error(`[API Proxy /api/proxy/users/:identifier/settings Post] Target responded with ${internalResponse.status}:`, responseData);
-      return res.status(internalResponse.status).json(responseData);
-    }
-    res.status(internalResponse.status).json(responseData);
-  } catch (error) {
-    console.error(`[API Proxy /api/proxy/users/:identifier/settings Post] Fetch error details:`, error.message, error.stack);
-    res.status(500).json({ message: 'Proxy error while updating user settings', errorDetails: error.message || 'Unknown proxy fetch error', errorStack: error.stack });
-  }
-});
+// Proxy endpoints to avoid CORS issues (REMOVED as per task)
+// app.post('/api/proxy/users/:identifier/role', ...); // REMOVED
+// app.post('/api/proxy/users/:identifier/settings', ...); // REMOVED
 
 
 // Endpoint to get jobseeker profiles (for recruiters)
 app.get('/api/users/profiles/jobseekers', async (req, res) => {
-    const { requesterRole, requesterId } = req.query;
-    console.log(`[API /api/users/profiles/jobseekers] Request received. Requester role: ${requesterRole}, ID: ${requesterId}`);
+    const { requesterRole, requesterId, page: queryPage, limit: queryLimit } = req.query;
+    console.log(`[API /api/users/profiles/jobseekers] Request received. Requester role: ${requesterRole}, ID: ${requesterId}, Page: ${queryPage}, Limit: ${queryLimit}`);
+
+    const page = parseInt(queryPage) || 1;
+    const limit = parseInt(queryLimit) || 10;
+    const skip = (page - 1) * limit;
 
     const query = {
         selectedRole: 'jobseeker',
         $or: [
             { profileVisibility: 'public' },
-            { profileVisibility: { $exists: false } }
+            { profileVisibility: { $exists: false } } // Treat missing as public for backward compatibility
         ]
     };
-    console.log('[API /api/users/profiles/jobseekers] Executing query:', JSON.stringify(query));
+
+    console.log('[API /api/users/profiles/jobseekers] Executing query:', JSON.stringify(query), `Skip: ${skip}, Limit: ${limit}`);
     try {
-        const jobSeekerUsers = await User.find(query).lean();
-        console.log(`[API /api/users/profiles/jobseekers] MongoDB query returned ${jobSeekerUsers.length} raw user documents.`);
+        const jobSeekerUsers = await User.find(query)
+            .sort({ createdAt: -1 }) // Default sort, can be changed
+            .skip(skip)
+            .limit(limit)
+            .lean(); // Use lean for performance if not modifying docs
+
+        const totalJobSeekers = await User.countDocuments(query);
+
+        console.log(`[API /api/users/profiles/jobseekers] MongoDB query returned ${jobSeekerUsers.length} of ${totalJobSeekers} raw user documents.`);
 
         if (jobSeekerUsers.length > 0) {
             console.log(`[API /api/users/profiles/jobseekers] First raw document snippet: _id=${jobSeekerUsers[0]._id}, selectedRole=${jobSeekerUsers[0].selectedRole}, profileVisibility=${jobSeekerUsers[0].profileVisibility}`);
         }
 
-        if (!jobSeekerUsers || jobSeekerUsers.length === 0) {
-            console.log('[API /api/users/profiles/jobseekers] No job seekers found matching criteria.');
-            return res.json([]);
-        }
-
         const candidates = jobSeekerUsers.map(user => ({
-            id: user._id.toString(),
+            id: user._id.toString(), // Ensure ID is string
             name: user.name || 'N/A',
             role: user.profileHeadline || 'Role not specified',
             experienceSummary: user.profileExperienceSummary || 'No summary available.',
             skills: user.profileSkills ? user.profileSkills.split(',').map(s => s.trim()).filter(s => s) : [],
             avatarUrl: user.profileAvatarUrl || `https://placehold.co/100x100.png?text=${encodeURIComponent(user.name ? user.name.charAt(0) : 'U')}`,
-            dataAiHint: 'person portrait',
+            dataAiHint: 'person portrait', // This seems static
             videoResumeUrl: user.profileVideoPortfolioLink || undefined,
-            profileStrength: Math.floor(Math.random() * 40) + 60,
+            profileStrength: Math.floor(Math.random() * 40) + 60, // This seems random, keep if intended
             location: user.country || user.address || 'Location not specified',
             desiredWorkStyle: user.profileDesiredWorkStyle || 'Not specified',
             pastProjects: user.profilePastProjects || 'Not specified',
@@ -987,14 +1066,22 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
             jobTypePreference: user.profileJobTypePreference ? user.profileJobTypePreference.split(',').map(s => s.trim()).filter(s => s) : ['Unspecified'],
             salaryExpectationMin: user.profileSalaryExpectationMin,
             salaryExpectationMax: user.profileSalaryExpectationMax,
-            personalityAssessment: [],
-            optimalWorkStyles: [],
-            isUnderestimatedTalent: Math.random() < 0.15,
-            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential based on raw data.' : undefined,
+            personalityAssessment: [], // Static empty array
+            optimalWorkStyles: [], // Static empty array
+            isUnderestimatedTalent: Math.random() < 0.15, // Random, keep if intended
+            underestimatedReasoning: Math.random() < 0.15 ? 'Shows unique potential based on raw data.' : undefined, // Random, keep if intended
             cardTheme: user.profileCardTheme || 'default',
         }));
-        console.log(`[API /api/users/profiles/jobseekers] Mapped ${candidates.length} candidates for response.`);
-        res.json(candidates);
+        console.log(`[API /api/users/profiles/jobseekers] Mapped ${candidates.length} candidates for response. Total available: ${totalJobSeekers}`);
+        res.json({
+            data: candidates,
+            pagination: {
+                page,
+                limit,
+                total: totalJobSeekers,
+                totalPages: Math.ceil(totalJobSeekers / limit)
+            }
+        });
     } catch (error) {
         console.error("[API /api/users/profiles/jobseekers] Server error:", error);
         res.status(500).json({ message: 'Server error while fetching jobseeker profiles', error: error.message });
@@ -1003,19 +1090,74 @@ app.get('/api/users/profiles/jobseekers', async (req, res) => {
 
 
 // --- Diary Posts ---
-app.post('/api/diary-posts/upload-image', uploadDiaryImageMulter.single('diaryImage'), (req, res) => {
+app.post('/api/diary-posts/upload-image', uploadDiaryImageMulter.single('diaryImage'), async (req, res) => {
     console.log("[API /api/diary-posts/upload-image Post] Image upload request received.");
     if (!req.file) {
         return res.status(400).json({ message: 'No image file uploaded for diary post.' });
     }
-    const imageUrl = `/uploads/diary/${req.file.filename}`;
-    console.log(`[API /api/diary-posts/upload-image Post] Image uploaded, URL: ${imageUrl}`);
-    res.json({ success: true, imageUrl: imageUrl });
+
+    const isGcsConfigured = GCS_BUCKET_NAME && GCS_BUCKET_NAME !== 'YOUR_GCS_BUCKET_NAME_HERE';
+
+    if (isGcsConfigured) {
+        console.log('[API Diary Image Upload] GCS is configured. Uploading to GCS.');
+        const bucket = storageGCS.bucket(GCS_BUCKET_NAME);
+        // Use authorId from request body if available for better pathing, otherwise default
+        const authorId = req.body.authorId || 'unknown-author';
+        const originalFileName = req.file.originalname;
+        const fileExtension = path.extname(originalFileName);
+        const safeBaseName = path.basename(originalFileName, fileExtension).toLowerCase().replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
+        const gcsObjectName = `diary-images/${authorId}/${Date.now()}-${safeBaseName}${fileExtension}`;
+        const file = bucket.file(gcsObjectName);
+        const gcsPublicUrl = `https://storage.googleapis.com/${GCS_BUCKET_NAME}/${gcsObjectName}`;
+
+        const stream = file.createWriteStream({
+            metadata: { contentType: req.file.mimetype },
+            resumable: false,
+        });
+
+        stream.on('error', (err) => {
+            console.error('[API Diary Image Upload] Error uploading diary image to GCS:', err);
+            res.status(500).json({ message: 'Failed to upload diary image to cloud storage.', error: err.message });
+        });
+
+        stream.on('finish', () => {
+            console.log(`[API Diary Image Upload] Diary image uploaded to GCS: ${gcsPublicUrl}`);
+            res.json({ success: true, imageUrl: gcsPublicUrl });
+        });
+
+        stream.end(req.file.buffer);
+    } else {
+        console.log('[API Diary Image Upload] GCS not configured. Saving locally.');
+        // Manually save the file to disk, replicating original multer.diskStorage logic
+        try {
+            const originalFileName = req.file.originalname;
+            const fileExtension = path.extname(originalFileName);
+            const safeBaseName = path.basename(originalFileName, fileExtension).toLowerCase().replace(/\s+/g, '_').replace(/[^\w.-]/g, '');
+            const localFileName = `diary-${Date.now()}-${(safeBaseName || 'image')}${fileExtension}`;
+            const localFilePath = path.join(diaryUploadsDir, localFileName);
+
+            if (!fs.existsSync(diaryUploadsDir)) { // Ensure directory exists, though it should from startup
+                fs.mkdirSync(diaryUploadsDir, { recursive: true });
+            }
+
+            fs.writeFileSync(localFilePath, req.file.buffer);
+            const imageUrl = `/uploads/diary/${localFileName}`;
+            console.log(`[API Diary Image Upload] Image saved locally: ${imageUrl}`);
+            res.json({ success: true, imageUrl: imageUrl });
+        } catch (error) {
+            console.error('[API Diary Image Upload] Error saving diary image locally:', error);
+            res.status(500).json({ message: 'Failed to save diary image locally.', error: error.message });
+        }
+    }
 });
 
 
 app.post('/api/diary-posts', async (req, res) => {
-    console.log("[API /api/diary-posts Post] Request received. Body:", JSON.stringify(req.body).substring(0,300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log("[API /api/diary-posts Post] Request received. Body:", JSON.stringify(req.body).substring(0,300) + "...");
+    } else {
+        console.log("[API /api/diary-posts Post] Request received.");
+    }
     try {
         const { title, content, authorId, authorName, authorAvatarUrl, imageUrl, diaryImageHint, tags, isFeatured } = req.body;
         if (!title || !content || !authorId || !authorName) {
@@ -1047,11 +1189,32 @@ app.post('/api/diary-posts', async (req, res) => {
 });
 
 app.get('/api/diary-posts', async (req, res) => {
-    console.log("[API /api/diary-posts Get] Request received.");
+    console.log("[API /api/diary-posts Get] Request received. Query:", req.query);
     try {
-        const posts = await DiaryPost.find({ status: 'approved' }).sort({ createdAt: -1 });
-        console.log(`[API /api/diary-posts Get] Fetched ${posts.length} approved diary posts.`);
-        res.json(posts);
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const query = { status: 'approved' };
+
+        const posts = await DiaryPost.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(); // Use .lean() for performance as we are just sending data
+
+        const totalPosts = await DiaryPost.countDocuments(query);
+
+        console.log(`[API /api/diary-posts Get] Fetched ${posts.length} of ${totalPosts} approved diary posts for page ${page}.`);
+        res.json({
+            data: posts,
+            pagination: {
+                page,
+                limit,
+                total: totalPosts,
+                totalPages: Math.ceil(totalPosts / limit)
+            }
+        });
     } catch (error) {
         console.error("[API /api/diary-posts Get] Server error:", error);
         res.status(500).json({ message: 'Server error fetching diary posts', error: error.message });
@@ -1221,7 +1384,11 @@ app.post('/api/diary-posts/:postId/like', async (req, res) => {
 
 // --- Matches & Interactions ---
 app.post('/api/interactions/like', async (req, res) => {
-    console.log("[API /api/interactions/like Post] Like request received. Body:", JSON.stringify(req.body).substring(0,300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log("[API /api/interactions/like Post] Like request received. Body:", JSON.stringify(req.body).substring(0,300) + "...");
+    } else {
+        console.log("[API /api/interactions/like Post] Like request received.");
+    }
     try {
         const { likingUserId, likedProfileId, likedProfileType, likingUserRole, likingUserRepresentsCandidateId, likingUserRepresentsCompanyId, jobOpeningTitle } = req.body;
 
@@ -1598,7 +1765,11 @@ app.get('/api/matches/:matchId/messages', async (req, res) => {
 
 // --- Company Reviews ---
 app.post('/api/reviews/company', async (req, res) => {
-    console.log("[API Company Review Create] Request received. Body:", JSON.stringify(req.body).substring(0,300) + "...");
+    if (process.env.NODE_ENV !== 'production') {
+        console.log("[API Company Review Create] Request received. Body:", JSON.stringify(req.body).substring(0,300) + "...");
+    } else {
+        console.log("[API Company Review Create] Request received.");
+    }
     try {
         const { companyId, jobId, reviewerUserId, responsivenessRating, attitudeRating, processExperienceRating, comments, isAnonymous } = req.body;
 
@@ -1674,7 +1845,11 @@ app.get('/api/reviews/company/:companyUserId/summary', async (req, res) => {
 // Proxy AI Request
 app.post('/api/proxy-ai/icebreaker', async (req, res) => {
     try {
-        console.log('[Express /api/proxy-ai/icebreaker] Received request with body:', req.body);
+        if (process.env.NODE_ENV !== 'production') {
+            console.log('[Express /api/proxy-ai/icebreaker] Received request with body:', req.body);
+        } else {
+            console.log('[Express /api/proxy-ai/icebreaker] Received request.');
+        }
         const nextJsApiUrl = `${NEXTJS_APP_URL}/api/ai/generate-icebreaker`;
 
         const aiResponse = await fetch(nextJsApiUrl, {
