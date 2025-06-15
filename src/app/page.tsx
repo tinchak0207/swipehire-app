@@ -420,8 +420,8 @@ function AppContent() {
       setMongoDbUserId(null);
       setCurrentUser(null);
       updateFullBackendUserFields(null);
-      setFirebaseAuthStateResolved(false);
-      setFirebaseRedirectResultResolved(false);
+      // setFirebaseAuthStateResolved(false); // Removed as per request
+      // setFirebaseRedirectResultResolved(false); // Removed as per request
 
       setUserName(null);
       setUserPhotoURL(null);
@@ -429,7 +429,7 @@ function AppContent() {
       hasScrolledAndModalTriggeredRef.current = false;
 
       setShowWelcomePage(true);
-      setIsAppLoading(true);
+      // setIsAppLoading(true); // Removed as per request
 
       toast({ title: "Logged Out", description: "You have been successfully logged out." });
     } catch (error) { console.error("Error signing out:", error); toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" }); }
@@ -445,11 +445,11 @@ function AppContent() {
     setCurrentUser(null);
     setMongoDbUserId(null);
     updateFullBackendUserFields(null);
-    setFirebaseAuthStateResolved(false);
-    setFirebaseRedirectResultResolved(false);
+    setFirebaseAuthStateResolved(false); // Restored
+    setFirebaseRedirectResultResolved(false); // Restored
 
     setShowWelcomePage(false);
-    setIsAppLoading(true);
+    setIsAppLoading(true); // Keep this for login, as it indicates a state change is in progress
   };
 
   const baseTabItems = [
