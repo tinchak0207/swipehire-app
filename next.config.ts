@@ -1,4 +1,3 @@
-
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
@@ -101,6 +100,20 @@ const nextConfig: NextConfig = {
     'https://swipehire.top', // New domain for dev origins if needed
     'http://swipehire.top',  // New domain for dev origins if needed
   ],
+  async headers() {
+    return [
+      {
+        // Apply these headers to all routes in your application.
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin-allow-popups',
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
