@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useEffect, useState } from 'react';
@@ -130,6 +129,7 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
             <a href="#how-it-works" onClick={(e) => handleNavLinkClick(e, 'how-it-works')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How It Works</a>
             <a href="#pricing" onClick={(e) => handleNavLinkClick(e, 'pricing')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">It's Free!</a>
             <a href="#about" onClick={(e) => handleNavLinkClick(e, 'about')} className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</a>
+            <Link href="/blog" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Blog</Link>
           </nav>
           <div className="flex items-center gap-2">
              <Button onClick={onStartExploring} variant="link" size="sm" className="text-foreground hover:text-primary px-3 py-2 hidden sm:inline-flex font-semibold">
