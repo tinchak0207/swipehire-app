@@ -1,4 +1,3 @@
-
 "use client"; // Make RootLayout a client component to use hooks
 
 import { GeistSans } from 'geist/font/sans';
@@ -74,6 +73,15 @@ export default function RootLayout({
           src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
           strategy="afterInteractive"
           async
+        />
+        
+        {/* AI Agent Script */}
+        <Script
+          id="ai-agent-script"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `"use strict";(()=>{((t,n,d,a="parent")=>{let o=(e,c)=>{if(!e)throw"Invalid namespace";e.q.push(c)},i=document,r,m=window.location.origin;t[n]=t[n]||(()=>{let e=t[n]||{};if(!e.loaded){e.q=e.q||[];let c=\`\${d}/embed/agent-sdk.umd.js?id=\${a}&referrer=\${m}\`,s=i.createElement("script");s.src=c,i.head.appendChild(s),e.loaded=!0}return e})(),t[n].init=e=>{if(!(t[n]||{}).loaded)throw"Agent not initialized yet!";if(typeof e!="string")throw\`Invalid agent id: \${e}\`;if(r)return;r=i.createElement("script");let s=\`\${d}/embed/agent\`,h=\`\${d}/embed/agent-embed.umd.js?call_id=\${e}&iframeOrg=\${d}&iframeSrc=\${s}&referrer=\${m}\`;r.src=h,i.head.appendChild(r)},t[n].user=e=>{o(t[n],{cmd:"ud",data:e})},t[n].show=e=>{o(t[n],{cmd:"show",chat:e})},t[n].hide=e=>{o(t[n],{cmd:"hide",chat:e})}})(window,"AiAgent","https://prod.fluidworks.ai");AiAgent.init("94aa8774-cb27-4f74-a44f-2906c25ec780");})();`
+          }}
         />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased`}>
