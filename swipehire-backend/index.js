@@ -244,6 +244,114 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
+// --- Action Items CRUD (within a UserGoal) ---
+
+// Add an Action Item to a Goal
+app.post('/api/users/:userId/goals/:goalId/actions', async (req, res) => {
+    try {
+        const { userId, goalId } = req.params;
+        const { text } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId)) {
+            return res.status(400).json({ message: 'Invalid user or goal ID.' });
+        }
+        if (!text || typeof text !== 'string' || text.trim() === '') {
+            return res.status(400).json({ message: 'Action item text is required.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const parentGoal = user.userGoals.id(goalId);
+        if (!parentGoal) return res.status(404).json({ message: 'Goal not found.' });
+
+        const newActionItem = { text: text.trim(), isCompleted: false }; // Mongoose will add _id
+        parentGoal.actionItems.push(newActionItem);
+        parentGoal.updatedAt = new Date();
+
+        await user.save();
+        const addedActionItem = parentGoal.actionItems[parentGoal.actionItems.length - 1];
+        // Return the updated parent goal, which now includes the new action item with its _id
+        res.status(201).json({ message: 'Action item added.', goal: parentGoal, actionItem: addedActionItem });
+
+    } catch (error) {
+        console.error(`[API POST /api/users/:userId/goals/:goalId/actions] Error:`, error);
+        res.status(500).json({ message: 'Server error adding action item.', error: error.message });
+    }
+});
+
+// Update an Action Item within a Goal
+app.put('/api/users/:userId/goals/:goalId/actions/:actionId', async (req, res) => {
+    try {
+        const { userId, goalId, actionId } = req.params;
+        const { text, isCompleted } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId) || !mongoose.Types.ObjectId.isValid(actionId)) {
+            return res.status(400).json({ message: 'Invalid ID for user, goal, or action item.' });
+        }
+        if (text !== undefined && (typeof text !== 'string' || text.trim() === '')) {
+            return res.status(400).json({ message: 'Action item text must be a non-empty string if provided.' });
+        }
+        if (isCompleted !== undefined && typeof isCompleted !== 'boolean') {
+            return res.status(400).json({ message: 'isCompleted must be a boolean if provided.' });
+        }
+
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const parentGoal = user.userGoals.id(goalId);
+        if (!parentGoal) return res.status(404).json({ message: 'Goal not found.' });
+
+        const actionItem = parentGoal.actionItems.id(actionId);
+        if (!actionItem) return res.status(404).json({ message: 'Action item not found.' });
+
+        if (text !== undefined) actionItem.text = text.trim();
+        if (isCompleted !== undefined) actionItem.isCompleted = isCompleted;
+
+        parentGoal.updatedAt = new Date();
+
+        await user.save();
+        // Return the updated parent goal, which contains the updated action item
+        res.status(200).json({ message: 'Action item updated.', goal: parentGoal, actionItem: actionItem });
+
+    } catch (error) {
+        console.error(`[API PUT /api/users/:userId/goals/:goalId/actions/:actionId] Error:`, error);
+        res.status(500).json({ message: 'Server error updating action item.', error: error.message });
+    }
+});
+
+// Delete an Action Item from a Goal
+app.delete('/api/users/:userId/goals/:goalId/actions/:actionId', async (req, res) => {
+    try {
+        const { userId, goalId, actionId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId) || !mongoose.Types.ObjectId.isValid(actionId)) {
+            return res.status(400).json({ message: 'Invalid ID for user, goal, or action item.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const parentGoal = user.userGoals.id(goalId);
+        if (!parentGoal) return res.status(404).json({ message: 'Goal not found.' });
+
+        const actionItem = parentGoal.actionItems.id(actionId);
+        if (!actionItem) return res.status(404).json({ message: 'Action item not found.' });
+
+        actionItem.deleteOne();
+        parentGoal.updatedAt = new Date();
+
+        await user.save();
+        // Return the updated parent goal
+        res.status(200).json({ message: 'Action item deleted.', goal: parentGoal });
+
+    } catch (error) {
+        console.error(`[API DELETE /api/users/:userId/goals/:goalId/actions/:actionId] Error:`, error);
+        res.status(500).json({ message: 'Server error deleting action item.', error: error.message });
+    }
+});
+
 // --- Career Dialogue API ---
 app.post('/api/users/:userId/career-chat', async (req, res) => {
     console.log(`[API /api/users/:userId/career-chat Post] Request for user ${req.params.userId}`);
