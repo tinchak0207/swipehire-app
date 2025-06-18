@@ -9,6 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { logAnalyticsEvent } from '@/lib/analytics';
+import { CareerOnboardingModal } from '@/components/ai/career-planner/onboarding/CareerOnboardingModal';
+import { CareerOnboardingData, ProcessedCareerOnboardingData } from '@/components/ai/career-planner/onboarding/types';
 
 // Placeholder for auth, replace with actual auth context if available
 const useAuth = () => {
@@ -26,6 +28,9 @@ export default function CareerPlannerPage() {
   const [isLoadingInitialData, setIsLoadingInitialData] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [suggestionFeedback, setSuggestionFeedback] = useState<Record<string, 'adopted' | 'helpful' | 'dismissed' | null>>({});
+  const [showOnboardingModal, setShowOnboardingModal] = useState<boolean>(false);
+  const [userData, setUserData] = useState<BackendUser | null>(null);
+  const [isLoadingOnboardingSubmission, setIsLoadingOnboardingSubmission] = useState<boolean>(false);
 
   const handleSuggestionFeedback = async (suggestionId: string, feedbackType: 'adopted' | 'helpful' | 'dismissed') => {
     if (!userId) {
@@ -37,7 +42,7 @@ export default function CareerPlannerPage() {
     // Optimistically update UI
     const currentLocalFeedback = suggestionFeedback[suggestionId];
     const newLocalFeedbackState = currentLocalFeedback === feedbackType ? null : feedbackType;
-
+    
     setSuggestionFeedback(prev => ({
       ...prev,
       [suggestionId]: newLocalFeedbackState,
@@ -49,8 +54,8 @@ export default function CareerPlannerPage() {
       const response = await fetch(`/api/users/${userId}/career-plan/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          suggestionId,
+        body: JSON.stringify({ 
+          suggestionId, 
           feedbackType: feedbackType // Always send the clicked feedbackType, backend handles toggle logic
         }),
       });
@@ -59,7 +64,7 @@ export default function CareerPlannerPage() {
         const errorData = await response.json().catch(() => ({ message: 'Failed to save feedback to server.' }));
         throw new Error(errorData.message || `Server error: ${response.status}`);
       }
-
+      
       const result = await response.json();
       console.log('Feedback saved successfully to backend:', result);
       // Optionally, show a success toast
@@ -85,6 +90,7 @@ export default function CareerPlannerPage() {
   const fetchUserCareerData = useCallback(async (currentUserId: string) => {
     setIsLoadingInitialData(true);
     setError(null);
+    setUserData(null); // Reset user data while fetching
     try {
       // This endpoint might not exist or might not return the specific fields directly.
       // This is a placeholder based on the subtask description.
@@ -99,40 +105,108 @@ export default function CareerPlannerPage() {
           throw new Error(`Failed to fetch user data. Status: ${response.status}`);
         }
       } else {
-        const userData = await response.json() as BackendUser; // Assuming full BackendUser structure
-
+        const fetchedUserData = await response.json() as BackendUser; 
+        setUserData(fetchedUserData);
+        
         setCareerInputs({
-          careerGoals: userData.careerGoals || '',
-          careerInterests: userData.careerInterests || [],
-          careerValues: userData.careerValues || [],
+          careerGoals: fetchedUserData.careerGoals || '',
+          careerInterests: fetchedUserData.careerInterests || [],
+          careerValues: fetchedUserData.careerValues || [],
         });
-        if (userData.aiCareerPlan) {
-          // Ensure aiCareerPlan is not an empty object if it can be
-          if (Object.keys(userData.aiCareerPlan).length > 0) {
-            setCareerPlan(userData.aiCareerPlan as AICareerPlan); // Cast if backend returns Mixed type
-          } else {
-            setCareerPlan(null);
-          }
+        if (fetchedUserData.aiCareerPlan && Object.keys(fetchedUserData.aiCareerPlan).length > 0) {
+          setCareerPlan(fetchedUserData.aiCareerPlan as AICareerPlan);
         } else {
           setCareerPlan(null);
         }
+
+        // Check for onboarding status
+        if (!fetchedUserData.hasCompletedCareerPlannerOnboarding) {
+          setShowOnboardingModal(true);
+          logAnalyticsEvent('career_onboarding_modal_triggered', { userId: currentUserId, reason: 'not_completed' });
+        }
+        
         console.log("Fetched user data for career planner:", {
-            goals: userData.careerGoals,
-            interests: userData.careerInterests,
-            values: userData.careerValues,
-            planExists: !!userData.aiCareerPlan
+            goals: fetchedUserData.careerGoals,
+            interests: fetchedUserData.careerInterests,
+            values: fetchedUserData.careerValues,
+            planExists: !!fetchedUserData.aiCareerPlan,
+            onboardingCompleted: fetchedUserData.hasCompletedCareerPlannerOnboarding
         });
       }
     } catch (err) {
       console.error('Error fetching initial career data:', err);
       setError('Failed to load initial career information. Please try again later.');
-      // Initialize with empty data on error to allow form usage
       setCareerInputs({});
       setCareerPlan(null);
+      // Potentially show onboarding even on error if user data is unavailable,
+      // or handle this more gracefully depending on UX requirements.
+      // For now, if fetch fails, modal won't show based on hasCompleted flag.
     } finally {
       setIsLoadingInitialData(false);
     }
   }, []);
+
+  const handleOnboardingComplete = async (data: ProcessedCareerOnboardingData) => {
+    if (!userId) {
+      setError('User ID not found. Cannot complete onboarding.');
+      return;
+    }
+    setIsLoadingOnboardingSubmission(true);
+    try {
+      const response = await fetch(`/api/users/${userId}/complete-career-onboarding`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to complete onboarding.' }));
+        throw new Error(errorData.message || `Failed to complete onboarding. Status: ${response.status}`);
+      }
+      const updatedUserData = await response.json();
+      
+      // Update local states
+      setUserData(updatedUserData.user); // Assuming backend returns the updated user object
+      setCareerInputs({
+        careerGoals: updatedUserData.user.careerGoals || data.initialCareerExpectations || '', // Prioritize updated goals
+        careerInterests: updatedUserData.user.careerInterests || data.interestsArray || [],
+        careerValues: updatedUserData.user.careerValues || data.valuesArray || [],
+      });
+      // If the onboarding also populates aiCareerPlan or other relevant fields directly, update them here too.
+      // For now, we assume the main effect is setting `hasCompletedCareerPlannerOnboarding` to true.
+      
+      setShowOnboardingModal(false);
+      console.log('Career onboarding completed successfully and data saved.');
+      // Trigger toast: Success! Your onboarding is complete.
+      logAnalyticsEvent('career_onboarding_completed', { userId });
+
+      // Optionally, automatically generate the first plan if desired UX
+      // await handleGeneratePlan({
+      //   careerGoals: updatedUserData.user.careerGoals || data.initialCareerExpectations || '',
+      //   careerInterests: updatedUserData.user.careerInterests || data.interestsArray || [],
+      //   careerValues: updatedUserData.user.careerValues || data.valuesArray || [],
+      // });
+
+    } catch (err: any) {
+      console.error('Error completing onboarding:', err);
+      setError(err.message || 'An unexpected error occurred during onboarding submission.');
+      // Trigger toast: Error submitting onboarding data.
+    } finally {
+      setIsLoadingOnboardingSubmission(false);
+    }
+  };
+
+  const extractInitialDataForOnboarding = (currentUserData: BackendUser | null): Partial<CareerOnboardingData> => {
+    if (!currentUserData) return {};
+    return {
+      educationLevel: currentUserData.profileEducationLevel,
+      workExperienceSummary: currentUserData.profileExperienceSummary,
+      skillsString: currentUserData.profileSkills, // Assuming profileSkills is stored as comma-separated string
+      interestsString: currentUserData.careerInterests?.join(', '),
+      valuesString: currentUserData.careerValues?.join(', '),
+      initialCareerExpectations: currentUserData.initialCareerExpectations || currentUserData.careerGoals,
+    };
+  };
 
   useEffect(() => {
     if (userId && isAuthenticated) {
@@ -177,10 +251,10 @@ export default function CareerPlannerPage() {
       const plan: AICareerPlan = await response.json();
       setCareerPlan(plan);
       // Update inputs as backend might have saved them
-      setCareerInputs({
-        careerGoals: data.careerGoals,
-        careerInterests: data.careerInterests,
-        careerValues: data.careerValues
+      setCareerInputs({ 
+        careerGoals: data.careerGoals, 
+        careerInterests: data.careerInterests, 
+        careerValues: data.careerValues 
       });
     } catch (err: any) {
       console.error('Error generating career plan:', err);
@@ -318,7 +392,7 @@ export default function CareerPlannerPage() {
       </div>
     );
   }
-
+  
   if (isLoadingInitialData) {
     return (
       <div className="container mx-auto p-4 flex flex-col items-center">
@@ -334,6 +408,25 @@ export default function CareerPlannerPage() {
   return (
     <div className="container mx-auto p-4 flex flex-col items-center">
       <AppHeader />
+      {isLoadingOnboardingSubmission && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Loader2 className="h-12 w-12 animate-spin text-white" />
+          <p className="ml-4 text-lg text-white">Saving your onboarding data...</p>
+        </div>
+      )}
+      <CareerOnboardingModal
+        isOpen={showOnboardingModal}
+        onClose={() => {
+            setShowOnboardingModal(false);
+            logAnalyticsEvent('career_onboarding_modal_closed', { userId });
+            // If user closes modal without completing, and they haven't completed before,
+            // they might be stuck if `fetchUserCareerData` doesn't show it again.
+            // Consider if page should be unusable or if modal is mandatory once triggered.
+            // For now, allow close. If they refresh, it will reappear if not completed.
+        }}
+        onComplete={handleOnboardingComplete}
+        initialData={extractInitialDataForOnboarding(userData)}
+      />
       <main className="w-full max-w-4xl mt-8">
         <h1 className="text-3xl font-bold text-center mb-2">AI Career Planner</h1>
         <p className="text-center text-gray-600 mb-8">
@@ -361,7 +454,7 @@ export default function CareerPlannerPage() {
         )}
 
         {careerPlan && !isLoading && renderPlan(careerPlan)}
-
+        
         {!careerPlan && !isLoading && !isLoadingInitialData && !error && (
              <Card className="mt-8 w-full text-center">
                 <CardHeader>
@@ -376,4 +469,4 @@ export default function CareerPlannerPage() {
       </main>
     </div>
   );
-
+}
