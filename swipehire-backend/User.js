@@ -237,6 +237,30 @@ const UserSchema = new mongoose.Schema({
     profileSalaryExpectationMax: {
         type: Number,
     },
+    // New fields for job seekers (AI Career Plan)
+    careerGoals: {
+        type: String,
+        trim: true,
+    },
+    careerInterests: {
+        type: [String],
+        default: [],
+    },
+    careerValues: {
+        type: [String],
+        default: [],
+    },
+    aiCareerPlan: {
+        type: mongoose.Schema.Types.Mixed, // To store the AI-generated plan object
+    },
+    aiCareerPlanSuggestionFeedback: {
+        type: [{
+            suggestionId: String,
+            feedbackType: String, // e.g., 'adopted', 'dismissed', 'helpful', 'not_helpful'
+            timestamp: Date,
+        }],
+        default: [],
+    },
 }, { timestamps: true });
 
 

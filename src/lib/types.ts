@@ -179,6 +179,41 @@ export interface BackendUser {
   passedCandidateProfileIds?: string[];
   passedCompanyProfileIds?: string[];
   profileVisibility?: 'public' | 'recruiters_only' | 'private';
+
+  // New fields for AI Career Plan
+  careerGoals?: string;
+  careerInterests?: string[];
+  careerValues?: string[];
+  aiCareerPlan?: AICareerPlan;
+  aiCareerPlanSuggestionFeedback?: AISuggestionFeedback[];
+}
+
+export interface AICareerPlan {
+  suggestedPaths: Array<{
+    pathName: string;
+    description: string;
+    pros: string[];
+    cons: string[];
+  }>;
+  shortTermGoals: Array<{
+    goal: string;
+    suggestedActions?: string[];
+  }>;
+  midTermGoals: Array<{
+    goal: string;
+    suggestedActions?: string[];
+  }>;
+  actionableAdvice?: string;
+  resourceSuggestions?: Array<{
+    name: string;
+    url?: string;
+  }>;
+}
+
+export interface AISuggestionFeedback {
+  suggestionId: string;
+  feedbackType: 'adopted' | 'dismissed' | 'helpful' | 'not_helpful';
+  timestamp: string; // ISO Date string
 }
 
 

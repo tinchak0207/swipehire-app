@@ -14,6 +14,7 @@ const Video = require('./Video');
 const CompanyReview = require('./CompanyReview');
 const Notification = require('./Notification');
 const notificationService = require('./services/notificationService');
+const { careerPlannerFlow, CareerPlannerInputSchema } = require('../src/ai/flows/career-planner-flow');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -26,6 +27,12 @@ const { createClient } = require("redis");
 
 const app = express();
 const server = http.createServer(app);
+
+// Placeholder Backend Analytics Logger
+function logBackendAnalyticsEvent(eventName, properties) {
+  console.log(`[BACKEND ANALYTICS EVENT]: ${eventName}`, properties || '');
+  // In a real application, this would send data to an analytics service
+}
 
 const PORT = process.env.PORT || 5000;
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
@@ -1011,6 +1018,180 @@ app.get('/api/jobs', async (req, res) => {
 // app.post('/api/proxy/users/:identifier/role', ...); // REMOVED
 // app.post('/api/proxy/users/:identifier/settings', ...); // REMOVED
 
+// --- Career Planner Route ---
+app.post('/api/users/:userId/career-plan', async (req, res) => {
+    console.log(`[API /api/users/:userId/career-plan Post] Request for user ${req.params.userId}`);
+    try {
+        const { userId } = req.params;
+        const { careerGoals, careerInterests, careerValues } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Update user's career aspirations if provided
+        if (careerGoals) user.careerGoals = careerGoals;
+        if (careerInterests) user.careerInterests = Array.isArray(careerInterests) ? careerInterests : [careerInterests];
+        if (careerValues) user.careerValues = Array.isArray(careerValues) ? careerValues : [careerValues];
+
+        // Prepare input for careerPlannerFlow
+        const skillsArray = user.profileSkills ? user.profileSkills.split(',').map(skill => skill.trim()).filter(s => s) : [];
+
+        let jobTypesArray = [];
+        if (user.profileJobTypePreference) {
+            if (Array.isArray(user.profileJobTypePreference)) {
+                jobTypesArray = user.profileJobTypePreference.map(type => type.trim()).filter(t => t);
+            } else if (typeof user.profileJobTypePreference === 'string') {
+                jobTypesArray = user.profileJobTypePreference.split(',').map(type => type.trim()).filter(t => t);
+            }
+        }
+
+        const inputObj = {
+            userId: user._id.toString(),
+            currentRole: user.profileHeadline || undefined, // Assuming profileHeadline is current role
+            profileSkills: skillsArray,
+            profileExperienceSummary: user.profileExperienceSummary || undefined,
+            profileWorkExperienceLevel: user.profileWorkExperienceLevel || undefined, // Assumes string value is compatible with enum
+            profileEducationLevel: user.profileEducationLevel || undefined, // Assumes string value is compatible with enum
+            profileDesiredWorkStyle: user.profileDesiredWorkStyle || undefined,
+            profileJobTypePreference: jobTypesArray.length > 0 ? jobTypesArray : undefined, // Pass undefined if empty
+            profileSalaryExpectationMin: user.profileSalaryExpectationMin || undefined,
+            profileSalaryExpectationMax: user.profileSalaryExpectationMax || undefined,
+            careerGoals: user.careerGoals || "Not specified", // Ensure required field has a value
+            careerInterests: user.careerInterests && user.careerInterests.length > 0 ? user.careerInterests : [],
+            careerValues: user.careerValues && user.careerValues.length > 0 ? user.careerValues : [],
+        };
+
+        // Validate input
+        let validatedInputForAI;
+        try {
+            validatedInputForAI = CareerPlannerInputSchema.parse(inputObj);
+        } catch (validationError) {
+            console.error("[API /api/users/:userId/career-plan Post] Input validation error:", validationError.errors);
+            return res.status(400).json({ message: 'Input validation failed for AI planner.', errors: validationError.errors });
+        }
+
+        console.log(`[API /api/users/:userId/career-plan Post] Calling careerPlannerFlow with input:`, JSON.stringify(validatedInputForAI).substring(0,500) + "...");
+
+        // Call the AI flow
+        const plan = await careerPlannerFlow(validatedInputForAI);
+
+        if (!plan) {
+            console.error("[API /api/users/:userId/career-plan Post] careerPlannerFlow returned undefined or null.");
+            return res.status(500).json({ message: 'AI career plan generation failed.' });
+        }
+
+        // Save the plan to the user
+        user.aiCareerPlan = plan;
+        user.aiCareerPlanSuggestionFeedback = []; // Initialize feedback array
+        await user.save();
+
+        logBackendAnalyticsEvent('career_plan_generated', {
+            userId: user._id.toString(),
+            newPlan: !!(req.body.careerGoals || req.body.careerInterests || req.body.careerValues), // Check if new inputs were provided
+            timestamp: new Date().toISOString()
+        });
+
+        console.log(`[API /api/users/:userId/career-plan Post] AI career plan generated and saved for user ${userId}.`);
+        res.status(200).json(plan);
+
+    } catch (error) {
+        console.error(`[API /api/users/:userId/career-plan Post] Error:`, error);
+        if (error.name === 'ZodError') { // Catch Zod errors from parse if not caught above
+             return res.status(400).json({ message: 'Input validation failed for AI planner.', errors: error.errors });
+        }
+        // Handle potential module loading errors (e.g. if careerPlannerFlow is not found)
+        if (error.code === 'MODULE_NOT_FOUND' || (error.message && error.message.includes("../src/ai/flows/career-planner-flow"))) {
+            console.error("[API /api/users/:userId/career-plan Post] CRITICAL: career-planner-flow.ts module not found or not compatible. This might be a CommonJS/ESM issue or incorrect path.");
+            return res.status(500).json({ message: 'Server error: AI module integration issue.' });
+        }
+        res.status(500).json({ message: 'Server error generating career plan.', error: error.message });
+    }
+});
+
+app.post('/api/users/:userId/career-plan/feedback', async (req, res) => {
+    console.log(`[API /api/users/:userId/career-plan/feedback Post] Request for user ${req.params.userId}`);
+    try {
+        const { userId } = req.params;
+        const { suggestionId, feedbackType } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format.' });
+        }
+        if (!suggestionId || !feedbackType) {
+            return res.status(400).json({ message: 'suggestionId and feedbackType are required.' });
+        }
+        const validFeedbackTypes = ['adopted', 'helpful', 'dismissed'];
+        if (!validFeedbackTypes.includes(feedbackType)) {
+            return res.status(400).json({ message: 'Invalid feedbackType.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        if (!user.aiCareerPlanSuggestionFeedback) {
+            user.aiCareerPlanSuggestionFeedback = [];
+        }
+
+        const existingFeedbackIndex = user.aiCareerPlanSuggestionFeedback.findIndex(fb => fb.suggestionId === suggestionId);
+
+        if (existingFeedbackIndex !== -1) {
+            // If current feedbackType is same as what's stored, user is toggling it off -> remove
+            if (user.aiCareerPlanSuggestionFeedback[existingFeedbackIndex].feedbackType === feedbackType) {
+                user.aiCareerPlanSuggestionFeedback.splice(existingFeedbackIndex, 1);
+            } else { // Else, user is changing feedback type -> update
+                user.aiCareerPlanSuggestionFeedback[existingFeedbackIndex].feedbackType = feedbackType;
+                user.aiCareerPlanSuggestionFeedback[existingFeedbackIndex].timestamp = new Date().toISOString();
+            }
+        } else {
+            // Feedback doesn't exist, add new
+            user.aiCareerPlanSuggestionFeedback.push({
+                suggestionId,
+                feedbackType,
+                timestamp: new Date().toISOString()
+            });
+        }
+
+        await user.save();
+        console.log(`[API /api/users/:userId/career-plan/feedback Post] Feedback saved for user ${userId}, suggestion ${suggestionId}.`);
+
+        // Log 'adopted' feedback
+        if (user.aiCareerPlanSuggestionFeedback.find(fb => fb.suggestionId === suggestionId && fb.feedbackType === 'adopted')) {
+            logBackendAnalyticsEvent('career_plan_suggestion_adopted', {
+                userId: user._id.toString(),
+                suggestionId,
+                timestamp: new Date().toISOString()
+            });
+        }
+        // Optional: Log all feedback types
+        // const justProcessedFeedback = user.aiCareerPlanSuggestionFeedback.find(fb => fb.suggestionId === suggestionId);
+        // if (justProcessedFeedback) {
+        //     logBackendAnalyticsEvent('career_plan_suggestion_feedback_given', {
+        //         userId: user._id.toString(),
+        //         suggestionId: justProcessedFeedback.suggestionId,
+        //         feedbackType: justProcessedFeedback.feedbackType,
+        //         timestamp: new Date().toISOString()
+        //     });
+        // }
+
+
+        res.status(200).json({
+            message: 'Feedback saved successfully',
+            feedback: user.aiCareerPlanSuggestionFeedback
+        });
+
+    } catch (error) {
+        console.error(`[API /api/users/:userId/career-plan/feedback Post] Error:`, error);
+        res.status(500).json({ message: 'Server error saving career plan feedback.', error: error.message });
+    }
+});
 
 // Endpoint to get jobseeker profiles (for recruiters)
 app.get('/api/users/profiles/jobseekers', async (req, res) => {
