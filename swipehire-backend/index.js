@@ -15,6 +15,7 @@ const CompanyReview = require('./CompanyReview');
 const Notification = require('./Notification');
 const notificationService = require('./services/notificationService');
 const { careerPlannerFlow, CareerPlannerInputSchema } = require('../src/ai/flows/career-planner-flow');
+const { careerDialogueFlow, CareerDialogueInputSchema: BackendCareerDialogueInputSchema } = require('../src/ai/flows/career-dialogue-flow'); // Note: aliasing to avoid name clash if CareerDialogueInputSchema is also defined here for req.body validation.
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
@@ -240,6 +241,221 @@ app.get('/api/admin/users', async (req, res) => {
     } catch (error) {
         console.error("[Conceptual Admin] Error fetching users:", error);
         res.status(500).json({ message: 'Server error fetching users (conceptual)', error: error.message });
+    }
+});
+
+// --- Career Dialogue API ---
+app.post('/api/users/:userId/career-chat', async (req, res) => {
+    console.log(`[API /api/users/:userId/career-chat Post] Request for user ${req.params.userId}`);
+    try {
+        const { userId } = req.params;
+
+        // Validate userId
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format.' });
+        }
+
+        // Validate request body
+        // Note: We use a slightly different schema here for req.body if `userId` is from params.
+        // The flow's schema expects userId, but here it's a param.
+        const { userMessage, chatHistory } = req.body;
+
+        // Basic validation for presence (more specific validation can be done via a Zod schema if needed)
+        if (!userMessage || typeof userMessage !== 'string' || userMessage.trim() === '') {
+            return res.status(400).json({ message: 'User message is required and must be a non-empty string.' });
+        }
+        if (chatHistory && !Array.isArray(chatHistory)) { // chatHistory is optional
+            return res.status(400).json({ message: 'Chat history must be an array if provided.'});
+        }
+        // Deeper validation of chatHistory structure could be added here if necessary
+
+        console.log(`[API /api/users/:userId/career-chat Post] Calling careerDialogueFlow for user ${userId}`);
+
+        const result = await careerDialogueFlow({
+            userId,
+            userMessage,
+            chatHistory: chatHistory || [] // Ensure chatHistory is an array
+        });
+
+        if (!result || !result.aiResponse) {
+            console.error(`[API /api/users/:userId/career-chat Post] careerDialogueFlow returned invalid structure.`);
+            return res.status(500).json({ message: 'AI dialogue flow failed to produce a valid response.' });
+        }
+
+        res.json({ aiResponse: result.aiResponse });
+
+    } catch (error) {
+        console.error(`[API /api/users/:userId/career-chat Post] Error:`, error);
+        if (error.message.includes("User not found") || error.message.includes("Invalid user ID format")) {
+            return res.status(404).json({ message: error.message });
+        }
+        if (error.message.includes("Server configuration error: Missing API key")) {
+             return res.status(500).json({ message: "Internal server configuration error."});
+        }
+        if (error.message.includes("AI service failed to respond")) {
+            return res.status(502).json({ message: "AI service is currently unavailable or failed to respond."});
+        }
+        res.status(500).json({ message: 'Server error processing career chat.', error: error.message });
+    }
+});
+
+// --- Action Items CRUD (within a UserGoal) ---
+
+// Add an Action Item to a Goal
+app.post('/api/users/:userId/goals/:goalId/actions', async (req, res) => {
+    try {
+        const { userId, goalId } = req.params;
+        const { text } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId)) {
+            return res.status(400).json({ message: 'Invalid user or goal ID.' });
+        }
+        if (!text || typeof text !== 'string' || text.trim() === '') {
+            return res.status(400).json({ message: 'Action item text is required.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const parentGoal = user.userGoals.id(goalId);
+        if (!parentGoal) return res.status(404).json({ message: 'Goal not found.' });
+
+        const newActionItem = { text: text.trim(), isCompleted: false };
+        parentGoal.actionItems.push(newActionItem);
+        parentGoal.updatedAt = new Date(); // Manually update timestamp
+
+        await user.save();
+        const addedActionItem = parentGoal.actionItems[parentGoal.actionItems.length - 1];
+        res.status(201).json({ message: 'Action item added.', goal: parentGoal, actionItem: addedActionItem });
+
+    } catch (error) {
+        console.error(`[API POST /actions] Error:`, error);
+        res.status(500).json({ message: 'Server error adding action item.', error: error.message });
+    }
+});
+
+// Update an Action Item within a Goal
+app.put('/api/users/:userId/goals/:goalId/actions/:actionId', async (req, res) => {
+    try {
+        const { userId, goalId, actionId } = req.params;
+        const { text, isCompleted } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId) || !mongoose.Types.ObjectId.isValid(actionId)) {
+            return res.status(400).json({ message: 'Invalid ID.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const parentGoal = user.userGoals.id(goalId);
+        if (!parentGoal) return res.status(404).json({ message: 'Goal not found.' });
+
+        const actionItem = parentGoal.actionItems.id(actionId);
+        if (!actionItem) return res.status(404).json({ message: 'Action item not found.' });
+
+        if (text !== undefined) actionItem.text = text.trim();
+        if (isCompleted !== undefined) actionItem.isCompleted = isCompleted;
+
+        parentGoal.updatedAt = new Date(); // Manually update timestamp
+
+        await user.save();
+        res.status(200).json({ message: 'Action item updated.', goal: parentGoal, actionItem });
+
+    } catch (error) {
+        console.error(`[API PUT /actions/:actionId] Error:`, error);
+        res.status(500).json({ message: 'Server error updating action item.', error: error.message });
+    }
+});
+
+// Delete an Action Item from a Goal
+app.delete('/api/users/:userId/goals/:goalId/actions/:actionId', async (req, res) => {
+    try {
+        const { userId, goalId, actionId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId) || !mongoose.Types.ObjectId.isValid(actionId)) {
+            return res.status(400).json({ message: 'Invalid ID.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found.' });
+
+        const parentGoal = user.userGoals.id(goalId);
+        if (!parentGoal) return res.status(404).json({ message: 'Goal not found.' });
+
+        const actionItem = parentGoal.actionItems.id(actionId);
+        if (!actionItem) return res.status(404).json({ message: 'Action item not found.' });
+
+        actionItem.deleteOne(); // Mongoose 8+
+        parentGoal.updatedAt = new Date(); // Manually update timestamp
+
+        await user.save();
+        res.status(200).json({ message: 'Action item deleted.', goal: parentGoal });
+
+    } catch (error) {
+        console.error(`[API DELETE /actions/:actionId] Error:`, error);
+        res.status(500).json({ message: 'Server error deleting action item.', error: error.message });
+    }
+});
+
+app.post('/api/users/:userId/complete-career-onboarding', async (req, res) => {
+    console.log(`[API /api/users/:userId/complete-career-onboarding Post] Request for user ${req.params.userId}`);
+    try {
+        const { userId } = req.params;
+        const {
+            educationLevel,
+            workExperienceSummary,
+            skillsString, // Comma-separated string
+            interestsArray, // Array of strings
+            valuesArray, // Array of strings
+            initialCareerExpectations
+        } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID format.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        // Update user profile fields
+        if (educationLevel) user.profileEducationLevel = educationLevel;
+        if (workExperienceSummary) user.profileExperienceSummary = workExperienceSummary;
+        if (skillsString) user.profileSkills = skillsString; // Store as comma-separated string as per existing schema fields
+        if (interestsArray && Array.isArray(interestsArray)) user.careerInterests = interestsArray;
+        if (valuesArray && Array.isArray(valuesArray)) user.careerValues = valuesArray;
+
+        if (initialCareerExpectations) {
+            user.initialCareerExpectations = initialCareerExpectations;
+            // If careerGoals is empty, populate it with initialCareerExpectations
+            if (!user.careerGoals || user.careerGoals.trim() === '') {
+                user.careerGoals = initialCareerExpectations;
+            }
+        }
+
+        user.hasCompletedCareerPlannerOnboarding = true;
+
+        await user.save();
+
+        // Log analytics event for onboarding completion
+        logBackendAnalyticsEvent('career_planner_onboarding_completed', {
+            userId: user._id.toString(),
+            timestamp: new Date().toISOString()
+        });
+
+        console.log(`[API /api/users/:userId/complete-career-onboarding Post] Career planner onboarding completed for user ${userId}.`);
+
+        // Return only a subset of user fields, similar to other update endpoints
+        const userToReturn = selectUserFields(user.toObject());
+        res.status(200).json({
+            message: 'Career planner onboarding completed successfully!',
+            user: userToReturn
+        });
+
+    } catch (error) {
+        console.error(`[API /api/users/:userId/complete-career-onboarding Post] Error:`, error);
+        res.status(500).json({ message: 'Server error completing career planner onboarding.', error: error.message });
     }
 });
 
@@ -1089,6 +1305,13 @@ app.post('/api/users/:userId/career-plan', async (req, res) => {
         // Save the plan to the user
         user.aiCareerPlan = plan;
         user.aiCareerPlanSuggestionFeedback = []; // Initialize feedback array
+        // Save new top-level fields from the plan output
+        if (plan.assessedCareerStage) {
+            user.assessedCareerStage = plan.assessedCareerStage;
+        }
+        if (plan.careerStageReasoning) {
+            user.assessedCareerStageReasoning = plan.careerStageReasoning;
+        }
         await user.save();
 
         logBackendAnalyticsEvent('career_plan_generated', {
@@ -1192,6 +1415,127 @@ app.post('/api/users/:userId/career-plan/feedback', async (req, res) => {
         res.status(500).json({ message: 'Server error saving career plan feedback.', error: error.message });
     }
 });
+
+// --- User Goals CRUD ---
+
+// Add a new goal for a user
+app.post('/api/users/:userId/goals', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { text, category, targetDate } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID.' });
+        }
+        if (!text || !category) {
+            return res.status(400).json({ message: 'Goal text and category are required.' });
+        }
+        if (!['short-term', 'mid-term', 'long-term'].includes(category)) {
+            return res.status(400).json({ message: 'Invalid goal category.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const newGoal = {
+            text,
+            category,
+            targetDate: targetDate ? new Date(targetDate) : undefined,
+            actionItems: [], // Initialize with empty action items
+            isCompleted: false,
+            // createdAt and updatedAt will be handled by schema defaults/middleware
+        };
+
+        user.userGoals.push(newGoal);
+        await user.save();
+
+        // Return the newly added goal, it will have an _id assigned by MongoDB
+        const addedGoal = user.userGoals[user.userGoals.length - 1];
+        res.status(201).json({ message: 'Goal added successfully.', goal: addedGoal });
+
+    } catch (error) {
+        console.error(`[API POST /api/users/:userId/goals] Error:`, error);
+        res.status(500).json({ message: 'Server error adding goal.', error: error.message });
+    }
+});
+
+// Update an existing goal for a user
+app.put('/api/users/:userId/goals/:goalId', async (req, res) => {
+    try {
+        const { userId, goalId } = req.params;
+        const { text, category, targetDate, isCompleted } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId)) {
+            return res.status(400).json({ message: 'Invalid user or goal ID.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const goal = user.userGoals.id(goalId);
+        if (!goal) {
+            return res.status(404).json({ message: 'Goal not found.' });
+        }
+
+        if (text) goal.text = text;
+        if (category) {
+            if (!['short-term', 'mid-term', 'long-term'].includes(category)) {
+                return res.status(400).json({ message: 'Invalid goal category.' });
+            }
+            goal.category = category;
+        }
+        if (targetDate !== undefined) goal.targetDate = targetDate ? new Date(targetDate) : null; // Allow unsetting date
+        if (isCompleted !== undefined) goal.isCompleted = isCompleted;
+
+        // Mongoose subdocument save middleware for `updatedAt` should trigger if defined on UserGoalSchema
+        // If not, uncomment below:
+        // goal.updatedAt = new Date();
+
+        await user.save();
+        res.status(200).json({ message: 'Goal updated successfully.', goal });
+
+    } catch (error) {
+        console.error(`[API PUT /api/users/:userId/goals/:goalId] Error:`, error);
+        res.status(500).json({ message: 'Server error updating goal.', error: error.message });
+    }
+});
+
+// Delete a goal for a user
+app.delete('/api/users/:userId/goals/:goalId', async (req, res) => {
+    try {
+        const { userId, goalId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(userId) || !mongoose.Types.ObjectId.isValid(goalId)) {
+            return res.status(400).json({ message: 'Invalid user or goal ID.' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found.' });
+        }
+
+        const goal = user.userGoals.id(goalId);
+        if (!goal) {
+            return res.status(404).json({ message: 'Goal not found for this user.' });
+        }
+
+        // Mongoose 8+ .pull() works directly on the object
+        // For Mongoose < 8, you might need to do user.userGoals.pull({ _id: goalId });
+        goal.deleteOne(); // Recommended way for Mongoose 8+ for subdocuments
+
+        await user.save();
+        res.status(200).json({ message: 'Goal deleted successfully.', remainingGoals: user.userGoals });
+
+    } catch (error) {
+        console.error(`[API DELETE /api/users/:userId/goals/:goalId] Error:`, error);
+        res.status(500).json({ message: 'Server error deleting goal.', error: error.message });
+    }
+});
+
 
 // Endpoint to get jobseeker profiles (for recruiters)
 app.get('/api/users/profiles/jobseekers', async (req, res) => {

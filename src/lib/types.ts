@@ -115,6 +115,17 @@ export enum CompanyScale {
     UNSPECIFIED = "Unspecified"
 }
 
+export enum CareerStage {
+  STUDENT = 'Student',
+  ENTRY_LEVEL_INTERN = 'Entry-Level/Intern',
+  EARLY_CAREER = 'Early-Career Professional',
+  MID_CAREER = 'Mid-Career Professional',
+  SENIOR_PROFESSIONAL_SPECIALIST = 'Senior Professional/Specialist',
+  LEADERSHIP_MANAGEMENT = 'Leadership/Management',
+  CAREER_TRANSITIONING = 'Career Transitioning',
+  UNSPECIFIED_EXPLORING = 'Unspecified/Exploring'
+}
+
 export interface CompanyVerificationDocument {
     type: 'business_license' | 'organization_code' | 'other';
     fileName: string;
@@ -186,9 +197,39 @@ export interface BackendUser {
   careerValues?: string[];
   aiCareerPlan?: AICareerPlan;
   aiCareerPlanSuggestionFeedback?: AISuggestionFeedback[];
+
+  // New fields for career planner onboarding
+  hasCompletedCareerPlannerOnboarding?: boolean;
+  initialCareerExpectations?: string;
+
+  // New fields for AI-assessed career stage
+  assessedCareerStage?: CareerStage;
+  assessedCareerStageReasoning?: string;
+
+  // User Goals
+  userGoals?: UserGoal[];
+}
+
+export interface ActionItem {
+  _id?: string;
+  text: string;
+  isCompleted?: boolean;
+}
+
+export interface UserGoal {
+  _id?: string;
+  text: string;
+  category: 'short-term' | 'mid-term' | 'long-term';
+  targetDate?: string; // ISO Date string
+  actionItems: ActionItem[];
+  isCompleted?: boolean;
+  createdAt?: string; // ISO Date string
+  updatedAt?: string; // ISO Date string
 }
 
 export interface AICareerPlan {
+  assessedCareerStage?: CareerStage; // Added from flow output
+  careerStageReasoning?: string; // Added from flow output
   suggestedPaths: Array<{
     pathName: string;
     description: string;

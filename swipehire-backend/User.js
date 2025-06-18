@@ -31,6 +31,37 @@ const CompanyJobOpeningSchema = new mongoose.Schema({
     }
 }, { _id: true }); // Ensure subdocuments get their own _id for potential future direct manipulation
 
+// --- User Goals Sub-schemas ---
+const ActionItemSchema = new mongoose.Schema({
+  text: { type: String, required: true, trim: true },
+  isCompleted: { type: Boolean, default: false }
+}, { _id: true }); // Mongoose adds _id by default, but explicit makes it clear
+
+const UserGoalSchema = new mongoose.Schema({
+  text: { type: String, required: true, trim: true },
+  category: {
+    type: String,
+    required: true,
+    enum: ['short-term', 'mid-term', 'long-term']
+  },
+  targetDate: { type: Date }, // Optional
+  actionItems: [ActionItemSchema],
+  isCompleted: { type: Boolean, default: false },
+  createdAt: { type: Date, default: Date.now },
+  updatedAt: { type: Date, default: Date.now }
+});
+
+// Middleware to update `updatedAt` on save
+UserGoalSchema.pre('save', function(next) {
+  // Check if it's a new document or if any of the fields are modified
+  // For subdocuments, 'this' refers to the subdocument itself.
+  // The parent document's save will trigger this.
+  if (this.isNew || this.isModified()) {
+    this.updatedAt = Date.now();
+  }
+  next();
+});
+
 
 const UserSchema = new mongoose.Schema({
     name: {
@@ -261,6 +292,27 @@ const UserSchema = new mongoose.Schema({
         }],
         default: [],
     },
+    // New fields for career planner onboarding
+    hasCompletedCareerPlannerOnboarding: {
+        type: Boolean,
+        default: false,
+        index: true,
+    },
+    initialCareerExpectations: { // From onboarding questionnaire
+        type: String,
+        trim: true,
+    },
+    // New fields for AI-assessed career stage
+    assessedCareerStage: {
+        type: String,
+        trim: true
+    },
+    assessedCareerStageReasoning: {
+        type: String,
+        trim: true
+    },
+    // User Goals
+    userGoals: [UserGoalSchema],
 }, { timestamps: true });
 
 

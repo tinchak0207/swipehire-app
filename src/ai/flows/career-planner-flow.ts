@@ -15,7 +15,8 @@ import type {
   LocationPreference,
   Availability,
   JobType,
-  AICareerPlan // Assuming AICareerPlan is already defined in types.ts based on previous step
+  AICareerPlan, // Assuming AICareerPlan is already defined in types.ts based on previous step
+  CareerStage
 } from '@/lib/types';
 import {
   WorkExperienceLevel as ZodWorkExperienceLevelEnum,
@@ -23,6 +24,7 @@ import {
   LocationPreference as ZodLocationPreferenceEnum,
   Availability as ZodAvailabilityEnum,
   JobType as ZodJobTypeEnum,
+  CareerStage as ZodCareerStageEnum, // Import CareerStage enum
 } from '@/lib/types'; // Assuming these enums are exported from types.ts
 
 // Define Zod enums matching those in types.ts for validation
@@ -31,6 +33,7 @@ const ZodEducationLevel = z.nativeEnum(ZodEducationLevelEnum);
 const ZodLocationPreference = z.nativeEnum(ZodLocationPreferenceEnum);
 const ZodAvailability = z.nativeEnum(ZodAvailabilityEnum);
 const ZodJobType = z.nativeEnum(ZodJobTypeEnum);
+const ZodCareerStage = z.nativeEnum(ZodCareerStageEnum); // Define Zod enum for CareerStage
 
 // Input schema for the career planner
 export const CareerPlannerInputSchema = z.object({
@@ -54,6 +57,8 @@ export type CareerPlannerInput = z.infer<typeof CareerPlannerInputSchema>;
 
 // Output schema for the career planner - mirrors AICareerPlan from types.ts
 export const CareerPlannerOutputSchema = z.object({
+  assessedCareerStage: ZodCareerStage.describe("The AI's assessment of the user's current career stage."),
+  careerStageReasoning: z.string().optional().describe("Brief reasoning for the career stage assessment."),
   suggestedPaths: z.array(
     z.object({
       pathName: z.string().describe("Name of the suggested career path."),
@@ -145,6 +150,12 @@ Ensure your response strictly adheres to the JSON output schema defined.
 Focus on providing practical, encouraging, and personalized advice.
 If the user's goals seem very ambitious given their current profile, gently guide them with realistic intermediate steps.
 If information is missing, make reasonable inferences or state that more specific advice could be given with more details.
+
+6.  **Current Career Stage Assessment (assessedCareerStage & careerStageReasoning):**
+    *   Based on all available user profile information (experience, skills, education, goals, interests), assess the user's current career stage.
+    *   Choose one of the following predefined stages: ${Object.values(CareerStage).join(', ')}.
+    *   Provide this in the \`assessedCareerStage\` field.
+    *   Provide a brief (1-2 sentences) \`careerStageReasoning\` explaining your choice.
 `,
 });
 
@@ -191,6 +202,8 @@ export const careerPlannerFlow = ai.defineFlow(
       console.error("AI analysis failed to return structured output for careerPlannerFlow. Input:", JSON.stringify(processedInput).substring(0,500) + "...");
       // Return a default/error structure that matches CareerPlannerOutputSchema
       return {
+        assessedCareerStage: CareerStage.UNSPECIFIED_EXPLORING, // Default fallback
+        careerStageReasoning: "AI analysis failed to provide a specific stage.",
         suggestedPaths: [],
         shortTermGoals: [{ goal: "Error: AI failed to generate a plan. Please try again later.", suggestedActions: [] }],
         midTermGoals: [],

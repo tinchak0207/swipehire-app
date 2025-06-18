@@ -3,9 +3,10 @@
 
 import { useState, useEffect } from 'react';
 import type { UserRole } from '@/lib/types'; 
-import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle, Star as StarIcon, HelpCircle, Brain } from 'lucide-react'; // Added HelpCircle, Brain
+import { Wand2, UserSquare2, Clapperboard, Camera, Sparkles, ArrowLeft, Gem, Lock, Info, X as CloseIcon, Construction, PlayCircle, Star as StarIcon, HelpCircle, Brain, Compass } from 'lucide-react'; // Added Compass
 import { Card, CardTitle, CardContent, CardHeader, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link'; // Import Link
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge"; 
@@ -13,15 +14,16 @@ import { cn } from '@/lib/utils';
 import { ResumeCreationFlowPage } from '@/components/pages/ResumeCreationFlowPage';
 import { useToast } from '@/hooks/use-toast'; // Added useToast
 
-type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor' | 'prepHub';
+type ToolKey = 'script' | 'avatar' | 'recorder' | 'editor' | 'prepHub' | 'careerPlanner';
 
 interface AiTool {
   key: ToolKey;
   title: string;
   Icon: React.ElementType;
-  bgClass?: string; // Optional for new card
+  bgClass?: string;
   description: string;
-  isPlaceholder?: boolean; // New flag for conceptual tools
+  isPlaceholder?: boolean;
+  href?: string; // Added href for navigation
 }
 
 const aiToolsData: AiTool[] = [
@@ -60,6 +62,15 @@ const aiToolsData: AiTool[] = [
     bgClass: 'bg-gradient-to-br from-teal-500 to-cyan-600', // Example gradient
     description: "Access common questions, prep tips, and company insights to ace your next interview.",
     isPlaceholder: true,
+  },
+  {
+    key: 'careerPlanner',
+    title: 'AI Career Planner',
+    Icon: Compass,
+    bgClass: 'bg-gradient-to-br from-indigo-500 to-purple-600', // Example new gradient
+    description: "Get personalized career guidance and plan your next steps towards your dream job.",
+    isPlaceholder: false,
+    href: '/ai/career-planner',
   },
 ];
 
@@ -174,23 +185,45 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                     tool.bgClass,
                     isGuestMode && "opacity-60 border-2 border-red-400 cursor-default",
                     !isGuestMode && tool.isPlaceholder && "cursor-pointer hover:opacity-90",
-                    !isGuestMode && !tool.isPlaceholder && "hover:shadow-2xl hover:-translate-y-1" 
+                    !isGuestMode && !tool.isPlaceholder && !tool.href && "cursor-default", // Non-interactive if no href and not placeholder
+                    !isGuestMode && !tool.isPlaceholder && tool.href && "hover:shadow-2xl hover:-translate-y-1 cursor-pointer"
                   )}
-                  onClick={tool.isPlaceholder ? () => handlePlaceholderToolClick(tool.title) : undefined}
+                  onClick={
+                    isGuestMode ? undefined :
+                    tool.isPlaceholder ? () => handlePlaceholderToolClick(tool.title) :
+                    tool.href ? undefined : // Let Link handle click
+                    undefined
+                  }
                 >
                   {isGuestMode && <GuestLockOverlay message="Tool Preview (Sign In to Use)" />}
-                  <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
-                  <CardTitle className="text-xl sm:text-2xl font-bold text-center">{tool.title}</CardTitle>
-                  <CardContent className="text-center p-0 mt-2 sm:mt-3">
-                    <p className="text-sm sm:text-base text-white/80">{tool.description}</p>
-                  </CardContent>
+
+                  <div className="flex flex-col items-center justify-center text-center">
+                    <tool.Icon className="h-16 w-16 sm:h-20 sm:w-20 mb-3 sm:mb-4 text-white/90 group-hover:scale-110 transition-transform" />
+                    <CardTitle className="text-xl sm:text-2xl font-bold">{tool.title}</CardTitle>
+                    <CardContent className="p-0 mt-2 sm:mt-3">
+                      <p className="text-sm sm:text-base text-white/80">{tool.description}</p>
+                    </CardContent>
+                  </div>
+
                   {tool.isPlaceholder && !isGuestMode && (
                     <Badge variant="outline" className="absolute top-3 right-3 bg-yellow-400 text-black text-xs px-2 py-1 font-semibold">
                         Coming Soon
                     </Badge>
                   )}
                 </Card>
-              ))}
+              );
+
+              const cardContent = renderCardContent(tool);
+
+              if (!isGuestMode && tool.href && !tool.isPlaceholder) {
+                return (
+                  <Link href={tool.href} passHref key={tool.key} className="flex">
+                    {cardContent}
+                  </Link>
+                );
+              }
+              return cardContent;
+            })}
             </div>
 
             <Card className="mt-10 col-span-1 sm:col-span-2 shadow-lg max-w-4xl mx-auto w-full bg-card border">
@@ -210,6 +243,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
                     <li>AI Avatar Creation</li>
                     <li>Video Recording Interface</li>
                     <li>AI Video Analysis & Feedback</li>
+                    <li>AI Career Planner</li>
                     <li>Interview Preparation Hub (Coming Soon!)</li>
                     <li>And more to come!</li>
                 </ul>

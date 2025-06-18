@@ -42,7 +42,7 @@ export default function CareerPlannerPage() {
     // Optimistically update UI
     const currentLocalFeedback = suggestionFeedback[suggestionId];
     const newLocalFeedbackState = currentLocalFeedback === feedbackType ? null : feedbackType;
-    
+
     setSuggestionFeedback(prev => ({
       ...prev,
       [suggestionId]: newLocalFeedbackState,
@@ -54,8 +54,8 @@ export default function CareerPlannerPage() {
       const response = await fetch(`/api/users/${userId}/career-plan/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          suggestionId, 
+        body: JSON.stringify({
+          suggestionId,
           feedbackType: feedbackType // Always send the clicked feedbackType, backend handles toggle logic
         }),
       });
@@ -64,7 +64,7 @@ export default function CareerPlannerPage() {
         const errorData = await response.json().catch(() => ({ message: 'Failed to save feedback to server.' }));
         throw new Error(errorData.message || `Server error: ${response.status}`);
       }
-      
+
       const result = await response.json();
       console.log('Feedback saved successfully to backend:', result);
       // Optionally, show a success toast
@@ -105,9 +105,9 @@ export default function CareerPlannerPage() {
           throw new Error(`Failed to fetch user data. Status: ${response.status}`);
         }
       } else {
-        const fetchedUserData = await response.json() as BackendUser; 
+        const fetchedUserData = await response.json() as BackendUser;
         setUserData(fetchedUserData);
-        
+
         setCareerInputs({
           careerGoals: fetchedUserData.careerGoals || '',
           careerInterests: fetchedUserData.careerInterests || [],
@@ -124,7 +124,7 @@ export default function CareerPlannerPage() {
           setShowOnboardingModal(true);
           logAnalyticsEvent('career_onboarding_modal_triggered', { userId: currentUserId, reason: 'not_completed' });
         }
-        
+
         console.log("Fetched user data for career planner:", {
             goals: fetchedUserData.careerGoals,
             interests: fetchedUserData.careerInterests,
@@ -164,7 +164,7 @@ export default function CareerPlannerPage() {
         throw new Error(errorData.message || `Failed to complete onboarding. Status: ${response.status}`);
       }
       const updatedUserData = await response.json();
-      
+
       // Update local states
       setUserData(updatedUserData.user); // Assuming backend returns the updated user object
       setCareerInputs({
@@ -174,7 +174,7 @@ export default function CareerPlannerPage() {
       });
       // If the onboarding also populates aiCareerPlan or other relevant fields directly, update them here too.
       // For now, we assume the main effect is setting `hasCompletedCareerPlannerOnboarding` to true.
-      
+
       setShowOnboardingModal(false);
       console.log('Career onboarding completed successfully and data saved.');
       // Trigger toast: Success! Your onboarding is complete.
@@ -251,10 +251,10 @@ export default function CareerPlannerPage() {
       const plan: AICareerPlan = await response.json();
       setCareerPlan(plan);
       // Update inputs as backend might have saved them
-      setCareerInputs({ 
-        careerGoals: data.careerGoals, 
-        careerInterests: data.careerInterests, 
-        careerValues: data.careerValues 
+      setCareerInputs({
+        careerGoals: data.careerGoals,
+        careerInterests: data.careerInterests,
+        careerValues: data.careerValues
       });
     } catch (err: any) {
       console.error('Error generating career plan:', err);
@@ -392,7 +392,7 @@ export default function CareerPlannerPage() {
       </div>
     );
   }
-  
+
   if (isLoadingInitialData) {
     return (
       <div className="container mx-auto p-4 flex flex-col items-center">
@@ -454,7 +454,7 @@ export default function CareerPlannerPage() {
         )}
 
         {careerPlan && !isLoading && renderPlan(careerPlan)}
-        
+
         {!careerPlan && !isLoading && !isLoadingInitialData && !error && (
              <Card className="mt-8 w-full text-center">
                 <CardHeader>
