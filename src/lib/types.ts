@@ -149,6 +149,7 @@ export interface BackendUser {
   companyWebsite?: string;
   companyDescription?: string;
   companyCultureHighlights?: string[];
+  companyNeeds?: string;
   companyLogoUrl?: string;
   companyVerificationDocuments?: CompanyVerificationDocument[];
   companyProfileComplete?: boolean;
@@ -538,4 +539,28 @@ export interface RecruiterOnboardingData {
     recruiterFullName: string;
     recruiterJobTitle: string;
     recruiterContactPhone?: string;
+}
+
+export type CareerStage = 'exploration' | 'early' | 'mid' | 'late' | 'transition';
+
+export interface CareerPath {
+  title: string;
+  description: string;
+  requiredSkills: string[];
+  growthPotential: number;
+  salaryRange: string;
+  educationRequirements: string[];
+}
+
+export interface Goal {
+  id: number;
+  type: 'long' | 'mid' | 'short';
+  text: string;
+  completed: boolean;
+  createdAt: string;
+  targetDate?: string;
+  actionSteps: {
+    description: string;
+    completed: boolean;
+  }[];
 }

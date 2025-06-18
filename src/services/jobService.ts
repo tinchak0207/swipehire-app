@@ -110,10 +110,23 @@ export async function fetchJobsFromBackend(): Promise<{ jobs: Company[]; hasMore
         console.error('[Frontend Service] GET /api/jobs - Backend error response (JSON):', errorData);
         throw new Error(errorData.message);
     }
-    const jobs: Company[] = await response.json();
+    
+    const responseData = await response.json();
+    let jobs: Company[] = [];
+    
+    // Handle both response formats:
+    // 1. Direct array of jobs
+    // 2. Object with jobs array property
+    if (Array.isArray(responseData)) {
+      jobs = responseData;
+    } else if (responseData && Array.isArray(responseData.jobs)) {
+      jobs = responseData.jobs;
+    } else {
+      console.warn('[Frontend Service] Unexpected jobs response format, defaulting to empty array');
+    }
     
     console.log(`[Frontend Service] Fetched ${jobs.length} jobs from backend.`);
-    return { jobs, hasMore: false, nextCursor: undefined }; 
+    return { jobs, hasMore: false, nextCursor: undefined };
   } catch (error: any) {
     console.error("[Frontend Service] Error in fetchJobsFromBackend service:", error.message);
     console.error("[Frontend Service] Full error object for fetchJobsFromBackend:", error);

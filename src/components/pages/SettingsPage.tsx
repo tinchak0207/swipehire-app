@@ -89,7 +89,7 @@ const discoveryItemsPerPageOptions = [5, 10, 15, 20];
 
 
 export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps) {
-  const { preferences: contextPreferences, setPreferences: setContextPreferences, updateFullBackendUserFields, loadingPreferences: contextLoading, mongoDbUserId, fullBackendUser, setMongoDbUserId: setContextMongoDbUserId } = useUserPreferences();
+  const { preferences: contextPreferences, setPreferences: setContextPreferences, updateFullBackendUserFields, preferences: { isLoading: contextLoading }, mongoDbUserId, fullBackendUser, setMongoDbUserId: setContextMongoDbUserId } = useUserPreferences();
   const router = useRouter();
 
   const [selectedRoleInSettings, setSelectedRoleInSettings] = useState<UserRole | null>(currentUserRole);
@@ -277,7 +277,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
 
 
       try {
-        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/proxy/users/${mongoDbUserId}/settings`, {
+        const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(settingsData),
