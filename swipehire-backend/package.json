@@ -5,12 +5,11 @@
   "main": "index.js",
   "scripts": {
     "start:dev": "nodemon index.js",
-    "start": "pm2 start index.js --name swipehire-backend",
-    "stop": "pm2 stop swipehire-backend",
-    "restart": "pm2 restart swipehire-backend",
-    "logs": "pm2 logs swipehire-backend",
-    "delete": "pm2 delete swipehire-backend",
-    "prod": "NODE_ENV=production pm2 start index.js --name swipehire-backend-prod -i max"
+    "start": "node index.js",
+    "vercel-build": "npm install && npm run build", 
+    "build": "",
+    "deploy": "vercel --prod",
+    "prod": "NODE_ENV=production node index.js"
   },
   "dependencies": {
     "@google-cloud/storage": "^7.16.0",
@@ -23,7 +22,8 @@
     "node-fetch": "^2.7.0",
     "pm2": "^5.4.2",
     "redis": "^4.7.1",
-    "socket.io": "^4.8.1"
+    "socket.io": "^4.8.1",
+    "@vercel/node": "^3.0.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"

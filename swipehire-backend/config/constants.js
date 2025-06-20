@@ -7,36 +7,64 @@ module.exports = {
   USE_REDIS_ADAPTER: process.env.USE_REDIS_ADAPTER === 'true',
   
   allowedOrigins: [
+    // Environment-based origins
     process.env.FRONTEND_URL_PRIMARY,
     process.env.FRONTEND_URL_SECONDARY,
     process.env.FRONTEND_URL_TERTIARY,
     process.env.FRONTEND_URL_QUATERNARY,
+    
+    // Development origins
     'http://localhost:3000',
     'http://localhost:9002',
+    
+    // Cloud Workstation origins
     'https://6000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
+    
+    // Production origins - SwipeHire
     'https://swipehire.top',
     'http://swipehire.top',
     'https://www.swipehire.top',
-    'http://www.swipehire.top'
+    'http://www.swipehire.top',
+    
+    // Additional production origins (if needed)
+    'https://swipehire.vercel.app',
+    'https://swipehire-app.vercel.app'
   ].filter(Boolean),
 
   corsOptions: {
     origin: function (origin, callback) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`[CORS Check] Request origin: ${origin}`);
-      }
-      const isAllowed = !origin || module.exports.allowedOrigins.includes(origin) || 
+      // Enhanced logging for production debugging
+      console.log(`[CORS Check] Request origin: ${origin}`);
+      console.log(`[CORS Check] NODE_ENV: ${process.env.NODE_ENV}`);
+      console.log(`[CORS Check] Allowed origins: ${module.exports.allowedOrigins.join(', ')}`);
+      
+      const isAllowed = !origin || 
+                       module.exports.allowedOrigins.includes(origin) || 
                        (process.env.NODE_ENV !== 'production' && origin && origin.startsWith('http://localhost:'));
       
       if (isAllowed) {
+        console.log(`[CORS Allowed] Origin: ${origin}`);
         callback(null, true);
       } else {
-        console.warn(`[CORS Blocked] Origin: ${origin}. Allowed origins: ${module.exports.allowedOrigins ? module.exports.allowedOrigins.join(', ') : 'none configured'}`);
+        console.warn(`[CORS Blocked] Origin: ${origin}. Allowed origins: ${module.exports.allowedOrigins.join(', ')}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-HTTP-Method-Override', 'X-Firebase-AppCheck', 'X-Firebase-Auth'],
-    credentials: true
+    allowedHeaders: [
+      'Content-Type', 
+      'Authorization', 
+      'X-Requested-With', 
+      'X-HTTP-Method-Override', 
+      'X-Firebase-AppCheck', 
+      'X-Firebase-Auth',
+      'Accept',
+      'Origin',
+      'User-Agent',
+      'Cache-Control'
+    ],
+    credentials: true,
+    optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+    preflightContinue: false
   }
 };
