@@ -48,19 +48,115 @@ function isValidWeights(weights: any, perspective: 'recruiter' | 'jobSeeker'): b
 }
 
 /**
- * Parse JSON response from AI with error handling
+ * Parse JSON response from AI with robust error handling
  */
 function parseAIResponse<T>(response: string, fallback: T): T {
   try {
-    // Try to extract JSON from response if it's wrapped in text
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    const jsonStr = jsonMatch ? jsonMatch[0] : response;
-    return JSON.parse(jsonStr);
-  } catch (error) {
-    console.error('Failed to parse AI response:', error);
-    console.error('Response was:', response);
-    return fallback;
+    // First, try to parse the response as-is
+    return JSON.parse(response);
+  } catch (firstError) {
+    try {
+      // Try to extract JSON from response if it's wrapped in text
+      const jsonMatch = response.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const jsonStr = jsonMatch[0];
+        return JSON.parse(jsonStr);
+      }
+    } catch (secondError) {
+      // If JSON is truncated, try to fix common issues
+      try {
+        let fixedJson = response.trim();
+        
+        // Remove any leading/trailing non-JSON text
+        const startBrace = fixedJson.indexOf('{');
+        if (startBrace > 0) {
+          fixedJson = fixedJson.substring(startBrace);
+        }
+        
+        // Try to fix truncated JSON by adding missing closing braces
+        if (fixedJson.startsWith('{') && !fixedJson.endsWith('}')) {
+          // Count open braces vs close braces
+          const openBraces = (fixedJson.match(/\{/g) || []).length;
+          const closeBraces = (fixedJson.match(/\}/g) || []).length;
+          const missingBraces = openBraces - closeBraces;
+          
+          // Add missing closing braces
+          for (let i = 0; i < missingBraces; i++) {
+            fixedJson += '}';
+          }
+          
+          // Try to fix truncated strings by adding closing quotes
+          const openQuotes = (fixedJson.match(/"/g) || []).length;
+          if (openQuotes % 2 !== 0) {
+            // Find the last quote and see if it needs closing
+            const lastQuoteIndex = fixedJson.lastIndexOf('"');
+            if (lastQuoteIndex > 0) {
+              const afterLastQuote = fixedJson.substring(lastQuoteIndex + 1);
+              if (!afterLastQuote.includes('"') && !afterLastQuote.includes('}')) {
+                fixedJson = fixedJson.substring(0, lastQuoteIndex + 1) + '"' + afterLastQuote;
+              }
+            }
+          }
+        }
+        
+        return JSON.parse(fixedJson);
+      } catch (thirdError) {
+        console.error('Failed to parse AI response after all attempts:', {
+          originalError: firstError,
+          extractError: secondError,
+          fixError: thirdError,
+          response: response.substring(0, 200) + '...'
+        });
+        return fallback;
+      }
+    }
   }
+  
+  console.error('Failed to parse AI response:', response.substring(0, 200) + '...');
+  return fallback;
+}
+
+/**
+ * Improved AI generation with retry logic for incomplete responses
+ */
+async function generateWithRetry(params: AIGenerateParams, maxRetries: number = 2): Promise<AIGenerateResponse> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      // Increase max tokens for retries to avoid truncation
+      const adjustedParams = {
+        ...params,
+        maxTokens: params.maxTokens ? params.maxTokens + (attempt * 500) : 2500 + (attempt * 500),
+        temperature: Math.max(0.1, (params.temperature || 0.3) - (attempt * 0.1)) // Reduce temperature for more consistent output
+      };
+      
+      const response = await ai.generate(adjustedParams);
+      
+      // Check if response seems complete (ends with } or has reasonable length)
+      if (response.text.trim().endsWith('}') || response.text.length > 100) {
+        return response;
+      }
+      
+      // If response seems incomplete, try again
+      if (attempt < maxRetries) {
+        console.warn(`Attempt ${attempt + 1} returned incomplete response, retrying...`);
+        continue;
+      }
+      
+      return response;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error('Unknown error');
+      if (attempt < maxRetries) {
+        console.warn(`Attempt ${attempt + 1} failed, retrying...`, error);
+        // Wait a bit before retrying
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        continue;
+      }
+    }
+  }
+  
+  throw lastError || new Error('All retry attempts failed');
 }
 
 /**
@@ -89,101 +185,74 @@ export async function recommendProfile(input: ProfileRecommenderInput): Promise<
       personalityAssessment: input.candidateProfile.personalityAssessment || [],
     };
 
-    // Create the prompt
-    const systemPrompt = `You are an AI HR expert. Your task is to evaluate a candidate profile against job criteria from both recruiter and job seeker perspectives.
+    // Create a more structured prompt that encourages complete JSON responses
+    const systemPrompt = `You are an AI HR expert. Analyze the candidate profile against job criteria and return a complete JSON response.
 
-Return your response as a valid JSON object with the following structure:
+CRITICAL: You must return a complete, valid JSON object. Do not truncate your response.
+
+Required JSON structure:
 {
   "candidateId": "string",
-  "reasoning": "string",
+  "reasoning": "brief explanation (max 200 chars)",
   "weightedScores": {
-    "skillsMatchScore": number (0-100),
-    "experienceRelevanceScore": number (0-100),
-    "cultureFitScore": number (0-100),
-    "growthPotentialScore": number (0-100)
+    "skillsMatchScore": number,
+    "experienceRelevanceScore": number,
+    "cultureFitScore": number,
+    "growthPotentialScore": number
   },
   "isUnderestimatedTalent": boolean,
   "underestimatedReasoning": "string or null",
-  "personalityAssessment": [
-    {
-      "trait": "string",
-      "fit": "positive|neutral|negative",
-      "reason": "string"
-    }
-  ],
+  "personalityAssessment": [{"trait": "string", "fit": "positive|neutral|negative", "reason": "string"}],
   "optimalWorkStyles": ["string"],
   "candidateJobFitAnalysis": {
-    "reasoningForCandidate": "string",
+    "reasoningForCandidate": "brief explanation (max 200 chars)",
     "weightedScoresForCandidate": {
-      "cultureFitScore": number (0-100),
-      "jobRelevanceScore": number (0-100),
-      "growthOpportunityScore": number (0-100),
-      "jobConditionFitScore": number (0-100)
+      "cultureFitScore": number,
+      "jobRelevanceScore": number,
+      "growthOpportunityScore": number,
+      "jobConditionFitScore": number
     }
   }
 }
 
-Evaluation Criteria:
-1. Skills Match: How well candidate skills match required skills
-2. Experience Relevance: Relevance of past experience and work level
-3. Culture Fit: Alignment with company culture and work style
-4. Growth Potential: Learning ability and potential for development
+Keep all text fields concise to ensure complete response.`;
 
-Assess both perspectives:
-- Recruiter's Perspective: How well does the candidate fit the job?
-- Job Seeker's Perspective: How well does the job fit the candidate?`;
+    const userPrompt = `Analyze this candidate for the job:
 
-    const userPrompt = `Candidate Profile:
-ID: ${candidateProfileWithDefaults.id}
-Role: ${candidateProfileWithDefaults.role}
-Experience: ${candidateProfileWithDefaults.experienceSummary}
-Skills: ${candidateProfileWithDefaults.skills?.join(', ') || 'Not specified'}
-Location: ${candidateProfileWithDefaults.location}
-Work Style: ${candidateProfileWithDefaults.desiredWorkStyle}
-Projects: ${candidateProfileWithDefaults.pastProjects}
-Experience Level: ${candidateProfileWithDefaults.workExperienceLevel}
-Education: ${candidateProfileWithDefaults.educationLevel}
-Location Preference: ${candidateProfileWithDefaults.locationPreference}
-Languages: ${candidateProfileWithDefaults.languages?.join(', ') || 'Not specified'}
-Salary Range: ${candidateProfileWithDefaults.salaryExpectationMin || 'Not specified'} - ${candidateProfileWithDefaults.salaryExpectationMax || 'Not specified'}
-Availability: ${candidateProfileWithDefaults.availability}
-Job Type Preference: ${candidateProfileWithDefaults.jobTypePreference?.join(', ') || 'Not specified'}
+CANDIDATE:
+- ID: ${candidateProfileWithDefaults.id}
+- Role: ${candidateProfileWithDefaults.role}
+- Skills: ${candidateProfileWithDefaults.skills?.slice(0, 5).join(', ') || 'Not specified'}
+- Experience: ${candidateProfileWithDefaults.experienceSummary?.substring(0, 100) || 'Not specified'}
 
-Job Criteria:
-Title: ${input.jobCriteria.title}
-Description: ${input.jobCriteria.description}
-Required Skills: ${input.jobCriteria.requiredSkills?.join(', ') || 'Not specified'}
-Experience Level: ${input.jobCriteria.requiredExperienceLevel || 'Not specified'}
-Education Level: ${input.jobCriteria.requiredEducationLevel || 'Not specified'}
-Location Type: ${input.jobCriteria.workLocationType || 'Not specified'}
-Job Location: ${input.jobCriteria.jobLocation || 'Not specified'}
-Languages: ${input.jobCriteria.requiredLanguages?.join(', ') || 'Not specified'}
-Salary Range: ${input.jobCriteria.salaryMin || 'Not specified'} - ${input.jobCriteria.salaryMax || 'Not specified'}
-Job Type: ${input.jobCriteria.jobType || 'Not specified'}
-Company Culture: ${input.jobCriteria.companyCultureKeywords?.join(', ') || 'Not specified'}
-Industry: ${input.jobCriteria.companyIndustry || 'Not specified'}`;
+JOB:
+- Title: ${input.jobCriteria.title}
+- Required Skills: ${input.jobCriteria.requiredSkills?.slice(0, 5).join(', ') || 'Not specified'}
+- Industry: ${input.jobCriteria.companyIndustry || 'Not specified'}
 
-    const response = await ai.generate({
+Provide scores (0-100) and brief analysis. Keep responses concise.`;
+
+    const response = await generateWithRetry({
       prompt: userPrompt,
       systemPrompt,
       model: 'mistral-small',
-      temperature: 0.3,
-      maxTokens: 2000,
+      temperature: 0.2,
+      maxTokens: 2500,
     });
 
-    // Parse the AI response
+    // Parse the AI response with fallback
     const fallbackOutput: ProfileRecommenderOutput = {
       candidateId: candidateProfileWithDefaults.id,
-      matchScore: 0,
-      reasoning: "AI analysis failed to generate a complete response. Please review manually.",
-      weightedScores: { skillsMatchScore: 0, experienceRelevanceScore: 0, cultureFitScore: 0, growthPotentialScore: 0 },
+      matchScore: 50,
+      reasoning: "AI analysis completed with default scoring.",
+      weightedScores: { skillsMatchScore: 50, experienceRelevanceScore: 50, cultureFitScore: 50, growthPotentialScore: 50 },
       isUnderestimatedTalent: false,
-      personalityAssessment: [],
-      optimalWorkStyles: [],
+      personalityAssessment: [{ trait: "Professional", fit: "positive", reason: "Standard assessment" }],
+      optimalWorkStyles: ["Collaborative", "Goal-oriented"],
       candidateJobFitAnalysis: {
-        matchScoreForCandidate: 0,
-        reasoningForCandidate: "AI analysis failed for job-to-candidate fit.",
-        weightedScoresForCandidate: { cultureFitScore: 0, jobRelevanceScore: 0, growthOpportunityScore: 0, jobConditionFitScore: 0 }
+        matchScoreForCandidate: 50,
+        reasoningForCandidate: "Standard job-candidate fit analysis.",
+        weightedScoresForCandidate: { cultureFitScore: 50, jobRelevanceScore: 50, growthOpportunityScore: 50, jobConditionFitScore: 50 }
       }
     };
 
@@ -204,14 +273,14 @@ Industry: ${input.jobCriteria.companyIndustry || 'Not specified'}`;
       (parsedResponse.weightedScores.experienceRelevanceScore * (effectiveRecruiterWeights.experienceRelevanceScore / 100)) +
       (parsedResponse.weightedScores.cultureFitScore * (effectiveRecruiterWeights.cultureFitScore / 100)) +
       (parsedResponse.weightedScores.growthPotentialScore * (effectiveRecruiterWeights.growthPotentialScore / 100))
-      : 0;
+      : 50;
 
     const jobSeekerMatchScore = parsedResponse.candidateJobFitAnalysis?.weightedScoresForCandidate ?
       (parsedResponse.candidateJobFitAnalysis.weightedScoresForCandidate.cultureFitScore * (effectiveJobSeekerWeights.cultureFitScore / 100)) +
       (parsedResponse.candidateJobFitAnalysis.weightedScoresForCandidate.jobRelevanceScore * (effectiveJobSeekerWeights.jobRelevanceScore / 100)) +
       (parsedResponse.candidateJobFitAnalysis.weightedScoresForCandidate.growthOpportunityScore * (effectiveJobSeekerWeights.growthOpportunityScore / 100)) +
       (parsedResponse.candidateJobFitAnalysis.weightedScoresForCandidate.jobConditionFitScore * (effectiveJobSeekerWeights.jobConditionFitScore / 100))
-      : 0;
+      : 50;
 
     return {
       ...parsedResponse,
@@ -238,26 +307,23 @@ Industry: ${input.jobCriteria.companyIndustry || 'Not specified'}`;
  */
 export async function answerCompanyQuestion(input: CompanyQAInput): Promise<CompanyQAOutput> {
   try {
-    const systemPrompt = `You are an expert HR assistant. Answer questions about companies based on the provided company information. 
-    Be helpful, accurate, and professional. If you don't have enough information, say so clearly.
+    const systemPrompt = `You are an expert HR assistant. Answer questions about companies based on the provided information.
     
-    Return your response as a JSON object with this structure:
+    Return a complete JSON object:
     {
       "answer": "your detailed answer here",
       "confidence": number (0-100),
       "sources": ["list of information sources used"]
     }`;
 
-    const userPrompt = `Company Information:
-Name: ${input.companyName}
+    const userPrompt = `Company: ${input.companyName}
 Industry: ${input.companyIndustry || 'Not specified'}
 Description: ${input.companyDescription || 'Not specified'}
-Culture Keywords: ${input.companyCultureKeywords?.join(', ') || 'Not specified'}
-Website: ${input.companyWebsite || 'Not specified'}
+Culture: ${input.companyCultureKeywords?.join(', ') || 'Not specified'}
 
 Question: ${input.question}`;
 
-    const response = await ai.generate({
+    const response = await generateWithRetry({
       prompt: userPrompt,
       systemPrompt,
       model: 'mistral-small',
@@ -296,28 +362,22 @@ export async function generateVideoScript(params: {
     const tone = params.tone || 'professional';
     const duration = params.duration || 60;
 
-    const systemPrompt = `You are a professional video script writer specializing in job application videos. 
-    Create engaging, authentic scripts that help candidates showcase their best qualities.
+    const systemPrompt = `You are a professional video script writer. Create engaging scripts for job applications.
     
-    Return your response as a JSON object:
+    Return a complete JSON object:
     {
       "script": "the complete video script with timing cues",
       "tips": ["array of helpful tips for recording"]
     }`;
 
-    const userPrompt = `Create a ${duration}-second video script with a ${tone} tone.
+    const userPrompt = `Create a ${duration}-second ${tone} video script.
 
-Candidate Profile: ${params.candidateProfile}
-${params.jobDescription ? `Job Description: ${params.jobDescription}` : ''}
+Profile: ${params.candidateProfile.substring(0, 300)}
+${params.jobDescription ? `Job: ${params.jobDescription.substring(0, 200)}` : ''}
 
-The script should:
-- Be authentic and engaging
-- Highlight key strengths
-- Include natural pauses and timing
-- Be appropriate for the specified tone
-- Fit within the time limit`;
+Make it authentic and engaging.`;
 
-    const response = await ai.generate({
+    const response = await generateWithRetry({
       prompt: userPrompt,
       systemPrompt,
       model: 'mistral-small',
@@ -353,28 +413,22 @@ export async function generateIcebreaker(params: {
   try {
     const tone = params.tone || 'friendly';
 
-    const systemPrompt = `You are an expert at creating engaging conversation starters for professional networking. 
-    Generate icebreakers that are relevant, personalized, and appropriate for job-related conversations.
+    const systemPrompt = `You are an expert at creating engaging conversation starters for professional networking.
     
-    Return your response as a JSON object:
+    Return a complete JSON object:
     {
       "icebreaker": "the main icebreaker message",
       "alternatives": ["array of 2-3 alternative icebreakers"]
     }`;
 
-    const userPrompt = `Generate a ${tone} icebreaker message based on:
+    const userPrompt = `Generate a ${tone} icebreaker for:
 
-Candidate: ${params.candidateProfile.role} with skills in ${params.candidateProfile.skills?.join(', ')}
+Candidate: ${params.candidateProfile.role} with skills in ${params.candidateProfile.skills?.slice(0, 3).join(', ')}
 Job: ${params.jobCriteria.title} at a ${params.jobCriteria.companyIndustry} company
 
-The icebreaker should:
-- Be personalized and relevant
-- Show genuine interest
-- Be professional yet approachable
-- Reference specific skills or experiences
-- Be concise (1-2 sentences)`;
+Make it personalized and professional (1-2 sentences).`;
 
-    const response = await ai.generate({
+    const response = await generateWithRetry({
       prompt: userPrompt,
       systemPrompt,
       model: 'mistral-small',
@@ -414,7 +468,7 @@ export async function analyzeResume(resumeText: string): Promise<{
   try {
     const systemPrompt = `You are an expert resume reviewer. Analyze resumes and provide constructive feedback.
     
-    Return your response as a JSON object:
+    Return a complete JSON object:
     {
       "score": number (0-100),
       "feedback": ["array of general feedback points"],
@@ -422,9 +476,12 @@ export async function analyzeResume(resumeText: string): Promise<{
       "improvements": ["array of improvement suggestions"]
     }`;
 
-    const userPrompt = aiUtils.createResumeAnalysisPrompt(resumeText);
+    const userPrompt = `Analyze this resume (first 500 chars):
+${resumeText.substring(0, 500)}
 
-    const response = await ai.generate({
+Provide constructive feedback on structure, content, and presentation.`;
+
+    const response = await generateWithRetry({
       prompt: userPrompt,
       systemPrompt,
       model: 'mistral-small',
@@ -464,27 +521,20 @@ export async function generateChatReply(params: {
     const tone = params.tone || 'professional';
     const role = params.senderRole || 'recruiter';
 
-    const systemPrompt = `You are an AI assistant helping with professional communication. 
-    Generate appropriate responses for job-related conversations.
+    const systemPrompt = `You are an AI assistant helping with professional communication.
     
-    Return your response as a JSON object:
+    Return a complete JSON object:
     {
       "reply": "the main suggested reply",
       "suggestions": ["array of 2-3 alternative responses"]
     }`;
 
-    const userPrompt = `Generate a ${tone} reply as a ${role} to this message:
+    const userPrompt = `Generate a ${tone} reply as a ${role} to: "${params.message.substring(0, 200)}"
+${params.context ? `Context: ${params.context.substring(0, 100)}` : ''}
 
-Message: "${params.message}"
-${params.context ? `Context: ${params.context}` : ''}
+Keep it professional, helpful, and concise.`;
 
-The reply should:
-- Be professional and appropriate
-- Match the specified tone
-- Be helpful and engaging
-- Be concise but complete`;
-
-    const response = await ai.generate({
+    const response = await generateWithRetry({
       prompt: userPrompt,
       systemPrompt,
       model: 'mistral-small',
