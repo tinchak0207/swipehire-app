@@ -7,7 +7,7 @@ import {googleAI} from '@genkit-ai/googleai';
 import { config as dotenvConfig } from 'dotenv';
 dotenvConfig(); // This line ensures .env is loaded
 
-const apiKey = process.env.GOOGLE_API_KEY||"AIzaSyD7QbZ5y-WAPK6EI5dwyun2E0DE6HUFI-Y";
+const apiKey = process.env.GOOGLE_API_KEY||"AIzaSyC2941O2tyHA03ULUKoXc7KSh34bveOl0c";
 
 // Log the status of the API key AT THE TIME OF MODULE INITIALIZATION
 if (!apiKey) {
@@ -31,6 +31,5 @@ export const ai = genkit({
   ],
   // Set a default model for text generation.
   // Flows like image generation will override this with their specific model.
-  model: 'googleai/gemini-1.5-flash-latest',
+  model: 'googleai/gemini-2.0-flash',
 });
-

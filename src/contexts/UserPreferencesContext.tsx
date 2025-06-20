@@ -35,7 +35,7 @@ interface UserPreferencesContextType {
   preferences: UserPreferences;
   mongoDbUserId: string | null;
   setMongoDbUserId: (id: string | null) => void;
-  fetchAndSetUserPreferences: (userId: string) => Promise<void>;
+  fetchAndSetUserPreferences: (userId: string, forceRefresh?: boolean) => Promise<void>;
   setPreferences: (newPrefs: Partial<UserPreferences>) => Promise<void>;
   passedCandidateIds: Set<string>;
   passedCompanyIds: Set<string>;
@@ -89,9 +89,28 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     console.log("[UserPreferencesContext] setMongoDbUserId called with id:", id);
     setMongoDbUserIdState(id);
     if (id) {
-      if (typeof window !== 'undefined') localStorage.setItem('mongoDbUserId', id);
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.setItem('mongoDbUserId', id);
+          console.log("[UserPreferencesContext] Stored mongoDbUserId in localStorage:", id);
+          // Verify it was stored correctly
+          const stored = localStorage.getItem('mongoDbUserId');
+          if (stored !== id) {
+            console.error("[UserPreferencesContext] Failed to store mongoDbUserId in localStorage. Expected:", id, "Got:", stored);
+          }
+        } catch (error) {
+          console.error("[UserPreferencesContext] Error storing mongoDbUserId in localStorage:", error);
+        }
+      }
     } else {
-      if (typeof window !== 'undefined') localStorage.removeItem('mongoDbUserId');
+      if (typeof window !== 'undefined') {
+        try {
+          localStorage.removeItem('mongoDbUserId');
+          console.log("[UserPreferencesContext] Removed mongoDbUserId from localStorage");
+        } catch (error) {
+          console.error("[UserPreferencesContext] Error removing mongoDbUserId from localStorage:", error);
+        }
+      }
       setFullBackendUserState(null);
       setPassedCandidateIdsState(new Set());
       setPassedCompanyIdsState(new Set());
@@ -107,8 +126,8 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     }
   }, []);
 
-  const fetchAndSetUserPreferences = useCallback(async (userIdToFetch: string) => {
-    console.log("[UserPreferencesContext] fetchAndSetUserPreferences called for userId:", userIdToFetch);
+  const fetchAndSetUserPreferences = useCallback(async (userIdToFetch: string, forceRefresh: boolean = false) => {
+    console.log("[UserPreferencesContext] fetchAndSetUserPreferences called for userId:", userIdToFetch, "forceRefresh:", forceRefresh);
 
     if (!userIdToFetch) {
       console.warn("[UserPreferencesContext] No userIdToFetch provided. Resetting to defaults and setting isLoading to false.");
@@ -121,35 +140,81 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     }
     
     setPreferencesState(prev => ({ ...prev, isLoading: true }));
-    console.log(`[UserPreferencesContext] Fetching user data from ${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
+    
+    // Add cache busting for force refresh
+    const url = forceRefresh 
+      ? `${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}?_t=${Date.now()}`
+      : `${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`;
+    
+    console.log(`[UserPreferencesContext] Fetching user data from ${url}`);
     try {
-      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userIdToFetch}`);
+      const response = await fetch(url, {
+        headers: forceRefresh ? { 'Cache-Control': 'no-cache' } : {}
+      });
       console.log(`[UserPreferencesContext] Fetch response status for user ${userIdToFetch}: ${response.status}`);
 
       if (response.ok) {
-        const userData = await response.json();
-        console.log("[UserPreferencesContext] User data fetched successfully:", JSON.stringify(userData).substring(0, 200) + "...");
+        const responseData = await response.json();
+        // Handle both direct user object and wrapped response
+        const userData = responseData.user || responseData;
+        console.log("[UserPreferencesContext] User data fetched successfully. companyProfileComplete:", userData.companyProfileComplete);
 
         const completeUserData: BackendUser = {
           ...userData,
           companyProfileComplete: userData.companyProfileComplete === undefined ? false : userData.companyProfileComplete,
         };
+        
+        console.log("[UserPreferencesContext] Setting fullBackendUser state:", {
+          _id: completeUserData._id,
+          selectedRole: completeUserData.selectedRole,
+          companyProfileComplete: completeUserData.companyProfileComplete,
+          companyName: completeUserData.companyName
+        });
+        
         setFullBackendUserState(completeUserData);
+        
+        // Ensure the MongoDB ID is set if it's not already
+        if (completeUserData._id && mongoDbUserId !== completeUserData._id) {
+          console.log("[UserPreferencesContext] Updating mongoDbUserId from user data:", completeUserData._id);
+          setMongoDbUserId(completeUserData._id);
+        }
 
-        const loadedPrefsBase = completeUserData.preferences || {};
+        const loadedPrefsBase: Partial<UserPreferences> = completeUserData.preferences || {};
+        const loadedNotificationChannels = {
+          email: true,
+          sms: false,
+          inAppToast: true,
+          inAppBanner: true,
+          ...((loadedPrefsBase as {notificationChannels?: typeof initialDefaultPreferences.notificationChannels}).notificationChannels || {}),
+        };
+        
+        const loadedNotificationSubscriptions = {
+          companyReplies: true,
+          matchUpdates: true,
+          applicationStatusChanges: true,
+          platformAnnouncements: true,
+          welcomeAndOnboardingEmails: true,
+          contentAndBlogUpdates: false,
+          featureAndPromotionUpdates: false,
+          ...((loadedPrefsBase as {notificationSubscriptions?: typeof initialDefaultPreferences.notificationSubscriptions}).notificationSubscriptions || {}),
+        };
+        
         const loadedPrefs: UserPreferences = {
-          ...initialDefaultPreferences, 
-          ...loadedPrefsBase, 
-          featureFlags: { ...(initialDefaultPreferences.featureFlags || {}), ...(loadedPrefsBase.featureFlags || {}), },
-          notificationChannels: { ...(initialDefaultPreferences.notificationChannels), ...(loadedPrefsBase.notificationChannels || {}), },
-          notificationSubscriptions: { ...(initialDefaultPreferences.notificationSubscriptions), ...(loadedPrefsBase.notificationSubscriptions || {}), },
-          isLoading: false, 
+          ...initialDefaultPreferences,
+          ...loadedPrefsBase,
+          featureFlags: {
+            ...(initialDefaultPreferences.featureFlags || {}),
+            ...((loadedPrefsBase as {featureFlags?: object}).featureFlags || {}),
+          },
+          notificationChannels: loadedNotificationChannels,
+          notificationSubscriptions: loadedNotificationSubscriptions,
+          isLoading: false,
         };
         setPreferencesState(loadedPrefs);
         applyTheme(loadedPrefs.theme);
         setPassedCandidateIdsState(new Set(completeUserData.passedCandidateProfileIds || []));
         setPassedCompanyIdsState(new Set(completeUserData.passedCompanyProfileIds || []));
-        console.log("[UserPreferencesContext] Preferences and user data applied for user:", userIdToFetch);
+        console.log("[UserPreferencesContext] Preferences and user data applied for user:", userIdToFetch, "companyProfileComplete:", completeUserData.companyProfileComplete);
       } else {
         console.warn(`[UserPreferencesContext] Failed to fetch preferences for user ${userIdToFetch}, status: ${response.status}.`);
         setFullBackendUserState(null); 
@@ -166,14 +231,14 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
   }, [applyTheme, mongoDbUserId, setMongoDbUserId]);
 
   useEffect(() => {
-    console.log("[UserPreferencesContext] Effect for localStorage mongoDbUserId. currentUser?.uid:", currentUser?.uid);
+    console.log("[UserPreferencesContext] Effect for localStorage mongoDbUserId. currentUser?.uid:", currentUser?.uid, "mongoDbUserId:", mongoDbUserId);
     if (typeof window !== 'undefined') {
         const storedMongoId = localStorage.getItem('mongoDbUserId');
-        if (storedMongoId) {
-            console.log("[UserPreferencesContext] Found storedMongoId in localStorage:", storedMongoId);
-            if (mongoDbUserId !== storedMongoId) { 
-                 setMongoDbUserIdState(storedMongoId);
-            }
+        console.log("[UserPreferencesContext] Stored mongoDbUserId in localStorage:", storedMongoId);
+        
+        if (storedMongoId && mongoDbUserId !== storedMongoId) {
+            console.log("[UserPreferencesContext] Setting mongoDbUserId from localStorage:", storedMongoId);
+            setMongoDbUserIdState(storedMongoId);
         } else if (!currentUser && !mongoDbUserId && preferences.isLoading) { // Initial load, no user, no stored ID, but context says loading
              console.log("[UserPreferencesContext] No storedMongoId, no currentUser, but context isLoading is true. Deferring isLoading=false decision.");
         } else if (!currentUser && !mongoDbUserId && !preferences.isLoading) { // Truly initial state with no user and not loading
@@ -189,23 +254,45 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
       fetchAndSetUserPreferences(mongoDbUserId);
     } else {
       // mongoDbUserId is null.
-      // Regardless of whether currentUser (Firebase user) exists, if we don't have a mongoDbUserId,
-      // the process of loading/linking to a backend profile is not actively in progress *via this context's primary mechanism*.
-      // AppContent might be trying to get mongoDbUserId if currentUser exists (which would then trigger the `if (mongoDbUserId)` block above).
-      // But UserPreferencesContext itself should reflect isLoading:false if mongoDbUserId is definitively null at this point in its own effect.
-      console.log("[UserPreferencesContext] Main Auth/MongoID Effect: mongoDbUserId is null. Setting isLoading: false.");
-      setPreferencesState(prev => ({
-        ...initialDefaultPreferences,
-        theme: prev.theme, // Preserve theme choice
-        isLoading: false // Key change: always false if mongoDbUserId is null here
-      }));
-      applyTheme(initialDefaultPreferences.theme); // Apply default theme or preserved theme
-      setPassedCandidateIdsState(new Set());
-      setPassedCompanyIdsState(new Set());
-      setFullBackendUserState(null);
+      // If we have a currentUser but no mongoDbUserId, we should wait for AppContent to fetch/create the MongoDB user
+      // Only set isLoading to false if we truly don't have a currentUser (meaning no auth at all)
+      if (!currentUser) {
+        console.log("[UserPreferencesContext] Main Auth/MongoID Effect: mongoDbUserId is null and no currentUser. Setting isLoading: false.");
+        setPreferencesState(prev => ({
+          ...initialDefaultPreferences,
+          theme: prev.theme, // Preserve theme choice
+          isLoading: false // Set to false only when no user is authenticated
+        }));
+        applyTheme(initialDefaultPreferences.theme);
+        setPassedCandidateIdsState(new Set());
+        setPassedCompanyIdsState(new Set());
+        setFullBackendUserState(null);
+      } else {
+        console.log("[UserPreferencesContext] Main Auth/MongoID Effect: mongoDbUserId is null but currentUser exists. Keeping isLoading: true while waiting for MongoDB ID.");
+        // Keep loading state true while we wait for the MongoDB ID to be fetched/created
+        setPreferencesState(prev => ({
+          ...prev,
+          isLoading: true
+        }));
+      }
     }
   }, [mongoDbUserId, currentUser?.uid, fetchAndSetUserPreferences, applyTheme]);
 
+  // Timeout mechanism to prevent infinite loading
+  useEffect(() => {
+    if (currentUser && !mongoDbUserId && preferences.isLoading) {
+      console.log("[UserPreferencesContext] Setting timeout for MongoDB ID fetch...");
+      const timeout = setTimeout(() => {
+        console.log("[UserPreferencesContext] Timeout reached - MongoDB ID not fetched. Setting isLoading to false.");
+        setPreferencesState(prev => ({
+          ...prev,
+          isLoading: false
+        }));
+      }, 15000); // 15 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [currentUser, mongoDbUserId, preferences.isLoading]);
 
   useEffect(() => {
     if (preferences.theme === 'system' && typeof window !== 'undefined') {
@@ -299,5 +386,3 @@ export const UserPreferencesProvider = ({ children, currentUser }: UserPreferenc
     </UserPreferencesContext.Provider>
   );
 };
-
-    

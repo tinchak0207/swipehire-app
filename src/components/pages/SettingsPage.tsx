@@ -466,6 +466,17 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
   const isAuthEmail = auth.currentUser && auth.currentUser.email === userEmail;
   const showRecruiterOnboardingLink = selectedRoleInSettings === 'recruiter' && fullBackendUser && fullBackendUser.companyProfileComplete === false && !isGuestMode;
 
+  // Debug logging
+  useEffect(() => {
+    console.log("[SettingsPage] Context state:", {
+      selectedRoleInSettings,
+      fullBackendUser: !!fullBackendUser,
+      companyProfileComplete: fullBackendUser?.companyProfileComplete,
+      showRecruiterOnboardingLink,
+      isGuestMode
+    });
+  }, [selectedRoleInSettings, fullBackendUser, showRecruiterOnboardingLink, isGuestMode]);
+
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
@@ -487,10 +498,10 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
         </CardHeader>
         <CardContent>
           <RadioGroup
-            value={selectedRoleInSettings ?? undefined}
+            value={selectedRoleInSettings || undefined}
             onValueChange={(value: UserRole) => setSelectedRoleInSettings(value)}
             className="space-y-2"
-            disabled={isGuestMode}
+            disabled={isGuestMode as boolean | undefined}
           >
             <div className="flex items-center space-x-2 p-3 border rounded-md hover:bg-muted/50 transition-colors">
               <RadioGroupItem value="recruiter" id="role-recruiter" />
@@ -613,7 +624,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
               placeholder="Enter your full name"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              disabled={isGuestMode}
+            disabled={!!isGuestMode}
               className={cn(selectedRoleInSettings === 'recruiter' && !userName.trim() && "border-destructive focus-visible:ring-destructive")}
             />
           </div>
@@ -643,7 +654,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
               placeholder="Enter your street address"
               value={address}
               onChange={(e) => setAddress(e.target.value)}
-              disabled={isGuestMode}
+            disabled={!!isGuestMode}
             />
           </div>
           <div className="space-y-1">
@@ -796,7 +807,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
                                 {channel === 'sms' && <MessageSquareText className="mr-2 h-4 w-4 text-muted-foreground"/>}
                                 {channel === 'inAppToast' && <Bell className="mr-2 h-4 w-4 text-muted-foreground"/>}
                                 {channel === 'inAppBanner' && <Info className="mr-2 h-4 w-4 text-muted-foreground"/>}
-                                {channel.replace(/([A-Z])/g, ' $1').trim()}
+                {(channel as string).replace(/([A-Z])/g, ' $1').trim()}
                             </Label>
                             <Switch id={`channel-${channel}`} checked={notificationChannels[channel]} onCheckedChange={(checked) => handleNotificationChannelChange(channel, checked)} disabled={isGuestMode || channel === 'email' || channel === 'sms'}/>
                         </div>
@@ -1022,7 +1033,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
         <Button
           onClick={handleSaveSettings}
           size="lg"
-          disabled={isGuestMode || isLoadingSettings || contextLoading || (!mongoDbUserId && !isGuestMode) || isSaving}
+          disabled={!!(isGuestMode || isLoadingSettings || isSaving)}
         >
           <SaveButtonIcon className={isSaving ? "mr-2 h-5 w-5 animate-spin" : "mr-2 h-5 w-5"} />
           {saveButtonText}

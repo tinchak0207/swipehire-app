@@ -1,6 +1,4 @@
 // src/services/matchService.ts
-'use server'; 
-
 import type { Match, RecordLikePayload, RecordLikeResponse } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL_FROM_ENV = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;

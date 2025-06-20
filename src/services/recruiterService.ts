@@ -1,7 +1,5 @@
 
 // src/services/recruiterService.ts
-'use server';
-
 import type { RecruiterOnboardingData, BackendUser } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
@@ -41,16 +39,45 @@ export async function submitCompanyRegistration(
   };
   
   try {
+    console.log(`[RecruiterService] Making request to: ${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`);
+    console.log('[RecruiterService] Request payload:', JSON.stringify(companyProfilePayload, null, 2));
+
     const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
       method: 'POST', // Or PUT, depending on your backend API design for profile updates
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
       body: JSON.stringify(companyProfilePayload),
     });
 
+    console.log(`[RecruiterService] Response status: ${response.status} ${response.statusText}`);
+
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Failed to save company profile information.' }));
+      let errorData;
+      try {
+        errorData = await response.json();
+      } catch (parseError) {
+        console.error('[RecruiterService] Failed to parse error response:', parseError);
+        errorData = { 
+          message: `Server responded with ${response.status}: ${response.statusText}`,
+          status: response.status
+        };
+      }
+      
       console.error('[RecruiterService] Error saving company profile:', errorData);
-      throw new Error(errorData.message);
+      
+      // Provide more specific error messages based on status code
+      let errorMessage = errorData.message || 'Failed to save company profile information.';
+      if (response.status === 400) {
+        errorMessage = errorData.message || 'Invalid data provided. Please check all required fields.';
+      } else if (response.status === 404) {
+        errorMessage = 'User not found. Please try logging out and back in.';
+      } else if (response.status === 500) {
+        errorMessage = 'Server error occurred. Please try again later.';
+      }
+      
+      throw new Error(errorMessage);
     }
 
     const result = await response.json();
@@ -58,12 +85,18 @@ export async function submitCompanyRegistration(
     
     return { 
         success: true, 
-        message: 'Company registration data submitted successfully (conceptually).',
+        message: 'Company registration data submitted successfully.',
         updatedUser: result.user // Assuming backend returns the updated user object
     };
 
   } catch (error: any) {
     console.error('[RecruiterService] Error in submitCompanyRegistration:', error);
+    
+    // If it's a network error, provide a more user-friendly message
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
+      throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
+    }
+    
     throw error;
   }
 }

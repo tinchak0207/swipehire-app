@@ -24,7 +24,7 @@ export default function RecruiterOnboardingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { mongoDbUserId, fullBackendUser, fetchAndSetUserPreferences, preferences } = useUserPreferences();
+  const { mongoDbUserId, fullBackendUser, fetchAndSetUserPreferences, preferences, updateFullBackendUserFields } = useUserPreferences();
 
   useEffect(() => {
     if (!preferences.loadingPreferences) {
@@ -88,27 +88,56 @@ export default function RecruiterOnboardingPage() {
           return;
       }
 
+      console.log("[RecruiterOnboarding] Starting company registration submission...");
       const result = await submitCompanyRegistration(mongoDbUserId, onboardingData as RecruiterOnboardingData);
-      console.log("Company Registration Submitted:", result);
+      console.log("[RecruiterOnboarding] Company Registration Submitted:", result);
 
-      if (fetchAndSetUserPreferences && mongoDbUserId) {
-        await fetchAndSetUserPreferences(mongoDbUserId); // This should update fullBackendUser in context
-      }
-
-      // For consistency, also update the localStorage flag that CreateJobPostingPage might initially check
+      // Update localStorage flags immediately to prevent redirect loops
       if (typeof window !== 'undefined') {
         localStorage.setItem('recruiterCompanyProfileComplete', 'true');
+        // Set a temporary flag to prevent immediate redirect
+        sessionStorage.setItem('onboardingJustCompleted', 'true');
       }
 
+      // Update context immediately with the expected state
+      if (updateFullBackendUserFields) {
+        console.log("[RecruiterOnboarding] Updating context with companyProfileComplete: true");
+        updateFullBackendUserFields({ 
+          companyProfileComplete: true,
+          companyName: onboardingData.companyName,
+          companyIndustry: onboardingData.companyIndustry,
+          companyScale: onboardingData.companyScale,
+          companyAddress: onboardingData.companyAddress,
+          companyWebsite: onboardingData.companyWebsite,
+          companyDescription: onboardingData.companyDescription,
+          companyCultureHighlights: onboardingData.companyCultureHighlights,
+          companyNameForJobs: onboardingData.companyName,
+          companyIndustryForJobs: onboardingData.companyIndustry,
+          name: onboardingData.recruiterFullName
+        });
+      }
+
+      // Refresh user preferences to get updated backend data with force refresh
+      if (fetchAndSetUserPreferences && mongoDbUserId) {
+        console.log("[RecruiterOnboarding] Refreshing user preferences with force refresh...");
+        await fetchAndSetUserPreferences(mongoDbUserId, true);
+        console.log("[RecruiterOnboarding] User preferences refreshed");
+      }
 
       toast({
         title: "Onboarding Complete!",
         description: "Your company profile has been set up. You can now post jobs.",
         duration: 5000,
       });
-      router.push('/');
+
+      // Small delay to ensure context is updated before navigation
+      setTimeout(() => {
+        console.log("[RecruiterOnboarding] Navigating to dashboard...");
+        router.push('/');
+      }, 100);
+
     } catch (error: any) {
-      console.error("Error finishing onboarding:", error);
+      console.error("[RecruiterOnboarding] Error finishing onboarding:", error);
       toast({
         title: "Onboarding Error",
         description: error.message || "Could not complete company onboarding.",

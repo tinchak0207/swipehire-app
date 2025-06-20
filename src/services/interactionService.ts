@@ -1,7 +1,5 @@
 
 // src/services/interactionService.ts
-'use server';
-
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface PassResponse {

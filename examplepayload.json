@@ -1,0 +1,259 @@
+{
+    "form": {
+      "baseSettings": {
+        "removeBranding": false,
+        "steps": false,
+        "isRtl": false,
+        "autoPassSingle": true,
+        "backButton": true,
+        "cardDesignFadeIn": false,
+        "isEnabledSaveAsDraft": false,
+        "isEnabledSignupForSaveAsDraft": false,
+        "isEnabledMessages": true,
+        "isShouldShowCookieModal": false,
+        "hideCaptcha": false,
+        "forceShowCaptchaFromAdmin": false,
+        "preventMultipleSubmissions": false,
+        "isDisabledMessages": false,
+        "cardDesign": true,
+        "questionMustValid": true
+      },
+      "hasEmailNotification": false,
+      "pushNotification": false,
+      "hasWebhookTrigger": true,
+      "hasIntegration": false,
+      "_id": "685190dedd9ab40002e7de9a",
+      "title": "Career planning form",
+      "questions": [
+        {
+          "_id": "685190d336b902aad0163ad7",
+          "isDeleted": false,
+          "isActive": false,
+          "questionType": "choice",
+          "question": "What's the highest level of education you've reached?",
+          "displayOrder": 0,
+          "isRequired": true,
+          "choice": {
+            "subType": "dropdown",
+            "isShowEmptyoption": true,
+            "emptyOption": "Please select",
+            "optionText": "High School\nAssociate's Degree\nBachelor's Degree\nMaster's Degree\nDoctorate",
+            "options": [
+              {
+                "_id": "685190d336b902aad0163ad8",
+                "text": "High School"
+              },
+              {
+                "_id": "685190d336b902aad0163ad9",
+                "text": "Associate's Degree"
+              },
+              {
+                "_id": "685190d336b902aad0163ada",
+                "text": "Bachelor's Degree"
+              },
+              {
+                "_id": "685190d336b902aad0163adb",
+                "text": "Master's Degree"
+              },
+              {
+                "_id": "685190d336b902aad0163adc",
+                "text": "Doctorate"
+              }
+            ],
+            "defaultValue": [
+              "685190d336b902aad0163ad9"
+            ]
+          }
+        },
+        {
+          "_id": "685190d336b902aad0163add",
+          "isDeleted": false,
+          "isActive": true,
+          "text": {
+            "subType": "longtext"
+          },
+          "question": "Tell me about your work experience, if any.",
+          "isRequired": true,
+          "questionType": "text",
+          "displayOrder": 1
+        },
+        {
+          "_id": "685190d436b902aad0163ae0",
+          "isDeleted": false,
+          "isActive": false,
+          "questionType": "choice",
+          "question": "What skills do you have? (Select all that apply)",
+          "displayOrder": 2,
+          "isRequired": true,
+          "choice": {
+            "subType": "multiplechoice",
+            "other": false,
+            "optionText": "Programming\nData Analysis\nProject Management\nCommunication\nLeadership\nProblem-Solving\nCritical Thinking\nCreative Writing\nForeign Language\nNone",
+            "options": [
+              {
+                "_id": "685190d436b902aad0163ae1",
+                "text": "Programming"
+              },
+              {
+                "_id": "685190d436b902aad0163ae2",
+                "text": "Data Analysis"
+              },
+              {
+                "_id": "685190d436b902aad0163ae3",
+                "text": "Project Management"
+              },
+              {
+                "_id": "685190d436b902aad0163ae4",
+                "text": "Communication"
+              },
+              {
+                "_id": "685190d436b902aad0163ae5",
+                "text": "Leadership"
+              },
+              {
+                "_id": "685190d436b902aad0163ae6",
+                "text": "Problem-Solving"
+              },
+              {
+                "_id": "685190d436b902aad0163ae7",
+                "text": "Critical Thinking"
+              },
+              {
+                "_id": "685190d436b902aad0163ae8",
+                "text": "Creative Writing"
+              },
+              {
+                "_id": "685190d436b902aad0163ae9",
+                "text": "Foreign Language"
+              },
+              {
+                "_id": "685190d436b902aad0163aea",
+                "text": "None"
+              }
+            ],
+            "defaultValue": []
+          }
+        },
+        {
+          "_id": "685190d436b902aad0163aeb",
+          "isDeleted": false,
+          "isActive": true,
+          "text": {
+            "subType": "longtext"
+          },
+          "question": "What are you passionate about?",
+          "isRequired": true,
+          "questionType": "text",
+          "displayOrder": 3
+        },
+        {
+          "_id": "685190d436b902aad0163aec",
+          "isDeleted": false,
+          "isActive": true,
+          "text": {
+            "subType": "longtext"
+          },
+          "question": "What are the most important values for you when it comes to your job?",
+          "isRequired": true,
+          "questionType": "text",
+          "displayOrder": 4
+        },
+        {
+          "_id": "685190d436b902aad0163aed",
+          "isDeleted": false,
+          "isActive": true,
+          "text": {
+            "subType": "longtext"
+          },
+          "question": "What do you hope to achieve in your career?",
+          "isRequired": true,
+          "questionType": "text",
+          "displayOrder": 5
+        }
+      ],
+      "userId": "6851908b9997a500025ecd03",
+      "calculators": [],
+      "url": "first-time-user-guidance-questionnaire"
+    },
+    "answer": {
+      "userId": "6851908b9997a500025ecd03",
+      "userInfo": {
+        "username": "tinchak0207",
+        "fullname": "1 1"
+      },
+      "formId": "685190dedd9ab40002e7de9a",
+      "hasHookTrigger": true,
+      "answers": [
+        {
+          "q": "685190d336b902aad0163ad7",
+          "c": [
+            {
+              "t": "Associate's Degree",
+              "v": "685190d336b902aad0163ad9"
+            }
+          ]
+        },
+        {
+          "q": "685190d336b902aad0163add",
+          "t": "Test"
+        },
+        {
+          "q": "685190d436b902aad0163ae0",
+          "c": [
+            {
+              "t": "Leadership",
+              "v": "685190d436b902aad0163ae5"
+            }
+          ]
+        },
+        {
+          "q": "685190d436b902aad0163aeb",
+          "t": "Tes"
+        },
+        {
+          "q": "685190d436b902aad0163aec",
+          "t": "Test"
+        },
+        {
+          "q": "685190d436b902aad0163aed",
+          "t": "Test"
+        }
+      ],
+      "formElementAnswers": [],
+      "answerFiles": [],
+      "reduceFromStock": null,
+      "formOwnerEmailConfirmed": true,
+      "formOwnerLang": "en",
+      "formOwnerUsername": "tinchak0207",
+      "formOwnerCulture": "zh-TW",
+      "formOwnerTimezone": "Taipei Standard Time",
+      "formOwnerDefaultDomain": "17scaqk8.forms.app",
+      "publicId": "f6310b4758e00a",
+      "point": null,
+      "completeSecond": 14,
+      "draftId": null,
+      "formVersion": 3,
+      "formTitle": "Career planning form",
+      "currentUserId": "6851908b9997a500025ecd03",
+      "thankYouPageSettings": {
+        "_id": "685190a136b902aad0163ad4",
+        "title": "Ending",
+        "desc": "[h1]👌[/h1][h2][b]Thank you! [/b][/h2][p]Form submitted successfully.[/p][p][br][/p]",
+        "showThankYouPage": true,
+        "showShare": false,
+        "showPublicId": false,
+        "showPrintButton": false,
+        "showStatistic": false,
+        "redirectAfterSubmit": false,
+        "isSaveAndReturn": false,
+        "isShareRecords": false,
+        "isShowResponseCount": false,
+        "redirectUrl": "",
+        "popupTitle": "",
+        "popupText": "",
+        "popupBtnText": ""
+      },
+      "answerId": "68540e3540e38a2cea0ef490",
+      "createDate": "2025-06-19T13:18:45.422Z"
+    }
+  }

@@ -51,6 +51,18 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
   // isPostingAllowed is now derived from context
   const isPostingAllowed = !isGuestMode && !!mongoDbUserId && !!fullBackendUser && fullBackendUser.companyProfileComplete === true;
 
+  // Debug logging
+  useEffect(() => {
+    console.log("[CreateJobPostingPage] Context state:", {
+      isGuestMode,
+      mongoDbUserId: !!mongoDbUserId,
+      fullBackendUser: !!fullBackendUser,
+      companyProfileComplete: fullBackendUser?.companyProfileComplete,
+      selectedRole: fullBackendUser?.selectedRole,
+      isPostingAllowed
+    });
+  }, [isGuestMode, mongoDbUserId, fullBackendUser, isPostingAllowed]);
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),

@@ -1,7 +1,7 @@
 
 // swipehire-backend/services/notificationService.js
-const Notification = require('../Notification'); // Adjust path as necessary
-const User = require('../User'); // To check user preferences
+const Notification = require('../models/Notification');
+const User = require('../models/User'); // To check user preferences
 
 async function createAndStoreNotification(
     recipientUserId,

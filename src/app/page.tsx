@@ -111,22 +111,67 @@ function AppContent() {
   };
 
   const fetchUserFromBackendAndSetContext = useCallback(async (firebaseUid: string, firebaseDisplayName?: string | null, firebaseEmail?: string | null): Promise<string | null> => {
+    console.log("[AppContent] fetchUserFromBackendAndSetContext called with firebaseUid:", firebaseUid);
+    console.log("[AppContent] Backend URL:", CUSTOM_BACKEND_URL);
+    
+    // Check if backend URL is available
+    if (!CUSTOM_BACKEND_URL || CUSTOM_BACKEND_URL === 'undefined') {
+      console.error("[AppContent] Backend URL is not configured properly:", CUSTOM_BACKEND_URL);
+      toast({ title: "Configuration Error", description: "Backend service is not configured.", variant: "destructive"});
+      return null;
+    }
+    
     try {
-      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`);
+      const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${firebaseUid}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout
+        signal: AbortSignal.timeout(10000) // 10 second timeout
+      });
+      console.log("[AppContent] Backend response status:", response.status);
+      
       if (response.ok) {
-        const userData: BackendUser = await response.json();
-        setMongoDbUserId(userData._id);
-        updateFullBackendUserFields(userData);
-        return userData._id;
+        const responseData = await response.json();
+        console.log("[AppContent] Backend response data:", responseData);
+        
+        // Handle both direct user object and wrapped response
+        const userData: BackendUser = responseData.user || responseData;
+        
+        if (userData && userData._id) {
+          console.log("[AppContent] Setting mongoDbUserId to:", userData._id);
+          setMongoDbUserId(userData._id);
+          updateFullBackendUserFields(userData);
+          return userData._id;
+        } else {
+          console.error("[AppContent] User data missing _id:", userData);
+          toast({ title: "Profile Error", description: "User profile data is incomplete.", variant: "destructive"});
+          return null;
+        }
       } else if (response.status === 404) {
+        console.log("[AppContent] User not found, creating new user...");
         const createUserResponse = await fetch(`${CUSTOM_BACKEND_URL}/api/users`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: firebaseDisplayName || firebaseEmail || 'New User', email: firebaseEmail, firebaseUid: firebaseUid, preferences: { theme: 'light', featureFlags: {} } }),
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            name: firebaseDisplayName || firebaseEmail || 'New User', 
+            email: firebaseEmail, 
+            firebaseUid: firebaseUid, 
+            preferences: { theme: 'light', featureFlags: {} } 
+          }),
+          signal: AbortSignal.timeout(10000) // 10 second timeout
         });
+        
+        console.log("[AppContent] Create user response status:", createUserResponse.status);
+        
         if (createUserResponse.ok) {
           const responseData = await createUserResponse.json();
+          console.log("[AppContent] Create user response data:", responseData);
+          
           const createdUser = responseData.user || responseData;
           if (createdUser && createdUser._id) {
+            console.log("[AppContent] Setting mongoDbUserId to newly created user:", createdUser._id);
             setMongoDbUserId(createdUser._id);
             updateFullBackendUserFields(createdUser);
             toast({ title: "Profile Initialized", description: "Your basic profile has been set up."});
@@ -165,14 +210,26 @@ function AppContent() {
 
 
   useEffect(() => {
+    console.log("[AppContent] Setting up auth state listener...");
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("[AppContent] Auth state changed. User:", user ? `${user.uid} (${user.email})` : 'null');
       setCurrentUser(user);
       if (user) {
-        const currentMongoId = await fetchUserFromBackendAndSetContext(user.uid, user.displayName, user.email);
-        if (currentMongoId && hasMounted && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
-          setShowOnboardingModal(true);
+        console.log("[AppContent] User is authenticated, fetching from backend...");
+        try {
+          const currentMongoId = await fetchUserFromBackendAndSetContext(user.uid, user.displayName, user.email);
+          console.log("[AppContent] Backend fetch result - mongoId:", currentMongoId);
+          if (currentMongoId && hasMounted && localStorage.getItem(HAS_SEEN_ONBOARDING_MODAL_KEY) !== 'true' && !isGuestModeActive) {
+            setShowOnboardingModal(true);
+          }
+        } catch (error) {
+          console.error("[AppContent] Error in fetchUserFromBackendAndSetContext:", error);
+          // Ensure we don't leave the user in a loading state
+          setMongoDbUserId(null);
+          updateFullBackendUserFields(null);
         }
       } else {
+        console.log("[AppContent] User is not authenticated, clearing context...");
         setMongoDbUserId(null);
         updateFullBackendUserFields(null);
       }
@@ -182,6 +239,7 @@ function AppContent() {
     getRedirectResult(auth)
       .then(async (result) => {
         if (result?.user) {
+          console.log("[AppContent] Redirect result user:", result.user.uid);
           toast({ title: "Signed In Successfully!", description: `Welcome back, ${result.user.displayName || result.user.email}!` });
         }
       })
@@ -282,8 +340,20 @@ function AppContent() {
       return;
     }
 
+    // Check if onboarding was just completed to prevent redirect loops
+    const onboardingJustCompleted = typeof window !== 'undefined' ? sessionStorage.getItem('onboardingJustCompleted') === 'true' : false;
+    
     if (currentUser && !isGuestModeActive && fullBackendUser?.selectedRole === 'recruiter' && fullBackendUser?.companyProfileComplete === false) {
         if (pathname !== '/recruiter-onboarding') {
+            // Don't redirect if onboarding was just completed
+            if (onboardingJustCompleted) {
+                console.log("[AppContent] Onboarding just completed, clearing flag and not redirecting");
+                if (typeof window !== 'undefined') {
+                    sessionStorage.removeItem('onboardingJustCompleted');
+                }
+                return;
+            }
+            
             if (typeof window !== 'undefined') {
                 const skippedOnce = sessionStorage.getItem('skippedRecruiterOnboardingOnce');
                 if (skippedOnce === 'true') {
@@ -291,6 +361,7 @@ function AppContent() {
                     return;
                 }
             }
+            console.log("[AppContent] Redirecting to recruiter onboarding");
             router.push('/recruiter-onboarding');
             return;
         }
@@ -298,9 +369,11 @@ function AppContent() {
 
     if (pathname === '/recruiter-onboarding') {
       if (isGuestModeActive || !currentUser) {
+        console.log("[AppContent] Redirecting from onboarding page - no user or guest mode");
         router.push('/'); return;
       }
       if (fullBackendUser?.selectedRole !== 'recruiter' || fullBackendUser?.companyProfileComplete === true) {
+        console.log("[AppContent] Redirecting from onboarding page - not recruiter or profile complete");
         router.push('/'); return;
       }
     }
