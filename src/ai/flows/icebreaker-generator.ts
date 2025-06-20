@@ -29,7 +29,30 @@ const GenerateIcebreakerQuestionOutputSchema = z.object({
 export type GenerateIcebreakerQuestionOutput = z.infer<typeof GenerateIcebreakerQuestionOutputSchema>;
 
 export async function generateIcebreakerQuestion(input: GenerateIcebreakerQuestionInput): Promise<GenerateIcebreakerQuestionOutput> {
-  return generateIcebreakerQuestionFlow(input);
+  // Import the new AI service
+  const { generateIcebreaker } = await import('@/services/aiService');
+  
+  // Convert the input format to match the new service
+  const candidateProfile = {
+    id: 'temp-id',
+    role: 'Candidate',
+    skills: input.candidateSkills.split(',').map(s => s.trim()),
+    experienceSummary: input.pastProjects,
+  };
+  
+  const jobCriteria = {
+    title: 'Position',
+    description: input.jobDescription,
+    companyIndustry: 'Various',
+  };
+  
+  const result = await generateIcebreaker({
+    candidateProfile: candidateProfile as any,
+    jobCriteria: jobCriteria as any,
+    tone: 'friendly',
+  });
+  
+  return { icebreakerQuestion: result.icebreaker };
 }
 
 const prompt = ai.definePrompt({

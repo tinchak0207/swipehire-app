@@ -26,7 +26,21 @@ const CompanyQAOutputSchema = z.object({
 });
 
 export async function answerCompanyQuestion(input: CompanyQAInput): Promise<CompanyQAOutput> {
-  return companyQAFlow(input);
+  // Import the new AI service
+  const { answerCompanyQuestion: mistralAnswerCompanyQuestion } = await import('@/services/aiService');
+  
+  // Convert the input format to match the new service
+  const serviceInput = {
+    companyName: input.companyName,
+    companyDescription: input.companyDescription,
+    companyIndustry: input.companyIndustry,
+    companyCultureKeywords: input.companyCultureHighlights,
+    companyWebsite: undefined,
+    question: input.userQuestion,
+  };
+  
+  const result = await mistralAnswerCompanyQuestion(serviceInput);
+  return { aiAnswer: result.answer };
 }
 
 const companyQAPrompt = ai.definePrompt({

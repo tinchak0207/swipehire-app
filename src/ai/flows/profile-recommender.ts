@@ -134,7 +134,9 @@ export type ProfileRecommenderOutput = z.infer<typeof ProfileRecommenderOutputSc
 
 
 export async function recommendProfile(input: ProfileRecommenderInput): Promise<ProfileRecommenderOutput> {
-  return profileRecommenderFlow(input);
+  // Import the new AI service
+  const { recommendProfile: mistralRecommendProfile } = await import('@/services/aiService');
+  return mistralRecommendProfile(input);
 }
 
 const profileRecommenderPrompt = ai.definePrompt({

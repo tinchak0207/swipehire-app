@@ -49,7 +49,19 @@ export type GenerateVideoScriptOutput = z.infer<typeof GenerateVideoScriptOutput
 export async function generateVideoScript(
   input: GenerateVideoScriptInput
 ): Promise<GenerateVideoScriptOutput> {
-  return generateVideoScriptFlow(input);
+  // Import the new AI service
+  const { generateVideoScript: mistralGenerateVideoScript } = await import('@/services/aiService');
+  
+  // Convert the input format to match the new service
+  const candidateProfile = `Experience: ${input.experience}\nDesired Work Style: ${input.desiredWorkStyle}`;
+  
+  const result = await mistralGenerateVideoScript({
+    candidateProfile,
+    tone: input.toneAndStyle,
+    duration: 60, // Default 60 seconds
+  });
+  
+  return { script: result.script };
 }
 
 const prompt = ai.definePrompt({

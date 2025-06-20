@@ -24,7 +24,16 @@ const GenerateChatReplyOutputSchema = z.object({
 export type GenerateChatReplyOutput = z.infer<typeof GenerateChatReplyOutputSchema>;
 
 export async function generateChatReply(input: GenerateChatReplyInput): Promise<GenerateChatReplyOutput> {
-  return genericChatReplyFlow(input);
+  // Import the new AI service
+  const { generateChatReply: mistralGenerateChatReply } = await import('@/services/aiService');
+  
+  const result = await mistralGenerateChatReply({
+    message: input.userMessage,
+    context: `Chatting with ${input.contactName}${input.userName ? ` as ${input.userName}` : ''}`,
+    tone: 'friendly',
+  });
+  
+  return { aiReply: result.reply };
 }
 
 const prompt = ai.definePrompt({

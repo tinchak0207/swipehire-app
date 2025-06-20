@@ -482,12 +482,18 @@ export interface CompanyQAInput {
   companyDescription: string;
   companyIndustry?: string;
   companyCultureHighlights?: string[];
+  companyCultureKeywords?: string[];
+  companyWebsite?: string;
   jobOpeningsSummary?: string;
-  userQuestion: string;
+  userQuestion?: string;
+  question?: string;
 }
 
 export interface CompanyQAOutput {
-  aiAnswer: string;
+  aiAnswer?: string;
+  answer?: string;
+  confidence?: number;
+  sources?: string[];
 }
 
 export interface RecordLikePayload {

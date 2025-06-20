@@ -466,17 +466,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
   const isAuthEmail = auth.currentUser && auth.currentUser.email === userEmail;
   const showRecruiterOnboardingLink = selectedRoleInSettings === 'recruiter' && fullBackendUser && fullBackendUser.companyProfileComplete === false && !isGuestMode;
 
-  // Debug logging
-  useEffect(() => {
-    console.log("[SettingsPage] Context state:", {
-      selectedRoleInSettings,
-      fullBackendUser: !!fullBackendUser,
-      companyProfileComplete: fullBackendUser?.companyProfileComplete,
-      showRecruiterOnboardingLink,
-      isGuestMode
-    });
-  }, [selectedRoleInSettings, fullBackendUser, showRecruiterOnboardingLink, isGuestMode]);
-
+  
 
   return (
     <div className="p-4 md:p-6 max-w-3xl mx-auto space-y-8">
@@ -638,7 +628,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
               placeholder="Enter your email address"
               value={userEmail}
               onChange={(e) => setUserEmail(e.target.value)}
-              disabled={isGuestMode || isAuthEmail}
+              disabled={isGuestMode ? true : (isAuthEmail || undefined)}
               className={cn(selectedRoleInSettings === 'recruiter' && !userEmail.trim() && "border-destructive focus-visible:ring-destructive")}
             />
              {isAuthEmail && !isGuestMode && (
