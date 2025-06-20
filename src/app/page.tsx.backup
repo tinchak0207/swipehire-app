@@ -19,6 +19,8 @@ import { useRouter, usePathname } from 'next/navigation';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import Link from 'next/link';
 import { OnboardingStepsModal } from "@/components/common/OnboardingStepsModal";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/navigation/DashboardSidebar";
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 const loadingComponent = () => <div className="flex justify-center items-center min-h-[calc(100vh-250px)]"><Loader2 className="h-12 w-12 animate-spin text-primary" /></div>;
@@ -287,13 +289,6 @@ function AppContent() {
     }
   }, [firebaseAuthStateResolved, firebaseRedirectResultResolved]);
 
-  // Ensure loading state is resolved after logout
-  useEffect(() => {
-    if (!currentUser && firebaseAuthStateResolved && !isGuestModeActive) {
-      setIsAppLoading(false);
-    }
-  }, [currentUser, firebaseAuthStateResolved, isGuestModeActive]);
-
   useEffect(() => {
     if (isAppLoading || !hasMounted) {
         return;
@@ -483,40 +478,36 @@ function AppContent() {
   };
 
   const handleLogout = async () => {
-  try {
-  console.log("[AppContent] Starting logout process...");
-  
-  await signOut(auth);
-  
-  if (hasMounted) {
-  localStorage.removeItem(GUEST_MODE_KEY);
-  localStorage.removeItem('mongoDbUserId');
-  localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
-  localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
-  localStorage.removeItem(HAS_SEEN_ONBOARDING_MODAL_KEY);
-  sessionStorage.removeItem('skippedRecruiterOnboardingOnce');
-  }
-  
-  // Reset all user-related state
-  setIsGuestModeActive(false);
-  setHasSeenWelcome(false);
-  setShowOnboardingModal(false);
-  setMongoDbUserId(null);
-  updateFullBackendUserFields(null);
-  setUserName(null);
-  setUserPhotoURL(null);
-  setActiveTab('findJobs');
-  hasScrolledAndModalTriggeredRef.current = false;
-  
-  // Immediately show welcome page and ensure loading is resolved
-  setShowWelcomePage(true);
-  
-  console.log("[AppContent] Logout process completed, showing welcome page");
-  toast({ title: "Logged Out", description: "You have been successfully logged out." });
-  } catch (error) {
-  console.error("Error signing out:", error);
-  toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" });
-  }
+    try {
+      await signOut(auth);
+      if (hasMounted) {
+        localStorage.removeItem(GUEST_MODE_KEY);
+        localStorage.removeItem('mongoDbUserId');
+        localStorage.removeItem(HAS_SEEN_WELCOME_KEY);
+        localStorage.removeItem(DISMISSED_BANNER_NOTIF_ID_KEY);
+        localStorage.removeItem(HAS_SEEN_ONBOARDING_MODAL_KEY); 
+        sessionStorage.removeItem('skippedRecruiterOnboardingOnce');
+      }
+      setIsGuestModeActive(false);
+      setHasSeenWelcome(false);
+      setShowOnboardingModal(false); 
+
+      setMongoDbUserId(null);
+      setCurrentUser(null);
+      updateFullBackendUserFields(null);
+      setFirebaseAuthStateResolved(false);
+      setFirebaseRedirectResultResolved(false);
+
+      setUserName(null);
+      setUserPhotoURL(null);
+      setActiveTab('findJobs');
+      hasScrolledAndModalTriggeredRef.current = false;
+
+      setShowWelcomePage(true);
+      setIsAppLoading(true);
+
+      toast({ title: "Logged Out", description: "You have been successfully logged out." });
+    } catch (error) { console.error("Error signing out:", error); toast({ title: "Logout Failed", description: "Could not log out.", variant: "destructive" }); }
   };
 
   const handleLoginRequest = () => {
@@ -600,57 +591,87 @@ function AppContent() {
 
     const mainAppContainerClasses = cn("flex flex-col flex-grow bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
     return (
-      <div className={mainAppContainerClasses}>
-        <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
-        <AppHeader isAuthenticated={!!currentUser} isGuestMode={isGuestModeActive} onLoginRequest={handleLoginRequest} onLogout={handleLogout} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} userName={userName} userPhotoURL={userPhotoURL} />
-        <main className="flex-grow container mx-auto px-0 sm:px-4 py-4 flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
-            {isMobile ? ( <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
-            ) : (
-              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1 shrink-0`}>
-                {currentTabItems.map(item => ( <TabsTrigger key={item.value} value={item.value} className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"> <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" /> <span className="truncate">{item.label}</span> </TabsTrigger> ))}
-              </TabsList>
-            )}
-            {currentTabItems.map(item => ( <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg flex-grow flex flex-col">
-                {React.cloneElement(item.component, {
-                    ...((item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
-                    isGuestMode: isGuestModeActive,
-                    ...((item.value === 'settings') && { currentUserRole: fullBackendUser?.selectedRole || null }), 
-                    ...((item.value === 'aiTools') && { currentUserRole: fullBackendUser?.selectedRole || null }),
-                    ...((item.value === 'myDiary') && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
-                })}
-            </TabsContent> ))}
-          </Tabs>
-        </main>
-        <footer className="text-center p-4 text-sm text-muted-foreground border-t shrink-0">
-          <div className="mb-4"> <div className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6840338e0d1dfb766b149a4b" data-style-height="52px" data-style-width="100%"> <a href="https://www.trustpilot.com/review/studio--swipehire-3bscz.us-central1.hosted.app" target="_blank" rel="noopener">Trustpilot</a> </div> </div>
-          <div className="flex justify-center items-center gap-x-4 mb-1"> <span className="hover:text-primary cursor-pointer">Privacy Policy</span> <span className="hover:text-primary cursor-pointer">Terms of Service</span> <span className="hover:text-primary cursor-pointer">AI Ethics</span> </div>
-          <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
-        </footer>
-        <Dialog open={isProfileSetupModalOpen} onOpenChange={(open) => { if (!open && profileSetupStep === 'role') { hasScrolledAndModalTriggeredRef.current = false; } setIsProfileSetupModalOpen(open); }}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {profileSetupStep === 'role' && "Choose Your Path"}
-              </DialogTitle>
-              <DialogDescription>
-                {profileSetupStep === 'role' && "To tailor your experience, please tell us if you're primarily here to hire or to find a job."}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              {profileSetupStep === 'role' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('recruiter', mongoDbUserId); }}> <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" /> <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span> <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span> </Button>
-                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('jobseeker', mongoDbUserId); }}> <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" /> <span className="font-semibold text-foreground">I'm Job Hunting</span> <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span> </Button>
+      <SidebarProvider<div className={mainAppContainerClasses}>
+          <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
+          <AppHeader isAuthenticated={!!currentUser} isGuestMode={isGuestModeActive} onLoginRequest={handleLoginRequest} onLogout={handleLogout} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} userName={userName} userPhotoURL={userPhotoURL} />
+          
+          <div className="flex flex-1">
+            {/* Sidebar Navigation - Always render but hidden on mobile */}
+            <DashboardSidebar
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+              tabItems={currentTabItems}
+              currentUserRole={fullBackendUser?.selectedRole || null}
+              isGuestMode={isGuestModeActive}
+              userName={userName}
+              userPhotoURL={userPhotoURL}
+            />
+            
+            {/* Main Content */}
+            <SidebarInset className="flex-1">
+              <main className="flex-grow container mx-auto px-4 py-4 flex flex-col">
+                {/* Mobile Navigation */}
+                {isMobile && (
+                  <div className="mb-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <SidebarTrigger className="md:hidden" />
+                      <h1 className="text-xl font-semibold">
+                        {currentTabItems.find(item => item.value === activeTab)?.label || 'Dashboard'}
+                      </h1>
+                    </div>
+                    <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
+                  </div>
+                )}
+                
+                {/* Content Area */}
+                <div className="flex-grow flex flex-col">
+                  {currentTabItems.map(item => (
+                    <div key={item.value} className={cn("flex-grow flex flex-col", activeTab === item.value ? "block" : "hidden")}>
+                      {React.cloneElement(item.component, {
+                        ...((item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
+                        isGuestMode: isGuestModeActive,
+                        ...((item.value === 'settings') && { currentUserRole: fullBackendUser?.selectedRole || null }), 
+                        ...((item.value === 'aiTools') && { currentUserRole: fullBackendUser?.selectedRole || null }),
+                        ...((item.value === 'myDiary') && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
+                      })}
+                    </div>
+                  ))}
                 </div>
-              )}
-            </div>
-            <DialogFooter className="sm:justify-center">
-              <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}> Maybe Later </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+              </main>
+            </SidebarInset>
+          </div>
+          
+          <footer className="text-center p-4 text-sm text-muted-foreground border-t shrink-0">
+            <div className="mb-4"> <div className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6840338e0d1dfb766b149a4b" data-style-height="52px" data-style-width="100%"> <a href="https://www.trustpilot.com/review/studio--swipehire-3bscz.us-central1.hosted.app" target="_blank" rel="noopener">Trustpilot</a> </div> </div>
+            <div className="flex justify-center items-center gap-x-4 mb-1"> <span className="hover:text-primary cursor-pointer">Privacy Policy</span> <span className="hover:text-primary cursor-pointer">Terms of Service</span> <span className="hover:text-primary cursor-pointer">AI Ethics</span> </div>
+            <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
+          </footer>
+          
+          <Dialog open={isProfileSetupModalOpen} onOpenChange={(open) => { if (!open && profileSetupStep === 'role') { hasScrolledAndModalTriggeredRef.current = false; } setIsProfileSetupModalOpen(open); }}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {profileSetupStep === 'role' && "Choose Your Path"}
+                </DialogTitle>
+                <DialogDescription>
+                  {profileSetupStep === 'role' && "To tailor your experience, please tell us if you're primarily here to hire or to find a job."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                {profileSetupStep === 'role' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('recruiter', mongoDbUserId); }}> <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" /> <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span> <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span> </Button>
+                    <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('jobseeker', mongoDbUserId); }}> <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" /> <span className="font-semibold text-foreground">I'm Job Hunting</span> <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span> </Button>
+                  </div>
+                )}
+              </div>
+              <DialogFooter className="sm:justify-center">
+                <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}> Maybe Later </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </SidebarProvider>
     );
   };
   return mainContentRender();
