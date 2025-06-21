@@ -571,8 +571,70 @@ export interface Goal {
   completed: boolean;
   createdAt: string;
   targetDate?: string;
-  actionSteps: {
-    description: string;
-    completed: boolean;
-  }[];
+  actionSteps: ActionStep[];
+  progress: number; // 0-100
+  priority: 'low' | 'medium' | 'high';
+  category: string;
+}
+
+export interface ActionStep {
+  id: number;
+  description: string;
+  completed: boolean;
+  dueDate?: string;
+  resources?: string[];
+  estimatedHours?: number;
+}
+
+export interface CareerChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  type?: 'text' | 'suggestion' | 'report';
+  metadata?: {
+    goalId?: number;
+    actionType?: string;
+    resources?: string[];
+  };
+}
+
+export interface CareerReport {
+  id: string;
+  title: string;
+  type: 'skills' | 'progress' | 'market' | 'goals';
+  generatedAt: string;
+  data: {
+    charts?: ChartData[];
+    insights?: string[];
+    recommendations?: string[];
+    metrics?: Record<string, number>;
+  };
+}
+
+export interface ChartData {
+  type: 'bar' | 'line' | 'pie' | 'radar';
+  title: string;
+  data: any[];
+  labels?: string[];
+}
+
+export interface CareerReminder {
+  id: string;
+  title: string;
+  description: string;
+  type: 'goal_check' | 'skill_update' | 'market_research' | 'networking';
+  scheduledFor: string;
+  recurring: boolean;
+  frequency?: 'daily' | 'weekly' | 'monthly';
+  completed: boolean;
+}
+
+export interface SkillAssessment {
+  skill: string;
+  currentLevel: number; // 1-10
+  targetLevel: number; // 1-10
+  lastUpdated: string;
+  resources: string[];
+  marketDemand: 'low' | 'medium' | 'high';
 }

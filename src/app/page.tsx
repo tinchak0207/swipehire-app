@@ -5,6 +5,8 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from 'next/dynamic';
 import { AppHeader } from "@/components/AppHeader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { DashboardSidebar } from "@/components/navigation/DashboardSidebar";
 import type { UserRole, NotificationItem, BackendUser } from "@/lib/types";
 import { mockNotifications } from "@/lib/mockData";
 import { Users, Briefcase, Wand2, HeartHandshake, UserCog, LayoutGrid, Loader2, FilePlus2, BookOpenText, UserCircle, Eye, Home, Settings as SettingsIcon, Info, ChevronRight, Building2, ExternalLink } from 'lucide-react';
@@ -554,12 +556,87 @@ function AppContent() {
   };
 
   const baseTabItems = [
-    { value: "aiTools", label: "AI Tools", icon: Wand2, component: <AiToolsPage isGuestMode={isGuestModeActive} currentUserRole={fullBackendUser?.selectedRole || null} /> },
-    { value: "myMatches", label: "My Matches", icon: HeartHandshake, component: <MatchesPage isGuestMode={isGuestModeActive} /> },
-    { value: "settings", label: "Settings", icon: UserCog, component: <SettingsPage isGuestMode={isGuestModeActive} currentUserRole={fullBackendUser?.selectedRole || null} /> },
+    { 
+      value: "aiTools", 
+      label: "AI Tools", 
+      icon: Wand2, 
+      component: <AiToolsPage isGuestMode={isGuestModeActive} currentUserRole={fullBackendUser?.selectedRole || null} />,
+      description: "AI-powered career and recruitment tools",
+      isNew: true,
+      shortcut: "⌘T"
+    },
+    { 
+      value: "myMatches", 
+      label: "My Matches", 
+      icon: HeartHandshake, 
+      component: <MatchesPage isGuestMode={isGuestModeActive} />,
+      description: "View and manage your job matches",
+      badge: mockNotifications.filter(n => n.type === 'new_message' && !n.read).length || undefined
+    },
+    { 
+      value: "settings", 
+      label: "Settings", 
+      icon: UserCog, 
+      component: <SettingsPage isGuestMode={isGuestModeActive} currentUserRole={fullBackendUser?.selectedRole || null} />,
+      description: "Account settings and preferences",
+      shortcut: "⌘,"
+    },
   ];
-  const recruiterTabItems = [ { value: "findTalent", label: "Find Talent", icon: Users, component: <CandidateDiscoveryPage searchTerm={searchTerm} key={`cand-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`} isGuestMode={isGuestModeActive} /> }, { value: "postJob", label: "Post a Job", icon: FilePlus2, component: <CreateJobPostingPage isGuestMode={isGuestModeActive} /> }, { value: "manageJobs", label: "Manage Jobs", icon: SettingsIcon, component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} /> }, ...baseTabItems, ];
-  const jobseekerTabItems = [ { value: "findJobs", label: "Find Jobs", icon: Briefcase, component: <JobDiscoveryPage searchTerm={searchTerm} key={`job-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`} /> }, { value: "myProfile", label: "My Profile", icon: UserCircle, component: <MyProfilePage isGuestMode={isGuestModeActive} /> }, { value: "myDiary", label: "My Diary", icon: BookOpenText, component: <StaffDiaryPage isGuestMode={isGuestModeActive} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} /> }, ...baseTabItems, ];
+  const recruiterTabItems = [
+    { 
+      value: "findTalent", 
+      label: "Find Talent", 
+      icon: Users, 
+      component: <CandidateDiscoveryPage searchTerm={searchTerm} key={`cand-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`} isGuestMode={isGuestModeActive} />,
+      description: "Discover and connect with top talent",
+      shortcut: "⌘F"
+    }, 
+    { 
+      value: "postJob", 
+      label: "Post a Job", 
+      icon: FilePlus2, 
+      component: <CreateJobPostingPage isGuestMode={isGuestModeActive} />,
+      description: "Create and publish job openings",
+      shortcut: "⌘N"
+    }, 
+    { 
+      value: "manageJobs", 
+      label: "Manage Jobs", 
+      icon: SettingsIcon, 
+      component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
+      description: "Track and manage your job postings",
+      badge: "3" // Example: 3 active jobs
+    }, 
+    ...baseTabItems
+  ];
+  
+  const jobseekerTabItems = [
+    { 
+      value: "findJobs", 
+      label: "Find Jobs", 
+      icon: Briefcase, 
+      component: <JobDiscoveryPage searchTerm={searchTerm} key={`job-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`} />,
+      description: "Discover exciting job opportunities",
+      shortcut: "⌘J"
+    }, 
+    { 
+      value: "myProfile", 
+      label: "My Profile", 
+      icon: UserCircle, 
+      component: <MyProfilePage isGuestMode={isGuestModeActive} />,
+      description: "Manage your professional profile",
+      shortcut: "⌘P"
+    }, 
+    { 
+      value: "myDiary", 
+      label: "My Diary", 
+      icon: BookOpenText, 
+      component: <StaffDiaryPage isGuestMode={isGuestModeActive} currentUserName={userName} currentUserMongoId={mongoDbUserId} currentUserAvatarUrl={userPhotoURL} />,
+      description: "Share your professional journey",
+      shortcut: "⌘D"
+    }, 
+    ...baseTabItems
+  ];
 
   const currentRoleForTabs = fullBackendUser?.selectedRole;
   let currentTabItems = jobseekerTabItems;
@@ -615,59 +692,145 @@ function AppContent() {
     if (showWelcomePage) { return <WelcomePage key="welcome_page_wrapper" onStartExploring={handleStartExploring} onGuestMode={handleGuestMode} />; }
     if (!currentUser && !isGuestModeActive) { return ( <div className="animate-fadeInPage" key="login_page_wrapper"> <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} /> </div> ); }
 
-    const mainAppContainerClasses = cn("flex flex-col flex-grow bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
+    const mainAppContainerClasses = cn("flex min-h-screen w-full bg-background", bannerNotification ? "pt-16 sm:pt-[72px]" : "");
+    
     return (
-      <div className={mainAppContainerClasses}>
-        <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
-        <AppHeader isAuthenticated={!!currentUser} isGuestMode={isGuestModeActive} onLoginRequest={handleLoginRequest} onLogout={handleLogout} searchTerm={searchTerm} onSearchTermChange={setSearchTerm} userName={userName} userPhotoURL={userPhotoURL} />
-        <main className="flex-grow container mx-auto px-0 sm:px-4 py-4 flex flex-col">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
-            {isMobile ? ( <MobileNavMenu activeTab={activeTab} setActiveTab={setActiveTab} tabItems={currentTabItems} />
-            ) : (
-              <TabsList className={`grid w-full grid-cols-${currentTabItems.length} mb-6 h-auto rounded-lg shadow-sm bg-card border p-1 shrink-0`}>
-                {currentTabItems.map(item => ( <TabsTrigger key={item.value} value={item.value} className="py-2 text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-md rounded-md transition-all duration-200 ease-in-out flex items-center justify-center"> <item.icon className="w-4 h-4 mr-2 opacity-80 shrink-0" /> <span className="truncate">{item.label}</span> </TabsTrigger> ))}
-              </TabsList>
-            )}
-            {currentTabItems.map(item => ( <TabsContent key={item.value} value={item.value} className="mt-0 rounded-lg flex-grow flex flex-col">
-                {React.cloneElement(item.component, {
-                    ...((item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
-                    isGuestMode: isGuestModeActive,
-                    ...((item.value === 'settings') && { currentUserRole: fullBackendUser?.selectedRole || null }), 
-                    ...((item.value === 'aiTools') && { currentUserRole: fullBackendUser?.selectedRole || null }),
-                    ...((item.value === 'myDiary') && { currentUserName: userName, currentUserMongoId: mongoDbUserId, currentUserAvatarUrl: userPhotoURL })
-                })}
-            </TabsContent> ))}
-          </Tabs>
-        </main>
-        <footer className="text-center p-4 text-sm text-muted-foreground border-t shrink-0">
-          <div className="mb-4"> <div className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6840338e0d1dfb766b149a4b" data-style-height="52px" data-style-width="100%"> <a href="https://www.trustpilot.com/review/studio--swipehire-3bscz.us-central1.hosted.app" target="_blank" rel="noopener">Trustpilot</a> </div> </div>
-          <div className="flex justify-center items-center gap-x-4 mb-1"> <span className="hover:text-primary cursor-pointer">Privacy Policy</span> <span className="hover:text-primary cursor-pointer">Terms of Service</span> <span className="hover:text-primary cursor-pointer">AI Ethics</span> </div>
-          <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
-        </footer>
-        <Dialog open={isProfileSetupModalOpen} onOpenChange={(open) => { if (!open && profileSetupStep === 'role') { hasScrolledAndModalTriggeredRef.current = false; } setIsProfileSetupModalOpen(open); }}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>
-                {profileSetupStep === 'role' && "Choose Your Path"}
-              </DialogTitle>
-              <DialogDescription>
-                {profileSetupStep === 'role' && "To tailor your experience, please tell us if you're primarily here to hire or to find a job."}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="py-4 space-y-4">
-              {profileSetupStep === 'role' && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('recruiter', mongoDbUserId); }}> <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" /> <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span> <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span> </Button>
-                  <Button variant="outline" className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" onClick={() => { handleRoleSelect('jobseeker', mongoDbUserId); }}> <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" /> <span className="font-semibold text-foreground">I'm Job Hunting</span> <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span> </Button>
+      <SidebarProvider>
+        <div className={mainAppContainerClasses}>
+          <TopNotificationBanner notification={bannerNotification} onDismiss={handleDismissBanner} />
+          
+          {/* Enhanced Sidebar */}
+          <DashboardSidebar
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            tabItems={currentTabItems}
+            currentUserRole={fullBackendUser?.selectedRole || null}
+            isGuestMode={isGuestModeActive}
+            userName={userName}
+            userPhotoURL={userPhotoURL}
+            onLogout={handleLogout}
+            onProfileClick={() => setActiveTab('myProfile')}
+            onSearch={setSearchTerm}
+            notificationCount={mockNotifications.filter(n => !n.read).length}
+            profileCompletion={fullBackendUser?.profileCompletion || 0}
+          />
+          
+          {/* Main Content Area */}
+          <SidebarInset className="flex-1">
+            {/* Header with sidebar trigger */}
+            <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4">
+              <SidebarTrigger className="-ml-1" />
+              <div className="flex items-center gap-2 flex-1">
+                <AppHeader 
+                  isAuthenticated={!!currentUser} 
+                  isGuestMode={isGuestModeActive} 
+                  onLoginRequest={handleLoginRequest} 
+                  onLogout={handleLogout} 
+                  searchTerm={searchTerm} 
+                  onSearchTermChange={setSearchTerm} 
+                  userName={userName} 
+                  userPhotoURL={userPhotoURL}
+                  className="border-0 bg-transparent shadow-none"
+                />
+              </div>
+            </header>
+            
+            {/* Main Content */}
+            <main className="flex-1 flex flex-col p-4 md:p-6">
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col flex-grow">
+                {/* Mobile Navigation - Show only on mobile */}
+                {isMobile && (
+                  <MobileNavMenu 
+                    activeTab={activeTab} 
+                    setActiveTab={setActiveTab} 
+                    tabItems={currentTabItems} 
+                  />
+                )}
+                
+                {/* Tab Content */}
+                {currentTabItems.map(item => (
+                  <TabsContent key={item.value} value={item.value} className="mt-0 flex-grow flex flex-col">
+                    {React.cloneElement(item.component, {
+                      ...((item.value === 'findTalent' || item.value === 'findJobs') && { searchTerm }),
+                      isGuestMode: isGuestModeActive,
+                      ...((item.value === 'settings') && { currentUserRole: fullBackendUser?.selectedRole || null }), 
+                      ...((item.value === 'aiTools') && { currentUserRole: fullBackendUser?.selectedRole || null }),
+                      ...((item.value === 'myDiary') && { 
+                        currentUserName: userName, 
+                        currentUserMongoId: mongoDbUserId, 
+                        currentUserAvatarUrl: userPhotoURL 
+                      })
+                    })}
+                  </TabsContent>
+                ))}
+              </Tabs>
+            </main>
+            
+            {/* Footer */}
+            <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 text-center text-sm text-muted-foreground">
+              <div className="mb-4">
+                <div className="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="6840338e0d1dfb766b149a4b" data-style-height="52px" data-style-width="100%">
+                  <a href="https://www.trustpilot.com/review/studio--swipehire-3bscz.us-central1.hosted.app" target="_blank" rel="noopener">Trustpilot</a>
                 </div>
-              )}
-            </div>
-            <DialogFooter className="sm:justify-center">
-              <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}> Maybe Later </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+              </div>
+              <div className="flex justify-center items-center gap-x-4 mb-1">
+                <span className="hover:text-primary cursor-pointer">Privacy Policy</span>
+                <span className="hover:text-primary cursor-pointer">Terms of Service</span>
+                <span className="hover:text-primary cursor-pointer">AI Ethics</span>
+              </div>
+              <div>© {new Date().getFullYear()} SwipeHire. All rights reserved.</div>
+            </footer>
+          </SidebarInset>
+          
+          {/* Profile Setup Modal */}
+          <Dialog open={isProfileSetupModalOpen} onOpenChange={(open) => { 
+            if (!open && profileSetupStep === 'role') { 
+              hasScrolledAndModalTriggeredRef.current = false; 
+            } 
+            setIsProfileSetupModalOpen(open); 
+          }}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>
+                  {profileSetupStep === 'role' && "Choose Your Path"}
+                </DialogTitle>
+                <DialogDescription>
+                  {profileSetupStep === 'role' && "To tailor your experience, please tell us if you're primarily here to hire or to find a job."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4 space-y-4">
+                {profileSetupStep === 'role' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Button 
+                      variant="outline" 
+                      className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" 
+                      onClick={() => { handleRoleSelect('recruiter', mongoDbUserId); }}
+                    >
+                      <Users className="h-6 w-6 mb-2 text-orange-500 group-hover:text-orange-600" />
+                      <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span>
+                      <span className="text-xs text-muted-foreground">Post jobs and find top talent.</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      className="h-auto py-4 text-left flex flex-col items-start group hover:bg-primary/5" 
+                      onClick={() => { handleRoleSelect('jobseeker', mongoDbUserId); }}
+                    >
+                      <Briefcase className="h-6 w-6 mb-2 text-blue-500 group-hover:text-blue-600" />
+                      <span className="font-semibold text-foreground">I'm Job Hunting</span>
+                      <span className="text-xs text-muted-foreground">Discover opportunities and showcase your skills.</span>
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <DialogFooter className="sm:justify-center">
+                <Button type="button" variant="ghost" onClick={() => setIsProfileSetupModalOpen(false)}>
+                  Maybe Later
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </SidebarProvider>
     );
   };
   return mainContentRender();
