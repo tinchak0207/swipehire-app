@@ -142,6 +142,12 @@ export interface BackendUser {
   createdAt?: string;
   updatedAt?: string;
 
+  // Onboarding wizard fields
+  wizardCompleted?: boolean;
+  wizardSkipped?: boolean;
+  onboardingCompletedAt?: string;
+  wizardSkippedAt?: string;
+
   companyName?: string;
   companyIndustry?: string;
   companyScale?: CompanyScale;

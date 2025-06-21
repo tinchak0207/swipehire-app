@@ -36,7 +36,10 @@ const AiToolsPage = dynamic(() => import('@/components/pages/AiToolsPage').then(
 const MatchesPage = dynamic(() => import('@/components/pages/MatchesPage').then(mod => mod.MatchesPage), { loading: loadingComponent, ssr: false });
 const SettingsPage = dynamic(() => import('@/components/pages/SettingsPage').then(mod => mod.SettingsPage), { loading: loadingComponent, ssr: false });
 const LoginPage = dynamic(() => import('@/components/pages/LoginPage').then(mod => mod.LoginPage), { loading: loadingComponent, ssr: false });
-const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage').then(mod => mod.CreateJobPostingPage), { loading: loadingComponent, ssr: false });
+const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage'), { 
+  loading: loadingComponent, 
+  ssr: false 
+});
 const ManageJobPostingsPage = dynamic(() => import('@/components/pages/ManageJobPostingsPage').then(mod => mod.ManageJobPostingsPage), { loading: loadingComponent, ssr: false });
 const StaffDiaryPage = dynamic(() => import('@/components/pages/StaffDiaryPage').then(mod => mod.StaffDiaryPage), { loading: loadingComponent, ssr: false });
 const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage').then(mod => mod.WelcomePage), { loading: loadingComponent, ssr: false });
@@ -267,13 +270,27 @@ function AppContent() {
     if (fullBackendUser) {
       setUserName(fullBackendUser.name || fullBackendUser.email || (currentUser?.displayName || currentUser?.email) || "User");
       let finalPhotoURL = currentUser?.photoURL || null;
+      
+      console.log("[AppContent] Setting user photo URL:", {
+        currentUserPhotoURL: currentUser?.photoURL,
+        backendProfileAvatarUrl: fullBackendUser.profileAvatarUrl,
+        backendUrl: CUSTOM_BACKEND_URL
+      });
+      
       if (fullBackendUser.profileAvatarUrl) {
         if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
           finalPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
+          console.log("[AppContent] Using backend avatar URL:", finalPhotoURL);
         } else {
           finalPhotoURL = fullBackendUser.profileAvatarUrl;
+          console.log("[AppContent] Using direct avatar URL:", finalPhotoURL);
         }
+      } else if (currentUser?.photoURL) {
+        console.log("[AppContent] Using Firebase avatar URL:", currentUser.photoURL);
+      } else {
+        console.log("[AppContent] No avatar URL available, will show fallback");
       }
+      
       setUserPhotoURL(finalPhotoURL);
     } else if (!mongoDbUserId && !currentUser) {
       setUserName(null);

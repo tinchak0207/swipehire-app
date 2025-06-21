@@ -1,10 +1,10 @@
 
 import { FileVideo2, LogIn, LogOut, Search, UserCircle, X, Eye } from 'lucide-react'; // Added Eye
 import Link from 'next/link';
-import Image from 'next/image'; // Import next/image
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge'; 
+import { UserAvatar } from '@/components/ui/user-avatar';
 import { useState } from 'react';
 
 interface AppHeaderProps {
@@ -62,20 +62,31 @@ export function AppHeader({ isAuthenticated, isGuestMode, onLoginRequest, onLogo
             <Search className="h-5 w-5" />
           </Button>
 
+          {/* Mobile Avatar - Show only avatar */}
+          {isAuthenticated && userName && !isGuestMode && (
+            <div className="sm:hidden">
+              <UserAvatar
+                src={userPhotoURL}
+                alt={userName || "User"}
+                fallbackText={userName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                size="sm"
+                className="border border-primary-foreground/20"
+                showFallbackIcon={false}
+              />
+            </div>
+          )}
+
+          {/* Desktop Avatar with Name */}
           {isAuthenticated && userName && !isGuestMode && (
             <div className="hidden sm:flex items-center gap-2 text-sm text-primary-foreground/90">
-              {userPhotoURL ? (
-                <Image 
-                  src={userPhotoURL} 
-                  alt={userName || "User"} 
-                  width={24} 
-                  height={24} 
-                  className="rounded-full" 
-                  data-ai-hint="profile picture"
-                />
-              ) : (
-                <UserCircle className="h-5 w-5" />
-              )}
+              <UserAvatar
+                src={userPhotoURL}
+                alt={userName || "User"}
+                fallbackText={userName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                size="sm"
+                className="border border-primary-foreground/20"
+                showFallbackIcon={false}
+              />
               <span className="truncate max-w-[100px]">{userName}</span>
             </div>
           )}

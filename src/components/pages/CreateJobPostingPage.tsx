@@ -40,7 +40,7 @@ interface CreateJobPostingPageProps {
   isGuestMode?: boolean;
 }
 
-export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
+function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { mongoDbUserId, fullBackendUser } = useUserPreferences(); // Use context
@@ -361,3 +361,5 @@ export function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps)
     </div>
   );
 }
+
+export default CreateJobPostingPage;
