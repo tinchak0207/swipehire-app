@@ -168,7 +168,7 @@ export function DashboardSidebar({
   // Sidebar state management
   const { state, isMobile } = useSidebar()
   const [searchQuery, setSearchQuery] = useState<string>('')
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['primary']))
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['primary', 'jobManagement', 'tools', 'analytics']))
   const [quickActions, setQuickActions] = useState<NavigationItem[]>([])
 
   // Memoized navigation groups for performance
@@ -189,16 +189,11 @@ export function DashboardSidebar({
       ['analytics', 'reports', 'insights'].includes(item.value)
     )
     
-    const settingsItems = tabItems.filter(item => 
-      ['settings', 'preferences', 'billing'].includes(item.value)
-    )
-
     return {
       primary: primaryItems,
       jobManagement: jobManagementItems,
       tools: toolsItems,
-      analytics: analyticsItems,
-      settings: settingsItems
+      analytics: analyticsItems
     }
   }, [tabItems])
 
@@ -322,6 +317,18 @@ export function DashboardSidebar({
       }
       
       if (item.value.includes('job') || item.value.includes('talent')) {
+        // Special styling for findTalent to match other buttons
+        if (item.value === 'findTalent') {
+          return {
+            bg: "bg-white/80 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50",
+            text: "text-gray-700 hover:text-blue-700",
+            icon: "text-blue-800", // Navy blue icon
+            border: "border-gray-200 hover:border-blue-300",
+            shadow: "hover:shadow-md"
+          }
+        }
+        
+        // Default styling for other job-related items
         return {
           bg: "bg-white/80 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50",
           text: "text-gray-700 hover:text-green-700",
@@ -572,7 +579,7 @@ export function DashboardSidebar({
       </SidebarHeader>
 
       {/* Navigation Content */}
-      <SidebarContent className="px-3 py-6 space-y-6">
+      <SidebarContent className="px-3 py-4 space-y-3">
         {/* Quick Actions */}
         {state === 'expanded' && quickActions.length > 0 && (
           <div className="px-2">
@@ -628,7 +635,7 @@ export function DashboardSidebar({
             {/* Job Management (Recruiters only) */}
             {navigationGroups.jobManagement.length > 0 && (
               <>
-                <SidebarSeparator className="my-4 bg-sidebar-border/60" />
+                <SidebarSeparator className="my-1 bg-gray-200/30 h-px" />
                 {renderNavigationGroup(
                   navigationGroups.jobManagement,
                   'jobManagement',
@@ -640,7 +647,7 @@ export function DashboardSidebar({
             {/* Tools & Features */}
             {navigationGroups.tools.length > 0 && (
               <>
-                <SidebarSeparator className="my-4 bg-sidebar-border/60" />
+                <SidebarSeparator className="my-1 bg-gray-200/30 h-px" />
                 {renderNavigationGroup(
                   navigationGroups.tools,
                   'tools',
@@ -652,23 +659,11 @@ export function DashboardSidebar({
             {/* Analytics & Reports */}
             {navigationGroups.analytics.length > 0 && (
               <>
-                <SidebarSeparator className="my-4 bg-sidebar-border/60" />
+                <SidebarSeparator className="my-1 bg-gray-200/30 h-px" />
                 {renderNavigationGroup(
                   navigationGroups.analytics,
                   'analytics',
                   'Analytics & Insights'
-                )}
-              </>
-            )}
-
-            {/* Settings */}
-            {navigationGroups.settings.length > 0 && (
-              <>
-                <SidebarSeparator className="my-4 bg-sidebar-border/60" />
-                {renderNavigationGroup(
-                  navigationGroups.settings,
-                  'settings',
-                  'Account & Settings'
                 )}
               </>
             )}
