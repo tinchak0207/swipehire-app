@@ -283,53 +283,59 @@ export default function CareerDashboard({ userData, onBackToQuestionnaire }: Car
         </div>
 
       {/* Navigation Tabs */}
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-2 shadow-lg border border-white/20">
-          <div className="flex space-x-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-3 shadow-lg border border-white/20">
+          <div className="flex space-x-3">
             <button
-              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center px-6 py-4 rounded-xl transition-all duration-300 font-semibold ${
                 activeTab === 'paths' 
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50/50'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg transform scale-[1.02]' 
+                  : 'text-gray-700 hover:text-blue-600 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:shadow-md'
               }`}
               onClick={() => setActiveTab('paths')}
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
               </svg>
-              <span className="font-medium">Career Paths</span>
+              <span className="font-semibold">Career Paths</span>
+              <div className={`ml-2 w-2 h-2 rounded-full ${
+                activeTab === 'paths' ? 'bg-white/40' : 'bg-blue-500'
+              }`}></div>
             </button>
             <button
-              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center px-6 py-4 rounded-xl transition-all duration-300 font-semibold ${
                 activeTab === 'goals' 
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50/50'
+                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg transform scale-[1.02]' 
+                  : 'text-gray-700 hover:text-green-600 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:shadow-md'
               }`}
               onClick={() => setActiveTab('goals')}
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="font-medium">Goals</span>
+              <span className="font-semibold">Goals</span>
               {goals.length > 0 && (
-                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-semibold ${
-                  activeTab === 'goals' ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-600'
+                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-bold ${
+                  activeTab === 'goals' ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700'
                 }`}>
                   {goals.length}
                 </span>
               )}
             </button>
             <button
-              className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${
+              className={`flex-1 flex items-center justify-center px-6 py-4 rounded-xl transition-all duration-300 font-semibold ${
                 activeTab === 'progress' 
-                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg' 
-                  : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50/50'
+                  ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg transform scale-[1.02]' 
+                  : 'text-gray-700 hover:text-purple-600 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:shadow-md'
               }`}
               onClick={() => setActiveTab('progress')}
             >
-              <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <span className="font-medium">Progress</span>
+              <span className="font-semibold">Progress</span>
+              <div className={`ml-2 w-2 h-2 rounded-full ${
+                activeTab === 'progress' ? 'bg-white/40' : 'bg-purple-500'
+              }`}></div>
             </button>
           </div>
         </div>
