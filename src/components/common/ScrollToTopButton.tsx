@@ -1,8 +1,7 @@
+'use client';
 
-"use client";
-
-import { useEffect, useState } from 'react';
 import { ChevronUp } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -29,7 +28,7 @@ export function ScrollToTopButton() {
     return () => {
       window.removeEventListener('scroll', toggleVisibility);
     };
-  }, []);
+  }, [toggleVisibility]);
 
   return (
     <Button
@@ -37,8 +36,8 @@ export function ScrollToTopButton() {
       size="icon"
       onClick={scrollToTop}
       className={cn(
-        'fixed bottom-6 right-6 z-50 rounded-full shadow-lg transition-opacity duration-300 ease-in-out hover:bg-primary/10',
-        isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        'fixed right-6 bottom-6 z-50 rounded-full shadow-lg transition-opacity duration-300 ease-in-out hover:bg-primary/10',
+        isVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
       )}
       aria-label="Scroll to top"
     >
@@ -46,4 +45,3 @@ export function ScrollToTopButton() {
     </Button>
   );
 }
-

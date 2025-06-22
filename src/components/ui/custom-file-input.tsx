@@ -1,12 +1,11 @@
+'use client';
 
-"use client";
-
-import * as React from "react";
-import { cn } from "@/lib/utils";
-import { Button, type ButtonProps } from "@/components/ui/button";
-import { Input, type InputProps } from "@/components/ui/input";
-import { Label as ShadCnLabel } from "@/components/ui/label";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud } from 'lucide-react';
+import * as React from 'react';
+import { Button, type ButtonProps } from '@/components/ui/button';
+import { Input, type InputProps } from '@/components/ui/input';
+import { Label as ShadCnLabel } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 // Props that the actual <input type="file" /> will receive.
 interface HiddenInputProps extends Omit<InputProps, 'type' | 'value' | 'onChange'> {
@@ -17,13 +16,13 @@ interface CustomFileInputProps {
   id: string;
   // For RHF, 'name' would be part of field object from Controller
   // For non-RHF, manage value and onChange outside.
-  
+
   inputProps?: HiddenInputProps; // Props for the hidden <input type="file" />
 
   // Visuals
   fieldLabel?: string; // e.g., "Avatar Image"
   buttonText?: string;
-  buttonVariant?: ButtonProps["variant"];
+  buttonVariant?: ButtonProps['variant'];
   buttonIcon?: React.ReactNode;
   selectedFileName?: string | null; // Displayed file name
   fieldDescription?: string;
@@ -41,8 +40,8 @@ const CustomFileInput = React.forwardRef<HTMLInputElement, CustomFileInputProps>
       id,
       inputProps,
       fieldLabel,
-      buttonText = "Choose File",
-      buttonVariant = "outline",
+      buttonText = 'Choose File',
+      buttonVariant = 'outline',
       buttonIcon,
       selectedFileName,
       fieldDescription,
@@ -59,17 +58,17 @@ const CustomFileInput = React.forwardRef<HTMLInputElement, CustomFileInputProps>
       onFileSelected(file);
       // Reset the input value to allow selecting the same file again if it was cleared
       if (event.target) {
-        event.target.value = "";
+        event.target.value = '';
       }
     };
-    
+
     const triggerFileDialog = () => {
       internalInputRef.current?.click();
     };
 
     return (
-      <div className={cn("space-y-2", className)}>
-        {fieldLabel && <ShadCnLabel className="text-base font-medium">{fieldLabel}</ShadCnLabel>}
+      <div className={cn('space-y-2', className)}>
+        {fieldLabel && <ShadCnLabel className="font-medium text-base">{fieldLabel}</ShadCnLabel>}
         <div className="flex items-center gap-x-3">
           <Button
             type="button"
@@ -89,7 +88,7 @@ const CustomFileInput = React.forwardRef<HTMLInputElement, CustomFileInputProps>
               // Assign to internalInputRef
               (internalInputRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
               // Assign to forwarded ref if provided
-              if (typeof ref === "function") {
+              if (typeof ref === 'function') {
                 ref(node);
               } else if (ref) {
                 ref.current = node;
@@ -100,15 +99,18 @@ const CustomFileInput = React.forwardRef<HTMLInputElement, CustomFileInputProps>
             disabled={disabled}
             {...inputProps} // Spread props like 'accept', 'multiple'
           />
-          <span className="text-sm text-muted-foreground truncate min-w-0 flex-1" aria-live="polite">
-            {selectedFileName || "No file selected"}
+          <span
+            className="min-w-0 flex-1 truncate text-muted-foreground text-sm"
+            aria-live="polite"
+          >
+            {selectedFileName || 'No file selected'}
           </span>
         </div>
-        {fieldDescription && <p className="text-xs text-muted-foreground">{fieldDescription}</p>}
+        {fieldDescription && <p className="text-muted-foreground text-xs">{fieldDescription}</p>}
       </div>
     );
   }
 );
-CustomFileInput.displayName = "CustomFileInput";
+CustomFileInput.displayName = 'CustomFileInput';
 
 export { CustomFileInput };

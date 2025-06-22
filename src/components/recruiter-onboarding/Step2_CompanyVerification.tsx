@@ -1,14 +1,11 @@
+'use client';
 
-"use client";
-
-import React, { useState, useEffect } from 'react';
-// Button removed as submit is handled by parent
-import { Label } from '@/components/ui/label';
+import { Info, ShieldCheck, UploadCloud } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CustomFileInput } from '@/components/ui/custom-file-input';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
-import type { RecruiterOnboardingData, CompanyVerificationDocument } from '@/lib/types';
-import { UploadCloud, ShieldCheck, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import type { CompanyVerificationDocument, RecruiterOnboardingData } from '@/lib/types';
 
 interface Step2Props {
   initialData?: Partial<RecruiterOnboardingData>;
@@ -22,32 +19,44 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
 
   useEffect(() => {
     if (initialData?.businessLicense instanceof File) {
-        setBusinessLicenseFile(initialData.businessLicense);
+      setBusinessLicenseFile(initialData.businessLicense);
     }
     if (initialData?.organizationCode instanceof File) {
-        setOrganizationCodeFile(initialData.organizationCode);
+      setOrganizationCodeFile(initialData.organizationCode);
     }
   }, [initialData]);
 
   // Called by parent to trigger data processing for this step
   // This function is now effectively called by the parent's "Next Step" button onClick for step 2
-  const processStep2Data = () => {
+  const _processStep2Data = () => {
     if (!businessLicenseFile) {
-      toast({ title: "Missing Document", description: "Please upload a business license.", variant: "destructive"});
+      toast({
+        title: 'Missing Document',
+        description: 'Please upload a business license.',
+        variant: 'destructive',
+      });
       return false; // Indicate failure
     }
     const verificationDocuments: CompanyVerificationDocument[] = [];
     if (businessLicenseFile) {
-      verificationDocuments.push({ type: 'business_license', fileName: businessLicenseFile.name, uploadedAt: new Date().toISOString() });
+      verificationDocuments.push({
+        type: 'business_license',
+        fileName: businessLicenseFile.name,
+        uploadedAt: new Date().toISOString(),
+      });
     }
     if (organizationCodeFile) {
-      verificationDocuments.push({ type: 'organization_code', fileName: organizationCodeFile.name, uploadedAt: new Date().toISOString() });
+      verificationDocuments.push({
+        type: 'organization_code',
+        fileName: organizationCodeFile.name,
+        uploadedAt: new Date().toISOString(),
+      });
     }
-    
-    onSubmit({ 
-        businessLicense: businessLicenseFile || undefined,
-        organizationCode: organizationCodeFile || undefined,
-        companyVerificationDocuments: verificationDocuments
+
+    onSubmit({
+      businessLicense: businessLicenseFile || undefined,
+      organizationCode: organizationCodeFile || undefined,
+      companyVerificationDocuments: verificationDocuments,
     });
     return true; // Indicate success
   };
@@ -64,17 +73,17 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
   // Modified: When a file is selected, we update the parent's `onboardingData`
   // The parent's `handleStep2Submit` will be responsible for the `handleNextStep` call.
   const handleFileChange = (file: File | null, type: 'license' | 'orgCode') => {
-    let newBusinessLicense = businessLicenseFile;
-    let newOrganizationCode = organizationCodeFile;
+    let _newBusinessLicense = businessLicenseFile;
+    let _newOrganizationCode = organizationCodeFile;
 
     if (type === 'license') {
       setBusinessLicenseFile(file);
-      newBusinessLicense = file;
+      _newBusinessLicense = file;
     } else if (type === 'orgCode') {
       setOrganizationCodeFile(file);
-      newOrganizationCode = file;
+      _newOrganizationCode = file;
     }
-    
+
     // Pass the current state of both files to the parent
     // The parent's handleStep2Submit is designed to updateOnboardingData AND call handleNextStep.
     // We ONLY want to updateOnboardingData here, not advance.
@@ -111,30 +120,31 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
     const currentData: Partial<RecruiterOnboardingData> = {};
     if (type === 'license') currentData.businessLicense = file || undefined;
     if (type === 'orgCode') currentData.organizationCode = file || undefined;
-    
+
     // This is a bit of a hack to update parent data without triggering next step from here
     // This assumes `onSubmit` primarily updates data.
     if (Object.keys(currentData).length > 0) {
-        // We need to provide a way for the parent to get this data for its isNextDisabled check.
-        // The most direct way with the current `onSubmit` prop is to call it.
-        // The parent's handleStep2Submit should be structured to only update data if called with a specific flag,
-        // or it always updates data and the advancement to next step is controlled by parent.
-        // For now, let's assume `onSubmit` updates the parent's `onboardingData`.
-        onSubmit(currentData);
+      // We need to provide a way for the parent to get this data for its isNextDisabled check.
+      // The most direct way with the current `onSubmit` prop is to call it.
+      // The parent's handleStep2Submit should be structured to only update data if called with a specific flag,
+      // or it always updates data and the advancement to next step is controlled by parent.
+      // For now, let's assume `onSubmit` updates the parent's `onboardingData`.
+      onSubmit(currentData);
     }
-
   };
-
 
   return (
     // No <form> tag here as submission is controlled by parent for this step specifically
-    <div className="space-y-6 animate-fadeInPage">
-      <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-700">
-        <Info className="h-5 w-5 !text-blue-600" />
-        <AlertTitle className="font-semibold text-blue-800">Step 2: Company Verification</AlertTitle>
+    <div className="animate-fadeInPage space-y-6">
+      <Alert variant="default" className="border-blue-200 bg-blue-50 text-blue-700">
+        <Info className="!text-blue-600 h-5 w-5" />
+        <AlertTitle className="font-semibold text-blue-800">
+          Step 2: Company Verification
+        </AlertTitle>
         <AlertDescription className="text-blue-700/90">
-          Please upload relevant company verification documents. This helps us ensure a trusted environment.
-          (Conceptual: For this prototype, actual file validation and backend verification are not implemented.)
+          Please upload relevant company verification documents. This helps us ensure a trusted
+          environment. (Conceptual: For this prototype, actual file validation and backend
+          verification are not implemented.)
         </AlertDescription>
       </Alert>
 
@@ -146,7 +156,7 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
         selectedFileName={businessLicenseFile?.name}
         onFileSelected={(file) => handleFileChange(file, 'license')}
         fieldDescription="Max 5MB. PDF, JPG, PNG formats are typically accepted."
-        inputProps={{ accept: ".pdf,.jpg,.jpeg,.png" }}
+        inputProps={{ accept: '.pdf,.jpg,.jpeg,.png' }}
       />
 
       <CustomFileInput
@@ -157,12 +167,12 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
         selectedFileName={organizationCodeFile?.name}
         onFileSelected={(file) => handleFileChange(file, 'orgCode')}
         fieldDescription="Max 5MB. PDF, JPG, PNG formats."
-        inputProps={{ accept: ".pdf,.jpg,.jpeg,.png" }}
+        inputProps={{ accept: '.pdf,.jpg,.jpeg,.png' }}
       />
-      
+
       <div className="pt-2">
-        <ShieldCheck className="h-5 w-5 inline mr-2 text-green-600" />
-        <span className="text-sm text-muted-foreground">
+        <ShieldCheck className="mr-2 inline h-5 w-5 text-green-600" />
+        <span className="text-muted-foreground text-sm">
           Your documents will be securely handled and used for verification purposes only.
         </span>
       </div>

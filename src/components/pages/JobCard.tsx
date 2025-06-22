@@ -1,17 +1,8 @@
-
-import React from 'react';
+import { Briefcase, Eye, Heart, MapPin, Share2, X } from 'lucide-react';
+import type React from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  MapPin, 
-  Briefcase, 
-  X, 
-  Eye, 
-  Heart, 
-  Share2,
-  Star
-} from 'lucide-react';
 
 interface JobCardProps {
   company: string;
@@ -32,66 +23,69 @@ const JobCard: React.FC<JobCardProps> = ({
   type,
   tags,
   description,
-  imageUrl
+  imageUrl,
 }) => {
   return (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl overflow-hidden">
+    <Card className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
       <CardContent className="p-0">
         {/* Header with gradient background */}
-        <div className="h-32 bg-gradient-to-br from-purple-500 to-blue-600 relative flex items-center justify-center">
-          <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg">
+        <div className="relative flex h-32 items-center justify-center bg-gradient-to-br from-purple-500 to-blue-600">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white shadow-lg">
             <Briefcase className="h-8 w-8 text-slate-700" />
           </div>
-          
+
           {/* Company Badge */}
           <div className="absolute top-4 left-4">
-            <Badge className="bg-white/20 text-white border-white/30">
-              {category}
-            </Badge>
+            <Badge className="border-white/30 bg-white/20 text-white">{category}</Badge>
           </div>
         </div>
 
         {/* Main Content */}
         <div className="p-6 text-center">
           {/* Company Name */}
-          <h2 className="text-xl font-bold text-slate-900 mb-1">{company}</h2>
-          <p className="text-purple-600 font-medium text-sm uppercase tracking-wide mb-4">{title}</p>
+          <h2 className="mb-1 font-bold text-slate-900 text-xl">{company}</h2>
+          <p className="mb-4 font-medium text-purple-600 text-sm uppercase tracking-wide">
+            {title}
+          </p>
 
           {/* Location and Type */}
-          <div className="flex items-center justify-center space-x-4 mb-4 text-sm text-slate-600">
+          <div className="mb-4 flex items-center justify-center space-x-4 text-slate-600 text-sm">
             <div className="flex items-center">
-              <MapPin className="h-4 w-4 mr-1 text-slate-400" />
+              <MapPin className="mr-1 h-4 w-4 text-slate-400" />
               {location}
             </div>
             <div className="flex items-center">
-              <Briefcase className="h-4 w-4 mr-1 text-slate-400" />
+              <Briefcase className="mr-1 h-4 w-4 text-slate-400" />
               {type}
             </div>
           </div>
 
           {/* Match Percentage */}
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-slate-700">Job Match</span>
-              <span className="text-sm font-bold text-purple-600">85%</span>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="font-medium text-slate-700 text-sm">Job Match</span>
+              <span className="font-bold text-purple-600 text-sm">85%</span>
             </div>
-            <div className="w-full bg-slate-200 rounded-full h-2">
-              <div className="bg-gradient-to-r from-purple-500 to-blue-500 h-2 rounded-full" style={{ width: '85%' }}></div>
+            <div className="h-2 w-full rounded-full bg-slate-200">
+              <div
+                className="h-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500"
+                style={{ width: '85%' }}
+              />
             </div>
           </div>
 
           {/* Experience Level */}
-          <p className="text-sm text-slate-500 italic mb-4">2-3 years experience required</p>
+          <p className="mb-4 text-slate-500 text-sm italic">2-3 years experience required</p>
 
           {/* Skills Tags */}
           <div className="mb-6">
-            <h4 className="text-sm font-semibold text-slate-700 mb-2">TOP SKILLS</h4>
-            <div className="flex flex-wrap gap-2 justify-center">
+            <h4 className="mb-2 font-semibold text-slate-700 text-sm">TOP SKILLS</h4>
+            <div className="flex flex-wrap justify-center gap-2">
               {tags.slice(0, 3).map((tag, index) => (
-                <Badge 
-                  key={index} 
-                  variant="secondary" 
-                  className="bg-orange-100 text-orange-700 hover:bg-orange-200 rounded-full px-3 py-1"
+                <Badge
+                  key={index}
+                  variant="secondary"
+                  className="rounded-full bg-orange-100 px-3 py-1 text-orange-700 hover:bg-orange-200"
                 >
                   {tag}
                 </Badge>
@@ -101,46 +95,46 @@ const JobCard: React.FC<JobCardProps> = ({
 
           {/* Action Buttons */}
           <div className="flex justify-center space-x-3">
-            <Button 
-              variant="outline" 
-              size="lg" 
-              className="text-red-500 border-red-200 hover:bg-red-50 hover:border-red-300 rounded-xl w-16 h-16 p-0"
+            <Button
+              variant="outline"
+              size="lg"
+              className="h-16 w-16 rounded-xl border-red-200 p-0 text-red-500 hover:border-red-300 hover:bg-red-50"
             >
               <div className="flex flex-col items-center">
-                <X className="h-5 w-5 mb-1" />
+                <X className="mb-1 h-5 w-5" />
                 <span className="text-xs">Pass</span>
               </div>
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="lg"
-              className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300 rounded-xl w-16 h-16 p-0"
+              className="h-16 w-16 rounded-xl border-blue-200 p-0 text-blue-600 hover:border-blue-300 hover:bg-blue-50"
             >
               <div className="flex flex-col items-center">
-                <Eye className="h-5 w-5 mb-1" />
+                <Eye className="mb-1 h-5 w-5" />
                 <span className="text-xs">Profile</span>
               </div>
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="lg"
-              className="text-green-600 border-green-200 hover:bg-green-50 hover:border-green-300 rounded-xl w-16 h-16 p-0"
+              className="h-16 w-16 rounded-xl border-green-200 p-0 text-green-600 hover:border-green-300 hover:bg-green-50"
             >
               <div className="flex flex-col items-center">
-                <Heart className="h-5 w-5 mb-1" />
+                <Heart className="mb-1 h-5 w-5" />
                 <span className="text-xs">Like</span>
               </div>
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               size="lg"
-              className="text-purple-600 border-purple-200 hover:bg-purple-50 hover:border-purple-300 rounded-xl w-16 h-16 p-0"
+              className="h-16 w-16 rounded-xl border-purple-200 p-0 text-purple-600 hover:border-purple-300 hover:bg-purple-50"
             >
               <div className="flex flex-col items-center">
-                <Share2 className="h-5 w-5 mb-1" />
+                <Share2 className="mb-1 h-5 w-5" />
                 <span className="text-xs">Share</span>
               </div>
             </Button>

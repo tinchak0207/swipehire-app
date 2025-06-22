@@ -3,27 +3,27 @@
  * Run this to verify that the AI service is working correctly
  */
 
-import { ai } from './genkit';
 import aiService from '../services/aiService';
+import { ai } from './genkit';
 
 async function testMistralConnection() {
   console.log('🧪 Testing Mistral AI Connection...');
-  
+
   try {
     // Test basic AI availability
     const isAvailable = ai.isAvailable();
     console.log('✅ AI Service Available:', isAvailable);
-    
+
     if (!isAvailable) {
       console.log('❌ MISTRAL_API_KEY not found in environment variables');
       console.log('Please add MISTRAL_API_KEY to your .env.local file');
       return;
     }
-    
+
     // Test available models
     const models = ai.getAvailableModels();
     console.log('📋 Available Models:', models);
-    
+
     // Test basic text generation
     console.log('\n🔄 Testing basic text generation...');
     const response = await ai.generate({
@@ -32,10 +32,10 @@ async function testMistralConnection() {
       temperature: 0.3,
       maxTokens: 100,
     });
-    
+
     console.log('✅ Basic Generation Response:', response.text);
     console.log('📊 Usage:', response.usage);
-    
+
     // Test profile recommendation
     console.log('\n🔄 Testing profile recommendation...');
     const profileInput = {
@@ -55,14 +55,14 @@ async function testMistralConnection() {
         companyCultureKeywords: ['innovative', 'collaborative'],
       },
     };
-    
+
     const recommendation = await aiService.recommendProfile(profileInput);
     console.log('✅ Profile Recommendation:', {
       candidateId: recommendation.candidateId,
       matchScore: recommendation.matchScore,
-      reasoning: recommendation.reasoning.substring(0, 100) + '...',
+      reasoning: `${recommendation.reasoning.substring(0, 100)}...`,
     });
-    
+
     // Test company Q&A
     console.log('\n🔄 Testing company Q&A...');
     const qaInput = {
@@ -72,15 +72,14 @@ async function testMistralConnection() {
       companyCultureKeywords: ['innovative', 'collaborative', 'fast-paced'],
       question: 'What is the company culture like?',
     };
-    
+
     const qaResponse = await aiService.answerCompanyQuestion(qaInput);
-    console.log('✅ Company Q&A Response:', qaResponse.answer?.substring(0, 100) + '...');
-    
+    console.log('✅ Company Q&A Response:', `${qaResponse.answer?.substring(0, 100)}...`);
+
     console.log('\n🎉 All tests passed! Mistral AI integration is working correctly.');
-    
   } catch (error) {
     console.error('❌ Test failed:', error);
-    
+
     if (error instanceof Error) {
       if (error.message.includes('MISTRAL_API_KEY')) {
         console.log('\n💡 Solution: Add your Mistral API key to .env.local:');

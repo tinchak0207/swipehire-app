@@ -1,4 +1,5 @@
 'use server';
+
 /**
  * @fileOverview AI flow to generate company reply style suggestions.
  * (Placeholder file)
@@ -8,7 +9,6 @@
  * - GenerateCompanyReplyStyleOutput - Output type.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'zod'; // Corrected import for Zod
 
 // Input Schema (matching what ai-hr-payment/page.tsx expects)
@@ -16,7 +16,10 @@ const GenerateCompanyReplyStyleInputSchema = z.object({
   companyName: z.string().describe('The name of the company.'),
   companyIndustry: z.string().optional().describe('The industry of the company.'),
   companyDescription: z.string().optional().describe('A brief description of the company.'),
-  companyCultureHighlights: z.array(z.string()).optional().describe('Key highlights of company culture.'),
+  companyCultureHighlights: z
+    .array(z.string())
+    .optional()
+    .describe('Key highlights of company culture.'),
   currentNeeds: z.string().optional().describe('Current hiring needs or focus areas.'),
 });
 export type GenerateCompanyReplyStyleInput = z.infer<typeof GenerateCompanyReplyStyleInputSchema>;
@@ -34,17 +37,17 @@ export async function generateCompanyReplyStyle(
 ): Promise<GenerateCompanyReplyStyleOutput> {
   console.log('[Placeholder Flow] generateCompanyReplyStyle called with input:', input);
   // Simulate some AI processing delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  await new Promise((resolve) => setTimeout(resolve, 500));
 
   // Return mock data
   return {
     styleAnalysis: `Based on ${input.companyName}'s profile as a leader in the ${input.companyIndustry || 'relevant'} industry, the communication style should be professional, confident, and slightly formal, yet approachable. Emphasize innovation and collaboration if these are key cultural highlights.`,
     suggestedGuidelines: [
-      "Maintain a professional and respectful tone.",
-      "Highlight company values when appropriate.",
-      "Be clear and concise in all communications.",
-      "Personalize replies by referencing candidate details where possible.",
-      `If discussing needs for '${input.currentNeeds || 'new talent'}', be enthusiastic.`
+      'Maintain a professional and respectful tone.',
+      'Highlight company values when appropriate.',
+      'Be clear and concise in all communications.',
+      'Personalize replies by referencing candidate details where possible.',
+      `If discussing needs for '${input.currentNeeds || 'new talent'}', be enthusiastic.`,
     ],
   };
 }

@@ -1,0 +1,167 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Core Project Environment and Tech Stack",
+        "description": "Set up the core project structure, configure TypeScript with strict mode, integrate Next.js App Router, set up TailwindCSS and DaisyUI for styling, and configure Biome for code formatting and linting.",
+        "details": "Initialize Next.js project with TypeScript. Configure tsconfig.json for strict mode. Set up App Router. Install and configure TailwindCSS and DaisyUI. Integrate Biome for linting and formatting, including pre-commit hooks.",
+        "testStrategy": "Verify configurations by running build and linting commands. Ensure basic components can be styled correctly with Tailwind/DaisyUI.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Implement Foundational Accessibility and Performance Practices",
+        "description": "Implement foundational accessibility features (WCAG 2.1 AA compliance, screen reader support, keyboard navigation, ARIA attributes) and initial performance optimizations (React.memo, useCallback/useMemo guidelines).",
+        "details": "Establish guidelines and initial implementations for accessibility and performance. Ensure components are built with accessibility in mind from the start. Use React.memo for components receiving stable props. Document usage of useCallback/useMemo.",
+        "testStrategy": "Conduct manual accessibility checks using browser dev tools and screen readers. Use automated tools like jest-axe for unit tests. Profile component rendering to identify performance bottlenecks.",
+        "priority": "high",
+        "dependencies": [1],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Configure Testing Infrastructure",
+        "description": "Set up the testing infrastructure including Jest and React Testing Library for unit tests, and Playwright/Cypress for E2E tests. Integrate jest-axe for accessibility testing.",
+        "details": "Install Jest, React Testing Library, and testing-library/jest-dom. Configure Jest setup files. Install Playwright or Cypress and configure basic E2E test runs. Integrate jest-axe into the testing workflow.",
+        "testStrategy": "Write a few simple tests (unit, E2E, accessibility) to verify the setup is working correctly. Ensure test commands can be run from the project root.",
+        "priority": "high",
+        "dependencies": [1],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement SalaryDataService",
+        "description": "Implement the SalaryDataService for API integration, handling salary data queries, statistics retrieval, and anonymous data contribution. Include typed errors, retry logic, and fallback data.",
+        "details": "Create a service module (e.g., `services/salaryDataService.ts`). Define methods: `querySalaryData`, `getSalaryStatistics`, `contributeSalaryData`. Use `fetch` or a library like `axios` to interact with specified API endpoints. Implement error handling, retry logic, and define TypeScript interfaces for API responses and errors.",
+        "testStrategy": "Write unit tests for the service using API mocking (e.g., MSW) to simulate API responses and test error handling, retry logic, and data transformation.",
+        "priority": "high",
+        "dependencies": [1],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Implement useSalaryQuery Custom Hook",
+        "description": "Create the `useSalaryQuery` custom hook to manage salary query state, perform API calls using `SalaryDataService`, handle loading and error states, and potentially implement caching with React Query.",
+        "details": "Create a custom hook `useSalaryQuery` in `hooks/useSalaryQuery.ts`. It should accept optional initial criteria. Use `SalaryDataService` methods within the hook. Manage loading, data, and error states. Integrate React Query for data fetching, caching, and real-time updates as per PRD.",
+        "testStrategy": "Write unit tests for the hook using React Testing Library's `renderHook` and MSW to mock API calls. Test different states (loading, success, error) and parameter changes.",
+        "priority": "high",
+        "dependencies": [4],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Develop SalaryQueryForm Component",
+        "description": "Develop the `SalaryQueryForm` UI component, an interactive form with multiple search criteria inputs (Job Title, Industry, Region, Experience, Education, Company Size) using DaisyUI and TailwindCSS. Include form validation and accessibility features.",
+        "details": "Create `components/SalaryQueryForm.tsx`. Use DaisyUI form components and TailwindCSS for layout and styling. Implement input fields for each criterion with appropriate types (text, dropdowns). Add client-side form validation. Ensure accessibility (ARIA labels, keyboard navigation). The component should accept `onSubmit` and `loading` props.",
+        "testStrategy": "Write unit tests using React Testing Library to verify rendering, input changes, form submission with valid/invalid data, and loading state. Conduct integration tests within the page context.",
+        "priority": "high",
+        "dependencies": [1, 2, 3, 5],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Develop SalaryVisualizationChart Component",
+        "description": "Develop the `SalaryVisualizationChart` UI component to display salary data using interactive charts (box plot, bar chart) with Recharts. Show salary range, median, bonus/benefits, source, and timestamp.",
+        "details": "Create `components/SalaryVisualizationChart.tsx`. Integrate Recharts library. Implement logic to render box plots and bar charts based on `chartType` prop. Display key statistics (lowest, average, highest, median). Add tooltips for interactivity. Include data source and timestamp labels. Ensure responsiveness and accessibility.",
+        "testStrategy": "Write unit tests using React Testing Library to verify rendering with different data sets and chart types. Test chart interactivity (e.g., hover effects). Conduct integration tests within the page.",
+        "priority": "high",
+        "dependencies": [1, 2, 3, 5],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Develop SalaryDataTable Component",
+        "description": "Develop the `SalaryDataTable` UI component to display salary statistics and details in a tabular format using DaisyUI tables. Include sortable and filterable features.",
+        "details": "Create `components/SalaryDataTable.tsx`. Use DaisyUI table components. Display relevant salary statistics and data points. Implement client-side sorting and filtering functionality. Ensure accessibility for tables (sortable headers, screen reader support).",
+        "testStrategy": "Write unit tests using React Testing Library to verify rendering with different data sets. Test sorting and filtering functionality. Conduct integration tests within the page.",
+        "priority": "high",
+        "dependencies": [1, 2, 3, 5],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Implement MarketSalaryEnquiryPage",
+        "description": "Implement the `MarketSalaryEnquiryPage` at the `/salary-enquiry` route. This page will integrate the `SalaryQueryForm`, `SalaryVisualizationChart`, and `SalaryDataTable` components, using the `useSalaryQuery` hook for data fetching and state management.",
+        "details": "Create the page component in the App Router structure (`app/salary-enquiry/page.tsx`). Use the `useSalaryQuery` hook to fetch data based on form submissions. Pass data and loading state to the visualization components. Implement error and empty states. Ensure SEO requirements (meta tags) are met. Consider lazy loading for charts and virtualization for large datasets.",
+        "testStrategy": "Write E2E tests using Playwright/Cypress to simulate the full user flow: navigating to the page, filling and submitting the form, verifying data is displayed in charts and table. Conduct integration tests for component interactions on the page.",
+        "priority": "high",
+        "dependencies": [1, 2, 3, 5, 6, 7, 8],
+        "status": "pending",
+        "subtasks": [
+          {
+            "id": 1,
+            "title": "Create `MarketSalaryEnquiryPage` component structure and route",
+            "description": "Create the basic file structure for the `MarketSalaryEnquiryPage` at `app/salary-enquiry/page.tsx`. Implement the basic component structure, including placeholders for the `SalaryQueryForm`, `SalaryVisualizationChart`, and `SalaryDataTable` components. Add basic SEO meta tags (title and description).",
+            "dependencies": [],
+            "details": "Create a functional component in `app/salary-enquiry/page.tsx`. Add a `<Head>` component to set the title and meta description. Include placeholder divs for the form, chart, and table. Use basic styling for layout.",
+            "status": "pending",
+            "testStrategy": "Manually verify that the page renders at `/salary-enquiry` and that the title and meta description are correctly set in the browser's developer tools."
+          },
+          {
+            "id": 2,
+            "title": "Integrate `SalaryQueryForm` and `useSalaryQuery` hook",
+            "description": "Import and integrate the `SalaryQueryForm` component into the `MarketSalaryEnquiryPage`. Connect the form submission to the `useSalaryQuery` hook to fetch salary data based on the form inputs. Handle the loading state from the hook.",
+            "dependencies": [],
+            "details": "Import `SalaryQueryForm`. Pass a callback function to the `SalaryQueryForm`'s `onSubmit` prop. This callback should call the `useSalaryQuery` hook with the form values. Display a loading indicator while `useSalaryQuery` is fetching data.",
+            "status": "pending",
+            "testStrategy": "Submit the form with different values and verify that the `useSalaryQuery` hook is called with the correct parameters. Check that the loading indicator is displayed during data fetching."
+          },
+          {
+            "id": 3,
+            "title": "Integrate `SalaryVisualizationChart` with fetched data",
+            "description": "Import and integrate the `SalaryVisualizationChart` component. Pass the salary data fetched by the `useSalaryQuery` hook to the chart component. Handle the case where the data is null or an error occurred.",
+            "dependencies": [],
+            "details": "Import `SalaryVisualizationChart`. Pass the `data` property returned by `useSalaryQuery` to the `SalaryVisualizationChart` component. Implement conditional rendering to display an error message if `useSalaryQuery` returns an error or no data.",
+            "status": "pending",
+            "testStrategy": "Submit the form and verify that the chart renders correctly with the fetched data. Test with different data sets and ensure the chart displays the data accurately. Verify that the error message is displayed when an error occurs or no data is returned."
+          },
+          {
+            "id": 4,
+            "title": "Integrate `SalaryDataTable` with fetched data and implement virtualization",
+            "description": "Import and integrate the `SalaryDataTable` component. Pass the salary data fetched by the `useSalaryQuery` hook to the table component. Implement virtualization for large datasets to improve performance.",
+            "dependencies": [],
+            "details": "Import `SalaryDataTable`. Pass the `data` property returned by `useSalaryQuery` to the `SalaryDataTable` component. Use a virtualization library (e.g., `react-virtualized`) to handle large datasets efficiently. Configure the virtualization based on the expected data size.",
+            "status": "pending",
+            "testStrategy": "Submit the form and verify that the table renders correctly with the fetched data. Test with large datasets (e.g., 1000+ rows) and verify that the virtualization is working correctly and the table remains responsive. Check that the table displays the data accurately."
+          },
+          {
+            "id": 5,
+            "title": "Implement error and empty states and optimize performance",
+            "description": "Implement proper error handling and display appropriate messages to the user. Handle the case where the data is empty and display a relevant message. Implement lazy loading for the `SalaryVisualizationChart` to improve initial page load time. Review and optimize the page for performance.",
+            "dependencies": [],
+            "details": "Use React's `Suspense` and `lazy` to lazy load the `SalaryVisualizationChart`. Display user-friendly error messages when `useSalaryQuery` returns an error. Display a 'No data found' message when the data is empty. Use profiling tools to identify and address any performance bottlenecks.",
+            "status": "pending",
+            "testStrategy": "Simulate errors during data fetching and verify that the correct error message is displayed. Submit the form with criteria that return no data and verify that the 'No data found' message is displayed. Use browser developer tools to measure page load time and verify that lazy loading is improving performance. Profile the page and address any performance issues identified."
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Implement Report Generation Service and Download Button",
+        "description": "Implement the `ReportGenerationService` to generate PDF and CSV reports from salary data and develop the `ReportDownloadButton` component.",
+        "details": "Create `services/reportGenerationService.ts` with methods `generatePDFReport` and `generateCSVReport`. Use a library for PDF generation (e.g., `pdfmake`, `react-pdf`) and standard methods for CSV. Create `components/ReportDownloadButton.tsx` that uses this service and handles download logic. Include loading states and success/error feedback.",
+        "testStrategy": "Write unit tests for the service to verify report generation logic with mock data. Write unit tests for the button component to verify click handling, loading states, and download initiation. Conduct integration tests on the `MarketSalaryEnquiryPage`.",
+        "priority": "medium",
+        "dependencies": [4, 9],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-06-22T02:49:39.767Z",
+      "updated": "2025-06-22T08:06:08.944Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

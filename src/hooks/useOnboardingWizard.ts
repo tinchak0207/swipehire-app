@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 
 export interface OnboardingState {
@@ -20,7 +20,7 @@ export function useOnboardingWizard() {
 
   useEffect(() => {
     if (preferences.isLoading) {
-      setState(prev => ({ ...prev, isLoading: true }));
+      setState((prev) => ({ ...prev, isLoading: true }));
       return;
     }
 
@@ -52,11 +52,11 @@ export function useOnboardingWizard() {
   }, [fullBackendUser, preferences.isLoading]);
 
   const markWizardCompleted = () => {
-    setState(prev => ({ ...prev, shouldShowWizard: false }));
+    setState((prev) => ({ ...prev, shouldShowWizard: false }));
   };
 
   const markWizardSkipped = () => {
-    setState(prev => ({ ...prev, shouldShowWizard: false }));
+    setState((prev) => ({ ...prev, shouldShowWizard: false }));
   };
 
   return {

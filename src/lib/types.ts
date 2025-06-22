@@ -1,4 +1,3 @@
-
 // src/lib/types.ts
 
 export type UserRole = 'recruiter' | 'jobseeker';
@@ -106,20 +105,20 @@ export interface UserPreferences {
 }
 
 export enum CompanyScale {
-    SCALE_1_10 = "1-10 employees",
-    SCALE_11_50 = "11-50 employees",
-    SCALE_51_200 = "51-200 employees",
-    SCALE_201_500 = "201-500 employees",
-    SCALE_501_1000 = "501-1000 employees",
-    SCALE_1001_PLUS = "1001+ employees",
-    UNSPECIFIED = "Unspecified"
+  SCALE_1_10 = '1-10 employees',
+  SCALE_11_50 = '11-50 employees',
+  SCALE_51_200 = '51-200 employees',
+  SCALE_201_500 = '201-500 employees',
+  SCALE_501_1000 = '501-1000 employees',
+  SCALE_1001_PLUS = '1001+ employees',
+  UNSPECIFIED = 'Unspecified',
 }
 
 export interface CompanyVerificationDocument {
-    type: 'business_license' | 'organization_code' | 'other';
-    fileName: string;
-    fileUrl?: string;
-    uploadedAt: string;
+  type: 'business_license' | 'organization_code' | 'other';
+  fileName: string;
+  fileUrl?: string;
+  uploadedAt: string;
 }
 
 export interface BackendUser {
@@ -164,6 +163,9 @@ export interface BackendUser {
   companyIndustryForJobs?: string;
   jobOpenings?: CompanyJobOpening[];
 
+  // Profile completion tracking
+  profileCompletion?: number; // 0-100 percentage
+
   profileVideoResumeUrl?: string;
   profileAvatarWithScriptUrl?: string;
   profileFinalScript?: string;
@@ -187,7 +189,6 @@ export interface BackendUser {
   passedCompanyProfileIds?: string[];
   profileVisibility?: 'public' | 'recruiters_only' | 'private';
 }
-
 
 export interface Candidate {
   id: string;
@@ -295,9 +296,8 @@ export interface Match {
   uniqueMatchKey: string;
   applicationStatusHistory?: ApplicationStatusUpdate[];
   candidate: Candidate; // Assuming these will be populated or available
-  company: Company;   // Assuming these will be populated or available
+  company: Company; // Assuming these will be populated or available
 }
-
 
 export interface VideoScriptRequest {
   experience: string;
@@ -316,7 +316,7 @@ export interface IcebreakerRequest {
   candidateName: string;
   jobDescription: string;
   candidateSkills: string;
-  companyNeeds:string;
+  companyNeeds: string;
   pastProjects: string;
 }
 
@@ -382,40 +382,39 @@ export interface DiaryPost {
   status?: DiaryPostStatus; // Added for content moderation
 }
 
-
 export interface CandidateProfileForAI {
-    id: string;
-    role?: string;
-    experienceSummary?: string;
-    skills?: string[];
-    location?: string;
-    desiredWorkStyle?: string;
-    pastProjects?: string;
-    workExperienceLevel?: WorkExperienceLevel;
-    educationLevel?: EducationLevel;
-    locationPreference?: LocationPreference;
-    languages?: string[];
-    salaryExpectationMin?: number;
-    salaryExpectationMax?: number;
-    availability?: Availability;
-    jobTypePreference?: JobType[];
-    personalityAssessment?: PersonalityTraitAssessment[];
+  id: string;
+  role?: string;
+  experienceSummary?: string;
+  skills?: string[];
+  location?: string;
+  desiredWorkStyle?: string;
+  pastProjects?: string;
+  workExperienceLevel?: WorkExperienceLevel;
+  educationLevel?: EducationLevel;
+  locationPreference?: LocationPreference;
+  languages?: string[];
+  salaryExpectationMin?: number;
+  salaryExpectationMax?: number;
+  availability?: Availability;
+  jobTypePreference?: JobType[];
+  personalityAssessment?: PersonalityTraitAssessment[];
 }
 
 export interface JobCriteriaForAI {
-    title: string;
-    description: string;
-    requiredSkills?: string[];
-    requiredExperienceLevel?: WorkExperienceLevel;
-    requiredEducationLevel?: EducationLevel;
-    workLocationType?: LocationPreference;
-    jobLocation?: string;
-    requiredLanguages?: string[];
-    salaryMin?: number;
-    salaryMax?: number;
-    jobType?: JobType;
-    companyCultureKeywords?: string[];
-    companyIndustry?: string;
+  title: string;
+  description: string;
+  requiredSkills?: string[];
+  requiredExperienceLevel?: WorkExperienceLevel;
+  requiredEducationLevel?: EducationLevel;
+  workLocationType?: LocationPreference;
+  jobLocation?: string;
+  requiredLanguages?: string[];
+  salaryMin?: number;
+  salaryMax?: number;
+  jobType?: JobType;
+  companyCultureKeywords?: string[];
+  companyIndustry?: string;
 }
 
 export interface RecruiterPerspectiveWeights {
@@ -438,35 +437,35 @@ export interface UserAIWeights {
 }
 
 export interface ProfileRecommenderInput {
-    candidateProfile: CandidateProfileForAI;
-    jobCriteria: JobCriteriaForAI;
-    userAIWeights?: UserAIWeights;
+  candidateProfile: CandidateProfileForAI;
+  jobCriteria: JobCriteriaForAI;
+  userAIWeights?: UserAIWeights;
 }
 
 export interface ProfileRecommenderOutput {
-    candidateId: string;
-    matchScore: number;
-    reasoning: string;
-    weightedScores: {
-        skillsMatchScore: number;
-        experienceRelevanceScore: number;
-        cultureFitScore: number;
-        growthPotentialScore: number;
+  candidateId: string;
+  matchScore: number;
+  reasoning: string;
+  weightedScores: {
+    skillsMatchScore: number;
+    experienceRelevanceScore: number;
+    cultureFitScore: number;
+    growthPotentialScore: number;
+  };
+  isUnderestimatedTalent: boolean;
+  underestimatedReasoning?: string;
+  personalityAssessment?: PersonalityTraitAssessment[];
+  optimalWorkStyles?: string[];
+  candidateJobFitAnalysis?: {
+    matchScoreForCandidate: number;
+    reasoningForCandidate: string;
+    weightedScoresForCandidate: {
+      cultureFitScore: number;
+      jobRelevanceScore: number;
+      growthOpportunityScore: number;
+      jobConditionFitScore: number;
     };
-    isUnderestimatedTalent: boolean;
-    underestimatedReasoning?: string;
-    personalityAssessment?: PersonalityTraitAssessment[];
-    optimalWorkStyles?: string[];
-    candidateJobFitAnalysis?: {
-        matchScoreForCandidate: number;
-        reasoningForCandidate: string;
-        weightedScoresForCandidate: {
-            cultureFitScore: number;
-            jobRelevanceScore: number;
-            growthOpportunityScore: number;
-            jobConditionFitScore: number;
-        };
-    };
+  };
 }
 
 export interface CandidateFilters {
@@ -536,21 +535,21 @@ export interface CompanyReview {
 }
 
 export interface RecruiterOnboardingData {
-    companyName: string;
-    companyIndustry: string;
-    companyScale: CompanyScale;
-    companyAddress: string;
-    companyWebsite?: string;
-    companyDescription?: string;
-    companyCultureHighlights?: string[];
+  companyName: string;
+  companyIndustry: string;
+  companyScale: CompanyScale;
+  companyAddress: string;
+  companyWebsite?: string;
+  companyDescription?: string;
+  companyCultureHighlights?: string[];
 
-    businessLicense?: File | { name: string; url?: string };
-    organizationCode?: File | { name: string; url?: string };
-    companyVerificationDocuments?: CompanyVerificationDocument[];
+  businessLicense?: File | { name: string; url?: string };
+  organizationCode?: File | { name: string; url?: string };
+  companyVerificationDocuments?: CompanyVerificationDocument[];
 
-    recruiterFullName: string;
-    recruiterJobTitle: string;
-    recruiterContactPhone?: string;
+  recruiterFullName: string;
+  recruiterJobTitle: string;
+  recruiterContactPhone?: string;
 }
 
 export type CareerStage = 'exploration' | 'early' | 'mid' | 'late' | 'transition';

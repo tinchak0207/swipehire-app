@@ -3,21 +3,24 @@
  * GET /api/test-ai - Test basic AI functionality
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
 import aiService from '@/services/aiService';
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     // Check if AI service is available
     const isAvailable = aiService.isAIServiceAvailable();
-    
+
     if (!isAvailable) {
-      return NextResponse.json({
-        success: false,
-        error: 'AI service not available - MISTRAL_API_KEY not configured',
-        solution: 'Add MISTRAL_API_KEY to your environment variables'
-      }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'AI service not available - MISTRAL_API_KEY not configured',
+          solution: 'Add MISTRAL_API_KEY to your environment variables',
+        },
+        { status: 500 }
+      );
     }
 
     // Test basic generation
@@ -62,16 +65,15 @@ export async function GET(request: NextRequest) {
       },
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('AI Test Error:', error);
-    
+
     let errorMessage = 'Unknown error occurred';
     let statusCode = 500;
-    
+
     if (error instanceof Error) {
       errorMessage = error.message;
-      
+
       if (error.message.includes('MISTRAL_API_KEY')) {
         statusCode = 401;
       } else if (error.message.includes('401') || error.message.includes('unauthorized')) {
@@ -83,11 +85,14 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: false,
-      error: errorMessage,
-      timestamp: new Date().toISOString(),
-    }, { status: statusCode });
+    return NextResponse.json(
+      {
+        success: false,
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+      },
+      { status: statusCode }
+    );
   }
 }
 
@@ -97,10 +102,13 @@ export async function POST(request: NextRequest) {
     const { prompt, model = 'mistral-small' } = body;
 
     if (!prompt) {
-      return NextResponse.json({
-        success: false,
-        error: 'Prompt is required'
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Prompt is required',
+        },
+        { status: 400 }
+      );
     }
 
     const response = await ai.generate({
@@ -117,14 +125,16 @@ export async function POST(request: NextRequest) {
       usage: response.usage,
       timestamp: new Date().toISOString(),
     });
-
   } catch (error) {
     console.error('AI Generation Error:', error);
-    
-    return NextResponse.json({
-      success: false,
-      error: error instanceof Error ? error.message : 'Generation failed',
-      timestamp: new Date().toISOString(),
-    }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Generation failed',
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 }
+    );
   }
 }

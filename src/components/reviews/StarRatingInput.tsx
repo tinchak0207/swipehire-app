@@ -1,8 +1,7 @@
+'use client';
 
-"use client";
-
-import React, { useState } from 'react';
 import { Star } from 'lucide-react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface StarRatingInputProps {
@@ -41,9 +40,17 @@ export function StarRatingInput({
             key={starValue}
             size={size}
             className={cn(
-              "cursor-pointer transition-colors duration-150 ease-in-out",
-              disabled ? "cursor-not-allowed text-muted-foreground/50" : "text-muted-foreground/50 hover:text-yellow-400",
-              (hoverRating || rating) >= starValue ? (disabled ? "fill-yellow-500/70 text-yellow-500/70" : "fill-yellow-400 text-yellow-400") : (disabled ? "fill-muted-foreground/30" : "fill-muted-foreground/30")
+              'cursor-pointer transition-colors duration-150 ease-in-out',
+              disabled
+                ? 'cursor-not-allowed text-muted-foreground/50'
+                : 'text-muted-foreground/50 hover:text-yellow-400',
+              (hoverRating || rating) >= starValue
+                ? disabled
+                  ? 'fill-yellow-500/70 text-yellow-500/70'
+                  : 'fill-yellow-400 text-yellow-400'
+                : disabled
+                  ? 'fill-muted-foreground/30'
+                  : 'fill-muted-foreground/30'
             )}
             onClick={() => handleStarClick(starValue)}
             onMouseEnter={() => handleStarHover(starValue)}
@@ -55,4 +62,3 @@ export function StarRatingInput({
     </div>
   );
 }
-

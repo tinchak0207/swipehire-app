@@ -1,4 +1,3 @@
-
 // src/services/chatService.ts
 import type { ChatMessage } from '@/lib/types';
 
@@ -21,13 +20,15 @@ export async function sendMessage(payload: SendMessagePayload): Promise<ChatMess
       body: JSON.stringify(payload),
     });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: `Failed to send message. Status: ${response.status}` }));
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: `Failed to send message. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
     const newMessage: ChatMessage = await response.json();
     return { ...newMessage, id: newMessage._id }; // Ensure frontend id is mapped
   } catch (error) {
-    console.error("Error in sendMessage service:", error);
+    console.error('Error in sendMessage service:', error);
     throw error;
   }
 }
@@ -42,13 +43,15 @@ export async function fetchMessages(matchId: string): Promise<ChatMessage[]> {
       cache: 'no-store', // Ensure fresh messages are fetched
     });
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: `Failed to fetch messages. Status: ${response.status}` }));
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: `Failed to fetch messages. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
     const messages: ChatMessage[] = await response.json();
-    return messages.map(msg => ({ ...msg, id: msg._id })); // Ensure frontend id is mapped
+    return messages.map((msg) => ({ ...msg, id: msg._id })); // Ensure frontend id is mapped
   } catch (error) {
-    console.error("Error in fetchMessages service:", error);
+    console.error('Error in fetchMessages service:', error);
     throw error;
   }
 }

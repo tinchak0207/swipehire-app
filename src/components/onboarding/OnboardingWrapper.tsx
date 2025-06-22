@@ -1,17 +1,18 @@
 'use client';
 
-import React from 'react';
+import { useRouter } from 'next/navigation';
+import type React from 'react';
 import { WizardContainer } from '@/components/onboarding';
 import { useOnboardingWizard } from '@/hooks/useOnboardingWizard';
-import { useRouter } from 'next/navigation';
 
 interface OnboardingWrapperProps {
   children: React.ReactNode;
 }
 
 export default function OnboardingWrapper({ children }: OnboardingWrapperProps) {
-  const router = useRouter();
-  const { shouldShowWizard, isLoading, markWizardCompleted, markWizardSkipped } = useOnboardingWizard();
+  const _router = useRouter();
+  const { shouldShowWizard, isLoading, markWizardCompleted, markWizardSkipped } =
+    useOnboardingWizard();
 
   const handleComplete = () => {
     markWizardCompleted();
@@ -26,9 +27,9 @@ export default function OnboardingWrapper({ children }: OnboardingWrapperProps) 
   // Show loading state while determining if wizard should be shown
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-base-100 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-base-100">
         <div className="text-center">
-          <span className="loading loading-spinner loading-lg text-primary"></span>
+          <span className="loading loading-spinner loading-lg text-primary" />
           <p className="mt-4 text-base-content/60">Loading your experience...</p>
         </div>
       </div>
@@ -39,10 +40,7 @@ export default function OnboardingWrapper({ children }: OnboardingWrapperProps) 
   if (shouldShowWizard) {
     return (
       <div className="min-h-screen bg-base-100">
-        <WizardContainer 
-          onComplete={handleComplete}
-          onSkip={handleSkip}
-        />
+        <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />
       </div>
     );
   }

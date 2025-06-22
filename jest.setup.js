@@ -1,10 +1,11 @@
-import '@testing-library/jest-dom'
-import 'whatwg-fetch'
+import '@testing-library/jest-dom';
+import 'whatwg-fetch';
 
 // Polyfill for Node.js environment
-import { TextEncoder, TextDecoder } from 'util'
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
+import { TextDecoder, TextEncoder } from 'node:util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Enhanced fetch mock for better compatibility
 global.fetch = jest.fn(() =>
@@ -17,19 +18,19 @@ global.fetch = jest.fn(() =>
     text: () => Promise.resolve(''),
     blob: () => Promise.resolve(new Blob()),
     arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)),
-    clone: () => ({ 
+    clone: () => ({
       json: () => Promise.resolve({}),
       text: () => Promise.resolve(''),
     }),
   })
-)
+);
 
 // Mock URL and URLSearchParams for older Node versions
 if (typeof global.URL === 'undefined') {
-  global.URL = require('url').URL
+  global.URL = require('node:url').URL;
 }
 if (typeof global.URLSearchParams === 'undefined') {
-  global.URLSearchParams = require('url').URLSearchParams
+  global.URLSearchParams = require('node:url').URLSearchParams;
 }
 
 // Mock Firebase
@@ -37,7 +38,7 @@ jest.mock('firebase/app', () => ({
   initializeApp: jest.fn(() => ({})),
   getApps: jest.fn(() => []),
   getApp: jest.fn(() => ({})),
-}))
+}));
 
 jest.mock('firebase/auth', () => ({
   getAuth: jest.fn(() => ({
@@ -50,7 +51,7 @@ jest.mock('firebase/auth', () => ({
   onAuthStateChanged: jest.fn(),
   setPersistence: jest.fn(() => Promise.resolve()),
   browserLocalPersistence: {},
-}))
+}));
 
 jest.mock('firebase/firestore', () => ({
   getFirestore: jest.fn(() => ({})),
@@ -65,21 +66,23 @@ jest.mock('firebase/firestore', () => ({
   orderBy: jest.fn(),
   limit: jest.fn(),
   getDocs: jest.fn(),
-}))
+}));
 
 jest.mock('firebase/analytics', () => ({
   getAnalytics: jest.fn(() => ({})),
   logEvent: jest.fn(),
   setAnalyticsCollectionEnabled: jest.fn(),
-}))
+}));
 
 // Mock services that might be imported
 jest.mock('@/services/careerService', () => ({
-  getCareerRecommendations: jest.fn(() => Promise.resolve({
-    careerStage: 'early',
-    careerPaths: []
-  })),
-}))
+  getCareerRecommendations: jest.fn(() =>
+    Promise.resolve({
+      careerStage: 'early',
+      careerPaths: [],
+    })
+  ),
+}));
 
 // Mock UI components that might cause issues
 jest.mock('@/components/ui/toast', () => ({
@@ -90,12 +93,12 @@ jest.mock('@/components/ui/toast', () => ({
   ToastProvider: ({ children, ...props }) => <div {...props}>{children}</div>,
   ToastTitle: ({ children, ...props }) => <div {...props}>{children}</div>,
   ToastViewport: ({ children, ...props }) => <div {...props}>{children}</div>,
-}))
+}));
 
 // Mock environment variables
-process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'test-api-key'
-process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test-auth-domain'
-process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'test-project-id'
+process.env.NEXT_PUBLIC_FIREBASE_API_KEY = 'test-api-key';
+process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN = 'test-auth-domain';
+process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID = 'test-project-id';
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -107,20 +110,20 @@ jest.mock('next/navigation', () => ({
       back: jest.fn(),
       forward: jest.fn(),
       refresh: jest.fn(),
-    }
+    };
   },
   useSearchParams() {
-    return new URLSearchParams()
+    return new URLSearchParams();
   },
   usePathname() {
-    return '/'
+    return '/';
   },
-}))
+}));
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -130,32 +133,74 @@ Object.defineProperty(window, 'matchMedia', {
     removeEventListener: jest.fn(),
     dispatchEvent: jest.fn(),
   })),
-})
+});
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
-  constructor() {}
   observe() {
-    return null
+    return null;
   }
   disconnect() {
-    return null
+    return null;
   }
   unobserve() {
-    return null
+    return null;
   }
-}
+};
 
 // Mock ResizeObserver
 global.ResizeObserver = class ResizeObserver {
-  constructor() {}
   observe() {
-    return null
+    return null;
   }
   disconnect() {
-    return null
+    return null;
   }
   unobserve() {
-    return null
+    return null;
   }
+};
+
+// Mock BroadcastChannel for MSW
+global.BroadcastChannel = class BroadcastChannel {
+  constructor(name) {
+    this.name = name;
+  }
+  postMessage() {}
+  close() {}
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() {}
+};
+
+// Mock TransformStream for MSW
+global.TransformStream = class TransformStream {
+  constructor() {
+    this.readable = new ReadableStream();
+    this.writable = new WritableStream();
+  }
+};
+
+// Mock ReadableStream and WritableStream if not available
+if (typeof global.ReadableStream === 'undefined') {
+  global.ReadableStream = class ReadableStream {
+    getReader() {
+      return {
+        read: () => Promise.resolve({ done: true, value: undefined }),
+        releaseLock: () => {},
+      };
+    }
+  };
+}
+
+if (typeof global.WritableStream === 'undefined') {
+  global.WritableStream = class WritableStream {
+    getWriter() {
+      return {
+        write: () => Promise.resolve(),
+        close: () => Promise.resolve(),
+        releaseLock: () => {},
+      };
+    }
+  };
 }

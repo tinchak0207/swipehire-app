@@ -1,8 +1,14 @@
-import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Download, FileText } from 'lucide-react';
 import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 interface WhitepaperCardProps {
   title: string;
@@ -12,23 +18,24 @@ interface WhitepaperCardProps {
   fileSize: string;
 }
 
-export function WhitepaperCard({ title, description, imageUrl, downloadUrl, fileSize }: WhitepaperCardProps) {
+export function WhitepaperCard({
+  title,
+  description,
+  imageUrl,
+  downloadUrl,
+  fileSize,
+}: WhitepaperCardProps) {
   return (
     <Card className="overflow-hidden">
       <div className="relative h-48 w-full">
-        <Image
-          src={imageUrl}
-          alt={title}
-          fill
-          className="object-cover"
-        />
+        <Image src={imageUrl} alt={title} fill className="object-cover" />
       </div>
       <CardHeader>
         <CardTitle className="text-xl">{title}</CardTitle>
         <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center text-sm text-muted-foreground">
+        <div className="flex items-center text-muted-foreground text-sm">
           <FileText className="mr-2 h-4 w-4" />
           <span>{fileSize}</span>
         </div>
@@ -43,4 +50,4 @@ export function WhitepaperCard({ title, description, imageUrl, downloadUrl, file
       </CardFooter>
     </Card>
   );
-} 
+}

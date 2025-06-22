@@ -1,16 +1,15 @@
-
-import { FileVideo2, LogIn, LogOut, Search, X, Eye } from 'lucide-react';
+import { Eye, FileVideo2, LogIn, LogOut, Search, X } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge'; 
 import { UserAvatar } from '@/components/ui/user-avatar';
-import { useState } from 'react';
 import { cn } from '@/lib/utils';
 
 interface AppHeaderProps {
   readonly isAuthenticated: boolean;
-  readonly isGuestMode: boolean; 
+  readonly isGuestMode: boolean;
   readonly onLoginRequest: () => void;
   readonly onLogout: () => void;
   readonly searchTerm: string;
@@ -20,16 +19,16 @@ interface AppHeaderProps {
   readonly className?: string;
 }
 
-export function AppHeader({ 
-  isAuthenticated, 
-  isGuestMode, 
-  onLoginRequest, 
-  onLogout, 
-  searchTerm, 
-  onSearchTermChange, 
-  userName, 
-  userPhotoURL, 
-  className 
+export function AppHeader({
+  isAuthenticated,
+  isGuestMode,
+  onLoginRequest,
+  onLogout,
+  searchTerm,
+  onSearchTermChange,
+  userName,
+  userPhotoURL,
+  className,
 }: AppHeaderProps): JSX.Element {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState<boolean>(false);
 
@@ -42,34 +41,39 @@ export function AppHeader({
   };
 
   return (
-    <header className={cn("bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40", className)}>
+    <header
+      className={cn('sticky top-0 z-40 border-gray-200 border-b bg-white shadow-sm', className)}
+    >
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-4 sm:gap-6">
           {/* Logo Section */}
-          <Link href="/" className="flex items-center gap-3 shrink-0">
-            <FileVideo2 className="h-8 w-8 sm:h-10 sm:w-10 text-black" />
+          <Link href="/" className="flex shrink-0 items-center gap-3">
+            <FileVideo2 className="h-8 w-8 text-black sm:h-10 sm:w-10" />
             <div className="flex flex-col">
-              <h1 className="text-xl sm:text-2xl font-bold text-black">SwipeHire</h1>
-              <p className="text-xs sm:text-sm text-gray-600 hidden md:block">
+              <h1 className="font-bold text-black text-xl sm:text-2xl">SwipeHire</h1>
+              <p className="hidden text-gray-600 text-xs sm:text-sm md:block">
                 Recruit Smarter, Not Harder.
               </p>
             </div>
             {isGuestMode && (
-              <Badge variant="secondary" className="ml-3 text-xs bg-blue-100 text-blue-800 border-blue-200">
-                <Eye className="h-3 w-3 mr-1 text-black" /> 
+              <Badge
+                variant="secondary"
+                className="ml-3 border-blue-200 bg-blue-100 text-blue-800 text-xs"
+              >
+                <Eye className="mr-1 h-3 w-3 text-black" />
                 <span className="text-black">Guest Mode</span>
               </Badge>
             )}
           </Link>
 
           {/* Desktop Search Bar */}
-          <div className="flex-1 max-w-2xl hidden sm:block mx-6">
+          <div className="mx-6 hidden max-w-2xl flex-1 sm:block">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-5 w-5 text-gray-400" />
               <Input
                 type="search"
                 placeholder="Search jobs, companies, talent..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg bg-gray-50 text-black placeholder:text-gray-500 border border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-200"
+                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pr-4 pl-10 text-black transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-200"
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
@@ -77,12 +81,12 @@ export function AppHeader({
           </div>
 
           {/* Right Section - User Info & Actions */}
-          <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+          <div className="flex shrink-0 items-center gap-3 sm:gap-4">
             {/* Mobile Search Button */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="sm:hidden text-black hover:bg-gray-100 hover:text-black p-2"
+            <Button
+              variant="ghost"
+              size="icon"
+              className="p-2 text-black hover:bg-gray-100 hover:text-black sm:hidden"
               onClick={handleMobileSearchToggle}
               aria-label="Open search"
             >
@@ -91,16 +95,21 @@ export function AppHeader({
 
             {/* User Avatar & Name (Desktop) */}
             {isAuthenticated && userName && !isGuestMode && (
-              <div className="hidden sm:flex items-center gap-3">
+              <div className="hidden items-center gap-3 sm:flex">
                 <UserAvatar
                   src={userPhotoURL}
-                  alt={userName || "User"}
-                  fallbackText={userName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  alt={userName || 'User'}
+                  fallbackText={userName
+                    ?.split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)}
                   size="sm"
                   className="border-2 border-gray-200"
                   showFallbackIcon={false}
                 />
-                <span className="text-sm font-medium text-black truncate max-w-[120px]">
+                <span className="max-w-[120px] truncate font-medium text-black text-sm">
                   {userName}
                 </span>
               </div>
@@ -111,8 +120,13 @@ export function AppHeader({
               <div className="sm:hidden">
                 <UserAvatar
                   src={userPhotoURL}
-                  alt={userName || "User"}
-                  fallbackText={userName?.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
+                  alt={userName || 'User'}
+                  fallbackText={userName
+                    ?.split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                    .slice(0, 2)}
                   size="sm"
                   className="border-2 border-gray-200"
                   showFallbackIcon={false}
@@ -122,23 +136,23 @@ export function AppHeader({
 
             {/* Auth Buttons */}
             {isAuthenticated && !isGuestMode ? (
-              <Button 
-                variant="outline" 
-                onClick={onLogout} 
-                className="text-black border-gray-300 hover:bg-gray-50 hover:text-black hover:border-gray-400 px-3 sm:px-4 py-2 transition-all duration-200"
+              <Button
+                variant="outline"
+                onClick={onLogout}
+                className="border-gray-300 px-3 py-2 text-black transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 hover:text-black sm:px-4"
               >
-                <LogOut className="h-4 w-4 mr-0 sm:mr-2" />
-                <span className="hidden sm:inline font-medium">Logout</span>
+                <LogOut className="mr-0 h-4 w-4 sm:mr-2" />
+                <span className="hidden font-medium sm:inline">Logout</span>
               </Button>
             ) : (
-              <Button 
-                variant="default" 
-                onClick={onLoginRequest} 
-                className="bg-blue-600 text-white hover:bg-blue-700 border-0 px-3 sm:px-4 py-2 transition-all duration-200"
+              <Button
+                variant="default"
+                onClick={onLoginRequest}
+                className="border-0 bg-blue-600 px-3 py-2 text-white transition-all duration-200 hover:bg-blue-700 sm:px-4"
               >
-                <LogIn className="h-4 w-4 mr-0 sm:mr-2" />
-                <span className="hidden sm:inline font-medium">
-                  {isGuestMode ? "Sign In" : "Login"}
+                <LogIn className="mr-0 h-4 w-4 sm:mr-2" />
+                <span className="hidden font-medium sm:inline">
+                  {isGuestMode ? 'Sign In' : 'Login'}
                 </span>
               </Button>
             )}
@@ -148,20 +162,20 @@ export function AppHeader({
 
       {/* Mobile Search Overlay */}
       {isMobileSearchOpen && (
-        <div className="sm:hidden absolute top-0 left-0 w-full h-full bg-white border-b border-gray-200 p-4 z-50 flex items-center gap-3 animate-slideDown">
-          <Search className="h-5 w-5 text-gray-400 shrink-0" />
+        <div className="absolute top-0 left-0 z-50 flex h-full w-full animate-slideDown items-center gap-3 border-gray-200 border-b bg-white p-4 sm:hidden">
+          <Search className="h-5 w-5 shrink-0 text-gray-400" />
           <Input
             type="search"
             placeholder="Search jobs, companies, talent..."
-            className="flex-1 pl-3 pr-4 py-2.5 rounded-lg bg-gray-50 text-black placeholder:text-gray-500 border border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            className="flex-1 rounded-lg border border-gray-200 bg-gray-50 py-2.5 pr-4 pl-3 text-black placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-200"
             value={searchTerm}
             onChange={handleSearchChange}
             autoFocus
           />
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="text-black hover:bg-gray-100 hover:text-black p-2 shrink-0"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 p-2 text-black hover:bg-gray-100 hover:text-black"
             onClick={handleMobileSearchToggle}
             aria-label="Close search"
           >

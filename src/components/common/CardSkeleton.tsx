@@ -1,7 +1,5 @@
+'use client';
 
-"use client";
-
-import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -24,7 +22,7 @@ export function CardSkeleton({
   return (
     <>
       {Array.from({ length: count }).map((_, index) => (
-        <Card key={index} className={cn("shadow-md w-full", className)}>
+        <Card key={index} className={cn('w-full shadow-md', className)}>
           {showHeader && (
             <CardHeader className="flex flex-row items-center space-x-3 p-4">
               <Skeleton className="h-10 w-10 rounded-full" />
@@ -34,25 +32,22 @@ export function CardSkeleton({
               </div>
             </CardHeader>
           )}
-          <CardContent className="p-4 space-y-3">
-            <Skeleton className="h-5 w-4/5 mb-2" /> {/* Title-like line */}
+          <CardContent className="space-y-3 p-4">
+            <Skeleton className="mb-2 h-5 w-4/5" /> {/* Title-like line */}
             {Array.from({ length: linesInContent }).map((_, lineIndex) => (
               <Skeleton
                 key={lineIndex}
-                className={cn(
-                  "h-3",
-                  lineIndex === linesInContent - 1 ? "w-3/5" : "w-full"
-                )}
+                className={cn('h-3', lineIndex === linesInContent - 1 ? 'w-3/5' : 'w-full')}
               />
             ))}
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="mt-2 flex flex-wrap gap-1">
               <Skeleton className="h-5 w-16 rounded-full" />
               <Skeleton className="h-5 w-20 rounded-full" />
               <Skeleton className="h-5 w-12 rounded-full" />
             </div>
           </CardContent>
           {showFooter && (
-            <CardFooter className="p-4 flex justify-between items-center">
+            <CardFooter className="flex items-center justify-between p-4">
               <Skeleton className="h-8 w-20" />
               <Skeleton className="h-8 w-20" />
             </CardFooter>

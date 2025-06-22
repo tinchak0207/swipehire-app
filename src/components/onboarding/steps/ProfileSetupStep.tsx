@@ -1,9 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
-import type { WizardData } from '../WizardContainer';
-import { WorkExperienceLevel, EducationLevel, LocationPreference, Availability, JobType, CompanyScale } from '@/lib/types';
+import { useState } from 'react';
 import CareerQuestionnaire from '@/components/career-ai/CareerQuestionnaire';
+import {
+  Availability,
+  CompanyScale,
+  EducationLevel,
+  LocationPreference,
+  WorkExperienceLevel,
+} from '@/lib/types';
+import type { WizardData } from '../WizardContainer';
 
 interface ProfileSetupStepProps {
   data: WizardData;
@@ -13,12 +19,12 @@ interface ProfileSetupStepProps {
   isLoading: boolean;
 }
 
-export default function ProfileSetupStep({ 
-  data, 
-  onUpdate, 
-  onNext, 
-  onBack, 
-  isLoading 
+export default function ProfileSetupStep({
+  data,
+  onUpdate,
+  onNext,
+  onBack,
+  isLoading,
 }: ProfileSetupStepProps) {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
   const [formData, setFormData] = useState(data.profileData);
@@ -30,12 +36,18 @@ export default function ProfileSetupStep({
   };
 
   const handleSkillsChange = (value: string) => {
-    const skills = value.split(',').map(skill => skill.trim()).filter(skill => skill.length > 0);
+    const skills = value
+      .split(',')
+      .map((skill) => skill.trim())
+      .filter((skill) => skill.length > 0);
     handleInputChange('skills', skills);
   };
 
   const handleCultureHighlightsChange = (value: string) => {
-    const highlights = value.split(',').map(highlight => highlight.trim()).filter(highlight => highlight.length > 0);
+    const highlights = value
+      .split(',')
+      .map((highlight) => highlight.trim())
+      .filter((highlight) => highlight.length > 0);
     handleInputChange('companyCultureHighlights', highlights);
   };
 
@@ -56,18 +68,18 @@ export default function ProfileSetupStep({
   const isRecruiter = data.userType === 'recruiter';
 
   // Validation
-  const canProceed = isJobSeeker 
-    ? formData.headline && formData.experienceSummary && formData.skills && formData.skills.length > 0
+  const canProceed = isJobSeeker
+    ? formData.headline &&
+      formData.experienceSummary &&
+      formData.skills &&
+      formData.skills.length > 0
     : formData.companyName && formData.companyIndustry && formData.companyDescription;
 
   if (showQuestionnaire && isJobSeeker) {
     return (
-      <div className="max-w-2xl mx-auto">
+      <div className="mx-auto max-w-2xl">
         <div className="mb-6">
-          <button
-            onClick={() => setShowQuestionnaire(false)}
-            className="btn btn-ghost btn-sm"
-          >
+          <button onClick={() => setShowQuestionnaire(false)} className="btn btn-ghost btn-sm">
             ← Back to Manual Setup
           </button>
         </div>
@@ -77,17 +89,16 @@ export default function ProfileSetupStep({
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="mx-auto max-w-2xl">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-base-content mb-2">
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 font-bold text-3xl text-base-content">
           {isJobSeeker ? 'Build Your Profile' : 'Company Information'}
         </h2>
         <p className="text-base-content/60">
-          {isJobSeeker 
+          {isJobSeeker
             ? 'Tell us about your background and career goals'
-            : 'Help candidates learn about your company and opportunities'
-          }
+            : 'Help candidates learn about your company and opportunities'}
         </p>
       </div>
 
@@ -96,13 +107,13 @@ export default function ProfileSetupStep({
           {isJobSeeker && (
             <>
               {/* Career Questionnaire Option */}
-              <div className="mb-6 p-4 bg-info/10 rounded-lg">
+              <div className="mb-6 rounded-lg bg-info/10 p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold text-base-content mb-1">
+                    <h3 className="mb-1 font-semibold text-base-content">
                       🤖 AI-Powered Career Assessment
                     </h3>
-                    <p className="text-sm text-base-content/60">
+                    <p className="text-base-content/60 text-sm">
                       Let our AI guide you through a comprehensive career questionnaire
                     </p>
                   </div>
@@ -160,7 +171,7 @@ export default function ProfileSetupStep({
                   </label>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-medium">Experience Level</span>
@@ -171,8 +182,10 @@ export default function ProfileSetupStep({
                       onChange={(e) => handleInputChange('workExperienceLevel', e.target.value)}
                     >
                       <option value="">Select level</option>
-                      {Object.values(WorkExperienceLevel).map(level => (
-                        <option key={level} value={level}>{level}</option>
+                      {Object.values(WorkExperienceLevel).map((level) => (
+                        <option key={level} value={level}>
+                          {level}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -187,14 +200,16 @@ export default function ProfileSetupStep({
                       onChange={(e) => handleInputChange('educationLevel', e.target.value)}
                     >
                       <option value="">Select education</option>
-                      {Object.values(EducationLevel).map(level => (
-                        <option key={level} value={level}>{level.replace('_', ' ')}</option>
+                      {Object.values(EducationLevel).map((level) => (
+                        <option key={level} value={level}>
+                          {level.replace('_', ' ')}
+                        </option>
                       ))}
                     </select>
                   </div>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-medium">Location Preference</span>
@@ -205,8 +220,10 @@ export default function ProfileSetupStep({
                       onChange={(e) => handleInputChange('locationPreference', e.target.value)}
                     >
                       <option value="">Select preference</option>
-                      {Object.values(LocationPreference).map(pref => (
-                        <option key={pref} value={pref}>{pref.replace('_', ' ')}</option>
+                      {Object.values(LocationPreference).map((pref) => (
+                        <option key={pref} value={pref}>
+                          {pref.replace('_', ' ')}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -221,8 +238,10 @@ export default function ProfileSetupStep({
                       onChange={(e) => handleInputChange('availability', e.target.value)}
                     >
                       <option value="">Select availability</option>
-                      {Object.values(Availability).map(avail => (
-                        <option key={avail} value={avail}>{avail.replace('_', ' ')}</option>
+                      {Object.values(Availability).map((avail) => (
+                        <option key={avail} value={avail}>
+                          {avail.replace('_', ' ')}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -240,7 +259,7 @@ export default function ProfileSetupStep({
                   />
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="form-control">
                     <label className="label">
                       <span className="label-text font-medium">Minimum Salary Expectation</span>
@@ -250,7 +269,12 @@ export default function ProfileSetupStep({
                       placeholder="50000"
                       className="input input-bordered"
                       value={formData.salaryExpectationMin || ''}
-                      onChange={(e) => handleInputChange('salaryExpectationMin', parseInt(e.target.value) || undefined)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'salaryExpectationMin',
+                          Number.parseInt(e.target.value) || undefined
+                        )
+                      }
                     />
                   </div>
 
@@ -263,7 +287,12 @@ export default function ProfileSetupStep({
                       placeholder="80000"
                       className="input input-bordered"
                       value={formData.salaryExpectationMax || ''}
-                      onChange={(e) => handleInputChange('salaryExpectationMax', parseInt(e.target.value) || undefined)}
+                      onChange={(e) =>
+                        handleInputChange(
+                          'salaryExpectationMax',
+                          Number.parseInt(e.target.value) || undefined
+                        )
+                      }
                     />
                   </div>
                 </div>
@@ -286,7 +315,7 @@ export default function ProfileSetupStep({
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text font-medium">Industry *</span>
@@ -310,8 +339,10 @@ export default function ProfileSetupStep({
                     onChange={(e) => handleInputChange('companyScale', e.target.value)}
                   >
                     <option value="">Select size</option>
-                    {Object.values(CompanyScale).map(scale => (
-                      <option key={scale} value={scale}>{scale}</option>
+                    {Object.values(CompanyScale).map((scale) => (
+                      <option key={scale} value={scale}>
+                        {scale}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -362,33 +393,35 @@ export default function ProfileSetupStep({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center mt-8">
-        <button
-          onClick={onBack}
-          className="btn btn-ghost"
-          disabled={isLoading}
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+      <div className="mt-8 flex items-center justify-between">
+        <button onClick={onBack} className="btn btn-ghost" disabled={isLoading}>
+          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 17l-5-5m0 0l5-5m-5 5h12"
+            />
           </svg>
           Back
         </button>
 
-        <button
-          onClick={onNext}
-          disabled={!canProceed || isLoading}
-          className="btn btn-primary"
-        >
+        <button onClick={onNext} disabled={!canProceed || isLoading} className="btn btn-primary">
           {isLoading ? (
             <>
-              <span className="loading loading-spinner loading-sm"></span>
+              <span className="loading loading-spinner loading-sm" />
               Saving...
             </>
           ) : (
             <>
               Continue
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </>
           )}

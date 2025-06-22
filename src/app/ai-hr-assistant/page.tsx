@@ -1,45 +1,45 @@
+'use client';
 
-"use client";
-
-import React, { useEffect, useState } from 'react'; // Added useState
+import AOS from 'aos';
+import { signOut } from 'firebase/auth';
+import { ArrowRight, Bot, Clock, Loader2, MessageSquare, Sparkles } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import type React from 'react'; // Added useState
+import { useEffect, useState } from 'react';
+import { AppHeader } from '@/components/AppHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Bot, ArrowRight, Sparkles, Clock, MessageSquare, Loader2 } from 'lucide-react';
-import Link from 'next/link';
-import { AppHeader } from '@/components/AppHeader';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { auth } from "@/lib/firebase";
-import { signOut } from "firebase/auth";
-import { useRouter } from 'next/navigation';
-import AOS from 'aos';
+import { auth } from '@/lib/firebase';
 import 'aos/dist/aos.css';
-import { cn } from '@/lib/utils';
 
 export default function AiHrAssistantPage() {
   const { currentUser, fullBackendUser, mongoDbUserId, preferences } = useUserPreferences();
   const router = useRouter();
 
   // State for chat animation
-  const [typedApplicantMessage, setTypedApplicantMessage] = useState("");
+  const [typedApplicantMessage, setTypedApplicantMessage] = useState('');
   const [isTypingApplicant, setIsTypingApplicant] = useState(false);
   const [showAiAnalyzing, setShowAiAnalyzing] = useState(false);
-  const [typedAiReply, setTypedAiReply] = useState("");
+  const [typedAiReply, setTypedAiReply] = useState('');
   const [isTypingAiReply, setIsTypingAiReply] = useState(false);
 
   const fullApplicantMessage = "Hello, I'm interested in the Frontend Developer position...";
-  const fullAiReply = "Hello Applicant! Thank you for your interest. Based on your skills, we think you're a good fit. Would you be available for an interview next Tuesday or Wednesday?";
+  const fullAiReply =
+    "Hello Applicant! Thank you for your interest. Based on your skills, we think you're a good fit. Would you be available for an interview next Tuesday or Wednesday?";
 
   const typeMessage = async (
     message: string,
     setTextState: React.Dispatch<React.SetStateAction<string>>,
     setIsTypingState: React.Dispatch<React.SetStateAction<boolean>>,
-    speed: number = 30 // Adjusted speed
+    speed = 30 // Adjusted speed
   ) => {
     setIsTypingState(true);
-    setTextState(""); 
+    setTextState('');
     for (let i = 0; i < message.length; i++) {
-      setTextState(prev => prev + message.charAt(i));
-      await new Promise(resolve => setTimeout(resolve, speed));
+      setTextState((prev) => prev + message.charAt(i));
+      await new Promise((resolve) => setTimeout(resolve, speed));
     }
     setIsTypingState(false);
   };
@@ -54,21 +54,21 @@ export default function AiHrAssistantPage() {
     // Chat animation logic
     const animateChat = async () => {
       // Reset states for potential re-trigger (though AOS once:true should prevent it for the card itself)
-      setTypedApplicantMessage("");
+      setTypedApplicantMessage('');
       setIsTypingApplicant(false);
       setShowAiAnalyzing(false);
-      setTypedAiReply("");
+      setTypedAiReply('');
       setIsTypingAiReply(false);
 
       // Wait a brief moment for AOS card animation to settle if desired
-      await new Promise(resolve => setTimeout(resolve, 300)); 
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       await typeMessage(fullApplicantMessage, setTypedApplicantMessage, setIsTypingApplicant);
-      await new Promise(resolve => setTimeout(resolve, 700)); // Pause after applicant message
+      await new Promise((resolve) => setTimeout(resolve, 700)); // Pause after applicant message
 
       setShowAiAnalyzing(true);
-      await new Promise(resolve => setTimeout(resolve, 2000)); // AI "thinking" time
-      
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // AI "thinking" time
+
       setShowAiAnalyzing(false); // Hide "analyzing" right before AI types
       await typeMessage(fullAiReply, setTypedAiReply, setIsTypingAiReply);
     };
@@ -78,27 +78,30 @@ export default function AiHrAssistantPage() {
     // For now, relying on AOS reveal and a slight delay.
     const cardElement = document.querySelector('[data-aos="fade-left"]');
     if (cardElement) {
-        // Simple check if AOS might have made it visible, then animate.
-        // This is a basic way to sequence after AOS.
-        setTimeout(() => {
-             if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset.aosId) { // Check if AOS processed it
-                animateChat();
-            }
-        }, parseFloat((cardElement as HTMLElement).dataset.aosDelay || '0') + 200); // Delay by AOS delay + buffer
+      // Simple check if AOS might have made it visible, then animate.
+      // This is a basic way to sequence after AOS.
+      setTimeout(
+        () => {
+          if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset.aosId) {
+            // Check if AOS processed it
+            animateChat();
+          }
+        },
+        Number.parseFloat((cardElement as HTMLElement).dataset.aosDelay || '0') + 200
+      ); // Delay by AOS delay + buffer
     } else {
-        // Fallback if AOS selector fails, run after a fixed delay
-        setTimeout(() => {
-             if (typeof window !== 'undefined') animateChat();
-        }, 500);
+      // Fallback if AOS selector fails, run after a fixed delay
+      setTimeout(() => {
+        if (typeof window !== 'undefined') animateChat();
+      }, 500);
     }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array: runs once on mount after initial render.
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [typeMessage]); // Empty dependency array: runs once on mount after initial render.
 
   if (preferences.isLoading && !currentUser && !mongoDbUserId) {
     return (
-      <div className="flex flex-col min-h-screen items-center justify-center ai-hr-deep-purple-gradient text-white">
+      <div className="ai-hr-deep-purple-gradient flex min-h-screen flex-col items-center justify-center text-white">
         <Loader2 className="h-12 w-12 animate-spin" />
       </div>
     );
@@ -106,18 +109,20 @@ export default function AiHrAssistantPage() {
 
   if (currentUser && (preferences.isLoading || !mongoDbUserId || !fullBackendUser)) {
     return (
-      <div className="flex flex-col min-h-screen ai-hr-deep-purple-gradient text-white">
+      <div className="ai-hr-deep-purple-gradient flex min-h-screen flex-col text-white">
         <AppHeader
-          isAuthenticated={false} 
-          isGuestMode={true}    
+          isAuthenticated={false}
+          isGuestMode={true}
           onLoginRequest={() => router.push('/')}
-          onLogout={() => { /* No-op or actual logout if needed */ }}
+          onLogout={() => {
+            /* No-op or actual logout if needed */
+          }}
           searchTerm=""
           onSearchTermChange={() => {}}
           userName={null}
           userPhotoURL={null}
         />
-        <main className="flex-grow flex flex-col items-center justify-center p-4">
+        <main className="flex flex-grow flex-col items-center justify-center p-4">
           <Loader2 className="h-12 w-12 animate-spin" />
           <p className="mt-4 text-slate-300">Loading your AI HR Assistant session...</p>
         </main>
@@ -130,7 +135,8 @@ export default function AiHrAssistantPage() {
   let userPhotoURL = currentUser?.photoURL || null;
   if (fullBackendUser?.profileAvatarUrl) {
     if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
-      const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+      const CUSTOM_BACKEND_URL =
+        process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
       userPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
     } else {
       userPhotoURL = fullBackendUser.profileAvatarUrl;
@@ -147,12 +153,12 @@ export default function AiHrAssistantPage() {
       await signOut(auth);
       router.push('/');
     } catch (error) {
-      console.error("Error signing out: ", error);
+      console.error('Error signing out: ', error);
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppHeader
         isAuthenticated={isAuthenticated}
         isGuestMode={isGuestMode}
@@ -163,38 +169,49 @@ export default function AiHrAssistantPage() {
         userName={userName}
         userPhotoURL={userPhotoURL}
       />
-      <main className="flex-grow flex flex-col items-center justify-center ai-hr-deep-purple-gradient text-white p-4 sm:p-8 overflow-hidden pt-20 md:pt-24 animate-fadeInPage">
+      <main className="ai-hr-deep-purple-gradient flex flex-grow animate-fadeInPage flex-col items-center justify-center overflow-hidden p-4 pt-20 text-white sm:p-8 md:pt-24">
         <div className="container mx-auto max-w-6xl text-center lg:text-left">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 md:space-y-8 relative z-10" data-aos="fade-right">
-              <div className="inline-flex items-center px-4 py-1.5 rounded-full text-sm font-medium bg-purple-600 text-white mb-4 shadow-md">
-                <Bot className="h-5 w-5 mr-2" />
+          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2">
+            <div className="relative z-10 space-y-6 md:space-y-8" data-aos="fade-right">
+              <div className="mb-4 inline-flex items-center rounded-full bg-purple-600 px-4 py-1.5 font-medium text-sm text-white shadow-md">
+                <Bot className="mr-2 h-5 w-5" />
                 AI HR Assistant
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight font-heading">
+              <h1 className="font-extrabold font-heading text-4xl leading-tight tracking-tight sm:text-5xl md:text-6xl">
                 AI-Powered Bulk Replies
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-slate-300 leading-relaxed">
-                Let AI simultaneously reply to a massive volume of candidate resumes. It can incorporate screening tags and past communication records, ensuring each reply is accurate and personalized.
+              <p className="text-base text-slate-300 leading-relaxed sm:text-lg md:text-xl">
+                Let AI simultaneously reply to a massive volume of candidate resumes. It can
+                incorporate screening tags and past communication records, ensuring each reply is
+                accurate and personalized.
               </p>
-              <ul className="space-y-3 text-left text-slate-200 text-md">
+              <ul className="space-y-3 text-left text-md text-slate-200">
                 <li className="flex items-start">
-                  <Sparkles className="h-6 w-6 mr-3 text-yellow-400 shrink-0 mt-1" />
-                  <span><span className="font-semibold">Intelligent Personalization:</span> Tailors replies based on candidate profiles and job requirements.</span>
+                  <Sparkles className="mt-1 mr-3 h-6 w-6 shrink-0 text-yellow-400" />
+                  <span>
+                    <span className="font-semibold">Intelligent Personalization:</span> Tailors
+                    replies based on candidate profiles and job requirements.
+                  </span>
                 </li>
                 <li className="flex items-start">
-                  <Clock className="h-6 w-6 mr-3 text-blue-400 shrink-0 mt-1" />
-                  <span><span className="font-semibold">Time Saving:</span> Drastically reduces manual reply efforts for recruiters.</span>
+                  <Clock className="mt-1 mr-3 h-6 w-6 shrink-0 text-blue-400" />
+                  <span>
+                    <span className="font-semibold">Time Saving:</span> Drastically reduces manual
+                    reply efforts for recruiters.
+                  </span>
                 </li>
                 <li className="flex items-start">
-                  <MessageSquare className="h-6 w-6 mr-3 text-green-400 shrink-0 mt-1" />
-                  <span><span className="font-semibold">Guaranteed Reply Within 72 Hours:</span> Helps maintain high company reputation scores.</span>
+                  <MessageSquare className="mt-1 mr-3 h-6 w-6 shrink-0 text-green-400" />
+                  <span>
+                    <span className="font-semibold">Guaranteed Reply Within 72 Hours:</span> Helps
+                    maintain high company reputation scores.
+                  </span>
                 </li>
               </ul>
-              <Link href="/ai-hr-payment" passHref className="block mt-8">
+              <Link href="/ai-hr-payment" passHref className="mt-8 block">
                 <Button
                   size="lg"
-                  className="bg-gradient-to-r from-pink-500 to-orange-400 hover:from-pink-600 hover:to-orange-500 text-white w-full sm:w-auto text-lg px-10 py-3 subtle-button-hover shadow-lg hover:shadow-xl font-semibold transform hover:scale-105 transition-all duration-300"
+                  className="subtle-button-hover w-full transform bg-gradient-to-r from-pink-500 to-orange-400 px-10 py-3 font-semibold text-lg text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-pink-600 hover:to-orange-500 hover:shadow-xl sm:w-auto"
                 >
                   Try Now <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -202,37 +219,37 @@ export default function AiHrAssistantPage() {
             </div>
 
             <div className="space-y-6" data-aos="fade-left" data-aos-delay="200">
-              <Card className="bg-white/10 backdrop-blur-md border-white/20 shadow-2xl">
+              <Card className="border-white/20 bg-white/10 shadow-2xl backdrop-blur-md">
                 <CardContent className="p-6">
                   <div className="space-y-4">
-                    <div className="flex items-center gap-3 mb-4">
-                      <Bot className="h-5 w-5 text-purple-400 animate-spin" />
-                      <span className="text-white font-medium">AI Assistant working...</span>
+                    <div className="mb-4 flex items-center gap-3">
+                      <Bot className="h-5 w-5 animate-spin text-purple-400" />
+                      <span className="font-medium text-white">AI Assistant working...</span>
                     </div>
-                    
-                    <div className="space-y-3 min-h-[180px]"> {/* Added min-height to prevent layout shifts */}
+
+                    <div className="min-h-[180px] space-y-3">
+                      {' '}
+                      {/* Added min-height to prevent layout shifts */}
                       {typedApplicantMessage && (
-                        <div className="bg-white/20 rounded-lg p-3 ml-8 shadow-md animate-fadeInPage">
-                          <p className="text-white text-sm">
+                        <div className="ml-8 animate-fadeInPage rounded-lg bg-white/20 p-3 shadow-md">
+                          <p className="text-sm text-white">
                             {typedApplicantMessage}
-                            {isTypingApplicant && <span className="typing-cursor"></span>}
+                            {isTypingApplicant && <span className="typing-cursor" />}
                           </p>
                           <span className="text-purple-200 text-xs">Applicant - Just now</span>
                         </div>
                       )}
-                      
                       {showAiAnalyzing && (
-                        <div className="flex items-center gap-2 text-purple-300 my-2 animate-fadeInPage">
-                          <Bot className="w-4 h-4 animate-spin" />
+                        <div className="my-2 flex animate-fadeInPage items-center gap-2 text-purple-300">
+                          <Bot className="h-4 w-4 animate-spin" />
                           <span className="text-sm">AI is analyzing and generating a reply...</span>
                         </div>
                       )}
-                      
                       {typedAiReply && (
-                        <div className="bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-lg p-3 mr-8 border border-purple-400/40 shadow-md animate-fadeInPage">
-                          <p className="text-white text-sm">
+                        <div className="mr-8 animate-fadeInPage rounded-lg border border-purple-400/40 bg-gradient-to-r from-purple-500/30 to-pink-500/30 p-3 shadow-md">
+                          <p className="text-sm text-white">
                             {typedAiReply}
-                            {isTypingAiReply && <span className="typing-cursor"></span>}
+                            {isTypingAiReply && <span className="typing-cursor" />}
                           </p>
                           <span className="text-pink-200 text-xs">AI Assistant - Just now</span>
                         </div>
@@ -243,16 +260,16 @@ export default function AiHrAssistantPage() {
               </Card>
 
               <div className="grid grid-cols-3 gap-4">
-                <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 text-center shadow-xl">
-                  <div className="text-2xl font-bold text-white">98%</div>
+                <Card className="border-white/20 bg-white/10 p-4 text-center shadow-xl backdrop-blur-md">
+                  <div className="font-bold text-2xl text-white">98%</div>
                   <div className="text-purple-200 text-sm">Reply Accuracy</div>
                 </Card>
-                <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 text-center shadow-xl">
-                  <div className="text-2xl font-bold text-white">2s</div>
+                <Card className="border-white/20 bg-white/10 p-4 text-center shadow-xl backdrop-blur-md">
+                  <div className="font-bold text-2xl text-white">2s</div>
                   <div className="text-purple-200 text-sm">Avg. Gen. Time</div>
                 </Card>
-                <Card className="bg-white/10 backdrop-blur-md border-white/20 p-4 text-center shadow-xl">
-                  <div className="text-2xl font-bold text-white">&lt;24h</div>
+                <Card className="border-white/20 bg-white/10 p-4 text-center shadow-xl backdrop-blur-md">
+                  <div className="font-bold text-2xl text-white">&lt;24h</div>
                   <div className="text-purple-200 text-sm">Guaranteed Reply</div>
                 </Card>
               </div>
@@ -278,4 +295,3 @@ export default function AiHrAssistantPage() {
     </div>
   );
 }
-

@@ -1,41 +1,65 @@
+'use client';
 
-"use client";
-
-import { useState } from 'react';
-import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Building, Info, Loader2, Palette, Wand2 } from 'lucide-react'; // Added Info
+import { useState } from 'react';
+import { type SubmitHandler, useForm } from 'react-hook-form';
 import { z } from 'zod';
+import {
+  type GenerateVideoScriptInput,
+  generateVideoScript,
+} from '@/ai/flows/video-script-generator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'; // Added Alert components
 import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { generateVideoScript, type GenerateVideoScriptInput } from '@/ai/flows/video-script-generator';
-import { Loader2, Wand2, Palette, Building, Info } from 'lucide-react'; // Added Info
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'; // Added Tooltip components
 import { useToast } from '@/hooks/use-toast';
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // Added Alert components
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"; // Added Tooltip components
 
 const toneAndStyleOptions = [
-  { value: "professional", label: "Professional & Formal" },
-  { value: "friendly", label: "Relaxed & Friendly" },
-  { value: "technical", label: "Technology-Oriented" },
-  { value: "sales", label: "Sales-Oriented" },
+  { value: 'professional', label: 'Professional & Formal' },
+  { value: 'friendly', label: 'Relaxed & Friendly' },
+  { value: 'technical', label: 'Technology-Oriented' },
+  { value: 'sales', label: 'Sales-Oriented' },
 ];
 
 const industryTemplateOptions = [
-  { value: "general", label: "General / Other" },
-  { value: "technology", label: "Technology Industry" },
-  { value: "creative", label: "Creative Industry" },
-  { value: "finance", label: "Financial Industry" },
-  { value: "education", label: "Education Industry" },
+  { value: 'general', label: 'General / Other' },
+  { value: 'technology', label: 'Technology Industry' },
+  { value: 'creative', label: 'Creative Industry' },
+  { value: 'finance', label: 'Financial Industry' },
+  { value: 'education', label: 'Education Industry' },
 ];
 
 const FormSchema = z.object({
-  experience: z.string().min(10, "Please describe your experience in at least 10 characters."),
-  desiredWorkStyle: z.string().min(5, "Please describe your desired work style in at least 5 characters."),
-  toneAndStyle: z.enum(["professional", "friendly", "technical", "sales"]),
-  industryTemplate: z.enum(["technology", "creative", "finance", "education", "general"]),
+  experience: z.string().min(10, 'Please describe your experience in at least 10 characters.'),
+  desiredWorkStyle: z
+    .string()
+    .min(5, 'Please describe your desired work style in at least 5 characters.'),
+  toneAndStyle: z.enum(['professional', 'friendly', 'technical', 'sales']),
+  industryTemplate: z.enum(['technology', 'creative', 'finance', 'education', 'general']),
 });
 
 export function VideoScriptGenerator() {
@@ -46,10 +70,10 @@ export function VideoScriptGenerator() {
   const form = useForm<GenerateVideoScriptInput>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      experience: "",
-      desiredWorkStyle: "",
-      toneAndStyle: "professional",
-      industryTemplate: "general",
+      experience: '',
+      desiredWorkStyle: '',
+      toneAndStyle: 'professional',
+      industryTemplate: 'general',
     },
   });
 
@@ -60,15 +84,15 @@ export function VideoScriptGenerator() {
       const result = await generateVideoScript(data);
       setGeneratedScript(result.script);
       toast({
-        title: "Script Generated!",
-        description: "Your personalized video script is ready.",
+        title: 'Script Generated!',
+        description: 'Your personalized video script is ready.',
       });
     } catch (error) {
-      console.error("Error generating video script:", error);
+      console.error('Error generating video script:', error);
       toast({
-        title: "Error",
-        description: "Failed to generate video script. Please try again.",
-        variant: "destructive",
+        title: 'Error',
+        description: 'Failed to generate video script. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -83,13 +107,16 @@ export function VideoScriptGenerator() {
           AI Video Script Assistant
         </CardTitle>
         <CardDescription>
-          Describe your experience, choose a tone and industry, and our AI will craft a compelling video script for you.
+          Describe your experience, choose a tone and industry, and our AI will craft a compelling
+          video script for you.
         </CardDescription>
-        <Alert variant="default" className="mt-3 text-sm border-primary/30 bg-primary/5">
+        <Alert variant="default" className="mt-3 border-primary/30 bg-primary/5 text-sm">
           <Info className="h-4 w-4 text-primary/80" />
           <AlertTitle className="font-medium text-primary/90 text-xs">How it Works</AlertTitle>
-          <AlertDescription className="text-xs text-foreground/70">
-            Our AI uses the information you provide to structure a general video resume script with common sections. You can then customize it with your specific achievements and personal details.
+          <AlertDescription className="text-foreground/70 text-xs">
+            Our AI uses the information you provide to structure a general video resume script with
+            common sections. You can then customize it with your specific achievements and personal
+            details.
           </AlertDescription>
         </Alert>
       </CardHeader>
@@ -101,11 +128,11 @@ export function VideoScriptGenerator() {
               name="experience"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold">Your Experience</FormLabel>
+                  <FormLabel className="font-semibold text-lg">Your Experience</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="e.g., '5 years of Python development experience, skilled in React and cloud platforms...'"
-                      className="resize-y min-h-[100px]"
+                      className="min-h-[100px] resize-y"
                       {...field}
                     />
                   </FormControl>
@@ -118,11 +145,11 @@ export function VideoScriptGenerator() {
               name="desiredWorkStyle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold">Desired Work Style</FormLabel>
+                  <FormLabel className="font-semibold text-lg">Desired Work Style</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="e.g., 'Seeking a remote role in a fast-paced startup, passionate about collaborative projects...'"
-                      className="resize-y min-h-[80px]"
+                      className="min-h-[80px] resize-y"
                       {...field}
                     />
                   </FormControl>
@@ -135,7 +162,7 @@ export function VideoScriptGenerator() {
               name="toneAndStyle"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold flex items-center">
+                  <FormLabel className="flex items-center font-semibold text-lg">
                     <Palette className="mr-2 h-5 w-5 text-muted-foreground" />
                     Tone and Style
                   </FormLabel>
@@ -146,7 +173,7 @@ export function VideoScriptGenerator() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {toneAndStyleOptions.map(option => (
+                      {toneAndStyleOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -162,7 +189,7 @@ export function VideoScriptGenerator() {
               name="industryTemplate"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-lg font-semibold flex items-center">
+                  <FormLabel className="flex items-center font-semibold text-lg">
                     <Building className="mr-2 h-5 w-5 text-muted-foreground" />
                     Industry Template
                   </FormLabel>
@@ -173,7 +200,7 @@ export function VideoScriptGenerator() {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {industryTemplateOptions.map(option => (
+                      {industryTemplateOptions.map((option) => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -204,18 +231,18 @@ export function VideoScriptGenerator() {
               </Tooltip>
             </TooltipProvider>
             {isLoading && !generatedScript && (
-                <div className="w-full pt-4 border-t mt-4 flex flex-col items-center">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
-                    <p className="text-muted-foreground">Crafting your script...</p>
-                </div>
+              <div className="mt-4 flex w-full flex-col items-center border-t pt-4">
+                <Loader2 className="mb-2 h-8 w-8 animate-spin text-primary" />
+                <p className="text-muted-foreground">Crafting your script...</p>
+              </div>
             )}
             {generatedScript && (
-              <div className="w-full pt-4 border-t mt-4">
-                <h3 className="text-xl font-semibold mb-2 text-primary">Generated Script:</h3>
+              <div className="mt-4 w-full border-t pt-4">
+                <h3 className="mb-2 font-semibold text-primary text-xl">Generated Script:</h3>
                 <Textarea
                   readOnly
                   value={generatedScript}
-                  className="min-h-[200px] bg-muted/50 text-foreground text-base"
+                  className="min-h-[200px] bg-muted/50 text-base text-foreground"
                   rows={15}
                 />
               </div>

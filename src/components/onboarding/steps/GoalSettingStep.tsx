@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import type { WizardData } from '../WizardContainer';
 
 interface GoalSettingStepProps {
@@ -11,12 +11,12 @@ interface GoalSettingStepProps {
   isLoading: boolean;
 }
 
-export default function GoalSettingStep({ 
-  data, 
-  onUpdate, 
-  onNext, 
-  onBack, 
-  isLoading 
+export default function GoalSettingStep({
+  data,
+  onUpdate,
+  onNext,
+  onBack,
+  isLoading,
 }: GoalSettingStepProps) {
   const [goals, setGoals] = useState(data.goals);
   const [newGoal, setNewGoal] = useState({ type: 'short', text: '' });
@@ -30,9 +30,9 @@ export default function GoalSettingStep({
       description: 'Goals for the next 3-6 months',
       icon: '🎯',
       color: 'success',
-      examples: isJobSeeker 
+      examples: isJobSeeker
         ? ['Land a new job', 'Complete certification', 'Update portfolio']
-        : ['Hire 3 developers', 'Improve hiring process', 'Build employer brand']
+        : ['Hire 3 developers', 'Improve hiring process', 'Build employer brand'],
     },
     {
       key: 'midTerm',
@@ -42,7 +42,7 @@ export default function GoalSettingStep({
       color: 'info',
       examples: isJobSeeker
         ? ['Get promoted', 'Switch career paths', 'Build professional network']
-        : ['Expand team by 50%', 'Launch new product', 'Enter new market']
+        : ['Expand team by 50%', 'Launch new product', 'Enter new market'],
     },
     {
       key: 'longTerm',
@@ -52,7 +52,7 @@ export default function GoalSettingStep({
       color: 'primary',
       examples: isJobSeeker
         ? ['Become team lead', 'Start own business', 'Achieve work-life balance']
-        : ['Scale to 100+ employees', 'Go public', 'Become industry leader']
+        : ['Scale to 100+ employees', 'Go public', 'Become industry leader'],
     },
     {
       key: 'skillDevelopment',
@@ -62,8 +62,8 @@ export default function GoalSettingStep({
       color: 'warning',
       examples: isJobSeeker
         ? ['Learn React', 'Improve leadership', 'Master data analysis']
-        : ['Improve interviewing', 'Learn talent analytics', 'Develop coaching skills']
-    }
+        : ['Improve interviewing', 'Learn talent analytics', 'Develop coaching skills'],
+    },
   ];
 
   const addGoal = (type: string) => {
@@ -71,9 +71,9 @@ export default function GoalSettingStep({
 
     const updatedGoals = {
       ...goals,
-      [type]: [...(goals[type as keyof typeof goals] || []), newGoal.text.trim()]
+      [type]: [...(goals[type as keyof typeof goals] || []), newGoal.text.trim()],
     };
-    
+
     setGoals(updatedGoals);
     onUpdate({ goals: updatedGoals });
     setNewGoal({ type, text: '' });
@@ -82,9 +82,9 @@ export default function GoalSettingStep({
   const removeGoal = (type: string, index: number) => {
     const updatedGoals = {
       ...goals,
-      [type]: (goals[type as keyof typeof goals] || []).filter((_, i) => i !== index)
+      [type]: (goals[type as keyof typeof goals] || []).filter((_, i) => i !== index),
     };
-    
+
     setGoals(updatedGoals);
     onUpdate({ goals: updatedGoals });
   };
@@ -95,9 +95,9 @@ export default function GoalSettingStep({
 
     const updatedGoals = {
       ...goals,
-      [type]: [...currentGoals, example]
+      [type]: [...currentGoals, example],
     };
-    
+
     setGoals(updatedGoals);
     onUpdate({ goals: updatedGoals });
   };
@@ -105,17 +105,14 @@ export default function GoalSettingStep({
   const totalGoals = Object.values(goals).flat().length;
 
   return (
-    <div className="max-w-3xl mx-auto">
+    <div className="mx-auto max-w-3xl">
       {/* Header */}
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-base-content mb-2">
-          Set Your Goals
-        </h2>
+      <div className="mb-8 text-center">
+        <h2 className="mb-2 font-bold text-3xl text-base-content">Set Your Goals</h2>
         <p className="text-base-content/60">
-          {isJobSeeker 
+          {isJobSeeker
             ? 'Define your career aspirations and skill development targets'
-            : 'Outline your hiring objectives and team growth plans'
-          }
+            : 'Outline your hiring objectives and team growth plans'}
         </p>
       </div>
 
@@ -123,15 +120,15 @@ export default function GoalSettingStep({
       <div className="space-y-8">
         {goalTypes.map((goalType) => {
           const currentGoals = goals[goalType.key as keyof typeof goals] || [];
-          
+
           return (
             <div key={goalType.key} className="card bg-base-200">
               <div className="card-body">
-                <div className="flex items-center space-x-3 mb-4">
+                <div className="mb-4 flex items-center space-x-3">
                   <span className="text-2xl">{goalType.icon}</span>
                   <div>
-                    <h3 className="text-xl font-bold">{goalType.label}</h3>
-                    <p className="text-sm text-base-content/60">{goalType.description}</p>
+                    <h3 className="font-bold text-xl">{goalType.label}</h3>
+                    <p className="text-base-content/60 text-sm">{goalType.description}</p>
                   </div>
                 </div>
 
@@ -144,10 +141,20 @@ export default function GoalSettingStep({
                           {goal}
                           <button
                             onClick={() => removeGoal(goalType.key, index)}
-                            className="btn btn-ghost btn-xs p-0 min-h-0 h-4 w-4"
+                            className="btn btn-ghost btn-xs h-4 min-h-0 w-4 p-0"
                           >
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            <svg
+                              className="h-3 w-3"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M6 18L18 6M6 6l12 12"
+                              />
                             </svg>
                           </button>
                         </div>
@@ -157,7 +164,7 @@ export default function GoalSettingStep({
                 )}
 
                 {/* Add New Goal */}
-                <div className="flex gap-2 mb-4">
+                <div className="mb-4 flex gap-2">
                   <input
                     type="text"
                     placeholder={`Add a ${goalType.label.toLowerCase().slice(0, -1)}...`}
@@ -181,20 +188,18 @@ export default function GoalSettingStep({
 
                 {/* Example Goals */}
                 <div>
-                  <p className="text-sm text-base-content/60 mb-2">Quick add examples:</p>
+                  <p className="mb-2 text-base-content/60 text-sm">Quick add examples:</p>
                   <div className="flex flex-wrap gap-2">
                     {goalType.examples.map((example, index) => (
                       <button
                         key={index}
                         onClick={() => addExampleGoal(goalType.key, example)}
                         disabled={currentGoals.includes(example)}
-                        className={`
-                          btn btn-outline btn-xs
-                          ${currentGoals.includes(example) 
-                            ? 'btn-disabled opacity-50' 
+                        className={`btn btn-outline btn-xs ${
+                          currentGoals.includes(example)
+                            ? 'btn-disabled opacity-50'
                             : `btn-${goalType.color}`
-                          }
-                        `}
+                        } `}
                       >
                         + {example}
                       </button>
@@ -210,40 +215,53 @@ export default function GoalSettingStep({
       {/* Goal Summary */}
       {totalGoals > 0 && (
         <div className="alert alert-success mt-8">
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div>
             <h3 className="font-bold">Great start!</h3>
             <div className="text-sm">
-              You've set {totalGoals} goal{totalGoals !== 1 ? 's' : ''}. 
-              {isJobSeeker 
+              You've set {totalGoals} goal{totalGoals !== 1 ? 's' : ''}.
+              {isJobSeeker
                 ? ' These will help guide your career development and job search.'
-                : ' These will help focus your hiring strategy and team building efforts.'
-              }
+                : ' These will help focus your hiring strategy and team building efforts.'}
             </div>
           </div>
         </div>
       )}
 
       {/* Integration Info */}
-      <div className="card bg-info/10 mt-8">
+      <div className="card mt-8 bg-info/10">
         <div className="card-body">
           <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 bg-info/20 rounded-lg flex items-center justify-center flex-shrink-0">
-              <svg className="w-5 h-5 text-info" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-info/20">
+              <svg
+                className="h-5 w-5 text-info"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
               </svg>
             </div>
             <div>
-              <h4 className="font-semibold text-info mb-2">
+              <h4 className="mb-2 font-semibold text-info">
                 {isJobSeeker ? 'Career Dashboard Integration' : 'Hiring Dashboard Integration'}
               </h4>
-              <p className="text-sm text-base-content/70">
-                {isJobSeeker 
+              <p className="text-base-content/70 text-sm">
+                {isJobSeeker
                   ? 'Your goals will be integrated with your Career Dashboard, where you can track progress, get AI-powered recommendations, and receive personalized action steps.'
-                  : 'Your goals will be integrated with your Hiring Dashboard, where you can track recruitment progress, get candidate recommendations, and monitor team growth metrics.'
-                }
+                  : 'Your goals will be integrated with your Hiring Dashboard, where you can track recruitment progress, get candidate recommendations, and monitor team growth metrics.'}
               </p>
             </div>
           </div>
@@ -252,41 +270,44 @@ export default function GoalSettingStep({
 
       {/* Skip Option */}
       {totalGoals === 0 && (
-        <div className="text-center mt-8">
-          <p className="text-base-content/60 mb-4">
-            Don't worry if you're not sure about your goals yet. You can always add them later in your dashboard.
+        <div className="mt-8 text-center">
+          <p className="mb-4 text-base-content/60">
+            Don't worry if you're not sure about your goals yet. You can always add them later in
+            your dashboard.
           </p>
         </div>
       )}
 
       {/* Action Buttons */}
-      <div className="flex justify-between items-center mt-8">
-        <button
-          onClick={onBack}
-          className="btn btn-ghost"
-          disabled={isLoading}
-        >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+      <div className="mt-8 flex items-center justify-between">
+        <button onClick={onBack} className="btn btn-ghost" disabled={isLoading}>
+          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 17l-5-5m0 0l5-5m-5 5h12"
+            />
           </svg>
           Back
         </button>
 
-        <button
-          onClick={onNext}
-          disabled={isLoading}
-          className="btn btn-primary btn-lg"
-        >
+        <button onClick={onNext} disabled={isLoading} className="btn btn-primary btn-lg">
           {isLoading ? (
             <>
-              <span className="loading loading-spinner loading-sm"></span>
+              <span className="loading loading-spinner loading-sm" />
               Saving...
             </>
           ) : (
             <>
               Complete Setup
-              <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </>
           )}

@@ -1,29 +1,36 @@
+'use client';
 
-"use client";
-
-import React, { useState, type ChangeEvent } from 'react';
-import type { DiaryPost } from '@/lib/types';
+import { Image as ImageIcon, Loader2 } from 'lucide-react';
+import Image from 'next/image';
+import type React from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
+import { DialogClose, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { uploadDiaryImage } from '@/services/diaryService'; 
-import Image from 'next/image'; 
-import { Loader2, UploadCloud, Image as ImageIcon } from 'lucide-react'; 
-import { CustomFileInput } from '@/components/ui/custom-file-input'; // Added import
+import type { DiaryPost } from '@/lib/types';
+import { uploadDiaryImage } from '@/services/diaryService';
 
 interface CreateDiaryPostFormProps {
-  onPostCreated: (newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>) => void;
+  onPostCreated: (
+    newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>
+  ) => void;
   currentUserName: string | null;
   currentUserMongoId: string | null;
   currentUserAvatarUrl: string | null;
 }
 
-export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUserMongoId, currentUserAvatarUrl }: CreateDiaryPostFormProps) {
+export function CreateDiaryPostForm({
+  onPostCreated,
+  currentUserName,
+  currentUserMongoId,
+  currentUserAvatarUrl,
+}: CreateDiaryPostFormProps) {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [imageUrlInput, setImageUrlInput] = useState(''); 
+  const [imageUrlInput, setImageUrlInput] = useState('');
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [diaryImageHint, setDiaryImageHint] = useState('');
@@ -33,14 +40,23 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
 
   const handleFileSelected = (file: File | null) => {
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast({ title: "File Too Large", description: "Image must be less than 5MB.", variant: "destructive" });
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        toast({
+          title: 'File Too Large',
+          description: 'Image must be less than 5MB.',
+          variant: 'destructive',
+        });
         setImageFile(null);
         setImagePreview(null);
         return;
       }
-      if (!file.type.startsWith("image/")) {
-        toast({ title: "Invalid File Type", description: "Please select an image file.", variant: "destructive" });
+      if (!file.type.startsWith('image/')) {
+        toast({
+          title: 'Invalid File Type',
+          description: 'Please select an image file.',
+          variant: 'destructive',
+        });
         setImageFile(null);
         setImagePreview(null);
         return;
@@ -58,20 +74,24 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
     }
   };
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentUserMongoId || !currentUserName) {
       toast({
-        title: "Authentication Error",
-        description: "User information is missing. Please ensure your profile is complete and try again.",
-        variant: "destructive",
+        title: 'Authentication Error',
+        description:
+          'User information is missing. Please ensure your profile is complete and try again.',
+        variant: 'destructive',
       });
-      setIsSubmitting(false); 
+      setIsSubmitting(false);
       return;
     }
     if (!title.trim() || !content.trim()) {
-      toast({ title: "Missing fields", description: "Title and content are required.", variant: "destructive" });
+      toast({
+        title: 'Missing fields',
+        description: 'Title and content are required.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -92,11 +112,14 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
         authorAvatarUrl: currentUserAvatarUrl || undefined,
         imageUrl: finalImageUrl,
         diaryImageHint: diaryImageHint.trim() || undefined,
-        tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
+        tags: tags
+          .split(',')
+          .map((tag) => tag.trim())
+          .filter((tag) => tag),
         isFeatured: Math.random() < 0.1,
       };
       onPostCreated(newPostData);
-      
+
       setTitle('');
       setContent('');
       setImageUrlInput('');
@@ -105,7 +128,11 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
       setDiaryImageHint('');
       setTags('');
     } catch (error: any) {
-      toast({ title: "Submission Error", description: error.message || "Could not submit post.", variant: "destructive" });
+      toast({
+        title: 'Submission Error',
+        description: error.message || 'Could not submit post.',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -114,14 +141,33 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="postTitle" className="block text-sm font-medium text-foreground">Title</label>
-        <Input id="postTitle" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="My Awesome Day" required disabled={isSubmitting} />
+        <label htmlFor="postTitle" className="block font-medium text-foreground text-sm">
+          Title
+        </label>
+        <Input
+          id="postTitle"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="My Awesome Day"
+          required
+          disabled={isSubmitting}
+        />
       </div>
       <div>
-        <label htmlFor="postContent" className="block text-sm font-medium text-foreground">Content</label>
-        <Textarea id="postContent" value={content} onChange={(e) => setContent(e.target.value)} placeholder="Today was an interesting day because..." required rows={5} disabled={isSubmitting} />
+        <label htmlFor="postContent" className="block font-medium text-foreground text-sm">
+          Content
+        </label>
+        <Textarea
+          id="postContent"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Today was an interesting day because..."
+          required
+          rows={5}
+          disabled={isSubmitting}
+        />
       </div>
-      
+
       <CustomFileInput
         id="postImageUpload"
         fieldLabel="Upload Image (Optional, Max 5MB)"
@@ -129,32 +175,71 @@ export function CreateDiaryPostForm({ onPostCreated, currentUserName, currentUse
         buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
         selectedFileName={imageFile?.name}
         onFileSelected={handleFileSelected}
-        inputProps={{ accept: "image/*" }}
+        inputProps={{ accept: 'image/*' }}
         disabled={isSubmitting}
       />
 
       {imagePreview && (
         <div className="mt-2">
-          <Image src={imagePreview} alt="Image preview" width={128} height={128} className="rounded-md object-cover border" data-ai-hint="uploaded image preview"/>
+          <Image
+            src={imagePreview}
+            alt="Image preview"
+            width={128}
+            height={128}
+            className="rounded-md border object-cover"
+            data-ai-hint="uploaded image preview"
+          />
         </div>
       )}
 
       <div>
-        <label htmlFor="postImageUrl" className="block text-sm font-medium text-foreground">Or Enter Image URL (Optional)</label>
-        <Input id="postImageUrl" value={imageUrlInput} onChange={(e) => { setImageUrlInput(e.target.value); if (e.target.value) { setImageFile(null); setImagePreview(null);}}} placeholder="https://example.com/image.png" disabled={isSubmitting || !!imageFile} />
+        <label htmlFor="postImageUrl" className="block font-medium text-foreground text-sm">
+          Or Enter Image URL (Optional)
+        </label>
+        <Input
+          id="postImageUrl"
+          value={imageUrlInput}
+          onChange={(e) => {
+            setImageUrlInput(e.target.value);
+            if (e.target.value) {
+              setImageFile(null);
+              setImagePreview(null);
+            }
+          }}
+          placeholder="https://example.com/image.png"
+          disabled={isSubmitting || !!imageFile}
+        />
       </div>
 
       <div>
-        <label htmlFor="postImageHint" className="block text-sm font-medium text-foreground">Image Keywords (Optional, for AI)</label>
-        <Input id="postImageHint" value={diaryImageHint} onChange={(e) => setDiaryImageHint(e.target.value)} placeholder="e.g., 'team meeting', 'laptop screen'" disabled={isSubmitting} />
+        <label htmlFor="postImageHint" className="block font-medium text-foreground text-sm">
+          Image Keywords (Optional, for AI)
+        </label>
+        <Input
+          id="postImageHint"
+          value={diaryImageHint}
+          onChange={(e) => setDiaryImageHint(e.target.value)}
+          placeholder="e.g., 'team meeting', 'laptop screen'"
+          disabled={isSubmitting}
+        />
       </div>
-       <div>
-        <label htmlFor="postTags" className="block text-sm font-medium text-foreground">Tags (comma-separated, optional)</label>
-        <Input id="postTags" value={tags} onChange={(e) => setTags(e.target.value)} placeholder="work, learning, team" disabled={isSubmitting} />
+      <div>
+        <label htmlFor="postTags" className="block font-medium text-foreground text-sm">
+          Tags (comma-separated, optional)
+        </label>
+        <Input
+          id="postTags"
+          value={tags}
+          onChange={(e) => setTags(e.target.value)}
+          placeholder="work, learning, team"
+          disabled={isSubmitting}
+        />
       </div>
       <DialogFooter>
         <DialogClose asChild>
-          <Button type="button" variant="outline" disabled={isSubmitting}>Cancel</Button>
+          <Button type="button" variant="outline" disabled={isSubmitting}>
+            Cancel
+          </Button>
         </DialogClose>
         <Button type="submit" disabled={isSubmitting}>
           {isSubmitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

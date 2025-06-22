@@ -1,6 +1,6 @@
-
 // 'use server'
 'use server';
+
 /**
  * @fileOverview AI-powered video script generator for job seekers.
  *
@@ -9,40 +9,28 @@
  * - GenerateVideoScriptOutput - The return type for the generateVideoScript function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { z } from 'genkit';
+import { ai } from '@/ai/genkit';
 
 const ToneAndStyleEnum = z.enum([
-  "professional", 
-  "friendly", 
-  "technical", 
-  "sales",
-  "general" // Added general
+  'professional',
+  'friendly',
+  'technical',
+  'sales',
+  'general', // Added general
 ]);
-const IndustryTemplateEnum = z.enum([
-  "technology", 
-  "creative", 
-  "finance", 
-  "education",
-  "general"
-]);
+const IndustryTemplateEnum = z.enum(['technology', 'creative', 'finance', 'education', 'general']);
 
 const GenerateVideoScriptInputSchema = z.object({
-  experience: z
-    .string()
-    .describe('Description of the job seeker\'s experience.'),
-  desiredWorkStyle: z
-    .string()
-    .describe('Description of the job seeker\'s desired work style.'),
-  toneAndStyle: ToneAndStyleEnum.describe("The desired tone and style of the video script."),
-  industryTemplate: IndustryTemplateEnum.describe("The industry to tailor the script for."),
+  experience: z.string().describe("Description of the job seeker's experience."),
+  desiredWorkStyle: z.string().describe("Description of the job seeker's desired work style."),
+  toneAndStyle: ToneAndStyleEnum.describe('The desired tone and style of the video script.'),
+  industryTemplate: IndustryTemplateEnum.describe('The industry to tailor the script for.'),
 });
 export type GenerateVideoScriptInput = z.infer<typeof GenerateVideoScriptInputSchema>;
 
 const GenerateVideoScriptOutputSchema = z.object({
-  script: z
-    .string()
-    .describe('The generated video script for the job seeker.'),
+  script: z.string().describe('The generated video script for the job seeker.'),
 });
 export type GenerateVideoScriptOutput = z.infer<typeof GenerateVideoScriptOutputSchema>;
 
@@ -51,23 +39,23 @@ export async function generateVideoScript(
 ): Promise<GenerateVideoScriptOutput> {
   // Import the new AI service
   const { generateVideoScript: mistralGenerateVideoScript } = await import('@/services/aiService');
-  
+
   // Convert the input format to match the new service
   const candidateProfile = `Experience: ${input.experience}\nDesired Work Style: ${input.desiredWorkStyle}`;
-  
+
   const result = await mistralGenerateVideoScript({
     candidateProfile,
     tone: input.toneAndStyle,
     duration: 60, // Default 60 seconds
   });
-  
+
   return { script: result.script };
 }
 
 const prompt = ai.definePrompt({
   name: 'generateVideoScriptPrompt',
-  input: {schema: GenerateVideoScriptInputSchema},
-  output: {schema: GenerateVideoScriptOutputSchema},
+  input: { schema: GenerateVideoScriptInputSchema },
+  output: { schema: GenerateVideoScriptOutputSchema },
   prompt: `You are an AI assistant designed to generate a structured video script for a job seeker's video resume.
 The script should follow a multi-layer content structure with approximate timings for each section.
 Please use the provided experience, desired work style, selected tone ({{{toneAndStyle}}}), and industry template ({{{industryTemplate}}}) to inform the content.
@@ -120,18 +108,18 @@ Script:
 `,
 });
 
-const generateVideoScriptFlow = ai.defineFlow(
+const _generateVideoScriptFlow = ai.defineFlow(
   {
     name: 'generateVideoScriptFlow',
     inputSchema: GenerateVideoScriptInputSchema,
     outputSchema: GenerateVideoScriptOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    if (!output || !output.script || output.script.trim() === "") {
-      console.warn("Video script generator returned empty script for input:", input);
+  async (input) => {
+    const { output } = await prompt(input);
+    if (!output || !output.script || output.script.trim() === '') {
+      console.warn('Video script generator returned empty script for input:', input);
       // Provide a default placeholder script if the AI returns empty
-      return { 
+      return {
         script: `[Script Placeholder] The AI couldn't generate a script based on your input. 
 Tips for a good script:
 1. Introduction: Briefly introduce yourself and your main goal.
@@ -139,11 +127,9 @@ Tips for a good script:
 3. Work Style/Values: Briefly mention your preferred work style or a core professional value.
 4. Call to Action: End with a clear call to action, like inviting viewers to connect or check your portfolio.
 
-Please go back to Step 1 to refine your experience details, or edit this placeholder to create your script manually. Aim for about 150 words for a 1-minute video.`
+Please go back to Step 1 to refine your experience details, or edit this placeholder to create your script manually. Aim for about 150 words for a 1-minute video.`,
       };
     }
     return output;
   }
 );
-
-

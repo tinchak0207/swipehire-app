@@ -4,8 +4,8 @@ import { Mistral } from '@mistralai/mistralai';
 // Test that we can create a client instance
 function testImport() {
   try {
-    const client = new Mistral({ 
-      apiKey: 'test-key' 
+    const client = new Mistral({
+      apiKey: 'test-key',
     });
     console.log('✅ Mistral import successful');
     console.log('Client type:', typeof client);

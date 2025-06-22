@@ -1,5 +1,5 @@
-
 'use server';
+
 /**
  * @fileOverview An AI flow to answer questions about a company based on provided details.
  *
@@ -8,27 +8,38 @@
  * - CompanyQAOutput - The return type for the answerCompanyQuestion function.
  */
 
-import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
+import { ai } from '@/ai/genkit';
 import type { CompanyQAInput, CompanyQAOutput } from '@/lib/types'; // Using types from lib
 
 const CompanyQAInputSchema = z.object({
   companyName: z.string().describe('The name of the company.'),
   companyDescription: z.string().describe('A general description of the company.'),
   companyIndustry: z.string().optional().describe('The industry the company operates in.'),
-  companyCultureHighlights: z.array(z.string()).optional().describe('Key highlights of the company culture.'),
-  jobOpeningsSummary: z.string().optional().describe('A brief summary of current job openings or types of roles available.'),
-  userQuestion: z.string().min(5, "Question must be at least 5 characters.").describe('The user\'s question about the company.'),
+  companyCultureHighlights: z
+    .array(z.string())
+    .optional()
+    .describe('Key highlights of the company culture.'),
+  jobOpeningsSummary: z
+    .string()
+    .optional()
+    .describe('A brief summary of current job openings or types of roles available.'),
+  userQuestion: z
+    .string()
+    .min(5, 'Question must be at least 5 characters.')
+    .describe("The user's question about the company."),
 });
 
 const CompanyQAOutputSchema = z.object({
-  aiAnswer: z.string().describe('The AI-generated answer to the user\'s question.'),
+  aiAnswer: z.string().describe("The AI-generated answer to the user's question."),
 });
 
 export async function answerCompanyQuestion(input: CompanyQAInput): Promise<CompanyQAOutput> {
   // Import the new AI service
-  const { answerCompanyQuestion: mistralAnswerCompanyQuestion } = await import('@/services/aiService');
-  
+  const { answerCompanyQuestion: mistralAnswerCompanyQuestion } = await import(
+    '@/services/aiService'
+  );
+
   // Convert the input format to match the new service
   const serviceInput = {
     companyName: input.companyName,
@@ -38,7 +49,7 @@ export async function answerCompanyQuestion(input: CompanyQAInput): Promise<Comp
     companyWebsite: undefined,
     question: input.userQuestion,
   };
-  
+
   const result = await mistralAnswerCompanyQuestion(serviceInput);
   return { aiAnswer: result.answer };
 }
@@ -70,7 +81,7 @@ Answer:
 `,
 });
 
-const companyQAFlow = ai.defineFlow(
+const _companyQAFlow = ai.defineFlow(
   {
     name: 'companyQAFlow',
     inputSchema: CompanyQAInputSchema,
@@ -79,7 +90,9 @@ const companyQAFlow = ai.defineFlow(
   async (input) => {
     const { output } = await companyQAPrompt(input);
     if (!output) {
-      return { aiAnswer: "I'm sorry, I couldn't generate an answer at this time. Please try again." };
+      return {
+        aiAnswer: "I'm sorry, I couldn't generate an answer at this time. Please try again.",
+      };
     }
     return output;
   }

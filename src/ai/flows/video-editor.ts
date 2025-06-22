@@ -1,4 +1,3 @@
-
 'use server';
 
 /**
@@ -9,14 +8,14 @@
  * - EditVideoOutput - The return type for the editVideo function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { z } from 'genkit';
+import { ai } from '@/ai/genkit';
 
 const EditVideoInputSchema = z.object({
   videoDataUri: z
     .string()
     .describe(
-      'A video resume, as a data URI that must include a MIME type and use Base64 encoding. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
+      "A video resume, as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
 });
 export type EditVideoInput = z.infer<typeof EditVideoInputSchema>;
@@ -25,9 +24,13 @@ const EditVideoOutputSchema = z.object({
   editedVideoDataUri: z
     .string()
     .describe(
-      'The conceptually edited video resume (or original if no direct editing is performed by the model), as a data URI. Expected format: \'data:<mimetype>;base64,<encoded_data>\'.'
+      "The conceptually edited video resume (or original if no direct editing is performed by the model), as a data URI. Expected format: 'data:<mimetype>;base64,<encoded_data>'."
     ),
-  analysis: z.string().describe('A detailed analysis of the original video, suggested edits, and a quality rating based on voice, visual, content optimization, and overall quality criteria.'),
+  analysis: z
+    .string()
+    .describe(
+      'A detailed analysis of the original video, suggested edits, and a quality rating based on voice, visual, content optimization, and overall quality criteria.'
+    ),
 });
 export type EditVideoOutput = z.infer<typeof EditVideoOutputSchema>;
 
@@ -37,8 +40,8 @@ export async function editVideo(input: EditVideoInput): Promise<EditVideoOutput>
 
 const prompt = ai.definePrompt({
   name: 'editVideoPrompt',
-  input: {schema: EditVideoInputSchema},
-  output: {schema: EditVideoOutputSchema},
+  input: { schema: EditVideoInputSchema },
+  output: { schema: EditVideoOutputSchema },
   prompt: `You are an expert AI video analysis, editing suggestion, and quality rating assistant, tasked with providing feedback to improve video resumes.
 You will receive a video resume. Your goal is to analyze it based on the following multi-dimensional criteria and provide a detailed textual analysis with actionable suggestions and a quality rating.
 You should return the original video data URI as the 'editedVideoDataUri' field, as you are providing analysis and not performing direct video editing.
@@ -95,21 +98,22 @@ const editVideoFlow = ai.defineFlow(
     outputSchema: EditVideoOutputSchema,
   },
   async (input: EditVideoInput) => {
-    const {output} = await prompt(input);
-    
+    const { output } = await prompt(input);
+
     // Ensure the output structure always includes editedVideoDataUri using the input videoDataUri
     // and provides a fallback for analysis if the AI output is problematic.
-    if (output && output.analysis) {
-        return {
-            editedVideoDataUri: input.videoDataUri, // Always return the original video URI as per prompt instructions
-            analysis: output.analysis,
-        };
-    } else {
-        // Handle cases where the AI output might be missing the analysis or the entire output object
-        return {
-            editedVideoDataUri: input.videoDataUri,
-            analysis: output?.analysis || "The AI analysis could not be generated or was incomplete. Please try again.",
-        };
+    if (output?.analysis) {
+      return {
+        editedVideoDataUri: input.videoDataUri, // Always return the original video URI as per prompt instructions
+        analysis: output.analysis,
+      };
     }
+    // Handle cases where the AI output might be missing the analysis or the entire output object
+    return {
+      editedVideoDataUri: input.videoDataUri,
+      analysis:
+        output?.analysis ||
+        'The AI analysis could not be generated or was incomplete. Please try again.',
+    };
   }
 );

@@ -1,20 +1,19 @@
-"use client";
+'use client';
 
-import React from 'react';
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, Clock, Calendar, TrendingUp, Share2, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowLeft, Calendar, Clock, MessageSquare, TrendingUp } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { ShareButton } from '@/components/blog/ShareButton';
 import { WhitepaperCard } from '@/components/blog/WhitepaperCard';
+import { Button } from '@/components/ui/button';
 
 export default function AIRecruitmentTrendsPage() {
   const currentUrl = typeof window !== 'undefined' ? window.location.href : '';
-  
+
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
+        <div className="mx-auto max-w-4xl">
           <Button variant="ghost" asChild className="mb-8">
             <Link href="/blog">
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -22,7 +21,7 @@ export default function AIRecruitmentTrendsPage() {
             </Link>
           </Button>
 
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mb-4">
+          <div className="mb-4 flex items-center gap-4 text-muted-foreground text-sm">
             <div className="flex items-center">
               <Calendar className="mr-2 h-4 w-4" />
               <span>March 15, 2024</span>
@@ -37,14 +36,17 @@ export default function AIRecruitmentTrendsPage() {
             </div>
           </div>
 
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-4xl font-bold leading-tight">
+          <div className="mb-8 flex items-center justify-between">
+            <h1 className="font-bold text-4xl leading-tight">
               AI in Recruitment: 8 Game-Changing Trends That Will Transform Hiring in 2024
             </h1>
-            <ShareButton url={currentUrl} title="AI in Recruitment: 8 Game-Changing Trends That Will Transform Hiring in 2024" />
+            <ShareButton
+              url={currentUrl}
+              title="AI in Recruitment: 8 Game-Changing Trends That Will Transform Hiring in 2024"
+            />
           </div>
 
-          <div className="relative w-full h-[400px] mb-8 rounded-lg overflow-hidden">
+          <div className="relative mb-8 h-[400px] w-full overflow-hidden rounded-lg">
             <Image
               src="/images/blog/ai-recruitment.jpg"
               alt="AI in Recruitment"
@@ -56,21 +58,23 @@ export default function AIRecruitmentTrendsPage() {
 
           <div className="prose prose-lg max-w-none">
             {/* Introduction */}
-            <div className="bg-muted/50 p-6 rounded-lg mb-8">
-              <p className="lead text-lg font-medium">
-                "By 2025, 75% of companies will use AI in their recruitment process, revolutionizing how we find and hire talent."
+            <div className="mb-8 rounded-lg bg-muted/50 p-6">
+              <p className="lead font-medium text-lg">
+                "By 2025, 75% of companies will use AI in their recruitment process, revolutionizing
+                how we find and hire talent."
               </p>
               <p className="mt-4">
-                Artificial Intelligence is not just changing recruitment—it's completely transforming it. From automated 
-                screening to predictive analytics, AI is making hiring more efficient, objective, and candidate-friendly. 
-                In this comprehensive guide, we'll explore the eight most impactful AI trends that are reshaping the 
+                Artificial Intelligence is not just changing recruitment—it's completely
+                transforming it. From automated screening to predictive analytics, AI is making
+                hiring more efficient, objective, and candidate-friendly. In this comprehensive
+                guide, we'll explore the eight most impactful AI trends that are reshaping the
                 recruitment landscape in 2024.
               </p>
             </div>
 
             {/* Key Takeaways */}
-            <div className="bg-primary/5 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold mb-4">Key Takeaways</h3>
+            <div className="mb-8 rounded-lg bg-primary/5 p-6">
+              <h3 className="mb-4 font-semibold text-xl">Key Takeaways</h3>
               <ul className="space-y-2">
                 <li>AI is reducing time-to-hire by up to 75%</li>
                 <li>Automated screening improves candidate matching by 50%</li>
@@ -82,7 +86,7 @@ export default function AIRecruitmentTrendsPage() {
 
             {/* Main Content */}
             <h2>1. AI-Powered Candidate Screening: Beyond Keywords</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/ai-screening.jpg"
                 alt="AI Candidate Screening"
@@ -90,9 +94,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              Traditional resume screening is becoming obsolete. Modern AI systems can now:
-            </p>
+            <p>Traditional resume screening is becoming obsolete. Modern AI systems can now:</p>
             <ul>
               <li>Analyze thousands of resumes in seconds</li>
               <li>Identify the best candidates based on skills and experience</li>
@@ -102,7 +104,7 @@ export default function AIRecruitmentTrendsPage() {
             </ul>
 
             <h2>2. Predictive Analytics: The Future of Hiring Decisions</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/predictive-analytics.jpg"
                 alt="Predictive Analytics"
@@ -110,9 +112,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              Predictive analytics is revolutionizing hiring decisions by:
-            </p>
+            <p>Predictive analytics is revolutionizing hiring decisions by:</p>
             <ul>
               <li>Analyzing historical hiring data</li>
               <li>Predicting candidate success rates</li>
@@ -122,7 +122,7 @@ export default function AIRecruitmentTrendsPage() {
             </ul>
 
             <h2>3. Chatbots and Virtual Assistants: 24/7 Candidate Support</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/recruitment-chatbot.jpg"
                 alt="Recruitment Chatbot"
@@ -130,9 +130,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              AI-powered chatbots are transforming candidate engagement:
-            </p>
+            <p>AI-powered chatbots are transforming candidate engagement:</p>
             <ul>
               <li>Providing instant responses to candidate queries</li>
               <li>Scheduling interviews automatically</li>
@@ -142,7 +140,7 @@ export default function AIRecruitmentTrendsPage() {
             </ul>
 
             <h2>4. Video Interview Analysis: Beyond the Surface</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/video-interview.jpg"
                 alt="Video Interview Analysis"
@@ -150,9 +148,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              AI is revolutionizing video interviews by:
-            </p>
+            <p>AI is revolutionizing video interviews by:</p>
             <ul>
               <li>Analyzing facial expressions and body language</li>
               <li>Evaluating communication skills</li>
@@ -162,7 +158,7 @@ export default function AIRecruitmentTrendsPage() {
             </ul>
 
             <h2>5. Skills Assessment and Learning: The New Standard</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/skills-assessment.jpg"
                 alt="Skills Assessment"
@@ -170,9 +166,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              AI-driven skills assessment is changing how we evaluate candidates:
-            </p>
+            <p>AI-driven skills assessment is changing how we evaluate candidates:</p>
             <ul>
               <li>Creating personalized assessment challenges</li>
               <li>Evaluating technical skills in real-time</li>
@@ -182,7 +176,7 @@ export default function AIRecruitmentTrendsPage() {
             </ul>
 
             <h2>6. Bias Reduction: Building More Inclusive Teams</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/bias-reduction.jpg"
                 alt="Bias Reduction in Hiring"
@@ -190,9 +184,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              AI is helping create more diverse and inclusive workplaces by:
-            </p>
+            <p>AI is helping create more diverse and inclusive workplaces by:</p>
             <ul>
               <li>Removing demographic information from screening</li>
               <li>Focusing on skills and qualifications</li>
@@ -202,7 +194,7 @@ export default function AIRecruitmentTrendsPage() {
             </ul>
 
             <h2>7. Candidate Experience Enhancement: The Human Touch</h2>
-            <div className="relative w-full h-[300px] my-6 rounded-lg overflow-hidden">
+            <div className="relative my-6 h-[300px] w-full overflow-hidden rounded-lg">
               <Image
                 src="/images/blog/candidate-experience.jpg"
                 alt="Candidate Experience"
@@ -210,9 +202,7 @@ export default function AIRecruitmentTrendsPage() {
                 className="object-cover"
               />
             </div>
-            <p>
-              AI is personalizing the candidate experience through:
-            </p>
+            <p>AI is personalizing the candidate experience through:</p>
             <ul>
               <li>Tailored job recommendations</li>
               <li>Automated status updates</li>
@@ -223,29 +213,33 @@ export default function AIRecruitmentTrendsPage() {
 
             <h2>8. Future Outlook: The Evolution Continues</h2>
             <p>
-              As AI technology continues to evolve, we can expect even more sophisticated recruitment solutions. 
-              The key will be finding the right balance between automation and human touch, ensuring that 
-              technology enhances rather than replaces the human element in hiring.
+              As AI technology continues to evolve, we can expect even more sophisticated
+              recruitment solutions. The key will be finding the right balance between automation
+              and human touch, ensuring that technology enhances rather than replaces the human
+              element in hiring.
             </p>
 
             {/* Conclusion */}
-            <div className="bg-muted/50 p-6 rounded-lg mt-8">
-              <h3 className="text-xl font-semibold mb-4">Conclusion</h3>
+            <div className="mt-8 rounded-lg bg-muted/50 p-6">
+              <h3 className="mb-4 font-semibold text-xl">Conclusion</h3>
               <p>
-                AI is not just a trend in recruitment—it's becoming a fundamental part of the hiring process. 
-                Organizations that embrace these technologies will gain a significant competitive advantage in 
-                attracting and retaining top talent. The future of recruitment is here, and it's powered by AI.
+                AI is not just a trend in recruitment—it's becoming a fundamental part of the hiring
+                process. Organizations that embrace these technologies will gain a significant
+                competitive advantage in attracting and retaining top talent. The future of
+                recruitment is here, and it's powered by AI.
               </p>
             </div>
 
             {/* Call to Action */}
-            <div className="bg-primary/5 p-6 rounded-lg mt-8">
-              <h3 className="text-xl font-semibold mb-4">Ready to Transform Your Hiring Process?</h3>
+            <div className="mt-8 rounded-lg bg-primary/5 p-6">
+              <h3 className="mb-4 font-semibold text-xl">
+                Ready to Transform Your Hiring Process?
+              </h3>
               <p className="mb-4">
-                Download our comprehensive whitepapers to learn more about implementing AI in your recruitment 
-                strategy and building an AI-ready recruitment team.
+                Download our comprehensive whitepapers to learn more about implementing AI in your
+                recruitment strategy and building an AI-ready recruitment team.
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <WhitepaperCard
                   title="The Future of AI in Recruitment"
                   description="A comprehensive guide to implementing AI in your hiring process"
@@ -264,34 +258,42 @@ export default function AIRecruitmentTrendsPage() {
             </div>
 
             {/* Engagement Section */}
-            <div className="mt-12 pt-8 border-t">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold">Join the Conversation</h2>
+            <div className="mt-12 border-t pt-8">
+              <div className="mb-6 flex items-center justify-between">
+                <h2 className="font-bold text-2xl">Join the Conversation</h2>
                 <Button variant="outline" size="sm">
                   <MessageSquare className="mr-2 h-4 w-4" />
                   Leave a Comment
                 </Button>
               </div>
-              <p className="text-muted-foreground mb-6">
-                Share your thoughts on AI in recruitment. How is your organization leveraging these technologies? 
-                What challenges have you faced? Let's discuss in the comments below.
+              <p className="mb-6 text-muted-foreground">
+                Share your thoughts on AI in recruitment. How is your organization leveraging these
+                technologies? What challenges have you faced? Let's discuss in the comments below.
               </p>
             </div>
 
             {/* Related Articles */}
-            <div className="mt-12 pt-8 border-t">
-              <h2 className="text-2xl font-bold mb-6">Related Articles</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="mt-12 border-t pt-8">
+              <h2 className="mb-6 font-bold text-2xl">Related Articles</h2>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Link href="/blog/video-resume-tips" className="group">
-                  <div className="p-6 border rounded-lg hover:border-primary transition-colors">
-                    <h3 className="text-xl font-semibold group-hover:text-primary">Video Resume Tips</h3>
-                    <p className="text-muted-foreground mt-2">Learn how to create compelling video resumes that stand out</p>
+                  <div className="rounded-lg border p-6 transition-colors hover:border-primary">
+                    <h3 className="font-semibold text-xl group-hover:text-primary">
+                      Video Resume Tips
+                    </h3>
+                    <p className="mt-2 text-muted-foreground">
+                      Learn how to create compelling video resumes that stand out
+                    </p>
                   </div>
                 </Link>
                 <Link href="/blog/employer-best-practices" className="group">
-                  <div className="p-6 border rounded-lg hover:border-primary transition-colors">
-                    <h3 className="text-xl font-semibold group-hover:text-primary">Employer Best Practices</h3>
-                    <p className="text-muted-foreground mt-2">Discover how to optimize your hiring process with AI</p>
+                  <div className="rounded-lg border p-6 transition-colors hover:border-primary">
+                    <h3 className="font-semibold text-xl group-hover:text-primary">
+                      Employer Best Practices
+                    </h3>
+                    <p className="mt-2 text-muted-foreground">
+                      Discover how to optimize your hiring process with AI
+                    </p>
                   </div>
                 </Link>
               </div>
@@ -301,4 +303,4 @@ export default function AIRecruitmentTrendsPage() {
       </div>
     </div>
   );
-} 
+}

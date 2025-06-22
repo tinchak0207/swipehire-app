@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import React, { useState } from 'react';
-import Image from 'next/image';
 import { UserCircle } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 
@@ -17,41 +17,46 @@ interface UserAvatarProps {
 
 const sizeClasses = {
   sm: 'h-6 w-6',
-  md: 'h-8 w-8', 
+  md: 'h-8 w-8',
   lg: 'h-10 w-10',
-  xl: 'h-12 w-12'
+  xl: 'h-12 w-12',
 };
 
 const iconSizeClasses = {
   sm: 'h-4 w-4',
   md: 'h-5 w-5',
-  lg: 'h-6 w-6', 
-  xl: 'h-7 w-7'
+  lg: 'h-6 w-6',
+  xl: 'h-7 w-7',
 };
 
 const textSizeClasses = {
   sm: 'text-xs',
   md: 'text-sm',
   lg: 'text-base',
-  xl: 'text-lg'
+  xl: 'text-lg',
 };
 
-export function UserAvatar({ 
-  src, 
-  alt = "User avatar", 
-  fallbackText, 
+export function UserAvatar({
+  src,
+  alt = 'User avatar',
+  fallbackText,
   size = 'md',
   className,
-  showFallbackIcon = true 
+  showFallbackIcon = true,
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
-  const [imageLoading, setImageLoading] = useState(true);
+  const [_imageLoading, setImageLoading] = useState(true);
 
   // Generate fallback text from alt or use provided fallbackText
   const getFallbackText = () => {
     if (fallbackText) return fallbackText;
-    if (alt && alt !== "User avatar") {
-      return alt.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+    if (alt && alt !== 'User avatar') {
+      return alt
+        .split(' ')
+        .map((word) => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
     }
     return 'U';
   };
@@ -81,12 +86,11 @@ export function UserAvatar({
           className="object-cover"
         />
       )}
-      <AvatarFallback className={cn(
-        "bg-primary/10 text-primary font-medium",
-        textSizeClasses[size]
-      )}>
+      <AvatarFallback
+        className={cn('bg-primary/10 font-medium text-primary', textSizeClasses[size])}
+      >
         {showFallbackIcon ? (
-          <UserCircle className={cn("text-muted-foreground", iconSizeClasses[size])} />
+          <UserCircle className={cn('text-muted-foreground', iconSizeClasses[size])} />
         ) : (
           getFallbackText()
         )}
@@ -96,21 +100,26 @@ export function UserAvatar({
 }
 
 // Alternative implementation using Next.js Image with better error handling
-export function UserAvatarWithNextImage({ 
-  src, 
-  alt = "User avatar", 
-  fallbackText, 
+export function UserAvatarWithNextImage({
+  src,
+  alt = 'User avatar',
+  fallbackText,
   size = 'md',
   className,
-  showFallbackIcon = true 
+  showFallbackIcon = true,
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
 
   // Generate fallback text from alt or use provided fallbackText
   const getFallbackText = () => {
     if (fallbackText) return fallbackText;
-    if (alt && alt !== "User avatar") {
-      return alt.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+    if (alt && alt !== 'User avatar') {
+      return alt
+        .split(' ')
+        .map((word) => word[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2);
     }
     return 'U';
   };
@@ -127,16 +136,18 @@ export function UserAvatarWithNextImage({
     sm: 24,
     md: 32,
     lg: 40,
-    xl: 48
+    xl: 48,
   };
 
   if (shouldShowImage) {
     return (
-      <div className={cn(
-        "relative overflow-hidden rounded-full bg-primary/10 flex items-center justify-center",
-        sizeClasses[size],
-        className
-      )}>
+      <div
+        className={cn(
+          'relative flex items-center justify-center overflow-hidden rounded-full bg-primary/10',
+          sizeClasses[size],
+          className
+        )}
+      >
         <Image
           src={src}
           alt={alt}
@@ -153,14 +164,16 @@ export function UserAvatarWithNextImage({
 
   // Fallback UI
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium",
-      sizeClasses[size],
-      textSizeClasses[size],
-      className
-    )}>
+    <div
+      className={cn(
+        'relative flex items-center justify-center overflow-hidden rounded-full bg-primary/10 font-medium text-primary',
+        sizeClasses[size],
+        textSizeClasses[size],
+        className
+      )}
+    >
       {showFallbackIcon ? (
-        <UserCircle className={cn("text-muted-foreground", iconSizeClasses[size])} />
+        <UserCircle className={cn('text-muted-foreground', iconSizeClasses[size])} />
       ) : (
         getFallbackText()
       )}

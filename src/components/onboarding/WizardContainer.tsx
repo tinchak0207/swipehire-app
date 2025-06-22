@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import type { UserRole, BackendUser } from '@/lib/types';
-import WelcomeStep from './steps/WelcomeStep';
-import ProfileSetupStep from './steps/ProfileSetupStep';
-import PreferencesStep from './steps/PreferencesStep';
-import GoalSettingStep from './steps/GoalSettingStep';
-import CompletionStep from './steps/CompletionStep';
+import type { BackendUser, UserRole } from '@/lib/types';
 import ProgressIndicator from './ProgressIndicator';
+import CompletionStep from './steps/CompletionStep';
+import GoalSettingStep from './steps/GoalSettingStep';
+import PreferencesStep from './steps/PreferencesStep';
+import ProfileSetupStep from './steps/ProfileSetupStep';
+import WelcomeStep from './steps/WelcomeStep';
 
 export interface WizardData {
   userType: UserRole | null;
@@ -25,7 +25,7 @@ export interface WizardData {
     jobTypePreference?: string;
     salaryExpectationMin?: number;
     salaryExpectationMax?: number;
-    
+
     // Company fields
     companyName?: string;
     companyIndustry?: string;
@@ -99,27 +99,23 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
-  
-  const { 
-    fullBackendUser, 
-    updateFullBackendUserFields, 
-    setPreferences,
-    mongoDbUserId 
-  } = useUserPreferences();
+
+  const { fullBackendUser, updateFullBackendUserFields, setPreferences, mongoDbUserId } =
+    useUserPreferences();
 
   const totalSteps = 5;
 
   // Load existing data if user has partial progress
   useEffect(() => {
     if (fullBackendUser) {
-      setWizardData(prev => ({
+      setWizardData((prev) => ({
         ...prev,
         userType: fullBackendUser.selectedRole,
         profileData: {
           // Candidate fields
           headline: fullBackendUser.profileHeadline,
           experienceSummary: fullBackendUser.profileExperienceSummary,
-          skills: fullBackendUser.profileSkills?.split(',').map(s => s.trim()),
+          skills: fullBackendUser.profileSkills?.split(',').map((s) => s.trim()),
           desiredWorkStyle: fullBackendUser.profileDesiredWorkStyle,
           workExperienceLevel: fullBackendUser.profileWorkExperienceLevel,
           educationLevel: fullBackendUser.profileEducationLevel,
@@ -128,7 +124,7 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
           jobTypePreference: fullBackendUser.profileJobTypePreference,
           salaryExpectationMin: fullBackendUser.profileSalaryExpectationMin,
           salaryExpectationMax: fullBackendUser.profileSalaryExpectationMax,
-          
+
           // Company fields
           companyName: fullBackendUser.companyName,
           companyIndustry: fullBackendUser.companyIndustry,
@@ -139,15 +135,19 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
         },
         preferences: {
           theme: fullBackendUser.preferences?.theme || 'system',
-          notificationChannels: fullBackendUser.preferences?.notificationChannels || initialWizardData.preferences.notificationChannels,
-          notificationSubscriptions: fullBackendUser.preferences?.notificationSubscriptions || initialWizardData.preferences.notificationSubscriptions,
+          notificationChannels:
+            fullBackendUser.preferences?.notificationChannels ||
+            initialWizardData.preferences.notificationChannels,
+          notificationSubscriptions:
+            fullBackendUser.preferences?.notificationSubscriptions ||
+            initialWizardData.preferences.notificationSubscriptions,
         },
       }));
     }
   }, [fullBackendUser]);
 
   const updateWizardData = (stepData: Partial<WizardData>) => {
-    setWizardData(prev => ({
+    setWizardData((prev) => ({
       ...prev,
       ...stepData,
       profileData: { ...prev.profileData, ...stepData.profileData },
@@ -161,7 +161,7 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
 
     try {
       setIsLoading(true);
-      
+
       // Prepare backend user updates
       const userUpdates: Partial<BackendUser> = {
         selectedRole: wizardData.userType,
@@ -199,13 +199,16 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
       }
 
       // Save to backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userUpdates),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(userUpdates),
+        }
+      );
 
       if (!response.ok) {
         throw new Error('Failed to save user data');
@@ -214,7 +217,6 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
       // Update local context
       updateFullBackendUserFields(userUpdates);
       setPreferences(wizardData.preferences);
-
     } catch (error) {
       console.error('Error saving wizard progress:', error);
       throw error;
@@ -226,25 +228,28 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
   const handleNext = async () => {
     // Save progress on each step
     await saveProgress();
-    
+
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
       // Mark wizard as completed
       if (mongoDbUserId) {
         try {
-          await fetch(`${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ 
-              wizardCompleted: true,
-              onboardingCompletedAt: new Date().toISOString(),
-            }),
-          });
-          
-          updateFullBackendUserFields({ 
+          await fetch(
+            `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`,
+            {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                wizardCompleted: true,
+                onboardingCompletedAt: new Date().toISOString(),
+              }),
+            }
+          );
+
+          updateFullBackendUserFields({
             wizardCompleted: true,
             onboardingCompletedAt: new Date().toISOString(),
           });
@@ -252,7 +257,7 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
           console.error('Error marking wizard as completed:', error);
         }
       }
-      
+
       setShowConfetti(true);
       setTimeout(() => {
         onComplete();
@@ -269,18 +274,21 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
   const handleSkip = async () => {
     if (mongoDbUserId) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            wizardSkipped: true,
-            wizardSkippedAt: new Date().toISOString(),
-          }),
-        });
-        
-        updateFullBackendUserFields({ 
+        await fetch(
+          `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              wizardSkipped: true,
+              wizardSkippedAt: new Date().toISOString(),
+            }),
+          }
+        );
+
+        updateFullBackendUserFields({
           wizardSkipped: true,
           wizardSkippedAt: new Date().toISOString(),
         });
@@ -349,22 +357,14 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
 
   return (
     <div className="min-h-screen bg-base-100">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <ProgressIndicator 
-          currentStep={currentStep} 
+      <div className="container mx-auto max-w-4xl px-4 py-8">
+        <ProgressIndicator
+          currentStep={currentStep}
           totalSteps={totalSteps}
-          stepTitles={[
-            'Welcome',
-            'Profile Setup',
-            'Preferences',
-            'Goal Setting',
-            'Complete'
-          ]}
+          stepTitles={['Welcome', 'Profile Setup', 'Preferences', 'Goal Setting', 'Complete']}
         />
-        
-        <div className="mt-8">
-          {renderCurrentStep()}
-        </div>
+
+        <div className="mt-8">{renderCurrentStep()}</div>
       </div>
     </div>
   );

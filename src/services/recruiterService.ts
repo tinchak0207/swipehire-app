@@ -1,6 +1,5 @@
-
 // src/services/recruiterService.ts
-import type { RecruiterOnboardingData, BackendUser } from '@/lib/types';
+import type { BackendUser, RecruiterOnboardingData } from '@/lib/types';
 
 const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
@@ -8,8 +7,16 @@ const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http:/
 export async function submitCompanyRegistration(
   mongoDbUserId: string,
   onboardingData: RecruiterOnboardingData
-): Promise<{ success: boolean; message: string; companyId?: string; updatedUser?: Partial<BackendUser> }> {
-  console.log('[RecruiterService] Attempting to submit company registration for user:', mongoDbUserId);
+): Promise<{
+  success: boolean;
+  message: string;
+  companyId?: string;
+  updatedUser?: Partial<BackendUser>;
+}> {
+  console.log(
+    '[RecruiterService] Attempting to submit company registration for user:',
+    mongoDbUserId
+  );
   console.log('[RecruiterService] Onboarding Data:', onboardingData);
 
   // TODO: Implement actual file uploads for businessLicense and organizationCode if they are File objects.
@@ -37,16 +44,21 @@ export async function submitCompanyRegistration(
     // We might need specific fields for recruiterJobTitle and recruiterContactPhone on the User model if they are distinct
     // For now, this demo assumes 'name' on User is the recruiter's name.
   };
-  
+
   try {
-    console.log(`[RecruiterService] Making request to: ${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`);
-    console.log('[RecruiterService] Request payload:', JSON.stringify(companyProfilePayload, null, 2));
+    console.log(
+      `[RecruiterService] Making request to: ${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`
+    );
+    console.log(
+      '[RecruiterService] Request payload:',
+      JSON.stringify(companyProfilePayload, null, 2)
+    );
 
     const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
       method: 'POST', // Or PUT, depending on your backend API design for profile updates
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Accept': 'application/json'
+        Accept: 'application/json',
       },
       body: JSON.stringify(companyProfilePayload),
     });
@@ -59,44 +71,46 @@ export async function submitCompanyRegistration(
         errorData = await response.json();
       } catch (parseError) {
         console.error('[RecruiterService] Failed to parse error response:', parseError);
-        errorData = { 
+        errorData = {
           message: `Server responded with ${response.status}: ${response.statusText}`,
-          status: response.status
+          status: response.status,
         };
       }
-      
+
       console.error('[RecruiterService] Error saving company profile:', errorData);
-      
+
       // Provide more specific error messages based on status code
       let errorMessage = errorData.message || 'Failed to save company profile information.';
       if (response.status === 400) {
-        errorMessage = errorData.message || 'Invalid data provided. Please check all required fields.';
+        errorMessage =
+          errorData.message || 'Invalid data provided. Please check all required fields.';
       } else if (response.status === 404) {
         errorMessage = 'User not found. Please try logging out and back in.';
       } else if (response.status === 500) {
         errorMessage = 'Server error occurred. Please try again later.';
       }
-      
+
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
     console.log('[RecruiterService] Company profile information saved successfully:', result);
-    
-    return { 
-        success: true, 
-        message: 'Company registration data submitted successfully.',
-        updatedUser: result.user // Assuming backend returns the updated user object
-    };
 
+    return {
+      success: true,
+      message: 'Company registration data submitted successfully.',
+      updatedUser: result.user, // Assuming backend returns the updated user object
+    };
   } catch (error: any) {
     console.error('[RecruiterService] Error in submitCompanyRegistration:', error);
-    
+
     // If it's a network error, provide a more user-friendly message
     if (error.name === 'TypeError' && error.message.includes('fetch')) {
-      throw new Error('Unable to connect to the server. Please check your internet connection and try again.');
+      throw new Error(
+        'Unable to connect to the server. Please check your internet connection and try again.'
+      );
     }
-    
+
     throw error;
   }
 }

@@ -3,7 +3,7 @@ import { Mistral } from '@mistralai/mistralai';
 /**
  * Available Mistral AI models
  */
-export type MistralModel = 
+export type MistralModel =
   | 'mistral-tiny'
   | 'mistral-small'
   | 'mistral-medium'
@@ -49,6 +49,12 @@ export interface AIGenerateResponse {
     completionTokens: number;
     totalTokens: number;
   };
+  media?: {
+    url: string;
+    mimeType: string;
+    width?: number;
+    height?: number;
+  };
 }
 
 /**
@@ -78,7 +84,7 @@ export class AIError extends Error {
  */
 function createMistralClient(): Mistral {
   const apiKey = process.env.MISTRAL_API_KEY || process.env.NEXT_PUBLIC_MISTRAL_API_KEY;
-  
+
   if (!apiKey) {
     console.error('MISTRAL_API_KEY environment variable is required');
     throw new AIError('MISTRAL_API_KEY is not set', 'MISSING_API_KEY');
@@ -93,45 +99,49 @@ function createMistralClient(): Mistral {
 function validateModel(model: string): model is MistralModel {
   const validModels: MistralModel[] = [
     'mistral-tiny',
-    'mistral-small', 
+    'mistral-small',
     'mistral-medium',
     'mistral-large-latest',
     'open-mistral-7b',
     'open-mixtral-8x7b',
-    'open-mixtral-8x22b'
+    'open-mixtral-8x22b',
   ];
-  
+
   return validModels.includes(model as MistralModel);
 }
 
 /**
  * Build messages array for chat completion
  */
-function buildMessages(params: AIGenerateParams): Array<{ role: string; content: string }> {
-  const messages: Array<{ role: string; content: string }> = [];
-  
+function buildMessages(
+  params: AIGenerateParams
+): Array<{ role: 'system' | 'user' | 'assistant'; content: string }> {
+  const messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }> = [];
+
   // Add system prompt if provided
   if (params.systemPrompt) {
     messages.push({
       role: 'system',
-      content: params.systemPrompt
+      content: params.systemPrompt,
     });
   }
-  
+
   // Add existing messages if provided
   if (params.messages && params.messages.length > 0) {
-    messages.push(...params.messages.map(msg => ({
-      role: msg.role,
-      content: msg.content
-    })));
+    messages.push(
+      ...params.messages.map((msg) => ({
+        role: msg.role,
+        content: msg.content,
+      }))
+    );
   }
-  
+
   // Add user prompt
   messages.push({
     role: 'user',
-    content: params.prompt
+    content: params.prompt,
   });
-  
+
   return messages;
 }
 
@@ -146,13 +156,13 @@ export const ai = {
     try {
       const client = createMistralClient();
       const model = params.model || 'mistral-small';
-      
+
       if (!validateModel(model)) {
         throw new AIError(`Invalid model: ${model}`, 'INVALID_MODEL');
       }
-      
+
       const messages = buildMessages(params);
-      
+
       const response = await client.chat.complete({
         model,
         messages,
@@ -165,32 +175,43 @@ export const ai = {
         throw new AIError('No response generated', 'NO_RESPONSE');
       }
 
-      const choice = response.choices[0];
-      if (!choice.message?.content) {
+      const choice = response.choices?.[0];
+      if (!choice?.message?.content) {
         throw new AIError('Empty response content', 'EMPTY_RESPONSE');
       }
 
-      return {
-        text: choice.message.content,
+      // Handle case where content might be ContentChunk[]
+      const content =
+        typeof choice.message.content === 'string'
+          ? choice.message.content
+          : choice.message.content.join('');
+
+      const result: AIGenerateResponse = {
+        text: content,
         model,
-        usage: response.usage ? {
+      };
+
+      if (response.usage) {
+        result.usage = {
           promptTokens: response.usage.promptTokens || 0,
           completionTokens: response.usage.completionTokens || 0,
           totalTokens: response.usage.totalTokens || 0,
-        } : undefined,
-      };
+        };
+      }
+
+      return result;
     } catch (error) {
       if (error instanceof AIError) {
         throw error;
       }
-      
+
       // Handle Mistral API errors
       if (error && typeof error === 'object' && 'status' in error) {
         const statusCode = (error as any).status;
         const message = (error as any).message || 'Mistral API error';
         throw new AIError(message, 'API_ERROR', statusCode);
       }
-      
+
       // Handle network and other errors
       throw new AIError(
         error instanceof Error ? error.message : 'Unknown error occurred',
@@ -206,13 +227,13 @@ export const ai = {
     try {
       const client = createMistralClient();
       const model = params.model || 'mistral-small';
-      
+
       if (!validateModel(model)) {
         throw new AIError(`Invalid model: ${model}`, 'INVALID_MODEL');
       }
-      
+
       const messages = buildMessages(params);
-      
+
       const response = await client.chat.stream({
         model,
         messages,
@@ -235,7 +256,7 @@ export const ai = {
           } catch (error) {
             controller.error(error);
           }
-        }
+        },
       });
 
       return {
@@ -246,7 +267,7 @@ export const ai = {
       if (error instanceof AIError) {
         throw error;
       }
-      
+
       throw new AIError(
         error instanceof Error ? error.message : 'Streaming error occurred',
         'STREAM_ERROR'
@@ -273,11 +294,11 @@ export const ai = {
     return [
       'mistral-tiny',
       'mistral-small',
-      'mistral-medium', 
+      'mistral-medium',
       'mistral-large-latest',
       'open-mistral-7b',
       'open-mixtral-8x7b',
-      'open-mixtral-8x22b'
+      'open-mixtral-8x22b',
     ];
   },
 
@@ -304,7 +325,7 @@ export const ai = {
       input: options.input,
       output: options.output,
       prompt: options.prompt,
-      generate: async (input: any): Promise<any> => {
+      generate: async (_input: any): Promise<any> => {
         // This is a simplified implementation for compatibility
         // In a real scenario, you'd want to parse the prompt template
         const response = await ai.generate({
@@ -313,7 +334,7 @@ export const ai = {
           temperature: 0.7,
           maxTokens: 1500,
         });
-        
+
         try {
           // Try to parse as JSON if the output schema expects structured data
           return JSON.parse(response.text);
@@ -321,7 +342,7 @@ export const ai = {
           // Fallback to text response
           return { output: response.text };
         }
-      }
+      },
     };
   },
 
@@ -329,11 +350,14 @@ export const ai = {
    * Legacy Genkit compatibility - defineFlow
    * This maintains compatibility with existing flows that use Genkit syntax
    */
-  defineFlow: (options: {
-    name: string;
-    inputSchema: any;
-    outputSchema: any;
-  }, handler: (input: any) => Promise<any>) => {
+  defineFlow: (
+    _options: {
+      name: string;
+      inputSchema: any;
+      outputSchema: any;
+    },
+    handler: (input: any) => Promise<any>
+  ) => {
     return handler;
   },
 };

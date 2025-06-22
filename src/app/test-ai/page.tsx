@@ -1,13 +1,12 @@
 'use client';
 
+import { Brain, CheckCircle, Loader2, Sparkles, XCircle } from 'lucide-react';
 import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Loader2, CheckCircle, XCircle, Brain, Sparkles } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface TestResult {
@@ -33,19 +32,19 @@ export default function TestAIPage() {
     try {
       const response = await fetch('/api/test-ai');
       const result = await response.json();
-      
+
       setTestResult(result);
-      
+
       if (result.success) {
         toast({
-          title: "AI Test Successful",
-          description: "Mistral AI integration is working correctly!",
+          title: 'AI Test Successful',
+          description: 'Mistral AI integration is working correctly!',
         });
       } else {
         toast({
-          title: "AI Test Failed",
-          description: result.error || "Unknown error occurred",
-          variant: "destructive",
+          title: 'AI Test Failed',
+          description: result.error || 'Unknown error occurred',
+          variant: 'destructive',
         });
       }
     } catch (error) {
@@ -54,12 +53,12 @@ export default function TestAIPage() {
         error: error instanceof Error ? error.message : 'Network error occurred',
         timestamp: new Date().toISOString(),
       };
-      
+
       setTestResult(errorResult);
       toast({
-        title: "Test Failed",
-        description: "Could not connect to AI service",
-        variant: "destructive",
+        title: 'Test Failed',
+        description: 'Could not connect to AI service',
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -69,9 +68,9 @@ export default function TestAIPage() {
   const testCustomPrompt = async () => {
     if (!customPrompt.trim()) {
       toast({
-        title: "Prompt Required",
-        description: "Please enter a prompt to test",
-        variant: "destructive",
+        title: 'Prompt Required',
+        description: 'Please enter a prompt to test',
+        variant: 'destructive',
       });
       return;
     }
@@ -92,25 +91,25 @@ export default function TestAIPage() {
       });
 
       const result = await response.json();
-      
+
       if (result.success) {
         setCustomResponse(result.response);
         toast({
-          title: "Custom Test Successful",
-          description: "AI responded to your prompt!",
+          title: 'Custom Test Successful',
+          description: 'AI responded to your prompt!',
         });
       } else {
         toast({
-          title: "Custom Test Failed",
-          description: result.error || "Unknown error occurred",
-          variant: "destructive",
+          title: 'Custom Test Failed',
+          description: result.error || 'Unknown error occurred',
+          variant: 'destructive',
         });
       }
-    } catch (error) {
+    } catch (_error) {
       toast({
-        title: "Test Failed",
-        description: "Could not send custom prompt",
-        variant: "destructive",
+        title: 'Test Failed',
+        description: 'Could not send custom prompt',
+        variant: 'destructive',
       });
     } finally {
       setIsCustomLoading(false);
@@ -118,11 +117,11 @@ export default function TestAIPage() {
   };
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
-      <div className="text-center mb-8">
-        <Brain className="mx-auto h-12 w-12 text-primary mb-3" />
-        <h1 className="text-3xl font-bold tracking-tight">Mistral AI Integration Test</h1>
-        <p className="text-lg text-muted-foreground mt-2">
+    <div className="container mx-auto max-w-4xl p-6">
+      <div className="mb-8 text-center">
+        <Brain className="mx-auto mb-3 h-12 w-12 text-primary" />
+        <h1 className="font-bold text-3xl tracking-tight">Mistral AI Integration Test</h1>
+        <p className="mt-2 text-lg text-muted-foreground">
           Test the AI functionality to ensure everything is working correctly
         </p>
       </div>
@@ -135,15 +134,12 @@ export default function TestAIPage() {
             AI Service Test
           </CardTitle>
           <CardDescription>
-            Run a comprehensive test of the Mistral AI integration including basic generation and profile recommendation.
+            Run a comprehensive test of the Mistral AI integration including basic generation and
+            profile recommendation.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button 
-            onClick={runAITest} 
-            disabled={isLoading}
-            className="w-full sm:w-auto"
-          >
+          <Button onClick={runAITest} disabled={isLoading} className="w-full sm:w-auto">
             {isLoading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -158,41 +154,46 @@ export default function TestAIPage() {
           </Button>
 
           {testResult && (
-            <div className="mt-6 p-4 border rounded-lg">
-              <div className="flex items-center mb-3">
+            <div className="mt-6 rounded-lg border p-4">
+              <div className="mb-3 flex items-center">
                 {testResult.success ? (
-                  <CheckCircle className="h-5 w-5 text-green-500 mr-2" />
+                  <CheckCircle className="mr-2 h-5 w-5 text-green-500" />
                 ) : (
-                  <XCircle className="h-5 w-5 text-red-500 mr-2" />
+                  <XCircle className="mr-2 h-5 w-5 text-red-500" />
                 )}
-                <Badge variant={testResult.success ? "default" : "destructive"}>
-                  {testResult.success ? "Success" : "Failed"}
+                <Badge variant={testResult.success ? 'default' : 'destructive'}>
+                  {testResult.success ? 'Success' : 'Failed'}
                 </Badge>
               </div>
 
               {testResult.success && testResult.tests && (
                 <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold mb-2">Basic Generation Test</h4>
-                    <p className="text-sm text-muted-foreground mb-1">Response:</p>
-                    <p className="text-sm bg-muted p-2 rounded">{testResult.tests.basicGeneration.response}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Model: {testResult.tests.basicGeneration.model} | 
-                      Tokens: {testResult.tests.basicGeneration.usage?.totalTokens || 'N/A'}
+                    <h4 className="mb-2 font-semibold">Basic Generation Test</h4>
+                    <p className="mb-1 text-muted-foreground text-sm">Response:</p>
+                    <p className="rounded bg-muted p-2 text-sm">
+                      {testResult.tests.basicGeneration.response}
+                    </p>
+                    <p className="mt-1 text-muted-foreground text-xs">
+                      Model: {testResult.tests.basicGeneration.model} | Tokens:{' '}
+                      {testResult.tests.basicGeneration.usage?.totalTokens || 'N/A'}
                     </p>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold mb-2">Profile Recommendation Test</h4>
-                    <div className="text-sm space-y-1">
+                    <h4 className="mb-2 font-semibold">Profile Recommendation Test</h4>
+                    <div className="space-y-1 text-sm">
                       <p>Candidate ID: {testResult.tests.profileRecommendation.candidateId}</p>
                       <p>Match Score: {testResult.tests.profileRecommendation.matchScore}/100</p>
-                      <p>Has Reasoning: {testResult.tests.profileRecommendation.hasReasoning ? 'Yes' : 'No'}</p>
+                      <p>
+                        Has Reasoning:{' '}
+                        {testResult.tests.profileRecommendation.hasReasoning ? 'Yes' : 'No'}
+                      </p>
                     </div>
                   </div>
 
                   <div>
-                    <h4 className="font-semibold mb-2">Available Models</h4>
+                    <h4 className="mb-2 font-semibold">Available Models</h4>
                     <div className="flex flex-wrap gap-1">
                       {testResult.tests.availableModels.map((model: string) => (
                         <Badge key={model} variant="outline" className="text-xs">
@@ -206,12 +207,12 @@ export default function TestAIPage() {
 
               {!testResult.success && (
                 <div>
-                  <p className="text-sm text-red-600 mb-2">Error: {testResult.error}</p>
+                  <p className="mb-2 text-red-600 text-sm">Error: {testResult.error}</p>
                   {testResult.error?.includes('MISTRAL_API_KEY') && (
-                    <div className="text-xs text-muted-foreground bg-yellow-50 p-2 rounded border">
+                    <div className="rounded border bg-yellow-50 p-2 text-muted-foreground text-xs">
                       <p className="font-semibold">Solution:</p>
                       <p>Add your Mistral API key to the .env.local file:</p>
-                      <code className="block mt-1 bg-gray-100 p-1 rounded">
+                      <code className="mt-1 block rounded bg-gray-100 p-1">
                         MISTRAL_API_KEY=your_actual_api_key_here
                       </code>
                     </div>
@@ -219,7 +220,7 @@ export default function TestAIPage() {
                 </div>
               )}
 
-              <p className="text-xs text-muted-foreground mt-3">
+              <p className="mt-3 text-muted-foreground text-xs">
                 Test completed at: {testResult.timestamp}
               </p>
             </div>
@@ -247,8 +248,8 @@ export default function TestAIPage() {
             />
           </div>
 
-          <Button 
-            onClick={testCustomPrompt} 
+          <Button
+            onClick={testCustomPrompt}
             disabled={isCustomLoading || !customPrompt.trim()}
             className="w-full sm:w-auto"
           >
@@ -266,9 +267,9 @@ export default function TestAIPage() {
           </Button>
 
           {customResponse && (
-            <div className="mt-4 p-4 border rounded-lg">
-              <h4 className="font-semibold mb-2">AI Response:</h4>
-              <div className="bg-muted p-3 rounded text-sm whitespace-pre-wrap">
+            <div className="mt-4 rounded-lg border p-4">
+              <h4 className="mb-2 font-semibold">AI Response:</h4>
+              <div className="whitespace-pre-wrap rounded bg-muted p-3 text-sm">
                 {customResponse}
               </div>
             </div>
@@ -281,16 +282,30 @@ export default function TestAIPage() {
         <CardHeader>
           <CardTitle>Setup Instructions</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm space-y-2">
+        <CardContent className="space-y-2 text-sm">
           <p>To use Mistral AI in your application:</p>
-          <ol className="list-decimal list-inside space-y-1 ml-4">
-            <li>Get your API key from <a href="https://console.mistral.ai/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Mistral AI Console</a></li>
-            <li>Add it to your .env.local file: <code className="bg-gray-100 px-1 rounded">MISTRAL_API_KEY=your_key_here</code></li>
+          <ol className="ml-4 list-inside list-decimal space-y-1">
+            <li>
+              Get your API key from{' '}
+              <a
+                href="https://console.mistral.ai/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:underline"
+              >
+                Mistral AI Console
+              </a>
+            </li>
+            <li>
+              Add it to your .env.local file:{' '}
+              <code className="rounded bg-gray-100 px-1">MISTRAL_API_KEY=your_key_here</code>
+            </li>
             <li>Restart your development server</li>
             <li>Run the tests above to verify everything is working</li>
           </ol>
-          <p className="text-muted-foreground mt-3">
-            The AI service will automatically use Mistral AI for all AI-powered features in your application.
+          <p className="mt-3 text-muted-foreground">
+            The AI service will automatically use Mistral AI for all AI-powered features in your
+            application.
           </p>
         </CardContent>
       </Card>

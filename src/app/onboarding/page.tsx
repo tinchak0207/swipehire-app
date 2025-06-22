@@ -1,8 +1,7 @@
 'use client';
 
-import React from 'react';
-import { WizardContainer } from '@/components/onboarding';
 import { useRouter } from 'next/navigation';
+import { WizardContainer } from '@/components/onboarding';
 import { useOnboardingWizard } from '@/hooks/useOnboardingWizard';
 
 export default function OnboardingPage() {
@@ -23,10 +22,7 @@ export default function OnboardingPage() {
 
   return (
     <div className="min-h-screen bg-base-100">
-      <WizardContainer 
-        onComplete={handleComplete}
-        onSkip={handleSkip}
-      />
+      <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />
     </div>
   );
 }
