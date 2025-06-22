@@ -330,7 +330,6 @@ export default function AiHrPaymentPage() {
                       <li key={`guideline-${index}-${guideline.slice(0, 20)}`}>{guideline}</li>
                     ))}
                   </ul>
->>
                 </div>
               )}
             </CardContent>
