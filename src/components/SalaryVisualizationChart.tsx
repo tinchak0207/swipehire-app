@@ -288,9 +288,28 @@ export const SalaryVisualizationChart: React.FC<SalaryVisualizationChartProps> =
     if (!processedData || processedData.length === 0) {
       return (
         <div className="flex h-64 items-center justify-center">
-          <div className="text-center">
-            <div className="mb-2 text-4xl text-white">📊</div>
-            <p className="font-medium text-white">No data available to display</p>
+          <div className="flex flex-col items-center text-center">
+            {/* Icon with gradient background */}
+            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 backdrop-blur-sm">
+              <svg
+                className="h-8 w-8 text-primary"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            
+            {/* Title and message */}
+            <h3 className="mb-2 font-semibold text-white text-lg">No Data Available</h3>
+            <p className="text-white/70 text-sm">No data available to display in chart</p>
           </div>
         </div>
       );

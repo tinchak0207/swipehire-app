@@ -238,7 +238,7 @@ const ProgressIndicator: React.FC<ProgressIndicatorProps> = ({
   const scheme = COLOR_SCHEMES[colorScheme];
 
   return (
-    <div className="fixed top-0 right-0 left-0 z-50 bg-black/10 backdrop-blur-sm">
+    <div className="relative bg-black/10 backdrop-blur-sm">
       <div className="h-2 bg-white/10">
         <div
           className={`h-2 bg-gradient-to-r ${scheme.button} shadow-lg transition-all duration-700 ease-out`}
@@ -480,13 +480,13 @@ const SelectStep: React.FC<SelectStepProps> = ({ step, value, onChange, error, i
           </div>
         </div>
 
-        <div className="mx-auto grid max-w-2xl gap-4 md:gap-5">
+        <div className="mx-auto grid max-w-4xl grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
           {step.options?.map((option, index) => (
             <button
               key={option.value}
               type="button"
               onClick={() => onChange(option.value)}
-              className={`group relative transform-gpu rounded-2xl border-2 p-6 text-left transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl md:p-8 ${
+              className={`group relative transform-gpu rounded-2xl border-2 p-4 text-left transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl md:p-5 ${
                 value === option.value
                   ? `${scheme.accent} scale-[1.02] shadow-2xl`
                   : 'border-white/20 bg-white/5 backdrop-blur-sm hover:border-white/40 hover:bg-white/10'
@@ -496,17 +496,17 @@ const SelectStep: React.FC<SelectStepProps> = ({ step, value, onChange, error, i
                 animation: isVisible ? 'fadeIn 0.6s ease-out forwards' : 'none',
               }}
             >
-              <div className="flex items-center space-x-6">
-                <div className="transform text-3xl transition-transform duration-300 group-hover:scale-110 md:text-4xl">
+              <div className="flex items-center space-x-3 md:space-x-4">
+                <div className="transform text-2xl transition-transform duration-300 group-hover:scale-110 md:text-3xl">
                   {option.emoji}
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-white text-xl leading-tight md:text-2xl">
+                  <div className="font-semibold text-white text-lg leading-tight md:text-xl">
                     {option.label}
                   </div>
                 </div>
                 <div
-                  className={`h-6 w-6 rounded-full border-2 transition-all duration-300 ${
+                  className={`h-5 w-5 rounded-full border-2 transition-all duration-300 ${
                     value === option.value
                       ? 'border-white bg-white shadow-lg'
                       : 'border-white/40 group-hover:scale-110 group-hover:border-white/70'
@@ -654,7 +654,7 @@ export const TypeformSalaryQuery: React.FC<TypeformSalaryQueryProps> = ({
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/50 to-indigo-900/30 ${className}`}
+      className={`relative flex flex-col bg-gradient-to-br from-slate-900 via-blue-900/50 to-indigo-900/30 ${className}`}
     >
       <ProgressIndicator
         currentStep={currentStep}
@@ -662,9 +662,9 @@ export const TypeformSalaryQuery: React.FC<TypeformSalaryQueryProps> = ({
         colorScheme={currentStepConfig?.colorScheme || 'blue'}
       />
 
-      <div className="container mx-auto px-4 py-8 md:py-16">
+      <div className="container mx-auto flex-1 px-4 py-8 md:py-16">
         <div className="mx-auto max-w-2xl">
-          <div className="flex min-h-[60vh] flex-col justify-center">
+          <div className="flex min-h-[50vh] flex-col justify-center">
             {currentStepConfig ? (
               currentStepConfig.type === 'input' ? (
                 <InputStep
@@ -701,8 +701,8 @@ export const TypeformSalaryQuery: React.FC<TypeformSalaryQueryProps> = ({
       </div>
 
       {/* Floating help text */}
-      <div className="fixed bottom-4 left-4 hidden text-sm text-white/60 md:block">
-        Press <kbd className="kbd kbd-sm">Enter</kbd> to continue
+      <div className="absolute bottom-4 left-4 hidden text-sm text-white/60 md:block">
+        Press <kbd className="rounded bg-white/10 px-2 py-1 text-xs">Enter</kbd> to continue
       </div>
     </div>
   );

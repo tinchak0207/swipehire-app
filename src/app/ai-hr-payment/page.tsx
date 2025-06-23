@@ -40,8 +40,8 @@ const perReplyCost = 0.99;
 const monthlyCost = 29.99;
 
 export default function AiHrPaymentPage() {
-  const { currentUser, fullBackendUser, preferences, setPreferences, mongoDbUserId } =
-    useUserPreferences();
+  const { fullBackendUser, preferences, setPreferences, mongoDbUserId } = useUserPreferences();
+  const currentUser = auth.currentUser;
   const { toast } = useToast();
   const router = useRouter();
 
@@ -70,7 +70,7 @@ export default function AiHrPaymentPage() {
   if (fullBackendUser?.profileAvatarUrl) {
     if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
       const CUSTOM_BACKEND_URL =
-        process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+        process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
       userPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
     } else {
       userPhotoURL = fullBackendUser.profileAvatarUrl;
@@ -249,24 +249,24 @@ export default function AiHrPaymentPage() {
     }
   };
 
-  const handlePlanSelectionAndConceptualPayment = async (plan: 'per_reply' | 'monthly') => {
+  const handlePlanSelectionAndConceptualPayment = async (plan: 'per_reply' | 'monthly'): Promise<void> => {
     setSelectedPlan(plan);
     setIsSubmittingPayment(true);
 
-    console.log(`Redirecting to Stripe for ${plan} plan (conceptual)`);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+        console.log(`Redirecting to Stripe for ${plan} plan (conceptual)`);
+        await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    await setPreferences({
-      hasAiHumanResourcesFeature: true,
-      aiHumanResourcesTier: plan,
-    });
+        await setPreferences({
+          hasAiHumanResourcesFeature: true,
+          aiHumanResourcesTier: plan,
+        });
 
-    setIsSubmittingPayment(false);
-    toast({
-      title: 'AI Human Resources Activated!',
-      description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
-      duration: 8000,
-    });
+        setIsSubmittingPayment(false);
+        toast({
+          title: 'AI Human Resources Activated!',
+          description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
+          duration: 8000,
+        });
   };
 
   const isPerReplyRecommended = recommendedPlan === 'per_reply';

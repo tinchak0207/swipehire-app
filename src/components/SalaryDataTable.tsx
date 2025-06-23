@@ -105,42 +105,47 @@ const getColumnConfig = (): ColumnConfig[] => [
     key: 'jobTitle',
     label: 'Job Title',
     sortable: true,
-    className: 'font-medium text-base-content',
+    className: 'font-medium text-gray-900',
   },
   {
     key: 'industry',
     label: 'Industry',
     sortable: true,
+    className: 'text-gray-800',
   },
   {
     key: 'region',
     label: 'Region',
     sortable: true,
+    className: 'text-gray-800',
   },
   {
     key: 'experienceLevel',
     label: 'Experience',
     sortable: true,
     formatter: (value) => formatExperienceLevel(value as string),
+    className: 'text-gray-800',
   },
   {
     key: 'education',
     label: 'Education',
     sortable: true,
     formatter: (value) => formatEducation(value as string),
+    className: 'text-gray-800',
   },
   {
     key: 'companySize',
     label: 'Company Size',
     sortable: true,
     formatter: (value) => formatCompanySize(value as string),
+    className: 'text-gray-800',
   },
   {
     key: 'baseSalary',
     label: 'Base Salary',
     sortable: true,
     formatter: (value, row) => formatCurrency(value as number, row.currency),
-    className: 'text-right font-mono',
+    className: 'text-right font-mono text-gray-900',
     headerClassName: 'text-right',
   },
   {
@@ -148,7 +153,7 @@ const getColumnConfig = (): ColumnConfig[] => [
     label: 'Total Comp',
     sortable: true,
     formatter: (value, row) => formatCurrency(value as number, row.currency),
-    className: 'text-right font-mono font-semibold',
+    className: 'text-right font-mono font-semibold text-gray-900',
     headerClassName: 'text-right',
   },
   {
@@ -156,7 +161,7 @@ const getColumnConfig = (): ColumnConfig[] => [
     label: 'Date',
     sortable: true,
     formatter: (value) => formatDate(value as string),
-    className: 'text-sm text-base-content/70',
+    className: 'text-sm text-gray-600',
   },
 ];
 
@@ -334,40 +339,40 @@ interface StatisticsSummaryProps {
 
 const StatisticsSummary: React.FC<StatisticsSummaryProps> = ({ statistics, filteredCount }) => {
   return (
-    <div className="mb-4 rounded-lg border bg-base-100 p-4">
-      <h3 className="mb-3 font-semibold text-lg">Statistics Summary</h3>
+    <div className="mb-4 rounded-lg border border-white/20 bg-white/80 p-4 shadow-lg backdrop-blur-sm">
+      <h3 className="mb-3 font-semibold text-gray-900 text-lg">Statistics Summary</h3>
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
         <div className="stat">
-          <div className="stat-title text-xs">Count</div>
-          <div className="stat-value text-lg">{filteredCount.toLocaleString()}</div>
+          <div className="stat-title text-gray-600 text-xs">Count</div>
+          <div className="stat-value text-gray-900 text-lg">{filteredCount.toLocaleString()}</div>
         </div>
         <div className="stat">
-          <div className="stat-title text-xs">Median</div>
-          <div className="stat-value text-lg">
+          <div className="stat-title text-gray-600 text-xs">Median</div>
+          <div className="stat-value text-gray-900 text-lg">
             {formatCurrency(statistics.median, statistics.currency)}
           </div>
         </div>
         <div className="stat">
-          <div className="stat-title text-xs">Average</div>
-          <div className="stat-value text-lg">
+          <div className="stat-title text-gray-600 text-xs">Average</div>
+          <div className="stat-value text-gray-900 text-lg">
             {formatCurrency(statistics.mean, statistics.currency)}
           </div>
         </div>
         <div className="stat">
-          <div className="stat-title text-xs">Min</div>
-          <div className="stat-value text-lg">
+          <div className="stat-title text-gray-600 text-xs">Min</div>
+          <div className="stat-value text-gray-900 text-lg">
             {formatCurrency(statistics.min, statistics.currency)}
           </div>
         </div>
         <div className="stat">
-          <div className="stat-title text-xs">Max</div>
-          <div className="stat-value text-lg">
+          <div className="stat-title text-gray-600 text-xs">Max</div>
+          <div className="stat-value text-gray-900 text-lg">
             {formatCurrency(statistics.max, statistics.currency)}
           </div>
         </div>
         <div className="stat">
-          <div className="stat-title text-xs">75th %ile</div>
-          <div className="stat-value text-lg">
+          <div className="stat-title text-gray-600 text-xs">75th %ile</div>
+          <div className="stat-value text-gray-900 text-lg">
             {formatCurrency(statistics.percentile75, statistics.currency)}
           </div>
         </div>
@@ -540,11 +545,11 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   // Loading state
   if (loading) {
     return (
-      <div className={`card bg-base-100 shadow-xl ${className}`}>
-        <div className="card-body">
+      <div className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+        <div className="p-6">
           <div className="flex items-center justify-center py-12">
-            <span className="loading loading-spinner loading-lg" />
-            <span className="ml-3 text-lg">Loading salary data...</span>
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
+            <span className="ml-3 text-gray-900 text-lg">Loading salary data...</span>
           </div>
         </div>
       </div>
@@ -554,10 +559,10 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   // Error state
   if (error) {
     return (
-      <div className={`card bg-base-100 shadow-xl ${className}`}>
-        <div className="card-body">
-          <div className="alert alert-error">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className={`rounded-lg border border-red-200/50 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+        <div className="p-6">
+          <div className="flex items-start space-x-4 rounded-lg border border-red-200/50 bg-red-50/80 p-4">
+            <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -566,8 +571,8 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
               />
             </svg>
             <div>
-              <h3 className="font-bold">Error loading salary data</h3>
-              <div className="text-xs">{error}</div>
+              <h3 className="font-bold text-red-900">Error loading salary data</h3>
+              <div className="text-red-700 text-sm">{error}</div>
             </div>
           </div>
         </div>
@@ -578,24 +583,73 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   // Empty state
   if (data.length === 0) {
     return (
-      <div className={`card bg-base-100 shadow-xl ${className}`}>
-        <div className="card-body">
-          <div className="flex flex-col items-center justify-center py-12">
-            <svg
-              className="mb-4 h-16 w-16 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1}
-                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            <h3 className="mb-2 font-semibold text-white text-xl">No Data Available</h3>
-            <p className="text-white">{emptyStateMessage}</p>
+      <div className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+        <div className="p-6">
+          <div className="flex flex-col items-center justify-center py-16">
+            {/* Icon with gradient background */}
+            <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-100/80 to-indigo-100/80 backdrop-blur-sm">
+              <svg
+                className="h-10 w-10 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
+            
+            {/* Title with consistent styling */}
+            <h3 className="mb-3 font-bold text-gray-900 text-2xl">No Data Available</h3>
+            
+            {/* Message with improved typography */}
+            <p className="mb-6 max-w-md text-center text-gray-600 leading-relaxed">
+              {emptyStateMessage}
+            </p>
+            
+            {/* Action suggestions */}
+            <div className="flex flex-col items-center gap-4 sm:flex-row">
+              <div className="flex items-center gap-2 rounded-lg border border-blue-200/50 bg-blue-50/80 px-4 py-2 backdrop-blur-sm">
+                <svg
+                  className="h-4 w-4 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span className="text-sm text-blue-700">Try adjusting your search filters</span>
+              </div>
+              
+              <div className="flex items-center gap-2 rounded-lg border border-green-200/50 bg-green-50/80 px-4 py-2 backdrop-blur-sm">
+                <svg
+                  className="h-4 w-4 text-green-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+                <span className="text-sm text-green-700">Broaden your search terms</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -603,11 +657,13 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   }
 
   return (
-    <div className={`card bg-base-100 shadow-xl ${className}`}>
-      <div className="card-body">
-        <div className="card-title mb-6">
-          <h2 className="text-2xl">Salary Data Table</h2>
-          <div className="badge badge-primary">{sortedData.length} records</div>
+    <div className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+      <div className="p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="font-bold text-2xl text-gray-900">Salary Data Table</h2>
+          <div className="rounded-full border border-blue-200/50 bg-blue-50/80 px-3 py-1 backdrop-blur-sm">
+            <span className="font-semibold text-blue-700 text-sm">{sortedData.length} records</span>
+          </div>
         </div>
 
         {/* Statistics Summary */}
@@ -621,19 +677,19 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
         )}
 
         {/* Table */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded-lg border border-gray-200/50 bg-white/60 backdrop-blur-sm">
           <table
             id={tableId}
-            className="table-zebra table-pin-rows table"
+            className="w-full"
             aria-label="Salary data table"
           >
-            <thead>
+            <thead className="bg-gray-50/80">
               <tr>
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                    className={`${column.headerClassName || ''} ${
-                      enableSorting && column.sortable ? 'cursor-pointer hover:bg-base-200' : ''
+                    className={`px-6 py-3 text-left font-semibold text-gray-900 text-xs uppercase tracking-wider ${column.headerClassName || ''} ${
+                      enableSorting && column.sortable ? 'cursor-pointer hover:bg-gray-100/80' : ''
                     }`}
                     onClick={() => column.sortable && handleSort(column.key)}
                     role="columnheader"
@@ -667,13 +723,13 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                 ))}
               </tr>
             </thead>
-            <tbody>
-              {paginatedData.map((row) => (
+            <tbody className="divide-y divide-gray-200/50">
+              {paginatedData.map((row, index) => (
                 <tr
                   key={row.id}
-                  className={`${onRowClick ? 'cursor-pointer hover:bg-base-200' : ''} ${
+                  className={`${onRowClick ? 'cursor-pointer hover:bg-blue-50/50' : ''} ${
                     row.verified ? '' : 'opacity-75'
-                  }`}
+                  } ${index % 2 === 0 ? 'bg-white/40' : 'bg-gray-50/40'}`}
                   onClick={() => handleRowClick(row)}
                   tabIndex={onRowClick ? 0 : -1}
                   onKeyDown={(e) => {
@@ -685,12 +741,14 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                   aria-label={`Salary data for ${row.jobTitle} at ${row.industry}`}
                 >
                   {columns.map((column) => (
-                    <td key={column.key} className={column.className || ''}>
+                    <td key={column.key} className={`px-6 py-4 whitespace-nowrap text-gray-900 text-sm ${column.className || ''}`}>
                       {column.formatter
                         ? column.formatter(row[column.key as keyof SalaryDataPoint], row)
                         : String(row[column.key as keyof SalaryDataPoint] || '')}
                       {column.key === 'jobTitle' && !row.verified && (
-                        <div className="badge badge-ghost badge-xs ml-2">Unverified</div>
+                        <span className="ml-2 inline-flex items-center rounded-full border border-gray-300/50 bg-gray-100/80 px-2 py-1 text-xs text-gray-600">
+                          Unverified
+                        </span>
                       )}
                     </td>
                   ))}
@@ -703,10 +761,10 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="mt-6 flex justify-center">
-            <div className="join">
+            <div className="inline-flex rounded-lg border border-gray-200/50 bg-white/80 shadow-sm backdrop-blur-sm">
               <button
                 type="button"
-                className="join-item btn btn-sm"
+                className="rounded-l-lg border-gray-200/50 border-r bg-white/60 px-4 py-2 font-medium text-gray-700 text-sm transition-all duration-200 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
                 aria-label="Previous page"
@@ -720,7 +778,11 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                   <button
                     key={pageNum}
                     type="button"
-                    className={`join-item btn btn-sm ${currentPage === pageNum ? 'btn-active' : ''}`}
+                    className={`border-gray-200/50 border-r px-4 py-2 font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${
+                      currentPage === pageNum 
+                        ? 'bg-blue-50/80 text-blue-700' 
+                        : 'bg-white/60 text-gray-700 hover:bg-white/80'
+                    }`}
                     onClick={() => handlePageChange(pageNum)}
                     aria-label={`Page ${pageNum}`}
                     aria-current={currentPage === pageNum ? 'page' : undefined}
@@ -732,7 +794,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
 
               <button
                 type="button"
-                className="join-item btn btn-sm"
+                className="rounded-r-lg bg-white/60 px-4 py-2 font-medium text-gray-700 text-sm transition-all duration-200 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 aria-label="Next page"
@@ -744,7 +806,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
         )}
 
         {/* Table info */}
-        <div className="mt-4 text-center text-base-content/70 text-sm">
+        <div className="mt-4 text-center text-gray-600 text-sm">
           Showing {(currentPage - 1) * pageSize + 1} to{' '}
           {Math.min(currentPage * pageSize, sortedData.length)} of {sortedData.length} entries
           {filteredData.length !== data.length && (

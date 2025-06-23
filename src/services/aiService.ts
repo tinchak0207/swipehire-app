@@ -445,7 +445,9 @@ export async function generateIcebreaker(params: {
   candidateProfile: CandidateProfileForAI;
   jobCriteria: JobCriteriaForAI;
   tone?: AIScriptTone;
-}): Promise<{ icebreaker: string; alternatives: string[] }> {
+}): Promise<{
+  icebreakerQuestion: string; icebreaker: string; alternatives: string[] 
+}> {
   try {
     const tone = params.tone || 'friendly';
 
@@ -481,7 +483,13 @@ Make it personalized and professional (1-2 sentences).`;
       ],
     };
 
-    return parseAIResponse(response.text, fallbackOutput);
+    // Add missing 'icebreakerQuestion' property to fallbackOutput for type compatibility
+    const fallbackWithQuestion = {
+      icebreakerQuestion: fallbackOutput.icebreaker,
+      ...fallbackOutput,
+    };
+
+    return parseAIResponse(response.text, fallbackWithQuestion);
   } catch (error) {
     console.error('Icebreaker generation failed:', error);
     throw new AIError(

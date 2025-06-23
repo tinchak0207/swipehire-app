@@ -172,11 +172,11 @@ const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
   // Show typeform if results are not being displayed
   if (!showResults) {
     return (
-      <div className={`min-h-screen ${className}`}>
+      <div className={`flex-1 ${className}`}>
         <TypeformSalaryQuery
           onSubmitAction={handleFormSubmit}
           loading={isLoading}
-          className="min-h-screen"
+          className="min-h-[calc(100vh-8rem)]"
         />
       </div>
     );
@@ -185,34 +185,13 @@ const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
   // Show results page
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 ${className}`}
+      className={`flex-1 bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 ${className}`}
     >
       {/* Page Header */}
       <div className="border-gray-200/60 border-b bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <div className="mb-4 flex items-center justify-center gap-4">
-              <button
-                type="button"
-                onClick={handleBackToForm}
-                className="inline-flex items-center rounded-lg border border-gray-200/50 bg-white/60 px-4 py-2 font-medium text-gray-700 text-sm transition-all duration-200 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
-                aria-label="Back to form"
-              >
-                <svg
-                  className="mr-2 h-4 w-4 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                New Search
-              </button>
+            <div className="mb-4">
               <h1 className="font-bold text-3xl text-gray-900 md:text-4xl">
                 Salary Analysis Results
               </h1>

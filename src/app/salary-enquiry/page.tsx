@@ -5,6 +5,7 @@ import { useCallback, useState } from 'react';
 import { SalaryDataTable } from '@/components/SalaryDataTable';
 import { SalaryQueryForm, type SalaryQueryFormData } from '@/components/SalaryQueryForm';
 import { type ChartType, SalaryVisualizationChart } from '@/components/SalaryVisualizationChart';
+import { ReportDownloadButton } from '@/components/ReportDownloadButton';
 import { useSalaryQuery } from '@/hooks/useSalaryQuery';
 import type { SalaryQueryCriteria } from '@/services/salaryDataService';
 
@@ -64,7 +65,6 @@ const MarketSalaryEnquiryPage: React.FC = () => {
 
   // Fetch salary data using the hook
   const {
-    data: salaryResponse,
     salaryData,
     statistics,
     metadata,
@@ -178,6 +178,23 @@ const MarketSalaryEnquiryPage: React.FC = () => {
 
                     {/* Action Buttons */}
                     <div className="flex gap-2">
+                      <ReportDownloadButton
+                        salaryData={salaryData || []}
+                        statistics={statistics || null}
+                        searchCriteria={queryCriteria}
+                        variant="outline"
+                        size="sm"
+                        disabled={isLoading || isFetching || !salaryData?.length}
+                        onDownloadStart={(type) => {
+                          console.log(`Starting ${type.toUpperCase()} download...`);
+                        }}
+                        onDownloadSuccess={(type, filename) => {
+                          console.log(`${type.toUpperCase()} download completed: ${filename}`);
+                        }}
+                        onDownloadError={(type, error) => {
+                          console.error(`${type.toUpperCase()} download failed:`, error);
+                        }}
+                      />
                       <button
                         type="button"
                         className={`btn btn-outline btn-sm ${isFetching ? 'loading' : ''}`}
