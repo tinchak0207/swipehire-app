@@ -1,9 +1,9 @@
 import {
+  CSVGenerationError,
+  PDFGenerationError,
+  type ReportData,
   ReportGenerationService,
   reportGenerationService,
-  PDFGenerationError,
-  CSVGenerationError,
-  type ReportData,
 } from '../reportGenerationService';
 import type { SalaryDataPoint, SalaryStatistics } from '../salaryDataService';
 
@@ -45,7 +45,7 @@ const mockLink = {
   download: '',
   style: { display: '' },
   click: jest.fn(),
-  // Minimal HTMLAnchorElement properties required by the tests  
+  // Minimal HTMLAnchorElement properties required by the tests
   accessKey: '',
   accessKeyLabel: '',
   autocapitalize: '',
@@ -81,7 +81,7 @@ describe('ReportGenerationService', () => {
 
   beforeEach(() => {
     service = new ReportGenerationService();
-    
+
     mockSalaryData = [
       {
         id: 'test-1',
@@ -204,7 +204,9 @@ describe('ReportGenerationService', () => {
       });
 
       await expect(service.generatePDFReport(mockReportData)).rejects.toThrow(PDFGenerationError);
-      await expect(service.generatePDFReport(mockReportData)).rejects.toThrow('Failed to generate PDF report');
+      await expect(service.generatePDFReport(mockReportData)).rejects.toThrow(
+        'Failed to generate PDF report'
+      );
     });
   });
 
@@ -256,27 +258,27 @@ describe('ReportGenerationService', () => {
     it('should properly escape CSV values', async () => {
       const dataWithSpecialChars = {
         ...mockReportData,
-            salaryData: [
-              {
-                ...mockSalaryData[0],
-                id: 'test-special-chars',
-                jobTitle: 'Software Engineer, Senior',
-                industry: 'Technology "AI/ML"',
-                region: 'San Francisco, CA\nBay Area',
-                experienceLevel: 'mid',
-                education: 'bachelor',
-                companySize: 'large',
-                baseSalary: 130000,
-                totalCompensation: 180000,
-                currency: 'USD',
-                timestamp: '2024-01-15T10:30:00Z',
-                source: 'test',
-                verified: true,
-                bonus: 20000,
-                equity: 30000,
-                benefits: ['Health Insurance']
-              },
-            ],
+        salaryData: [
+          {
+            ...mockSalaryData[0],
+            id: 'test-special-chars',
+            jobTitle: 'Software Engineer, Senior',
+            industry: 'Technology "AI/ML"',
+            region: 'San Francisco, CA\nBay Area',
+            experienceLevel: 'mid',
+            education: 'bachelor',
+            companySize: 'large',
+            baseSalary: 130000,
+            totalCompensation: 180000,
+            currency: 'USD',
+            timestamp: '2024-01-15T10:30:00Z',
+            source: 'test',
+            verified: true,
+            bonus: 20000,
+            equity: 30000,
+            benefits: ['Health Insurance'],
+          },
+        ],
       };
 
       const result = await service.generateCSVReport(dataWithSpecialChars);
@@ -291,7 +293,9 @@ describe('ReportGenerationService', () => {
       }) as any;
 
       await expect(service.generateCSVReport(mockReportData)).rejects.toThrow(CSVGenerationError);
-      await expect(service.generateCSVReport(mockReportData)).rejects.toThrow('Failed to generate CSV report');
+      await expect(service.generateCSVReport(mockReportData)).rejects.toThrow(
+        'Failed to generate CSV report'
+      );
 
       // Restore original Blob
       global.Blob = originalBlob;
@@ -301,8 +305,10 @@ describe('ReportGenerationService', () => {
   describe('Filename Generation', () => {
     it('should generate PDF filename with default criteria', () => {
       const filename = service.generateFilename('pdf');
-      
-      expect(filename).toMatch(/^salary_market_salary_report_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.pdf$/);
+
+      expect(filename).toMatch(
+        /^salary_market_salary_report_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.pdf$/
+      );
     });
 
     it('should generate CSV filename with search criteria', () => {
@@ -310,10 +316,12 @@ describe('ReportGenerationService', () => {
         jobTitle: 'Software Engineer',
         region: 'San Francisco, CA',
       };
-      
+
       const filename = service.generateFilename('csv', searchCriteria);
-      
-      expect(filename).toMatch(/^Software_Engineer_San_Francisco__CA_salary_report_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.csv$/);
+
+      expect(filename).toMatch(
+        /^Software_Engineer_San_Francisco__CA_salary_report_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.csv$/
+      );
     });
 
     it('should sanitize special characters in filename', () => {
@@ -321,13 +329,15 @@ describe('ReportGenerationService', () => {
         jobTitle: 'Software Engineer/Developer',
         region: 'San Francisco, CA (Bay Area)',
       };
-      
+
       const filename = service.generateFilename('pdf', searchCriteria);
-      
+
       expect(filename).not.toContain('/');
       expect(filename).not.toContain('(');
       expect(filename).not.toContain(')');
-      expect(filename).toMatch(/^Software_Engineer_Developer_San_Francisco__CA__Bay_Area__salary_report_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.pdf$/);
+      expect(filename).toMatch(
+        /^Software_Engineer_Developer_San_Francisco__CA__Bay_Area__salary_report_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.pdf$/
+      );
     });
   });
 
@@ -348,7 +358,7 @@ describe('ReportGenerationService', () => {
     it('should handle download errors', () => {
       const mockBlob = new Blob(['test content'], { type: 'text/plain' });
       const filename = 'test-file.txt';
-      
+
       (document.createElement as jest.Mock).mockImplementation(() => {
         throw new Error('DOM manipulation failed');
       });
@@ -365,7 +375,7 @@ describe('ReportGenerationService', () => {
     it('should return the same instance on multiple imports', () => {
       const { reportGenerationService: instance1 } = require('../reportGenerationService');
       const { reportGenerationService: instance2 } = require('../reportGenerationService');
-      
+
       expect(instance1).toBe(instance2);
     });
   });
@@ -387,11 +397,11 @@ describe('ReportGenerationService', () => {
   describe('Data Formatting', () => {
     it('should format currency values correctly', async () => {
       const result = await service.generateCSVReport(mockReportData);
-      
+
       // Check that the result is a proper CSV blob
       expect(result).toBeInstanceOf(Blob);
       expect(result.type).toBe('text/csv;charset=utf-8;');
-      
+
       // Convert blob to text to check content
       const csvText = await new Response(result).text();
       expect(csvText).toContain('130000');
@@ -400,11 +410,11 @@ describe('ReportGenerationService', () => {
 
     it('should format dates correctly', async () => {
       const result = await service.generateCSVReport(mockReportData);
-      
+
       // Check that the result is a proper CSV blob
       expect(result).toBeInstanceOf(Blob);
       expect(result.type).toBe('text/csv;charset=utf-8;');
-      
+
       // Convert blob to text to check content
       const csvText = await new Response(result).text();
       expect(csvText).toContain('2024-01-15T10:30:00Z');
@@ -414,23 +424,23 @@ describe('ReportGenerationService', () => {
     it('should handle missing optional fields', async () => {
       const dataWithMissingFields = {
         ...mockReportData,
-            salaryData: [
-              {
-                id: 'test-missing-optional',
-                jobTitle: 'Software Engineer',
-                industry: 'Technology',
-                region: 'San Francisco, CA',
-                experienceLevel: 'mid',
-                education: 'bachelor',
-                companySize: 'large',
-                baseSalary: 130000,
-                totalCompensation: 180000,
-                currency: 'USD',
-                timestamp: '2024-01-15T10:30:00Z',
-                source: 'test',
-                verified: true
-              },
-            ],
+        salaryData: [
+          {
+            id: 'test-missing-optional',
+            jobTitle: 'Software Engineer',
+            industry: 'Technology',
+            region: 'San Francisco, CA',
+            experienceLevel: 'mid',
+            education: 'bachelor',
+            companySize: 'large',
+            baseSalary: 130000,
+            totalCompensation: 180000,
+            currency: 'USD',
+            timestamp: '2024-01-15T10:30:00Z',
+            source: 'test',
+            verified: true,
+          },
+        ],
       };
 
       const result = await service.generateCSVReport(dataWithMissingFields);

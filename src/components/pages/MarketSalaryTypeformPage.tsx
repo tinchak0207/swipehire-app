@@ -91,8 +91,6 @@ interface MarketSalaryTypeformPageProps {
 }
 
 const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
-  isGuestMode = false,
-  currentUserRole = null,
   className = '',
 }) => {
   // State management
@@ -105,7 +103,6 @@ const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
 
   // Fetch salary data using the hook
   const {
-    data: salaryResponse,
     salaryData,
     statistics,
     metadata,
@@ -191,7 +188,28 @@ const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
       <div className="border-gray-200/60 border-b bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
-            <div className="mb-4">
+            <div className="mb-4 flex items-center justify-center gap-4">
+              <button
+                type="button"
+                onClick={handleBackToForm}
+                className="inline-flex items-center rounded-lg border border-gray-200/50 bg-white/60 px-4 py-2 font-medium text-gray-700 text-sm transition-all duration-200 hover:bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                aria-label="Back to form"
+              >
+                <svg
+                  className="mr-2 h-4 w-4 text-blue-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+                New Search
+              </button>
               <h1 className="font-bold text-3xl text-gray-900 md:text-4xl">
                 Salary Analysis Results
               </h1>

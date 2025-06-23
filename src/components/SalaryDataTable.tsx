@@ -545,7 +545,9 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   // Loading state
   if (loading) {
     return (
-      <div className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+      <div
+        className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}
+      >
         <div className="p-6">
           <div className="flex items-center justify-center py-12">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
@@ -559,10 +561,17 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   // Error state
   if (error) {
     return (
-      <div className={`rounded-lg border border-red-200/50 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+      <div
+        className={`rounded-lg border border-red-200/50 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}
+      >
         <div className="p-6">
           <div className="flex items-start space-x-4 rounded-lg border border-red-200/50 bg-red-50/80 p-4">
-            <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-6 w-6 text-red-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -583,7 +592,9 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   // Empty state
   if (data.length === 0) {
     return (
-      <div className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+      <div
+        className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}
+      >
         <div className="p-6">
           <div className="flex flex-col items-center justify-center py-16">
             {/* Icon with gradient background */}
@@ -603,15 +614,15 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                 />
               </svg>
             </div>
-            
+
             {/* Title with consistent styling */}
             <h3 className="mb-3 font-bold text-gray-900 text-2xl">No Data Available</h3>
-            
+
             {/* Message with improved typography */}
             <p className="mb-6 max-w-md text-center text-gray-600 leading-relaxed">
               {emptyStateMessage}
             </p>
-            
+
             {/* Action suggestions */}
             <div className="flex flex-col items-center gap-4 sm:flex-row">
               <div className="flex items-center gap-2 rounded-lg border border-blue-200/50 bg-blue-50/80 px-4 py-2 backdrop-blur-sm">
@@ -631,7 +642,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                 </svg>
                 <span className="text-sm text-blue-700">Try adjusting your search filters</span>
               </div>
-              
+
               <div className="flex items-center gap-2 rounded-lg border border-green-200/50 bg-green-50/80 px-4 py-2 backdrop-blur-sm">
                 <svg
                   className="h-4 w-4 text-green-600"
@@ -657,7 +668,9 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
   }
 
   return (
-    <div className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}>
+    <div
+      className={`rounded-lg border border-white/20 bg-white/80 shadow-lg backdrop-blur-sm ${className}`}
+    >
       <div className="p-6">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="font-bold text-2xl text-gray-900">Salary Data Table</h2>
@@ -678,11 +691,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
 
         {/* Table */}
         <div className="overflow-x-auto rounded-lg border border-gray-200/50 bg-white/60 backdrop-blur-sm">
-          <table
-            id={tableId}
-            className="w-full"
-            aria-label="Salary data table"
-          >
+          <table id={tableId} className="w-full" aria-label="Salary data table">
             <thead className="bg-gray-50/80">
               <tr>
                 {columns.map((column) => (
@@ -741,7 +750,10 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                   aria-label={`Salary data for ${row.jobTitle} at ${row.industry}`}
                 >
                   {columns.map((column) => (
-                    <td key={column.key} className={`px-6 py-4 whitespace-nowrap text-gray-900 text-sm ${column.className || ''}`}>
+                    <td
+                      key={column.key}
+                      className={`px-6 py-4 whitespace-nowrap text-gray-900 text-sm ${column.className || ''}`}
+                    >
                       {column.formatter
                         ? column.formatter(row[column.key as keyof SalaryDataPoint], row)
                         : String(row[column.key as keyof SalaryDataPoint] || '')}
@@ -779,8 +791,8 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                     key={pageNum}
                     type="button"
                     className={`border-gray-200/50 border-r px-4 py-2 font-medium text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 ${
-                      currentPage === pageNum 
-                        ? 'bg-blue-50/80 text-blue-700' 
+                      currentPage === pageNum
+                        ? 'bg-blue-50/80 text-blue-700'
                         : 'bg-white/60 text-gray-700 hover:bg-white/80'
                     }`}
                     onClick={() => handlePageChange(pageNum)}

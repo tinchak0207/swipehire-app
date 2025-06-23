@@ -1,16 +1,20 @@
 'use client';
 
+import { AlertCircle, CheckCircle, Download, FileText, Table } from 'lucide-react';
 import type React from 'react';
 import { useCallback, useState } from 'react';
-import { Download, FileText, Table, AlertCircle, CheckCircle } from 'lucide-react';
 import {
-  reportGenerationService,
-  type ReportData,
-  type ReportOptions,
   type CSVOptions,
+  type ReportData,
   ReportGenerationError,
+  type ReportOptions,
+  reportGenerationService,
 } from '@/services/reportGenerationService';
-import type { SalaryDataPoint, SalaryStatistics, SalaryQueryCriteria } from '@/services/salaryDataService';
+import type {
+  SalaryDataPoint,
+  SalaryQueryCriteria,
+  SalaryStatistics,
+} from '@/services/salaryDataService';
 
 // Component props interface
 export interface ReportDownloadButtonProps {
@@ -56,7 +60,7 @@ interface FeedbackState {
 
 /**
  * ReportDownloadButton Component
- * 
+ *
  * A comprehensive button component for downloading salary reports in PDF and CSV formats.
  * Features loading states, error handling, success feedback, and accessibility support.
  */
@@ -91,10 +95,7 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
       salaryData,
       statistics,
       searchCriteria: Object.fromEntries(
-        Object.entries(searchCriteria).map(([key, value]) => [
-          key,
-          value?.toString() || undefined,
-        ])
+        Object.entries(searchCriteria).map(([key, value]) => [key, value?.toString() || undefined])
       ),
       generatedAt: new Date().toISOString(),
     };
@@ -110,10 +111,8 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
 
     // Auto-hide feedback after 5 seconds
     setTimeout(() => {
-      setFeedback(prev => 
-        prev.timestamp === Date.now() - 5000 
-          ? { type: null, message: '', timestamp: 0 }
-          : prev
+      setFeedback((prev) =>
+        prev.timestamp === Date.now() - 5000 ? { type: null, message: '', timestamp: 0 } : prev
       );
     }, 5000);
   }, []);
@@ -130,16 +129,15 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
       const reportData = prepareReportData();
       const pdfBlob = await reportGenerationService.generatePDFReport(reportData, pdfOptions);
       const filename = reportGenerationService.generateFilename('pdf', reportData.searchCriteria);
-      
+
       reportGenerationService.downloadBlob(pdfBlob, filename);
-      
+
       showFeedback('success', `PDF report downloaded successfully: ${filename}`);
       onDownloadSuccess?.('pdf', filename);
     } catch (error) {
-      const errorMessage = error instanceof ReportGenerationError 
-        ? error.message 
-        : 'Failed to generate PDF report';
-      
+      const errorMessage =
+        error instanceof ReportGenerationError ? error.message : 'Failed to generate PDF report';
+
       console.error('PDF download failed:', error);
       showFeedback('error', errorMessage);
       onDownloadError?.('pdf', error as Error);
@@ -169,16 +167,15 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
       const reportData = prepareReportData();
       const csvBlob = await reportGenerationService.generateCSVReport(reportData, csvOptions);
       const filename = reportGenerationService.generateFilename('csv', reportData.searchCriteria);
-      
+
       reportGenerationService.downloadBlob(csvBlob, filename);
-      
+
       showFeedback('success', `CSV report downloaded successfully: ${filename}`);
       onDownloadSuccess?.('csv', filename);
     } catch (error) {
-      const errorMessage = error instanceof ReportGenerationError 
-        ? error.message 
-        : 'Failed to generate CSV report';
-      
+      const errorMessage =
+        error instanceof ReportGenerationError ? error.message : 'Failed to generate CSV report';
+
       console.error('CSV download failed:', error);
       showFeedback('error', errorMessage);
       onDownloadError?.('csv', error as Error);
@@ -199,7 +196,7 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
   // Get button classes based on variant and size
   const getButtonClasses = useCallback(() => {
     const baseClasses = 'btn gap-2 transition-all duration-200';
-    
+
     const variantClasses = {
       primary: 'btn-primary',
       secondary: 'btn-secondary',
@@ -258,7 +255,9 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
         {/* Feedback Toast */}
         {feedback.type && (
           <div className={`toast toast-top toast-end z-50`}>
-            <div className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'} shadow-lg`}>
+            <div
+              className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'} shadow-lg`}
+            >
               <div className="flex items-center gap-2">
                 {feedback.type === 'success' ? (
                   <CheckCircle className="h-5 w-5" />
@@ -310,7 +309,12 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           )}
         </div>
@@ -333,9 +337,7 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
                 <FileText className="h-4 w-4 text-red-500" />
                 <div>
                   <div className="font-medium text-base-content">Download PDF</div>
-                  <div className="text-xs text-base-content/70">
-                    Formatted report with charts
-                  </div>
+                  <div className="text-xs text-base-content/70">Formatted report with charts</div>
                 </div>
               </button>
             </li>
@@ -351,9 +353,7 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
                 <Table className="h-4 w-4 text-green-500" />
                 <div>
                   <div className="font-medium text-base-content">Download CSV</div>
-                  <div className="text-xs text-base-content/70">
-                    Raw data for analysis
-                  </div>
+                  <div className="text-xs text-base-content/70">Raw data for analysis</div>
                 </div>
               </button>
             </li>
@@ -370,7 +370,9 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
       {/* Feedback Toast */}
       {feedback.type && (
         <div className="toast toast-top toast-end z-50">
-          <div className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'} shadow-lg`}>
+          <div
+            className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'} shadow-lg`}
+          >
             <div className="flex items-center gap-2">
               {feedback.type === 'success' ? (
                 <CheckCircle className="h-5 w-5" />

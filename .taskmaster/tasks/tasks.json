@@ -19,9 +19,7 @@
         "details": "Establish guidelines and initial implementations for accessibility and performance. Ensure components are built with accessibility in mind from the start. Use React.memo for components receiving stable props. Document usage of useCallback/useMemo.",
         "testStrategy": "Conduct manual accessibility checks using browser dev tools and screen readers. Use automated tools like jest-axe for unit tests. Profile component rendering to identify performance bottlenecks.",
         "priority": "high",
-        "dependencies": [
-          1
-        ],
+        "dependencies": [1],
         "status": "done",
         "subtasks": []
       },
@@ -32,9 +30,7 @@
         "details": "Install Jest, React Testing Library, and testing-library/jest-dom. Configure Jest setup files. Install Playwright or Cypress and configure basic E2E test runs. Integrate jest-axe into the testing workflow.",
         "testStrategy": "Write a few simple tests (unit, E2E, accessibility) to verify the setup is working correctly. Ensure test commands can be run from the project root.",
         "priority": "high",
-        "dependencies": [
-          1
-        ],
+        "dependencies": [1],
         "status": "done",
         "subtasks": []
       },
@@ -45,9 +41,7 @@
         "details": "Create a service module (e.g., `services/salaryDataService.ts`). Define methods: `querySalaryData`, `getSalaryStatistics`, `contributeSalaryData`. Use `fetch` or a library like `axios` to interact with specified API endpoints. Implement error handling, retry logic, and define TypeScript interfaces for API responses and errors.",
         "testStrategy": "Write unit tests for the service using API mocking (e.g., MSW) to simulate API responses and test error handling, retry logic, and data transformation.",
         "priority": "high",
-        "dependencies": [
-          1
-        ],
+        "dependencies": [1],
         "status": "done",
         "subtasks": []
       },
@@ -58,9 +52,7 @@
         "details": "Create a custom hook `useSalaryQuery` in `hooks/useSalaryQuery.ts`. It should accept optional initial criteria. Use `SalaryDataService` methods within the hook. Manage loading, data, and error states. Integrate React Query for data fetching, caching, and real-time updates as per PRD.",
         "testStrategy": "Write unit tests for the hook using React Testing Library's `renderHook` and MSW to mock API calls. Test different states (loading, success, error) and parameter changes.",
         "priority": "high",
-        "dependencies": [
-          4
-        ],
+        "dependencies": [4],
         "status": "done",
         "subtasks": []
       },
@@ -71,12 +63,7 @@
         "details": "Create `components/SalaryQueryForm.tsx`. Use DaisyUI form components and TailwindCSS for layout and styling. Implement input fields for each criterion with appropriate types (text, dropdowns). Add client-side form validation. Ensure accessibility (ARIA labels, keyboard navigation). The component should accept `onSubmit` and `loading` props.",
         "testStrategy": "Write unit tests using React Testing Library to verify rendering, input changes, form submission with valid/invalid data, and loading state. Conduct integration tests within the page context.",
         "priority": "high",
-        "dependencies": [
-          1,
-          2,
-          3,
-          5
-        ],
+        "dependencies": [1, 2, 3, 5],
         "status": "done",
         "subtasks": []
       },
@@ -87,12 +74,7 @@
         "details": "Create `components/SalaryVisualizationChart.tsx`. Integrate Recharts library. Implement logic to render box plots and bar charts based on `chartType` prop. Display key statistics (lowest, average, highest, median). Add tooltips for interactivity. Include data source and timestamp labels. Ensure responsiveness and accessibility.",
         "testStrategy": "Write unit tests using React Testing Library to verify rendering with different data sets and chart types. Test chart interactivity (e.g., hover effects). Conduct integration tests within the page.",
         "priority": "high",
-        "dependencies": [
-          1,
-          2,
-          3,
-          5
-        ],
+        "dependencies": [1, 2, 3, 5],
         "status": "done",
         "subtasks": []
       },
@@ -103,12 +85,7 @@
         "details": "Create `components/SalaryDataTable.tsx`. Use DaisyUI table components. Display relevant salary statistics and data points. Implement client-side sorting and filtering functionality. Ensure accessibility for tables (sortable headers, screen reader support).",
         "testStrategy": "Write unit tests using React Testing Library to verify rendering with different data sets. Test sorting and filtering functionality. Conduct integration tests within the page.",
         "priority": "high",
-        "dependencies": [
-          1,
-          2,
-          3,
-          5
-        ],
+        "dependencies": [1, 2, 3, 5],
         "status": "done",
         "subtasks": []
       },
@@ -119,15 +96,7 @@
         "details": "Create the page component in the App Router structure (`app/salary-enquiry/page.tsx`). Use the `useSalaryQuery` hook to fetch data based on form submissions. Pass data and loading state to the visualization components. Implement error and empty states. Ensure SEO requirements (meta tags) are met. Consider lazy loading for charts and virtualization for large datasets.",
         "testStrategy": "Write E2E tests using Playwright/Cypress to simulate the full user flow: navigating to the page, filling and submitting the form, verifying data is displayed in charts and table. Conduct integration tests for component interactions on the page.",
         "priority": "high",
-        "dependencies": [
-          1,
-          2,
-          3,
-          5,
-          6,
-          7,
-          8
-        ],
+        "dependencies": [1, 2, 3, 5, 6, 7, 8],
         "status": "done",
         "subtasks": [
           {
@@ -184,10 +153,7 @@
         "details": "Create `services/reportGenerationService.ts` with methods `generatePDFReport` and `generateCSVReport`. Use a library for PDF generation (e.g., `pdfmake`, `react-pdf`) and standard methods for CSV. Create `components/ReportDownloadButton.tsx` that uses this service and handles download logic. Include loading states and success/error feedback.",
         "testStrategy": "Write unit tests for the service to verify report generation logic with mock data. Write unit tests for the button component to verify click handling, loading states, and download initiation. Conduct integration tests on the `MarketSalaryEnquiryPage`.",
         "priority": "medium",
-        "dependencies": [
-          4,
-          9
-        ],
+        "dependencies": [4, 9],
         "status": "done",
         "subtasks": []
       }

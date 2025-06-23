@@ -306,7 +306,7 @@ export const SalaryVisualizationChart: React.FC<SalaryVisualizationChartProps> =
                 />
               </svg>
             </div>
-            
+
             {/* Title and message */}
             <h3 className="mb-2 font-semibold text-white text-lg">No Data Available</h3>
             <p className="text-white/70 text-sm">No data available to display in chart</p>

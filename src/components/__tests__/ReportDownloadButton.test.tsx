@@ -1,9 +1,9 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ReportDownloadButton } from '../ReportDownloadButton';
+import React from 'react';
 import { reportGenerationService } from '@/services/reportGenerationService';
 import type { SalaryDataPoint, SalaryStatistics } from '@/services/salaryDataService';
+import { ReportDownloadButton } from '../ReportDownloadButton';
 
 // Mock the report generation service
 jest.mock('@/services/reportGenerationService', () => ({
@@ -14,7 +14,10 @@ jest.mock('@/services/reportGenerationService', () => ({
     downloadBlob: jest.fn(),
   },
   ReportGenerationError: class ReportGenerationError extends Error {
-    constructor(message: string, public code: string) {
+    constructor(
+      message: string,
+      public code: string
+    ) {
       super(message);
       this.name = 'ReportGenerationError';
     }
@@ -71,11 +74,13 @@ describe('ReportDownloadButton', () => {
       lastUpdated: '2024-01-15T10:30:00Z',
     };
 
-    mockReportGenerationService = reportGenerationService as jest.Mocked<typeof reportGenerationService>;
-    
+    mockReportGenerationService = reportGenerationService as jest.Mocked<
+      typeof reportGenerationService
+    >;
+
     // Reset all mocks
     jest.clearAllMocks();
-    
+
     // Setup default mock implementations
     mockReportGenerationService.generatePDFReport.mockResolvedValue(
       new Blob(['pdf content'], { type: 'application/pdf' })
@@ -89,12 +94,7 @@ describe('ReportDownloadButton', () => {
 
   describe('Rendering', () => {
     it('should render with default props', () => {
-      render(
-        <ReportDownloadButton
-          salaryData={mockSalaryData}
-          statistics={mockStatistics}
-        />
-      );
+      render(<ReportDownloadButton salaryData={mockSalaryData} statistics={mockStatistics} />);
 
       expect(screen.getByRole('button')).toBeInTheDocument();
       expect(screen.getByText('Download Report')).toBeInTheDocument();
@@ -115,7 +115,7 @@ describe('ReportDownloadButton', () => {
 
     it('should render dropdown when showDropdown is true', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -150,12 +150,7 @@ describe('ReportDownloadButton', () => {
     });
 
     it('should be disabled when no data is available', () => {
-      render(
-        <ReportDownloadButton
-          salaryData={[]}
-          statistics={null}
-        />
-      );
+      render(<ReportDownloadButton salaryData={[]} statistics={null} />);
 
       const button = screen.getByRole('button');
       expect(button).toBeDisabled();
@@ -218,7 +213,7 @@ describe('ReportDownloadButton', () => {
     it('should handle PDF download successfully', async () => {
       const onDownloadStart = jest.fn();
       const onDownloadSuccess = jest.fn();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -245,7 +240,7 @@ describe('ReportDownloadButton', () => {
 
     it('should handle PDF download from dropdown', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -270,7 +265,7 @@ describe('ReportDownloadButton', () => {
     it('should show loading state during PDF generation', async () => {
       // Make PDF generation take some time
       mockReportGenerationService.generatePDFReport.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve(new Blob()), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve(new Blob()), 100))
       );
 
       render(
@@ -290,15 +285,18 @@ describe('ReportDownloadButton', () => {
       });
 
       // Wait for completion
-      await waitFor(() => {
-        expect(screen.getByText('Download Report')).toBeInTheDocument();
-      }, { timeout: 200 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Download Report')).toBeInTheDocument();
+        },
+        { timeout: 200 }
+      );
     });
 
     it('should handle PDF generation errors', async () => {
       const onDownloadError = jest.fn();
       const error = new Error('PDF generation failed');
-      
+
       mockReportGenerationService.generatePDFReport.mockRejectedValue(error);
 
       render(
@@ -329,7 +327,7 @@ describe('ReportDownloadButton', () => {
       const user = userEvent.setup();
       const onDownloadStart = jest.fn();
       const onDownloadSuccess = jest.fn();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -361,10 +359,10 @@ describe('ReportDownloadButton', () => {
 
     it('should show loading state during CSV generation', async () => {
       const user = userEvent.setup();
-      
+
       // Make CSV generation take some time
       mockReportGenerationService.generateCSVReport.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve(new Blob()), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve(new Blob()), 100))
       );
 
       render(
@@ -378,7 +376,7 @@ describe('ReportDownloadButton', () => {
       // Open dropdown and click CSV
       const button = screen.getByRole('button');
       await user.click(button);
-      
+
       const csvOption = screen.getByText('Download CSV');
       await user.click(csvOption);
 
@@ -388,16 +386,19 @@ describe('ReportDownloadButton', () => {
       });
 
       // Wait for completion
-      await waitFor(() => {
-        expect(screen.getByText('Download Report')).toBeInTheDocument();
-      }, { timeout: 200 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Download Report')).toBeInTheDocument();
+        },
+        { timeout: 200 }
+      );
     });
 
     it('should handle CSV generation errors', async () => {
       const user = userEvent.setup();
       const onDownloadError = jest.fn();
       const error = new Error('CSV generation failed');
-      
+
       mockReportGenerationService.generateCSVReport.mockRejectedValue(error);
 
       render(
@@ -412,7 +413,7 @@ describe('ReportDownloadButton', () => {
       // Open dropdown and click CSV
       const button = screen.getByRole('button');
       await user.click(button);
-      
+
       const csvOption = screen.getByText('Download CSV');
       await user.click(csvOption);
 
@@ -440,7 +441,7 @@ describe('ReportDownloadButton', () => {
 
     it('should update ARIA attributes when dropdown is opened', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -457,7 +458,7 @@ describe('ReportDownloadButton', () => {
 
     it('should support keyboard navigation', async () => {
       const user = userEvent.setup();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -467,19 +468,14 @@ describe('ReportDownloadButton', () => {
       );
 
       const button = screen.getByRole('button');
-      
+
       // Should open dropdown with Enter key
       await user.type(button, '{enter}');
       expect(screen.getByText('Download PDF')).toBeInTheDocument();
     });
 
     it('should have proper tooltip text', () => {
-      render(
-        <ReportDownloadButton
-          salaryData={[]}
-          statistics={null}
-        />
-      );
+      render(<ReportDownloadButton salaryData={[]} statistics={null} />);
 
       const button = screen.getByRole('button');
       expect(button).toHaveAttribute('title', 'No data available for download');
@@ -506,7 +502,7 @@ describe('ReportDownloadButton', () => {
 
     it('should auto-hide feedback after timeout', async () => {
       jest.useFakeTimers();
-      
+
       render(
         <ReportDownloadButton
           salaryData={mockSalaryData}
@@ -535,12 +531,7 @@ describe('ReportDownloadButton', () => {
 
   describe('Props Validation', () => {
     it('should handle missing optional props gracefully', () => {
-      render(
-        <ReportDownloadButton
-          salaryData={mockSalaryData}
-          statistics={mockStatistics}
-        />
-      );
+      render(<ReportDownloadButton salaryData={mockSalaryData} statistics={mockStatistics} />);
 
       expect(screen.getByRole('button')).toBeInTheDocument();
     });

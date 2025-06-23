@@ -249,24 +249,26 @@ export default function AiHrPaymentPage() {
     }
   };
 
-  const handlePlanSelectionAndConceptualPayment = async (plan: 'per_reply' | 'monthly'): Promise<void> => {
+  const handlePlanSelectionAndConceptualPayment = async (
+    plan: 'per_reply' | 'monthly'
+  ): Promise<void> => {
     setSelectedPlan(plan);
     setIsSubmittingPayment(true);
 
-        console.log(`Redirecting to Stripe for ${plan} plan (conceptual)`);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+    console.log(`Redirecting to Stripe for ${plan} plan (conceptual)`);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        await setPreferences({
-          hasAiHumanResourcesFeature: true,
-          aiHumanResourcesTier: plan,
-        });
+    await setPreferences({
+      hasAiHumanResourcesFeature: true,
+      aiHumanResourcesTier: plan,
+    });
 
-        setIsSubmittingPayment(false);
-        toast({
-          title: 'AI Human Resources Activated!',
-          description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
-          duration: 8000,
-        });
+    setIsSubmittingPayment(false);
+    toast({
+      title: 'AI Human Resources Activated!',
+      description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
+      duration: 8000,
+    });
   };
 
   const isPerReplyRecommended = recommendedPlan === 'per_reply';

@@ -67,7 +67,6 @@ export const SalaryDataTableIntegration: React.FC = () => {
             </p>
           </div>
 
-
           <div className="space-y-6">
             <div className="divider">
               <span className="font-semibold text-lg text-slate-700">

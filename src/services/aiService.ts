@@ -446,7 +446,9 @@ export async function generateIcebreaker(params: {
   jobCriteria: JobCriteriaForAI;
   tone?: AIScriptTone;
 }): Promise<{
-  icebreakerQuestion: string; icebreaker: string; alternatives: string[] 
+  icebreakerQuestion: string;
+  icebreaker: string;
+  alternatives: string[];
 }> {
   try {
     const tone = params.tone || 'friendly';

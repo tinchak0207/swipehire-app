@@ -2,10 +2,10 @@
 
 import type React from 'react';
 import { useCallback, useState } from 'react';
+import { ReportDownloadButton } from '@/components/ReportDownloadButton';
 import { SalaryDataTable } from '@/components/SalaryDataTable';
 import { SalaryQueryForm, type SalaryQueryFormData } from '@/components/SalaryQueryForm';
 import { type ChartType, SalaryVisualizationChart } from '@/components/SalaryVisualizationChart';
-import { ReportDownloadButton } from '@/components/ReportDownloadButton';
 import { useSalaryQuery } from '@/hooks/useSalaryQuery';
 import type { SalaryQueryCriteria } from '@/services/salaryDataService';
 
@@ -64,19 +64,12 @@ const MarketSalaryEnquiryPage: React.FC = () => {
   const [chartType, setChartType] = useState<ChartType>('bar');
 
   // Fetch salary data using the hook
-  const {
-    salaryData,
-    statistics,
-    metadata,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useSalaryQuery(queryCriteria, currentPage, pageSize, {
-    enabled: hasSearched,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  });
+  const { salaryData, statistics, metadata, isLoading, isFetching, error, refetch } =
+    useSalaryQuery(queryCriteria, currentPage, pageSize, {
+      enabled: hasSearched,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    });
 
   // Handle form submission
   const handleFormSubmit = useCallback((formData: SalaryQueryFormData) => {

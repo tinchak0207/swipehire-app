@@ -1,10 +1,10 @@
-import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import MarketSalaryEnquiryPage from '../page';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React from 'react';
 import { reportGenerationService } from '@/services/reportGenerationService';
 import { salaryDataService } from '@/services/salaryDataService';
+import MarketSalaryEnquiryPage from '../page';
 
 // Mock the services
 jest.mock('@/services/reportGenerationService', () => ({
@@ -42,14 +42,16 @@ jest.mock('@/components/SalaryQueryForm', () => ({
     <div data-testid="salary-query-form">
       <button
         type="button"
-        onClick={() => onSubmitAction({
-          jobTitle: 'Software Engineer',
-          industry: 'Technology',
-          region: 'San Francisco, CA',
-          experience: 'mid-level',
-          education: 'bachelor',
-          companySize: 'large',
-        })}
+        onClick={() =>
+          onSubmitAction({
+            jobTitle: 'Software Engineer',
+            industry: 'Technology',
+            region: 'San Francisco, CA',
+            experience: 'mid-level',
+            education: 'bachelor',
+            companySize: 'large',
+          })
+        }
       >
         Submit Search
       </button>
@@ -60,18 +62,14 @@ jest.mock('@/components/SalaryQueryForm', () => ({
 // Mock the data table component
 jest.mock('@/components/SalaryDataTable', () => ({
   SalaryDataTable: ({ data }: { data: any[] }) => (
-    <div data-testid="salary-data-table">
-      {data.length} salary records
-    </div>
+    <div data-testid="salary-data-table">{data.length} salary records</div>
   ),
 }));
 
 // Mock the visualization chart component
 jest.mock('@/components/SalaryVisualizationChart', () => ({
   SalaryVisualizationChart: ({ data }: { data: any[] }) => (
-    <div data-testid="salary-visualization-chart">
-      Chart with {data.length} data points
-    </div>
+    <div data-testid="salary-visualization-chart">Chart with {data.length} data points</div>
   ),
 }));
 
@@ -168,7 +166,9 @@ describe('MarketSalaryEnquiryPage Integration', () => {
     });
 
     // Mock the report generation service
-    mockReportGenerationService = reportGenerationService as jest.Mocked<typeof reportGenerationService>;
+    mockReportGenerationService = reportGenerationService as jest.Mocked<
+      typeof reportGenerationService
+    >;
     mockReportGenerationService.generatePDFReport.mockResolvedValue(
       new Blob(['pdf content'], { type: 'application/pdf' })
     );
@@ -182,11 +182,7 @@ describe('MarketSalaryEnquiryPage Integration', () => {
   });
 
   const renderWithQueryClient = (component: React.ReactElement) => {
-    return render(
-      <QueryClientProvider client={queryClient}>
-        {component}
-      </QueryClientProvider>
-    );
+    return render(<QueryClientProvider client={queryClient}>{component}</QueryClientProvider>);
   };
 
   describe('Initial Page Load', () => {
@@ -246,7 +242,9 @@ describe('MarketSalaryEnquiryPage Integration', () => {
       fireEvent.click(submitButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/Software Engineer.*in Technology.*in San Francisco, CA.*\(mid level\)/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/Software Engineer.*in Technology.*in San Francisco, CA.*\(mid level\)/)
+        ).toBeInTheDocument();
       });
     });
 
@@ -278,7 +276,7 @@ describe('MarketSalaryEnquiryPage Integration', () => {
     it('should open dropdown when download button is clicked', async () => {
       const user = userEvent.setup();
       const downloadButton = screen.getByText('Download Report');
-      
+
       await user.click(downloadButton);
 
       expect(screen.getByText('Download PDF')).toBeInTheDocument();
@@ -289,9 +287,9 @@ describe('MarketSalaryEnquiryPage Integration', () => {
     it('should trigger PDF download when PDF option is selected', async () => {
       const user = userEvent.setup();
       const downloadButton = screen.getByText('Download Report');
-      
+
       await user.click(downloadButton);
-      
+
       const pdfOption = screen.getByText('Download PDF');
       await user.click(pdfOption);
 
@@ -315,9 +313,9 @@ describe('MarketSalaryEnquiryPage Integration', () => {
     it('should trigger CSV download when CSV option is selected', async () => {
       const user = userEvent.setup();
       const downloadButton = screen.getByText('Download Report');
-      
+
       await user.click(downloadButton);
-      
+
       const csvOption = screen.getByText('Download CSV');
       await user.click(csvOption);
 
@@ -340,15 +338,15 @@ describe('MarketSalaryEnquiryPage Integration', () => {
 
     it('should show loading state during download', async () => {
       const user = userEvent.setup();
-      
+
       // Make PDF generation take some time
       mockReportGenerationService.generatePDFReport.mockImplementation(
-        () => new Promise(resolve => setTimeout(() => resolve(new Blob()), 100))
+        () => new Promise((resolve) => setTimeout(() => resolve(new Blob()), 100))
       );
 
       const downloadButton = screen.getByText('Download Report');
       await user.click(downloadButton);
-      
+
       const pdfOption = screen.getByText('Download PDF');
       await user.click(pdfOption);
 
@@ -358,22 +356,25 @@ describe('MarketSalaryEnquiryPage Integration', () => {
       });
 
       // Wait for completion
-      await waitFor(() => {
-        expect(screen.getByText('Download Report')).toBeInTheDocument();
-      }, { timeout: 200 });
+      await waitFor(
+        () => {
+          expect(screen.getByText('Download Report')).toBeInTheDocument();
+        },
+        { timeout: 200 }
+      );
     });
 
     it('should handle download errors gracefully', async () => {
       const user = userEvent.setup();
       const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
-      
+
       mockReportGenerationService.generatePDFReport.mockRejectedValue(
         new Error('PDF generation failed')
       );
 
       const downloadButton = screen.getByText('Download Report');
       await user.click(downloadButton);
-      
+
       const pdfOption = screen.getByText('Download PDF');
       await user.click(pdfOption);
 
@@ -404,7 +405,9 @@ describe('MarketSalaryEnquiryPage Integration', () => {
       fireEvent.click(submitButton);
 
       expect(screen.getByText('Searching Salary Data')).toBeInTheDocument();
-      expect(screen.getByText('Please wait while we gather the latest compensation information...')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please wait while we gather the latest compensation information...')
+      ).toBeInTheDocument();
     });
 
     it('should disable download button during data fetching', async () => {
@@ -462,7 +465,7 @@ describe('MarketSalaryEnquiryPage Integration', () => {
 
     it('should allow retry after error', async () => {
       const mockRefetch = jest.fn();
-      
+
       mockUseSalaryQuery.mockReturnValue({
         data: null,
         salaryData: null,
@@ -491,9 +494,13 @@ describe('MarketSalaryEnquiryPage Integration', () => {
     it('should have proper heading structure', () => {
       renderWithQueryClient(<MarketSalaryEnquiryPage />);
 
-      expect(screen.getByRole('heading', { level: 1, name: 'Market Salary Enquiry' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Market Salary Enquiry' })
+      ).toBeInTheDocument();
       expect(screen.getByRole('heading', { level: 2, name: 'How It Works' })).toBeInTheDocument();
-      expect(screen.getByRole('heading', { level: 2, name: 'Why Use Our Salary Data?' })).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { level: 2, name: 'Why Use Our Salary Data?' })
+      ).toBeInTheDocument();
     });
 
     it('should have proper ARIA labels and sections', () => {
