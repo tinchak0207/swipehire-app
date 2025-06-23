@@ -25,13 +25,13 @@ export default function WelcomeStep({
   const canProceed = data.userType !== null;
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-4xl animate-fade-in">
       {/* Welcome Header */}
-      <div className="mb-12 text-center">
-        <div className="mb-6">
-          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
+      <div className="mb-16 text-center">
+        <div className="mb-8">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 shadow-xl">
             <svg
-              className="h-10 w-10 text-primary"
+              className="h-12 w-12 text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -44,19 +44,21 @@ export default function WelcomeStep({
               />
             </svg>
           </div>
-          <h1 className="mb-4 font-bold text-4xl text-base-content">Welcome to SwipeHire! 🎉</h1>
-          <p className="mx-auto max-w-2xl text-base-content/70 text-lg">
+          <h1 className="mb-6 font-bold text-5xl text-gray-800 leading-tight">
+            Welcome to SwipeHire! 🎉
+          </h1>
+          <p className="mx-auto max-w-3xl text-gray-600 text-xl leading-relaxed">
             Let's get you set up with a personalized experience. This quick setup will help us
             tailor SwipeHire to your specific needs and goals.
           </p>
         </div>
 
         {/* Benefits */}
-        <div className="mb-12 grid gap-6 md:grid-cols-3">
-          <div className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-success/10">
+        <div className="mb-16 grid gap-8 md:grid-cols-3">
+          <div className="text-center group">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <svg
-                className="h-6 w-6 text-success"
+                className="h-8 w-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -69,16 +71,16 @@ export default function WelcomeStep({
                 />
               </svg>
             </div>
-            <h3 className="mb-2 font-semibold text-base-content">Personalized Experience</h3>
-            <p className="text-base-content/60 text-sm">
+            <h3 className="mb-3 font-bold text-gray-800 text-lg">Personalized Experience</h3>
+            <p className="text-gray-600 text-base leading-relaxed">
               Get recommendations tailored to your specific role and preferences
             </p>
           </div>
 
-          <div className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-info/10">
+          <div className="text-center group">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <svg
-                className="h-6 w-6 text-info"
+                className="h-8 w-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -91,16 +93,16 @@ export default function WelcomeStep({
                 />
               </svg>
             </div>
-            <h3 className="mb-2 font-semibold text-base-content">Goal Tracking</h3>
-            <p className="text-base-content/60 text-sm">
+            <h3 className="mb-3 font-bold text-gray-800 text-lg">Goal Tracking</h3>
+            <p className="text-gray-600 text-base leading-relaxed">
               Set and track your career goals with AI-powered insights
             </p>
           </div>
 
-          <div className="text-center">
-            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-lg bg-warning/10">
+          <div className="text-center group">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
               <svg
-                className="h-6 w-6 text-warning"
+                className="h-8 w-8 text-white"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -113,8 +115,8 @@ export default function WelcomeStep({
                 />
               </svg>
             </div>
-            <h3 className="mb-2 font-semibold text-base-content">Smart Notifications</h3>
-            <p className="text-base-content/60 text-sm">
+            <h3 className="mb-3 font-bold text-gray-800 text-lg">Smart Notifications</h3>
+            <p className="text-gray-600 text-base leading-relaxed">
               Stay informed with customizable notification preferences
             </p>
           </div>
@@ -122,30 +124,36 @@ export default function WelcomeStep({
       </div>
 
       {/* Role Selection */}
-      <div className="mb-12">
-        <h2 className="mb-2 text-center font-bold text-2xl text-base-content">
+      <div className="mb-16">
+        <h2 className="mb-3 text-center font-bold text-3xl text-gray-800">
           What brings you to SwipeHire?
         </h2>
-        <p className="mb-8 text-center text-base-content/60">
+        <p className="mb-12 text-center text-gray-600 text-lg">
           Choose your primary role to get started with the right experience
         </p>
 
-        <div className="mx-auto grid max-w-2xl gap-6 md:grid-cols-2">
+        <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
           {/* Job Seeker Option */}
           <div
-            className={`card cursor-pointer transition-all duration-300 hover:shadow-lg ${
+            className={`group cursor-pointer rounded-2xl p-8 transition-all duration-500 hover:shadow-2xl backdrop-blur-sm ${
               data.userType === 'jobseeker'
-                ? 'bg-primary text-primary-content ring-2 ring-primary'
-                : 'bg-base-200 hover:bg-base-300'
+                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white ring-4 ring-blue-200 shadow-2xl scale-105'
+                : 'bg-white/80 hover:bg-white shadow-lg hover:scale-102'
             } `}
             onClick={() => handleRoleSelect('jobseeker')}
           >
-            <div className="card-body p-8 text-center">
+            <div className="text-center">
               <div
-                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${data.userType === 'jobseeker' ? 'bg-primary-content/20' : 'bg-primary/10'} `}
+                className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
+                  data.userType === 'jobseeker' 
+                    ? 'bg-white/20 shadow-lg' 
+                    : 'bg-gradient-to-br from-blue-400 to-blue-600 group-hover:shadow-xl group-hover:scale-110'
+                } `}
               >
                 <svg
-                  className={`h-8 w-8 ${data.userType === 'jobseeker' ? 'text-primary-content' : 'text-primary'} `}
+                  className={`h-10 w-10 transition-colors duration-300 ${
+                    data.userType === 'jobseeker' ? 'text-white' : 'text-white'
+                  } `}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -158,42 +166,60 @@ export default function WelcomeStep({
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 font-bold text-xl">I'm Looking for Jobs</h3>
-              <p
-                className={`mb-4 text-sm ${
-                  data.userType === 'jobseeker' ? 'text-primary-content/80' : 'text-base-content/60'
-                } `}
-              >
+              <h3 className={`mb-4 font-bold text-2xl ${
+                data.userType === 'jobseeker' ? 'text-white' : 'text-gray-800'
+              }`}>
+                I'm Looking for Jobs
+              </h3>
+              <p className={`mb-6 text-base leading-relaxed ${
+                data.userType === 'jobseeker' ? 'text-white/90' : 'text-gray-600'
+              }`}>
                 Find your next career opportunity with AI-powered matching and career guidance
               </p>
-              <ul
-                className={`space-y-1 text-left text-sm ${
-                  data.userType === 'jobseeker' ? 'text-primary-content/70' : 'text-base-content/50'
-                } `}
-              >
-                <li>• Career path recommendations</li>
-                <li>• Skill development tracking</li>
-                <li>• Personalized job matching</li>
-                <li>• Interview preparation tools</li>
+              <ul className={`space-y-2 text-left text-sm ${
+                data.userType === 'jobseeker' ? 'text-white/80' : 'text-gray-500'
+              }`}>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Career path recommendations
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Skill development tracking
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Personalized job matching
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Interview preparation tools
+                </li>
               </ul>
             </div>
           </div>
 
           {/* Recruiter Option */}
           <div
-            className={`card cursor-pointer transition-all duration-300 hover:shadow-lg ${
+            className={`group cursor-pointer rounded-2xl p-8 transition-all duration-500 hover:shadow-2xl backdrop-blur-sm ${
               data.userType === 'recruiter'
-                ? 'bg-primary text-primary-content ring-2 ring-primary'
-                : 'bg-base-200 hover:bg-base-300'
+                ? 'bg-gradient-to-br from-green-500 to-green-600 text-white ring-4 ring-green-200 shadow-2xl scale-105'
+                : 'bg-white/80 hover:bg-white shadow-lg hover:scale-102'
             } `}
             onClick={() => handleRoleSelect('recruiter')}
           >
-            <div className="card-body p-8 text-center">
+            <div className="text-center">
               <div
-                className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full ${data.userType === 'recruiter' ? 'bg-primary-content/20' : 'bg-primary/10'} `}
+                className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
+                  data.userType === 'recruiter' 
+                    ? 'bg-white/20 shadow-lg' 
+                    : 'bg-gradient-to-br from-green-400 to-green-600 group-hover:shadow-xl group-hover:scale-110'
+                } `}
               >
                 <svg
-                  className={`h-8 w-8 ${data.userType === 'recruiter' ? 'text-primary-content' : 'text-primary'} `}
+                  className={`h-10 w-10 transition-colors duration-300 ${
+                    data.userType === 'recruiter' ? 'text-white' : 'text-white'
+                  } `}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -206,23 +232,35 @@ export default function WelcomeStep({
                   />
                 </svg>
               </div>
-              <h3 className="mb-2 font-bold text-xl">I'm Hiring Talent</h3>
-              <p
-                className={`mb-4 text-sm ${
-                  data.userType === 'recruiter' ? 'text-primary-content/80' : 'text-base-content/60'
-                } `}
-              >
+              <h3 className={`mb-4 font-bold text-2xl ${
+                data.userType === 'recruiter' ? 'text-white' : 'text-gray-800'
+              }`}>
+                I'm Hiring Talent
+              </h3>
+              <p className={`mb-6 text-base leading-relaxed ${
+                data.userType === 'recruiter' ? 'text-white/90' : 'text-gray-600'
+              }`}>
                 Discover exceptional candidates with intelligent screening and matching tools
               </p>
-              <ul
-                className={`space-y-1 text-left text-sm ${
-                  data.userType === 'recruiter' ? 'text-primary-content/70' : 'text-base-content/50'
-                } `}
-              >
-                <li>• AI-powered candidate matching</li>
-                <li>• Company profile optimization</li>
-                <li>• Streamlined hiring workflow</li>
-                <li>• Talent pipeline management</li>
+              <ul className={`space-y-2 text-left text-sm ${
+                data.userType === 'recruiter' ? 'text-white/80' : 'text-gray-500'
+              }`}>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  AI-powered candidate matching
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Company profile optimization
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Streamlined hiring workflow
+                </li>
+                <li className="flex items-center">
+                  <span className="mr-2">•</span>
+                  Talent pipeline management
+                </li>
               </ul>
             </div>
           </div>
@@ -230,26 +268,34 @@ export default function WelcomeStep({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-        <button onClick={onSkip} className="btn btn-ghost btn-sm" disabled={isLoading}>
+      <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
+        <button 
+          onClick={onSkip} 
+          className="text-gray-500 hover:text-gray-700 font-medium transition-colors duration-200" 
+          disabled={isLoading}
+        >
           Skip Setup (Complete Later)
         </button>
 
-        <div className="flex gap-3">
+        <div className="flex gap-4">
           <button
             onClick={onNext}
             disabled={!canProceed || isLoading}
-            className="btn btn-primary btn-lg"
+            className={`px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${
+              canProceed && !isLoading
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:scale-105'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
           >
             {isLoading ? (
               <>
-                <span className="loading loading-spinner loading-sm" />
+                <span className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
                 Saving...
               </>
             ) : (
               <>
                 Continue Setup
-                <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="ml-2 h-5 w-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -264,8 +310,8 @@ export default function WelcomeStep({
       </div>
 
       {/* Time Estimate */}
-      <div className="mt-8 text-center">
-        <p className="text-base-content/50 text-sm">
+      <div className="mt-12 text-center">
+        <p className="text-gray-500 text-sm">
           ⏱️ This setup takes about 3-5 minutes to complete
         </p>
       </div>

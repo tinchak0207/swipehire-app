@@ -200,15 +200,17 @@ export class ReportGenerationService {
           'Company Size',
         ];
 
-        const tableData = data.salaryData.map((item) => [
-          item.jobTitle || '',
-          item.industry || '',
-          item.region || '',
-          item.experienceLevel || '',
-          formatCurrency(item.baseSalary, item.currency),
-          formatCurrency(item.totalCompensation, item.currency),
-          item.companySize || '',
-        ]);
+        const tableData = data.salaryData.map((item) => {
+          return [
+            item.jobTitle?.toString() || '',
+            item.industry?.toString() || '',
+            item.region?.toString() || '',
+            item.experienceLevel?.toString() || '',
+            formatCurrency(item.baseSalary, item.currency),
+            formatCurrency(item.totalCompensation, item.currency),
+            item.companySize?.toString() || '',
+          ];
+        });
 
         autoTable(doc, {
           head: [tableHeaders],
@@ -338,7 +340,7 @@ export class ReportGenerationService {
           escapeCSV(item.totalCompensation),
           escapeCSV(item.bonus || ''),
           escapeCSV(item.equity || ''),
-          escapeCSV(Array.isArray(item.benefits) ? item.benefits.join('; ') : ''),
+          escapeCSV(Array.isArray(item.benefits) ? item.benefits.join('; ') : (item.benefits?.toString() || '')),
           escapeCSV(item.currency),
           escapeCSV(item.timestamp),
           escapeCSV(item.source),

@@ -5,6 +5,7 @@ import {
   BookOpenText,
   Briefcase,
   DollarSign,
+  FileText,
   FilePlus2,
   HeartHandshake,
   LayoutGrid,
@@ -40,7 +41,7 @@ import { mockNotifications } from '@/lib/mockData';
 import type { BackendUser, NotificationItem, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 const loadingComponent = () => (
   <div className="flex min-h-[calc(100vh-250px)] items-center justify-center">
     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -109,6 +110,10 @@ const MarketSalaryTypeformPage = dynamic(
     ssr: false,
   }
 );
+const ResumeOptimizerPage = dynamic(() => import('@/app/resume-optimizer/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 const GUEST_MODE_KEY = 'isGuestModeActive';
@@ -889,6 +894,15 @@ function AppContent() {
       shortcut: '⌘S',
     },
     {
+      value: 'resumeOptimizer',
+      label: 'Resume Optimization tools',
+      icon: FileText,
+      component: <ResumeOptimizerPage />,
+      description: 'AI-powered resume analysis, ATS optimization, and personalized suggestions to boost your job prospects',
+      isNew: true,
+      shortcut: '⌘R',
+    },
+    {
       value: 'aiTools',
       label: 'AI Tools',
       icon: Wand2,
@@ -956,7 +970,6 @@ function AppContent() {
       icon: SettingsIcon,
       component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
       description: 'Track and manage your job postings',
-      badge: '3', // Example: 3 active jobs
       shortcut: '⌘M',
     },
     ...baseTabItems,

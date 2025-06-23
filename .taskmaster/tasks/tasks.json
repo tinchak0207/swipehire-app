@@ -2,165 +2,152 @@
   "master": {
     "tasks": [
       {
-        "id": 1,
-        "title": "Setup Core Project Environment and Tech Stack",
-        "description": "Set up the core project structure, configure TypeScript with strict mode, integrate Next.js App Router, set up TailwindCSS and DaisyUI for styling, and configure Biome for code formatting and linting.",
-        "details": "Initialize Next.js project with TypeScript. Configure tsconfig.json for strict mode. Set up App Router. Install and configure TailwindCSS and DaisyUI. Integrate Biome for linting and formatting, including pre-commit hooks.",
-        "testStrategy": "Verify configurations by running build and linting commands. Ensure basic components can be styled correctly with Tailwind/DaisyUI.",
-        "priority": "high",
+        "id": 11,
+        "title": "Setup Core Feature Structure and Routing",
+        "description": "Set up the basic Next.js project structure for the Resume Optimizer feature, including necessary pages, components directory, and initial routing.",
+        "details": "Create a new directory or feature module for the resume optimizer. Define the main page route (e.g., `/resume-optimizer`). Set up basic page components using TypeScript. Ensure strict TypeScript is enabled in `tsconfig.json`. Use Biome for initial formatting. Configure Tailwind CSS and DaisyUI for the project if not already done. Create placeholder page components for upload, report, and editor views.",
+        "testStrategy": "Verify that the new routes are accessible and render placeholder pages. Check console for TypeScript errors. Run Biome checks.",
+        "priority": "medium",
         "dependencies": [],
         "status": "done",
         "subtasks": []
       },
       {
-        "id": 2,
-        "title": "Implement Foundational Accessibility and Performance Practices",
-        "description": "Implement foundational accessibility features (WCAG 2.1 AA compliance, screen reader support, keyboard navigation, ARIA attributes) and initial performance optimizations (React.memo, useCallback/useMemo guidelines).",
-        "details": "Establish guidelines and initial implementations for accessibility and performance. Ensure components are built with accessibility in mind from the start. Use React.memo for components receiving stable props. Document usage of useCallback/useMemo.",
-        "testStrategy": "Conduct manual accessibility checks using browser dev tools and screen readers. Use automated tools like jest-axe for unit tests. Profile component rendering to identify performance bottlenecks.",
-        "priority": "high",
-        "dependencies": [1],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 3,
-        "title": "Configure Testing Infrastructure",
-        "description": "Set up the testing infrastructure including Jest and React Testing Library for unit tests, and Playwright/Cypress for E2E tests. Integrate jest-axe for accessibility testing.",
-        "details": "Install Jest, React Testing Library, and testing-library/jest-dom. Configure Jest setup files. Install Playwright or Cypress and configure basic E2E test runs. Integrate jest-axe into the testing workflow.",
-        "testStrategy": "Write a few simple tests (unit, E2E, accessibility) to verify the setup is working correctly. Ensure test commands can be run from the project root.",
-        "priority": "high",
-        "dependencies": [1],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 4,
-        "title": "Implement SalaryDataService",
-        "description": "Implement the SalaryDataService for API integration, handling salary data queries, statistics retrieval, and anonymous data contribution. Include typed errors, retry logic, and fallback data.",
-        "details": "Create a service module (e.g., `services/salaryDataService.ts`). Define methods: `querySalaryData`, `getSalaryStatistics`, `contributeSalaryData`. Use `fetch` or a library like `axios` to interact with specified API endpoints. Implement error handling, retry logic, and define TypeScript interfaces for API responses and errors.",
-        "testStrategy": "Write unit tests for the service using API mocking (e.g., MSW) to simulate API responses and test error handling, retry logic, and data transformation.",
-        "priority": "high",
-        "dependencies": [1],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 5,
-        "title": "Implement useSalaryQuery Custom Hook",
-        "description": "Create the `useSalaryQuery` custom hook to manage salary query state, perform API calls using `SalaryDataService`, handle loading and error states, and potentially implement caching with React Query.",
-        "details": "Create a custom hook `useSalaryQuery` in `hooks/useSalaryQuery.ts`. It should accept optional initial criteria. Use `SalaryDataService` methods within the hook. Manage loading, data, and error states. Integrate React Query for data fetching, caching, and real-time updates as per PRD.",
-        "testStrategy": "Write unit tests for the hook using React Testing Library's `renderHook` and MSW to mock API calls. Test different states (loading, success, error) and parameter changes.",
-        "priority": "high",
-        "dependencies": [4],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 6,
-        "title": "Develop SalaryQueryForm Component",
-        "description": "Develop the `SalaryQueryForm` UI component, an interactive form with multiple search criteria inputs (Job Title, Industry, Region, Experience, Education, Company Size) using DaisyUI and TailwindCSS. Include form validation and accessibility features.",
-        "details": "Create `components/SalaryQueryForm.tsx`. Use DaisyUI form components and TailwindCSS for layout and styling. Implement input fields for each criterion with appropriate types (text, dropdowns). Add client-side form validation. Ensure accessibility (ARIA labels, keyboard navigation). The component should accept `onSubmit` and `loading` props.",
-        "testStrategy": "Write unit tests using React Testing Library to verify rendering, input changes, form submission with valid/invalid data, and loading state. Conduct integration tests within the page context.",
-        "priority": "high",
-        "dependencies": [1, 2, 3, 5],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 7,
-        "title": "Develop SalaryVisualizationChart Component",
-        "description": "Develop the `SalaryVisualizationChart` UI component to display salary data using interactive charts (box plot, bar chart) with Recharts. Show salary range, median, bonus/benefits, source, and timestamp.",
-        "details": "Create `components/SalaryVisualizationChart.tsx`. Integrate Recharts library. Implement logic to render box plots and bar charts based on `chartType` prop. Display key statistics (lowest, average, highest, median). Add tooltips for interactivity. Include data source and timestamp labels. Ensure responsiveness and accessibility.",
-        "testStrategy": "Write unit tests using React Testing Library to verify rendering with different data sets and chart types. Test chart interactivity (e.g., hover effects). Conduct integration tests within the page.",
-        "priority": "high",
-        "dependencies": [1, 2, 3, 5],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 8,
-        "title": "Develop SalaryDataTable Component",
-        "description": "Develop the `SalaryDataTable` UI component to display salary statistics and details in a tabular format using DaisyUI tables. Include sortable and filterable features.",
-        "details": "Create `components/SalaryDataTable.tsx`. Use DaisyUI table components. Display relevant salary statistics and data points. Implement client-side sorting and filtering functionality. Ensure accessibility for tables (sortable headers, screen reader support).",
-        "testStrategy": "Write unit tests using React Testing Library to verify rendering with different data sets. Test sorting and filtering functionality. Conduct integration tests within the page.",
-        "priority": "high",
-        "dependencies": [1, 2, 3, 5],
-        "status": "done",
-        "subtasks": []
-      },
-      {
-        "id": 9,
-        "title": "Implement MarketSalaryEnquiryPage",
-        "description": "Implement the `MarketSalaryEnquiryPage` at the `/salary-enquiry` route. This page will integrate the `SalaryQueryForm`, `SalaryVisualizationChart`, and `SalaryDataTable` components, using the `useSalaryQuery` hook for data fetching and state management.",
-        "details": "Create the page component in the App Router structure (`app/salary-enquiry/page.tsx`). Use the `useSalaryQuery` hook to fetch data based on form submissions. Pass data and loading state to the visualization components. Implement error and empty states. Ensure SEO requirements (meta tags) are met. Consider lazy loading for charts and virtualization for large datasets.",
-        "testStrategy": "Write E2E tests using Playwright/Cypress to simulate the full user flow: navigating to the page, filling and submitting the form, verifying data is displayed in charts and table. Conduct integration tests for component interactions on the page.",
-        "priority": "high",
-        "dependencies": [1, 2, 3, 5, 6, 7, 8],
-        "status": "done",
-        "subtasks": [
-          {
-            "id": 1,
-            "title": "Create `MarketSalaryEnquiryPage` component structure and route",
-            "description": "Create the basic file structure for the `MarketSalaryEnquiryPage` at `app/salary-enquiry/page.tsx`. Implement the basic component structure, including placeholders for the `SalaryQueryForm`, `SalaryVisualizationChart`, and `SalaryDataTable` components. Add basic SEO meta tags (title and description).",
-            "dependencies": [],
-            "details": "Create a functional component in `app/salary-enquiry/page.tsx`. Add a `<Head>` component to set the title and meta description. Include placeholder divs for the form, chart, and table. Use basic styling for layout.",
-            "status": "done",
-            "testStrategy": "Manually verify that the page renders at `/salary-enquiry` and that the title and meta description are correctly set in the browser's developer tools."
-          },
-          {
-            "id": 2,
-            "title": "Integrate `SalaryQueryForm` and `useSalaryQuery` hook",
-            "description": "Import and integrate the `SalaryQueryForm` component into the `MarketSalaryEnquiryPage`. Connect the form submission to the `useSalaryQuery` hook to fetch salary data based on the form inputs. Handle the loading state from the hook.",
-            "dependencies": [],
-            "details": "Import `SalaryQueryForm`. Pass a callback function to the `SalaryQueryForm`'s `onSubmit` prop. This callback should call the `useSalaryQuery` hook with the form values. Display a loading indicator while `useSalaryQuery` is fetching data.",
-            "status": "done",
-            "testStrategy": "Submit the form with different values and verify that the `useSalaryQuery` hook is called with the correct parameters. Check that the loading indicator is displayed during data fetching."
-          },
-          {
-            "id": 3,
-            "title": "Integrate `SalaryVisualizationChart` with fetched data",
-            "description": "Import and integrate the `SalaryVisualizationChart` component. Pass the salary data fetched by the `useSalaryQuery` hook to the chart component. Handle the case where the data is null or an error occurred.",
-            "dependencies": [],
-            "details": "Import `SalaryVisualizationChart`. Pass the `data` property returned by `useSalaryQuery` to the `SalaryVisualizationChart` component. Implement conditional rendering to display an error message if `useSalaryQuery` returns an error or no data.",
-            "status": "done",
-            "testStrategy": "Submit the form and verify that the chart renders correctly with the fetched data. Test with different data sets and ensure the chart displays the data accurately. Verify that the error message is displayed when an error occurs or no data is returned."
-          },
-          {
-            "id": 4,
-            "title": "Integrate `SalaryDataTable` with fetched data and implement virtualization",
-            "description": "Import and integrate the `SalaryDataTable` component. Pass the salary data fetched by the `useSalaryQuery` hook to the table component. Implement virtualization for large datasets to improve performance.",
-            "dependencies": [],
-            "details": "Import `SalaryDataTable`. Pass the `data` property returned by `useSalaryQuery` to the `SalaryDataTable` component. Use a virtualization library (e.g., `react-virtualized`) to handle large datasets efficiently. Configure the virtualization based on the expected data size.",
-            "status": "done",
-            "testStrategy": "Submit the form and verify that the table renders correctly with the fetched data. Test with large datasets (e.g., 1000+ rows) and verify that the virtualization is working correctly and the table remains responsive. Check that the table displays the data accurately."
-          },
-          {
-            "id": 5,
-            "title": "Implement error and empty states and optimize performance",
-            "description": "Implement proper error handling and display appropriate messages to the user. Handle the case where the data is empty and display a relevant message. Implement lazy loading for the `SalaryVisualizationChart` to improve initial page load time. Review and optimize the page for performance.",
-            "dependencies": [],
-            "details": "Use React's `Suspense` and `lazy` to lazy load the `SalaryVisualizationChart`. Display user-friendly error messages when `useSalaryQuery` returns an error. Display a 'No data found' message when the data is empty. Use profiling tools to identify and address any performance bottlenecks.",
-            "status": "done",
-            "testStrategy": "Simulate errors during data fetching and verify that the correct error message is displayed. Submit the form with criteria that return no data and verify that the 'No data found' message is displayed. Use browser developer tools to measure page load time and verify that lazy loading is improving performance. Profile the page and address any performance issues identified."
-          }
-        ]
-      },
-      {
-        "id": 10,
-        "title": "Implement Report Generation Service and Download Button",
-        "description": "Implement the `ReportGenerationService` to generate PDF and CSV reports from salary data and develop the `ReportDownloadButton` component.",
-        "details": "Create `services/reportGenerationService.ts` with methods `generatePDFReport` and `generateCSVReport`. Use a library for PDF generation (e.g., `pdfmake`, `react-pdf`) and standard methods for CSV. Create `components/ReportDownloadButton.tsx` that uses this service and handles download logic. Include loading states and success/error feedback.",
-        "testStrategy": "Write unit tests for the service to verify report generation logic with mock data. Write unit tests for the button component to verify click handling, loading states, and download initiation. Conduct integration tests on the `MarketSalaryEnquiryPage`.",
+        "id": 12,
+        "title": "Implement Entry Points on Homepage/Tools",
+        "description": "Add entry points for the Resume Optimization Tool on the SwipeHire homepage and/or Tools module as specified in the PRD.",
+        "details": "Identify the components responsible for the 'My Résumé' and 'Tools' modules. Add a new link or button component (e.g., using DaisyUI `btn` class) with clear text ('Résumé Optimization Tools') and an appropriate icon. The link should navigate to the main feature route defined in Task 11. Ensure accessibility using ARIA attributes if necessary. Use `next/link` for client-side navigation.",
+        "testStrategy": "Verify that the new entry points appear correctly on the respective pages. Click the entry points to ensure they navigate to the Resume Optimizer page without errors.",
         "priority": "medium",
-        "dependencies": [4, 9],
+        "dependencies": [
+          11
+        ],
         "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Build Resume Upload/Import/Create Page UI",
+        "description": "Design and build the user interface for the resume upload, import from profile, and create from scratch options.",
+        "details": "Create a Next.js page component for the upload/import step. Use DaisyUI components for layout (e.g., `card`, `grid`), buttons (`btn`), and input fields (`file-input`, `input`). Include sections for 'Upload File', 'Import from Profile', and 'Create from Scratch'. Use Tailwind CSS for responsive layout (`md:grid-cols-3`). Define TypeScript interfaces for potential form state. Include loading indicators (e.g., DaisyUI `loading` spinner) and basic error message display areas.",
+        "testStrategy": "Visually inspect the page layout on different screen sizes. Ensure all interactive elements (buttons, file input area) are present and correctly styled. Verify initial state of the UI.",
+        "priority": "high",
+        "dependencies": [
+          11
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Implement File Upload and Parsing Logic",
+        "description": "Implement the logic for handling file uploads (PDF, DOCX) and extracting text content.",
+        "details": "Add an event handler to the file input element. Use the `FileReader` API or a library like `pdfjs-dist` for PDF parsing and `mammoth` for DOCX parsing to extract text content from the uploaded files. Implement validation for file types (PDF, DOCX). Handle potential errors during file reading or parsing. Store the extracted text content in component state or a shared context. Show a loading state while parsing. Define TypeScript types for file input events and extracted content.",
+        "testStrategy": "Upload valid PDF and DOCX files and verify that text content is correctly extracted. Upload invalid file types and ensure appropriate error messages are displayed. Test with large files to check performance and loading states.",
+        "priority": "high",
+        "dependencies": [
+          13
+        ],
+        "status": "done",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Implement Import from Profile and Create from Scratch Logic",
+        "description": "Implement the logic for importing resume content from the user's SwipeHire profile and providing basic templates for creating from scratch.",
+        "details": "For 'Import from Profile', fetch the user's existing resume data from a relevant API endpoint. Display this data for confirmation or immediate use. For 'Create from Scratch', provide a selection of simple, pre-defined text templates. When a template is selected, load its content into the state. Define TypeScript types for profile data and template structures. Handle potential API errors for profile import.",
+        "testStrategy": "Test importing from a profile with existing data. Test importing from a profile with no data. Select different 'Create from Scratch' templates and verify their content is loaded correctly.",
+        "priority": "medium",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 16,
+        "title": "Implement Target Job Input Form",
+        "description": "Add input fields for the user to specify the target job title and relevant keywords.",
+        "details": "Include text input fields (e.g., DaisyUI `input` with `form-control` wrapper) for 'Target Job Title' and 'Keywords'. Use a comma-separated input or a tag input component for keywords. Implement basic input validation (e.g., not empty). Store the input values in component state. Define TypeScript types for the input form data.",
+        "testStrategy": "Enter text into both fields and verify state updates correctly. Test with empty inputs to check validation. Test keyword input with commas and spaces.",
+        "priority": "high",
+        "dependencies": [
+          13
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 17,
+        "title": "Integrate with Backend API for Analysis Request",
+        "description": "Integrate the frontend with the backend AI analysis module API to send resume content and target job information.",
+        "details": "Create a service function to make an API call to the backend endpoint responsible for resume analysis. The request payload should include the extracted resume text content (from Task 14 or 15) and the target job title/keywords (from Task 16). Use `fetch` or a library like `axios`. Implement loading states while waiting for the API response. Handle potential network errors or backend errors. Define TypeScript interfaces for the request payload and expected response structure based on the analysis report details (Task 18). Use `try...catch` for error handling.",
+        "testStrategy": "Send requests with valid data and verify that the backend receives the correct payload. Simulate backend errors (e.g., server down, invalid input) and verify frontend error handling and messages. Test with different resume content lengths.",
+        "priority": "high",
+        "dependencies": [
+          14,
+          15,
+          16
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 18,
+        "title": "Build Report Display UI and Render Analysis Results",
+        "description": "Build the user interface to display the detailed resume optimization report received from the backend API.",
+        "details": "Create a Next.js page or component to render the analysis report. Structure the report visually using sections for Overall Score, ATS Friendliness, Keyword Matching, Quantitative Achievement Analysis, Grammar/Spelling Check, Formatting/Layout Advice, and Personalized Suggestions. Use DaisyUI components like `collapse`, `alert`, `progress`, `badge`, and `list` to present the information clearly. Use Tailwind CSS for layout and styling. Display loading state while fetching the report (using data from Task 17). Handle cases where the report data is empty or invalid. Define TypeScript interfaces matching the API response structure.",
+        "testStrategy": "Render a mock report object with various data points to ensure all sections are displayed correctly. Test responsiveness of the report layout. Verify loading state is shown before data is available. Test with an empty report response.",
+        "priority": "high",
+        "dependencies": [
+          17
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 19,
+        "title": "Integrate/Build Embedded Real-time Editor",
+        "description": "Integrate or build an embedded real-time text editor within the report display page.",
+        "details": "Choose a suitable rich text editor library (e.g., Quill, TinyMCE, or a simple `textarea` with enhanced features) to embed within the report page layout (Task 18). Initialize the editor with the original resume text content. Ensure the editor is styled to fit seamlessly within the report view using Tailwind/DaisyUI. The editor should allow users to modify the text content directly. Define a mechanism to access the current content of the editor.",
+        "testStrategy": "Verify the editor component loads correctly within the report page. Ensure the original resume text is loaded into the editor. Test basic text editing functionalities (typing, deleting).",
+        "priority": "high",
+        "dependencies": [
+          18
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 20,
+        "title": "Implement Editor Interaction (Reanalyze, Adopt/Ignore)",
+        "description": "Implement the functionality for the 'Reanalyze' button and the 'Adopt'/'Ignore' suggestions.",
+        "details": "Add a 'Reanalyze' button near the editor. When clicked, retrieve the current content from the editor (Task 19) and trigger a new analysis request to the backend API (similar to Task 17). Update the displayed report (Task 18) with the new analysis results. Implement logic for 'Adopt' buttons next to suggestions: clicking 'Adopt' should modify the content in the embedded editor based on the suggestion. Implement 'Ignore' functionality (e.g., hiding the suggestion). Define TypeScript types for suggestion objects and editor updates.",
+        "testStrategy": "Modify text in the editor and click 'Reanalyze'; verify a new report is generated based on the changes. Test 'Adopt' functionality for different types of suggestions (e.g., adding keywords, fixing grammar); verify editor content is updated correctly. Test 'Ignore' functionality.",
+        "priority": "high",
+        "dependencies": [
+          19
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 21,
+        "title": "Implement Download Optimized Resume Functionality",
+        "description": "Implement the functionality to download the optimized resume content in PDF and DOCX formats.",
+        "details": "Add 'Download PDF' and 'Download DOCX' buttons on the report page. When clicked, retrieve the current resume content (either the original or the modified content from the editor). Use a client-side library (e.g., `jsPDF` or `pdfmake` for PDF, `docx` for DOCX) or make an API call to the backend to generate the file server-side. Provide the generated file to the user for download. Handle potential errors during file generation. Ensure the downloaded file name is descriptive.",
+        "testStrategy": "Click 'Download PDF' and 'Download DOCX' buttons. Verify that files are generated and downloaded correctly. Open the downloaded files to ensure content and formatting are preserved (as much as possible client-side, or verify backend generation if server-side). Test with different resume content.",
+        "priority": "high",
+        "dependencies": [
+          18
+        ],
+        "status": "pending",
         "subtasks": []
       }
     ],
     "metadata": {
       "created": "2025-06-22T02:49:39.767Z",
-      "updated": "2025-06-23T02:45:54.472Z",
+      "updated": "2025-06-23T06:36:41.992Z",
       "description": "Tasks for master context"
     }
   }

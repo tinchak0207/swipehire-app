@@ -13,19 +13,38 @@ export default function ProgressIndicator({
 }: ProgressIndicatorProps) {
   const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
 
+  // Step-specific colors
+
+  const getCurrentStepGradient = () => {
+    switch (currentStep) {
+      case 1:
+        return 'bg-gradient-to-r from-blue-400 to-blue-600';
+      case 2:
+        return 'bg-gradient-to-r from-green-400 to-green-600';
+      case 3:
+        return 'bg-gradient-to-r from-purple-400 to-purple-600';
+      case 4:
+        return 'bg-gradient-to-r from-orange-400 to-orange-600';
+      case 5:
+        return 'bg-gradient-to-r from-pink-400 to-pink-600';
+      default:
+        return 'bg-gradient-to-r from-gray-400 to-gray-600';
+    }
+  };
+
   return (
     <div className="w-full">
       {/* Progress Bar */}
       <div className="mb-8">
-        <div className="mb-2 flex justify-between text-base-content/60 text-sm">
+        <div className="mb-3 flex justify-between text-gray-700 text-sm font-medium">
           <span>
             Step {currentStep} of {totalSteps}
           </span>
           <span>{Math.round(progressPercentage)}% Complete</span>
         </div>
-        <div className="h-2 w-full rounded-full bg-base-200">
+        <div className="h-3 w-full rounded-full bg-white/80 backdrop-blur-sm shadow-inner">
           <div
-            className="h-2 rounded-full bg-primary transition-all duration-500 ease-out"
+            className={`h-3 rounded-full transition-all duration-700 ease-out shadow-sm ${getCurrentStepGradient()}`}
             style={{ width: `${progressPercentage}%` }}
           />
         </div>
@@ -37,7 +56,6 @@ export default function ProgressIndicator({
           const stepNumber = index + 1;
           const isCompleted = stepNumber < currentStep;
           const isCurrent = stepNumber === currentStep;
-          const _isUpcoming = stepNumber > currentStep;
 
           return (
             <div key={stepNumber} className="flex flex-1 flex-col items-center">

@@ -12,7 +12,7 @@ import {
 } from 'react';
 import type { BackendUser, UserPreferences } from '@/lib/types';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 const initialDefaultPreferences: UserPreferences = {
   theme: 'light',
@@ -79,18 +79,18 @@ export const UserPreferencesProvider = ({
 
   const applyTheme = useCallback((themeSetting?: UserPreferences['theme']) => {
     if (typeof window !== 'undefined') {
-      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.remove('dark');
       if (themeSetting === 'dark') {
         document.documentElement.classList.add('dark');
       } else if (themeSetting === 'light') {
-        document.documentElement.classList.add('light');
+        // Light theme is default, no class needed
       } else {
+        // System theme
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         if (systemPrefersDark) {
           document.documentElement.classList.add('dark');
-        } else {
-          document.documentElement.classList.add('light');
         }
+        // If system prefers light, no class needed (default)
       }
     }
   }, []);
@@ -263,7 +263,7 @@ export const UserPreferencesProvider = ({
             },
             notificationChannels: loadedNotificationChannels,
             notificationSubscriptions: loadedNotificationSubscriptions,
-            isLoading: false,
+            isLoading: loadedPrefsBase.isLoading ?? false,
           };
           setPreferencesState(loadedPrefs);
           applyTheme(loadedPrefs.theme);
@@ -402,7 +402,7 @@ export const UserPreferencesProvider = ({
   }, [preferences.theme, applyTheme]);
 
   const setPreferences = useCallback(
-    async (newPrefsPartial: Partial<UserPreferences>) => {
+    async (newPrefsPartial: Partial<UserPreferences>): Promise<void> => {
       setPreferencesState((prevPreferences) => {
         const updatedPreferences: UserPreferences = {
           ...prevPreferences,
@@ -507,8 +507,8 @@ export const UserPreferencesProvider = ({
   );
 
   return (
-    <UserPreferencesContext.Provider value={contextValue}>
-      {children}
-    </UserPreferencesContext.Provider>
+  <UserPreferencesContext.Provider value={contextValue}>
+  {children}
+  </UserPreferencesContext.Provider>
   );
 };

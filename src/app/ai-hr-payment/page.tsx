@@ -152,7 +152,7 @@ export default function AiHrPaymentPage() {
       }
     }
 
-    fetchCompanyStyle();
+    void fetchCompanyStyle();
   }, [fullBackendUser, toast, isAuthenticated, preferences.isLoading]);
 
   useEffect(() => {
@@ -269,6 +269,8 @@ export default function AiHrPaymentPage() {
       description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
       duration: 8000,
     });
+    
+    return Promise.resolve();
   };
 
   const isPerReplyRecommended = recommendedPlan === 'per_reply';

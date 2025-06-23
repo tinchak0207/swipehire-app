@@ -5,6 +5,7 @@ import {
   Brain,
   Camera,
   Clapperboard,
+  FileText,
   Info,
   Lock,
   PlayCircle,

@@ -1,5 +1,3 @@
-'use client';
-
 import { type FormEvent, useState } from 'react';
 
 interface QuestionnaireData {
@@ -12,7 +10,7 @@ interface QuestionnaireData {
 }
 
 export default function CareerQuestionnaire({
-  onSubmit,
+  onSubmit: onSubmitAction,
 }: {
   onSubmit: (data: QuestionnaireData) => void;
 }) {
@@ -24,7 +22,7 @@ export default function CareerQuestionnaire({
     if (step < 6) {
       setStep(step + 1);
     } else {
-      onSubmit(formData as QuestionnaireData);
+      onSubmitAction(formData as QuestionnaireData);
     }
   };
 
@@ -42,7 +40,7 @@ export default function CareerQuestionnaire({
             value={formData.education || ''}
             onChange={(e) => handleChange('education', e.target.value)}
             placeholder="Your highest education level"
-            className="w-full rounded border p-2"
+            className="w-full rounded border p-2 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
             required
           />
         </div>
@@ -55,7 +53,7 @@ export default function CareerQuestionnaire({
             value={formData.experience?.join('\n') || ''}
             onChange={(e) => handleChange('experience', e.target.value.split('\n'))}
             placeholder="List your work experience (one per line)"
-            className="h-32 w-full rounded border p-2"
+            className="h-32 w-full rounded border p-2 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
             required
           />
         </div>

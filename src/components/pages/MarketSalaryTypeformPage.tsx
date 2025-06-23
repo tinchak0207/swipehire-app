@@ -90,9 +90,7 @@ interface MarketSalaryTypeformPageProps {
   className?: string;
 }
 
-const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
-  className = '',
-}) => {
+const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({ className = '' }) => {
   // State management
   const [queryCriteria, setQueryCriteria] = useState<SalaryQueryCriteria>({});
   const [hasSearched, setHasSearched] = useState(false);
@@ -102,19 +100,12 @@ const MarketSalaryTypeformPage: React.FC<MarketSalaryTypeformPageProps> = ({
   const [showResults, setShowResults] = useState(false);
 
   // Fetch salary data using the hook
-  const {
-    salaryData,
-    statistics,
-    metadata,
-    isLoading,
-    isFetching,
-    error,
-    refetch,
-  } = useSalaryQuery(queryCriteria, currentPage, pageSize, {
-    enabled: hasSearched,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
-  });
+  const { salaryData, statistics, metadata, isLoading, isFetching, error, refetch } =
+    useSalaryQuery(queryCriteria, currentPage, pageSize, {
+      enabled: hasSearched,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+    });
 
   // Handle form submission
   const handleFormSubmit = useCallback((formData: SalaryQueryFormData) => {

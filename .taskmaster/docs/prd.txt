@@ -1,444 +1,108 @@
-# Product Requirements Document (PRD)
-# SwipeHire Application Development Tasks
-
-## Document Information
-- Created: [DATE]
-- Last Updated: [DATE]
-- Version: 2.0
-- Status: Active Development
-
-## Overview
-This document contains the product requirements and development tasks for the SwipeHire application, with focus on the new Market Salary Enquiry Function. Use this document to track features, components, and development priorities.
-
-## Project Goals
-- [ ] Goal 1: Implement Market Salary Enquiry Function with 40% user adoption rate
-- [ ] Goal 2: Achieve 88% user satisfaction with salary data accuracy
-- [ ] Goal 3: Increase salary negotiation success rate by 8% for users utilizing the feature
-- [ ] Goal 4: Maintain average inquiry session length of 5 minutes
-
-## Feature Requirements
-
-### High Priority Features - Market Salary Enquiry Function
-
-- [ ] Feature 1: Market Salary Enquiry Portal
-  - Requirements: Add entry point in "Tools" or "Data" module on homepage with clear icon and text
-  - Acceptance Criteria: 
-    - Portal is visible and accessible from main navigation
-    - Icon and text clearly indicate salary inquiry functionality
-    - Supports both job seekers and employers
-  - Dependencies: Main navigation component, routing system
-  - Estimated Effort: 1 week
-
-- [ ] Feature 2: Salary Query Interface
-  - Requirements: Interactive form with multiple search criteria
-  - Acceptance Criteria:
-    - Job Title: Exact/fuzzy matching with keyword search
-    - Industry: Multi-select dropdown menu
-    - Region: Multi-select dropdown (country, city)
-    - Work Experience: Dropdown (0-2, 3-5, 5-10, 10+ years)
-    - Educational Qualification: Dropdown selection
-    - Company Size: Dropdown (1-50, 51-200, etc.)
-  - Dependencies: Form validation, search API
-  - Estimated Effort: 2 weeks
-
-- [ ] Feature 3: Salary Data Visualization
-  - Requirements: Display query results with interactive charts and data lists
-  - Acceptance Criteria:
-    - Visual charts (box plot, bar chart) for salary distribution
-    - Display salary range (lowest, average, highest)
-    - Show median salary and bonus/benefits information
-    - Include data source and update timestamp
-    - Interactive chart elements for detailed data exploration
-  - Dependencies: Chart library (Recharts), data processing API
-  - Estimated Effort: 2 weeks
-
-- [ ] Feature 4: Advanced Result Interaction
-  - Requirements: Filtering, comparison, and personalization features
-  - Acceptance Criteria:
-    - Real-time filter updates
-    - Side-by-side comparison functionality
-    - Personalized salary comparison for job seekers
-    - PDF/CSV report download capability
-    - Anonymous data contribution feature
-  - Dependencies: Report generation service, data contribution API
-  - Estimated Effort: 2 weeks
-
-### Medium Priority Features
-
-- [ ] Feature 1: Salary Data Analytics Dashboard
-  - Requirements: Advanced analytics for employers and premium users
-  - Acceptance Criteria: Trend analysis, market insights, competitive analysis
-  - Dependencies: Analytics engine, premium user system
-  - Estimated Effort: 3 weeks
-
-- [ ] Feature 2: Salary Negotiation Assistant
-  - Requirements: AI-powered negotiation tips and strategies
-  - Acceptance Criteria: Personalized advice based on market data
-  - Dependencies: AI/ML integration, user profile data
-  - Estimated Effort: 4 weeks
-
-### Low Priority Features
-
-- [ ] Feature 1: Salary Prediction Model
-  - Requirements: ML-based salary prediction for career progression
-  - Acceptance Criteria: Accurate predictions based on user profile and market trends
-  - Dependencies: ML infrastructure, historical data analysis
-  - Estimated Effort: 6 weeks
-
-## Component Development Tasks - Market Salary Enquiry Function
-
-### UI Components
-
-- [ ] Component 1: SalaryPortalCard
-  - Description: Entry point card component for salary inquiry feature
-  - Props Interface: { title: string; description: string; icon: ReactNode; onClick: () => void }
-  - Styling: DaisyUI card + TailwindCSS with hover effects
-  - Accessibility: WCAG 2.1 compliance, keyboard navigation, ARIA labels
-  - Testing: Unit + Integration tests
-  - Documentation: Storybook + JSDoc
-
-- [ ] Component 2: SalaryQueryForm
-  - Description: Multi-criteria search form for salary queries
-  - Props Interface: { onSubmit: (criteria: SalaryQueryCriteria) => void; loading: boolean }
-  - Styling: DaisyUI form components + TailwindCSS responsive grid
-  - Accessibility: Form validation, screen reader support, keyboard navigation
-  - Testing: Unit + Integration tests with form validation scenarios
-  - Documentation: Storybook + JSDoc
-
-- [ ] Component 3: SalaryVisualizationChart
-  - Description: Interactive charts for salary data display (box plot, bar chart)
-  - Props Interface: { data: SalaryData[]; chartType: 'boxplot' | 'bar'; interactive: boolean }
-  - Styling: Recharts integration + TailwindCSS responsive design
-  - Accessibility: Chart accessibility, keyboard navigation, screen reader descriptions
-  - Testing: Unit + Integration tests with chart interaction scenarios
-  - Documentation: Storybook + JSDoc
-
-- [ ] Component 4: SalaryDataTable
-  - Description: Tabular display of salary statistics and details
-  - Props Interface: { data: SalaryStatistics; sortable: boolean; filterable: boolean }
-  - Styling: DaisyUI table + TailwindCSS responsive design
-  - Accessibility: Sortable table headers, screen reader support
-  - Testing: Unit + Integration tests
-  - Documentation: Storybook + JSDoc
-
-- [ ] Component 5: SalaryComparisonPanel
-  - Description: Side-by-side comparison of different salary queries
-  - Props Interface: { comparisons: SalaryComparison[]; onRemove: (id: string) => void }
-  - Styling: DaisyUI layout + TailwindCSS grid system
-  - Accessibility: WCAG 2.1 compliance, keyboard navigation
-  - Testing: Unit + Integration tests
-  - Documentation: Storybook + JSDoc
-
-- [ ] Component 6: ReportDownloadButton
-  - Description: Button component for generating and downloading salary reports
-  - Props Interface: { data: SalaryData; format: 'pdf' | 'csv'; filename: string }
-  - Styling: DaisyUI button + TailwindCSS with loading states
-  - Accessibility: Loading states, success/error feedback
-  - Testing: Unit + Integration tests
-  - Documentation: Storybook + JSDoc
-
-### Page Components
-
-- [ ] Page 1: MarketSalaryEnquiryPage
-  - Route: /salary-enquiry
-  - Description: Main page for salary inquiry functionality with form and results
-  - Data Fetching: Client-side with React Query for real-time updates
-  - SEO Requirements: Meta tags for salary transparency, structured data for job market
-  - Performance: Lazy loading for charts, virtualization for large datasets
-  - Testing: E2E + Integration tests for complete user flow
-
-- [ ] Page 2: SalaryReportPage
-  - Route: /salary-report/[reportId]
-  - Description: Detailed salary report page with shareable links
-  - Data Fetching: SSG with ISR for cached reports
-  - SEO Requirements: Dynamic meta tags based on report data
-  - Performance: Static generation with incremental updates
-  - Testing: E2E + Integration tests
-
-### Custom Hooks
-
-- [ ] Hook 1: useSalaryQuery
-  - Purpose: Manage salary query state and API calls
-  - Parameters: { initialCriteria?: SalaryQueryCriteria }
-  - Return Type: { query: Function; data: SalaryData; loading: boolean; error: Error | null }
-  - Side Effects: API calls, caching, error handling
-  - Testing: Unit tests with React Testing Library and MSW
-
-- [ ] Hook 2: useSalaryComparison
-  - Purpose: Manage multiple salary comparisons and state
-  - Parameters: { maxComparisons?: number }
-  - Return Type: { comparisons: SalaryComparison[]; addComparison: Function; removeComparison: Function }
-  - Side Effects: Local storage persistence, comparison limits
-  - Testing: Unit tests with React Testing Library
-
-- [ ] Hook 3: useReportGeneration
-  - Purpose: Handle report generation and download functionality
-  - Parameters: { data: SalaryData; format: ReportFormat }
-  - Return Type: { generateReport: Function; downloadUrl: string | null; loading: boolean }
-  - Side Effects: File generation, temporary URL creation
-  - Testing: Unit tests with mock file generation
-
-### Services
-
-- [ ] Service 1: SalaryDataService
-  - Purpose: API integration for salary data queries and aggregation
-  - Methods: 
-    - querySalaryData(criteria: SalaryQueryCriteria): Promise<SalaryData>
-    - getSalaryStatistics(jobTitle: string, region: string): Promise<SalaryStatistics>
-    - contributeSalaryData(data: AnonymousSalaryData): Promise<void>
-  - Error Handling: Typed errors, retry logic, fallback data
-  - Testing: Unit + Integration tests with API mocking
-  - Documentation: OpenAPI specification
-
-- [ ] Service 2: ReportGenerationService
-  - Purpose: Generate PDF and CSV reports from salary data
-  - Methods:
-    - generatePDFReport(data: SalaryData, template: ReportTemplate): Promise<Blob>
-    - generateCSVReport(data: SalaryData): Promise<string>
-    - getReportTemplate(type: ReportType): ReportTemplate
-  - Error Handling: File generation errors, memory management
-  - Testing: Unit + Integration tests
-  - Documentation: API documentation with examples
-
-- [ ] Service 3: SalaryAnalyticsService
-  - Purpose: Advanced analytics and insights for salary data
-  - Methods:
-    - calculateTrends(data: SalaryData[], timeframe: string): Promise<TrendAnalysis>
-    - getMarketInsights(criteria: SalaryQueryCriteria): Promise<MarketInsights>
-    - predictSalaryRange(profile: UserProfile): Promise<SalaryPrediction>
-  - Error Handling: Analytics errors, data validation
-  - Testing: Unit + Integration tests
-  - Documentation: Analytics API documentation
-
-## Technical Requirements
-
-### TypeScript Standards
-- [ ] Enable strict mode in tsconfig.json
-- [ ] Define comprehensive type interfaces
-- [ ] Implement proper error handling with typed errors
-- [ ] Use advanced TypeScript features (mapped types, conditional types)
-- [ ] Document complex types with JSDoc
-
-### Next.js Implementation
-- [ ] Implement App Router structure
-- [ ] Configure dynamic routes with proper validation
-- [ ] Optimize images with next/image
-- [ ] Implement proper data fetching strategies
-- [ ] Configure ISR where appropriate
-
-### Styling & Design
-- [ ] Implement TailwindCSS utility-first approach
-- [ ] Use DaisyUI components consistently
-- [ ] Ensure responsive design (mobile-first)
-- [ ] Maintain design token consistency
-- [ ] Implement dark/light theme support
-
-### Accessibility
-- [ ] WCAG 2.1 AA compliance
-- [ ] Screen reader compatibility
-- [ ] Keyboard navigation support
-- [ ] Proper ARIA attributes
-- [ ] Color contrast compliance
-
-### Performance
-- [ ] Implement React.memo for expensive components
-- [ ] Use useCallback/useMemo appropriately
-- [ ] Optimize bundle size
-- [ ] Implement proper loading states
-- [ ] Configure performance monitoring
-
-### Testing Strategy
-- [ ] Unit tests with Jest + React Testing Library
-- [ ] Integration tests for user flows
-- [ ] E2E tests with Playwright/Cypress
-- [ ] Accessibility testing with jest-axe
-- [ ] Performance testing
-
-### Code Quality
-- [ ] Configure Biome for formatting and linting
-- [ ] Set up pre-commit hooks
-- [ ] Implement conventional commit messages
-- [ ] Configure CI/CD pipeline
-- [ ] Code review process
-
-## API Integration Tasks
-
-### Authentication
-- [ ] Firebase Auth integration
-- [ ] User session management
-- [ ] Protected route implementation
-- [ ] Role-based access control
-
-### Data Management
-- [ ] Firestore database integration
-- [ ] Real-time data synchronization
-- [ ] Offline data handling
-- [ ] Data validation and sanitization
-
-### External APIs
-- [ ] Job board API integration
-- [ ] Location services
-- [ ] Notification services
-- [ ] Analytics integration
-
-## DevOps & Deployment
-
-### Development Environment
-- [ ] Local development setup
-- [ ] Environment variable management
-- [ ] Database seeding scripts
-- [ ] Development tools configuration
-
-### Production Deployment
-- [ ] Vercel deployment configuration
-- [ ] Environment-specific configurations
-- [ ] Performance monitoring setup
-- [ ] Error tracking implementation
-
-## Documentation Tasks
-
-### Technical Documentation
-- [ ] API documentation
-- [ ] Component library documentation
-- [ ] Development setup guide
-- [ ] Deployment procedures
-
-### User Documentation
-- [ ] User guide
-- [ ] Feature documentation
-- [ ] Troubleshooting guide
-- [ ] FAQ section
-
-## Quality Assurance
-
-### Testing Checklist
-- [ ] All components have unit tests
-- [ ] Critical user flows have E2E tests
-- [ ] Accessibility testing completed
-- [ ] Performance benchmarks met
-- [ ] Cross-browser compatibility verified
-
-### Code Review Checklist
-- [ ] TypeScript strict mode compliance
-- [ ] Proper error handling implementation
-- [ ] Accessibility standards met
-- [ ] Performance optimizations applied
-- [ ] Documentation updated
-
-## Risk Assessment
-
-### Technical Risks
-- [ ] Risk 1: [Description and mitigation strategy]
-- [ ] Risk 2: [Description and mitigation strategy]
-
-### Timeline Risks
-- [ ] Risk 1: [Description and mitigation strategy]
-- [ ] Risk 2: [Description and mitigation strategy]
-
-## Success Metrics
-
-### Performance Metrics
-- [ ] Page load time < 2 seconds
-- [ ] First Contentful Paint < 1.5 seconds
-- [ ] Lighthouse score > 90
-- [ ] Bundle size optimization
-
-### Quality Metrics
-- [ ] Test coverage > 80%
-- [ ] Zero accessibility violations
-- [ ] TypeScript strict mode compliance
-- [ ] Zero linting errors
-
-## Notes and Comments
-
-### Development Notes
-- [Add any development notes, decisions, or important information here]
-
-### Meeting Notes
-- [Add meeting notes, decisions, and action items here]
-
-### Change Log
-- [Track changes to requirements and scope here]
-
----
-
-## Task Management
-
-### In Progress
-- [ ] Task: [Description]
-  - Assignee: [Name]
-  - Due Date: [Date]
-  - Status: [In Progress/Blocked/Review]
-
-### Completed
-- [x] Task: [Description]
-  - Completed Date: [Date]
-  - Notes: [Any relevant notes]
-
-### Blocked
-- [ ] Task: [Description]
-  - Blocker: [What's blocking this task]
-  - Resolution Plan: [How to resolve]
-
----
-
-## Instructions for Use
-
-1. Replace placeholder text with actual requirements
-2. Check off completed tasks using [x]
-3. Add new tasks as needed
-4. Update dates and status regularly
-5. Use this document for sprint planning and progress tracking
-6. Link to related issues, PRs, or documentation as needed
-
-## Taskmaster AI Integration
-
-Use the following commands to generate prompts for tasks in this PRD:
-
-```powershell
-# Generate component prompt
-npm run taskmaster:component -- -n [ComponentName] -d "[Description from PRD]"
-
-# Generate page prompt
-npm run taskmaster:page -- -n [PageName] -d "[Description from PRD]"
-
-# Interactive mode for complex requirements
-npm run taskmaster:interactive
-```
-
-Remember to follow all established guidelines for TypeScript, Next.js, TailwindCSS, DaisyUI, accessibility, and testing when implementing tasks from this PRD.
- 
- - - - 
- 
- # #   M a r k e t   S a l a r y   E n q u i r y   F u n c t i o n   -   A d d i t i o n a l   D e t a i l s 
- 
- F o r   d e t a i l e d   i m p l e m e n t a t i o n   s p e c i f i c a t i o n s ,   T y p e S c r i p t   i n t e r f a c e s ,   A P I   e n d p o i n t s ,   a n d   c o m p r e h e n s i v e   t e c h n i c a l   r e q u i r e m e n t s   f o r   t h e   M a r k e t   S a l a r y   E n q u i r y   F u n c t i o n ,   s e e : 
- 
- * *   [ M a r k e t   S a l a r y   E n q u i r y   S u p p l e m e n t ] ( . / m a r k e t - s a l a r y - e n q u i r y - s u p p l e m e n t . m d ) * * 
- 
- T h i s   s u p p l e m e n t   c o n t a i n s : 
- -   D e t a i l e d   f u n c t i o n a l   f l o w   i m p l e m e n t a t i o n 
- -   C o m p l e t e   T y p e S c r i p t   i n t e r f a c e   d e f i n i t i o n s 
- -   A P I   e n d p o i n t   s p e c i f i c a t i o n s 
- -   D a t a b a s e   s c h e m a   d e s i g n 
- -   S e c u r i t y   a n d   p r i v a c y   i m p l e m e n t a t i o n 
- -   C o m p o n e n t   a r c h i t e c t u r e   a n d   s t a t e   m a n a g e m e n t 
- -   C o m p r e h e n s i v e   t e s t i n g   s t r a t e g i e s 
- -   D e p l o y m e n t   a n d   m o n i t o r i n g   p l a n s 
- 
- # # #   Q u i c k   T a s k m a s t e r   A I   C o m m a n d s   f o r   M a r k e t   S a l a r y   E n q u i r y : 
- 
- ` ` ` p o w e r s h e l l 
- #   G e n e r a t e   m a i n   s a l a r y   e n q u i r y   p a g e 
- n p m   r u n   t a s k m a s t e r : p a g e   - -   - n   M a r k e t S a l a r y E n q u i r y P a g e   - d   " M a i n   s a l a r y   i n q u i r y   p a g e   w i t h   f o r m   a n d   r e s u l t s   v i s u a l i z a t i o n " 
- 
- #   G e n e r a t e   s a l a r y   q u e r y   f o r m   c o m p o n e n t 
- n p m   r u n   t a s k m a s t e r : c o m p o n e n t   - -   - n   S a l a r y Q u e r y F o r m   - d   " M u l t i - c r i t e r i a   s e a r c h   f o r m   w i t h   d r o p d o w n s   a n d   v a l i d a t i o n " 
- 
- #   G e n e r a t e   s a l a r y   v i s u a l i z a t i o n   c h a r t 
- n p m   r u n   t a s k m a s t e r : c o m p o n e n t   - -   - n   S a l a r y V i s u a l i z a t i o n C h a r t   - d   " I n t e r a c t i v e   c h a r t s   f o r   s a l a r y   d a t a   d i s p l a y   w i t h   b o x   p l o t s   a n d   b a r   c h a r t s " 
- 
- #   G e n e r a t e   s a l a r y   d a t a   s e r v i c e 
- n p m   r u n   t a s k m a s t e r : s e r v i c e   - -   - n   S a l a r y D a t a S e r v i c e   - d   " A P I   s e r v i c e   f o r   s a l a r y   d a t a   q u e r i e s   a n d   a g g r e g a t i o n " 
- ` ` `  
- 
+7. New Functional Solution: Traditional Resume Optimizer
+
+7.1 Functional Objective
+
+The new “Traditional CV Optimizer” aims to help job seekers to enhance the quality and professionalism of their traditional written CVs, so that
+
+they will be more appealing to hiring managers and pass the ATS (Applicant Tracking System) screening smoothly. The tool will provide intelligent analysis and real-time advice at
+
+to ensure that the résumé is accurate, well-formatted and rich in keywords. The specific objectives are as follows:
+
+Improve resume approval rates: Help users' resumes better pass ATS screening and increase the chances of being seen by hiring managers.
+
+Optimize résumé content: Provide targeted recommendations to improve résumé language, quantitative results, and keyword usage.
+
+Ensure Formatting: Helps users create professional, clear résumé layouts.
+
+Data Metrics: After the launch of
+
+, it is expected that 35% of active job seekers will use this feature to optimize their résumés.
+
+User satisfaction with resume optimization suggestions will reach over 90%.
+
+The average view rate of an optimized resume will increase by 10%.
+
+The average length of time users spent on the feature was 15 minutes per session.
+
+7.2 Interaction Details
+
+Entry and Flow:
+
+Main Page Entry: In the “My Résumé” or ‘Tools’ module on the SwipeHire home page, a new “Résumé
+
+Optimization Tools” entry is added, with clear icons and text markings.
+
+Resume Upload: After clicking the portal, you will enter the resume upload page. Users can choose:
+
+Upload File: Support PDF, DOCX and other common resume formats.
+
+Import from Profile: Import existing text resume content directly from SwipeHire's profile.
+
+Create from Scratch: Provide templates to guide users step-by-step.
+
+Target Job Input: After uploading the resume, users need to input or select their target job title and related keywords for AI
+
+to perform targeted analysis.
+
+Analysis Report Display: After analyzing the resume, the system will automatically jump to the resume optimization report page. The report will be presented visually at
+
+and in text format, including:
+
+Overall Score: The overall score (e.g., 1-100) of the resume.
+
+ATS Friendliness: Evaluates how friendly the resume is to the applicant tracking system and provides recommendations for improvement.
+
+Keyword Matching: Analyzes how well the resume matches the keywords of the target position and suggests keywords to add or replace.
+
+Quantitative Achievement Analysis: Identifies quantifiable achievements in the resume and suggests how they can be better expressed.
+
+Grammar and Spelling Check: Flags grammatical errors, spelling mistakes and unprofessional expressions.
+
+Formatting and Layout Advice: Provides advice on font, spacing, page layout, etc.
+
+Personalized Suggestions: Provide AI-generated, personalized suggestions for changes to your resume, specific to the content of your resume.
+
+Editing and Feedback:
+
+Real-time Editor: A resume editor is embedded in the report page, which allows the user to modify the resume content in real-time according to the suggestions. After modifying
+
+, click the “Reanalyze” button to get the updated report.
+
+Suggestion Adoption: Users can choose to “Adopt” or “Ignore” the suggestions made by the AI.
+
+Examples: For certain optimization points, examples of good resumes are provided for users' reference.
+
+Download optimized resume: Users can download the optimized resume at any time, supporting PDF and DOCX formats.
+
+7.3 Functional Flow Description
+
+User enters into the function of Resume Optimization Tool:
+
+User clicks on “Resume Optimization Tool” in the homepage or tool module.
+
+The system loads the resume upload/import page.
+
+Upload/Import Resume and Target Position Input:
+
+User uploads or imports resume file and inputs target position keywords.
+
+AI Resume Analysis:
+
+system sends resume content and target position keywords to the back-end AI analysis module.
+
+The AI analysis module analyzes the resume in multiple dimensions, including ATS friendliness, keyword matching, syntax, format
+
+, etc. The AI generates detailed resume optimization.
+
+AI generates detailed resume optimization reports and personalized recommendations.
+
+Report display and real-time editing:
+
+system transmits the analysis results to the front-end to display the resume optimization report.
+
+Users can modify the resume according to the suggestions in the embedded editor and re-analyze it in real-time.
+
+Download Optimized Résumé:
+
+Users can download the optimized Résumé file at any time.
+

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import type { BackendUser, UserRole } from '@/lib/types';
+import type { BackendUser, UserRole, UserPreferences } from '@/lib/types';
 import ProgressIndicator from './ProgressIndicator';
 import CompletionStep from './steps/CompletionStep';
 import GoalSettingStep from './steps/GoalSettingStep';
@@ -14,35 +14,35 @@ export interface WizardData {
   userType: UserRole | null;
   profileData: {
     // Candidate fields
-    headline?: string;
-    experienceSummary?: string;
-    skills?: string[];
-    desiredWorkStyle?: string;
-    workExperienceLevel?: string;
-    educationLevel?: string;
-    locationPreference?: string;
-    availability?: string;
-    jobTypePreference?: string;
-    salaryExpectationMin?: number;
-    salaryExpectationMax?: number;
+    headline: string;
+    experienceSummary: string;
+    skills: string[];
+    desiredWorkStyle: string;
+    workExperienceLevel: string;
+    educationLevel: string;
+    locationPreference: string;
+    availability: string;
+    jobTypePreference: string;
+    salaryExpectationMin: number;
+    salaryExpectationMax: number;
 
     // Company fields
-    companyName?: string;
-    companyIndustry?: string;
-    companyScale?: string;
-    companyDescription?: string;
-    companyCultureHighlights?: string[];
-    companyNeeds?: string;
+    companyName: string;
+    companyIndustry: string;
+    companyScale: string;
+    companyDescription: string;
+    companyCultureHighlights: string[];
+    companyNeeds: string;
   };
   preferences: {
-    theme?: 'light' | 'dark' | 'system';
-    notificationChannels?: {
+    theme: 'light' | 'dark' | 'system';
+    notificationChannels: {
       email: boolean;
       sms: boolean;
       inAppToast: boolean;
       inAppBanner: boolean;
     };
-    notificationSubscriptions?: {
+    notificationSubscriptions: {
       companyReplies: boolean;
       matchUpdates: boolean;
       applicationStatusChanges: boolean;
@@ -62,7 +62,25 @@ export interface WizardData {
 
 const initialWizardData: WizardData = {
   userType: null,
-  profileData: {},
+  profileData: {
+    headline: '',
+    experienceSummary: '',
+    skills: [],
+    desiredWorkStyle: '',
+    workExperienceLevel: '',
+    educationLevel: '',
+    locationPreference: '',
+    availability: '', 
+    jobTypePreference: '',
+    salaryExpectationMin: 0,
+    salaryExpectationMax: 0,
+    companyName: '',
+    companyIndustry: '',
+    companyScale: '',
+    companyDescription: '',
+    companyCultureHighlights: [],
+    companyNeeds: ''
+  },
   preferences: {
     theme: 'system',
     notificationChannels: {
@@ -113,25 +131,25 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
         userType: fullBackendUser.selectedRole,
         profileData: {
           // Candidate fields
-          headline: fullBackendUser.profileHeadline,
-          experienceSummary: fullBackendUser.profileExperienceSummary,
-          skills: fullBackendUser.profileSkills?.split(',').map((s) => s.trim()),
-          desiredWorkStyle: fullBackendUser.profileDesiredWorkStyle,
-          workExperienceLevel: fullBackendUser.profileWorkExperienceLevel,
-          educationLevel: fullBackendUser.profileEducationLevel,
-          locationPreference: fullBackendUser.profileLocationPreference,
-          availability: fullBackendUser.profileAvailability,
-          jobTypePreference: fullBackendUser.profileJobTypePreference,
-          salaryExpectationMin: fullBackendUser.profileSalaryExpectationMin,
-          salaryExpectationMax: fullBackendUser.profileSalaryExpectationMax,
+          headline: fullBackendUser.profileHeadline || '',
+          experienceSummary: fullBackendUser.profileExperienceSummary || '',
+          skills: fullBackendUser.profileSkills?.split(',').map((s) => s.trim()) || [],
+          desiredWorkStyle: fullBackendUser.profileDesiredWorkStyle || '',
+          workExperienceLevel: fullBackendUser.profileWorkExperienceLevel || '',
+          educationLevel: fullBackendUser.profileEducationLevel || '',
+          locationPreference: fullBackendUser.profileLocationPreference || '',
+          availability: fullBackendUser.profileAvailability || '',
+          jobTypePreference: fullBackendUser.profileJobTypePreference || '',
+          salaryExpectationMin: fullBackendUser.profileSalaryExpectationMin || 0,
+          salaryExpectationMax: fullBackendUser.profileSalaryExpectationMax || 0,
 
           // Company fields
-          companyName: fullBackendUser.companyName,
-          companyIndustry: fullBackendUser.companyIndustry,
-          companyScale: fullBackendUser.companyScale,
-          companyDescription: fullBackendUser.companyDescription,
-          companyCultureHighlights: fullBackendUser.companyCultureHighlights,
-          companyNeeds: fullBackendUser.companyNeeds,
+          companyName: fullBackendUser.companyName || '',
+          companyIndustry: fullBackendUser.companyIndustry || '',
+          companyScale: fullBackendUser.companyScale || '',
+          companyDescription: fullBackendUser.companyDescription || '',
+          companyCultureHighlights: fullBackendUser.companyCultureHighlights || [],
+          companyNeeds: fullBackendUser.companyNeeds || '',
         },
         preferences: {
           theme: fullBackendUser.preferences?.theme || 'system',
@@ -168,6 +186,18 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
         preferences: {
           ...wizardData.preferences,
           isLoading: false,
+          notificationChannels: {
+            ...wizardData.preferences.notificationChannels,
+          },
+          notificationSubscriptions: {
+            companyReplies: wizardData.preferences.notificationSubscriptions.companyReplies,
+            matchUpdates: wizardData.preferences.notificationSubscriptions.matchUpdates,
+            applicationStatusChanges: wizardData.preferences.notificationSubscriptions.applicationStatusChanges,
+            platformAnnouncements: wizardData.preferences.notificationSubscriptions.platformAnnouncements,
+            welcomeAndOnboardingEmails: wizardData.preferences.notificationSubscriptions.welcomeAndOnboardingEmails,
+            contentAndBlogUpdates: wizardData.preferences.notificationSubscriptions.contentAndBlogUpdates,
+            featureAndPromotionUpdates: wizardData.preferences.notificationSubscriptions.featureAndPromotionUpdates,
+          },
         },
       };
 
@@ -200,9 +230,9 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
 
       // Save to backend
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`,
+        `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
         {
-          method: 'PUT',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
@@ -236,9 +266,9 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
       if (mongoDbUserId) {
         try {
           await fetch(
-            `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`,
+            `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
             {
-              method: 'PUT',
+              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
@@ -275,9 +305,9 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
     if (mongoDbUserId) {
       try {
         await fetch(
-          `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}`,
+          `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
           {
-            method: 'PUT',
+            method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
@@ -355,16 +385,34 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
     }
   };
 
+  // Step-specific gradient backgrounds
+  const getStepGradient = () => {
+    switch (currentStep) {
+      case 1:
+        return 'bg-gradient-to-br from-blue-50 via-white to-blue-100';
+      case 2:
+        return 'bg-gradient-to-br from-green-50 via-white to-green-100';
+      case 3:
+        return 'bg-gradient-to-br from-purple-50 via-white to-purple-100';
+      case 4:
+        return 'bg-gradient-to-br from-orange-50 via-white to-orange-100';
+      case 5:
+        return 'bg-gradient-to-br from-pink-50 via-white to-pink-100';
+      default:
+        return 'bg-gradient-to-br from-gray-50 via-white to-gray-100';
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-base-100">
-      <div className="container mx-auto max-w-4xl px-4 py-8">
+    <div className={`min-h-screen transition-all duration-700 ease-in-out ${getStepGradient()}`}>
+      <div className="container mx-auto max-w-5xl px-4 py-8">
         <ProgressIndicator
           currentStep={currentStep}
           totalSteps={totalSteps}
           stepTitles={['Welcome', 'Profile Setup', 'Preferences', 'Goal Setting', 'Complete']}
         />
 
-        <div className="mt-8">{renderCurrentStep()}</div>
+        <div className="mt-8 animate-fade-in">{renderCurrentStep()}</div>
       </div>
     </div>
   );

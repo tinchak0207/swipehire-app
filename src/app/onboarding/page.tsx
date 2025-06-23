@@ -1,28 +1,43 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { WizardContainer } from '@/components/onboarding';
 import { useOnboardingWizard } from '@/hooks/useOnboardingWizard';
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { markWizardCompleted, markWizardSkipped } = useOnboardingWizard();
+  
+  const returnTo = searchParams.get('returnTo');
 
   const handleComplete = () => {
     markWizardCompleted();
-    // Redirect to appropriate dashboard based on user role
-    router.push('/dashboard');
+    
+    // Handle different return destinations
+    if (returnTo === 'resume-optimizer-import') {
+      router.push('/resume-optimizer/import?onboarding=completed');
+    } else {
+      // Default redirect to home page
+      router.push('/');
+    }
   };
 
   const handleSkip = () => {
     markWizardSkipped();
-    // Redirect to dashboard with a note that they can complete onboarding later
-    router.push('/dashboard?onboarding=skipped');
+    
+    // Handle different return destinations for skip case
+    if (returnTo === 'resume-optimizer-import') {
+      // If they skip onboarding but came from resume optimizer, 
+      // still redirect back but with a note
+      router.push('/resume-optimizer/import?onboarding=skipped');
+    } else {
+      // Default redirect to home page with a note that they can complete onboarding later
+      router.push('/?onboarding=skipped');
+    }
   };
 
   return (
-    <div className="min-h-screen bg-base-100">
-      <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />
-    </div>
+    <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />
   );
 }

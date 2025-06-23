@@ -9,6 +9,7 @@ import {
   DollarSign,
   Edit3,
   Eye,
+  FileText,
   Globe,
   Image as ImageIcon,
   LanguagesIcon,
@@ -26,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import NextImage from 'next/image';
+import { useRouter } from 'next/navigation';
 import { type KeyboardEvent, useEffect, useState } from 'react';
 import ProfileCard from '@/components/cards/ProfileCard';
 import { ShareModal } from '@/components/share/ShareModal';
@@ -92,6 +94,7 @@ const cardThemeOptions = [
 ];
 
 export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
+  const router = useRouter();
   const [profileHeadline, setProfileHeadline] = useState('');
   const [experienceSummary, setExperienceSummary] = useState('');
 
@@ -1059,6 +1062,69 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <Save className="mr-2 h-5 w-5" />
             )}
             Update & Publish My Profile
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center text-xl">
+            <FileText className="mr-2 h-5 w-5 text-primary" />
+            Resume Optimization tools
+          </CardTitle>
+          <CardDescription>
+            Enhance your resume with AI-powered analysis and optimization to increase your chances of landing interviews.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border bg-gradient-to-r from-blue-50 to-indigo-50 p-4">
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0">
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-500 text-white">
+                  <FileText className="h-6 w-6" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-lg text-gray-900">AI-Powered Resume Analysis</h3>
+                <p className="text-gray-600 text-sm mt-1">
+                  Get detailed feedback on your resume including ATS compatibility, keyword optimization, 
+                  and personalized suggestions to improve your job application success rate.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    ATS Optimization
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Keyword Analysis
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Grammar Check
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Format Suggestions
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button 
+            onClick={() => router.push('/resume-optimizer')}
+            className="w-full sm:w-auto"
+            disabled={isGuestMode}
+          >
+            {isGuestMode ? (
+              <>
+                <Lock className="mr-2 h-4 w-4" />
+                Sign In to Optimize Resume
+              </>
+            ) : (
+              <>
+                <FileText className="mr-2 h-4 w-4" />
+                Optimize My Resume
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

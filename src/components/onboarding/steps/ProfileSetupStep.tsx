@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import CareerQuestionnaire from '@/components/career-ai/CareerQuestionnaire';
 import {
@@ -77,10 +75,16 @@ export default function ProfileSetupStep({
 
   if (showQuestionnaire && isJobSeeker) {
     return (
-      <div className="mx-auto max-w-2xl">
-        <div className="mb-6">
-          <button onClick={() => setShowQuestionnaire(false)} className="btn btn-ghost btn-sm">
-            ← Back to Manual Setup
+      <div className="mx-auto max-w-4xl animate-fade-in">
+        <div className="mb-8">
+          <button 
+            onClick={() => setShowQuestionnaire(false)} 
+            className="flex items-center text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200"
+          >
+            <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            </svg>
+            Back to Manual Setup
           </button>
         </div>
         <CareerQuestionnaire onSubmit={handleQuestionnaireSubmit} />
@@ -89,95 +93,101 @@ export default function ProfileSetupStep({
   }
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-4xl animate-fade-in">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h2 className="mb-2 font-bold text-3xl text-base-content">
+      <div className="mb-12 text-center">
+        <h2 className="mb-4 font-bold text-4xl text-gray-800">
           {isJobSeeker ? 'Build Your Profile' : 'Company Information'}
         </h2>
-        <p className="text-base-content/60">
+        <p className="text-gray-600 text-xl">
           {isJobSeeker
             ? 'Tell us about your background and career goals'
             : 'Help candidates learn about your company and opportunities'}
         </p>
       </div>
 
-      <div className="card bg-base-200">
-        <div className="card-body">
+      <div className="rounded-3xl bg-white/80 backdrop-blur-sm shadow-xl border border-white/20">
+        <div className="p-8 md:p-12">
           {isJobSeeker && (
             <>
               {/* Career Questionnaire Option */}
-              <div className="mb-6 rounded-lg bg-info/10 p-4">
+              <div className="mb-8 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-6 border border-blue-100">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="mb-1 font-semibold text-base-content">
-                      🤖 AI-Powered Career Assessment
+                    <h3 className="mb-2 font-bold text-gray-800 text-lg flex items-center">
+                      <span className="mr-2">🤖</span>
+                      AI-Powered Career Assessment
                     </h3>
-                    <p className="text-base-content/60 text-sm">
+                    <p className="text-gray-600">
                       Let our AI guide you through a comprehensive career questionnaire
                     </p>
                   </div>
                   <button
                     onClick={() => setShowQuestionnaire(true)}
-                    className="btn btn-info btn-sm"
+                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105"
                   >
                     Start Assessment
                   </button>
                 </div>
               </div>
 
-              <div className="divider">OR</div>
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-4 bg-white text-gray-500 font-medium">OR</span>
+                </div>
+              </div>
 
               {/* Manual Profile Setup for Job Seekers */}
-              <div className="space-y-6">
+              <div className="space-y-8">
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Professional Headline *</span>
+                  <label className="mb-3 block">
+                    <span className="font-semibold text-gray-800 text-lg">Professional Headline *</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g., Senior Software Engineer | Full-Stack Developer"
-                    className="input input-bordered"
+                    className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                     value={formData.headline || ''}
                     onChange={(e) => handleInputChange('headline', e.target.value)}
                   />
                 </div>
 
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Experience Summary *</span>
+                  <label className="mb-3 block">
+                    <span className="font-semibold text-gray-800 text-lg">Experience Summary *</span>
                   </label>
                   <textarea
                     placeholder="Describe your professional background, key achievements, and what makes you unique..."
-                    className="textarea textarea-bordered h-32"
+                    className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400 h-32 resize-none"
                     value={formData.experienceSummary || ''}
                     onChange={(e) => handleInputChange('experienceSummary', e.target.value)}
                   />
                 </div>
 
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Skills *</span>
+                  <label className="mb-3 block">
+                    <span className="font-semibold text-gray-800 text-lg">Skills *</span>
                   </label>
                   <input
                     type="text"
                     placeholder="JavaScript, React, Node.js, Python, etc. (comma-separated)"
-                    className="input input-bordered"
+                    className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                     value={formData.skills?.join(', ') || ''}
                     onChange={(e) => handleSkillsChange(e.target.value)}
                   />
-                  <label className="label">
-                    <span className="label-text-alt">Separate skills with commas</span>
-                  </label>
+                  <p className="mt-2 text-sm text-gray-500">Separate skills with commas</p>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2">
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">Experience Level</span>
+                    <label className="mb-3 block">
+                      <span className="font-semibold text-gray-800">Experience Level</span>
                     </label>
                     <select
-                      className="select select-bordered"
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black"
                       value={formData.workExperienceLevel || ''}
                       onChange={(e) => handleInputChange('workExperienceLevel', e.target.value)}
                     >
@@ -191,11 +201,11 @@ export default function ProfileSetupStep({
                   </div>
 
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">Education Level</span>
+                    <label className="mb-3 block">
+                      <span className="font-semibold text-gray-800">Education Level</span>
                     </label>
                     <select
-                      className="select select-bordered"
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black"
                       value={formData.educationLevel || ''}
                       onChange={(e) => handleInputChange('educationLevel', e.target.value)}
                     >
@@ -209,13 +219,13 @@ export default function ProfileSetupStep({
                   </div>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2">
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">Location Preference</span>
+                    <label className="mb-3 block">
+                      <span className="font-semibold text-gray-800">Location Preference</span>
                     </label>
                     <select
-                      className="select select-bordered"
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black"
                       value={formData.locationPreference || ''}
                       onChange={(e) => handleInputChange('locationPreference', e.target.value)}
                     >
@@ -229,11 +239,11 @@ export default function ProfileSetupStep({
                   </div>
 
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">Availability</span>
+                    <label className="mb-3 block">
+                      <span className="font-semibold text-gray-800">Availability</span>
                     </label>
                     <select
-                      className="select select-bordered"
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black"
                       value={formData.availability || ''}
                       onChange={(e) => handleInputChange('availability', e.target.value)}
                     >
@@ -248,26 +258,26 @@ export default function ProfileSetupStep({
                 </div>
 
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Desired Work Style</span>
+                  <label className="mb-3 block">
+                    <span className="font-semibold text-gray-800">Desired Work Style</span>
                   </label>
                   <textarea
                     placeholder="Describe your ideal work environment, team dynamics, and work-life balance preferences..."
-                    className="textarea textarea-bordered"
+                    className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400 h-24 resize-none"
                     value={formData.desiredWorkStyle || ''}
                     onChange={(e) => handleInputChange('desiredWorkStyle', e.target.value)}
                   />
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2">
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">Minimum Salary Expectation</span>
+                    <label className="mb-3 block">
+                      <span className="font-semibold text-gray-800">Minimum Salary Expectation</span>
                     </label>
                     <input
                       type="number"
                       placeholder="50000"
-                      className="input input-bordered"
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                       value={formData.salaryExpectationMin || ''}
                       onChange={(e) =>
                         handleInputChange(
@@ -279,13 +289,13 @@ export default function ProfileSetupStep({
                   </div>
 
                   <div className="form-control">
-                    <label className="label">
-                      <span className="label-text font-medium">Maximum Salary Expectation</span>
+                    <label className="mb-3 block">
+                      <span className="font-semibold text-gray-800">Maximum Salary Expectation</span>
                     </label>
                     <input
                       type="number"
                       placeholder="80000"
-                      className="input input-bordered"
+                      className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                       value={formData.salaryExpectationMax || ''}
                       onChange={(e) =>
                         handleInputChange(
@@ -301,40 +311,40 @@ export default function ProfileSetupStep({
           )}
 
           {isRecruiter && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Company Name *</span>
+                <label className="mb-3 block">
+                  <span className="font-semibold text-gray-800 text-lg">Company Name *</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Your company name"
-                  className="input input-bordered"
+                  className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                   value={formData.companyName || ''}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
                 />
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2">
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Industry *</span>
+                  <label className="mb-3 block">
+                    <span className="font-semibold text-gray-800 text-lg">Industry *</span>
                   </label>
                   <input
                     type="text"
                     placeholder="e.g., Technology, Healthcare, Finance"
-                    className="input input-bordered"
+                    className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                     value={formData.companyIndustry || ''}
                     onChange={(e) => handleInputChange('companyIndustry', e.target.value)}
                   />
                 </div>
 
                 <div className="form-control">
-                  <label className="label">
-                    <span className="label-text font-medium">Company Size</span>
+                  <label className="mb-3 block">
+                    <span className="font-semibold text-gray-800">Company Size</span>
                   </label>
                   <select
-                    className="select select-bordered"
+                    className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black"
                     value={formData.companyScale || ''}
                     onChange={(e) => handleInputChange('companyScale', e.target.value)}
                   >
@@ -349,40 +359,38 @@ export default function ProfileSetupStep({
               </div>
 
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Company Description *</span>
+                <label className="mb-3 block">
+                  <span className="font-semibold text-gray-800 text-lg">Company Description *</span>
                 </label>
                 <textarea
                   placeholder="Describe your company's mission, values, and what makes it a great place to work..."
-                  className="textarea textarea-bordered h-32"
+                  className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400 h-32 resize-none"
                   value={formData.companyDescription || ''}
                   onChange={(e) => handleInputChange('companyDescription', e.target.value)}
                 />
               </div>
 
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Culture Highlights</span>
+                <label className="mb-3 block">
+                  <span className="font-semibold text-gray-800">Culture Highlights</span>
                 </label>
                 <input
                   type="text"
                   placeholder="Innovation, Work-life balance, Remote-friendly, etc. (comma-separated)"
-                  className="input input-bordered"
+                  className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                   value={formData.companyCultureHighlights?.join(', ') || ''}
                   onChange={(e) => handleCultureHighlightsChange(e.target.value)}
                 />
-                <label className="label">
-                  <span className="label-text-alt">Separate highlights with commas</span>
-                </label>
+                <p className="mt-2 text-sm text-gray-500">Separate highlights with commas</p>
               </div>
 
               <div className="form-control">
-                <label className="label">
-                  <span className="label-text font-medium">Current Hiring Needs</span>
+                <label className="mb-3 block">
+                  <span className="font-semibold text-gray-800">Current Hiring Needs</span>
                 </label>
                 <textarea
                   placeholder="Describe the types of roles you're looking to fill and key requirements..."
-                  className="textarea textarea-bordered"
+                  className="w-full px-4 py-4 rounded-xl border-2 border-gray-200 focus:border-green-400 focus:ring-4 focus:ring-green-100 transition-all duration-300 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400 h-24 resize-none"
                   value={formData.companyNeeds || ''}
                   onChange={(e) => handleInputChange('companyNeeds', e.target.value)}
                 />
@@ -393,35 +401,37 @@ export default function ProfileSetupStep({
       </div>
 
       {/* Action Buttons */}
-      <div className="mt-8 flex items-center justify-between">
-        <button onClick={onBack} className="btn btn-ghost" disabled={isLoading}>
+      <div className="mt-12 flex items-center justify-between">
+        <button 
+          onClick={onBack} 
+          className="flex items-center text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200" 
+          disabled={isLoading}
+        >
           <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M11 17l-5-5m0 0l5-5m-5 5h12"
-            />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
           </svg>
           Back
         </button>
 
-        <button onClick={onNext} disabled={!canProceed || isLoading} className="btn btn-primary">
+        <button 
+          onClick={onNext}
+          disabled={!canProceed || isLoading} 
+          className={`px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${
+            canProceed && !isLoading
+              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-105'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+          }`}
+        >
           {isLoading ? (
             <>
-              <span className="loading loading-spinner loading-sm" />
+              <span className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
               Saving...
             </>
           ) : (
             <>
               Continue
-              <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M13 7l5 5m0 0l-5 5m5-5H6"
-                />
+              <svg className="ml-2 h-5 w-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </>
           )}

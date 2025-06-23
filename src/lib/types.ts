@@ -80,7 +80,7 @@ export interface NotificationItem {
 export interface UserPreferences {
   theme: 'light' | 'dark' | 'system';
   featureFlags?: Record<string, boolean>;
-  isLoading?: boolean;
+  isLoading: boolean;
   defaultAIScriptTone?: AIScriptTone;
   discoveryItemsPerPage?: number;
   enableExperimentalFeatures?: boolean;
@@ -96,9 +96,9 @@ export interface UserPreferences {
     applicationStatusChanges: boolean;
     platformAnnouncements: boolean;
     // New granular email marketing preferences
-    welcomeAndOnboardingEmails?: boolean;
-    contentAndBlogUpdates?: boolean;
-    featureAndPromotionUpdates?: boolean;
+    welcomeAndOnboardingEmails: boolean;
+    contentAndBlogUpdates: boolean;
+    featureAndPromotionUpdates: boolean;
   };
   hasAiHumanResourcesFeature?: boolean;
   aiHumanResourcesTier?: 'per_reply' | 'monthly' | 'none';

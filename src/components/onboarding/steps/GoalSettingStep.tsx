@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from 'react';
 import type { WizardData } from '../WizardContainer';
 
@@ -13,9 +11,9 @@ interface GoalSettingStepProps {
 
 export default function GoalSettingStep({
   data,
-  onUpdate,
-  onNext,
-  onBack,
+  onUpdate: onUpdateAction,
+  onNext: onNextAction,
+  onBack: onBackAction,
   isLoading,
 }: GoalSettingStepProps) {
   const [goals, setGoals] = useState(data.goals);
@@ -75,7 +73,7 @@ export default function GoalSettingStep({
     };
 
     setGoals(updatedGoals);
-    onUpdate({ goals: updatedGoals });
+    onUpdateAction({ goals: updatedGoals });
     setNewGoal({ type, text: '' });
   };
 
@@ -86,7 +84,7 @@ export default function GoalSettingStep({
     };
 
     setGoals(updatedGoals);
-    onUpdate({ goals: updatedGoals });
+    onUpdateAction({ goals: updatedGoals });
   };
 
   const addExampleGoal = (type: string, example: string) => {
@@ -99,7 +97,7 @@ export default function GoalSettingStep({
     };
 
     setGoals(updatedGoals);
-    onUpdate({ goals: updatedGoals });
+    onUpdateAction({ goals: updatedGoals });
   };
 
   const totalGoals = Object.values(goals).flat().length;
@@ -168,7 +166,7 @@ export default function GoalSettingStep({
                   <input
                     type="text"
                     placeholder={`Add a ${goalType.label.toLowerCase().slice(0, -1)}...`}
-                    className="input input-bordered flex-1"
+                    className="input input-bordered flex-1 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
                     value={newGoal.type === goalType.key ? newGoal.text : ''}
                     onChange={(e) => setNewGoal({ type: goalType.key, text: e.target.value })}
                     onKeyPress={(e) => {
@@ -280,7 +278,7 @@ export default function GoalSettingStep({
 
       {/* Action Buttons */}
       <div className="mt-8 flex items-center justify-between">
-        <button onClick={onBack} className="btn btn-ghost" disabled={isLoading}>
+        <button onClick={onBackAction} className="btn btn-ghost" disabled={isLoading}>
           <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -292,7 +290,7 @@ export default function GoalSettingStep({
           Back
         </button>
 
-        <button onClick={onNext} disabled={isLoading} className="btn btn-primary btn-lg">
+        <button onClick={onNextAction} disabled={isLoading} className="btn btn-primary btn-lg">
           {isLoading ? (
             <>
               <span className="loading loading-spinner loading-sm" />

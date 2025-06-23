@@ -117,12 +117,12 @@ import { WizardContainer } from '@/components/onboarding';
 function App() {
   const handleComplete = () => {
     // Handle wizard completion
-    router.push('/dashboard');
+    router.push('/');
   };
 
   const handleSkip = () => {
     // Handle wizard skip
-    router.push('/dashboard?onboarding=skipped');
+    router.push('/?onboarding=skipped');
   };
 
   return (

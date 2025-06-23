@@ -4,9 +4,10 @@
  */
 
 import { X } from 'lucide-react';
-import React, { type ReactNode, useEffect } from 'react';
+import React, { type ReactNode, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { useFocusManager, useFocusTrap, useKeyboardNavigation } from '@/hooks/useAccessibility';
+import { useFocusManager } from '@/hooks/useAccessibility';
+import { trapFocus } from '@/lib/accessibility';
 import { cn } from '@/lib/utils';
 import { AccessibleButton } from './AccessibleButton';
 
@@ -41,20 +42,39 @@ export function AccessibleModal({
   contentClassName,
   initialFocus,
 }: AccessibleModalProps) {
-  const focusTrapRef = useFocusTrap(isOpen);
   const { saveFocus, restoreFocus } = useFocusManager();
+  const focusTrapRef = useRef<HTMLDivElement>(null);
+  const keyboardRef = useRef<HTMLDivElement>(null);
 
   // Handle keyboard navigation
-  const keyboardRef = useKeyboardNavigation(
-    {
-      Escape: () => {
-        if (closeOnEscape) {
-          onClose();
-        }
-      },
-    },
-    [closeOnEscape, onClose]
-  );
+  const keyboardHandlers = {
+    Escape: () => {
+      if (closeOnEscape) {
+        onClose();
+      }
+    }
+  };
+
+  // Setup focus trap
+  useEffect(() => {
+    if (!isOpen || !focusTrapRef.current) return;
+    return trapFocus(focusTrapRef.current);
+  }, [isOpen]);
+
+  // Setup keyboard navigation
+  useEffect(() => {
+    if (!isOpen || !keyboardRef.current) return;
+    
+    const element = keyboardRef.current;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        keyboardHandlers.Escape();
+      }
+    };
+
+    element.addEventListener('keydown', handleKeyDown);
+    return () => element.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, closeOnEscape, onClose]);
 
   // Save focus when modal opens and restore when it closes
   useEffect(() => {
@@ -119,8 +139,8 @@ export function AccessibleModal({
       <div
         ref={(el) => {
           if (el) {
-            focusTrapRef.current = el;
-            keyboardRef.current = el;
+            (focusTrapRef as React.MutableRefObject<HTMLDivElement>).current = el;
+            (keyboardRef as React.MutableRefObject<HTMLDivElement>).current = el;
           }
         }}
         className={cn(getSizeClasses(), contentClassName)}

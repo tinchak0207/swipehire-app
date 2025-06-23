@@ -168,7 +168,7 @@ export function DashboardSidebar({
     );
 
     const toolsItems = tabItems.filter((item) =>
-      ['aiTools', 'myMatches', 'myDiary', 'careerAI', 'salaryEnquiry'].includes(item.value)
+      ['aiTools', 'myMatches', 'myDiary', 'careerAI', 'salaryEnquiry', 'resumeOptimizer'].includes(item.value)
     );
 
     const analyticsItems = tabItems.filter((item) =>
