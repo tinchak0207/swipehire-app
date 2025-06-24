@@ -61,7 +61,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     } else if (file.type === 'application/pdf') {
       // Handle PDF files
       extractedText = await extractTextFromPDF(file);
-    } else if (file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+    } else if (
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
       // Handle DOCX files
       extractedText = await extractTextFromDOCX(file);
     } else {
@@ -115,9 +117,9 @@ async function extractTextFromPDF(file: File): Promise<string> {
   // - pdf-parse
   // - pdf2pic + OCR
   // - External services like AWS Textract
-  
+
   console.log('Extracting text from PDF:', file.name);
-  
+
   // For now, return a mock response indicating PDF processing
   return `[PDF Content Extracted from ${file.name}]
 
@@ -154,9 +156,9 @@ async function extractTextFromDOCX(file: File): Promise<string> {
   // - mammoth
   // - docx-parser
   // - External services
-  
+
   console.log('Extracting text from DOCX:', file.name);
-  
+
   // For now, return a mock response indicating DOCX processing
   return `[DOCX Content Extracted from ${file.name}]
 
@@ -187,13 +189,15 @@ File details:
  * Cleans and normalizes extracted text
  */
 function cleanExtractedText(text: string): string {
-  return text
-    // Remove excessive whitespace
-    .replace(/\s+/g, ' ')
-    // Remove multiple line breaks
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
-    // Trim whitespace
-    .trim()
-    // Ensure reasonable length
-    .substring(0, 50000); // Limit to 50k characters
+  return (
+    text
+      // Remove excessive whitespace
+      .replace(/\s+/g, ' ')
+      // Remove multiple line breaks
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      // Trim whitespace
+      .trim()
+      // Ensure reasonable length
+      .substring(0, 50000)
+  ); // Limit to 50k characters
 }

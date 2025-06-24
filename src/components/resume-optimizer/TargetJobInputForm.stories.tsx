@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from '@storybook/react';
 import { action } from '@storybook/addon-actions';
-import TargetJobInputForm from './TargetJobInputForm';
+import type { Meta, StoryObj } from '@storybook/react';
 import type { TargetJobFormData } from './TargetJobInputForm';
+import TargetJobInputForm from './TargetJobInputForm';
 
 const meta: Meta<typeof TargetJobInputForm> = {
   title: 'Resume Optimizer/TargetJobInputForm',
@@ -86,7 +86,8 @@ export const WithInitialData: Story = {
       title: 'Senior Software Engineer',
       keywords: 'React, TypeScript, Node.js, AWS, Docker, Kubernetes',
       company: 'Google',
-      description: 'Looking for a senior software engineer role at a leading tech company with focus on full-stack development and cloud technologies.',
+      description:
+        'Looking for a senior software engineer role at a leading tech company with focus on full-stack development and cloud technologies.',
     },
     onChange: action('onChange'),
     onSubmit: action('onSubmit'),
@@ -139,9 +140,11 @@ export const TechRole: Story = {
   args: {
     initialData: {
       title: 'Full Stack Developer',
-      keywords: 'JavaScript, React, Vue.js, Node.js, Python, Django, PostgreSQL, MongoDB, AWS, Docker, Git, Agile',
+      keywords:
+        'JavaScript, React, Vue.js, Node.js, Python, Django, PostgreSQL, MongoDB, AWS, Docker, Git, Agile',
       company: 'Tech Startup',
-      description: 'Seeking a full-stack developer position at an innovative startup where I can work with modern technologies and contribute to product development.',
+      description:
+        'Seeking a full-stack developer position at an innovative startup where I can work with modern technologies and contribute to product development.',
     },
     showSubmitButton: true,
     onChange: action('onChange'),
@@ -154,9 +157,11 @@ export const BusinessRole: Story = {
   args: {
     initialData: {
       title: 'Marketing Manager',
-      keywords: 'Digital Marketing, SEO, SEM, Social Media, Content Marketing, Analytics, Campaign Management, Brand Strategy',
+      keywords:
+        'Digital Marketing, SEO, SEM, Social Media, Content Marketing, Analytics, Campaign Management, Brand Strategy',
       company: 'Fortune 500',
-      description: 'Looking for a marketing manager role at a large corporation with opportunities to lead digital marketing initiatives and drive brand growth.',
+      description:
+        'Looking for a marketing manager role at a large corporation with opportunities to lead digital marketing initiatives and drive brand growth.',
     },
     showSubmitButton: true,
     onChange: action('onChange'),
@@ -169,9 +174,11 @@ export const CreativeRole: Story = {
   args: {
     initialData: {
       title: 'UX/UI Designer',
-      keywords: 'User Experience, User Interface, Figma, Sketch, Adobe Creative Suite, Prototyping, User Research, Wireframing',
+      keywords:
+        'User Experience, User Interface, Figma, Sketch, Adobe Creative Suite, Prototyping, User Research, Wireframing',
       company: 'Design Agency',
-      description: 'Passionate about creating intuitive and beautiful user experiences. Seeking a UX/UI designer role at a creative agency.',
+      description:
+        'Passionate about creating intuitive and beautiful user experiences. Seeking a UX/UI designer role at a creative agency.',
     },
     showSubmitButton: true,
     onChange: action('onChange'),
@@ -185,15 +192,15 @@ export const CustomValidation: Story = {
   args: {
     customValidation: (data: TargetJobFormData) => {
       const errors: Record<string, string> = {};
-      
+
       if (data.title && !data.title.toLowerCase().includes('senior')) {
         errors.title = 'Title must include "Senior" for this example';
       }
-      
+
       if (data.keywords && data.keywords.split(',').length < 3) {
         errors.keywords = 'Please provide at least 3 keywords';
       }
-      
+
       return {
         isValid: Object.keys(errors).length === 0,
         errors,
@@ -220,7 +227,8 @@ export const ManyKeywords: Story = {
   args: {
     initialData: {
       title: 'Senior Full Stack Engineer',
-      keywords: 'JavaScript, TypeScript, React, Vue.js, Angular, Node.js, Express, Python, Django, Flask, Java, Spring Boot, C#, .NET, PHP, Laravel, Ruby, Rails, Go, Rust, HTML5, CSS3, SASS, LESS, Tailwind CSS, Bootstrap, PostgreSQL, MySQL, MongoDB, Redis, AWS, Azure, GCP, Docker, Kubernetes, Jenkins, GitLab CI, GitHub Actions, Terraform, Ansible',
+      keywords:
+        'JavaScript, TypeScript, React, Vue.js, Angular, Node.js, Express, Python, Django, Flask, Java, Spring Boot, C#, .NET, PHP, Laravel, Ruby, Rails, Go, Rust, HTML5, CSS3, SASS, LESS, Tailwind CSS, Bootstrap, PostgreSQL, MySQL, MongoDB, Redis, AWS, Azure, GCP, Docker, Kubernetes, Jenkins, GitLab CI, GitHub Actions, Terraform, Ansible',
     },
     onChange: action('onChange'),
     onSubmit: action('onSubmit'),

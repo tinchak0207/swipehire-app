@@ -539,14 +539,14 @@ export const analyzeResume = async (
   onProgress?: (state: AnalysisLoadingState) => void
 ): Promise<ResumeAnalysisResponse> => {
   const startTime = Date.now();
-  
+
   try {
     // Update loading state
     onProgress?.({
       isLoading: true,
       progress: 10,
       stage: 'parsing',
-      message: 'Preparing resume for analysis...'
+      message: 'Preparing resume for analysis...',
     });
 
     // Validate input
@@ -590,7 +590,7 @@ export const analyzeResume = async (
       isLoading: true,
       progress: 25,
       stage: 'analyzing',
-      message: 'Analyzing resume with AI...'
+      message: 'Analyzing resume with AI...',
     });
 
     // Try backend AI service first
@@ -602,13 +602,13 @@ export const analyzeResume = async (
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
 
     let response: Response;
-    
+
     try {
       response = await fetch(analysisEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
           'X-Request-ID': `resume-analysis-${Date.now()}`, // Add request ID for tracking
         },
         body: JSON.stringify(backendRequest),
@@ -617,7 +617,7 @@ export const analyzeResume = async (
       });
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
+
       if (fetchError instanceof Error) {
         if (fetchError.name === 'AbortError') {
           throw new ResumeAnalysisError(
@@ -626,12 +626,15 @@ export const analyzeResume = async (
             408
           );
         }
-        
+
         // Network error - fallback to local analysis
-        console.warn('Backend AI service unavailable, falling back to local analysis:', fetchError.message);
+        console.warn(
+          'Backend AI service unavailable, falling back to local analysis:',
+          fetchError.message
+        );
         return await fallbackToLocalAnalysis(request, onProgress);
       }
-      
+
       throw new ResumeAnalysisError(
         'Network error occurred while analyzing resume.',
         'NETWORK_ERROR',
@@ -646,7 +649,7 @@ export const analyzeResume = async (
       isLoading: true,
       progress: 75,
       stage: 'generating_suggestions',
-      message: 'Generating optimization suggestions...'
+      message: 'Generating optimization suggestions...',
     });
 
     // Handle HTTP errors with comprehensive error handling
@@ -654,7 +657,7 @@ export const analyzeResume = async (
       let errorMessage = `Analysis failed with status ${response.status}`;
       let errorCode = 'BACKEND_ERROR';
       let errorDetails: Record<string, unknown> = {};
-      
+
       try {
         const errorData = await response.json();
         errorMessage = errorData.error || errorData.message || errorMessage;
@@ -709,7 +712,7 @@ export const analyzeResume = async (
       isLoading: true,
       progress: 95,
       stage: 'finalizing',
-      message: 'Finalizing analysis results...'
+      message: 'Finalizing analysis results...',
     });
 
     // Transform backend response to frontend format
@@ -718,16 +721,15 @@ export const analyzeResume = async (
     onProgress?.({
       isLoading: false,
       progress: 100,
-      message: 'Analysis complete!'
+      message: 'Analysis complete!',
     });
 
     return analysisResponse;
-
   } catch (error) {
     onProgress?.({
       isLoading: false,
       progress: 0,
-      message: 'Analysis failed'
+      message: 'Analysis failed',
     });
 
     // Re-throw ResumeAnalysisError as-is
@@ -757,7 +759,7 @@ async function fallbackToLocalAnalysis(
     isLoading: true,
     progress: 50,
     stage: 'analyzing',
-    message: 'Using local analysis...'
+    message: 'Using local analysis...',
   });
 
   try {
@@ -783,7 +785,7 @@ async function fallbackToLocalAnalysis(
     onProgress?.({
       isLoading: false,
       progress: 100,
-      message: 'Analysis complete (local)'
+      message: 'Analysis complete (local)',
     });
 
     return result.data;
@@ -812,8 +814,9 @@ function transformBackendResponse(
     atsScore: backendData.atsCompatibilityScore,
     keywordAnalysis: {
       score: backendData.keywordAnalysis.score,
-      totalKeywords: backendData.keywordAnalysis.matchedKeywords.length + 
-                    backendData.keywordAnalysis.missingKeywords.length,
+      totalKeywords:
+        backendData.keywordAnalysis.matchedKeywords.length +
+        backendData.keywordAnalysis.missingKeywords.length,
       matchedKeywords: backendData.keywordAnalysis.matchedKeywords,
       missingKeywords: backendData.keywordAnalysis.missingKeywords,
       keywordDensity: backendData.keywordAnalysis.keywordDensity,
@@ -830,7 +833,7 @@ function transformBackendResponse(
       score: backendData.formatAnalysis.score,
       atsCompatibility: backendData.formatAnalysis.atsCompatibility,
       issues: backendData.formatAnalysis.issues,
-      recommendations: backendData.formatAnalysis.issues.map(issue => issue.recommendation),
+      recommendations: backendData.formatAnalysis.issues.map((issue) => issue.recommendation),
       sectionStructure: backendData.formatAnalysis.sectionStructure,
     },
     quantitativeAnalysis: {
@@ -852,13 +855,13 @@ export const checkBackendAvailability = async (): Promise<boolean> => {
   try {
     const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
     const healthEndpoint = `${backendUrl}/api/health`;
-    
+
     const response = await fetch(healthEndpoint, {
       method: 'GET',
-      headers: { 'Accept': 'application/json' },
+      headers: { Accept: 'application/json' },
       signal: AbortSignal.timeout(5000), // 5 second timeout
     });
-    
+
     return response.ok;
   } catch {
     return false;
@@ -875,13 +878,13 @@ export const reanalyzeResume = async (
   onProgress?: (state: AnalysisLoadingState) => void
 ): Promise<ResumeAnalysisResponse> => {
   const startTime = Date.now();
-  
+
   try {
     onProgress?.({
       isLoading: true,
       progress: 10,
       stage: 'parsing',
-      message: 'Preparing updated resume for re-analysis...'
+      message: 'Preparing updated resume for re-analysis...',
     });
 
     // Validate input
@@ -924,7 +927,7 @@ export const reanalyzeResume = async (
       isLoading: true,
       progress: 25,
       stage: 'analyzing',
-      message: 'Re-analyzing resume with AI...'
+      message: 'Re-analyzing resume with AI...',
     });
 
     // Try backend first
@@ -935,13 +938,13 @@ export const reanalyzeResume = async (
     const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     let response: Response;
-    
+
     try {
       response = await fetch(reanalysisEndpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          Accept: 'application/json',
         },
         body: JSON.stringify(backendRequest),
         signal: controller.signal,
@@ -949,7 +952,7 @@ export const reanalyzeResume = async (
       });
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      
+
       if (fetchError instanceof Error && fetchError.name === 'AbortError') {
         throw new ResumeAnalysisError(
           'Re-analysis request timed out. Please try again.',
@@ -957,7 +960,7 @@ export const reanalyzeResume = async (
           408
         );
       }
-      
+
       // Fallback to local re-analysis
       console.warn('Backend re-analysis unavailable, falling back to local');
       return await fallbackToLocalReanalysis(resumeText, originalAnalysisId, targetJob, onProgress);
@@ -969,16 +972,21 @@ export const reanalyzeResume = async (
       isLoading: true,
       progress: 75,
       stage: 'generating_suggestions',
-      message: 'Generating updated suggestions...'
+      message: 'Generating updated suggestions...',
     });
 
     if (!response.ok) {
       if (response.status >= 500) {
         // Server error - fallback to local
         console.warn('Backend server error during re-analysis, falling back to local');
-        return await fallbackToLocalReanalysis(resumeText, originalAnalysisId, targetJob, onProgress);
+        return await fallbackToLocalReanalysis(
+          resumeText,
+          originalAnalysisId,
+          targetJob,
+          onProgress
+        );
       }
-      
+
       let errorMessage = `Re-analysis failed with status ${response.status}`;
       try {
         const errorData = await response.json();
@@ -986,7 +994,7 @@ export const reanalyzeResume = async (
       } catch {
         // Use default message
       }
-      
+
       throw new ResumeAnalysisError(errorMessage, 'REANALYSIS_FAILED', response.status);
     }
 
@@ -1001,7 +1009,7 @@ export const reanalyzeResume = async (
       isLoading: true,
       progress: 95,
       stage: 'finalizing',
-      message: 'Finalizing re-analysis results...'
+      message: 'Finalizing re-analysis results...',
     });
 
     const analysisResponse = transformBackendResponse(backendResult.data, startTime);
@@ -1009,16 +1017,15 @@ export const reanalyzeResume = async (
     onProgress?.({
       isLoading: false,
       progress: 100,
-      message: 'Re-analysis complete!'
+      message: 'Re-analysis complete!',
     });
 
     return analysisResponse;
-
   } catch (error) {
     onProgress?.({
       isLoading: false,
       progress: 0,
-      message: 'Re-analysis failed'
+      message: 'Re-analysis failed',
     });
 
     if (error instanceof ResumeAnalysisError) {
@@ -1048,7 +1055,7 @@ async function fallbackToLocalReanalysis(
     isLoading: true,
     progress: 50,
     stage: 'analyzing',
-    message: 'Using local re-analysis...'
+    message: 'Using local re-analysis...',
   });
 
   try {
@@ -1077,7 +1084,7 @@ async function fallbackToLocalReanalysis(
     onProgress?.({
       isLoading: false,
       progress: 100,
-      message: 'Re-analysis complete (local)'
+      message: 'Re-analysis complete (local)',
     });
 
     return result.data;

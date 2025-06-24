@@ -10,7 +10,8 @@ import type { EditorState } from '@/lib/types/resume-optimizer';
  * Accessible at /resume-optimizer/editor-test
  */
 const EditorTestPage: NextPage = () => {
-  const [content, setContent] = useState<string>(`
+  const [content, setContent] = useState<string>(
+    `
 <h1>John Doe</h1>
 <p><strong>Software Engineer</strong></p>
 <p>Email: john.doe@email.com | Phone: (555) 123-4567</p>
@@ -44,7 +45,8 @@ University of Technology (2015-2019)</p>
 <li>Backend: Node.js, Express, PostgreSQL, MongoDB</li>
 <li>Cloud: AWS, Docker, Kubernetes</li>
 </ul>
-  `.trim());
+  `.trim()
+  );
 
   const [editorState, setEditorState] = useState<EditorState>({
     content,
@@ -63,10 +65,10 @@ University of Technology (2015-2019)</p>
 
   const handleAutoSave = async (contentToSave: string): Promise<void> => {
     console.log('Auto-saving content...', contentToSave.length, 'characters');
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
     console.log('Content auto-saved successfully');
   };
 
@@ -76,9 +78,7 @@ University of Technology (2015-2019)</p>
       <div className="bg-white border-b border-slate-200">
         <div className="container mx-auto max-w-7xl px-6 py-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">
-              Embedded Text Editor Test
-            </h1>
+            <h1 className="text-3xl font-bold text-slate-900 mb-2">Embedded Text Editor Test</h1>
             <p className="text-slate-600">
               Test the embedded real-time text editor component with sample resume content
             </p>
@@ -98,21 +98,28 @@ University of Technology (2015-2019)</p>
                 <div className="stat-value text-primary">{content.length}</div>
                 <div className="stat-desc">characters</div>
               </div>
-              
+
               <div className="stat bg-slate-50 rounded-lg">
                 <div className="stat-title">Editor State</div>
-                <div className={`stat-value ${editorState.isDirty ? 'text-warning' : 'text-success'}`}>
+                <div
+                  className={`stat-value ${editorState.isDirty ? 'text-warning' : 'text-success'}`}
+                >
                   {editorState.isDirty ? 'Modified' : 'Saved'}
                 </div>
                 <div className="stat-desc">
                   {editorState.lastSaved ? `Last saved: ${editorState.lastSaved}` : 'No saves yet'}
                 </div>
               </div>
-              
+
               <div className="stat bg-slate-50 rounded-lg">
                 <div className="stat-title">Word Count</div>
                 <div className="stat-value text-info">
-                  {content.replace(/<[^>]*>/g, '').trim().split(/\s+/).length}
+                  {
+                    content
+                      .replace(/<[^>]*>/g, '')
+                      .trim()
+                      .split(/\s+/).length
+                  }
                 </div>
                 <div className="stat-desc">words</div>
               </div>
@@ -167,7 +174,7 @@ University of Technology (2015-2019)</p>
                   </li>
                 </ul>
               </div>
-              
+
               <div>
                 <h3 className="font-semibold text-slate-800 mb-3">Expected Behavior:</h3>
                 <ul className="space-y-2 text-sm text-slate-600">
@@ -210,9 +217,11 @@ University of Technology (2015-2019)</p>
                   {JSON.stringify(editorState, null, 2)}
                 </pre>
               </div>
-              
+
               <div>
-                <h3 className="font-medium text-slate-300 mb-2">Content Preview (first 200 chars):</h3>
+                <h3 className="font-medium text-slate-300 mb-2">
+                  Content Preview (first 200 chars):
+                </h3>
                 <pre className="bg-slate-800 p-3 rounded text-xs overflow-auto">
                   {content.substring(0, 200)}...
                 </pre>

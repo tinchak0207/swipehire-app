@@ -1,13 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { ArrowLeftIcon } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { useState } from 'react';
 import ReportDisplay from '@/components/resume-optimizer/ReportDisplay';
-import type { ResumeAnalysisResponse, OptimizationSuggestion } from '@/lib/types/resume-optimizer';
 import { ToastContainer } from '@/components/ui/toast';
 import { useToast } from '@/hooks/useToast';
+import type { OptimizationSuggestion, ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 
 /**
  * Test page for Editor Interaction functionality
@@ -89,7 +89,8 @@ JavaScript, React, Node.js`);
         title: 'Quantify Your Achievements',
         description: 'Add specific numbers and metrics to your accomplishments.',
         impact: 'high' as const,
-        suggestion: 'Replace "Developed web applications" with "Developed 5+ responsive web applications serving 10,000+ users"',
+        suggestion:
+          'Replace "Developed web applications" with "Developed 5+ responsive web applications serving 10,000+ users"',
         priority: 2,
         estimatedScoreImprovement: 15,
         beforeText: '• Developed web applications',
@@ -102,7 +103,8 @@ JavaScript, React, Node.js`);
         title: 'Improve Action Verbs',
         description: 'Use stronger action verbs to make your experience more impactful.',
         impact: 'medium' as const,
-        suggestion: 'Replace "Worked with team members" with "Collaborated with cross-functional teams"',
+        suggestion:
+          'Replace "Worked with team members" with "Collaborated with cross-functional teams"',
         priority: 3,
         estimatedScoreImprovement: 5,
         beforeText: '• Worked with team members',
@@ -164,8 +166,8 @@ JavaScript, React, Node.js`);
   };
 
   const handleSuggestionAdopt = (suggestionId: string) => {
-    setAdoptedSuggestions(prev => new Set([...prev, suggestionId]));
-    setIgnoredSuggestions(prev => {
+    setAdoptedSuggestions((prev) => new Set([...prev, suggestionId]));
+    setIgnoredSuggestions((prev) => {
       const newSet = new Set(prev);
       newSet.delete(suggestionId);
       return newSet;
@@ -180,8 +182,8 @@ JavaScript, React, Node.js`);
   };
 
   const handleSuggestionIgnore = (suggestionId: string) => {
-    setIgnoredSuggestions(prev => new Set([...prev, suggestionId]));
-    setAdoptedSuggestions(prev => {
+    setIgnoredSuggestions((prev) => new Set([...prev, suggestionId]));
+    setAdoptedSuggestions((prev) => {
       const newSet = new Set(prev);
       newSet.delete(suggestionId);
       return newSet;
@@ -199,7 +201,7 @@ JavaScript, React, Node.js`);
     // Use the modified text for future reference
     console.log('Modified suggestion:', suggestionId, 'with text:', modifiedText);
     handleSuggestionAdopt(suggestionId);
-    
+
     addToast({
       type: 'success',
       title: 'Suggestion Modified',
@@ -208,17 +210,20 @@ JavaScript, React, Node.js`);
     });
   };
 
-  const handleApplySuggestionToEditor = (suggestionId: string, suggestion: OptimizationSuggestion) => {
+  const handleApplySuggestionToEditor = (
+    suggestionId: string,
+    suggestion: OptimizationSuggestion
+  ) => {
     // Apply the suggestion to the content
     let newContent = currentContent;
-    
+
     if (suggestion.beforeText && suggestion.afterText) {
       newContent = currentContent.replace(suggestion.beforeText, suggestion.afterText);
     } else {
       // Append the suggestion
       newContent = currentContent + '\n\n[Applied]: ' + suggestion.suggestion;
     }
-    
+
     setCurrentContent(newContent);
     handleSuggestionAdopt(suggestionId);
 
@@ -232,12 +237,12 @@ JavaScript, React, Node.js`);
 
   const handleReanalyze = async () => {
     setIsReanalyzing(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     setIsReanalyzing(false);
-    
+
     // Reset suggestion states
     setAdoptedSuggestions(new Set());
     setIgnoredSuggestions(new Set());
@@ -263,8 +268,8 @@ JavaScript, React, Node.js`);
         <div className="container mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Link 
-                href="/resume-optimizer" 
+              <Link
+                href="/resume-optimizer"
                 className="group flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors duration-200"
               >
                 <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
@@ -273,10 +278,8 @@ JavaScript, React, Node.js`);
               <div className="h-6 w-px bg-slate-300"></div>
               <h1 className="text-2xl font-bold text-slate-900">Editor Interaction Test</h1>
             </div>
-            
-            <div className="badge badge-info">
-              Test Environment
-            </div>
+
+            <div className="badge badge-info">Test Environment</div>
           </div>
         </div>
       </div>

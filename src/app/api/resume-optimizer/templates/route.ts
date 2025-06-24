@@ -327,7 +327,7 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
     console.error('Error fetching resume templates:', error);
-    
+
     const errorResponse: ApiResponse<null> = {
       success: false,
       data: null,
@@ -346,10 +346,10 @@ export async function GET(): Promise<NextResponse> {
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    
+
     // Validate required fields
     const { name, description, category, content } = body;
-    
+
     if (!name || !description || !category || !content) {
       const errorResponse: ApiResponse<null> = {
         success: false,
@@ -357,7 +357,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         error: 'Missing required fields: name, description, category, content',
         timestamp: new Date().toISOString(),
       };
-      
+
       return NextResponse.json(errorResponse, { status: 400 });
     }
 
@@ -382,7 +382,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(response, { status: 201 });
   } catch (error) {
     console.error('Error creating resume template:', error);
-    
+
     const errorResponse: ApiResponse<null> = {
       success: false,
       data: null,

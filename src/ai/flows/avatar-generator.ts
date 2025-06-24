@@ -128,7 +128,7 @@ const avatarGeneratorFlow = ai.defineFlow(
     // This is a mock implementation for avatar generation
     // In production, you would integrate with image generation services like:
     // - DALL-E, Midjourney, Stable Diffusion, or similar
-    
+
     // TODO: Generate description using AI and use it with image generation services
     // For now, we'll create a mock avatar based on the input parameters
 

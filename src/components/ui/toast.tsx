@@ -1,6 +1,12 @@
 'use client';
 
-import { CheckCircleIcon, ExclamationTriangleIcon, InformationCircleIcon, XCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import {
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  XCircleIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { useEffect, useState } from 'react';
 
 export interface ToastProps {
@@ -15,14 +21,7 @@ export interface ToastProps {
 /**
  * Toast notification component
  */
-const Toast: React.FC<ToastProps> = ({
-  id,
-  type,
-  title,
-  message,
-  duration = 5000,
-  onClose,
-}) => {
+const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -81,9 +80,7 @@ const Toast: React.FC<ToastProps> = ({
   return (
     <div
       className={`alert ${getAlertClass()} shadow-lg transition-all duration-300 transform ${
-        isVisible && !isExiting
-          ? 'translate-x-0 opacity-100'
-          : 'translate-x-full opacity-0'
+        isVisible && !isExiting ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
       {getIcon()}
@@ -110,20 +107,13 @@ export interface ToastContainerProps {
   onRemoveToast: (id: string) => void;
 }
 
-export const ToastContainer: React.FC<ToastContainerProps> = ({
-  toasts,
-  onRemoveToast,
-}) => {
+export const ToastContainer: React.FC<ToastContainerProps> = ({ toasts, onRemoveToast }) => {
   if (toasts.length === 0) return null;
 
   return (
     <div className="toast toast-end z-50">
       {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          {...toast}
-          onClose={onRemoveToast}
-        />
+        <Toast key={toast.id} {...toast} onClose={onRemoveToast} />
       ))}
     </div>
   );

@@ -3,17 +3,17 @@
  * Tests the complete flow of resume analysis with backend AI service
  */
 
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type {
+  AnalysisLoadingState,
   ResumeAnalysisRequest,
   ResumeAnalysisResponse,
-  AnalysisLoadingState,
 } from '@/lib/types/resume-optimizer';
 import {
   analyzeResume,
-  reanalyzeResume,
   checkBackendAvailability,
   ResumeAnalysisError,
+  reanalyzeResume,
 } from '../resumeOptimizerService';
 
 // Mock environment variables
@@ -28,7 +28,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
     // Reset environment variables
     process.env = { ...originalEnv };
     process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL = 'http://localhost:5000';
-    
+
     // Reset the global fetch mock
     mockFetch.mockClear();
   });
@@ -39,7 +39,8 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
 
   describe('analyzeResume', () => {
     const mockRequest: ResumeAnalysisRequest = {
-      resumeText: 'John Smith\nSoftware Engineer with 5 years experience in React, Node.js, and TypeScript development. Built multiple web applications and led development teams.',
+      resumeText:
+        'John Smith\nSoftware Engineer with 5 years experience in React, Node.js, and TypeScript development. Built multiple web applications and led development teams.',
       targetJob: {
         title: 'Senior Software Engineer',
         keywords: 'React, Node.js, TypeScript',
@@ -134,7 +135,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
           method: 'POST',
           headers: expect.objectContaining({
             'Content-Type': 'application/json',
-            'Accept': 'application/json',
+            Accept: 'application/json',
             'X-Request-ID': expect.stringMatching(/^resume-analysis-\d+$/),
           }),
           body: JSON.stringify({
@@ -329,7 +330,8 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
   });
 
   describe('reanalyzeResume', () => {
-    const mockResumeText = 'Updated resume text with TypeScript experience and comprehensive background in software development with multiple years of experience in various technologies and frameworks.';
+    const mockResumeText =
+      'Updated resume text with TypeScript experience and comprehensive background in software development with multiple years of experience in various technologies and frameworks.';
     const mockOriginalAnalysisId = 'original-analysis-123';
     const mockTargetJob = {
       title: 'Senior Software Engineer',
@@ -379,11 +381,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
         }),
       } as Response);
 
-      const result = await reanalyzeResume(
-        mockResumeText,
-        mockOriginalAnalysisId,
-        mockTargetJob
-      );
+      const result = await reanalyzeResume(mockResumeText, mockOriginalAnalysisId, mockTargetJob);
 
       // Verify API call
       expect(mockFetch).toHaveBeenCalledWith(
@@ -450,11 +448,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
         }),
       } as Response);
 
-      const result = await reanalyzeResume(
-        mockResumeText,
-        mockOriginalAnalysisId,
-        mockTargetJob
-      );
+      const result = await reanalyzeResume(mockResumeText, mockOriginalAnalysisId, mockTargetJob);
 
       // Should have tried backend first, then local
       expect(mockFetch).toHaveBeenCalledTimes(2);
@@ -506,8 +500,9 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
 
   describe('Error handling edge cases', () => {
     it('should handle different resume content lengths', async () => {
-      const validResumeText = 'John Smith\nSoftware Developer with comprehensive background and experience in software development with multiple years of professional experience.';
-      
+      const validResumeText =
+        'John Smith\nSoftware Developer with comprehensive background and experience in software development with multiple years of professional experience.';
+
       // Mock successful response
       mockFetch.mockResolvedValueOnce({
         ok: true,
@@ -565,7 +560,7 @@ describe('Resume Optimizer Service - Performance Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL = 'http://localhost:5000';
-    
+
     // Reset the global fetch mock
     mockFetch.mockClear();
   });
@@ -632,7 +627,10 @@ describe('Resume Optimizer Service - Performance Tests', () => {
   });
 
   it('should handle large resume content efficiently', async () => {
-    const largeResumeText = 'Large resume content with comprehensive background and experience in software development.\n'.repeat(1000); // ~100KB
+    const largeResumeText =
+      'Large resume content with comprehensive background and experience in software development.\n'.repeat(
+        1000
+      ); // ~100KB
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -684,7 +682,7 @@ describe('Resume Optimizer Service - Performance Tests', () => {
 
     expect(result).toBeDefined();
     expect(result?.id).toBe('large-content-test');
-    
+
     // Should complete within reasonable time (adjust threshold as needed)
     expect(endTime - startTime).toBeLessThan(5000);
   }, 10000); // 10 second timeout for large content test

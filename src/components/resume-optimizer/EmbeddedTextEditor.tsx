@@ -105,6 +105,7 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
   const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
 
   // Refs
+  const quillRef = useRef<any>(null);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Quill configuration
@@ -144,7 +145,7 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
     const newEditorState: EditorState = {
       content: value,
       isDirty: value !== initialContent,
-      cursorPosition: 0, // Simplified for now - can be enhanced later
+      cursorPosition: quillRef.current?.getEditor()?.getSelection()?.index || 0,
     };
 
     setEditorState(newEditorState);
@@ -354,7 +355,9 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
         ) : (
           /* Edit Mode */
           <div className="quill-editor-container">
+          <div className="quill-editor-container" aria-label="Resume content editor">
             <ReactQuill
+              ref={quillRef}
               theme="snow"
               value={content}
               onChange={handleContentChange}

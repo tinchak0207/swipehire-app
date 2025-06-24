@@ -33,10 +33,7 @@ export function applySuggestionToContent(
 /**
  * Apply keyword-related suggestions
  */
-function applyKeywordSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyKeywordSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     // Direct text replacement
     return content.replace(suggestion.beforeText, suggestion.afterText);
@@ -44,12 +41,12 @@ function applyKeywordSuggestion(
 
   // If no specific replacement, try to intelligently add keywords
   const lines = content.split('\n');
-  
+
   // Look for skills section to add keywords
-  const skillsIndex = lines.findIndex(line => 
+  const skillsIndex = lines.findIndex((line) =>
     /skills|technologies|technical skills|core competencies/i.test(line)
   );
-  
+
   if (skillsIndex !== -1) {
     // Add keywords to skills section
     const keywordText = `• ${suggestion.suggestion}`;
@@ -64,14 +61,11 @@ function applyKeywordSuggestion(
 /**
  * Apply grammar-related suggestions
  */
-function applyGrammarSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyGrammarSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     return content.replace(suggestion.beforeText, suggestion.afterText);
   }
-  
+
   // For grammar suggestions without specific text, just mark as applied
   return content;
 }
@@ -79,10 +73,7 @@ function applyGrammarSuggestion(
 /**
  * Apply format-related suggestions
  */
-function applyFormatSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyFormatSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     return content.replace(suggestion.beforeText, suggestion.afterText);
   }
@@ -109,20 +100,17 @@ function applyFormatSuggestion(
 /**
  * Apply achievement-related suggestions
  */
-function applyAchievementSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyAchievementSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     return content.replace(suggestion.beforeText, suggestion.afterText);
   }
 
   // Look for experience section to enhance achievements
   const lines = content.split('\n');
-  const experienceIndex = lines.findIndex(line => 
+  const experienceIndex = lines.findIndex((line) =>
     /experience|work history|professional experience/i.test(line)
   );
-  
+
   if (experienceIndex !== -1) {
     // Add quantified achievement example
     const achievementText = `• ${suggestion.suggestion}`;
@@ -136,10 +124,7 @@ function applyAchievementSuggestion(
 /**
  * Apply structure-related suggestions
  */
-function applyStructureSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyStructureSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     return content.replace(suggestion.beforeText, suggestion.afterText);
   }
@@ -161,10 +146,7 @@ function applyStructureSuggestion(
 /**
  * Apply ATS-related suggestions
  */
-function applyATSSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyATSSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     return content.replace(suggestion.beforeText, suggestion.afterText);
   }
@@ -183,10 +165,7 @@ function applyATSSuggestion(
 /**
  * Apply generic suggestions
  */
-function applyGenericSuggestion(
-  content: string,
-  suggestion: OptimizationSuggestion
-): string {
+function applyGenericSuggestion(content: string, suggestion: OptimizationSuggestion): string {
   if (suggestion.beforeText && suggestion.afterText) {
     return content.replace(suggestion.beforeText, suggestion.afterText);
   }
@@ -198,14 +177,11 @@ function applyGenericSuggestion(
 /**
  * Find the best position to insert content based on section
  */
-export function findInsertionPoint(
-  content: string,
-  section?: string
-): number {
+export function findInsertionPoint(content: string, section?: string): number {
   if (!section) return content.length;
 
   const lines = content.split('\n');
-  
+
   // Common section patterns
   const sectionPatterns: Record<string, RegExp> = {
     summary: /^(professional summary|summary|objective|profile)/i,
@@ -218,12 +194,12 @@ export function findInsertionPoint(
 
   const pattern = sectionPatterns[section.toLowerCase()];
   if (pattern) {
-    const sectionIndex = lines.findIndex(line => pattern.test(line.trim()));
+    const sectionIndex = lines.findIndex((line) => pattern.test(line.trim()));
     if (sectionIndex !== -1) {
       // Find the end of this section (next section or end of content)
       let endIndex = lines.length;
       for (let i = sectionIndex + 1; i < lines.length; i++) {
-        if (Object.values(sectionPatterns).some(p => p.test(lines[i].trim()))) {
+        if (Object.values(sectionPatterns).some((p) => p.test(lines[i].trim()))) {
           endIndex = i;
           break;
         }

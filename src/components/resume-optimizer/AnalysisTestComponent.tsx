@@ -7,8 +7,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { AnalysisRequestComponent } from './AnalysisRequestComponent';
 import type { TargetJobInfo } from '@/lib/types/resume-optimizer';
+import { AnalysisRequestComponent } from './AnalysisRequestComponent';
 
 interface TestScenario {
   id: string;
@@ -86,11 +86,13 @@ CERTIFICATIONS
 • Google Cloud Professional Developer | 2021`,
     targetJob: {
       title: 'Senior Software Engineer',
-      keywords: 'React, Node.js, JavaScript, TypeScript, AWS, Docker, Kubernetes, microservices, API development',
-      description: 'We are looking for a Senior Software Engineer to join our team and help build scalable web applications.',
-      company: 'Tech Innovations Inc.'
+      keywords:
+        'React, Node.js, JavaScript, TypeScript, AWS, Docker, Kubernetes, microservices, API development',
+      description:
+        'We are looking for a Senior Software Engineer to join our team and help build scalable web applications.',
+      company: 'Tech Innovations Inc.',
     },
-    expectedBehavior: 'Should successfully analyze and provide comprehensive feedback'
+    expectedBehavior: 'Should successfully analyze and provide comprehensive feedback',
   },
   {
     id: 'valid-short',
@@ -117,9 +119,9 @@ Social Media Marketing, SEO, Content Creation, Google Analytics`,
       title: 'Digital Marketing Manager',
       keywords: 'digital marketing, SEO, social media, content marketing, Google Analytics',
       description: 'Looking for a Digital Marketing Manager to lead our marketing efforts.',
-      company: 'Marketing Solutions Co.'
+      company: 'Marketing Solutions Co.',
     },
-    expectedBehavior: 'Should analyze successfully but suggest more detailed content'
+    expectedBehavior: 'Should analyze successfully but suggest more detailed content',
   },
   {
     id: 'too-short',
@@ -130,9 +132,9 @@ Social Media Marketing, SEO, Content Creation, Google Analytics`,
       title: 'Software Engineer',
       keywords: 'programming, software development',
       description: 'Software engineering position',
-      company: 'Tech Co.'
+      company: 'Tech Co.',
     },
-    expectedBehavior: 'Should show validation error for insufficient content'
+    expectedBehavior: 'Should show validation error for insufficient content',
   },
   {
     id: 'missing-job-title',
@@ -146,14 +148,14 @@ Skills: Leadership, Communication, Project Management.`,
       title: '',
       keywords: 'management, leadership, strategy',
       description: 'Management position',
-      company: 'Business Corp.'
+      company: 'Business Corp.',
     },
-    expectedBehavior: 'Should show validation error for missing job title'
+    expectedBehavior: 'Should show validation error for missing job title',
   },
   {
     id: 'keyword-mismatch',
     name: 'Keyword Mismatch',
-    description: 'Resume with skills that don\'t match target job',
+    description: "Resume with skills that don't match target job",
     resumeText: `Art Director
 Creative professional with 5 years of experience in graphic design and visual arts.
 
@@ -172,9 +174,9 @@ Bachelor of Fine Arts | Art Institute | 2019`,
       title: 'Software Engineer',
       keywords: 'JavaScript, React, Node.js, Python, programming, software development',
       description: 'Looking for a software engineer to build web applications.',
-      company: 'Tech Startup'
+      company: 'Tech Startup',
     },
-    expectedBehavior: 'Should analyze but show low keyword match score and suggest relevant skills'
+    expectedBehavior: 'Should analyze but show low keyword match score and suggest relevant skills',
   },
   {
     id: 'perfect-match',
@@ -201,12 +203,14 @@ EDUCATION
 Bachelor of Science in Computer Science | Tech University | 2020`,
     targetJob: {
       title: 'React Developer',
-      keywords: 'React, TypeScript, Node.js, JavaScript, Next.js, Redux, AWS, Docker, API development',
-      description: 'We need a React developer to build modern web applications using TypeScript and cloud technologies.',
-      company: 'Modern Web Co.'
+      keywords:
+        'React, TypeScript, Node.js, JavaScript, Next.js, Redux, AWS, Docker, API development',
+      description:
+        'We need a React developer to build modern web applications using TypeScript and cloud technologies.',
+      company: 'Modern Web Co.',
     },
-    expectedBehavior: 'Should show high scores across all categories with minimal suggestions'
-  }
+    expectedBehavior: 'Should show high scores across all categories with minimal suggestions',
+  },
 ];
 
 export const AnalysisTestComponent: React.FC = () => {
@@ -216,17 +220,23 @@ export const AnalysisTestComponent: React.FC = () => {
     title: '',
     keywords: '',
     description: '',
-    company: ''
+    company: '',
   });
   const [useCustomInput, setUseCustomInput] = useState(false);
   const [analysisResults, setAnalysisResults] = useState<string[]>([]);
 
   const handleAnalysisComplete = (analysisId: string) => {
-    setAnalysisResults(prev => [`Analysis ${analysisId} completed at ${new Date().toLocaleTimeString()}`, ...prev.slice(0, 9)]);
+    setAnalysisResults((prev) => [
+      `Analysis ${analysisId} completed at ${new Date().toLocaleTimeString()}`,
+      ...prev.slice(0, 9),
+    ]);
   };
 
   const handleError = (error: string) => {
-    setAnalysisResults(prev => [`Error: ${error} at ${new Date().toLocaleTimeString()}`, ...prev.slice(0, 9)]);
+    setAnalysisResults((prev) => [
+      `Error: ${error} at ${new Date().toLocaleTimeString()}`,
+      ...prev.slice(0, 9),
+    ]);
   };
 
   const currentResumeText = useCustomInput ? customResumeText : selectedScenario.resumeText;
@@ -245,12 +255,12 @@ export const AnalysisTestComponent: React.FC = () => {
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title">Test Scenarios</h2>
-          
+
           <div className="form-control mb-4">
             <label className="label cursor-pointer">
               <span className="label-text">Use Custom Input</span>
-              <input 
-                type="checkbox" 
+              <input
+                type="checkbox"
                 className="toggle toggle-primary"
                 checked={useCustomInput}
                 onChange={(e) => setUseCustomInput(e.target.checked)}
@@ -261,11 +271,11 @@ export const AnalysisTestComponent: React.FC = () => {
           {!useCustomInput ? (
             <div className="space-y-3">
               {TEST_SCENARIOS.map((scenario) => (
-                <div 
+                <div
                   key={scenario.id}
                   className={`card cursor-pointer transition-all ${
-                    selectedScenario.id === scenario.id 
-                      ? 'bg-primary/10 border-primary border-2' 
+                    selectedScenario.id === scenario.id
+                      ? 'bg-primary/10 border-primary border-2'
                       : 'bg-base-200 hover:bg-base-300'
                   }`}
                   onClick={() => setSelectedScenario(scenario)}
@@ -273,9 +283,7 @@ export const AnalysisTestComponent: React.FC = () => {
                   <div className="card-body p-4">
                     <h3 className="font-semibold">{scenario.name}</h3>
                     <p className="text-sm opacity-75">{scenario.description}</p>
-                    <p className="text-xs opacity-60 mt-2">
-                      Expected: {scenario.expectedBehavior}
-                    </p>
+                    <p className="text-xs opacity-60 mt-2">Expected: {scenario.expectedBehavior}</p>
                   </div>
                 </div>
               ))}
@@ -286,64 +294,72 @@ export const AnalysisTestComponent: React.FC = () => {
                 <label className="label">
                   <span className="label-text">Resume Text</span>
                 </label>
-                <textarea 
+                <textarea
                   className="textarea textarea-bordered h-32"
                   placeholder="Enter resume text..."
                   value={customResumeText}
                   onChange={(e) => setCustomResumeText(e.target.value)}
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Job Title</span>
                   </label>
-                  <input 
+                  <input
                     type="text"
                     className="input input-bordered"
                     placeholder="e.g., Software Engineer"
                     value={customTargetJob.title}
-                    onChange={(e) => setCustomTargetJob(prev => ({ ...prev, title: e.target.value }))}
+                    onChange={(e) =>
+                      setCustomTargetJob((prev) => ({ ...prev, title: e.target.value }))
+                    }
                   />
                 </div>
-                
+
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Company</span>
                   </label>
-                  <input 
+                  <input
                     type="text"
                     className="input input-bordered"
                     placeholder="e.g., Tech Corp"
                     value={customTargetJob.company}
-                    onChange={(e) => setCustomTargetJob(prev => ({ ...prev, company: e.target.value }))}
+                    onChange={(e) =>
+                      setCustomTargetJob((prev) => ({ ...prev, company: e.target.value }))
+                    }
                   />
                 </div>
               </div>
-              
+
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Keywords (comma-separated)</span>
                 </label>
-                <input 
+                <input
                   type="text"
                   className="input input-bordered"
                   placeholder="e.g., React, JavaScript, Node.js"
                   value={customTargetJob.keywords}
-                  onChange={(e) => setCustomTargetJob(prev => ({ ...prev, keywords: e.target.value }))}
+                  onChange={(e) =>
+                    setCustomTargetJob((prev) => ({ ...prev, keywords: e.target.value }))
+                  }
                 />
               </div>
-              
+
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Job Description</span>
                 </label>
-                <textarea 
+                <textarea
                   className="textarea textarea-bordered"
                   placeholder="Enter job description..."
                   value={customTargetJob.description}
-                  onChange={(e) => setCustomTargetJob(prev => ({ ...prev, description: e.target.value }))}
+                  onChange={(e) =>
+                    setCustomTargetJob((prev) => ({ ...prev, description: e.target.value }))
+                  }
                 />
               </div>
             </div>
@@ -365,11 +381,19 @@ export const AnalysisTestComponent: React.FC = () => {
             <div>
               <h3 className="font-semibold mb-2">Target Job</h3>
               <div className="bg-base-200 p-3 rounded text-sm space-y-2">
-                <div><strong>Title:</strong> {currentTargetJob.title || 'Not specified'}</div>
-                <div><strong>Company:</strong> {currentTargetJob.company || 'Not specified'}</div>
-                <div><strong>Keywords:</strong> {currentTargetJob.keywords || 'Not specified'}</div>
+                <div>
+                  <strong>Title:</strong> {currentTargetJob.title || 'Not specified'}
+                </div>
+                <div>
+                  <strong>Company:</strong> {currentTargetJob.company || 'Not specified'}
+                </div>
+                <div>
+                  <strong>Keywords:</strong> {currentTargetJob.keywords || 'Not specified'}
+                </div>
                 {currentTargetJob.description && (
-                  <div><strong>Description:</strong> {currentTargetJob.description}</div>
+                  <div>
+                    <strong>Description:</strong> {currentTargetJob.description}
+                  </div>
                 )}
               </div>
             </div>
@@ -392,11 +416,11 @@ export const AnalysisTestComponent: React.FC = () => {
             <h2 className="card-title">Analysis Results Log</h2>
             <div className="space-y-2">
               {analysisResults.map((result, index) => (
-                <div 
+                <div
                   key={index}
                   className={`p-2 rounded text-sm ${
-                    result.startsWith('Error:') 
-                      ? 'bg-error/10 text-error' 
+                    result.startsWith('Error:')
+                      ? 'bg-error/10 text-error'
                       : 'bg-success/10 text-success'
                   }`}
                 >
@@ -404,10 +428,7 @@ export const AnalysisTestComponent: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button 
-              className="btn btn-sm btn-outline mt-3"
-              onClick={() => setAnalysisResults([])}
-            >
+            <button className="btn btn-sm btn-outline mt-3" onClick={() => setAnalysisResults([])}>
               Clear Log
             </button>
           </div>
@@ -420,13 +441,34 @@ export const AnalysisTestComponent: React.FC = () => {
           <h2 className="card-title">Testing Instructions</h2>
           <div className="prose max-w-none">
             <ol>
-              <li><strong>Backend Availability:</strong> Check if the AI service status shows "AI Enhanced" or "Local Mode"</li>
-              <li><strong>Valid Analysis:</strong> Try the "Valid Long Resume" scenario - should complete successfully</li>
-              <li><strong>Error Handling:</strong> Try the "Too Short Resume" scenario - should show validation error</li>
-              <li><strong>Network Errors:</strong> Disconnect internet and try analysis - should fallback to local mode</li>
-              <li><strong>Loading States:</strong> Watch the progress bar and stage indicators during analysis</li>
-              <li><strong>Retry Logic:</strong> If an error occurs, check if retry button appears for retryable errors</li>
-              <li><strong>Custom Input:</strong> Toggle custom input and test with your own resume and job data</li>
+              <li>
+                <strong>Backend Availability:</strong> Check if the AI service status shows "AI
+                Enhanced" or "Local Mode"
+              </li>
+              <li>
+                <strong>Valid Analysis:</strong> Try the "Valid Long Resume" scenario - should
+                complete successfully
+              </li>
+              <li>
+                <strong>Error Handling:</strong> Try the "Too Short Resume" scenario - should show
+                validation error
+              </li>
+              <li>
+                <strong>Network Errors:</strong> Disconnect internet and try analysis - should
+                fallback to local mode
+              </li>
+              <li>
+                <strong>Loading States:</strong> Watch the progress bar and stage indicators during
+                analysis
+              </li>
+              <li>
+                <strong>Retry Logic:</strong> If an error occurs, check if retry button appears for
+                retryable errors
+              </li>
+              <li>
+                <strong>Custom Input:</strong> Toggle custom input and test with your own resume and
+                job data
+              </li>
             </ol>
           </div>
         </div>

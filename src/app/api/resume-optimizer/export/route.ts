@@ -8,7 +8,12 @@ import type { ApiResponse, ExportOptions, ExportResult } from '@/lib/types/resum
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const body = await request.json();
-    const { resumeText, format = 'pdf', template, fileName } = body as ExportOptions & { resumeText: string };
+    const {
+      resumeText,
+      format = 'pdf',
+      template,
+      fileName,
+    } = body as ExportOptions & { resumeText: string };
 
     // Validate required fields
     if (!resumeText) {
@@ -16,7 +21,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: 'Resume text is required for export',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         } as ApiResponse<never>,
         { status: 400 }
       );
@@ -29,23 +34,23 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: `Unsupported format. Supported formats: ${supportedFormats.join(', ')}`,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         } as ApiResponse<never>,
         { status: 400 }
       );
     }
 
     // Generate export
-    const exportResult = await generateExport(resumeText, { 
-      format, 
+    const exportResult = await generateExport(resumeText, {
+      format,
       ...(template ? { template } : {}),
-      fileName: fileName || 'resume_optimized'
+      fileName: fileName || 'resume_optimized',
     });
 
     const response: ApiResponse<ExportResult> = {
       success: true,
       data: exportResult,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json(response);
@@ -55,7 +60,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const errorResponse: ApiResponse<never> = {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to export resume',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json(errorResponse, { status: 500 });
@@ -70,7 +75,7 @@ async function generateExport(
   options: Omit<ExportOptions, 'template'> & { template?: string; fileName: string }
 ): Promise<ExportResult> {
   const { format, template, fileName } = options;
-  
+
   // Simulate processing time
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
@@ -244,12 +249,12 @@ export async function GET(): Promise<NextResponse> {
     supportedFormats: ['pdf', 'docx', 'txt'],
     availableTemplates: ['modern', 'classic', 'creative'],
     maxFileSize: '10MB',
-    processingTime: '2-5 seconds'
+    processingTime: '2-5 seconds',
   };
 
   return NextResponse.json({
     success: true,
     data: exportInfo,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   } as ApiResponse<typeof exportInfo>);
 }

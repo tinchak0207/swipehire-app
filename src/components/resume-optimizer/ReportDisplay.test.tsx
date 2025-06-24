@@ -73,11 +73,11 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       },
     ],
     keywordDensity: {
-      'JavaScript': 2.1,
-      'React': 3.4,
-      'TypeScript': 1.3,
+      JavaScript: 2.1,
+      React: 3.4,
+      TypeScript: 1.3,
       'Node.js': 1.7,
-      'AWS': 0.8,
+      AWS: 0.8,
     },
     recommendations: [
       'Add more cloud-related keywords like Docker and Kubernetes',
@@ -90,9 +90,11 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       id: 'suggestion-1',
       type: 'keyword',
       title: 'Add Docker Experience',
-      description: 'Docker is a highly sought-after skill for this role. Consider adding your containerization experience.',
+      description:
+        'Docker is a highly sought-after skill for this role. Consider adding your containerization experience.',
       impact: 'high',
-      suggestion: 'Add "Docker containerization" to your technical skills and mention specific projects where you used Docker for deployment.',
+      suggestion:
+        'Add "Docker containerization" to your technical skills and mention specific projects where you used Docker for deployment.',
       priority: 9,
       estimatedScoreImprovement: 8,
       section: 'Technical Skills',
@@ -103,9 +105,11 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       title: 'Quantify Performance Improvements',
       description: 'Your achievements would be more impactful with specific numbers and metrics.',
       impact: 'high',
-      suggestion: 'Replace "Improved application performance" with "Improved application performance by 40% through code optimization and caching strategies"',
+      suggestion:
+        'Replace "Improved application performance" with "Improved application performance by 40% through code optimization and caching strategies"',
       beforeText: 'Improved application performance through optimization',
-      afterText: 'Improved application performance by 40% through code optimization and caching strategies, reducing page load times from 3.2s to 1.9s',
+      afterText:
+        'Improved application performance by 40% through code optimization and caching strategies, reducing page load times from 3.2s to 1.9s',
       priority: 8,
       estimatedScoreImprovement: 12,
       section: 'Professional Experience',
@@ -116,7 +120,8 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       title: 'Fix Verb Tense Consistency',
       description: 'Maintain consistent verb tense throughout your resume.',
       impact: 'medium',
-      suggestion: 'Change "Developing web applications" to "Developed web applications" for past roles.',
+      suggestion:
+        'Change "Developing web applications" to "Developed web applications" for past roles.',
       beforeText: 'Developing web applications using React and Node.js',
       afterText: 'Developed web applications using React and Node.js',
       priority: 5,
@@ -129,7 +134,8 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       title: 'Improve ATS Compatibility',
       description: 'Use standard section headers to improve ATS parsing.',
       impact: 'medium',
-      suggestion: 'Change "Tech Stack" to "Technical Skills" and "Work History" to "Professional Experience"',
+      suggestion:
+        'Change "Tech Stack" to "Technical Skills" and "Work History" to "Professional Experience"',
       priority: 6,
       estimatedScoreImprovement: 5,
       section: 'Formatting',
@@ -138,9 +144,11 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       id: 'suggestion-5',
       type: 'structure',
       title: 'Add Professional Summary',
-      description: 'A professional summary helps recruiters quickly understand your value proposition.',
+      description:
+        'A professional summary helps recruiters quickly understand your value proposition.',
       impact: 'high',
-      suggestion: 'Add a 2-3 sentence professional summary at the top of your resume highlighting your key skills and experience.',
+      suggestion:
+        'Add a 2-3 sentence professional summary at the top of your resume highlighting your key skills and experience.',
       priority: 7,
       estimatedScoreImprovement: 10,
       section: 'Professional Summary',
@@ -235,14 +243,16 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       {
         section: 'Professional Experience',
         originalText: 'Improved application performance',
-        suggestedText: 'Improved application performance by 40%, reducing load times from 3.2s to 1.9s',
+        suggestedText:
+          'Improved application performance by 40%, reducing load times from 3.2s to 1.9s',
         reasoning: 'Adding specific metrics makes the achievement more impactful and credible',
       },
       {
         section: 'Professional Experience',
         originalText: 'Led a team of developers',
         suggestedText: 'Led a team of 5 developers to deliver 12 features over 6 months',
-        reasoning: 'Quantifying team size and deliverables demonstrates leadership scale and impact',
+        reasoning:
+          'Quantifying team size and deliverables demonstrates leadership scale and impact',
       },
       {
         section: 'Professional Experience',
@@ -299,7 +309,7 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         'Consider organizing skills by category (Frontend, Backend, DevOps)',
       ],
     },
-    'education': {
+    education: {
       present: true,
       score: 90,
       suggestions: [
@@ -307,7 +317,7 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         'Include GPA if above 3.5',
       ],
     },
-    'projects': {
+    projects: {
       present: true,
       score: 75,
       suggestions: [
@@ -338,12 +348,12 @@ const ReportDisplayTest: React.FC = () => {
   const [showEmptyState, setShowEmptyState] = useState(false);
 
   const handleSuggestionAdopt = (suggestionId: string): void => {
-    setAdoptedSuggestions(prev => {
+    setAdoptedSuggestions((prev) => {
       const newSet = new Set(prev);
       newSet.add(suggestionId);
       return newSet;
     });
-    setIgnoredSuggestions(prev => {
+    setIgnoredSuggestions((prev) => {
       const newSet = new Set(prev);
       newSet.delete(suggestionId);
       return newSet;
@@ -351,12 +361,12 @@ const ReportDisplayTest: React.FC = () => {
   };
 
   const handleSuggestionIgnore = (suggestionId: string): void => {
-    setIgnoredSuggestions(prev => {
+    setIgnoredSuggestions((prev) => {
       const newSet = new Set(prev);
       newSet.add(suggestionId);
       return newSet;
     });
-    setAdoptedSuggestions(prev => {
+    setAdoptedSuggestions((prev) => {
       const newSet = new Set(prev);
       newSet.delete(suggestionId);
       return newSet;
@@ -385,10 +395,10 @@ const ReportDisplayTest: React.FC = () => {
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
           <h2 className="text-xl font-bold text-slate-900 mb-4">ReportDisplay Test Component</h2>
           <p className="text-slate-600 mb-6">
-            This component demonstrates the ReportDisplay functionality with comprehensive mock data.
-            Use the controls below to test different states and interactions.
+            This component demonstrates the ReportDisplay functionality with comprehensive mock
+            data. Use the controls below to test different states and interactions.
           </p>
-          
+
           <div className="flex flex-wrap gap-4">
             <button
               onClick={simulateLoading}
@@ -397,21 +407,18 @@ const ReportDisplayTest: React.FC = () => {
             >
               {isLoading ? 'Loading...' : 'Test Loading State'}
             </button>
-            
+
             <button
               onClick={() => setShowEmptyState(!showEmptyState)}
               className="btn btn-secondary btn-sm"
             >
               {showEmptyState ? 'Show Report' : 'Test Empty State'}
             </button>
-            
-            <button
-              onClick={resetStates}
-              className="btn btn-outline btn-sm"
-            >
+
+            <button onClick={resetStates} className="btn btn-outline btn-sm">
               Reset Suggestions
             </button>
-            
+
             <div className="flex items-center space-x-4 text-sm text-slate-600">
               <span>Adopted: {adoptedSuggestions.size}</span>
               <span>Ignored: {ignoredSuggestions.size}</span>

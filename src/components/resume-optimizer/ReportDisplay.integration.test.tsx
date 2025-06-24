@@ -1,9 +1,9 @@
 'use client';
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import ReportDisplay from './ReportDisplay';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
+import ReportDisplay from './ReportDisplay';
 
 // Mock data for testing
 const mockAnalysisResult: ResumeAnalysisResponse = {
@@ -29,7 +29,7 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         relatedTerms: ['containerization'],
       },
     ],
-    keywordDensity: { 'JavaScript': 2.1 },
+    keywordDensity: { JavaScript: 2.1 },
     recommendations: ['Add Docker experience'],
   },
   suggestions: [
@@ -86,9 +86,7 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       },
     ],
     recommendations: ['Use standard headers'],
-    sectionStructure: [
-      { name: 'Contact', present: true, order: 1, recommended: true },
-    ],
+    sectionStructure: [{ name: 'Contact', present: true, order: 1, recommended: true }],
   },
   quantitativeAnalysis: {
     score: 65,
@@ -136,7 +134,9 @@ describe('ReportDisplay Integration Tests', () => {
     );
 
     expect(screen.getByText('Analyzing Your Resume')).toBeInTheDocument();
-    expect(screen.getByText('Please wait while we generate your optimization report...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Please wait while we generate your optimization report...')
+    ).toBeInTheDocument();
   });
 
   it('renders empty state when no analysis result', () => {
@@ -150,7 +150,11 @@ describe('ReportDisplay Integration Tests', () => {
     );
 
     expect(screen.getByText('No Analysis Available')).toBeInTheDocument();
-    expect(screen.getByText('The resume analysis report is not available. Please try analyzing your resume again.')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The resume analysis report is not available. Please try analyzing your resume again.'
+      )
+    ).toBeInTheDocument();
   });
 
   it('renders complete analysis result', () => {
@@ -322,7 +326,7 @@ describe('ReportDisplay Integration Tests', () => {
     await waitFor(() => {
       const atsSection = screen.getByText('ATS Friendliness Analysis');
       expect(atsSection).toBeInTheDocument();
-      
+
       // Click to expand (it should be expanded by default)
       fireEvent.click(atsSection);
     });
@@ -357,18 +361,21 @@ describe('ReportDisplay Integration Tests', () => {
     await waitFor(() => {
       const textareas = screen.getAllByRole('textbox');
       if (textareas.length > 0) {
-        const textarea = textareas.find(el => 
-          el.getAttribute('placeholder')?.includes('Modify') ||
-          el.className.includes('textarea')
+        const textarea = textareas.find(
+          (el) =>
+            el.getAttribute('placeholder')?.includes('Modify') || el.className.includes('textarea')
         );
         if (textarea) {
           fireEvent.change(textarea, { target: { value: 'Modified suggestion text' } });
-          
+
           // Find and click save button
           const saveButton = screen.getByText('Save');
           fireEvent.click(saveButton);
-          
-          expect(mockOnSuggestionModify).toHaveBeenCalledWith('suggestion-1', 'Modified suggestion text');
+
+          expect(mockOnSuggestionModify).toHaveBeenCalledWith(
+            'suggestion-1',
+            'Modified suggestion text'
+          );
         }
       }
     });

@@ -12,7 +12,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Validate required fields
     if (!analysisResult) {
-      return NextResponse.json({
+      return NextResponse.json(
+        {
           success: false,
           error: 'Analysis result is required',
           timestamp: new Date().toISOString(),
@@ -23,7 +24,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Validate analysis result structure
     if (!analysisResult.id || typeof analysisResult.overallScore !== 'number') {
-      return NextResponse.json({
+      return NextResponse.json(
+        {
           success: false,
           error: 'Invalid analysis result format',
           timestamp: new Date().toISOString(),
@@ -71,9 +73,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (analysisId) {
       // Get specific analysis
       const analysis = await getAnalysisById(analysisId);
-      
+
       if (!analysis) {
-        return NextResponse.json({
+        return NextResponse.json(
+          {
             success: false,
             error: 'Analysis not found',
             timestamp: new Date().toISOString(),
@@ -91,14 +94,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     if (userId) {
       // Get all analyses for user
       const analyses = await getUserAnalyses(userId);
-      
+
       return NextResponse.json({
         success: true,
         data: analyses,
       } as ApiResponse<ResumeAnalysisResponse[]>);
     }
 
-    return NextResponse.json({
+    return NextResponse.json(
+      {
         success: false,
         error: 'User ID or Analysis ID is required',
         timestamp: new Date().toISOString(),
@@ -194,7 +198,7 @@ async function getAnalysisById(analysisId: string): Promise<ResumeAnalysisRespon
             suggestion: 'Standardize header formatting throughout document',
             priority: 2,
             estimatedScoreImprovement: 5,
-            section: 'formatting'
+            section: 'formatting',
           },
         ],
         keywordAnalysis: {
@@ -204,36 +208,41 @@ async function getAnalysisById(analysisId: string): Promise<ResumeAnalysisRespon
           recommendations: ['Add more relevant keywords'],
           matchedKeywords: [
             { keyword: 'javascript', frequency: 3, relevanceScore: 0.9, context: [] },
-            { keyword: 'react', frequency: 2, relevanceScore: 0.8, context: [] }
+            { keyword: 'react', frequency: 2, relevanceScore: 0.8, context: [] },
           ],
           missingKeywords: [
-            { keyword: 'node.js', importance: 'high', suggestedPlacement: ['skills', 'experience'], relatedTerms: [] }
+            {
+              keyword: 'node.js',
+              importance: 'high',
+              suggestedPlacement: ['skills', 'experience'],
+              relatedTerms: [],
+            },
           ],
         },
         grammarCheck: {
           score: 92,
           totalIssues: 2,
           issues: [],
-          overallReadability: 85
+          overallReadability: 85,
         },
         formatAnalysis: {
           score: 80,
           atsCompatibility: 85,
           issues: [],
           recommendations: ['Use standard font sizes'],
-          sectionStructure: []
+          sectionStructure: [],
         },
         quantitativeAnalysis: {
           score: 75,
           achievementsWithNumbers: 3,
           totalAchievements: 5,
           suggestions: [],
-          impactWords: ['increased', 'reduced', 'optimized']
+          impactWords: ['increased', 'reduced', 'optimized'],
         },
         strengths: ['Strong technical skills', 'Clear work experience'],
         weaknesses: ['Could improve section formatting', 'Needs more quantifiable achievements'],
         createdAt: new Date().toISOString(),
-        processingTime: 1500
+        processingTime: 1500,
       };
     }
 
@@ -270,36 +279,41 @@ async function getUserAnalyses(userId: string): Promise<ResumeAnalysisResponse[]
           recommendations: ['Add more relevant keywords'],
           matchedKeywords: [
             { keyword: 'python', frequency: 4, relevanceScore: 0.9, context: [] },
-            { keyword: 'data science', frequency: 2, relevanceScore: 0.7, context: [] }
+            { keyword: 'data science', frequency: 2, relevanceScore: 0.7, context: [] },
           ],
           missingKeywords: [
-            { keyword: 'machine learning', importance: 'high', suggestedPlacement: ['skills', 'experience'], relatedTerms: [] }
+            {
+              keyword: 'machine learning',
+              importance: 'high',
+              suggestedPlacement: ['skills', 'experience'],
+              relatedTerms: [],
+            },
           ],
         },
         grammarCheck: {
           score: 90,
-          totalIssues: 3, 
+          totalIssues: 3,
           issues: [],
-          overallReadability: 80
+          overallReadability: 80,
         },
         formatAnalysis: {
           score: 78,
           atsCompatibility: 82,
           issues: [],
           recommendations: ['Improve section organization'],
-          sectionStructure: []
+          sectionStructure: [],
         },
         quantitativeAnalysis: {
           score: 70,
           achievementsWithNumbers: 2,
           totalAchievements: 5,
           suggestions: [],
-          impactWords: ['developed', 'implemented', 'achieved']
+          impactWords: ['developed', 'implemented', 'achieved'],
         },
         strengths: ['Strong analytical skills', 'Relevant domain knowledge'],
         weaknesses: ['Limited quantifiable results', 'Could improve keyword density'],
         createdAt: new Date(Date.now() - 86400000).toISOString(),
-        processingTime: 1200
+        processingTime: 1200,
       },
       {
         id: `analysis_${Date.now() - 172800000}`, // 2 days ago
@@ -312,37 +326,47 @@ async function getUserAnalyses(userId: string): Promise<ResumeAnalysisResponse[]
           keywordDensity: {},
           recommendations: ['Add more relevant keywords'],
           matchedKeywords: [
-            { keyword: 'javascript', frequency: 3, relevanceScore: 0.8, context: [] }
+            { keyword: 'javascript', frequency: 3, relevanceScore: 0.8, context: [] },
           ],
           missingKeywords: [
-            { keyword: 'react', importance: 'high', suggestedPlacement: ['skills', 'experience'], relatedTerms: [] },
-            { keyword: 'frontend', importance: 'medium', suggestedPlacement: ['summary', 'skills'], relatedTerms: [] }
+            {
+              keyword: 'react',
+              importance: 'high',
+              suggestedPlacement: ['skills', 'experience'],
+              relatedTerms: [],
+            },
+            {
+              keyword: 'frontend',
+              importance: 'medium',
+              suggestedPlacement: ['summary', 'skills'],
+              relatedTerms: [],
+            },
           ],
         },
         grammarCheck: {
           score: 88,
           totalIssues: 4,
           issues: [],
-          overallReadability: 75
+          overallReadability: 75,
         },
         formatAnalysis: {
           score: 75,
           atsCompatibility: 78,
           issues: [],
           recommendations: ['Standardize date formats'],
-          sectionStructure: []
+          sectionStructure: [],
         },
         quantitativeAnalysis: {
           score: 65,
           achievementsWithNumbers: 1,
-          totalAchievements: 5, 
+          totalAchievements: 5,
           suggestions: [],
-          impactWords: ['created', 'built', 'designed']
+          impactWords: ['created', 'built', 'designed'],
         },
         strengths: ['Solid foundation in JavaScript', 'Good problem-solving skills'],
         weaknesses: ['Needs more technical depth', 'Should expand project descriptions'],
         createdAt: new Date(Date.now() - 172800000).toISOString(),
-        processingTime: 1000
+        processingTime: 1000,
       },
     ];
   } catch (error) {
@@ -362,7 +386,8 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
     const userId = searchParams.get('userId') || undefined;
 
     if (!analysisId) {
-      return NextResponse.json({
+      return NextResponse.json(
+        {
           success: false,
           error: 'Analysis ID is required',
           timestamp: new Date().toISOString(),

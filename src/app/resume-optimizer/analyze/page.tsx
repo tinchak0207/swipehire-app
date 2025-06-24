@@ -9,11 +9,8 @@ import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import type {
-  TargetJobInfo,
-  UserProfileData,
-} from '@/lib/types/resume-optimizer';
 import { useResumeAnalysis } from '@/hooks/useResumeAnalysis';
+import type { TargetJobInfo, UserProfileData } from '@/lib/types/resume-optimizer';
 
 interface AnalyzePageData {
   resumeText: string;
@@ -32,7 +29,7 @@ const ResumeAnalyzePage: NextPage = () => {
   const router = useRouter();
   const [data, setData] = useState<AnalyzePageData | null>(null);
   const [hasStartedAnalysis, setHasStartedAnalysis] = useState(false);
-  
+
   // Use the enhanced resume analysis hook
   const {
     analysisResult,
@@ -53,8 +50,8 @@ const ResumeAnalyzePage: NextPage = () => {
   // Loading state visual elements
   const stageIcon = isLoading ? '⏳' : '✅';
   const progressColor = isLoading ? 'progress-primary' : 'progress-success';
-  const stageDescription = stage 
-    ? `Current stage: ${stage.replace('_', ' ')}` 
+  const stageDescription = stage
+    ? `Current stage: ${stage.replace('_', ' ')}`
     : 'Starting analysis...';
 
   // Simple error handling
@@ -64,7 +61,7 @@ const ResumeAnalyzePage: NextPage = () => {
   useEffect(() => {
     // Check backend availability on mount
     checkBackend();
-    
+
     // Load data from sessionStorage
     const storedData = sessionStorage.getItem('resumeOptimizerData');
     if (storedData) {
@@ -206,11 +203,7 @@ const ResumeAnalyzePage: NextPage = () => {
                 </div>
 
                 {/* Current Message */}
-                {message && (
-                  <div className="text-sm text-gray-600 mb-4">
-                    {message}
-                  </div>
-                )}
+                {message && <div className="text-sm text-gray-600 mb-4">{message}</div>}
 
                 {/* Analysis Details */}
                 {data && (
@@ -219,7 +212,9 @@ const ResumeAnalyzePage: NextPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-600">Source:</span>
-                        <span className="ml-2 font-medium">{getSourceDescription(data.source)}</span>
+                        <span className="ml-2 font-medium">
+                          {getSourceDescription(data.source)}
+                        </span>
                       </div>
                       <div>
                         <span className="text-gray-600">Target Job:</span>
@@ -252,8 +247,8 @@ const ResumeAnalyzePage: NextPage = () => {
                     <div>
                       <h3 className="font-medium text-blue-800">AI Analysis in Progress</h3>
                       <p className="text-blue-700 text-sm mt-1">
-                        Our AI is carefully analyzing your resume against the target job requirements. 
-                        This process typically takes 30-60 seconds.
+                        Our AI is carefully analyzing your resume against the target job
+                        requirements. This process typically takes 30-60 seconds.
                       </p>
                     </div>
                   </div>
@@ -269,7 +264,8 @@ const ResumeAnalyzePage: NextPage = () => {
                     <div>
                       <h3 className="font-medium text-green-800">Analysis Complete!</h3>
                       <p className="text-green-700 text-sm mt-1">
-                        Your resume has been successfully analyzed. Redirecting to the results page...
+                        Your resume has been successfully analyzed. Redirecting to the results
+                        page...
                       </p>
                     </div>
                   </div>

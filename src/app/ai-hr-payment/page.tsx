@@ -142,12 +142,12 @@ export default function AiHrPaymentPage() {
           'Could not generate company reply style at this time. Please try again later.'
         );
         setSuggestedGuidelines([]);
-          toast({
-            title: 'AI Style Generation Failed',
-            description: "There was an issue generating the company's communication style.",
-            type: 'error',
-            onClose: () => {}
-          });
+        toast({
+          title: 'AI Style Generation Failed',
+          description: "There was an issue generating the company's communication style.",
+          type: 'error',
+          onClose: () => {},
+        });
       } finally {
         setIsLoadingAiStyle(false);
       }
@@ -220,11 +220,11 @@ export default function AiHrPaymentPage() {
       router.push('/');
     } catch (error) {
       console.error('Error signing out: ', error);
-      toast({ 
+      toast({
         title: 'Logout Failed',
         description: 'Could not sign out.',
         type: 'error',
-        onClose: () => {}
+        onClose: () => {},
       });
     }
   };
@@ -239,7 +239,7 @@ export default function AiHrPaymentPage() {
         title: 'Invalid Input',
         description: 'Please enter a valid number of replies.',
         type: 'info',
-        onClose: () => {}
+        onClose: () => {},
       });
       return;
     }
@@ -276,7 +276,7 @@ export default function AiHrPaymentPage() {
         description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
         type: 'success',
         duration: 8000,
-        onClose: () => {}
+        onClose: () => {},
       });
       return;
     } catch (error) {
@@ -285,7 +285,7 @@ export default function AiHrPaymentPage() {
         title: 'Payment Processing Failed',
         description: 'There was an issue processing your payment selection.',
         type: 'error',
-        onClose: () => {}
+        onClose: () => {},
       });
       return;
     } finally {

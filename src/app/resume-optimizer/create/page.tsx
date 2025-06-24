@@ -7,15 +7,17 @@ import {
   ExclamationTriangleIcon,
   EyeIcon,
   SparklesIcon,
+  BriefcaseIcon,
+  BuildingOfficeIcon,
+  TagIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { TEMPLATE_CATEGORIES } from '@/lib/resume-types';
-import type { ResumeTemplate } from '@/lib/types/resume-optimizer';
+import type { ResumeTemplate, TargetJobInfo } from '@/lib/types/resume-optimizer';
 import { fetchResumeTemplates } from '@/services/resumeOptimizerService';
-import TargetJobInputForm, { useTargetJobForm } from '@/components/resume-optimizer/TargetJobInputForm';
 
 const resumeTemplates: ResumeTemplate[] = [
   {
@@ -229,13 +231,10 @@ const ResumeCreatePage: NextPage = () => {
   const [showPreview, setShowPreview] = useState(false);
   const [currentStep, setCurrentStep] = useState<'template' | 'details'>('template');
 
-  // Use the custom hook for target job form management
-  const {
-    formData: targetJobFormData,
-    isValid: isTargetJobValid,
-    handleChange: handleTargetJobChange,
-    convertToTargetJobInfo,
-  } = useTargetJobForm();
+  const [targetJob, setTargetJob] = useState<TargetJobInfo>({
+    title: '',
+    keywords: '',
+  });
 
   useEffect(() => {
     const loadTemplates = async (): Promise<void> => {
@@ -278,15 +277,13 @@ const ResumeCreatePage: NextPage = () => {
   }, []);
 
   const handleAnalyze = useCallback(async (): Promise<void> => {
-    if (!selectedTemplate || !isTargetJobValid) {
+    if (!selectedTemplate || !targetJob.title.trim()) {
       return;
     }
 
     setIsAnalyzing(true);
 
     try {
-      const targetJob = convertToTargetJobInfo();
-      
       // Store data in sessionStorage for the analysis page
       sessionStorage.setItem(
         'resumeOptimizerData',
@@ -307,7 +304,11 @@ const ResumeCreatePage: NextPage = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [selectedTemplate, isTargetJobValid, convertToTargetJobInfo, router]);
+  }, [selectedTemplate, targetJob, router]);
+
+  const handleInputChange = useCallback((field: keyof TargetJobInfo, value: string): void => {
+    setTargetJob((prev) => ({ ...prev, [field]: value }));
+  }, []);
 
   const getCategoryColor = (category: ResumeTemplate['category']): string => {
     const colors = {
@@ -322,7 +323,7 @@ const ResumeCreatePage: NextPage = () => {
   const getCategoryIcon = (category: ResumeTemplate['category']): JSX.Element => {
     const icons = {
       tech: <DocumentTextIcon className="w-6 h-6" />,
-      business: <DocumentTextIcon className="w-6 h-6" />,
+      business: <BriefcaseIcon className="w-6 h-6" />,
       creative: <SparklesIcon className="w-6 h-6" />,
       general: <DocumentTextIcon className="w-6 h-6" />,
     };
@@ -543,15 +544,60 @@ const ResumeCreatePage: NextPage = () => {
                   </div>
                 )}
 
-                {/* Target Job Input Form */}
-                <div className="mb-8">
-                  <TargetJobInputForm
-                    initialData={targetJobFormData}
-                    onChange={handleTargetJobChange}
-                    isLoading={isAnalyzing}
-                    validateOnChange
-                    className="[&_.label-text]:text-white [&_.label-text]:font-semibold [&_.input]:bg-white/20 [&_.input]:border-white/30 [&_.input]:text-white [&_.input]:placeholder:text-white/50 [&_.input]:backdrop-blur-sm [&_.input:focus]:bg-white/30 [&_.input:focus]:border-white/50 [&_.textarea]:bg-white/20 [&_.textarea]:border-white/30 [&_.textarea]:text-white [&_.textarea]:placeholder:text-white/50 [&_.textarea]:backdrop-blur-sm [&_.textarea:focus]:bg-white/30 [&_.textarea:focus]:border-white/50 [&_.badge]:badge-secondary [&_.alert]:alert-info [&_.alert]:bg-white/10 [&_.alert]:border-white/20 [&_.alert]:text-white"
-                  />
+                {/* Job Details Form */}
+                <div className="space-y-6">
+                  <div className="form-control">
+                    <label className="label mb-2">
+                      <span className="label-text text-white font-semibold text-lg flex items-center space-x-2">
+                        <BriefcaseIcon className="w-5 h-5" />
+                        <span>Target Job Title *</span>
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Senior Software Engineer"
+                      value={targetJob.title}
+                      onChange={(e) => handleInputChange('title', e.target.value)}
+                      className="input input-lg w-full bg-white/20 border-white/30 text-white placeholder:text-white/50 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all duration-200"
+                      required
+                    />
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label mb-2">
+                      <span className="label-text text-white font-semibold text-lg flex items-center space-x-2">
+                        <TagIcon className="w-5 h-5" />
+                        <span>Key Skills & Keywords</span>
+                      </span>
+                    </label>
+                    <textarea
+                      placeholder="e.g., React, Node.js, TypeScript, AWS, Agile, Team Leadership"
+                      value={targetJob.keywords}
+                      onChange={(e) => handleInputChange('keywords', e.target.value)}
+                      className="textarea textarea-lg w-full h-32 bg-white/20 border-white/30 text-white placeholder:text-white/50 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all duration-200 resize-none"
+                    />
+                    <div className="label">
+                      <span className="label-text-alt text-white/60">
+                        Separate multiple keywords with commas
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="form-control">
+                    <label className="label mb-2">
+                      <span className="label-text text-white font-semibold text-lg flex items-center space-x-2">
+                        <BuildingOfficeIcon className="w-5 h-5" />
+                        <span>Target Company (Optional)</span>
+                      </span>
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g., Google, Microsoft, Startup"
+                      value={targetJob.company || ''}
+                      onChange={(e) => handleInputChange('company', e.target.value)}
+                      className="input input-lg w-full bg-white/20 border-white/30 text-white placeholder:text-white/50 backdrop-blur-sm focus:bg-white/30 focus:border-white/50 transition-all duration-200"
+                    />
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
@@ -564,7 +610,7 @@ const ResumeCreatePage: NextPage = () => {
                   </button>
                   <button
                     onClick={handleAnalyze}
-                    disabled={!selectedTemplate || !isTargetJobValid || isAnalyzing}
+                    disabled={!selectedTemplate || !targetJob.title.trim() || isAnalyzing}
                     className="btn btn-lg flex-1 bg-gradient-to-r from-green-500 to-emerald-500 border-0 text-white hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
                   >
                     {isAnalyzing ? (

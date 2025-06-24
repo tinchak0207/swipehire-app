@@ -21,7 +21,9 @@ export async function answerCompanyQuestion(input: CompanyQAInput): Promise<Comp
     companyName: input.companyName,
     companyDescription: input.companyDescription,
     ...(input.companyIndustry && { companyIndustry: input.companyIndustry }),
-    ...(input.companyCultureHighlights && { companyCultureHighlights: input.companyCultureHighlights }),
+    ...(input.companyCultureHighlights && {
+      companyCultureHighlights: input.companyCultureHighlights,
+    }),
     ...(input.jobOpeningsSummary && { jobOpeningsSummary: input.jobOpeningsSummary }),
     ...(input.userQuestion && { userQuestion: input.userQuestion }),
   };

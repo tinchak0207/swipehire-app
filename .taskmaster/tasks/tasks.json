@@ -19,9 +19,7 @@
         "details": "Identify the components responsible for the 'My Résumé' and 'Tools' modules. Add a new link or button component (e.g., using DaisyUI `btn` class) with clear text ('Résumé Optimization Tools') and an appropriate icon. The link should navigate to the main feature route defined in Task 11. Ensure accessibility using ARIA attributes if necessary. Use `next/link` for client-side navigation.",
         "testStrategy": "Verify that the new entry points appear correctly on the respective pages. Click the entry points to ensure they navigate to the Resume Optimizer page without errors.",
         "priority": "medium",
-        "dependencies": [
-          11
-        ],
+        "dependencies": [11],
         "status": "done",
         "subtasks": []
       },
@@ -32,9 +30,7 @@
         "details": "Create a Next.js page component for the upload/import step. Use DaisyUI components for layout (e.g., `card`, `grid`), buttons (`btn`), and input fields (`file-input`, `input`). Include sections for 'Upload File', 'Import from Profile', and 'Create from Scratch'. Use Tailwind CSS for responsive layout (`md:grid-cols-3`). Define TypeScript interfaces for potential form state. Include loading indicators (e.g., DaisyUI `loading` spinner) and basic error message display areas.",
         "testStrategy": "Visually inspect the page layout on different screen sizes. Ensure all interactive elements (buttons, file input area) are present and correctly styled. Verify initial state of the UI.",
         "priority": "high",
-        "dependencies": [
-          11
-        ],
+        "dependencies": [11],
         "status": "done",
         "subtasks": []
       },
@@ -45,9 +41,7 @@
         "details": "Add an event handler to the file input element. Use the `FileReader` API or a library like `pdfjs-dist` for PDF parsing and `mammoth` for DOCX parsing to extract text content from the uploaded files. Implement validation for file types (PDF, DOCX). Handle potential errors during file reading or parsing. Store the extracted text content in component state or a shared context. Show a loading state while parsing. Define TypeScript types for file input events and extracted content.",
         "testStrategy": "Upload valid PDF and DOCX files and verify that text content is correctly extracted. Upload invalid file types and ensure appropriate error messages are displayed. Test with large files to check performance and loading states.",
         "priority": "high",
-        "dependencies": [
-          13
-        ],
+        "dependencies": [13],
         "status": "done",
         "subtasks": []
       },
@@ -58,9 +52,7 @@
         "details": "For 'Import from Profile', fetch the user's existing resume data from a relevant API endpoint. Display this data for confirmation or immediate use. For 'Create from Scratch', provide a selection of simple, pre-defined text templates. When a template is selected, load its content into the state. Define TypeScript types for profile data and template structures. Handle potential API errors for profile import.",
         "testStrategy": "Test importing from a profile with existing data. Test importing from a profile with no data. Select different 'Create from Scratch' templates and verify their content is loaded correctly.",
         "priority": "medium",
-        "dependencies": [
-          13
-        ],
+        "dependencies": [13],
         "status": "done",
         "subtasks": []
       },
@@ -71,9 +63,7 @@
         "details": "Include text input fields (e.g., DaisyUI `input` with `form-control` wrapper) for 'Target Job Title' and 'Keywords'. Use a comma-separated input or a tag input component for keywords. Implement basic input validation (e.g., not empty). Store the input values in component state. Define TypeScript types for the input form data.",
         "testStrategy": "Enter text into both fields and verify state updates correctly. Test with empty inputs to check validation. Test keyword input with commas and spaces.",
         "priority": "high",
-        "dependencies": [
-          13
-        ],
+        "dependencies": [13],
         "status": "done",
         "subtasks": []
       },
@@ -84,11 +74,7 @@
         "details": "Create a service function to make an API call to the backend endpoint responsible for resume analysis. The request payload should include the extracted resume text content (from Task 14 or 15) and the target job title/keywords (from Task 16). Use `fetch` or a library like `axios`. Implement loading states while waiting for the API response. Handle potential network errors or backend errors. Define TypeScript interfaces for the request payload and expected response structure based on the analysis report details (Task 18). Use `try...catch` for error handling.",
         "testStrategy": "Send requests with valid data and verify that the backend receives the correct payload. Simulate backend errors (e.g., server down, invalid input) and verify frontend error handling and messages. Test with different resume content lengths.",
         "priority": "high",
-        "dependencies": [
-          14,
-          15,
-          16
-        ],
+        "dependencies": [14, 15, 16],
         "status": "done",
         "subtasks": []
       },
@@ -99,9 +85,7 @@
         "details": "Create a Next.js page or component to render the analysis report. Structure the report visually using sections for Overall Score, ATS Friendliness, Keyword Matching, Quantitative Achievement Analysis, Grammar/Spelling Check, Formatting/Layout Advice, and Personalized Suggestions. Use DaisyUI components like `collapse`, `alert`, `progress`, `badge`, and `list` to present the information clearly. Use Tailwind CSS for layout and styling. Display loading state while fetching the report (using data from Task 17). Handle cases where the report data is empty or invalid. Define TypeScript interfaces matching the API response structure.",
         "testStrategy": "Render a mock report object with various data points to ensure all sections are displayed correctly. Test responsiveness of the report layout. Verify loading state is shown before data is available. Test with an empty report response.",
         "priority": "high",
-        "dependencies": [
-          17
-        ],
+        "dependencies": [17],
         "status": "done",
         "subtasks": []
       },
@@ -112,9 +96,7 @@
         "details": "Choose a suitable rich text editor library (e.g., Quill, TinyMCE, or a simple `textarea` with enhanced features) to embed within the report page layout (Task 18). Initialize the editor with the original resume text content. Ensure the editor is styled to fit seamlessly within the report view using Tailwind/DaisyUI. The editor should allow users to modify the text content directly. Define a mechanism to access the current content of the editor.",
         "testStrategy": "Verify the editor component loads correctly within the report page. Ensure the original resume text is loaded into the editor. Test basic text editing functionalities (typing, deleting).",
         "priority": "high",
-        "dependencies": [
-          18
-        ],
+        "dependencies": [18],
         "status": "pending",
         "subtasks": []
       },
@@ -125,9 +107,7 @@
         "details": "Add a 'Reanalyze' button near the editor. When clicked, retrieve the current content from the editor (Task 19) and trigger a new analysis request to the backend API (similar to Task 17). Update the displayed report (Task 18) with the new analysis results. Implement logic for 'Adopt' buttons next to suggestions: clicking 'Adopt' should modify the content in the embedded editor based on the suggestion. Implement 'Ignore' functionality (e.g., hiding the suggestion). Define TypeScript types for suggestion objects and editor updates.",
         "testStrategy": "Modify text in the editor and click 'Reanalyze'; verify a new report is generated based on the changes. Test 'Adopt' functionality for different types of suggestions (e.g., adding keywords, fixing grammar); verify editor content is updated correctly. Test 'Ignore' functionality.",
         "priority": "high",
-        "dependencies": [
-          19
-        ],
+        "dependencies": [19],
         "status": "done",
         "subtasks": []
       },
@@ -138,9 +118,7 @@
         "details": "Add 'Download PDF' and 'Download DOCX' buttons on the report page. When clicked, retrieve the current resume content (either the original or the modified content from the editor). Use a client-side library (e.g., `jsPDF` or `pdfmake` for PDF, `docx` for DOCX) or make an API call to the backend to generate the file server-side. Provide the generated file to the user for download. Handle potential errors during file generation. Ensure the downloaded file name is descriptive.",
         "testStrategy": "Click 'Download PDF' and 'Download DOCX' buttons. Verify that files are generated and downloaded correctly. Open the downloaded files to ensure content and formatting are preserved (as much as possible client-side, or verify backend generation if server-side). Test with different resume content.",
         "priority": "high",
-        "dependencies": [
-          18
-        ],
+        "dependencies": [18],
         "status": "pending",
         "subtasks": []
       }

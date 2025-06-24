@@ -20,7 +20,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: 'Resume text and target job information are required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         } as ApiResponse<never>,
         { status: 400 }
       );
@@ -31,7 +31,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         {
           success: false,
           error: 'Target job title is required',
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         } as ApiResponse<never>,
         { status: 400 }
       );
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const response: ApiResponse<ResumeAnalysisResponse> = {
       success: true,
       data: analysisResult,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json(response);
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const errorResponse: ApiResponse<never> = {
       success: false,
       error: error instanceof Error ? error.message : 'Failed to re-analyze resume',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return NextResponse.json(errorResponse, { status: 500 });
@@ -80,17 +80,22 @@ async function performResumeReanalysis(
   const hasSummary = /summary|objective|profile/i.test(resumeText);
 
   // Calculate keyword match score
-  const targetKeywords = targetJob.keywords ? targetJob.keywords.split(',').map(k => k.trim().toLowerCase()) : [];
+  const targetKeywords = targetJob.keywords
+    ? targetJob.keywords.split(',').map((k) => k.trim().toLowerCase())
+    : [];
   const resumeWords = resumeText.toLowerCase().split(/\s+/);
   const matchedKeywords = targetKeywords
-    .filter(keyword => resumeWords.some(word => word.includes(keyword) || keyword.includes(word)))
-    .map(keyword => ({
+    .filter((keyword) =>
+      resumeWords.some((word) => word.includes(keyword) || keyword.includes(word))
+    )
+    .map((keyword) => ({
       keyword,
-      frequency: resumeWords.filter(w => w.includes(keyword)).length,
+      frequency: resumeWords.filter((w) => w.includes(keyword)).length,
       relevanceScore: 1.0,
-      context: []
+      context: [],
     }));
-  const keywordMatchScore = targetKeywords.length > 0 ? (matchedKeywords.length / targetKeywords.length) * 100 : 75;
+  const keywordMatchScore =
+    targetKeywords.length > 0 ? (matchedKeywords.length / targetKeywords.length) * 100 : 75;
 
   // Calculate improved overall score (assuming some improvements were made)
   let overallScore = 0;
@@ -104,7 +109,7 @@ async function performResumeReanalysis(
     { condition: keywordMatchScore >= 50, weight: 15, name: 'Keyword Optimization' },
   ];
 
-  scoringFactors.forEach(factor => {
+  scoringFactors.forEach((factor) => {
     if (factor.condition) {
       overallScore += factor.weight;
     }
@@ -115,20 +120,22 @@ async function performResumeReanalysis(
 
   // Generate updated suggestions
   const suggestions = [];
-  
+
   if (!hasContactInfo) {
     suggestions.push({
       id: `contact-${Date.now()}`,
       type: 'ats' as const,
       title: 'Add Contact Information',
-      description: 'Include your email, phone number, and LinkedIn profile at the top of your resume.',
+      description:
+        'Include your email, phone number, and LinkedIn profile at the top of your resume.',
       impact: 'high' as const,
       effort: 'low' as const,
-      suggestion: 'Add a contact section at the top with your email, phone, and LinkedIn profile URL',
+      suggestion:
+        'Add a contact section at the top with your email, phone, and LinkedIn profile URL',
       priority: 1,
       estimatedScoreImprovement: 15,
       beforeText: '',
-      afterText: ''
+      afterText: '',
     });
   }
 
@@ -137,14 +144,16 @@ async function performResumeReanalysis(
       id: `summary-${Date.now()}`,
       type: 'structure' as const,
       title: 'Add Professional Summary',
-      description: 'Include a compelling professional summary that highlights your key qualifications.',
+      description:
+        'Include a compelling professional summary that highlights your key qualifications.',
       impact: 'high' as const,
       effort: 'medium' as const,
-      suggestion: 'Add a 3-4 sentence professional summary highlighting your key skills and experience',
+      suggestion:
+        'Add a 3-4 sentence professional summary highlighting your key skills and experience',
       priority: 2,
       estimatedScoreImprovement: 10,
       beforeText: '',
-      afterText: ''
+      afterText: '',
     });
   }
 
@@ -160,7 +169,7 @@ async function performResumeReanalysis(
       priority: 3,
       estimatedScoreImprovement: Math.round((70 - keywordMatchScore) * 0.5),
       beforeText: '',
-      afterText: ''
+      afterText: '',
     });
   }
 
@@ -169,14 +178,15 @@ async function performResumeReanalysis(
     id: `ats-${Date.now()}`,
     type: 'ats' as const,
     title: 'Optimize for ATS Scanning',
-    description: 'Use standard section headings and avoid complex formatting that might confuse ATS systems.',
+    description:
+      'Use standard section headings and avoid complex formatting that might confuse ATS systems.',
     impact: 'medium' as const,
     effort: 'low' as const,
     suggestion: 'Use standard section headings like "Experience", "Education", "Skills"',
     priority: 4,
     estimatedScoreImprovement: 5,
     beforeText: '',
-    afterText: ''
+    afterText: '',
   });
 
   suggestions.push({
@@ -190,26 +200,29 @@ async function performResumeReanalysis(
     priority: 5,
     estimatedScoreImprovement: 10,
     beforeText: '',
-    afterText: ''
+    afterText: '',
   });
 
   // Calculate improved ATS compatibility score
-  const atsScore = Math.min(100, overallScore + (hasContactInfo ? 10 : 0) + (keywordMatchScore * 0.3));
+  const atsScore = Math.min(
+    100,
+    overallScore + (hasContactInfo ? 10 : 0) + keywordMatchScore * 0.3
+  );
 
   const createdAt = new Date().toISOString();
   const grammarCheck = {
     score: 85,
     totalIssues: 3,
     issues: [],
-    overallReadability: 90
+    overallReadability: 90,
   };
-  
+
   const formatAnalysis = {
     score: 90,
     atsCompatibility: 85,
     issues: [],
     recommendations: [],
-    sectionStructure: []
+    sectionStructure: [],
   };
 
   const quantitativeAnalysis = {
@@ -217,7 +230,7 @@ async function performResumeReanalysis(
     achievementsWithNumbers: 5,
     totalAchievements: 10,
     suggestions: [],
-    impactWords: [] 
+    impactWords: [],
   };
 
   const analysisResult: ResumeAnalysisResponse = {
@@ -225,7 +238,7 @@ async function performResumeReanalysis(
     overallScore: Math.round(overallScore),
     atsScore: Math.round(atsScore),
     grammarCheck,
-    formatAnalysis, 
+    formatAnalysis,
     quantitativeAnalysis,
     createdAt,
     processingTime: 1500,
@@ -253,48 +266,50 @@ async function performResumeReanalysis(
       totalKeywords: targetKeywords.length,
       matchedKeywords,
       missingKeywords: targetKeywords
-        .filter(keyword => !matchedKeywords.some(mk => mk.keyword === keyword))
-        .map(keyword => ({
+        .filter((keyword) => !matchedKeywords.some((mk) => mk.keyword === keyword))
+        .map((keyword) => ({
           keyword,
           importance: 'medium' as const,
           suggestedPlacement: [],
-          relatedTerms: []
+          relatedTerms: [],
         })),
       keywordDensity: {},
-      recommendations: []
+      recommendations: [],
     },
     sectionAnalysis: {
       contact: {
         present: hasContactInfo,
         score: hasContactInfo ? 95 : 0,
-        suggestions: hasContactInfo ? ['Consider adding portfolio URL'] : ['Add email, phone, and LinkedIn profile'],
+        suggestions: hasContactInfo
+          ? ['Consider adding portfolio URL']
+          : ['Add email, phone, and LinkedIn profile'],
       },
       summary: {
         present: hasSummary,
         score: hasSummary ? 85 : 40,
-        suggestions: hasSummary 
-          ? ['Tailor summary to target role', 'Include key achievements'] 
+        suggestions: hasSummary
+          ? ['Tailor summary to target role', 'Include key achievements']
           : ['Add a compelling professional summary'],
       },
       experience: {
         present: hasExperience,
         score: hasExperience ? 90 : 0,
-        suggestions: hasExperience 
-          ? ['Use more specific metrics', 'Highlight relevant achievements'] 
+        suggestions: hasExperience
+          ? ['Use more specific metrics', 'Highlight relevant achievements']
           : ['Add professional experience section'],
       },
       education: {
         present: hasEducation,
         score: hasEducation ? 85 : 60,
-        suggestions: hasEducation 
-          ? ['Include relevant coursework if recent graduate'] 
+        suggestions: hasEducation
+          ? ['Include relevant coursework if recent graduate']
           : ['Add education background'],
       },
       skills: {
         present: hasSkills,
         score: hasSkills ? 90 : 30,
-        suggestions: hasSkills 
-          ? ['Prioritize skills relevant to target role', 'Include proficiency levels'] 
+        suggestions: hasSkills
+          ? ['Prioritize skills relevant to target role', 'Include proficiency levels']
           : ['Add comprehensive skills section'],
       },
     },
@@ -321,12 +336,12 @@ function generateOptimizedContent(
   suggestions: ResumeAnalysisResponse['suggestions']
 ): string {
   let optimizedText = originalText;
-  
+
   // Add improvements based on suggestions
-  const importantSuggestions = suggestions.filter(s => s.priority <= 3); // Top priority suggestions
-  
+  const importantSuggestions = suggestions.filter((s) => s.priority <= 3); // Top priority suggestions
+
   // Add professional summary if missing
-  if (importantSuggestions.some(s => s.title.includes('Professional Summary'))) {
+  if (importantSuggestions.some((s) => s.title.includes('Professional Summary'))) {
     const summarySection = `
 PROFESSIONAL SUMMARY
 Results-driven professional with expertise in ${targetJob.title.toLowerCase()} seeking to contribute to ${targetJob.company || 'your organization'}. Proven track record of delivering high-quality results and driving business success through innovative solutions and collaborative teamwork.
@@ -334,7 +349,7 @@ Results-driven professional with expertise in ${targetJob.title.toLowerCase()} s
 `;
     optimizedText = summarySection + optimizedText;
   }
-  
+
   // Add keyword optimization suggestions
   if (targetJob.keywords) {
     optimizedText += `
@@ -343,6 +358,6 @@ Results-driven professional with expertise in ${targetJob.title.toLowerCase()} s
 
 [Re-analysis Complete: This version shows improved alignment with the target role and better ATS compatibility.]`;
   }
-  
+
   return optimizedText;
 }

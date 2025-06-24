@@ -1,7 +1,7 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import TargetJobInputForm, { useTargetJobForm } from './TargetJobInputForm';
 import type { TargetJobFormData } from './TargetJobInputForm';
+import TargetJobInputForm, { useTargetJobForm } from './TargetJobInputForm';
 
 // Mock Heroicons
 jest.mock('@heroicons/react/24/outline', () => ({
@@ -85,7 +85,9 @@ describe('TargetJobInputForm', () => {
       await user.type(titleInput, 'A');
 
       await waitFor(() => {
-        expect(screen.getByText(/job title must be at least 2 characters long/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/job title must be at least 2 characters long/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -110,7 +112,9 @@ describe('TargetJobInputForm', () => {
       await user.type(keywordsInput, 'AB');
 
       await waitFor(() => {
-        expect(screen.getByText(/keywords must be at least 3 characters long/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/keywords must be at least 3 characters long/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -272,13 +276,18 @@ describe('TargetJobInputForm', () => {
 
 describe('useTargetJobForm Hook', () => {
   const TestComponent = ({ initialData }: { initialData?: Partial<TargetJobFormData> }) => {
-    const { formData, isValid, handleChange, reset, convertToTargetJobInfo } = useTargetJobForm(initialData);
+    const { formData, isValid, handleChange, reset, convertToTargetJobInfo } =
+      useTargetJobForm(initialData);
 
     return (
       <div>
         <div data-testid="form-data">{JSON.stringify(formData)}</div>
         <div data-testid="is-valid">{isValid.toString()}</div>
-        <button onClick={() => handleChange({ title: 'Test', keywords: '', company: '', description: '' }, true)}>
+        <button
+          onClick={() =>
+            handleChange({ title: 'Test', keywords: '', company: '', description: '' }, true)
+          }
+        >
           Change
         </button>
         <button onClick={() => reset()}>Reset</button>

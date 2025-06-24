@@ -113,11 +113,14 @@ export interface ResumeAnalysisResponse {
   weaknesses: string[];
   createdAt: string;
   processingTime: number;
-  sectionAnalysis?: Record<string, {
-    present: boolean;
-    score: number;
-    suggestions: string[];
-  }>;
+  sectionAnalysis?: Record<
+    string,
+    {
+      present: boolean;
+      score: number;
+      suggestions: string[];
+    }
+  >;
   optimizedContent?: string;
   metadata?: {
     analysisDate: string;

@@ -12,8 +12,8 @@ import type {
 import {
   analyzeResume,
   checkBackendAvailability,
-  reanalyzeResume,
   ResumeAnalysisError,
+  reanalyzeResume,
 } from '@/services/resumeOptimizerService';
 
 export interface UseResumeAnalysisState {
@@ -21,13 +21,13 @@ export interface UseResumeAnalysisState {
   isAnalyzing: boolean;
   analysisResult: ResumeAnalysisResponse | null;
   error: ResumeAnalysisError | null;
-  
+
   // Loading state details
   loadingState: AnalysisLoadingState;
-  
+
   // Backend availability
   isBackendAvailable: boolean | null;
-  
+
   // Request tracking
   currentRequestId: string | null;
 }
@@ -35,20 +35,20 @@ export interface UseResumeAnalysisState {
 export interface UseResumeAnalysisActions {
   // Main analysis function
   startAnalysis: (request: ResumeAnalysisRequest) => Promise<ResumeAnalysisResponse | null>;
-  
+
   // Re-analysis function
   startReanalysis: (
     resumeText: string,
     originalAnalysisId: string,
     targetJob: ResumeAnalysisRequest['targetJob']
   ) => Promise<ResumeAnalysisResponse | null>;
-  
+
   // Utility functions
   cancelAnalysis: () => void;
   clearError: () => void;
   clearResults: () => void;
   checkBackend: () => Promise<boolean>;
-  
+
   // State reset
   reset: () => void;
 }
@@ -81,7 +81,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
    * Update loading state during analysis
    */
   const updateLoadingState = useCallback((loadingState: AnalysisLoadingState) => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       loadingState,
       isAnalyzing: loadingState.isLoading,
@@ -94,14 +94,14 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   const checkBackend = useCallback(async (): Promise<boolean> => {
     try {
       const isAvailable = await checkBackendAvailability();
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isBackendAvailable: isAvailable,
       }));
       return isAvailable;
     } catch (error) {
       console.error('Error checking backend availability:', error);
-      setState(prev => ({
+      setState((prev) => ({
         ...prev,
         isBackendAvailable: false,
       }));
@@ -112,184 +112,188 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   /**
    * Start resume analysis
    */
-  const startAnalysis = useCallback(async (
-    request: ResumeAnalysisRequest
-  ): Promise<ResumeAnalysisResponse | null> => {
-    // Cancel any existing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller
-    abortControllerRef.current = new AbortController();
-    const requestId = `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    // Reset state
-    setState(prev => ({
-      ...prev,
-      isAnalyzing: true,
-      analysisResult: null,
-      error: null,
-      currentRequestId: requestId,
-      loadingState: {
-        isLoading: true,
-        progress: 0,
-        stage: 'parsing',
-        message: 'Starting analysis...',
-      },
-    }));
-
-    try {
-      // Perform analysis with progress tracking
-      const result = await analyzeResume(request, updateLoadingState);
-
-      // Check if request was cancelled
-      if (abortControllerRef.current?.signal.aborted) {
-        return null;
+  const startAnalysis = useCallback(
+    async (request: ResumeAnalysisRequest): Promise<ResumeAnalysisResponse | null> => {
+      // Cancel any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
 
-      // Update state with successful result
-      setState(prev => ({
+      // Create new abort controller
+      abortControllerRef.current = new AbortController();
+      const requestId = `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Reset state
+      setState((prev) => ({
         ...prev,
-        isAnalyzing: false,
-        analysisResult: result,
+        isAnalyzing: true,
+        analysisResult: null,
         error: null,
-        currentRequestId: null,
+        currentRequestId: requestId,
         loadingState: {
-          isLoading: false,
-          progress: 100,
-          message: 'Analysis complete!',
+          isLoading: true,
+          progress: 0,
+          stage: 'parsing',
+          message: 'Starting analysis...',
         },
       }));
 
-      return result;
+      try {
+        // Perform analysis with progress tracking
+        const result = await analyzeResume(request, updateLoadingState);
 
-    } catch (error) {
-      // Check if request was cancelled
-      if (abortControllerRef.current?.signal.aborted) {
+        // Check if request was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          return null;
+        }
+
+        // Update state with successful result
+        setState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          analysisResult: result,
+          error: null,
+          currentRequestId: null,
+          loadingState: {
+            isLoading: false,
+            progress: 100,
+            message: 'Analysis complete!',
+          },
+        }));
+
+        return result;
+      } catch (error) {
+        // Check if request was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          return null;
+        }
+
+        const analysisError =
+          error instanceof ResumeAnalysisError
+            ? error
+            : new ResumeAnalysisError(
+                'An unexpected error occurred during analysis.',
+                'UNEXPECTED_ERROR',
+                500,
+                { originalError: error }
+              );
+
+        // Update state with error
+        setState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          error: analysisError,
+          currentRequestId: null,
+          loadingState: {
+            isLoading: false,
+            progress: 0,
+            message: 'Analysis failed',
+          },
+        }));
+
+        console.error('Resume analysis failed:', analysisError);
         return null;
       }
-
-      const analysisError = error instanceof ResumeAnalysisError 
-        ? error 
-        : new ResumeAnalysisError(
-            'An unexpected error occurred during analysis.',
-            'UNEXPECTED_ERROR',
-            500,
-            { originalError: error }
-          );
-
-      // Update state with error
-      setState(prev => ({
-        ...prev,
-        isAnalyzing: false,
-        error: analysisError,
-        currentRequestId: null,
-        loadingState: {
-          isLoading: false,
-          progress: 0,
-          message: 'Analysis failed',
-        },
-      }));
-
-      console.error('Resume analysis failed:', analysisError);
-      return null;
-    }
-  }, [updateLoadingState]);
+    },
+    [updateLoadingState]
+  );
 
   /**
    * Start resume re-analysis
    */
-  const startReanalysis = useCallback(async (
-    resumeText: string,
-    originalAnalysisId: string,
-    targetJob: ResumeAnalysisRequest['targetJob']
-  ): Promise<ResumeAnalysisResponse | null> => {
-    // Cancel any existing request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller
-    abortControllerRef.current = new AbortController();
-    const requestId = `reanalysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-    // Reset state
-    setState(prev => ({
-      ...prev,
-      isAnalyzing: true,
-      error: null,
-      currentRequestId: requestId,
-      loadingState: {
-        isLoading: true,
-        progress: 0,
-        stage: 'parsing',
-        message: 'Starting re-analysis...',
-      },
-    }));
-
-    try {
-      // Perform re-analysis with progress tracking
-      const result = await reanalyzeResume(
-        resumeText,
-        originalAnalysisId,
-        targetJob,
-        updateLoadingState
-      );
-
-      // Check if request was cancelled
-      if (abortControllerRef.current?.signal.aborted) {
-        return null;
+  const startReanalysis = useCallback(
+    async (
+      resumeText: string,
+      originalAnalysisId: string,
+      targetJob: ResumeAnalysisRequest['targetJob']
+    ): Promise<ResumeAnalysisResponse | null> => {
+      // Cancel any existing request
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
 
-      // Update state with successful result
-      setState(prev => ({
+      // Create new abort controller
+      abortControllerRef.current = new AbortController();
+      const requestId = `reanalysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+      // Reset state
+      setState((prev) => ({
         ...prev,
-        isAnalyzing: false,
-        analysisResult: result,
+        isAnalyzing: true,
         error: null,
-        currentRequestId: null,
+        currentRequestId: requestId,
         loadingState: {
-          isLoading: false,
-          progress: 100,
-          message: 'Re-analysis complete!',
+          isLoading: true,
+          progress: 0,
+          stage: 'parsing',
+          message: 'Starting re-analysis...',
         },
       }));
 
-      return result;
+      try {
+        // Perform re-analysis with progress tracking
+        const result = await reanalyzeResume(
+          resumeText,
+          originalAnalysisId,
+          targetJob,
+          updateLoadingState
+        );
 
-    } catch (error) {
-      // Check if request was cancelled
-      if (abortControllerRef.current?.signal.aborted) {
+        // Check if request was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          return null;
+        }
+
+        // Update state with successful result
+        setState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          analysisResult: result,
+          error: null,
+          currentRequestId: null,
+          loadingState: {
+            isLoading: false,
+            progress: 100,
+            message: 'Re-analysis complete!',
+          },
+        }));
+
+        return result;
+      } catch (error) {
+        // Check if request was cancelled
+        if (abortControllerRef.current?.signal.aborted) {
+          return null;
+        }
+
+        const analysisError =
+          error instanceof ResumeAnalysisError
+            ? error
+            : new ResumeAnalysisError(
+                'An unexpected error occurred during re-analysis.',
+                'UNEXPECTED_ERROR',
+                500,
+                { originalError: error }
+              );
+
+        // Update state with error
+        setState((prev) => ({
+          ...prev,
+          isAnalyzing: false,
+          error: analysisError,
+          currentRequestId: null,
+          loadingState: {
+            isLoading: false,
+            progress: 0,
+            message: 'Re-analysis failed',
+          },
+        }));
+
+        console.error('Resume re-analysis failed:', analysisError);
         return null;
       }
-
-      const analysisError = error instanceof ResumeAnalysisError 
-        ? error 
-        : new ResumeAnalysisError(
-            'An unexpected error occurred during re-analysis.',
-            'UNEXPECTED_ERROR',
-            500,
-            { originalError: error }
-          );
-
-      // Update state with error
-      setState(prev => ({
-        ...prev,
-        isAnalyzing: false,
-        error: analysisError,
-        currentRequestId: null,
-        loadingState: {
-          isLoading: false,
-          progress: 0,
-          message: 'Re-analysis failed',
-        },
-      }));
-
-      console.error('Resume re-analysis failed:', analysisError);
-      return null;
-    }
-  }, [updateLoadingState]);
+    },
+    [updateLoadingState]
+  );
 
   /**
    * Cancel current analysis
@@ -300,7 +304,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
       abortControllerRef.current = null;
     }
 
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       isAnalyzing: false,
       currentRequestId: null,
@@ -316,7 +320,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
    * Clear error state
    */
   const clearError = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       error: null,
     }));
@@ -326,7 +330,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
    * Clear analysis results
    */
   const clearResults = useCallback(() => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
       analysisResult: null,
       error: null,
@@ -361,7 +365,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
   return {
     // State
     ...state,
-    
+
     // Actions
     startAnalysis,
     startReanalysis,
@@ -378,41 +382,37 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
  * Provides a simpler interface for basic analysis needs
  */
 export const useSimpleResumeAnalysis = () => {
-  const {
-    isAnalyzing,
-    analysisResult,
-    error,
-    loadingState,
-    startAnalysis,
-    clearError,
-    reset,
-  } = useResumeAnalysis();
+  const { isAnalyzing, analysisResult, error, loadingState, startAnalysis, clearError, reset } =
+    useResumeAnalysis();
 
-  const analyze = useCallback(async (
-    resumeText: string,
-    targetJobTitle: string,
-    targetJobKeywords?: string,
-    options?: {
-      targetJobDescription?: string;
-      targetJobCompany?: string;
-      userId?: string;
-      templateId?: string;
-    }
-  ): Promise<ResumeAnalysisResponse | null> => {
-    const request: ResumeAnalysisRequest = {
-      resumeText,
-      targetJob: {
-        title: targetJobTitle,
-        keywords: targetJobKeywords || '',
-        description: options?.targetJobDescription,
-        company: options?.targetJobCompany,
-      },
-      userId: options?.userId,
-      templateId: options?.templateId,
-    };
+  const analyze = useCallback(
+    async (
+      resumeText: string,
+      targetJobTitle: string,
+      targetJobKeywords?: string,
+      options?: {
+        targetJobDescription?: string;
+        targetJobCompany?: string;
+        userId?: string;
+        templateId?: string;
+      }
+    ): Promise<ResumeAnalysisResponse | null> => {
+      const request: ResumeAnalysisRequest = {
+        resumeText,
+        targetJob: {
+          title: targetJobTitle,
+          keywords: targetJobKeywords || '',
+          description: options?.targetJobDescription,
+          company: options?.targetJobCompany,
+        },
+        userId: options?.userId,
+        templateId: options?.templateId,
+      };
 
-    return await startAnalysis(request);
-  }, [startAnalysis]);
+      return await startAnalysis(request);
+    },
+    [startAnalysis]
+  );
 
   return {
     isAnalyzing,

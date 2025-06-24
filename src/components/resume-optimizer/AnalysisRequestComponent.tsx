@@ -7,7 +7,11 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { useResumeAnalysis, useAnalysisLoadingState, useAnalysisErrorHandler } from '@/hooks/useResumeAnalysis';
+import {
+  useAnalysisErrorHandler,
+  useAnalysisLoadingState,
+  useResumeAnalysis,
+} from '@/hooks/useResumeAnalysis';
 import type { ResumeAnalysisRequest, TargetJobInfo } from '@/lib/types/resume-optimizer';
 
 interface AnalysisRequestComponentProps {
@@ -38,21 +42,10 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
     checkBackend,
   } = useResumeAnalysis();
 
-  const {
-    isLoading,
-    progress,
-    stage,
-    message,
-    progressColor,
-    stageIcon,
-    stageDescription,
-  } = useAnalysisLoadingState(loadingState);
+  const { isLoading, progress, stage, message, progressColor, stageIcon, stageDescription } =
+    useAnalysisLoadingState(loadingState);
 
-  const {
-    getErrorMessage,
-    getErrorSeverity,
-    shouldRetry,
-  } = useAnalysisErrorHandler();
+  const { getErrorMessage, getErrorSeverity, shouldRetry } = useAnalysisErrorHandler();
 
   const [retryCount, setRetryCount] = useState(0);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
@@ -117,9 +110,9 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
 
     // Exponential backoff delay
     const delay = Math.pow(2, retryCount) * 1000;
-    await new Promise(resolve => setTimeout(resolve, delay));
+    await new Promise((resolve) => setTimeout(resolve, delay));
 
-    setRetryCount(prev => prev + 1);
+    setRetryCount((prev) => prev + 1);
     await handleStartAnalysis();
   };
 
@@ -132,11 +125,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
       return;
     }
 
-    const result = await performReanalysis(
-      updatedResumeText,
-      analysisResult.id,
-      targetJob
-    );
+    const result = await performReanalysis(updatedResumeText, analysisResult.id, targetJob);
 
     if (result) {
       setRetryCount(0);
@@ -157,12 +146,8 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         <h2 className="card-title flex items-center gap-2">
           <span className="text-2xl">🤖</span>
           AI Resume Analysis
-          {isBackendAvailable === false && (
-            <div className="badge badge-warning">Local Mode</div>
-          )}
-          {isBackendAvailable === true && (
-            <div className="badge badge-success">AI Enhanced</div>
-          )}
+          {isBackendAvailable === false && <div className="badge badge-warning">Local Mode</div>}
+          {isBackendAvailable === true && <div className="badge badge-success">AI Enhanced</div>}
         </h2>
 
         {/* Backend Status */}
@@ -196,23 +181,22 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
                   <span className="font-semibold">{message}</span>
                   <span className="text-sm opacity-75">{progress}%</span>
                 </div>
-                <progress 
-                  className={`progress ${progressColor} w-full`} 
-                  value={progress} 
+                <progress
+                  className={`progress ${progressColor} w-full`}
+                  value={progress}
                   max="100"
                 />
               </div>
             </div>
             <p className="text-sm opacity-75 ml-11">{stageDescription}</p>
-            
+
             {/* Stage-specific information */}
             {stage === 'analyzing' && (
               <div className="mt-2 ml-11">
                 <div className="text-xs opacity-60">
-                  {isBackendAvailable ? 
-                    'Using advanced AI models for comprehensive analysis...' : 
-                    'Processing with local analysis engine...'
-                  }
+                  {isBackendAvailable
+                    ? 'Using advanced AI models for comprehensive analysis...'
+                    : 'Processing with local analysis engine...'}
                 </div>
               </div>
             )}
@@ -221,14 +205,22 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
 
         {/* Error Display */}
         {error && (
-          <div className={`alert ${
-            getErrorSeverity(error) === 'error' ? 'alert-error' : 
-            getErrorSeverity(error) === 'warning' ? 'alert-warning' : 'alert-info'
-          } mb-4`}>
+          <div
+            className={`alert ${
+              getErrorSeverity(error) === 'error'
+                ? 'alert-error'
+                : getErrorSeverity(error) === 'warning'
+                  ? 'alert-warning'
+                  : 'alert-info'
+            } mb-4`}
+          >
             <div className="flex items-start gap-2">
               <span className="text-lg">
-                {getErrorSeverity(error) === 'error' ? '❌' : 
-                 getErrorSeverity(error) === 'warning' ? '⚠️' : 'ℹ️'}
+                {getErrorSeverity(error) === 'error'
+                  ? '❌'
+                  : getErrorSeverity(error) === 'warning'
+                    ? '⚠️'
+                    : 'ℹ️'}
               </span>
               <div className="flex-1">
                 <div className="font-semibold">Analysis Error</div>
@@ -246,14 +238,11 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
               </div>
             </div>
             <div className="flex gap-2 mt-3">
-              <button 
-                className="btn btn-sm btn-outline"
-                onClick={handleClearError}
-              >
+              <button className="btn btn-sm btn-outline" onClick={handleClearError}>
                 Dismiss
               </button>
               {shouldRetry(error) && retryCount < 3 && (
-                <button 
+                <button
                   className="btn btn-sm btn-primary"
                   onClick={handleRetryAnalysis}
                   disabled={isLoading}
@@ -274,15 +263,11 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
             </h3>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">
-                  {analysisResult.overallScore}
-                </div>
+                <div className="text-2xl font-bold text-primary">{analysisResult.overallScore}</div>
                 <div className="text-xs opacity-75">Overall Score</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-secondary">
-                  {analysisResult.atsScore}
-                </div>
+                <div className="text-2xl font-bold text-secondary">{analysisResult.atsScore}</div>
                 <div className="text-xs opacity-75">ATS Score</div>
               </div>
               <div className="text-center">
@@ -306,14 +291,12 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
 
         {/* Advanced Options */}
         <div className="collapse collapse-arrow bg-base-200">
-          <input 
-            type="checkbox" 
+          <input
+            type="checkbox"
             checked={showAdvancedOptions}
             onChange={(e) => setShowAdvancedOptions(e.target.checked)}
           />
-          <div className="collapse-title text-sm font-medium">
-            Advanced Options
-          </div>
+          <div className="collapse-title text-sm font-medium">Advanced Options</div>
           <div className="collapse-content">
             <div className="space-y-3">
               <div className="form-control">
@@ -347,7 +330,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {/* Action Buttons */}
         <div className="card-actions justify-end mt-6">
           {!analysisResult && (
-            <button 
+            <button
               className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
               onClick={handleStartAnalysis}
               disabled={isLoading || !resumeText.trim() || !targetJob.title.trim()}
@@ -355,17 +338,17 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
               {isLoading ? 'Analyzing...' : 'Start Analysis'}
             </button>
           )}
-          
+
           {analysisResult && !isLoading && (
             <>
-              <button 
+              <button
                 className="btn btn-outline"
                 onClick={() => handleReanalysis(resumeText)}
                 disabled={isReanalyzing}
               >
                 {isReanalyzing ? 'Re-analyzing...' : 'Re-analyze'}
               </button>
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={() => onAnalysisComplete?.(analysisResult.id)}
               >
@@ -378,24 +361,28 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {/* Debug Information (Development Only) */}
         {process.env.NODE_ENV === 'development' && (
           <details className="mt-4">
-            <summary className="text-xs cursor-pointer opacity-50">
-              Debug Information
-            </summary>
+            <summary className="text-xs cursor-pointer opacity-50">Debug Information</summary>
             <pre className="text-xs mt-2 opacity-40 whitespace-pre-wrap bg-base-300 p-2 rounded">
-              {JSON.stringify({
-                isBackendAvailable,
-                isAnalyzing,
-                isReanalyzing,
-                loadingState,
-                error: error ? {
-                  message: error.message,
-                  code: error.code,
-                  statusCode: error.statusCode,
-                } : null,
-                retryCount,
-                resumeTextLength: resumeText.length,
-                targetJob,
-              }, null, 2)}
+              {JSON.stringify(
+                {
+                  isBackendAvailable,
+                  isAnalyzing,
+                  isReanalyzing,
+                  loadingState,
+                  error: error
+                    ? {
+                        message: error.message,
+                        code: error.code,
+                        statusCode: error.statusCode,
+                      }
+                    : null,
+                  retryCount,
+                  resumeTextLength: resumeText.length,
+                  targetJob,
+                },
+                null,
+                2
+              )}
             </pre>
           </details>
         )}

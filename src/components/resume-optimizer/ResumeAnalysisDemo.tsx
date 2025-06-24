@@ -14,12 +14,12 @@ import {
   XCircleIcon,
 } from '@heroicons/react/24/outline';
 import { useCallback, useEffect, useState } from 'react';
+import { useResumeAnalysis, useSimpleResumeAnalysis } from '@/hooks/useResumeAnalysis';
 import type {
   ResumeAnalysisRequest,
   ResumeAnalysisResponse,
   TargetJobInfo,
 } from '@/lib/types/resume-optimizer';
-import { useResumeAnalysis, useSimpleResumeAnalysis } from '@/hooks/useResumeAnalysis';
 import { ResumeAnalysisError } from '@/services/resumeOptimizerService';
 
 // Component Props Interface
@@ -79,7 +79,8 @@ E-commerce Platform | React, Node.js, PostgreSQL
 const DEMO_TARGET_JOB: TargetJobInfo = {
   title: 'Senior Full Stack Developer',
   keywords: 'React, Node.js, TypeScript, AWS, PostgreSQL, REST API, Agile, Microservices',
-  description: 'We are looking for a Senior Full Stack Developer to join our team and help build scalable web applications.',
+  description:
+    'We are looking for a Senior Full Stack Developer to join our team and help build scalable web applications.',
   company: 'Tech Innovations Corp',
 };
 
@@ -136,16 +137,11 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
     try {
       if (useSimpleMode && 'analyze' in simpleAnalysis) {
         // Simple mode analysis
-        await simpleAnalysis.analyze(
-          resumeText,
-          targetJob.title,
-          targetJob.keywords,
-          {
-            targetJobDescription: targetJob.description,
-            targetJobCompany: targetJob.company,
-            userId: 'demo-user',
-          }
-        );
+        await simpleAnalysis.analyze(resumeText, targetJob.title, targetJob.keywords, {
+          targetJobDescription: targetJob.description,
+          targetJobCompany: targetJob.company,
+          userId: 'demo-user',
+        });
       } else if ('startAnalysis' in advancedAnalysis) {
         // Advanced mode analysis
         const request: ResumeAnalysisRequest = {
@@ -232,7 +228,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
    */
   const renderLoadingProgress = () => {
     const { loadingState } = currentAnalysis;
-    
+
     if (!loadingState.isLoading) return null;
 
     const getStageIcon = () => {
@@ -260,7 +256,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               <p className="text-sm opacity-70">{loadingState.message}</p>
             </div>
           </div>
-          
+
           {/* Progress bar */}
           <div className="w-full bg-base-300 rounded-full h-2 mb-2">
             <div
@@ -268,7 +264,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               style={{ width: `${loadingState.progress || 0}%` }}
             />
           </div>
-          
+
           <div className="flex justify-between text-xs opacity-60">
             <span>Stage: {loadingState.stage || 'Starting'}</span>
             <span>{loadingState.progress || 0}%</span>
@@ -302,9 +298,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
             <CheckCircleIcon className="w-8 h-8 text-success" />
             <div>
               <h3 className="font-bold text-xl">Analysis Complete!</h3>
-              <p className="text-sm opacity-70">
-                Processed in {result.processingTime}ms
-              </p>
+              <p className="text-sm opacity-70">Processed in {result.processingTime}ms</p>
             </div>
           </div>
 
@@ -325,9 +319,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               <div className="stat-value text-accent">
                 {result.keywordAnalysis.matchedKeywords.length}
               </div>
-              <div className="stat-desc">
-                of {result.keywordAnalysis.totalKeywords} matched
-              </div>
+              <div className="stat-desc">of {result.keywordAnalysis.totalKeywords} matched</div>
             </div>
           </div>
 
@@ -342,9 +334,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
                     <span className="font-medium">{suggestion.title}</span>
                     <p className="text-sm opacity-80">{suggestion.description}</p>
                   </div>
-                  <div className="badge badge-primary">
-                    +{suggestion.estimatedScoreImprovement}
-                  </div>
+                  <div className="badge badge-primary">+{suggestion.estimatedScoreImprovement}</div>
                 </div>
               ))}
             </div>
@@ -394,22 +384,23 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
       {/* Backend status indicator */}
       {'isBackendAvailable' in advancedAnalysis && (
         <div className="mb-6">
-          <div className={`alert ${
-            advancedAnalysis.isBackendAvailable === true 
-              ? 'alert-success' 
-              : advancedAnalysis.isBackendAvailable === false 
-                ? 'alert-warning' 
-                : 'alert-info'
-          }`}>
+          <div
+            className={`alert ${
+              advancedAnalysis.isBackendAvailable === true
+                ? 'alert-success'
+                : advancedAnalysis.isBackendAvailable === false
+                  ? 'alert-warning'
+                  : 'alert-info'
+            }`}
+          >
             <InformationCircleIcon className="w-5 h-5" />
             <span>
-              Backend Status: {
-                advancedAnalysis.isBackendAvailable === true 
-                  ? 'Available (AI-powered analysis)' 
-                  : advancedAnalysis.isBackendAvailable === false 
-                    ? 'Unavailable (Fallback to local analysis)' 
-                    : 'Checking...'
-              }
+              Backend Status:{' '}
+              {advancedAnalysis.isBackendAvailable === true
+                ? 'Available (AI-powered analysis)'
+                : advancedAnalysis.isBackendAvailable === false
+                  ? 'Unavailable (Fallback to local analysis)'
+                  : 'Checking...'}
             </span>
           </div>
         </div>
@@ -425,9 +416,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               checked={useSimpleMode}
               onChange={(e) => setUseSimpleMode(e.target.checked)}
             />
-            <span className="label-text">
-              Use Simple Mode (simplified API interface)
-            </span>
+            <span className="label-text">Use Simple Mode (simplified API interface)</span>
           </label>
         </div>
       )}
@@ -436,14 +425,12 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
       <div className="card bg-base-100 shadow-lg mb-6">
         <div className="card-body">
           <h2 className="card-title mb-4">Resume & Job Information</h2>
-          
+
           {/* Resume text input */}
           <div className="form-control mb-4">
             <label className="label">
               <span className="label-text font-semibold">Resume Text</span>
-              <span className="label-text-alt">
-                {resumeText.length} characters
-              </span>
+              <span className="label-text-alt">{resumeText.length} characters</span>
             </label>
             <textarea
               className="textarea textarea-bordered h-40 font-mono text-sm"
@@ -465,7 +452,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
                 className="input input-bordered"
                 placeholder="e.g., Senior Software Engineer"
                 value={targetJob.title}
-                onChange={(e) => setTargetJob(prev => ({ ...prev, title: e.target.value }))}
+                onChange={(e) => setTargetJob((prev) => ({ ...prev, title: e.target.value }))}
                 disabled={currentAnalysis.isAnalyzing}
               />
             </div>
@@ -478,7 +465,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
                 className="input input-bordered"
                 placeholder="e.g., Tech Corp"
                 value={targetJob.company || ''}
-                onChange={(e) => setTargetJob(prev => ({ ...prev, company: e.target.value }))}
+                onChange={(e) => setTargetJob((prev) => ({ ...prev, company: e.target.value }))}
                 disabled={currentAnalysis.isAnalyzing}
               />
             </div>
@@ -493,7 +480,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               className="input input-bordered"
               placeholder="e.g., React, Node.js, TypeScript, AWS"
               value={targetJob.keywords || ''}
-              onChange={(e) => setTargetJob(prev => ({ ...prev, keywords: e.target.value }))}
+              onChange={(e) => setTargetJob((prev) => ({ ...prev, keywords: e.target.value }))}
               disabled={currentAnalysis.isAnalyzing}
             />
           </div>
@@ -506,7 +493,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               className="textarea textarea-bordered h-24"
               placeholder="Paste job description here for better analysis..."
               value={targetJob.description || ''}
-              onChange={(e) => setTargetJob(prev => ({ ...prev, description: e.target.value }))}
+              onChange={(e) => setTargetJob((prev) => ({ ...prev, description: e.target.value }))}
               disabled={currentAnalysis.isAnalyzing}
             />
           </div>
@@ -529,7 +516,9 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
               type="button"
               className="btn btn-primary"
               onClick={handleStartAnalysis}
-              disabled={currentAnalysis.isAnalyzing || !resumeText.trim() || !targetJob.title.trim()}
+              disabled={
+                currentAnalysis.isAnalyzing || !resumeText.trim() || !targetJob.title.trim()
+              }
             >
               {currentAnalysis.isAnalyzing ? (
                 <>
@@ -562,17 +551,23 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
           <div className="card-body">
             <h3 className="card-title text-sm">Debug Information</h3>
             <div className="text-xs font-mono bg-base-300 p-4 rounded overflow-auto max-h-40">
-              <pre>{JSON.stringify({
-                mode: useSimpleMode ? 'simple' : 'advanced',
-                isAnalyzing: currentAnalysis.isAnalyzing,
-                hasResult: !!currentAnalysis.analysisResult,
-                hasError: !!currentAnalysis.error,
-                loadingState: currentAnalysis.loadingState,
-                ...(('isBackendAvailable' in advancedAnalysis) && {
-                  backendAvailable: advancedAnalysis.isBackendAvailable,
-                  currentRequestId: advancedAnalysis.currentRequestId,
-                }),
-              }, null, 2)}</pre>
+              <pre>
+                {JSON.stringify(
+                  {
+                    mode: useSimpleMode ? 'simple' : 'advanced',
+                    isAnalyzing: currentAnalysis.isAnalyzing,
+                    hasResult: !!currentAnalysis.analysisResult,
+                    hasError: !!currentAnalysis.error,
+                    loadingState: currentAnalysis.loadingState,
+                    ...('isBackendAvailable' in advancedAnalysis && {
+                      backendAvailable: advancedAnalysis.isBackendAvailable,
+                      currentRequestId: advancedAnalysis.currentRequestId,
+                    }),
+                  },
+                  null,
+                  2
+                )}
+              </pre>
             </div>
           </div>
         </div>

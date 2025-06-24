@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import TargetJobInputForm, { useTargetJobForm } from '@/components/resume-optimizer/TargetJobInputForm';
 import type { TargetJobFormData } from '@/components/resume-optimizer/TargetJobInputForm';
+import TargetJobInputForm, {
+  useTargetJobForm,
+} from '@/components/resume-optimizer/TargetJobInputForm';
 
 /**
  * Demo page for the Target Job Input Form component
@@ -11,23 +13,17 @@ export default function TargetJobDemoPage() {
   const [submittedData, setSubmittedData] = useState<TargetJobFormData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    formData,
-    isValid,
-    handleChange,
-    reset,
-    convertToTargetJobInfo,
-  } = useTargetJobForm({
+  const { formData, isValid, handleChange, reset, convertToTargetJobInfo } = useTargetJobForm({
     title: 'Senior Software Engineer',
     keywords: 'React, TypeScript, Node.js',
   });
 
   const handleSubmit = async (data: TargetJobFormData) => {
     setIsLoading(true);
-    
+
     // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
     setSubmittedData(data);
     setIsLoading(false);
   };
@@ -42,22 +38,18 @@ export default function TargetJobDemoPage() {
       <div className="container mx-auto max-w-4xl px-6">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Target Job Input Form Demo
-          </h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Target Job Input Form Demo</h1>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            This component allows users to specify their target job information for resume optimization.
-            It includes validation, real-time feedback, and accessibility features.
+            This component allows users to specify their target job information for resume
+            optimization. It includes validation, real-time feedback, and accessibility features.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           {/* Form Section */}
           <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Target Job Information
-            </h2>
-            
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Target Job Information</h2>
+
             <TargetJobInputForm
               initialData={formData}
               onChange={handleChange}
@@ -71,11 +63,7 @@ export default function TargetJobDemoPage() {
 
             {/* Reset Button */}
             <div className="mt-6 pt-6 border-t border-gray-200">
-              <button
-                onClick={handleReset}
-                className="btn btn-outline btn-sm"
-                disabled={isLoading}
-              >
+              <button onClick={handleReset} className="btn btn-outline btn-sm" disabled={isLoading}>
                 Reset Form
               </button>
             </div>
@@ -85,10 +73,8 @@ export default function TargetJobDemoPage() {
           <div className="space-y-6">
             {/* Current State */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Current Form State
-              </h3>
-              
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Current Form State</h3>
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-700">Valid:</span>
@@ -96,21 +82,19 @@ export default function TargetJobDemoPage() {
                     {isValid ? 'Yes' : 'No'}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-700">Title:</span>
-                  <span className="text-gray-600 text-sm">
-                    {formData.title || 'Not set'}
-                  </span>
+                  <span className="text-gray-600 text-sm">{formData.title || 'Not set'}</span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-700">Keywords:</span>
                   <span className="text-gray-600 text-sm">
                     {formData.keywords ? `${formData.keywords.split(',').length} items` : 'None'}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-gray-700">Company:</span>
                   <span className="text-gray-600 text-sm">
@@ -126,13 +110,13 @@ export default function TargetJobDemoPage() {
                 <h3 className="text-xl font-bold text-green-900 mb-4">
                   ✅ Form Submitted Successfully!
                 </h3>
-                
+
                 <div className="space-y-3">
                   <div>
                     <span className="font-medium text-green-800">Job Title:</span>
                     <p className="text-green-700 mt-1">{submittedData.title}</p>
                   </div>
-                  
+
                   {submittedData.keywords && (
                     <div>
                       <span className="font-medium text-green-800">Keywords:</span>
@@ -145,14 +129,14 @@ export default function TargetJobDemoPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   {submittedData.company && (
                     <div>
                       <span className="font-medium text-green-800">Company:</span>
                       <p className="text-green-700 mt-1">{submittedData.company}</p>
                     </div>
                   )}
-                  
+
                   {submittedData.description && (
                     <div>
                       <span className="font-medium text-green-800">Description:</span>
@@ -168,10 +152,8 @@ export default function TargetJobDemoPage() {
 
             {/* Features */}
             <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">
-                Component Features
-              </h3>
-              
+              <h3 className="text-xl font-bold text-gray-900 mb-4">Component Features</h3>
+
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center gap-2">
                   <span className="w-2 h-2 bg-blue-500 rounded-full"></span>

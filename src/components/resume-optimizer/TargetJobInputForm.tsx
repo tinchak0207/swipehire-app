@@ -3,12 +3,12 @@
 import {
   BriefcaseIcon,
   BuildingOfficeIcon,
-  TagIcon,
-  ExclamationCircleIcon,
   CheckCircleIcon,
+  ExclamationCircleIcon,
   InformationCircleIcon,
+  TagIcon,
 } from '@heroicons/react/24/outline';
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { TargetJobInfo } from '@/lib/types/resume-optimizer';
 
 /**
@@ -103,7 +103,7 @@ const parseKeywords = (keywordsString: string): string[] => {
 
 /**
  * Target Job Input Form Component
- * 
+ *
  * Provides input fields for users to specify target job information including:
  * - Job title (required)
  * - Keywords/skills (optional, comma-separated)
@@ -144,45 +144,54 @@ export default function TargetJobInputForm({
   /**
    * Validates form data and updates validation state
    */
-  const validateForm = useCallback((data: TargetJobFormData): ValidationResult => {
-    const result = customValidation ? customValidation(data) : validateFormData(data);
-    setValidation(result);
-    return result;
-  }, [customValidation]);
+  const validateForm = useCallback(
+    (data: TargetJobFormData): ValidationResult => {
+      const result = customValidation ? customValidation(data) : validateFormData(data);
+      setValidation(result);
+      return result;
+    },
+    [customValidation]
+  );
 
   /**
    * Handles input field changes
    */
-  const handleInputChange = useCallback((field: keyof TargetJobFormData, value: string) => {
-    const newFormData = { ...formData, [field]: value };
-    setFormData(newFormData);
+  const handleInputChange = useCallback(
+    (field: keyof TargetJobFormData, value: string) => {
+      const newFormData = { ...formData, [field]: value };
+      setFormData(newFormData);
 
-    // Update parsed keywords if keywords field changed
-    if (field === 'keywords') {
-      setParsedKeywords(parseKeywords(value));
-    }
+      // Update parsed keywords if keywords field changed
+      if (field === 'keywords') {
+        setParsedKeywords(parseKeywords(value));
+      }
 
-    // Validate if enabled
-    let validationResult = validation;
-    if (validateOnChange) {
-      validationResult = validateForm(newFormData);
-    }
+      // Validate if enabled
+      let validationResult = validation;
+      if (validateOnChange) {
+        validationResult = validateForm(newFormData);
+      }
 
-    // Notify parent component
-    onChange?.(newFormData, validationResult.isValid);
-  }, [formData, validation, validateOnChange, validateForm, onChange]);
+      // Notify parent component
+      onChange?.(newFormData, validationResult.isValid);
+    },
+    [formData, validation, validateOnChange, validateForm, onChange]
+  );
 
   /**
    * Handles form submission
    */
-  const handleSubmit = useCallback((e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const validationResult = validateForm(formData);
-    if (validationResult.isValid) {
-      onSubmit?.(formData);
-    }
-  }, [formData, validateForm, onSubmit]);
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+
+      const validationResult = validateForm(formData);
+      if (validationResult.isValid) {
+        onSubmit?.(formData);
+      }
+    },
+    [formData, validateForm, onSubmit]
+  );
 
   /**
    * Handles focus events
@@ -229,8 +238,8 @@ export default function TargetJobInputForm({
                 validation.errors.title
                   ? 'input-error border-error focus:border-error'
                   : focusedField === 'title'
-                  ? 'input-primary border-primary'
-                  : 'focus:input-primary'
+                    ? 'input-primary border-primary'
+                    : 'focus:input-primary'
               }`}
               disabled={isLoading}
               required
@@ -286,15 +295,15 @@ export default function TargetJobInputForm({
                 validation.errors.keywords
                   ? 'textarea-error border-error focus:border-error'
                   : focusedField === 'keywords'
-                  ? 'textarea-secondary border-secondary'
-                  : 'focus:textarea-secondary'
+                    ? 'textarea-secondary border-secondary'
+                    : 'focus:textarea-secondary'
               }`}
               disabled={isLoading}
               maxLength={500}
               aria-describedby={validation.errors.keywords ? 'keywords-error' : undefined}
             />
           </div>
-          
+
           {/* Keywords Preview */}
           {parsedKeywords.length > 0 && (
             <div className="mt-2">
@@ -316,19 +325,23 @@ export default function TargetJobInputForm({
           {/* Error Message */}
           {validation.errors.keywords && (
             <div className="label">
-              <span id="keywords-error" className="label-text-alt text-error flex items-center gap-1">
+              <span
+                id="keywords-error"
+                className="label-text-alt text-error flex items-center gap-1"
+              >
                 <ExclamationCircleIcon className="w-4 h-4" />
                 {validation.errors.keywords}
               </span>
             </div>
           )}
-          
+
           {/* Help Text */}
           {!validation.errors.keywords && (
             <div className="label">
               <span className="label-text-alt text-base-content/60 flex items-center gap-1">
                 <InformationCircleIcon className="w-4 h-4" />
-                Separate multiple keywords with commas. Include technical skills, soft skills, and industry terms.
+                Separate multiple keywords with commas. Include technical skills, soft skills, and
+                industry terms.
               </span>
             </div>
           )}
@@ -355,8 +368,8 @@ export default function TargetJobInputForm({
                 validation.errors.company
                   ? 'input-error border-error focus:border-error'
                   : focusedField === 'company'
-                  ? 'input-accent border-accent'
-                  : 'focus:input-accent'
+                    ? 'input-accent border-accent'
+                    : 'focus:input-accent'
               }`}
               disabled={isLoading}
               maxLength={100}
@@ -369,23 +382,27 @@ export default function TargetJobInputForm({
               </div>
             )}
           </div>
-          
+
           {/* Error Message */}
           {validation.errors.company && (
             <div className="label">
-              <span id="company-error" className="label-text-alt text-error flex items-center gap-1">
+              <span
+                id="company-error"
+                className="label-text-alt text-error flex items-center gap-1"
+              >
                 <ExclamationCircleIcon className="w-4 h-4" />
                 {validation.errors.company}
               </span>
             </div>
           )}
-          
+
           {/* Help Text */}
           {!validation.errors.company && focusedField === 'company' && (
             <div className="label">
               <span className="label-text-alt text-base-content/60 flex items-center gap-1">
                 <InformationCircleIcon className="w-4 h-4" />
-                Specify a company name or type (e.g., "startup", "enterprise") for targeted optimization
+                Specify a company name or type (e.g., "startup", "enterprise") for targeted
+                optimization
               </span>
             </div>
           )}
@@ -411,15 +428,15 @@ export default function TargetJobInputForm({
                 validation.errors.description
                   ? 'textarea-error border-error focus:border-error'
                   : focusedField === 'description'
-                  ? 'textarea-info border-info'
-                  : 'focus:textarea-info'
+                    ? 'textarea-info border-info'
+                    : 'focus:textarea-info'
               }`}
               disabled={isLoading}
               maxLength={1000}
               aria-describedby={validation.errors.description ? 'description-error' : undefined}
             />
           </div>
-          
+
           {/* Character Count */}
           {formData.description && (
             <div className="label">
@@ -428,23 +445,27 @@ export default function TargetJobInputForm({
               </span>
             </div>
           )}
-          
+
           {/* Error Message */}
           {validation.errors.description && (
             <div className="label">
-              <span id="description-error" className="label-text-alt text-error flex items-center gap-1">
+              <span
+                id="description-error"
+                className="label-text-alt text-error flex items-center gap-1"
+              >
                 <ExclamationCircleIcon className="w-4 h-4" />
                 {validation.errors.description}
               </span>
             </div>
           )}
-          
+
           {/* Help Text */}
           {!validation.errors.description && focusedField === 'description' && (
             <div className="label">
               <span className="label-text-alt text-base-content/60 flex items-center gap-1">
                 <InformationCircleIcon className="w-4 h-4" />
-                Including the job description helps our AI provide more targeted optimization suggestions
+                Including the job description helps our AI provide more targeted optimization
+                suggestions
               </span>
             </div>
           )}
@@ -458,13 +479,20 @@ export default function TargetJobInputForm({
               <h3 className="font-bold">Target Job Summary</h3>
               <div className="text-sm mt-1">
                 {formData.title.trim() && (
-                  <p><strong>Position:</strong> {formData.title}</p>
+                  <p>
+                    <strong>Position:</strong> {formData.title}
+                  </p>
                 )}
                 {parsedKeywords.length > 0 && (
-                  <p><strong>Key Skills:</strong> {parsedKeywords.slice(0, 5).join(', ')}{parsedKeywords.length > 5 ? '...' : ''}</p>
+                  <p>
+                    <strong>Key Skills:</strong> {parsedKeywords.slice(0, 5).join(', ')}
+                    {parsedKeywords.length > 5 ? '...' : ''}
+                  </p>
                 )}
                 {formData.company?.trim() && (
-                  <p><strong>Target Company:</strong> {formData.company}</p>
+                  <p>
+                    <strong>Target Company:</strong> {formData.company}
+                  </p>
                 )}
               </div>
             </div>

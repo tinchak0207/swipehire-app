@@ -5,7 +5,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DownloadButton, DownloadDropdown, DownloadOptionsModal } from '@/components/resume-optimizer/DownloadButton';
+import {
+  DownloadButton,
+  DownloadDropdown,
+  DownloadOptionsModal,
+} from '@/components/resume-optimizer/DownloadButton';
 import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 
 const mockResumeContent = `John Doe
@@ -54,44 +58,45 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         keyword: 'React',
         frequency: 2,
         relevanceScore: 95,
-        context: ['Frontend development', 'Web applications']
+        context: ['Frontend development', 'Web applications'],
       },
       {
         keyword: 'Node.js',
         frequency: 2,
         relevanceScore: 90,
-        context: ['Backend development', 'Server-side']
-      }
+        context: ['Backend development', 'Server-side'],
+      },
     ],
     missingKeywords: [
       {
         keyword: 'GraphQL',
         importance: 'medium' as const,
         suggestedPlacement: ['Skills section'],
-        relatedTerms: ['API', 'Query language']
-      }
+        relatedTerms: ['API', 'Query language'],
+      },
     ],
     keywordDensity: {
-      'React': 0.02,
+      React: 0.02,
       'Node.js': 0.02,
-      'JavaScript': 0.01
+      JavaScript: 0.01,
     },
     recommendations: [
       'Add more specific technical keywords',
-      'Include industry-specific terminology'
-    ]
+      'Include industry-specific terminology',
+    ],
   },
   suggestions: [
     {
       id: 'suggestion-1',
       type: 'keyword',
       title: 'Add GraphQL to Skills',
-      description: 'Adding GraphQL to your skills section will improve keyword matching for modern web development roles.',
+      description:
+        'Adding GraphQL to your skills section will improve keyword matching for modern web development roles.',
       impact: 'medium',
       suggestion: 'Add "GraphQL" to your skills section under API technologies.',
       section: 'skills',
       priority: 2,
-      estimatedScoreImprovement: 5
+      estimatedScoreImprovement: 5,
     },
     {
       id: 'suggestion-2',
@@ -99,45 +104,46 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
       title: 'Quantify Leadership Impact',
       description: 'Add specific metrics about your mentoring achievements.',
       impact: 'high',
-      suggestion: 'Specify the impact of mentoring, such as "Mentored 3 junior developers, resulting in 25% faster onboarding time"',
+      suggestion:
+        'Specify the impact of mentoring, such as "Mentored 3 junior developers, resulting in 25% faster onboarding time"',
       section: 'experience',
       priority: 1,
-      estimatedScoreImprovement: 8
-    }
+      estimatedScoreImprovement: 8,
+    },
   ],
   grammarCheck: {
     score: 92,
     totalIssues: 2,
     issues: [],
-    overallReadability: 88
+    overallReadability: 88,
   },
   formatAnalysis: {
     score: 80,
     atsCompatibility: 85,
     issues: [],
     recommendations: ['Use consistent bullet points', 'Ensure proper spacing'],
-    sectionStructure: []
+    sectionStructure: [],
   },
   quantitativeAnalysis: {
     score: 75,
     achievementsWithNumbers: 4,
     totalAchievements: 6,
     suggestions: [],
-    impactWords: ['Led', 'Improved', 'Implemented', 'Collaborated']
+    impactWords: ['Led', 'Improved', 'Implemented', 'Collaborated'],
   },
   strengths: [
     'Strong technical skills coverage',
     'Good use of action verbs',
     'Quantified achievements',
-    'Clear professional progression'
+    'Clear professional progression',
   ],
   weaknesses: [
     'Could include more industry keywords',
     'Missing some quantified results',
-    'Could expand on leadership experience'
+    'Could expand on leadership experience',
   ],
   createdAt: new Date().toISOString(),
-  processingTime: 2500
+  processingTime: 2500,
 };
 
 export const DownloadTestComponent: React.FC = () => {
@@ -157,7 +163,7 @@ export const DownloadTestComponent: React.FC = () => {
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-8">Download Functionality Test</h1>
-      
+
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Resume Content Preview</h2>
         <div className="bg-gray-50 p-4 rounded border max-h-64 overflow-y-auto">
@@ -167,7 +173,7 @@ export const DownloadTestComponent: React.FC = () => {
 
       <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
         <h2 className="text-xl font-semibold mb-4">Download Options</h2>
-        
+
         <div className="space-y-4">
           <div className="form-control">
             <label className="label cursor-pointer">
@@ -211,10 +217,7 @@ export const DownloadTestComponent: React.FC = () => {
               onDownloadError={handleDownloadError}
             />
 
-            <button
-              onClick={() => setShowModal(true)}
-              className="btn btn-outline"
-            >
+            <button onClick={() => setShowModal(true)} className="btn btn-outline">
               Advanced Options
             </button>
           </div>

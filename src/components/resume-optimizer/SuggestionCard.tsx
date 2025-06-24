@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, PencilIcon, XMarkIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, DocumentTextIcon, PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import type { SuggestionCardProps } from '@/lib/types/resume-optimizer';
 

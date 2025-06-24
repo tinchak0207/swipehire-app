@@ -5,8 +5,8 @@
 
 'use client';
 
-import React from 'react';
 import { ArrowDownTrayIcon, DocumentIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
+import React from 'react';
 import { useResumeDownload } from '@/hooks/useResumeDownload';
 import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 
@@ -44,7 +44,7 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
   onDownloadStart,
   onDownloadSuccess,
   onDownloadError,
-  children
+  children,
 }) => {
   const { isDownloading, downloadError, downloadResume, clearError } = useResumeDownload({
     onDownloadStart,
@@ -53,18 +53,18 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
         onDownloadSuccess?.(result.fileName);
       }
     },
-    onDownloadError
+    onDownloadError,
   });
 
   const handleDownload = async (): Promise<void> => {
     clearError();
-    
+
     await downloadResume(resumeContent, analysisResult, {
       format,
       includeAnalysis,
       includeSuggestions: includeAnalysis,
       adoptedSuggestions,
-      fileName
+      fileName,
     });
   };
 
@@ -151,17 +151,19 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
   className = '',
   onDownloadStart,
   onDownloadSuccess,
-  onDownloadError
+  onDownloadError,
 }) => {
-  const { isDownloading, downloadError, downloadPDF, downloadDOCX, clearError } = useResumeDownload({
-    onDownloadStart,
-    onDownloadSuccess: (result) => {
-      if (result.fileName) {
-        onDownloadSuccess?.(result.fileName);
-      }
-    },
-    onDownloadError
-  });
+  const { isDownloading, downloadError, downloadPDF, downloadDOCX, clearError } = useResumeDownload(
+    {
+      onDownloadStart,
+      onDownloadSuccess: (result) => {
+        if (result.fileName) {
+          onDownloadSuccess?.(result.fileName);
+        }
+      },
+      onDownloadError,
+    }
+  );
 
   const handlePDFDownload = async (): Promise<void> => {
     clearError();
@@ -177,9 +179,9 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
 
   return (
     <div className={`dropdown dropdown-end ${className}`}>
-      <div 
-        tabIndex={0} 
-        role="button" 
+      <div
+        tabIndex={0}
+        role="button"
         className={`btn btn-primary ${isDisabled ? 'btn-disabled' : ''}`}
         title="Download resume"
       >
@@ -195,11 +197,14 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
           </>
         )}
       </div>
-      
+
       {!isDisabled && (
-        <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
+        <ul
+          tabIndex={0}
+          className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
+        >
           <li>
-            <button 
+            <button
               onClick={handlePDFDownload}
               className="flex items-center space-x-2"
               disabled={isDownloading}
@@ -209,7 +214,7 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
             </button>
           </li>
           <li>
-            <button 
+            <button
               onClick={handleDOCXDownload}
               className="flex items-center space-x-2"
               disabled={isDownloading}
@@ -228,7 +233,7 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
           )}
         </ul>
       )}
-      
+
       {downloadError && (
         <div className="alert alert-error mt-2">
           <span className="text-sm">{downloadError}</span>
@@ -258,7 +263,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
   analysisResult,
   adoptedSuggestions = [],
   onDownloadSuccess,
-  onDownloadError
+  onDownloadError,
 }) => {
   const [includeAnalysis, setIncludeAnalysis] = React.useState(false);
   const [fileName, setFileName] = React.useState('');
@@ -271,7 +276,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
         onClose();
       }
     },
-    onDownloadError
+    onDownloadError,
   });
 
   React.useEffect(() => {
@@ -284,13 +289,13 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
 
   const handleDownload = async (): Promise<void> => {
     clearError();
-    
+
     await downloadResume(resumeContent, analysisResult, {
       format: selectedFormat,
       includeAnalysis,
       includeSuggestions: includeAnalysis,
       adoptedSuggestions,
-      fileName: fileName.trim() || undefined
+      fileName: fileName.trim() || undefined,
     });
   };
 
@@ -300,7 +305,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
     <div className="modal modal-open">
       <div className="modal-box">
         <h3 className="font-bold text-lg mb-4">Download Options</h3>
-        
+
         <div className="space-y-4">
           {/* Format Selection */}
           <div className="form-control">
@@ -383,15 +388,11 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
         </div>
 
         <div className="modal-action">
-          <button 
-            className="btn btn-ghost" 
-            onClick={onClose}
-            disabled={isDownloading}
-          >
+          <button className="btn btn-ghost" onClick={onClose} disabled={isDownloading}>
             Cancel
           </button>
-          <button 
-            className="btn btn-primary" 
+          <button
+            className="btn btn-primary"
             onClick={handleDownload}
             disabled={isDownloading || !resumeContent.trim()}
           >

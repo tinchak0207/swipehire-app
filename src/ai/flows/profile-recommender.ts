@@ -260,7 +260,7 @@ export async function recommendProfile(
 ): Promise<ProfileRecommenderOutput> {
   // Import the new AI service
   const { recommendProfile: mistralRecommendProfile } = await import('@/services/aiService');
-  
+
   // Use type assertion to bypass exactOptionalPropertyTypes strict checking
   // The aiService handles undefined values properly with defaults
   return mistralRecommendProfile(input as any);

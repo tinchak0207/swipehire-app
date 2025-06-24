@@ -5,7 +5,7 @@
 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from 'docx';
+import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
 import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 
 // Extend jsPDF type to include autoTable
@@ -58,7 +58,7 @@ export class ResumeDownloadService {
       console.error('Resume download error:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to download resume'
+        error: error instanceof Error ? error.message : 'Failed to download resume',
       };
     }
   }
@@ -77,28 +77,32 @@ export class ResumeDownloadService {
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
-      const contentWidth = pageWidth - (margin * 2);
+      const contentWidth = pageWidth - margin * 2;
       let yPosition = margin;
 
       // Helper function to add text with word wrapping
-      const addWrappedText = (text: string, fontSize: number = 11, isBold: boolean = false): number => {
+      const addWrappedText = (
+        text: string,
+        fontSize: number = 11,
+        isBold: boolean = false
+      ): number => {
         doc.setFontSize(fontSize);
         doc.setFont('helvetica', isBold ? 'bold' : 'normal');
-        
+
         const lines = doc.splitTextToSize(text, contentWidth);
         const lineHeight = fontSize * 0.4;
-        
+
         // Check if we need a new page
-        if (yPosition + (lines.length * lineHeight) > pageHeight - margin) {
+        if (yPosition + lines.length * lineHeight > pageHeight - margin) {
           doc.addPage();
           yPosition = margin;
         }
-        
+
         lines.forEach((line: string) => {
           doc.text(line, margin, yPosition);
           yPosition += lineHeight;
         });
-        
+
         return yPosition;
       };
 
@@ -148,7 +152,7 @@ export class ResumeDownloadService {
           ['ATS Compatibility', `${analysisResult.atsScore}/100`],
           ['Keyword Match', `${analysisResult.keywordAnalysis.score}/100`],
           ['Grammar Score', `${analysisResult.grammarCheck.score}/100`],
-          ['Format Score', `${analysisResult.formatAnalysis.score}/100`]
+          ['Format Score', `${analysisResult.formatAnalysis.score}/100`],
         ];
 
         doc.autoTable({
@@ -158,7 +162,7 @@ export class ResumeDownloadService {
           theme: 'grid',
           headStyles: { fillColor: [66, 139, 202] },
           margin: { left: margin, right: margin },
-          tableWidth: contentWidth
+          tableWidth: contentWidth,
         });
 
         yPosition = (doc as any).lastAutoTable.finalY + 15;
@@ -197,11 +201,11 @@ export class ResumeDownloadService {
           yPosition += 10;
 
           const adoptedSet = new Set(options.adoptedSuggestions || []);
-          
+
           analysisResult.suggestions.forEach((suggestion, index) => {
             const isAdopted = adoptedSet.has(suggestion.id);
             const status = isAdopted ? '[ADOPTED]' : '[PENDING]';
-            
+
             yPosition = addWrappedText(`${index + 1}. ${status} ${suggestion.title}`, 11, true);
             yPosition = addWrappedText(`   ${suggestion.description}`, 10, false);
             yPosition = addWrappedText(`   Impact: ${suggestion.impact.toUpperCase()}`, 10, false);
@@ -216,7 +220,7 @@ export class ResumeDownloadService {
 
       return {
         success: true,
-        fileName: `${fileName}.pdf`
+        fileName: `${fileName}.pdf`,
       };
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -243,11 +247,11 @@ export class ResumeDownloadService {
             new TextRun({
               text: 'Optimized Resume',
               bold: true,
-              size: 32
-            })
+              size: 32,
+            }),
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 400 }
+          spacing: { after: 400 },
         })
       );
 
@@ -259,11 +263,11 @@ export class ResumeDownloadService {
               new TextRun({
                 text: `Overall Score: ${analysisResult.overallScore}/100 | ATS Score: ${analysisResult.atsScore}/100`,
                 bold: true,
-                size: 24
-              })
+                size: 24,
+              }),
             ],
             alignment: AlignmentType.CENTER,
-            spacing: { after: 300 }
+            spacing: { after: 300 },
           })
         );
       }
@@ -274,26 +278,26 @@ export class ResumeDownloadService {
           children: [
             new TextRun({
               text: '─'.repeat(50),
-              color: '999999'
-            })
+              color: '999999',
+            }),
           ],
           alignment: AlignmentType.CENTER,
-          spacing: { after: 300 }
+          spacing: { after: 300 },
         })
       );
 
       // Add resume content
-      const resumeParagraphs = resumeContent.split('\n').filter(line => line.trim());
-      resumeParagraphs.forEach(paragraph => {
+      const resumeParagraphs = resumeContent.split('\n').filter((line) => line.trim());
+      resumeParagraphs.forEach((paragraph) => {
         children.push(
           new Paragraph({
             children: [
               new TextRun({
                 text: paragraph,
-                size: 22
-              })
+                size: 22,
+              }),
             ],
-            spacing: { after: 200 }
+            spacing: { after: 200 },
           })
         );
       });
@@ -304,7 +308,7 @@ export class ResumeDownloadService {
         children.push(
           new Paragraph({
             children: [new TextRun({ text: '', break: 1 })],
-            pageBreakBefore: true
+            pageBreakBefore: true,
           })
         );
 
@@ -315,11 +319,11 @@ export class ResumeDownloadService {
               new TextRun({
                 text: 'Resume Analysis Report',
                 bold: true,
-                size: 28
-              })
+                size: 28,
+              }),
             ],
             heading: HeadingLevel.HEADING_1,
-            spacing: { after: 400 }
+            spacing: { after: 400 },
           })
         );
 
@@ -330,11 +334,11 @@ export class ResumeDownloadService {
               new TextRun({
                 text: 'Performance Scores',
                 bold: true,
-                size: 24
-              })
+                size: 24,
+              }),
             ],
             heading: HeadingLevel.HEADING_2,
-            spacing: { after: 200 }
+            spacing: { after: 200 },
           })
         );
 
@@ -343,19 +347,19 @@ export class ResumeDownloadService {
           `ATS Compatibility: ${analysisResult.atsScore}/100`,
           `Keyword Match: ${analysisResult.keywordAnalysis.score}/100`,
           `Grammar Score: ${analysisResult.grammarCheck.score}/100`,
-          `Format Score: ${analysisResult.formatAnalysis.score}/100`
+          `Format Score: ${analysisResult.formatAnalysis.score}/100`,
         ];
 
-        scores.forEach(score => {
+        scores.forEach((score) => {
           children.push(
             new Paragraph({
               children: [
                 new TextRun({
                   text: `• ${score}`,
-                  size: 22
-                })
+                  size: 22,
+                }),
               ],
-              spacing: { after: 150 }
+              spacing: { after: 150 },
             })
           );
         });
@@ -368,24 +372,24 @@ export class ResumeDownloadService {
                 new TextRun({
                   text: 'Strengths',
                   bold: true,
-                  size: 24
-                })
+                  size: 24,
+                }),
               ],
               heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
+              spacing: { before: 400, after: 200 },
             })
           );
 
-          analysisResult.strengths.forEach(strength => {
+          analysisResult.strengths.forEach((strength) => {
             children.push(
               new Paragraph({
                 children: [
                   new TextRun({
                     text: `• ${strength}`,
-                    size: 22
-                  })
+                    size: 22,
+                  }),
                 ],
-                spacing: { after: 150 }
+                spacing: { after: 150 },
               })
             );
           });
@@ -399,24 +403,24 @@ export class ResumeDownloadService {
                 new TextRun({
                   text: 'Areas for Improvement',
                   bold: true,
-                  size: 24
-                })
+                  size: 24,
+                }),
               ],
               heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
+              spacing: { before: 400, after: 200 },
             })
           );
 
-          analysisResult.weaknesses.forEach(weakness => {
+          analysisResult.weaknesses.forEach((weakness) => {
             children.push(
               new Paragraph({
                 children: [
                   new TextRun({
                     text: `• ${weakness}`,
-                    size: 22
-                  })
+                    size: 22,
+                  }),
                 ],
-                spacing: { after: 150 }
+                spacing: { after: 150 },
               })
             );
           });
@@ -430,30 +434,30 @@ export class ResumeDownloadService {
                 new TextRun({
                   text: 'Optimization Suggestions',
                   bold: true,
-                  size: 24
-                })
+                  size: 24,
+                }),
               ],
               heading: HeadingLevel.HEADING_2,
-              spacing: { before: 400, after: 200 }
+              spacing: { before: 400, after: 200 },
             })
           );
 
           const adoptedSet = new Set(options.adoptedSuggestions || []);
-          
+
           analysisResult.suggestions.forEach((suggestion, index) => {
             const isAdopted = adoptedSet.has(suggestion.id);
             const status = isAdopted ? '[ADOPTED]' : '[PENDING]';
-            
+
             children.push(
               new Paragraph({
                 children: [
                   new TextRun({
                     text: `${index + 1}. ${status} ${suggestion.title}`,
                     bold: true,
-                    size: 22
-                  })
+                    size: 22,
+                  }),
                 ],
-                spacing: { after: 100 }
+                spacing: { after: 100 },
               })
             );
 
@@ -462,10 +466,10 @@ export class ResumeDownloadService {
                 children: [
                   new TextRun({
                     text: `   ${suggestion.description}`,
-                    size: 20
-                  })
+                    size: 20,
+                  }),
                 ],
-                spacing: { after: 100 }
+                spacing: { after: 100 },
               })
             );
 
@@ -475,10 +479,15 @@ export class ResumeDownloadService {
                   new TextRun({
                     text: `   Impact: ${suggestion.impact.toUpperCase()}`,
                     size: 20,
-                    color: suggestion.impact === 'high' ? 'FF0000' : suggestion.impact === 'medium' ? 'FFA500' : '008000'
-                  })
+                    color:
+                      suggestion.impact === 'high'
+                        ? 'FF0000'
+                        : suggestion.impact === 'medium'
+                          ? 'FFA500'
+                          : '008000',
+                  }),
                 ],
-                spacing: { after: 200 }
+                spacing: { after: 200 },
               })
             );
           });
@@ -490,9 +499,9 @@ export class ResumeDownloadService {
         sections: [
           {
             properties: {},
-            children: children
-          }
-        ]
+            children: children,
+          },
+        ],
       });
 
       // Generate and download the DOCX
@@ -501,7 +510,7 @@ export class ResumeDownloadService {
 
       return {
         success: true,
-        fileName: `${fileName}.docx`
+        fileName: `${fileName}.docx`,
       };
     } catch (error) {
       console.error('DOCX generation error:', error);
@@ -545,13 +554,16 @@ export class ResumeDownloadService {
   /**
    * Gets suggested file name based on resume content
    */
-  static getSuggestedFileName(resumeContent: string, analysisResult?: ResumeAnalysisResponse | null): string {
+  static getSuggestedFileName(
+    resumeContent: string,
+    analysisResult?: ResumeAnalysisResponse | null
+  ): string {
     const timestamp = new Date().toISOString().slice(0, 10);
-    
+
     // Try to extract name from resume content
     const lines = resumeContent.split('\n').slice(0, 5); // Check first 5 lines
     const namePattern = /^[A-Z][a-z]+ [A-Z][a-z]+/;
-    
+
     for (const line of lines) {
       const match = line.trim().match(namePattern);
       if (match) {
