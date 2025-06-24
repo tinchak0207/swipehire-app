@@ -54,7 +54,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
 
         // Fallback to CDN
         pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          'https://unpkg.com/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs';
         return true;
       }
     } catch (error) {

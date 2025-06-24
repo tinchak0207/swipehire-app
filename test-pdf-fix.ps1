@@ -1,48 +1,52 @@
-# Test script to verify PDF parsing fix
-Write-Host "Testing PDF parsing fix..." -ForegroundColor Green
+#!/usr/bin/env pwsh
 
-# Check if the worker file exists
-$workerPath = "public\workers\pdf.worker.min.js"
-if (Test-Path $workerPath) {
-    Write-Host "✓ PDF worker file exists at $workerPath" -ForegroundColor Green
-    $fileSize = (Get-Item $workerPath).Length
-    Write-Host "  File size: $([math]::Round($fileSize / 1KB, 2)) KB" -ForegroundColor Gray
-} else {
-    Write-Host "✗ PDF worker file missing at $workerPath" -ForegroundColor Red
-    exit 1
+Write-Host "Testing PDF.js version compatibility fix..." -ForegroundColor Green
+
+# Start the development server in the background
+Write-Host "Starting development server..." -ForegroundColor Yellow
+$serverProcess = Start-Process -FilePath "npm" -ArgumentList "run", "dev" -PassThru -WindowStyle Hidden
+
+# Wait for server to start
+Start-Sleep -Seconds 10
+
+try {
+    # Test if the server is running
+    $response = Invoke-WebRequest -Uri "http://localhost:3000" -UseBasicParsing -TimeoutSec 5
+    if ($response.StatusCode -eq 200) {
+        Write-Host "✅ Server is running successfully" -ForegroundColor Green
+        
+        # Check if the worker file is accessible
+        try {
+            $workerResponse = Invoke-WebRequest -Uri "http://localhost:3000/workers/pdf.worker.min.js" -UseBasicParsing -TimeoutSec 5
+            if ($workerResponse.StatusCode -eq 200) {
+                Write-Host "✅ PDF.js worker file is accessible" -ForegroundColor Green
+                Write-Host "Worker file size: $($workerResponse.Content.Length) bytes" -ForegroundColor Cyan
+            } else {
+                Write-Host "❌ PDF.js worker file is not accessible" -ForegroundColor Red
+            }
+        } catch {
+            Write-Host "❌ Error accessing worker file: $($_.Exception.Message)" -ForegroundColor Red
+        }
+        
+        Write-Host "`n🔧 PDF.js Fix Applied:" -ForegroundColor Cyan
+        Write-Host "- Updated worker file from version 3.11.174 to 5.3.31" -ForegroundColor White
+        Write-Host "- Fixed version mismatch between API and Worker" -ForegroundColor White
+        Write-Host "- Updated fallback CDN URLs to use .mjs extension" -ForegroundColor White
+        
+        Write-Host "`n📝 Next Steps:" -ForegroundColor Yellow
+        Write-Host "1. Test PDF upload functionality in the browser" -ForegroundColor White
+        Write-Host "2. Check browser console for any remaining errors" -ForegroundColor White
+        Write-Host "3. Verify PDF parsing works correctly" -ForegroundColor White
+        
+        Write-Host "`n🌐 Open http://localhost:3000 to test the application" -ForegroundColor Green
+        
+    } else {
+        Write-Host "❌ Server is not responding correctly" -ForegroundColor Red
+    }
+} catch {
+    Write-Host "❌ Error testing server: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Make sure to run 'npm install' first if you haven't already" -ForegroundColor Yellow
+} finally {
+    # Don't stop the server automatically - let user test it
+    Write-Host "`n⚠️  Server is still running. Press Ctrl+C in the terminal to stop it when done testing." -ForegroundColor Yellow
 }
-
-# Check package.json for correct pdfjs-dist version
-$packageJson = Get-Content "package.json" | ConvertFrom-Json
-$pdfjsVersion = $packageJson.dependencies.'pdfjs-dist'
-Write-Host "✓ pdfjs-dist version in package.json: $pdfjsVersion" -ForegroundColor Green
-
-# Check if the debug page exists
-$debugPagePath = "src\app\debug\pdf-test\page.tsx"
-if (Test-Path $debugPagePath) {
-    Write-Host "✓ Debug page exists at $debugPagePath" -ForegroundColor Green
-} else {
-    Write-Host "✗ Debug page missing at $debugPagePath" -ForegroundColor Red
-}
-
-# Check if the improved test component exists
-$testComponentPath = "src\components\debug\ImprovedPDFTestComponent.tsx"
-if (Test-Path $testComponentPath) {
-    Write-Host "✓ Improved test component exists at $testComponentPath" -ForegroundColor Green
-} else {
-    Write-Host "✗ Improved test component missing at $testComponentPath" -ForegroundColor Red
-}
-
-Write-Host "`nFix Summary:" -ForegroundColor Yellow
-Write-Host "1. Downloaded PDF.js worker file locally to avoid CDN issues" -ForegroundColor White
-Write-Host "2. Updated pdfjs-dist to stable version 3.11.174" -ForegroundColor White
-Write-Host "3. Implemented fallback worker configuration" -ForegroundColor White
-Write-Host "4. Created enhanced debug tools for testing" -ForegroundColor White
-
-Write-Host "`nNext Steps:" -ForegroundColor Yellow
-Write-Host "1. Start the development server: npm run dev" -ForegroundColor White
-Write-Host "2. Navigate to: http://localhost:3000/debug/pdf-test" -ForegroundColor White
-Write-Host "3. Test with a PDF file to verify the fix works" -ForegroundColor White
-Write-Host "4. Check the resume optimizer upload page: http://localhost:3000/resume-optimizer/upload" -ForegroundColor White
-
-Write-Host "`nPDF parsing should now work without the worker initialization error!" -ForegroundColor Green

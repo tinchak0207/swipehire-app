@@ -13,6 +13,27 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
+  // Webpack configuration for PDF.js worker
+  webpack: (config, { isServer }) => {
+    // Handle PDF.js worker files
+    if (!isServer) {
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        'pdfjs-dist/build/pdf.worker.min.js': require.resolve('pdfjs-dist/build/pdf.worker.min.js'),
+      };
+    }
+    
+    // Copy PDF.js worker to public directory during build
+    config.module.rules.push({
+      test: /pdf\.worker\.(min\.)?js/,
+      type: 'asset/resource',
+      generator: {
+        filename: 'static/worker/[hash][ext][query]'
+      }
+    });
+
+    return config;
+  },
   // Enable compression
   compress: true,
   // Enable static optimization

@@ -112,7 +112,10 @@ interface WizardContainerProps {
   onSkipAction: () => void;
 }
 
-export default function WizardContainer({ onCompleteAction, onSkipAction }: WizardContainerProps) {
+export default function WizardContainer({
+  onCompleteAction = () => console.log('Wizard complete!'),
+  onSkipAction,
+}: WizardContainerProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isLoading, setIsLoading] = useState(false);

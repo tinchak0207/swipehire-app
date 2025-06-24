@@ -27,7 +27,7 @@ jest.mock('pdfjs-dist', () => ({
       ),
     }),
   })),
-  version: '3.11.174',
+  version: '5.3.31',
 }));
 
 // Mock Mammoth

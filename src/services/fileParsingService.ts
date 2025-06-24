@@ -16,33 +16,39 @@ const initializePDFJS = async () => {
     try {
       pdfjsLib = await import('pdfjs-dist');
 
-      // Configure worker with local file first, then fallback to CDN
-      // This avoids the template literal issue and provides better reliability
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.js';
-
-      console.log('PDF.js initialized successfully with local worker, version:', pdfjsLib.version);
-      return true;
-    } catch (error) {
-      console.error('Failed to initialize PDF.js with local worker:', error);
-      // Fallback to CDN if local worker fails
+      // First try to use the local worker file from public/workers
+      // This avoids CDN dependency issues completely
       try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc =
-          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        console.log('PDF.js fallback to cdnjs worker');
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.js';
+        console.log('PDF.js initialized with local worker file');
         return true;
-      } catch (fallbackError) {
-        console.error('PDF.js CDN fallback also failed:', fallbackError);
-        // Last resort: try unpkg with a fixed version
+      } catch (localError) {
+        console.warn('Failed to load local worker, trying CDN fallbacks:', localError);
+        
+        // Fallback 1: Try unpkg CDN with the exact installed version
         try {
-          pdfjsLib.GlobalWorkerOptions.workerSrc =
-            'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
-          console.log('PDF.js final fallback to unpkg');
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 
+            'https://unpkg.com/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs';
+          console.log('PDF.js using unpkg CDN worker v5.3.31');
           return true;
-        } catch (finalError) {
-          console.error('All PDF.js worker sources failed:', finalError);
-          return false;
+        } catch (unpkgError) {
+          console.warn('unpkg CDN failed, trying jsdelivr:', unpkgError);
+          
+          // Fallback 2: Try jsdelivr CDN with the exact installed version
+          try {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 
+              'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs';
+            console.log('PDF.js using jsdelivr CDN worker v5.3.31');
+            return true;
+          } catch (jsdelivrError) {
+            console.error('All PDF.js worker sources failed:', jsdelivrError);
+            return false;
+          }
         }
       }
+    } catch (error) {
+      console.error('Failed to initialize PDF.js:', error);
+      return false;
     }
   }
   return pdfjsLib !== null;

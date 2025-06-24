@@ -2,13 +2,13 @@
 
 import {
   ArrowLeftIcon,
+  BriefcaseIcon,
+  BuildingOfficeIcon,
   CheckCircleIcon,
   DocumentTextIcon,
   ExclamationTriangleIcon,
   EyeIcon,
   SparklesIcon,
-  BriefcaseIcon,
-  BuildingOfficeIcon,
   TagIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
@@ -360,8 +360,8 @@ const ResumeCreatePage: NextPage = () => {
           <div className="container mx-auto max-w-7xl px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link 
-                  href="/resume-optimizer" 
+                <Link
+                  href="/resume-optimizer"
                   className="group flex items-center space-x-2 text-white/80 hover:text-white transition-all duration-200 hover:bg-white/10 px-3 py-2 rounded-lg"
                 >
                   <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
@@ -370,23 +370,35 @@ const ResumeCreatePage: NextPage = () => {
                 <div className="h-6 w-px bg-white/20"></div>
                 <h1 className="text-2xl font-bold text-white">Create Your Resume</h1>
               </div>
-              
+
               {/* Progress Indicator */}
               <div className="flex items-center space-x-3">
-                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-all duration-300 ${
-                  currentStep === 'template' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    currentStep === 'template' ? 'bg-white' : 'bg-white/40'
-                  }`}></div>
+                <div
+                  className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-all duration-300 ${
+                    currentStep === 'template'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-white/10 text-white/60'
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentStep === 'template' ? 'bg-white' : 'bg-white/40'
+                    }`}
+                  ></div>
                   <span className="text-sm font-medium">Template</span>
                 </div>
-                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-all duration-300 ${
-                  currentStep === 'details' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'
-                }`}>
-                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                    currentStep === 'details' ? 'bg-white' : 'bg-white/40'
-                  }`}></div>
+                <div
+                  className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-all duration-300 ${
+                    currentStep === 'details'
+                      ? 'bg-white/20 text-white'
+                      : 'bg-white/10 text-white/60'
+                  }`}
+                >
+                  <div
+                    className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                      currentStep === 'details' ? 'bg-white' : 'bg-white/40'
+                    }`}
+                  ></div>
                   <span className="text-sm font-medium">Details</span>
                 </div>
               </div>
@@ -454,8 +466,8 @@ const ResumeCreatePage: NextPage = () => {
                   <div
                     key={template.id}
                     className={`group relative backdrop-blur-sm bg-white/10 border border-white/20 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-2xl animate-fade-in ${
-                      selectedTemplate?.id === template.id 
-                        ? 'ring-2 ring-white shadow-2xl bg-white/20 scale-105' 
+                      selectedTemplate?.id === template.id
+                        ? 'ring-2 ring-white shadow-2xl bg-white/20 scale-105'
                         : ''
                     }`}
                     style={{ animationDelay: `${index * 100}ms` }}
@@ -463,7 +475,9 @@ const ResumeCreatePage: NextPage = () => {
                   >
                     {/* Template Header */}
                     <div className="flex items-start justify-between mb-4">
-                      <div className={`p-3 rounded-xl bg-gradient-to-r ${getCategoryColor(template.category)} shadow-lg`}>
+                      <div
+                        className={`p-3 rounded-xl bg-gradient-to-r ${getCategoryColor(template.category)} shadow-lg`}
+                      >
                         {getCategoryIcon(template.category)}
                       </div>
                       {selectedTemplate?.id === template.id && (
@@ -479,10 +493,12 @@ const ResumeCreatePage: NextPage = () => {
 
                     {/* Template Footer */}
                     <div className="flex items-center justify-between">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getCategoryColor(template.category)} text-white shadow-lg`}>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getCategoryColor(template.category)} text-white shadow-lg`}
+                      >
                         {TEMPLATE_CATEGORIES[template.category]?.label || template.category}
                       </span>
-                      
+
                       <div className="flex space-x-2">
                         {selectedTemplate?.id === template.id && (
                           <button
@@ -508,7 +524,9 @@ const ResumeCreatePage: NextPage = () => {
                 <div className="text-center py-16 animate-fade-in">
                   <DocumentTextIcon className="w-16 h-16 text-white/40 mx-auto mb-4" />
                   <h3 className="text-xl font-semibold text-white mb-2">No Templates Found</h3>
-                  <p className="text-white/70">Try selecting a different category to see more templates.</p>
+                  <p className="text-white/70">
+                    Try selecting a different category to see more templates.
+                  </p>
                 </div>
               )}
             </div>
@@ -516,7 +534,9 @@ const ResumeCreatePage: NextPage = () => {
             /* Job Details Step */
             <div className="animate-fade-in max-w-2xl mx-auto">
               <div className="text-center mb-12">
-                <h2 className="text-4xl font-bold text-white mb-4">Tell Us About Your Target Role</h2>
+                <h2 className="text-4xl font-bold text-white mb-4">
+                  Tell Us About Your Target Role
+                </h2>
                 <p className="text-xl text-white/70">
                   Help us optimize your resume for the perfect job match
                 </p>
@@ -527,7 +547,9 @@ const ResumeCreatePage: NextPage = () => {
                 {selectedTemplate && (
                   <div className="mb-8 p-4 bg-white/10 rounded-xl border border-white/20">
                     <div className="flex items-center space-x-3 mb-2">
-                      <div className={`p-2 rounded-lg bg-gradient-to-r ${getCategoryColor(selectedTemplate.category)}`}>
+                      <div
+                        className={`p-2 rounded-lg bg-gradient-to-r ${getCategoryColor(selectedTemplate.category)}`}
+                      >
                         {getCategoryIcon(selectedTemplate.category)}
                       </div>
                       <div>
@@ -636,10 +658,7 @@ const ResumeCreatePage: NextPage = () => {
               <div className="bg-white rounded-2xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
                 <div className="flex items-center justify-between p-6 border-b border-gray-200">
                   <h3 className="text-xl font-bold text-gray-900">Template Preview</h3>
-                  <button
-                    onClick={handlePreviewToggle}
-                    className="btn btn-sm btn-circle btn-ghost"
-                  >
+                  <button onClick={handlePreviewToggle} className="btn btn-sm btn-circle btn-ghost">
                     ✕
                   </button>
                 </div>

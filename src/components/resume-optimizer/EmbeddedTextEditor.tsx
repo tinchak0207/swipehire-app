@@ -1,19 +1,19 @@
 'use client';
 
 import {
+  ArrowPathIcon,
+  CheckIcon,
   DocumentTextIcon,
   EyeIcon,
   EyeSlashIcon,
-  ArrowPathIcon,
-  CheckIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import { useCallback, useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { EditorState } from '@/lib/types/resume-optimizer';
 
 // Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), { 
+const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => (
     <div className="bg-base-200 rounded-lg p-8 animate-pulse">
@@ -21,7 +21,7 @@ const ReactQuill = dynamic(() => import('react-quill'), {
       <div className="h-4 bg-base-300 rounded w-1/2 mb-4"></div>
       <div className="h-4 bg-base-300 rounded w-5/6"></div>
     </div>
-  )
+  ),
 });
 
 // Import Quill styles
@@ -64,7 +64,7 @@ interface EditorControls {
 
 /**
  * Embedded Real-time Text Editor Component
- * 
+ *
  * Features:
  * - Rich text editing with Quill.js
  * - Real-time content updates
@@ -74,20 +74,23 @@ interface EditorControls {
  * - Responsive design with Tailwind/DaisyUI
  * - Accessibility support
  */
-const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
-  initialContent,
-  readOnly = false,
-  onContentChange,
-  onEditorStateChange,
-  placeholder = 'Start editing your resume content...',
-  className = '',
-  showToolbar = true,
-  showControls = true,
-  height = '400px',
-  autoSave = false,
-  autoSaveInterval = 30000, // 30 seconds
-  onAutoSave,
-}) => {
+const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>((
+  {
+    initialContent,
+    readOnly = false,
+    onContentChange,
+    onEditorStateChange,
+    placeholder = 'Start editing your resume content...',
+    className = '',
+    showToolbar = true,
+    showControls = true,
+    height = '400px',
+    autoSave = false,
+    autoSaveInterval = 30000, // 30 seconds
+    onAutoSave,
+  },
+  ref
+) => {
   // State management
   const [content, setContent] = useState<string>(initialContent);
   const [editorState, setEditorState] = useState<EditorState>({
@@ -105,28 +108,47 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
   const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
 
   // Refs
-  const quillRef = useRef<any>(null);
+  const quillRef = useRef<any>(ref);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (quillRef.current) {
+      const editor = quillRef.current.getEditor();
+      if (readOnly) {
+        editor.enable(false);
+      }
+    }
+  }, [readOnly]);
 
   // Quill configuration
   const quillModules = {
-    toolbar: showToolbar ? [
-      [{ 'header': [1, 2, 3, false] }],
-      ['bold', 'italic', 'underline', 'strike'],
-      [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-      [{ 'indent': '-1'}, { 'indent': '+1' }],
-      ['link'],
-      [{ 'align': [] }],
-      ['clean']
-    ] : false,
+    toolbar: showToolbar
+      ? [
+          [{ header: [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ list: 'ordered' }, { list: 'bullet' }],
+          [{ indent: '-1' }, { indent: '+1' }],
+          ['link'],
+          [{ align: [] }],
+          ['clean'],
+        ]
+      : false,
     clipboard: {
       matchVisual: false,
     },
   };
 
   const quillFormats = [
-    'header', 'bold', 'italic', 'underline', 'strike',
-    'list', 'bullet', 'indent', 'link', 'align'
+    'header',
+    'bold',
+    'italic',
+    'underline',
+    'strike',
+    'list',
+    'bullet',
+    'indent',
+    'link',
+    'align',
   ];
 
   // Calculate word and character counts
@@ -138,79 +160,85 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
   }, []);
 
   // Handle content changes
-  const handleContentChange = useCallback((value: string, delta?: unknown, source?: string) => {
-    setContent(value);
-    
-    const counts = calculateCounts(value);
-    const newEditorState: EditorState = {
-      content: value,
-      isDirty: value !== initialContent,
-      cursorPosition: quillRef.current?.getEditor()?.getSelection()?.index || 0,
-    };
+  const handleContentChange = useCallback(
+    (value: string, delta?: unknown, source?: string) => {
+      setContent(value);
 
-    setEditorState(newEditorState);
-    setControls(prev => ({
-      ...prev,
-      ...counts,
-      isDirty: newEditorState.isDirty,
-    }));
+      const counts = calculateCounts(value);
+      const newEditorState: EditorState = {
+        content: value,
+        isDirty: value !== initialContent,
+        cursorPosition: quillRef.current?.getEditor()?.getSelection()?.index || 0,
+      };
 
-    // Clear auto-save error when user makes changes
-    if (autoSaveError) {
-      setAutoSaveError(null);
-    }
+      setEditorState(newEditorState);
+      setControls((prev) => ({
+        ...prev,
+        ...counts,
+        isDirty: newEditorState.isDirty,
+      }));
 
-    // Trigger callbacks
-    onContentChange?.(value, delta, source);
-    onEditorStateChange?.(newEditorState);
-
-    // Setup auto-save
-    if (autoSave && onAutoSave && newEditorState.isDirty) {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
+      // Clear auto-save error when user makes changes
+      if (autoSaveError) {
+        setAutoSaveError(null);
       }
-      
-      autoSaveTimeoutRef.current = setTimeout(() => {
-        handleAutoSave(value);
-      }, autoSaveInterval);
-    }
-  }, [
-    initialContent,
-    calculateCounts,
-    onContentChange,
-    onEditorStateChange,
-    autoSave,
-    onAutoSave,
-    autoSaveInterval,
-    autoSaveError
-  ]);
+
+      // Trigger callbacks
+      onContentChange?.(value, delta, source);
+      onEditorStateChange?.(newEditorState);
+
+      // Setup auto-save
+      if (autoSave && onAutoSave && newEditorState.isDirty) {
+        if (autoSaveTimeoutRef.current) {
+          clearTimeout(autoSaveTimeoutRef.current);
+        }
+
+        autoSaveTimeoutRef.current = setTimeout(() => {
+          handleAutoSave(value);
+        }, autoSaveInterval);
+      }
+    },
+    [
+      initialContent,
+      calculateCounts,
+      onContentChange,
+      onEditorStateChange,
+      autoSave,
+      onAutoSave,
+      autoSaveInterval,
+      autoSaveError,
+    ]
+  );
 
   // Handle auto-save
-  const handleAutoSave = useCallback(async (contentToSave: string) => {
-    if (!onAutoSave) return;
+  const handleAutoSave = useCallback(
+    async (contentToSave: string) => {
+      if (!onAutoSave) return;
 
-    setIsAutoSaving(true);
-    setAutoSaveError(null);
+      setIsAutoSaving(true);
+      setAutoSaveError(null);
 
-    try {
-      await onAutoSave(contentToSave);
-      const now = new Date().toLocaleTimeString();
-      setEditorState(prev => ({
-        ...prev,
-        lastSaved: now,
-        isDirty: false,
-      }));
-      setControls(prev => ({
-        ...prev,
-        isDirty: false,
-        lastSaved: now,
-      }));
-    } catch (error) {
-      setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
-    } finally {
-      setIsAutoSaving(false);
-    }
-  }, [onAutoSave]);
+      try {
+        await onAutoSave(contentToSave);
+        const now = new Date().toLocaleTimeString();
+        setEditorState((prev) => ({
+          ...prev,
+          lastSaved: now,
+          isDirty: false,
+        }));
+        setControls((prev) => ({
+          ...prev,
+          isDirty: false,
+          lastSaved: now,
+        }));
+      } catch (error) {
+        setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
+      } finally {
+        setIsAutoSaving(false);
+      }
+    },
+    [onAutoSave]
+  );
 
   // Manual save function
   const handleManualSave = useCallback(() => {
@@ -221,7 +249,7 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
 
   // Toggle preview mode
   const togglePreviewMode = useCallback(() => {
-    setControls(prev => ({
+    setControls((prev) => ({
       ...prev,
       isPreviewMode: !prev.isPreviewMode,
     }));
@@ -236,7 +264,7 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
   // Initialize content and counts
   useEffect(() => {
     const counts = calculateCounts(initialContent);
-    setControls(prev => ({
+    setControls((prev) => ({
       ...prev,
       ...counts,
     }));
@@ -345,7 +373,7 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
       <div className="relative">
         {controls.isPreviewMode ? (
           /* Preview Mode */
-          <div 
+          <div
             className="prose prose-sm max-w-none p-6"
             style={{ minHeight: height }}
             dangerouslySetInnerHTML={{ __html: content }}
@@ -354,7 +382,6 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
           />
         ) : (
           /* Edit Mode */
-          <div className="quill-editor-container">
           <div className="quill-editor-container" aria-label="Resume content editor">
             <ReactQuill
               ref={quillRef}
@@ -373,27 +400,25 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
             />
           </div>
         )}
-
-        {/* Loading overlay */}
-        {isAutoSaving && (
-          <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center">
-            <div className="bg-base-100 rounded-lg p-4 shadow-lg border border-base-300">
-              <div className="flex items-center space-x-3">
-                <div className="loading loading-spinner loading-sm text-primary"></div>
-                <span className="text-sm font-medium">Saving changes...</span>
-              </div>
+      </div>
+      {/* Loading overlay */}
+      {isAutoSaving && (
+        <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center">
+          <div className="bg-base-100 rounded-lg p-4 shadow-lg border border-base-300">
+            <div className="flex items-center space-x-3">
+              <div className="loading loading-spinner loading-sm text-primary"></div>
+              <span className="text-sm font-medium">Saving changes...</span>
             </div>
           </div>
-        )}
-      </div>
-
+        </div>
+      )}
       {/* Editor Footer */}
       {showControls && (
         <div className="flex items-center justify-between p-3 border-t border-base-300 bg-base-50">
           <div className="text-xs text-base-content/60">
             {readOnly ? 'Read-only mode' : 'Click to edit • Auto-formatting enabled'}
           </div>
-          
+
           {autoSaveError && (
             <div className="alert alert-error alert-sm max-w-xs">
               <XMarkIcon className="w-4 h-4" />
@@ -461,6 +486,6 @@ const EmbeddedTextEditor: React.FC<EmbeddedTextEditorProps> = ({
       `}</style>
     </div>
   );
-};
+})
 
 export default EmbeddedTextEditor;
