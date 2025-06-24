@@ -24,19 +24,19 @@ const initializePDFJS = async () => {
         return true;
       } catch (localError) {
         console.warn('Failed to load local worker, trying CDN fallbacks:', localError);
-        
+
         // Fallback 1: Try unpkg CDN with the exact installed version
         try {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = 
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
             'https://unpkg.com/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs';
           console.log('PDF.js using unpkg CDN worker v5.3.31');
           return true;
         } catch (unpkgError) {
           console.warn('unpkg CDN failed, trying jsdelivr:', unpkgError);
-          
+
           // Fallback 2: Try jsdelivr CDN with the exact installed version
           try {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
               'https://cdn.jsdelivr.net/npm/pdfjs-dist@5.3.31/build/pdf.worker.min.mjs';
             console.log('PDF.js using jsdelivr CDN worker v5.3.31');
             return true;

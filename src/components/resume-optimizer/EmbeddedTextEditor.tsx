@@ -74,362 +74,363 @@ interface EditorControls {
  * - Responsive design with Tailwind/DaisyUI
  * - Accessibility support
  */
-const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>((
-  {
-    initialContent,
-    readOnly = false,
-    onContentChange,
-    onEditorStateChange,
-    placeholder = 'Start editing your resume content...',
-    className = '',
-    showToolbar = true,
-    showControls = true,
-    height = '400px',
-    autoSave = false,
-    autoSaveInterval = 30000, // 30 seconds
-    onAutoSave,
-  },
-  ref
-) => {
-  // State management
-  const [content, setContent] = useState<string>(initialContent);
-  const [editorState, setEditorState] = useState<EditorState>({
-    content: initialContent,
-    isDirty: false,
-    cursorPosition: 0,
-  });
-  const [controls, setControls] = useState<EditorControls>({
-    isPreviewMode: false,
-    wordCount: 0,
-    characterCount: 0,
-    isDirty: false,
-  });
-  const [isAutoSaving, setIsAutoSaving] = useState(false);
-  const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
-
-  // Refs
-  const quillRef = useRef<any>(ref);
-  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (quillRef.current) {
-      const editor = quillRef.current.getEditor();
-      if (readOnly) {
-        editor.enable(false);
-      }
-    }
-  }, [readOnly]);
-
-  // Quill configuration
-  const quillModules = {
-    toolbar: showToolbar
-      ? [
-          [{ header: [1, 2, 3, false] }],
-          ['bold', 'italic', 'underline', 'strike'],
-          [{ list: 'ordered' }, { list: 'bullet' }],
-          [{ indent: '-1' }, { indent: '+1' }],
-          ['link'],
-          [{ align: [] }],
-          ['clean'],
-        ]
-      : false,
-    clipboard: {
-      matchVisual: false,
+const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
+  (
+    {
+      initialContent,
+      readOnly = false,
+      onContentChange,
+      onEditorStateChange,
+      placeholder = 'Start editing your resume content...',
+      className = '',
+      showToolbar = true,
+      showControls = true,
+      height = '400px',
+      autoSave = false,
+      autoSaveInterval = 30000, // 30 seconds
+      onAutoSave,
     },
-  };
+    ref
+  ) => {
+    // State management
+    const [content, setContent] = useState<string>(initialContent);
+    const [editorState, setEditorState] = useState<EditorState>({
+      content: initialContent,
+      isDirty: false,
+      cursorPosition: 0,
+    });
+    const [controls, setControls] = useState<EditorControls>({
+      isPreviewMode: false,
+      wordCount: 0,
+      characterCount: 0,
+      isDirty: false,
+    });
+    const [isAutoSaving, setIsAutoSaving] = useState(false);
+    const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
 
-  const quillFormats = [
-    'header',
-    'bold',
-    'italic',
-    'underline',
-    'strike',
-    'list',
-    'bullet',
-    'indent',
-    'link',
-    'align',
-  ];
+    // Refs
+    const quillRef = useRef<any>(ref);
+    const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Calculate word and character counts
-  const calculateCounts = useCallback((text: string) => {
-    const plainText = text.replace(/<[^>]*>/g, '').trim();
-    const wordCount = plainText ? plainText.split(/\s+/).length : 0;
-    const characterCount = plainText.length;
-    return { wordCount, characterCount };
-  }, []);
+    useEffect(() => {
+      if (quillRef.current) {
+        const editor = quillRef.current.getEditor();
+        if (readOnly) {
+          editor.enable(false);
+        }
+      }
+    }, [readOnly]);
 
-  // Handle content changes
-  const handleContentChange = useCallback(
-    (value: string, delta?: unknown, source?: string) => {
-      setContent(value);
+    // Quill configuration
+    const quillModules = {
+      toolbar: showToolbar
+        ? [
+            [{ header: [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ list: 'ordered' }, { list: 'bullet' }],
+            [{ indent: '-1' }, { indent: '+1' }],
+            ['link'],
+            [{ align: [] }],
+            ['clean'],
+          ]
+        : false,
+      clipboard: {
+        matchVisual: false,
+      },
+    };
 
-      const counts = calculateCounts(value);
-      const newEditorState: EditorState = {
-        content: value,
-        isDirty: value !== initialContent,
-        cursorPosition: quillRef.current?.getEditor()?.getSelection()?.index || 0,
-      };
+    const quillFormats = [
+      'header',
+      'bold',
+      'italic',
+      'underline',
+      'strike',
+      'list',
+      'bullet',
+      'indent',
+      'link',
+      'align',
+    ];
 
-      setEditorState(newEditorState);
+    // Calculate word and character counts
+    const calculateCounts = useCallback((text: string) => {
+      const plainText = text.replace(/<[^>]*>/g, '').trim();
+      const wordCount = plainText ? plainText.split(/\s+/).length : 0;
+      const characterCount = plainText.length;
+      return { wordCount, characterCount };
+    }, []);
+
+    // Handle content changes
+    const handleContentChange = useCallback(
+      (value: string, delta?: unknown, source?: string) => {
+        setContent(value);
+
+        const counts = calculateCounts(value);
+        const newEditorState: EditorState = {
+          content: value,
+          isDirty: value !== initialContent,
+          cursorPosition: quillRef.current?.getEditor()?.getSelection()?.index || 0,
+        };
+
+        setEditorState(newEditorState);
+        setControls((prev) => ({
+          ...prev,
+          ...counts,
+          isDirty: newEditorState.isDirty,
+        }));
+
+        // Clear auto-save error when user makes changes
+        if (autoSaveError) {
+          setAutoSaveError(null);
+        }
+
+        // Trigger callbacks
+        onContentChange?.(value, delta, source);
+        onEditorStateChange?.(newEditorState);
+
+        // Setup auto-save
+        if (autoSave && onAutoSave && newEditorState.isDirty) {
+          if (autoSaveTimeoutRef.current) {
+            clearTimeout(autoSaveTimeoutRef.current);
+          }
+
+          autoSaveTimeoutRef.current = setTimeout(() => {
+            handleAutoSave(value);
+          }, autoSaveInterval);
+        }
+      },
+      [
+        initialContent,
+        calculateCounts,
+        onContentChange,
+        onEditorStateChange,
+        autoSave,
+        onAutoSave,
+        autoSaveInterval,
+        autoSaveError,
+      ]
+    );
+
+    // Handle auto-save
+    const handleAutoSave = useCallback(
+      async (contentToSave: string) => {
+        if (!onAutoSave) return;
+
+        setIsAutoSaving(true);
+        setAutoSaveError(null);
+
+        try {
+          await onAutoSave(contentToSave);
+          const now = new Date().toLocaleTimeString();
+          setEditorState((prev) => ({
+            ...prev,
+            lastSaved: now,
+            isDirty: false,
+          }));
+          setControls((prev) => ({
+            ...prev,
+            isDirty: false,
+            lastSaved: now,
+          }));
+        } catch (error) {
+          setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
+        } finally {
+          setIsAutoSaving(false);
+        }
+      },
+      [onAutoSave]
+    );
+
+    // Manual save function
+    const handleManualSave = useCallback(() => {
+      if (onAutoSave && editorState.isDirty) {
+        handleAutoSave(content);
+      }
+    }, [onAutoSave, editorState.isDirty, content, handleAutoSave]);
+
+    // Toggle preview mode
+    const togglePreviewMode = useCallback(() => {
+      setControls((prev) => ({
+        ...prev,
+        isPreviewMode: !prev.isPreviewMode,
+      }));
+    }, []);
+
+    // Reset content to initial
+    const resetContent = useCallback(() => {
+      setContent(initialContent);
+      handleContentChange(initialContent);
+    }, [initialContent, handleContentChange]);
+
+    // Initialize content and counts
+    useEffect(() => {
+      const counts = calculateCounts(initialContent);
       setControls((prev) => ({
         ...prev,
         ...counts,
-        isDirty: newEditorState.isDirty,
       }));
+    }, [initialContent, calculateCounts]);
 
-      // Clear auto-save error when user makes changes
-      if (autoSaveError) {
-        setAutoSaveError(null);
-      }
-
-      // Trigger callbacks
-      onContentChange?.(value, delta, source);
-      onEditorStateChange?.(newEditorState);
-
-      // Setup auto-save
-      if (autoSave && onAutoSave && newEditorState.isDirty) {
+    // Cleanup auto-save timeout
+    useEffect(() => {
+      return () => {
         if (autoSaveTimeoutRef.current) {
           clearTimeout(autoSaveTimeoutRef.current);
         }
+      };
+    }, []);
 
-        autoSaveTimeoutRef.current = setTimeout(() => {
-          handleAutoSave(value);
-        }, autoSaveInterval);
-      }
-    },
-    [
-      initialContent,
-      calculateCounts,
-      onContentChange,
-      onEditorStateChange,
-      autoSave,
-      onAutoSave,
-      autoSaveInterval,
-      autoSaveError,
-    ]
-  );
-
-  // Handle auto-save
-  const handleAutoSave = useCallback(
-    async (contentToSave: string) => {
-      if (!onAutoSave) return;
-
-      setIsAutoSaving(true);
-      setAutoSaveError(null);
-
-      try {
-        await onAutoSave(contentToSave);
-        const now = new Date().toLocaleTimeString();
-        setEditorState((prev) => ({
-          ...prev,
-          lastSaved: now,
-          isDirty: false,
-        }));
-        setControls((prev) => ({
-          ...prev,
-          isDirty: false,
-          lastSaved: now,
-        }));
-      } catch (error) {
-        setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
-      } finally {
-        setIsAutoSaving(false);
-      }
-    },
-    [onAutoSave]
-  );
-
-  // Manual save function
-  const handleManualSave = useCallback(() => {
-    if (onAutoSave && editorState.isDirty) {
-      handleAutoSave(content);
-    }
-  }, [onAutoSave, editorState.isDirty, content, handleAutoSave]);
-
-  // Toggle preview mode
-  const togglePreviewMode = useCallback(() => {
-    setControls((prev) => ({
-      ...prev,
-      isPreviewMode: !prev.isPreviewMode,
-    }));
-  }, []);
-
-  // Reset content to initial
-  const resetContent = useCallback(() => {
-    setContent(initialContent);
-    handleContentChange(initialContent);
-  }, [initialContent, handleContentChange]);
-
-  // Initialize content and counts
-  useEffect(() => {
-    const counts = calculateCounts(initialContent);
-    setControls((prev) => ({
-      ...prev,
-      ...counts,
-    }));
-  }, [initialContent, calculateCounts]);
-
-  // Cleanup auto-save timeout
-  useEffect(() => {
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  return (
-    <div className={`bg-base-100 rounded-xl border border-base-300 shadow-sm ${className}`}>
-      {/* Editor Header */}
-      {showControls && (
-        <div className="flex items-center justify-between p-4 border-b border-base-300">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <DocumentTextIcon className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-base-content">Resume Editor</h3>
-              <div className="flex items-center space-x-4 text-sm text-base-content/70">
-                <span>{controls.wordCount} words</span>
-                <span>•</span>
-                <span>{controls.characterCount} characters</span>
-                {controls.isDirty && (
-                  <>
-                    <span>•</span>
-                    <span className="text-warning">Unsaved changes</span>
-                  </>
-                )}
-                {controls.lastSaved && (
-                  <>
-                    <span>•</span>
-                    <span className="text-success">Saved at {controls.lastSaved}</span>
-                  </>
-                )}
+    return (
+      <div className={`bg-base-100 rounded-xl border border-base-300 shadow-sm ${className}`}>
+        {/* Editor Header */}
+        {showControls && (
+          <div className="flex items-center justify-between p-4 border-b border-base-300">
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <DocumentTextIcon className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-base-content">Resume Editor</h3>
+                <div className="flex items-center space-x-4 text-sm text-base-content/70">
+                  <span>{controls.wordCount} words</span>
+                  <span>•</span>
+                  <span>{controls.characterCount} characters</span>
+                  {controls.isDirty && (
+                    <>
+                      <span>•</span>
+                      <span className="text-warning">Unsaved changes</span>
+                    </>
+                  )}
+                  {controls.lastSaved && (
+                    <>
+                      <span>•</span>
+                      <span className="text-success">Saved at {controls.lastSaved}</span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="flex items-center space-x-2">
-            {/* Auto-save status */}
-            {autoSave && (
-              <div className="flex items-center space-x-2">
-                {isAutoSaving && (
-                  <div className="flex items-center space-x-2 text-info">
-                    <div className="loading loading-spinner loading-xs"></div>
-                    <span className="text-xs">Saving...</span>
-                  </div>
-                )}
-                {autoSaveError && (
-                  <div className="tooltip tooltip-left" data-tip={autoSaveError}>
-                    <XMarkIcon className="w-4 h-4 text-error" />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Manual save button */}
-            {onAutoSave && (
-              <button
-                onClick={handleManualSave}
-                disabled={!editorState.isDirty || isAutoSaving}
-                className="btn btn-sm btn-primary"
-                aria-label="Save changes"
-              >
-                <CheckIcon className="w-4 h-4" />
-                Save
-              </button>
-            )}
-
-            {/* Preview toggle */}
-            <button
-              onClick={togglePreviewMode}
-              className={`btn btn-sm ${controls.isPreviewMode ? 'btn-active' : 'btn-ghost'}`}
-              aria-label={controls.isPreviewMode ? 'Exit preview mode' : 'Enter preview mode'}
-            >
-              {controls.isPreviewMode ? (
-                <EyeSlashIcon className="w-4 h-4" />
-              ) : (
-                <EyeIcon className="w-4 h-4" />
+            <div className="flex items-center space-x-2">
+              {/* Auto-save status */}
+              {autoSave && (
+                <div className="flex items-center space-x-2">
+                  {isAutoSaving && (
+                    <div className="flex items-center space-x-2 text-info">
+                      <div className="loading loading-spinner loading-xs"></div>
+                      <span className="text-xs">Saving...</span>
+                    </div>
+                  )}
+                  {autoSaveError && (
+                    <div className="tooltip tooltip-left" data-tip={autoSaveError}>
+                      <XMarkIcon className="w-4 h-4 text-error" />
+                    </div>
+                  )}
+                </div>
               )}
-              {controls.isPreviewMode ? 'Edit' : 'Preview'}
-            </button>
 
-            {/* Reset button */}
-            <button
-              onClick={resetContent}
-              disabled={!editorState.isDirty}
-              className="btn btn-sm btn-ghost"
-              aria-label="Reset to original content"
-            >
-              <ArrowPathIcon className="w-4 h-4" />
-              Reset
-            </button>
-          </div>
-        </div>
-      )}
+              {/* Manual save button */}
+              {onAutoSave && (
+                <button
+                  onClick={handleManualSave}
+                  disabled={!editorState.isDirty || isAutoSaving}
+                  className="btn btn-sm btn-primary"
+                  aria-label="Save changes"
+                >
+                  <CheckIcon className="w-4 h-4" />
+                  Save
+                </button>
+              )}
 
-      {/* Editor Content */}
-      <div className="relative">
-        {controls.isPreviewMode ? (
-          /* Preview Mode */
-          <div
-            className="prose prose-sm max-w-none p-6"
-            style={{ minHeight: height }}
-            dangerouslySetInnerHTML={{ __html: content }}
-            role="document"
-            aria-label="Resume content preview"
-          />
-        ) : (
-          /* Edit Mode */
-          <div className="quill-editor-container" aria-label="Resume content editor">
-            <ReactQuill
-              ref={quillRef}
-              theme="snow"
-              value={content}
-              onChange={handleContentChange}
-              readOnly={readOnly}
-              placeholder={placeholder}
-              modules={quillModules}
-              formats={quillFormats}
-              style={{
-                height: height,
-                backgroundColor: 'transparent',
-              }}
-              className="border-0"
-            />
+              {/* Preview toggle */}
+              <button
+                onClick={togglePreviewMode}
+                className={`btn btn-sm ${controls.isPreviewMode ? 'btn-active' : 'btn-ghost'}`}
+                aria-label={controls.isPreviewMode ? 'Exit preview mode' : 'Enter preview mode'}
+              >
+                {controls.isPreviewMode ? (
+                  <EyeSlashIcon className="w-4 h-4" />
+                ) : (
+                  <EyeIcon className="w-4 h-4" />
+                )}
+                {controls.isPreviewMode ? 'Edit' : 'Preview'}
+              </button>
+
+              {/* Reset button */}
+              <button
+                onClick={resetContent}
+                disabled={!editorState.isDirty}
+                className="btn btn-sm btn-ghost"
+                aria-label="Reset to original content"
+              >
+                <ArrowPathIcon className="w-4 h-4" />
+                Reset
+              </button>
+            </div>
           </div>
         )}
-      </div>
-      {/* Loading overlay */}
-      {isAutoSaving && (
-        <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center">
-          <div className="bg-base-100 rounded-lg p-4 shadow-lg border border-base-300">
-            <div className="flex items-center space-x-3">
-              <div className="loading loading-spinner loading-sm text-primary"></div>
-              <span className="text-sm font-medium">Saving changes...</span>
-            </div>
-          </div>
-        </div>
-      )}
-      {/* Editor Footer */}
-      {showControls && (
-        <div className="flex items-center justify-between p-3 border-t border-base-300 bg-base-50">
-          <div className="text-xs text-base-content/60">
-            {readOnly ? 'Read-only mode' : 'Click to edit • Auto-formatting enabled'}
-          </div>
 
-          {autoSaveError && (
-            <div className="alert alert-error alert-sm max-w-xs">
-              <XMarkIcon className="w-4 h-4" />
-              <span className="text-xs">{autoSaveError}</span>
+        {/* Editor Content */}
+        <div className="relative">
+          {controls.isPreviewMode ? (
+            /* Preview Mode */
+            <div
+              className="prose prose-sm max-w-none p-6"
+              style={{ minHeight: height }}
+              dangerouslySetInnerHTML={{ __html: content }}
+              role="document"
+              aria-label="Resume content preview"
+            />
+          ) : (
+            /* Edit Mode */
+            <div className="quill-editor-container" aria-label="Resume content editor">
+              <ReactQuill
+                ref={quillRef}
+                theme="snow"
+                value={content}
+                onChange={handleContentChange}
+                readOnly={readOnly}
+                placeholder={placeholder}
+                modules={quillModules}
+                formats={quillFormats}
+                style={{
+                  height: height,
+                  backgroundColor: 'transparent',
+                }}
+                className="border-0"
+              />
             </div>
           )}
         </div>
-      )}
+        {/* Loading overlay */}
+        {isAutoSaving && (
+          <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center">
+            <div className="bg-base-100 rounded-lg p-4 shadow-lg border border-base-300">
+              <div className="flex items-center space-x-3">
+                <div className="loading loading-spinner loading-sm text-primary"></div>
+                <span className="text-sm font-medium">Saving changes...</span>
+              </div>
+            </div>
+          </div>
+        )}
+        {/* Editor Footer */}
+        {showControls && (
+          <div className="flex items-center justify-between p-3 border-t border-base-300 bg-base-50">
+            <div className="text-xs text-base-content/60">
+              {readOnly ? 'Read-only mode' : 'Click to edit • Auto-formatting enabled'}
+            </div>
 
-      {/* Custom Styles */}
-      <style jsx global>{`
+            {autoSaveError && (
+              <div className="alert alert-error alert-sm max-w-xs">
+                <XMarkIcon className="w-4 h-4" />
+                <span className="text-xs">{autoSaveError}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Custom Styles */}
+        <style jsx global>{`
         .quill-editor-container .ql-editor {
           font-family: inherit;
           font-size: 14px;
@@ -484,8 +485,9 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>((
           fill: hsl(var(--p));
         }
       `}</style>
-    </div>
-  );
-})
+      </div>
+    );
+  }
+);
 
 export default EmbeddedTextEditor;

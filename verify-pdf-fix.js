@@ -28,7 +28,13 @@ if (workerExists) {
 }
 
 // Check if the source worker file exists in node_modules
-const sourceWorkerPath = path.join(__dirname, 'node_modules', 'pdfjs-dist', 'build', 'pdf.worker.min.mjs');
+const sourceWorkerPath = path.join(
+  __dirname,
+  'node_modules',
+  'pdfjs-dist',
+  'build',
+  'pdf.worker.min.mjs'
+);
 const sourceWorkerExists = fs.existsSync(sourceWorkerPath);
 
 console.log(`📦 Source worker file exists: ${sourceWorkerExists ? '✅ Yes' : '❌ No'}`);
@@ -43,12 +49,14 @@ if (workerExists && sourceWorkerExists) {
   const workerStats = fs.statSync(workerPath);
   const sourceStats = fs.statSync(sourceWorkerPath);
   const sizesMatch = workerStats.size === sourceStats.size;
-  
+
   console.log(`🔄 Worker files match: ${sizesMatch ? '✅ Yes' : '❌ No'}`);
-  
+
   if (!sizesMatch) {
-    console.log('\n⚠️  Worker file sizes don\'t match. You may need to update the worker file:');
-    console.log('   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\workers\\pdf.worker.min.js"');
+    console.log("\n⚠️  Worker file sizes don't match. You may need to update the worker file:");
+    console.log(
+      '   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\workers\\pdf.worker.min.js"'
+    );
   }
 }
 
@@ -56,14 +64,16 @@ if (workerExists && sourceWorkerExists) {
 const serviceFilePath = path.join(__dirname, 'src', 'services', 'fileParsingService.ts');
 if (fs.existsSync(serviceFilePath)) {
   const serviceContent = fs.readFileSync(serviceFilePath, 'utf8');
-  
+
   const hasCorrectVersion = serviceContent.includes('5.3.31');
   const hasOldVersion = serviceContent.includes('3.11.174');
   const hasMjsExtension = serviceContent.includes('.mjs');
-  
+
   console.log(`\n📝 Service file checks:`);
   console.log(`   Contains version 5.3.31: ${hasCorrectVersion ? '✅ Yes' : '❌ No'}`);
-  console.log(`   Contains old version 3.11.174: ${hasOldVersion ? '❌ Yes (should be removed)' : '✅ No'}`);
+  console.log(
+    `   Contains old version 3.11.174: ${hasOldVersion ? '❌ Yes (should be removed)' : '✅ No'}`
+  );
   console.log(`   Uses .mjs extension: ${hasMjsExtension ? '✅ Yes' : '❌ No'}`);
 }
 
@@ -72,7 +82,7 @@ if (workerExists && sourceWorkerExists) {
   const workerStats = fs.statSync(workerPath);
   const sourceStats = fs.statSync(sourceWorkerPath);
   const sizesMatch = workerStats.size === sourceStats.size;
-  
+
   if (sizesMatch) {
     console.log('✅ PDF.js version compatibility fix appears to be correctly applied!');
     console.log('✅ Worker file is up to date with the installed version');
@@ -83,7 +93,9 @@ if (workerExists && sourceWorkerExists) {
   } else {
     console.log('❌ Worker file needs to be updated');
     console.log('🔧 Run this command to fix:');
-    console.log('   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\workers\\pdf.worker.min.js"');
+    console.log(
+      '   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\workers\\pdf.worker.min.js"'
+    );
   }
 } else {
   console.log('❌ Missing required files for PDF.js functionality');
