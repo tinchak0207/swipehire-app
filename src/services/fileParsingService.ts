@@ -15,25 +15,27 @@ const initializePDFJS = async () => {
   if (typeof window !== 'undefined' && !pdfjsLib) {
     try {
       pdfjsLib = await import('pdfjs-dist');
-      
+
       // Configure worker with local file first, then fallback to CDN
       // This avoids the template literal issue and provides better reliability
       pdfjsLib.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.js';
-      
+
       console.log('PDF.js initialized successfully with local worker, version:', pdfjsLib.version);
       return true;
     } catch (error) {
       console.error('Failed to initialize PDF.js with local worker:', error);
       // Fallback to CDN if local worker fails
       try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         console.log('PDF.js fallback to cdnjs worker');
         return true;
       } catch (fallbackError) {
         console.error('PDF.js CDN fallback also failed:', fallbackError);
         // Last resort: try unpkg with a fixed version
         try {
-          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
+          pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
           console.log('PDF.js final fallback to unpkg');
           return true;
         } catch (finalError) {
@@ -85,7 +87,7 @@ export function validateFile(file: File): FileValidationResult {
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     'application/msword', // .doc files
   ];
-  
+
   const allowedExtensions = ['.pdf', '.docx', '.doc'];
   const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
@@ -127,12 +129,9 @@ export function validateFile(file: File): FileValidationResult {
 /**
  * Extracts text from PDF files using PDF.js with enhanced error handling
  */
-async function parsePDF(
-  file: File,
-  options: FileParsingOptions = {}
-): Promise<ParsedFileResult> {
+async function parsePDF(file: File, options: FileParsingOptions = {}): Promise<ParsedFileResult> {
   const startTime = Date.now();
-  
+
   try {
     // Initialize PDF.js if not already done
     const isInitialized = await initializePDFJS();
@@ -151,7 +150,7 @@ async function parsePDF(
 
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
-    
+
     options.onProgress?.({
       stage: 'extracting',
       progress: 30,
@@ -177,12 +176,9 @@ async function parsePDF(
 
     const pdf = await loadingTask.promise;
     const numPages = pdf.numPages;
-    
+
     if (numPages === 0) {
-      throw new FileParsingError(
-        'This PDF appears to be empty or corrupted.',
-        'PDF_EMPTY'
-      );
+      throw new FileParsingError('This PDF appears to be empty or corrupted.', 'PDF_EMPTY');
     }
 
     let fullText = '';
@@ -199,7 +195,7 @@ async function parsePDF(
 
         const page = await pdf.getPage(pageNum);
         const textContent = await page.getTextContent();
-        
+
         // Combine text items with proper spacing and line breaks
         const pageText = textContent.items
           .map((item: any) => {
@@ -210,7 +206,7 @@ async function parsePDF(
           })
           .filter((text: string) => text.trim().length > 0) // Remove empty strings
           .join(' ');
-        
+
         if (pageText.trim()) {
           fullText += pageText + '\n\n';
         }
@@ -222,7 +218,7 @@ async function parsePDF(
     }
 
     const extractionTime = Date.now() - startTime;
-    
+
     options.onProgress?.({
       stage: 'processing',
       progress: 95,
@@ -253,36 +249,40 @@ async function parsePDF(
     };
   } catch (error) {
     console.error('PDF parsing error details:', error);
-    
+
     if (error instanceof FileParsingError) {
       throw error;
     }
-    
+
     // Provide more specific error messages based on the error type
     let errorMessage = 'Failed to parse PDF file.';
     let errorCode = 'PDF_PARSE_ERROR';
-    
+
     if (error instanceof Error) {
       const errorString = error.message.toLowerCase();
-      
+
       if (errorString.includes('password')) {
         errorMessage = 'This PDF is password-protected. Please remove the password and try again.';
         errorCode = 'PDF_PASSWORD_PROTECTED';
       } else if (errorString.includes('invalid') || errorString.includes('corrupt')) {
-        errorMessage = 'This PDF file appears to be corrupted or invalid. Please try with a different file.';
+        errorMessage =
+          'This PDF file appears to be corrupted or invalid. Please try with a different file.';
         errorCode = 'PDF_CORRUPTED';
       } else if (errorString.includes('network') || errorString.includes('worker')) {
-        errorMessage = 'Failed to load PDF processing resources. Please check your internet connection and try again.';
+        errorMessage =
+          'Failed to load PDF processing resources. Please check your internet connection and try again.';
         errorCode = 'PDF_WORKER_ERROR';
       } else if (errorString.includes('memory') || errorString.includes('size')) {
-        errorMessage = 'This PDF file is too large or complex to process. Please try with a smaller file.';
+        errorMessage =
+          'This PDF file is too large or complex to process. Please try with a smaller file.';
         errorCode = 'PDF_TOO_LARGE';
       } else if (errorString.includes('fetch') || errorString.includes('load')) {
-        errorMessage = 'Unable to load PDF processing library. Please refresh the page and try again.';
+        errorMessage =
+          'Unable to load PDF processing library. Please refresh the page and try again.';
         errorCode = 'PDF_LOAD_ERROR';
       }
     }
-    
+
     throw new FileParsingError(errorMessage, errorCode, error as Error);
   }
 }
@@ -290,12 +290,9 @@ async function parsePDF(
 /**
  * Extracts text from DOCX files using Mammoth
  */
-async function parseDOCX(
-  file: File,
-  options: FileParsingOptions = {}
-): Promise<ParsedFileResult> {
+async function parseDOCX(file: File, options: FileParsingOptions = {}): Promise<ParsedFileResult> {
   const startTime = Date.now();
-  
+
   try {
     options.onProgress?.({
       stage: 'extracting',
@@ -305,7 +302,7 @@ async function parseDOCX(
 
     // Convert file to ArrayBuffer
     const arrayBuffer = await file.arrayBuffer();
-    
+
     options.onProgress?.({
       stage: 'extracting',
       progress: 50,
@@ -313,18 +310,18 @@ async function parseDOCX(
     });
 
     // Extract text using Mammoth with enhanced options
-    const result = await mammoth.extractRawText({ 
+    const result = await mammoth.extractRawText({
       arrayBuffer,
       // Additional options for better text extraction
       convertImage: mammoth.images.ignoreAll, // Ignore images for text extraction
     });
-    
+
     if (result.messages.length > 0) {
       console.warn('DOCX parsing warnings:', result.messages);
     }
 
     const extractionTime = Date.now() - startTime;
-    
+
     options.onProgress?.({
       stage: 'processing',
       progress: 90,
@@ -356,7 +353,7 @@ async function parseDOCX(
     if (error instanceof FileParsingError) {
       throw error;
     }
-    
+
     throw new FileParsingError(
       'Failed to parse DOCX file. The file may be corrupted or in an unsupported format.',
       'DOCX_PARSE_ERROR',
@@ -369,12 +366,9 @@ async function parseDOCX(
  * Extracts text from DOC files (legacy Word format)
  * Note: This is a simplified approach as DOC parsing is complex
  */
-async function parseDOC(
-  file: File,
-  options: FileParsingOptions = {}
-): Promise<ParsedFileResult> {
+async function parseDOC(file: File, options: FileParsingOptions = {}): Promise<ParsedFileResult> {
   const startTime = Date.now();
-  
+
   try {
     options.onProgress?.({
       stage: 'extracting',
@@ -385,7 +379,7 @@ async function parseDOC(
     // For DOC files, we'll try to use Mammoth as well
     // Mammoth has limited support for .doc files
     const arrayBuffer = await file.arrayBuffer();
-    
+
     options.onProgress?.({
       stage: 'extracting',
       progress: 50,
@@ -394,7 +388,7 @@ async function parseDOC(
 
     try {
       const result = await mammoth.extractRawText({ arrayBuffer });
-      
+
       const extractionTime = Date.now() - startTime;
       const cleanedText = cleanExtractedText(result.value);
 
@@ -446,20 +440,19 @@ export async function parseFile(
   // Validate file first
   const validation = validateFile(file);
   if (!validation.isValid) {
-    throw new FileParsingError(
-      validation.error || 'Invalid file',
-      'VALIDATION_ERROR'
-    );
+    throw new FileParsingError(validation.error || 'Invalid file', 'VALIDATION_ERROR');
   }
 
   // Set up timeout
   const timeout = options.timeout || 30000; // 30 seconds default
   const timeoutPromise = new Promise<never>((_, reject) => {
     setTimeout(() => {
-      reject(new FileParsingError(
-        'File parsing timed out. Please try with a smaller file.',
-        'TIMEOUT_ERROR'
-      ));
+      reject(
+        new FileParsingError(
+          'File parsing timed out. Please try with a smaller file.',
+          'TIMEOUT_ERROR'
+        )
+      );
     }, timeout);
   });
 
@@ -472,9 +465,9 @@ export async function parseFile(
   try {
     // Determine file type and parse accordingly
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
-    
+
     let parsePromise: Promise<ParsedFileResult>;
-    
+
     if (file.type === 'application/pdf' || fileExtension === '.pdf') {
       parsePromise = parsePDF(file, options);
     } else if (
@@ -493,7 +486,7 @@ export async function parseFile(
 
     // Race between parsing and timeout
     const result = await Promise.race([parsePromise, timeoutPromise]);
-    
+
     options.onProgress?.({
       stage: 'complete',
       progress: 100,
@@ -521,17 +514,19 @@ function cleanExtractedText(text: string): string {
     return 'No text content could be extracted from this file.';
   }
 
-  return text
-    // Remove excessive whitespace
-    .replace(/\s+/g, ' ')
-    // Remove excessive line breaks
-    .replace(/\n\s*\n\s*\n/g, '\n\n')
-    // Remove special characters that might cause issues
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
-    // Trim whitespace from start and end
-    .trim()
+  return (
+    text
+      // Remove excessive whitespace
+      .replace(/\s+/g, ' ')
+      // Remove excessive line breaks
+      .replace(/\n\s*\n\s*\n/g, '\n\n')
+      // Remove special characters that might cause issues
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      // Trim whitespace from start and end
+      .trim() ||
     // Ensure we don't have empty result
-    || 'No text content could be extracted from this file.';
+    'No text content could be extracted from this file.'
+  );
 }
 
 /**
@@ -541,7 +536,10 @@ function countWords(text: string): number {
   if (!text || typeof text !== 'string') {
     return 0;
   }
-  return text.trim().split(/\s+/).filter(word => word.length > 0).length;
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((word) => word.length > 0).length;
 }
 
 /**
@@ -549,11 +547,11 @@ function countWords(text: string): number {
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
-  
+
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
 
@@ -562,7 +560,7 @@ export function formatFileSize(bytes: number): string {
  */
 export function getFileTypeIcon(fileName: string): string {
   const extension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
-  
+
   switch (extension) {
     case '.pdf':
       return '??';

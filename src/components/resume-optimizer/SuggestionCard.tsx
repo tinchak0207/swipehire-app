@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckIcon, PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { CheckIcon, PencilIcon, XMarkIcon, DocumentTextIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import type { SuggestionCardProps } from '@/lib/types/resume-optimizer';
 
@@ -14,6 +14,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   onAdopt,
   onIgnore,
   onModify,
+  onApplyToEditor,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [modifiedText, setModifiedText] = useState(suggestion.suggestion);
@@ -103,6 +104,16 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 <CheckIcon className="w-4 h-4" />
                 Adopt
               </button>
+              {onApplyToEditor && (
+                <button
+                  onClick={() => onApplyToEditor(suggestion.id, suggestion)}
+                  className="btn btn-primary btn-sm"
+                  title="Apply this suggestion to the editor"
+                >
+                  <DocumentTextIcon className="w-4 h-4" />
+                  Apply to Editor
+                </button>
+              )}
               {onModify && (
                 <button
                   onClick={() => setIsEditing(true)}

@@ -12,3 +12,4 @@ export type {
 export { default as ScoreDisplay } from './ScoreDisplay';
 export { default as SuggestionCard } from './SuggestionCard';
 export { default as TemplateCard } from './TemplateCard';
+export { default as ReportDisplay } from './ReportDisplay';

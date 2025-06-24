@@ -2,17 +2,17 @@
 
 import {
   ArrowLeftIcon,
+  ArrowPathIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  UserIcon,
-  ArrowPathIcon,
   InformationCircleIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import type { UserProfileData, TargetJobInfo } from '@/lib/types/resume-optimizer';
+import type { TargetJobInfo, UserProfileData } from '@/lib/types/resume-optimizer';
 import { fetchUserProfile, generateResumeFromProfile } from '@/services/resumeOptimizerService';
 
 interface ProfileImportState {
@@ -35,7 +35,7 @@ const ResumeImportPage: NextPage = () => {
     profileData: null,
     hasProfile: false,
   });
-  
+
   // Check if user just completed onboarding
   const onboardingStatus = searchParams.get('onboarding');
   const [showOnboardingMessage, setShowOnboardingMessage] = useState(false);
@@ -49,10 +49,10 @@ const ResumeImportPage: NextPage = () => {
 
   const loadProfileData = useCallback(async (): Promise<void> => {
     setImportState((prev: ProfileImportState) => ({ ...prev, isLoading: true, error: null }));
-    
+
     try {
       const profileData = await fetchUserProfile();
-      
+
       if (profileData) {
         setImportState({
           isLoading: false,
@@ -72,7 +72,8 @@ const ResumeImportPage: NextPage = () => {
       console.error('Error loading profile:', error);
       setImportState({
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Failed to load profile data. Please try again.',
+        error:
+          error instanceof Error ? error.message : 'Failed to load profile data. Please try again.',
         profileData: null,
         hasProfile: false,
       });
@@ -83,18 +84,18 @@ const ResumeImportPage: NextPage = () => {
     const handleOnboardingCompletion = async () => {
       if (onboardingStatus === 'completed') {
         setShowOnboardingMessage(true);
-        
+
         // Clear the URL parameter
         const newUrl = new URL(window.location.href);
         newUrl.searchParams.delete('onboarding');
         window.history.replaceState({}, '', newUrl.toString());
-        
+
         // Wait a moment for the backend to process the onboarding data
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+
         // Retry loading profile data after onboarding completion
         await loadProfileData();
-        
+
         // Hide message after 5 seconds
         setTimeout(() => setShowOnboardingMessage(false), 5000);
       } else {
@@ -116,17 +117,20 @@ const ResumeImportPage: NextPage = () => {
     }
 
     setIsAnalyzing(true);
-    
+
     try {
       const resumeText = generateResumeFromProfile(importState.profileData);
-      
+
       // Store data in sessionStorage for the analysis page
-      sessionStorage.setItem('resumeOptimizerData', JSON.stringify({
-        resumeText,
-        targetJob,
-        source: 'profile',
-        profileData: importState.profileData,
-      }));
+      sessionStorage.setItem(
+        'resumeOptimizerData',
+        JSON.stringify({
+          resumeText,
+          targetJob,
+          source: 'profile',
+          profileData: importState.profileData,
+        })
+      );
 
       // Navigate to analysis page
       router.push('/resume-optimizer/analyze');
@@ -178,7 +182,10 @@ const ResumeImportPage: NextPage = () => {
             <CheckCircleIcon className="w-5 h-5" />
             <div className="flex-1">
               <span className="font-semibold">Profile completed successfully!</span>
-              <p className="text-sm mt-1">Your SwipeHire profile is now ready. We can now import your profile data for resume optimization.</p>
+              <p className="text-sm mt-1">
+                Your SwipeHire profile is now ready. We can now import your profile data for resume
+                optimization.
+              </p>
             </div>
             <button
               onClick={() => setShowOnboardingMessage(false)}
@@ -195,7 +202,10 @@ const ResumeImportPage: NextPage = () => {
             <InformationCircleIcon className="w-5 h-5" />
             <div className="flex-1">
               <span className="font-semibold">Onboarding skipped</span>
-              <p className="text-sm mt-1">You can complete your profile later to use the import feature. For now, you can upload a resume file instead.</p>
+              <p className="text-sm mt-1">
+                You can complete your profile later to use the import feature. For now, you can
+                upload a resume file instead.
+              </p>
             </div>
             <Link href="/onboarding" className="btn btn-sm btn-outline btn-info">
               Complete Profile
@@ -229,10 +239,7 @@ const ResumeImportPage: NextPage = () => {
                 It looks like you haven't completed your SwipeHire profile yet. Complete your
                 profile first to use this feature.
               </p>
-              <Link 
-                href="/onboarding?returnTo=resume-optimizer-import" 
-                className="btn btn-primary"
-              >
+              <Link href="/onboarding?returnTo=resume-optimizer-import" className="btn btn-primary">
                 Complete Profile
               </Link>
             </div>

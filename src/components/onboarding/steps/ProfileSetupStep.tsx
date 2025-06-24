@@ -77,12 +77,17 @@ export default function ProfileSetupStep({
     return (
       <div className="mx-auto max-w-4xl animate-fade-in">
         <div className="mb-8">
-          <button 
-            onClick={() => setShowQuestionnaire(false)} 
+          <button
+            onClick={() => setShowQuestionnaire(false)}
             className="flex items-center text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200"
           >
             <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 17l-5-5m0 0l5-5m-5 5h12"
+              />
             </svg>
             Back to Manual Setup
           </button>
@@ -144,7 +149,9 @@ export default function ProfileSetupStep({
               <div className="space-y-8">
                 <div className="form-control">
                   <label className="mb-3 block">
-                    <span className="font-semibold text-gray-800 text-lg">Professional Headline *</span>
+                    <span className="font-semibold text-gray-800 text-lg">
+                      Professional Headline *
+                    </span>
                   </label>
                   <input
                     type="text"
@@ -157,7 +164,9 @@ export default function ProfileSetupStep({
 
                 <div className="form-control">
                   <label className="mb-3 block">
-                    <span className="font-semibold text-gray-800 text-lg">Experience Summary *</span>
+                    <span className="font-semibold text-gray-800 text-lg">
+                      Experience Summary *
+                    </span>
                   </label>
                   <textarea
                     placeholder="Describe your professional background, key achievements, and what makes you unique..."
@@ -272,7 +281,9 @@ export default function ProfileSetupStep({
                 <div className="grid gap-6 md:grid-cols-2">
                   <div className="form-control">
                     <label className="mb-3 block">
-                      <span className="font-semibold text-gray-800">Minimum Salary Expectation</span>
+                      <span className="font-semibold text-gray-800">
+                        Minimum Salary Expectation
+                      </span>
                     </label>
                     <input
                       type="number"
@@ -290,7 +301,9 @@ export default function ProfileSetupStep({
 
                   <div className="form-control">
                     <label className="mb-3 block">
-                      <span className="font-semibold text-gray-800">Maximum Salary Expectation</span>
+                      <span className="font-semibold text-gray-800">
+                        Maximum Salary Expectation
+                      </span>
                     </label>
                     <input
                       type="number"
@@ -402,20 +415,25 @@ export default function ProfileSetupStep({
 
       {/* Action Buttons */}
       <div className="mt-12 flex items-center justify-between">
-        <button 
-          onClick={onBack} 
-          className="flex items-center text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200" 
+        <button
+          onClick={onBack}
+          className="flex items-center text-gray-600 hover:text-gray-800 font-medium transition-colors duration-200"
           disabled={isLoading}
         >
           <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17l-5-5m0 0l5-5m-5 5h12" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M11 17l-5-5m0 0l5-5m-5 5h12"
+            />
           </svg>
           Back
         </button>
 
-        <button 
+        <button
           onClick={onNext}
-          disabled={!canProceed || isLoading} 
+          disabled={!canProceed || isLoading}
           className={`px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${
             canProceed && !isLoading
               ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:from-green-600 hover:to-green-700 hover:scale-105'
@@ -430,8 +448,18 @@ export default function ProfileSetupStep({
           ) : (
             <>
               Continue
-              <svg className="ml-2 h-5 w-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <svg
+                className="ml-2 h-5 w-5 inline"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 7l5 5m0 0l-5 5m5-5H6"
+                />
               </svg>
             </>
           )}

@@ -3,13 +3,13 @@
  * Provides reusable file upload logic with validation, parsing, and error handling
  */
 
-import { useState, useCallback } from 'react';
-import type { 
-  ResumeUploadState, 
-  FileValidationResult, 
-  ResumeParsingProgress,
+import { useCallback, useState } from 'react';
+import type {
+  FileParsingOptions,
+  FileValidationResult,
   ParsedFileResult,
-  FileParsingOptions 
+  ResumeParsingProgress,
+  ResumeUploadState,
 } from '@/lib/resume-types';
 
 interface ExtendedUploadState extends ResumeUploadState {
@@ -47,7 +47,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     maxFileSize = 10 * 1024 * 1024, // 10MB default
     timeout = 30000, // 30 seconds default
     onSuccess,
-    onError
+    onError,
   } = options;
 
   const [uploadState, setUploadState] = useState<ExtendedUploadState>({
@@ -60,80 +60,89 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     dragActive: false,
   });
 
-  const validateFile = useCallback((file: File): FileValidationResult => {
-    const allowedTypes = [
-      'application/pdf',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/msword', // .doc files
-    ];
-    
-    const allowedExtensions = ['.pdf', '.docx', '.doc'];
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+  const validateFile = useCallback(
+    (file: File): FileValidationResult => {
+      const allowedTypes = [
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/msword', // .doc files
+      ];
 
-    if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+      const allowedExtensions = ['.pdf', '.docx', '.doc'];
+      const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+
+      if (!allowedTypes.includes(file.type) && !allowedExtensions.includes(fileExtension)) {
+        return {
+          isValid: false,
+          error: 'Please upload a PDF, DOC, or DOCX file only.',
+        };
+      }
+
+      if (file.size > maxFileSize) {
+        return {
+          isValid: false,
+          error: `File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB.`,
+        };
+      }
+
+      if (file.size === 0) {
+        return {
+          isValid: false,
+          error: 'The selected file appears to be empty.',
+        };
+      }
+
       return {
-        isValid: false,
-        error: 'Please upload a PDF, DOC, or DOCX file only.',
+        isValid: true,
+        fileInfo: {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+        },
       };
-    }
+    },
+    [maxFileSize]
+  );
 
-    if (file.size > maxFileSize) {
-      return {
-        isValid: false,
-        error: `File size must be less than ${Math.round(maxFileSize / 1024 / 1024)}MB.`,
-      };
-    }
+  const handleFileSelection = useCallback(
+    (file: File): void => {
+      const validation = validateFile(file);
 
-    if (file.size === 0) {
-      return {
-        isValid: false,
-        error: 'The selected file appears to be empty.',
-      };
-    }
+      if (!validation.isValid) {
+        setUploadState((prev) => ({
+          ...prev,
+          error: validation.error || 'Invalid file',
+          file: null,
+          dragActive: false,
+          extractedText: null,
+          metadata: undefined,
+        }));
+        return;
+      }
 
-    return {
-      isValid: true,
-      fileInfo: {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-      },
-    };
-  }, [maxFileSize]);
-
-  const handleFileSelection = useCallback((file: File): void => {
-    const validation = validateFile(file);
-    
-    if (!validation.isValid) {
       setUploadState((prev) => ({
         ...prev,
-        error: validation.error || 'Invalid file',
-        file: null,
+        file,
+        error: null,
         dragActive: false,
+        progress: 0,
+        stage: 'uploading',
         extractedText: null,
         metadata: undefined,
       }));
-      return;
-    }
+    },
+    [validateFile]
+  );
 
-    setUploadState((prev) => ({
-      ...prev,
-      file,
-      error: null,
-      dragActive: false,
-      progress: 0,
-      stage: 'uploading',
-      extractedText: null,
-      metadata: undefined,
-    }));
-  }, [validateFile]);
-
-  const handleFileChange = useCallback((event: React.ChangeEvent<HTMLInputElement>): void => {
-    const file = event.target.files?.[0];
-    if (file) {
-      handleFileSelection(file);
-    }
-  }, [handleFileSelection]);
+  const handleFileChange = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>): void => {
+      const file = event.target.files?.[0];
+      if (file) {
+        handleFileSelection(file);
+      }
+    },
+    [handleFileSelection]
+  );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
     e.preventDefault();
@@ -147,15 +156,18 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
     setUploadState((prev) => ({ ...prev, dragActive: false }));
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileSelection(files[0]);
-    }
-  }, [handleFileSelection]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>): void => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        handleFileSelection(files[0]);
+      }
+    },
+    [handleFileSelection]
+  );
 
   const clearFile = useCallback((): void => {
     setUploadState((prev) => ({
@@ -175,18 +187,18 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
       return;
     }
 
-    setUploadState((prev) => ({ 
-      ...prev, 
-      isUploading: true, 
-      error: null, 
+    setUploadState((prev) => ({
+      ...prev,
+      isUploading: true,
+      error: null,
       progress: 0,
-      stage: 'uploading'
+      stage: 'uploading',
     }));
 
     try {
       // Import the file parsing service dynamically to avoid SSR issues
       const { parseFile: parseFileService } = await import('@/services/fileParsingService');
-      
+
       // Parse the file with progress tracking
       const result = await parseFileService(uploadState.file, {
         onProgress: (progress) => {
@@ -212,12 +224,11 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
       // Call success callback if provided
       onSuccess?.(result);
-
     } catch (error) {
       console.error('File parsing error:', error);
-      
+
       let errorMessage = 'Failed to process the file. Please try again.';
-      
+
       // Provide more specific error messages based on error type
       if (error instanceof Error) {
         if (error.message.includes('timeout')) {
@@ -225,7 +236,8 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         } else if (error.message.includes('corrupted')) {
           errorMessage = 'The file appears to be corrupted. Please try with a different file.';
         } else if (error.message.includes('password')) {
-          errorMessage = 'Password-protected files are not supported. Please remove the password and try again.';
+          errorMessage =
+            'Password-protected files are not supported. Please remove the password and try again.';
         } else if (error.message.includes('format')) {
           errorMessage = 'This file format is not supported or the file is corrupted.';
         } else if (error.message.includes('size')) {

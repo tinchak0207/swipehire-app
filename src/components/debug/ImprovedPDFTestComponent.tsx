@@ -7,8 +7,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { parseFile, validateFile } from '@/services/fileParsingService';
 import type { ParsedFileResult } from '@/services/fileParsingService';
+import { parseFile, validateFile } from '@/services/fileParsingService';
 
 interface TestStep {
   name: string;
@@ -23,13 +23,11 @@ export const ImprovedPDFTestComponent: React.FC = () => {
   const [extractedText, setExtractedText] = useState<string>('');
 
   const updateStep = (index: number, updates: Partial<TestStep>) => {
-    setTestSteps(prev => prev.map((step, i) => 
-      i === index ? { ...step, ...updates } : step
-    ));
+    setTestSteps((prev) => prev.map((step, i) => (i === index ? { ...step, ...updates } : step)));
   };
 
   const addStep = (step: TestStep) => {
-    setTestSteps(prev => [...prev, step]);
+    setTestSteps((prev) => [...prev, step]);
   };
 
   const clearResults = () => {
@@ -40,22 +38,23 @@ export const ImprovedPDFTestComponent: React.FC = () => {
   const testWorkerConfiguration = async (): Promise<boolean> => {
     try {
       const pdfjsLib = await import('pdfjs-dist');
-      
+
       // Test local worker first
       try {
         pdfjsLib.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.js';
-        
+
         // Try to create a simple document to test worker
         const testArrayBuffer = new ArrayBuffer(8);
         const testDoc = pdfjsLib.getDocument({ data: testArrayBuffer });
-        
+
         // If we get here without error, local worker is working
         return true;
       } catch (localError) {
         console.warn('Local worker failed, trying CDN:', localError);
-        
+
         // Fallback to CDN
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
         return true;
       }
     } catch (error) {
@@ -78,7 +77,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
       { name: 'PDF.js Import', status: 'pending', message: 'Importing PDF.js library...' },
       { name: 'Worker Configuration', status: 'pending', message: 'Configuring PDF.js worker...' },
       { name: 'File Parsing', status: 'pending', message: 'Parsing PDF content...' },
-      { name: 'Text Extraction', status: 'pending', message: 'Extracting text content...' }
+      { name: 'Text Extraction', status: 'pending', message: 'Extracting text content...' },
     ];
 
     setTestSteps(steps);
@@ -87,130 +86,139 @@ export const ImprovedPDFTestComponent: React.FC = () => {
       // Step 1: File Validation
       updateStep(0, { status: 'running' });
       const validation = validateFile(file);
-      
+
       if (!validation.isValid) {
-        updateStep(0, { 
-          status: 'error', 
+        updateStep(0, {
+          status: 'error',
           message: `Validation failed: ${validation.error}`,
-          details: [`File: ${file.name}`, `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`, `Type: ${file.type}`]
+          details: [
+            `File: ${file.name}`,
+            `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`,
+            `Type: ${file.type}`,
+          ],
         });
         return;
       }
-      
-      updateStep(0, { 
-        status: 'success', 
+
+      updateStep(0, {
+        status: 'success',
         message: 'File validation passed',
         details: [
           `File: ${file.name}`,
           `Size: ${(file.size / 1024 / 1024).toFixed(2)} MB`,
-          `Type: ${file.type}`
-        ]
+          `Type: ${file.type}`,
+        ],
       });
 
       // Step 2: PDF.js Import
       updateStep(1, { status: 'running' });
-      
+
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        updateStep(1, { 
-          status: 'success', 
+        updateStep(1, {
+          status: 'success',
           message: 'PDF.js imported successfully',
-          details: [`Version: ${pdfjsLib.version}`]
+          details: [`Version: ${pdfjsLib.version}`],
         });
       } catch (pdfError) {
-        updateStep(1, { 
-          status: 'error', 
+        updateStep(1, {
+          status: 'error',
           message: `PDF.js import failed: ${pdfError}`,
-          details: [String(pdfError)]
+          details: [String(pdfError)],
         });
         return;
       }
 
       // Step 3: Worker Configuration
       updateStep(2, { status: 'running' });
-      
+
       const workerConfigured = await testWorkerConfiguration();
       if (!workerConfigured) {
-        updateStep(2, { 
-          status: 'error', 
+        updateStep(2, {
+          status: 'error',
           message: 'Worker configuration failed',
-          details: ['Unable to configure PDF.js worker', 'Check network connection and CORS settings']
+          details: [
+            'Unable to configure PDF.js worker',
+            'Check network connection and CORS settings',
+          ],
         });
         return;
       }
 
-      updateStep(2, { 
-        status: 'success', 
+      updateStep(2, {
+        status: 'success',
         message: 'Worker configured successfully',
-        details: ['PDF.js worker is ready for processing']
+        details: ['PDF.js worker is ready for processing'],
       });
 
       // Step 4: File Parsing
       updateStep(3, { status: 'running' });
-      
+
       const progressDetails: string[] = [];
       const result: ParsedFileResult = await parseFile(file, {
         onProgress: (progress) => {
           const progressMsg = `${progress.stage}: ${progress.progress}% - ${progress.message}`;
           progressDetails.push(progressMsg);
-          updateStep(3, { 
+          updateStep(3, {
             status: 'running',
             message: 'Parsing in progress...',
-            details: [...progressDetails]
+            details: [...progressDetails],
           });
-        }
+        },
       });
 
-      updateStep(3, { 
-        status: 'success', 
+      updateStep(3, {
+        status: 'success',
         message: 'File parsed successfully',
         details: [
           `Processing time: ${result.metadata.extractionTime}ms`,
           `Pages: ${result.metadata.pageCount || 'N/A'}`,
-          `File size: ${(result.metadata.fileSize / 1024 / 1024).toFixed(2)} MB`
-        ]
+          `File size: ${(result.metadata.fileSize / 1024 / 1024).toFixed(2)} MB`,
+        ],
       });
 
       // Step 5: Text Extraction
       updateStep(4, { status: 'running' });
-      
+
       if (!result.text || result.text.trim().length === 0) {
-        updateStep(4, { 
-          status: 'error', 
+        updateStep(4, {
+          status: 'error',
           message: 'No text content extracted',
-          details: ['The PDF may be image-based or corrupted', 'Try with a different PDF file']
+          details: ['The PDF may be image-based or corrupted', 'Try with a different PDF file'],
         });
         return;
       }
 
-      updateStep(4, { 
-        status: 'success', 
+      updateStep(4, {
+        status: 'success',
         message: 'Text extraction completed',
         details: [
           `Characters: ${result.metadata.characterCount.toLocaleString()}`,
           `Words: ${result.metadata.wordCount.toLocaleString()}`,
-          `Text length: ${result.text.length} characters`
-        ]
+          `Text length: ${result.text.length} characters`,
+        ],
       });
 
       setExtractedText(result.text);
-
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      const errorDetails = error instanceof Error ? [
-        `Name: ${error.name}`,
-        `Message: ${error.message}`,
-        ...(('code' in error) ? [`Code: ${(error as any).code}`] : []),
-        `Stack: ${error.stack || 'No stack trace'}`
-      ] : [String(error)];
+      const errorDetails =
+        error instanceof Error
+          ? [
+              `Name: ${error.name}`,
+              `Message: ${error.message}`,
+              ...('code' in error ? [`Code: ${(error as any).code}`] : []),
+              `Stack: ${error.stack || 'No stack trace'}`,
+            ]
+          : [String(error)];
 
       // Find the last running step and mark it as error
-      const runningStepIndex = testSteps.findIndex(step => step.status === 'running');
+      const runningStepIndex = testSteps.findIndex((step) => step.status === 'running');
       if (runningStepIndex !== -1) {
         updateStep(runningStepIndex, {
           status: 'error',
           message: `Error: ${errorMessage}`,
-          details: errorDetails
+          details: errorDetails,
         });
       } else {
         // Add a general error step
@@ -218,7 +226,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
           name: 'General Error',
           status: 'error',
           message: `Unexpected error: ${errorMessage}`,
-          details: errorDetails
+          details: errorDetails,
         });
       }
     } finally {
@@ -259,7 +267,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">Enhanced PDF Parsing Debug Tool</h2>
-      
+
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select a PDF file to test:
@@ -292,21 +300,19 @@ export const ImprovedPDFTestComponent: React.FC = () => {
               <div key={index} className="border rounded-lg p-4">
                 <div className="flex items-center mb-2">
                   <span className="text-xl mr-3">{getStatusIcon(step.status)}</span>
-                  <h4 className={`font-medium ${getStatusColor(step.status)}`}>
-                    {step.name}
-                  </h4>
+                  <h4 className={`font-medium ${getStatusColor(step.status)}`}>{step.name}</h4>
                   {step.status === 'running' && (
                     <div className="ml-3 animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                   )}
                 </div>
-                <p className={`text-sm ${getStatusColor(step.status)} ml-8`}>
-                  {step.message}
-                </p>
+                <p className={`text-sm ${getStatusColor(step.status)} ml-8`}>{step.message}</p>
                 {step.details && step.details.length > 0 && (
                   <div className="ml-8 mt-2">
                     <ul className="text-xs text-gray-600 space-y-1">
                       {step.details.map((detail, detailIndex) => (
-                        <li key={detailIndex} className="font-mono">• {detail}</li>
+                        <li key={detailIndex} className="font-mono">
+                          • {detail}
+                        </li>
                       ))}
                     </ul>
                   </div>
@@ -326,7 +332,8 @@ export const ImprovedPDFTestComponent: React.FC = () => {
               First 500 characters of extracted text:
             </div>
             <pre className="whitespace-pre-wrap text-sm font-mono bg-white p-3 border rounded overflow-auto max-h-64">
-              {extractedText.substring(0, 500)}{extractedText.length > 500 ? '...' : ''}
+              {extractedText.substring(0, 500)}
+              {extractedText.length > 500 ? '...' : ''}
             </pre>
           </div>
         </div>

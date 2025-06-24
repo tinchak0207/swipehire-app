@@ -91,7 +91,7 @@ const mapOnboardingProfileToResumeProfile = (onboardingProfile: any): UserProfil
   const name = onboardingProfile.displayName || onboardingProfile.name || 'User';
   const email = onboardingProfile.email || '';
   const phone = onboardingProfile.phone || '';
-  
+
   // Map profile data from onboarding system
   const profileData: UserProfileData = {
     name,
@@ -99,7 +99,12 @@ const mapOnboardingProfileToResumeProfile = (onboardingProfile: any): UserProfil
     phone,
     location: onboardingProfile.profileLocationPreference || '',
     summary: onboardingProfile.profileExperienceSummary || onboardingProfile.profileHeadline || '',
-    skills: onboardingProfile.profileSkills ? onboardingProfile.profileSkills.split(',').map((s: string) => s.trim()).filter(Boolean) : [],
+    skills: onboardingProfile.profileSkills
+      ? onboardingProfile.profileSkills
+          .split(',')
+          .map((s: string) => s.trim())
+          .filter(Boolean)
+      : [],
     experience: [],
     education: [],
   };
@@ -140,7 +145,7 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfileData
   try {
     // First try to get from the backend user profile API
     const backendUrl = `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/profile`;
-    
+
     const backendResponse = await fetch(backendUrl, {
       method: 'GET',
       headers: {
@@ -186,13 +191,13 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfileData
     return result.data;
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    
+
     // For development/demo purposes, return mock data if API fails
     if (process.env.NODE_ENV === 'development') {
       console.log('Using mock profile data for development');
       return getMockProfileData();
     }
-    
+
     throw new Error('Failed to load profile data. Please try again.');
   }
 };
@@ -207,7 +212,8 @@ const getMockProfileData = (): UserProfileData => {
     phone: '(555) 987-6543',
     location: 'San Francisco, CA',
     linkedinUrl: 'https://linkedin.com/in/janesmith',
-    summary: 'Results-driven product manager with 5+ years of experience leading cross-functional teams to deliver innovative products. Proven track record of driving user growth, increasing revenue, and improving customer satisfaction through data-driven decision making.',
+    summary:
+      'Results-driven product manager with 5+ years of experience leading cross-functional teams to deliver innovative products. Proven track record of driving user growth, increasing revenue, and improving customer satisfaction through data-driven decision making.',
     experience: [
       {
         title: 'Senior Product Manager',
@@ -215,14 +221,15 @@ const getMockProfileData = (): UserProfileData => {
         duration: '2021-2023',
         startDate: '2021-03',
         endDate: '2023-12',
-        description: 'Led product strategy and development for B2B SaaS platform serving 50,000+ users.',
+        description:
+          'Led product strategy and development for B2B SaaS platform serving 50,000+ users.',
         achievements: [
           'Increased user engagement by 65% through feature optimization and A/B testing',
           'Drove 40% revenue growth by launching 3 major product features',
           'Managed cross-functional teams of 12+ members across engineering, design, and marketing',
-          'Reduced customer churn by 25% through improved onboarding experience'
+          'Reduced customer churn by 25% through improved onboarding experience',
         ],
-        technologies: ['Product Analytics', 'A/B Testing', 'Agile', 'Scrum', 'SQL', 'Tableau']
+        technologies: ['Product Analytics', 'A/B Testing', 'Agile', 'Scrum', 'SQL', 'Tableau'],
       },
       {
         title: 'Product Manager',
@@ -230,14 +237,15 @@ const getMockProfileData = (): UserProfileData => {
         duration: '2019-2021',
         startDate: '2019-06',
         endDate: '2021-02',
-        description: 'Developed product roadmaps and managed feature releases for mobile application with 100K+ downloads.',
+        description:
+          'Developed product roadmaps and managed feature releases for mobile application with 100K+ downloads.',
         achievements: [
           'Launched mobile app that achieved 100K+ downloads in first 6 months',
           'Improved app store rating from 3.2 to 4.6 stars through user feedback implementation',
           'Collaborated with engineering and design teams to deliver 15+ feature releases',
-          'Conducted user research with 200+ customers to inform product decisions'
+          'Conducted user research with 200+ customers to inform product decisions',
         ],
-        technologies: ['Mobile Development', 'User Research', 'Wireframing', 'Product Roadmapping']
+        technologies: ['Mobile Development', 'User Research', 'Wireframing', 'Product Roadmapping'],
       },
       {
         title: 'Associate Product Manager',
@@ -245,14 +253,20 @@ const getMockProfileData = (): UserProfileData => {
         duration: '2018-2019',
         startDate: '2018-01',
         endDate: '2019-05',
-        description: 'Supported product development initiatives and conducted market research for early-stage fintech startup.',
+        description:
+          'Supported product development initiatives and conducted market research for early-stage fintech startup.',
         achievements: [
           'Assisted in product launch that acquired 5,000 beta users in 3 months',
           'Performed competitive analysis across 20+ fintech companies',
-          'Created product documentation and user stories for development team'
+          'Created product documentation and user stories for development team',
         ],
-        technologies: ['Market Research', 'Competitive Analysis', 'User Stories', 'Product Documentation']
-      }
+        technologies: [
+          'Market Research',
+          'Competitive Analysis',
+          'User Stories',
+          'Product Documentation',
+        ],
+      },
     ],
     education: [
       {
@@ -260,8 +274,13 @@ const getMockProfileData = (): UserProfileData => {
         school: 'Stanford Graduate School of Business',
         year: '2018',
         gpa: '3.8',
-        honors: 'Dean\'s List',
-        relevantCourses: ['Product Management', 'Data Analytics', 'Strategic Marketing', 'Operations Management']
+        honors: "Dean's List",
+        relevantCourses: [
+          'Product Management',
+          'Data Analytics',
+          'Strategic Marketing',
+          'Operations Management',
+        ],
       },
       {
         degree: 'Bachelor of Science in Computer Science',
@@ -269,8 +288,13 @@ const getMockProfileData = (): UserProfileData => {
         year: '2016',
         gpa: '3.7',
         honors: 'Magna Cum Laude',
-        relevantCourses: ['Software Engineering', 'Database Systems', 'Human-Computer Interaction', 'Statistics']
-      }
+        relevantCourses: [
+          'Software Engineering',
+          'Database Systems',
+          'Human-Computer Interaction',
+          'Statistics',
+        ],
+      },
     ],
     skills: [
       'Product Management',
@@ -289,48 +313,50 @@ const getMockProfileData = (): UserProfileData => {
       'Competitive Analysis',
       'User Experience (UX)',
       'Project Management',
-      'Stakeholder Management'
+      'Stakeholder Management',
     ],
     certifications: [
       {
         name: 'Certified Scrum Product Owner (CSPO)',
         issuer: 'Scrum Alliance',
         date: '2020-03',
-        credentialId: 'CSPO-123456'
+        credentialId: 'CSPO-123456',
       },
       {
         name: 'Google Analytics Certified',
         issuer: 'Google',
         date: '2021-01',
-        expiryDate: '2024-01'
-      }
+        expiryDate: '2024-01',
+      },
     ],
     projects: [
       {
         name: 'Customer Analytics Dashboard',
-        description: 'Built comprehensive analytics dashboard to track user behavior and product metrics',
+        description:
+          'Built comprehensive analytics dashboard to track user behavior and product metrics',
         technologies: ['Tableau', 'SQL', 'Python', 'Google Analytics'],
         duration: '3 months',
-        role: 'Product Lead'
+        role: 'Product Lead',
       },
       {
         name: 'Mobile App Redesign',
-        description: 'Led complete redesign of mobile application resulting in 40% increase in user engagement',
+        description:
+          'Led complete redesign of mobile application resulting in 40% increase in user engagement',
         technologies: ['Figma', 'User Research', 'A/B Testing', 'React Native'],
         duration: '6 months',
-        role: 'Product Manager'
-      }
+        role: 'Product Manager',
+      },
     ],
     languages: [
       {
         language: 'English',
-        proficiency: 'native'
+        proficiency: 'native',
       },
       {
         language: 'Spanish',
-        proficiency: 'conversational'
-      }
-    ]
+        proficiency: 'conversational',
+      },
+    ],
   };
 };
 
@@ -365,12 +391,377 @@ export const fetchResumeTemplates = async (): Promise<ResumeTemplate[]> => {
 };
 
 /**
- * Submits resume for AI analysis
+ * Enhanced Resume Analysis Service with Backend AI Integration
+ * Integrates with the backend AI analysis module for comprehensive resume analysis
+ */
+
+// Backend AI Analysis Request/Response Types
+export interface BackendAnalysisRequest {
+  resumeText: string;
+  targetJob: {
+    title: string;
+    keywords: string;
+    description?: string;
+    company?: string;
+  };
+  analysisOptions?: {
+    includeATSAnalysis?: boolean;
+    includeKeywordAnalysis?: boolean;
+    includeGrammarCheck?: boolean;
+    includeQuantitativeAnalysis?: boolean;
+    includeFormatAnalysis?: boolean;
+  };
+  userId?: string;
+  templateId?: string;
+}
+
+export interface BackendAnalysisResponse {
+  success: boolean;
+  data?: {
+    analysisId: string;
+    overallScore: number;
+    atsCompatibilityScore: number;
+    keywordAnalysis: {
+      score: number;
+      matchedKeywords: Array<{
+        keyword: string;
+        frequency: number;
+        relevanceScore: number;
+        context: string[];
+      }>;
+      missingKeywords: Array<{
+        keyword: string;
+        importance: 'high' | 'medium' | 'low';
+        suggestedPlacement: string[];
+        relatedTerms: string[];
+      }>;
+      keywordDensity: Record<string, number>;
+      recommendations: string[];
+    };
+    grammarAnalysis: {
+      score: number;
+      totalIssues: number;
+      issues: Array<{
+        type: 'spelling' | 'grammar' | 'punctuation' | 'style';
+        severity: 'error' | 'warning' | 'suggestion';
+        message: string;
+        context: string;
+        suggestions: string[];
+        position: {
+          start: number;
+          end: number;
+          line?: number;
+          column?: number;
+        };
+      }>;
+      readabilityScore: number;
+    };
+    formatAnalysis: {
+      score: number;
+      atsCompatibility: number;
+      issues: Array<{
+        type: 'spacing' | 'font' | 'structure' | 'length' | 'sections';
+        severity: 'high' | 'medium' | 'low';
+        description: string;
+        recommendation: string;
+      }>;
+      sectionStructure: Array<{
+        name: string;
+        present: boolean;
+        order: number;
+        recommended: boolean;
+        content?: string;
+      }>;
+    };
+    quantitativeAnalysis: {
+      score: number;
+      achievementsWithNumbers: number;
+      totalAchievements: number;
+      suggestions: Array<{
+        section: string;
+        originalText: string;
+        suggestedText: string;
+        reasoning: string;
+      }>;
+      impactWords: string[];
+    };
+    optimizationSuggestions: Array<{
+      id: string;
+      type: 'keyword' | 'grammar' | 'format' | 'achievement' | 'structure' | 'ats';
+      title: string;
+      description: string;
+      impact: 'high' | 'medium' | 'low';
+      suggestion: string;
+      beforeText?: string;
+      afterText?: string;
+      section?: string;
+      priority: number;
+      estimatedScoreImprovement: number;
+    }>;
+    processingTime: number;
+    createdAt: string;
+  };
+  error?: string;
+  message?: string;
+}
+
+/**
+ * Analysis Loading State Interface
+ */
+export interface AnalysisLoadingState {
+  isLoading: boolean;
+  progress?: number;
+  stage?: 'parsing' | 'analyzing' | 'generating_suggestions' | 'finalizing';
+  message?: string;
+}
+
+/**
+ * Network Error Types
+ */
+export class ResumeAnalysisError extends Error {
+  constructor(
+    message: string,
+    public code: string,
+    public statusCode?: number,
+    public details?: Record<string, unknown>
+  ) {
+    super(message);
+    this.name = 'ResumeAnalysisError';
+  }
+}
+
+/**
+ * Enhanced resume analysis function with backend AI integration
+ * This is the main service function that integrates with the backend API for analysis requests
  */
 export const analyzeResume = async (
-  request: ResumeAnalysisRequest
+  request: ResumeAnalysisRequest,
+  onProgress?: (state: AnalysisLoadingState) => void
 ): Promise<ResumeAnalysisResponse> => {
+  const startTime = Date.now();
+  
   try {
+    // Update loading state
+    onProgress?.({
+      isLoading: true,
+      progress: 10,
+      stage: 'parsing',
+      message: 'Preparing resume for analysis...'
+    });
+
+    // Validate input
+    if (!request.resumeText || request.resumeText.trim().length < 50) {
+      throw new ResumeAnalysisError(
+        'Resume text is too short. Please provide a more detailed resume.',
+        'INVALID_RESUME_TEXT',
+        400
+      );
+    }
+
+    if (!request.targetJob?.title) {
+      throw new ResumeAnalysisError(
+        'Target job title is required for analysis.',
+        'MISSING_TARGET_JOB',
+        400
+      );
+    }
+
+    // Prepare backend request with comprehensive payload
+    const backendRequest: BackendAnalysisRequest = {
+      resumeText: request.resumeText,
+      targetJob: {
+        title: request.targetJob.title,
+        keywords: request.targetJob.keywords || '',
+        description: request.targetJob.description,
+        company: request.targetJob.company,
+      },
+      analysisOptions: {
+        includeATSAnalysis: true,
+        includeKeywordAnalysis: true,
+        includeGrammarCheck: true,
+        includeQuantitativeAnalysis: true,
+        includeFormatAnalysis: true,
+      },
+      userId: request.userId,
+      templateId: request.templateId,
+    };
+
+    onProgress?.({
+      isLoading: true,
+      progress: 25,
+      stage: 'analyzing',
+      message: 'Analyzing resume with AI...'
+    });
+
+    // Try backend AI service first
+    const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+    const analysisEndpoint = `${backendUrl}/api/resume/analyze`;
+
+    // Set up request with timeout and abort controller
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout
+
+    let response: Response;
+    
+    try {
+      response = await fetch(analysisEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-Request-ID': `resume-analysis-${Date.now()}`, // Add request ID for tracking
+        },
+        body: JSON.stringify(backendRequest),
+        signal: controller.signal,
+        credentials: 'include', // Include cookies for authentication
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError instanceof Error) {
+        if (fetchError.name === 'AbortError') {
+          throw new ResumeAnalysisError(
+            'Analysis request timed out. Please try again.',
+            'REQUEST_TIMEOUT',
+            408
+          );
+        }
+        
+        // Network error - fallback to local analysis
+        console.warn('Backend AI service unavailable, falling back to local analysis:', fetchError.message);
+        return await fallbackToLocalAnalysis(request, onProgress);
+      }
+      
+      throw new ResumeAnalysisError(
+        'Network error occurred while analyzing resume.',
+        'NETWORK_ERROR',
+        0,
+        { originalError: fetchError }
+      );
+    }
+
+    clearTimeout(timeoutId);
+
+    onProgress?.({
+      isLoading: true,
+      progress: 75,
+      stage: 'generating_suggestions',
+      message: 'Generating optimization suggestions...'
+    });
+
+    // Handle HTTP errors with comprehensive error handling
+    if (!response.ok) {
+      let errorMessage = `Analysis failed with status ${response.status}`;
+      let errorCode = 'BACKEND_ERROR';
+      let errorDetails: Record<string, unknown> = {};
+      
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+        errorCode = errorData.code || errorCode;
+        errorDetails = errorData.details || {};
+      } catch {
+        // If we can't parse error response, use default message
+      }
+
+      // Handle specific error cases
+      if (response.status === 400) {
+        throw new ResumeAnalysisError(errorMessage, 'INVALID_REQUEST', 400, errorDetails);
+      } else if (response.status === 401) {
+        throw new ResumeAnalysisError('Authentication required.', 'UNAUTHORIZED', 401);
+      } else if (response.status === 429) {
+        throw new ResumeAnalysisError(
+          'Too many requests. Please wait a moment and try again.',
+          'RATE_LIMITED',
+          429
+        );
+      } else if (response.status >= 500) {
+        // Server error - fallback to local analysis
+        console.warn('Backend server error, falling back to local analysis');
+        return await fallbackToLocalAnalysis(request, onProgress);
+      }
+
+      throw new ResumeAnalysisError(errorMessage, errorCode, response.status, errorDetails);
+    }
+
+    // Parse response with error handling
+    let backendResult: BackendAnalysisResponse;
+    try {
+      backendResult = await response.json();
+    } catch (parseError) {
+      console.error('Failed to parse backend response:', parseError);
+      throw new ResumeAnalysisError(
+        'Invalid response format from analysis service.',
+        'INVALID_RESPONSE',
+        500,
+        { parseError }
+      );
+    }
+
+    // Validate backend response structure
+    if (!backendResult.success || !backendResult.data) {
+      const errorMessage = backendResult.error || 'Analysis service returned an error';
+      console.error('Backend analysis failed:', errorMessage);
+      throw new ResumeAnalysisError(errorMessage, 'ANALYSIS_FAILED', 500);
+    }
+
+    onProgress?.({
+      isLoading: true,
+      progress: 95,
+      stage: 'finalizing',
+      message: 'Finalizing analysis results...'
+    });
+
+    // Transform backend response to frontend format
+    const analysisResponse = transformBackendResponse(backendResult.data, startTime);
+
+    onProgress?.({
+      isLoading: false,
+      progress: 100,
+      message: 'Analysis complete!'
+    });
+
+    return analysisResponse;
+
+  } catch (error) {
+    onProgress?.({
+      isLoading: false,
+      progress: 0,
+      message: 'Analysis failed'
+    });
+
+    // Re-throw ResumeAnalysisError as-is
+    if (error instanceof ResumeAnalysisError) {
+      throw error;
+    }
+
+    // Handle unexpected errors
+    console.error('Unexpected error during resume analysis:', error);
+    throw new ResumeAnalysisError(
+      'An unexpected error occurred during analysis. Please try again.',
+      'UNEXPECTED_ERROR',
+      500,
+      { originalError: error }
+    );
+  }
+};
+
+/**
+ * Fallback to local analysis when backend is unavailable
+ */
+async function fallbackToLocalAnalysis(
+  request: ResumeAnalysisRequest,
+  onProgress?: (state: AnalysisLoadingState) => void
+): Promise<ResumeAnalysisResponse> {
+  onProgress?.({
+    isLoading: true,
+    progress: 50,
+    stage: 'analyzing',
+    message: 'Using local analysis...'
+  });
+
+  try {
+    // Use the existing local API endpoint
     const response = await fetch(`${API_BASE_URL}/resume-optimizer/analyze`, {
       method: 'POST',
       headers: {
@@ -380,30 +771,286 @@ export const analyzeResume = async (
     });
 
     if (!response.ok) {
-      throw new Error(`Analysis failed: ${response.statusText}`);
+      throw new Error(`Local analysis failed: ${response.statusText}`);
     }
 
     const result: ApiResponse<ResumeAnalysisResponse> = await response.json();
 
     if (!result.success || !result.data) {
-      throw new Error(result.error || 'Failed to analyze resume');
+      throw new Error(result.error || 'Local analysis failed');
     }
+
+    onProgress?.({
+      isLoading: false,
+      progress: 100,
+      message: 'Analysis complete (local)'
+    });
 
     return result.data;
   } catch (error) {
-    console.error('Error analyzing resume:', error);
-    throw new Error('Failed to analyze resume. Please try again.');
+    console.error('Local analysis also failed:', error);
+    throw new ResumeAnalysisError(
+      'Both backend and local analysis services are unavailable. Please try again later.',
+      'ALL_SERVICES_UNAVAILABLE',
+      503
+    );
+  }
+}
+
+/**
+ * Transform backend response to frontend ResumeAnalysisResponse format
+ */
+function transformBackendResponse(
+  backendData: NonNullable<BackendAnalysisResponse['data']>,
+  startTime: number
+): ResumeAnalysisResponse {
+  const processingTime = Date.now() - startTime;
+
+  return {
+    id: backendData.analysisId,
+    overallScore: backendData.overallScore,
+    atsScore: backendData.atsCompatibilityScore,
+    keywordAnalysis: {
+      score: backendData.keywordAnalysis.score,
+      totalKeywords: backendData.keywordAnalysis.matchedKeywords.length + 
+                    backendData.keywordAnalysis.missingKeywords.length,
+      matchedKeywords: backendData.keywordAnalysis.matchedKeywords,
+      missingKeywords: backendData.keywordAnalysis.missingKeywords,
+      keywordDensity: backendData.keywordAnalysis.keywordDensity,
+      recommendations: backendData.keywordAnalysis.recommendations,
+    },
+    suggestions: backendData.optimizationSuggestions,
+    grammarCheck: {
+      score: backendData.grammarAnalysis.score,
+      totalIssues: backendData.grammarAnalysis.totalIssues,
+      issues: backendData.grammarAnalysis.issues,
+      overallReadability: backendData.grammarAnalysis.readabilityScore,
+    },
+    formatAnalysis: {
+      score: backendData.formatAnalysis.score,
+      atsCompatibility: backendData.formatAnalysis.atsCompatibility,
+      issues: backendData.formatAnalysis.issues,
+      recommendations: backendData.formatAnalysis.issues.map(issue => issue.recommendation),
+      sectionStructure: backendData.formatAnalysis.sectionStructure,
+    },
+    quantitativeAnalysis: {
+      score: backendData.quantitativeAnalysis.score,
+      achievementsWithNumbers: backendData.quantitativeAnalysis.achievementsWithNumbers,
+      totalAchievements: backendData.quantitativeAnalysis.totalAchievements,
+      suggestions: backendData.quantitativeAnalysis.suggestions,
+      impactWords: backendData.quantitativeAnalysis.impactWords,
+    },
+    createdAt: backendData.createdAt,
+    processingTime,
+  };
+}
+
+/**
+ * Check if backend AI service is available
+ */
+export const checkBackendAvailability = async (): Promise<boolean> => {
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+    const healthEndpoint = `${backendUrl}/api/health`;
+    
+    const response = await fetch(healthEndpoint, {
+      method: 'GET',
+      headers: { 'Accept': 'application/json' },
+      signal: AbortSignal.timeout(5000), // 5 second timeout
+    });
+    
+    return response.ok;
+  } catch {
+    return false;
   }
 };
 
 /**
- * Re-analyzes resume with updated content
+ * Re-analyzes resume with updated content using backend AI integration
  */
 export const reanalyzeResume = async (
   resumeText: string,
   originalAnalysisId: string,
-  targetJob: ResumeAnalysisRequest['targetJob']
+  targetJob: ResumeAnalysisRequest['targetJob'],
+  onProgress?: (state: AnalysisLoadingState) => void
 ): Promise<ResumeAnalysisResponse> => {
+  const startTime = Date.now();
+  
+  try {
+    onProgress?.({
+      isLoading: true,
+      progress: 10,
+      stage: 'parsing',
+      message: 'Preparing updated resume for re-analysis...'
+    });
+
+    // Validate input
+    if (!resumeText || resumeText.trim().length < 50) {
+      throw new ResumeAnalysisError(
+        'Resume text is too short for re-analysis.',
+        'INVALID_RESUME_TEXT',
+        400
+      );
+    }
+
+    if (!targetJob?.title) {
+      throw new ResumeAnalysisError(
+        'Target job information is required for re-analysis.',
+        'MISSING_TARGET_JOB',
+        400
+      );
+    }
+
+    // Prepare backend request for re-analysis
+    const backendRequest: BackendAnalysisRequest & { originalAnalysisId: string } = {
+      resumeText,
+      targetJob: {
+        title: targetJob.title,
+        keywords: targetJob.keywords || '',
+        description: targetJob.description,
+        company: targetJob.company,
+      },
+      analysisOptions: {
+        includeATSAnalysis: true,
+        includeKeywordAnalysis: true,
+        includeGrammarCheck: true,
+        includeQuantitativeAnalysis: true,
+        includeFormatAnalysis: true,
+      },
+      originalAnalysisId,
+    };
+
+    onProgress?.({
+      isLoading: true,
+      progress: 25,
+      stage: 'analyzing',
+      message: 'Re-analyzing resume with AI...'
+    });
+
+    // Try backend first
+    const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+    const reanalysisEndpoint = `${backendUrl}/api/resume/reanalyze`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    let response: Response;
+    
+    try {
+      response = await fetch(reanalysisEndpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(backendRequest),
+        signal: controller.signal,
+        credentials: 'include',
+      });
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        throw new ResumeAnalysisError(
+          'Re-analysis request timed out. Please try again.',
+          'REQUEST_TIMEOUT',
+          408
+        );
+      }
+      
+      // Fallback to local re-analysis
+      console.warn('Backend re-analysis unavailable, falling back to local');
+      return await fallbackToLocalReanalysis(resumeText, originalAnalysisId, targetJob, onProgress);
+    }
+
+    clearTimeout(timeoutId);
+
+    onProgress?.({
+      isLoading: true,
+      progress: 75,
+      stage: 'generating_suggestions',
+      message: 'Generating updated suggestions...'
+    });
+
+    if (!response.ok) {
+      if (response.status >= 500) {
+        // Server error - fallback to local
+        console.warn('Backend server error during re-analysis, falling back to local');
+        return await fallbackToLocalReanalysis(resumeText, originalAnalysisId, targetJob, onProgress);
+      }
+      
+      let errorMessage = `Re-analysis failed with status ${response.status}`;
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.error || errorData.message || errorMessage;
+      } catch {
+        // Use default message
+      }
+      
+      throw new ResumeAnalysisError(errorMessage, 'REANALYSIS_FAILED', response.status);
+    }
+
+    const backendResult: BackendAnalysisResponse = await response.json();
+
+    if (!backendResult.success || !backendResult.data) {
+      const errorMessage = backendResult.error || 'Re-analysis service returned an error';
+      throw new ResumeAnalysisError(errorMessage, 'REANALYSIS_FAILED', 500);
+    }
+
+    onProgress?.({
+      isLoading: true,
+      progress: 95,
+      stage: 'finalizing',
+      message: 'Finalizing re-analysis results...'
+    });
+
+    const analysisResponse = transformBackendResponse(backendResult.data, startTime);
+
+    onProgress?.({
+      isLoading: false,
+      progress: 100,
+      message: 'Re-analysis complete!'
+    });
+
+    return analysisResponse;
+
+  } catch (error) {
+    onProgress?.({
+      isLoading: false,
+      progress: 0,
+      message: 'Re-analysis failed'
+    });
+
+    if (error instanceof ResumeAnalysisError) {
+      throw error;
+    }
+
+    console.error('Unexpected error during re-analysis:', error);
+    throw new ResumeAnalysisError(
+      'An unexpected error occurred during re-analysis. Please try again.',
+      'UNEXPECTED_ERROR',
+      500,
+      { originalError: error }
+    );
+  }
+};
+
+/**
+ * Fallback to local re-analysis when backend is unavailable
+ */
+async function fallbackToLocalReanalysis(
+  resumeText: string,
+  originalAnalysisId: string,
+  targetJob: ResumeAnalysisRequest['targetJob'],
+  onProgress?: (state: AnalysisLoadingState) => void
+): Promise<ResumeAnalysisResponse> {
+  onProgress?.({
+    isLoading: true,
+    progress: 50,
+    stage: 'analyzing',
+    message: 'Using local re-analysis...'
+  });
+
   try {
     const response = await fetch(`${API_BASE_URL}/resume-optimizer/reanalyze`, {
       method: 'POST',
@@ -418,21 +1065,31 @@ export const reanalyzeResume = async (
     });
 
     if (!response.ok) {
-      throw new Error(`Re-analysis failed: ${response.statusText}`);
+      throw new Error(`Local re-analysis failed: ${response.statusText}`);
     }
 
     const result: ApiResponse<ResumeAnalysisResponse> = await response.json();
 
     if (!result.success || !result.data) {
-      throw new Error(result.error || 'Failed to re-analyze resume');
+      throw new Error(result.error || 'Local re-analysis failed');
     }
+
+    onProgress?.({
+      isLoading: false,
+      progress: 100,
+      message: 'Re-analysis complete (local)'
+    });
 
     return result.data;
   } catch (error) {
-    console.error('Error re-analyzing resume:', error);
-    throw new Error('Failed to re-analyze resume. Please try again.');
+    console.error('Local re-analysis also failed:', error);
+    throw new ResumeAnalysisError(
+      'Both backend and local re-analysis services are unavailable. Please try again later.',
+      'ALL_SERVICES_UNAVAILABLE',
+      503
+    );
   }
-};
+}
 
 /**
  * Exports optimized resume in specified format
@@ -536,17 +1193,17 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
       resumeText += `${exp.title} | ${exp.company} | ${exp.duration}\n`;
       if (exp.location) resumeText += `${exp.location}\n`;
       resumeText += `${exp.description}\n`;
-      
+
       if (exp.achievements && exp.achievements.length > 0) {
         exp.achievements.forEach((achievement) => {
           resumeText += `• ${achievement}\n`;
         });
       }
-      
+
       if (exp.technologies && exp.technologies.length > 0) {
         resumeText += `Technologies: ${exp.technologies.join(', ')}\n`;
       }
-      
+
       if (index < profileData.experience.length - 1) {
         resumeText += '\n';
       }
@@ -562,17 +1219,17 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
       if (project.role) resumeText += ` | ${project.role}`;
       if (project.duration) resumeText += ` | ${project.duration}`;
       resumeText += '\n';
-      
+
       resumeText += `${project.description}\n`;
-      
+
       if (project.technologies && project.technologies.length > 0) {
         resumeText += `Technologies: ${project.technologies.join(', ')}\n`;
       }
-      
+
       if (project.url) {
         resumeText += `URL: ${project.url}\n`;
       }
-      
+
       if (index < profileData.projects.length - 1) {
         resumeText += '\n';
       }
@@ -591,7 +1248,7 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
       if (edu.relevantCourses && edu.relevantCourses.length > 0) {
         resumeText += `Relevant Coursework: ${edu.relevantCourses.join(', ')}\n`;
       }
-      
+
       if (index < profileData.education.length - 1) {
         resumeText += '\n';
       }
@@ -606,7 +1263,7 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
       resumeText += `${cert.name} | ${cert.issuer} | ${cert.date}\n`;
       if (cert.credentialId) resumeText += `Credential ID: ${cert.credentialId}\n`;
       if (cert.expiryDate) resumeText += `Expires: ${cert.expiryDate}\n`;
-      
+
       if (index < profileData.certifications.length - 1) {
         resumeText += '\n';
       }
@@ -623,8 +1280,9 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
   // Languages (if available)
   if (profileData.languages && profileData.languages.length > 0) {
     resumeText += 'LANGUAGES\n';
-    const languageStrings = profileData.languages.map(lang => 
-      `${lang.language} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
+    const languageStrings = profileData.languages.map(
+      (lang) =>
+        `${lang.language} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
     );
     resumeText += languageStrings.join(' • ');
   }

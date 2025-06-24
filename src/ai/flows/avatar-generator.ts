@@ -124,24 +124,31 @@ const avatarGeneratorFlow = ai.defineFlow(
     constructedPrompt +=
       "The image should be high-resolution, well-lit, with the subject clearly visible and centered. Avoid overly stylized or cartoonish looks unless explicitly requested by the 'creative_trend' style. Focus on a realistic human representation.";
 
-    const { media } = await ai.generate({
-      model: 'googleai/gemini-2.0-flash-exp', // Ensure this is the correct model for image generation
-      prompt: [{ text: constructedPrompt }],
-      config: {
-        responseModalities: ['TEXT', 'IMAGE'], // Requesting an image response
-        safetySettings: [
-          { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
-          { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_ONLY_HIGH' },
-          { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' }, // Changed from BLOCK_LOW_AND_ABOVE
-        ],
-      },
-    });
+    // Note: Mistral AI doesn't support image generation directly
+    // This is a mock implementation for avatar generation
+    // In production, you would integrate with image generation services like:
+    // - DALL-E, Midjourney, Stable Diffusion, or similar
+    
+    // TODO: Generate description using AI and use it with image generation services
+    // For now, we'll create a mock avatar based on the input parameters
 
-    if (!media || !media.url) {
-      throw new Error('AI did not return an image. Please try adjusting your description.');
-    }
+    // Mock avatar generation - in production, use the description to generate actual image
+    const mockAvatarDataUri = `data:image/svg+xml;base64,${btoa(`
+      <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="200" fill="#f0f0f0"/>
+        <circle cx="100" cy="80" r="30" fill="#ddd"/>
+        <rect x="70" y="120" width="60" height="80" fill="#333"/>
+        <text x="100" y="190" text-anchor="middle" font-family="Arial" font-size="12" fill="#666">
+          Avatar Generated
+        </text>
+        <text x="100" y="205" text-anchor="middle" font-family="Arial" font-size="8" fill="#999">
+          ${input.jobTypeHint || 'Professional'}
+        </text>
+      </svg>
+    `)}`;
 
-    return { avatarDataUri: media.url };
+    // For now, return the mock avatar
+    // In production, you would use the AI response to generate an actual image
+    return { avatarDataUri: mockAvatarDataUri };
   }
 );

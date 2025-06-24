@@ -4,14 +4,14 @@
  * Supports PDF, DOC, and DOCX files with real-time text extraction
  */
 
-import React, { useRef } from 'react';
 import {
+  CheckCircleIcon,
   DocumentArrowUpIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
+import React, { useRef } from 'react';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import type { ParsedFileResult } from '@/lib/resume-types';
 
@@ -44,11 +44,11 @@ export const FileUpload: React.FC<FileUploadProps> = ({
   acceptedFormats = ['PDF', 'DOC', 'DOCX'],
   placeholder = {
     title: 'Click to upload or drag & drop',
-    subtitle: 'PDF, DOC, or DOCX (max 10MB)'
-  }
+    subtitle: 'PDF, DOC, or DOCX (max 10MB)',
+  },
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const {
     uploadState,
     handleFileChange,
@@ -97,23 +97,27 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           disabled
             ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-50'
             : uploadState.dragActive
-            ? 'border-primary bg-primary/5 scale-105'
-            : uploadState.file
-            ? 'border-success bg-success/5'
-            : 'border-gray-300 hover:border-primary hover:bg-primary/5 cursor-pointer'
+              ? 'border-primary bg-primary/5 scale-105'
+              : uploadState.file
+                ? 'border-success bg-success/5'
+                : 'border-gray-300 hover:border-primary hover:bg-primary/5 cursor-pointer'
         }`}
         onDragOver={disabled ? undefined : handleDragOver}
         onDragLeave={disabled ? undefined : handleDragLeave}
         onDrop={disabled ? undefined : handleDrop}
         onClick={disabled ? undefined : () => fileInputRef.current?.click()}
-        role={disabled ? undefined : "button"}
+        role={disabled ? undefined : 'button'}
         tabIndex={disabled ? -1 : 0}
-        aria-label={disabled ? "File upload disabled" : "Click to upload file or drag and drop"}
-        onKeyDown={disabled ? undefined : (e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            fileInputRef.current?.click();
-          }
-        }}
+        aria-label={disabled ? 'File upload disabled' : 'Click to upload file or drag and drop'}
+        onKeyDown={
+          disabled
+            ? undefined
+            : (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  fileInputRef.current?.click();
+                }
+              }
+        }
       >
         <input
           ref={fileInputRef}
@@ -124,15 +128,13 @@ export const FileUpload: React.FC<FileUploadProps> = ({
           aria-hidden="true"
           disabled={disabled}
         />
-        
+
         {uploadState.file ? (
           <div className="space-y-3">
             <CheckCircleIcon className="w-12 h-12 text-success mx-auto" />
             <div>
               <p className="font-medium text-gray-800">{uploadState.file.name}</p>
-              <p className="text-sm text-gray-500">
-                {formatFileSize(uploadState.file.size)}
-              </p>
+              <p className="text-sm text-gray-500">{formatFileSize(uploadState.file.size)}</p>
             </div>
             {!disabled && (
               <button
@@ -176,9 +178,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             <span className="text-sm font-medium text-gray-700">{getStageMessage()}</span>
             <span className="text-sm text-gray-500">{uploadState.progress}%</span>
           </div>
-          <progress 
-            className="progress progress-primary w-full" 
-            value={uploadState.progress} 
+          <progress
+            className="progress progress-primary w-full"
+            value={uploadState.progress}
             max="100"
             aria-label={`Upload progress: ${uploadState.progress}%`}
           />
@@ -201,11 +203,15 @@ export const FileUpload: React.FC<FileUploadProps> = ({
       {showMetadata && uploadState.metadata && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gray-50 rounded-lg">
           <div className="text-center">
-            <div className="text-2xl font-bold text-primary">{uploadState.metadata.wordCount.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-primary">
+              {uploadState.metadata.wordCount.toLocaleString()}
+            </div>
             <div className="text-xs text-gray-600">Words</div>
           </div>
           <div className="text-center">
-            <div className="text-2xl font-bold text-secondary">{uploadState.metadata.characterCount.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-secondary">
+              {uploadState.metadata.characterCount.toLocaleString()}
+            </div>
             <div className="text-xs text-gray-600">Characters</div>
           </div>
           {uploadState.metadata.pageCount && (
@@ -215,7 +221,9 @@ export const FileUpload: React.FC<FileUploadProps> = ({
             </div>
           )}
           <div className="text-center">
-            <div className="text-2xl font-bold text-info">{(uploadState.metadata.extractionTime / 1000).toFixed(1)}s</div>
+            <div className="text-2xl font-bold text-info">
+              {(uploadState.metadata.extractionTime / 1000).toFixed(1)}s
+            </div>
             <div className="text-xs text-gray-600">Processing Time</div>
           </div>
         </div>

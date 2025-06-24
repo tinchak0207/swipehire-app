@@ -1073,7 +1073,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             Resume Optimization tools
           </CardTitle>
           <CardDescription>
-            Enhance your resume with AI-powered analysis and optimization to increase your chances of landing interviews.
+            Enhance your resume with AI-powered analysis and optimization to increase your chances
+            of landing interviews.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -1087,8 +1088,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <div className="flex-1 min-w-0">
                 <h3 className="font-semibold text-lg text-gray-900">AI-Powered Resume Analysis</h3>
                 <p className="text-gray-600 text-sm mt-1">
-                  Get detailed feedback on your resume including ATS compatibility, keyword optimization, 
-                  and personalized suggestions to improve your job application success rate.
+                  Get detailed feedback on your resume including ATS compatibility, keyword
+                  optimization, and personalized suggestions to improve your job application success
+                  rate.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Badge variant="secondary" className="text-xs">
@@ -1109,7 +1111,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           </div>
         </CardContent>
         <CardFooter>
-          <Button 
+          <Button
             onClick={() => router.push('/resume-optimizer')}
             className="w-full sm:w-auto"
             disabled={isGuestMode}

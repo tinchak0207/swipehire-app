@@ -6,8 +6,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { parseFile, validateFile } from '@/services/fileParsingService';
 import type { ParsedFileResult } from '@/services/fileParsingService';
+import { parseFile, validateFile } from '@/services/fileParsingService';
 
 export const PDFTestComponent: React.FC = () => {
   const [testResult, setTestResult] = useState<string>('');
@@ -22,65 +22,76 @@ export const PDFTestComponent: React.FC = () => {
 
     try {
       // Step 1: Validate file
-      setTestResult(prev => prev + `Step 1: Validating file "${file.name}"...\n`);
+      setTestResult((prev) => prev + `Step 1: Validating file "${file.name}"...\n`);
       const validation = validateFile(file);
-      
+
       if (!validation.isValid) {
-        setTestResult(prev => prev + `✓ Validation failed: ${validation.error}\n`);
+        setTestResult((prev) => prev + `✓ Validation failed: ${validation.error}\n`);
         return;
       }
-      
-      setTestResult(prev => prev + `✓ File validation passed\n`);
-      setTestResult(prev => prev + `   - File size: ${(file.size / 1024 / 1024).toFixed(2)} MB\n`);
-      setTestResult(prev => prev + `   - File type: ${file.type}\n`);
+
+      setTestResult((prev) => prev + `✓ File validation passed\n`);
+      setTestResult(
+        (prev) => prev + `   - File size: ${(file.size / 1024 / 1024).toFixed(2)} MB\n`
+      );
+      setTestResult((prev) => prev + `   - File type: ${file.type}\n`);
 
       // Step 2: Test PDF.js initialization
-      setTestResult(prev => prev + `\nStep 2: Testing PDF.js initialization...\n`);
-      
+      setTestResult((prev) => prev + `\nStep 2: Testing PDF.js initialization...\n`);
+
       try {
         const pdfjsLib = await import('pdfjs-dist');
-        setTestResult(prev => prev + `✓ PDF.js imported successfully\n`);
-        setTestResult(prev => prev + `   - Version: ${pdfjsLib.version}\n`);
-        
+        setTestResult((prev) => prev + `✓ PDF.js imported successfully\n`);
+        setTestResult((prev) => prev + `   - Version: ${pdfjsLib.version}\n`);
+
         // Configure worker
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`;
-        setTestResult(prev => prev + `✓ Worker configured\n`);
-        setTestResult(prev => prev + `   - Worker source: ${pdfjsLib.GlobalWorkerOptions.workerSrc}\n`);
+        setTestResult((prev) => prev + `✓ Worker configured\n`);
+        setTestResult(
+          (prev) => prev + `   - Worker source: ${pdfjsLib.GlobalWorkerOptions.workerSrc}\n`
+        );
       } catch (pdfError) {
-        setTestResult(prev => prev + `✗ PDF.js initialization failed: ${pdfError}\n`);
+        setTestResult((prev) => prev + `✗ PDF.js initialization failed: ${pdfError}\n`);
         return;
       }
 
       // Step 3: Parse file
-      setTestResult(prev => prev + `\nStep 3: Parsing file...\n`);
-      
+      setTestResult((prev) => prev + `\nStep 3: Parsing file...\n`);
+
       const result: ParsedFileResult = await parseFile(file, {
         onProgress: (progress) => {
-          setTestResult(prev => prev + `   - ${progress.stage}: ${progress.progress}% - ${progress.message}\n`);
-        }
+          setTestResult(
+            (prev) => prev + `   - ${progress.stage}: ${progress.progress}% - ${progress.message}\n`
+          );
+        },
       });
 
-      setTestResult(prev => prev + `\n✓ File parsed successfully!\n`);
-      setTestResult(prev => prev + `   - Extracted text length: ${result.text.length} characters\n`);
-      setTestResult(prev => prev + `   - Word count: ${result.metadata.wordCount}\n`);
-      setTestResult(prev => prev + `   - Page count: ${result.metadata.pageCount || 'N/A'}\n`);
-      setTestResult(prev => prev + `   - Processing time: ${result.metadata.extractionTime}ms\n`);
-      
+      setTestResult((prev) => prev + `\n✓ File parsed successfully!\n`);
+      setTestResult(
+        (prev) => prev + `   - Extracted text length: ${result.text.length} characters\n`
+      );
+      setTestResult((prev) => prev + `   - Word count: ${result.metadata.wordCount}\n`);
+      setTestResult((prev) => prev + `   - Page count: ${result.metadata.pageCount || 'N/A'}\n`);
+      setTestResult((prev) => prev + `   - Processing time: ${result.metadata.extractionTime}ms\n`);
+
       // Show first 200 characters of extracted text
       const preview = result.text.substring(0, 200);
-      setTestResult(prev => prev + `\nText preview (first 200 chars):\n"${preview}${result.text.length > 200 ? '...' : ''}"\n`);
-
+      setTestResult(
+        (prev) =>
+          prev +
+          `\nText preview (first 200 chars):\n"${preview}${result.text.length > 200 ? '...' : ''}"\n`
+      );
     } catch (error) {
-      setTestResult(prev => prev + `\n✗ Error occurred:\n`);
+      setTestResult((prev) => prev + `\n✗ Error occurred:\n`);
       if (error instanceof Error) {
-        setTestResult(prev => prev + `   - Message: ${error.message}\n`);
-        setTestResult(prev => prev + `   - Name: ${error.name}\n`);
+        setTestResult((prev) => prev + `   - Message: ${error.message}\n`);
+        setTestResult((prev) => prev + `   - Name: ${error.name}\n`);
         if ('code' in error) {
-          setTestResult(prev => prev + `   - Code: ${(error as any).code}\n`);
+          setTestResult((prev) => prev + `   - Code: ${(error as any).code}\n`);
         }
-        setTestResult(prev => prev + `   - Stack: ${error.stack}\n`);
+        setTestResult((prev) => prev + `   - Stack: ${error.stack}\n`);
       } else {
-        setTestResult(prev => prev + `   - Unknown error: ${error}\n`);
+        setTestResult((prev) => prev + `   - Unknown error: ${error}\n`);
       }
     } finally {
       setIsLoading(false);
@@ -94,7 +105,7 @@ export const PDFTestComponent: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-lg">
       <h2 className="text-2xl font-bold mb-4">PDF Parsing Debug Tool</h2>
-      
+
       <div className="mb-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Select a PDF file to test:

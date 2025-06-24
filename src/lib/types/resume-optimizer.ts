@@ -109,8 +109,24 @@ export interface ResumeAnalysisResponse {
   grammarCheck: GrammarCheckResult;
   formatAnalysis: FormatAnalysis;
   quantitativeAnalysis: QuantitativeAnalysis;
+  strengths: string[];
+  weaknesses: string[];
   createdAt: string;
   processingTime: number;
+  sectionAnalysis?: Record<string, {
+    present: boolean;
+    score: number;
+    suggestions: string[];
+  }>;
+  optimizedContent?: string;
+  metadata?: {
+    analysisDate: string;
+    targetJobTitle: string;
+    targetCompany?: string;
+    templateUsed?: string;
+    wordCount: number;
+    processingTime: number;
+  };
 }
 
 export interface KeywordAnalysis {
@@ -148,6 +164,7 @@ export interface OptimizationSuggestion {
   section?: string;
   priority: number;
   estimatedScoreImprovement: number;
+  category?: 'contact' | 'content' | 'formatting';
 }
 
 export interface GrammarCheckResult {
@@ -235,8 +252,7 @@ export interface ExportOptions {
 
 export interface ExportResult {
   success: boolean;
-  downloadUrl?: string;
-  fileName?: string;
+  url?: string;
   error?: string;
 }
 
@@ -300,6 +316,7 @@ export interface SuggestionCardProps {
   onAdopt: (suggestionId: string) => void;
   onIgnore: (suggestionId: string) => void;
   onModify?: (suggestionId: string, modifiedText: string) => void;
+  onApplyToEditor?: (suggestionId: string, suggestion: OptimizationSuggestion) => void;
 }
 
 export interface ScoreDisplayProps {

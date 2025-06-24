@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import type { BackendUser, UserRole, UserPreferences } from '@/lib/types';
+import type { BackendUser, UserRole } from '@/lib/types';
 import ProgressIndicator from './ProgressIndicator';
 import CompletionStep from './steps/CompletionStep';
 import GoalSettingStep from './steps/GoalSettingStep';
@@ -70,7 +70,7 @@ const initialWizardData: WizardData = {
     workExperienceLevel: '',
     educationLevel: '',
     locationPreference: '',
-    availability: '', 
+    availability: '',
     jobTypePreference: '',
     salaryExpectationMin: 0,
     salaryExpectationMax: 0,
@@ -79,7 +79,7 @@ const initialWizardData: WizardData = {
     companyScale: '',
     companyDescription: '',
     companyCultureHighlights: [],
-    companyNeeds: ''
+    companyNeeds: '',
   },
   preferences: {
     theme: 'system',
@@ -108,11 +108,11 @@ const initialWizardData: WizardData = {
 };
 
 interface WizardContainerProps {
-  onComplete: () => void;
-  onSkip: () => void;
+  onCompleteAction: () => void;
+  onSkipAction: () => void;
 }
 
-export default function WizardContainer({ onComplete, onSkip }: WizardContainerProps) {
+export default function WizardContainer({ onCompleteAction, onSkipAction }: WizardContainerProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
   const [isLoading, setIsLoading] = useState(false);
@@ -192,11 +192,16 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
           notificationSubscriptions: {
             companyReplies: wizardData.preferences.notificationSubscriptions.companyReplies,
             matchUpdates: wizardData.preferences.notificationSubscriptions.matchUpdates,
-            applicationStatusChanges: wizardData.preferences.notificationSubscriptions.applicationStatusChanges,
-            platformAnnouncements: wizardData.preferences.notificationSubscriptions.platformAnnouncements,
-            welcomeAndOnboardingEmails: wizardData.preferences.notificationSubscriptions.welcomeAndOnboardingEmails,
-            contentAndBlogUpdates: wizardData.preferences.notificationSubscriptions.contentAndBlogUpdates,
-            featureAndPromotionUpdates: wizardData.preferences.notificationSubscriptions.featureAndPromotionUpdates,
+            applicationStatusChanges:
+              wizardData.preferences.notificationSubscriptions.applicationStatusChanges,
+            platformAnnouncements:
+              wizardData.preferences.notificationSubscriptions.platformAnnouncements,
+            welcomeAndOnboardingEmails:
+              wizardData.preferences.notificationSubscriptions.welcomeAndOnboardingEmails,
+            contentAndBlogUpdates:
+              wizardData.preferences.notificationSubscriptions.contentAndBlogUpdates,
+            featureAndPromotionUpdates:
+              wizardData.preferences.notificationSubscriptions.featureAndPromotionUpdates,
           },
         },
       };
@@ -290,7 +295,7 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
 
       setShowConfetti(true);
       setTimeout(() => {
-        onComplete();
+        onCompleteAction();
       }, 3000);
     }
   };
@@ -326,7 +331,7 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
         console.error('Error marking wizard as skipped:', error);
       }
     }
-    onSkip();
+    onSkipAction();
   };
 
   const renderCurrentStep = () => {
@@ -347,7 +352,7 @@ export default function WizardContainer({ onComplete, onSkip }: WizardContainerP
             data={wizardData}
             onUpdate={updateWizardData}
             onNext={handleNext}
-            onBack={handleBack}
+            onBackAction={handleBack}
             isLoading={isLoading}
           />
         );

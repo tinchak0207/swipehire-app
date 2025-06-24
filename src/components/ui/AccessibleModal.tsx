@@ -52,7 +52,7 @@ export function AccessibleModal({
       if (closeOnEscape) {
         onClose();
       }
-    }
+    },
   };
 
   // Setup focus trap
@@ -64,7 +64,7 @@ export function AccessibleModal({
   // Setup keyboard navigation
   useEffect(() => {
     if (!isOpen || !keyboardRef.current) return;
-    
+
     const element = keyboardRef.current;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {

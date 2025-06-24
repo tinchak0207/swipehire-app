@@ -2,16 +2,16 @@
 
 import {
   ArrowRightIcon,
+  CheckCircleIcon,
+  ClockIcon,
   DocumentArrowUpIcon,
   PlusIcon,
-  UserIcon,
-  ClockIcon,
-  CheckCircleIcon,
   StarIcon,
+  UserIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface QuickStat {
   label: string;
@@ -43,23 +43,23 @@ const ResumeOptimizerPage: NextPage = () => {
       {/* Hero Section */}
       <div className="container mx-auto max-w-6xl px-4 py-8">
         {/* Header Section */}
-        <div className={`text-center mb-12 transition-all duration-1000 ${
-          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        }`}>
+        <div
+          className={`text-center mb-12 transition-all duration-1000 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
+        >
           <div className="flex items-center justify-center mb-4">
             <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-3 rounded-full">
               <DocumentArrowUpIcon className="w-8 h-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-            Resume Optimizer
-          </h1>
+          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Resume Optimizer</h1>
           <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
             Transform your resume with AI-powered analysis, ATS compatibility checks, and
-            personalized suggestions. Increase your chances of landing interviews with
-            data-driven optimization.
+            personalized suggestions. Increase your chances of landing interviews with data-driven
+            optimization.
           </p>
-          
+
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
             {quickStats.map((stat, index) => (
@@ -79,11 +79,18 @@ const ResumeOptimizerPage: NextPage = () => {
         </div>
 
         {/* Main Options Grid */}
-        <div className={`grid md:grid-cols-3 gap-6 mb-12 transition-all duration-1000 ${
-          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`} style={{ transitionDelay: '400ms' }}>
+        <div
+          className={`grid md:grid-cols-3 gap-6 mb-12 transition-all duration-1000 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+          style={{ transitionDelay: '400ms' }}
+        >
           {/* Upload File Option */}
-          <Link href="/resume-optimizer/upload" className="group" aria-label="Upload existing resume">
+          <Link
+            href="/resume-optimizer/upload"
+            className="group"
+            aria-label="Upload existing resume"
+          >
             <div className="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-2 border-transparent hover:border-blue-200">
               <div className="card-body text-center p-8">
                 <div className="flex justify-center mb-4">
@@ -110,7 +117,11 @@ const ResumeOptimizerPage: NextPage = () => {
           </Link>
 
           {/* Import from Profile Option */}
-          <Link href="/resume-optimizer/import" className="group" aria-label="Import from SwipeHire profile">
+          <Link
+            href="/resume-optimizer/import"
+            className="group"
+            aria-label="Import from SwipeHire profile"
+          >
             <div className="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-2 border-transparent hover:border-green-200">
               <div className="card-body text-center p-8">
                 <div className="flex justify-center mb-4">
@@ -137,7 +148,11 @@ const ResumeOptimizerPage: NextPage = () => {
           </Link>
 
           {/* Create from Scratch Option */}
-          <Link href="/resume-optimizer/create" className="group" aria-label="Create resume from professional templates">
+          <Link
+            href="/resume-optimizer/create"
+            className="group"
+            aria-label="Create resume from professional templates"
+          >
             <div className="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-2 border-transparent hover:border-purple-200">
               <div className="card-body text-center p-8">
                 <div className="flex justify-center mb-4">
@@ -165,9 +180,12 @@ const ResumeOptimizerPage: NextPage = () => {
         </div>
 
         {/* Features Section */}
-        <div className={`bg-white rounded-lg shadow-lg p-8 mb-12 transition-all duration-1000 ${
-          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`} style={{ transitionDelay: '600ms' }}>
+        <div
+          className={`bg-white rounded-lg shadow-lg p-8 mb-12 transition-all duration-1000 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+          style={{ transitionDelay: '600ms' }}
+        >
           <h3 className="text-2xl font-bold text-center mb-6 text-gray-800">
             Comprehensive Resume Analysis
           </h3>
@@ -212,9 +230,12 @@ const ResumeOptimizerPage: NextPage = () => {
         </div>
 
         {/* Additional Features */}
-        <div className={`grid md:grid-cols-2 gap-8 transition-all duration-1000 ${
-          isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`} style={{ transitionDelay: '800ms' }}>
+        <div
+          className={`grid md:grid-cols-2 gap-8 transition-all duration-1000 ${
+            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          }`}
+          style={{ transitionDelay: '800ms' }}
+        >
           {/* How It Works */}
           <div className="bg-white rounded-lg shadow-lg p-6">
             <h3 className="text-xl font-bold mb-4 text-gray-800">How It Works</h3>

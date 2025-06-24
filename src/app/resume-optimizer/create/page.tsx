@@ -1,20 +1,21 @@
 'use client';
 
-import { 
-  ArrowLeftIcon, 
-  CheckCircleIcon, 
+import {
+  ArrowLeftIcon,
+  CheckCircleIcon,
   DocumentTextIcon,
-  EyeIcon,
   ExclamationTriangleIcon,
-  FunnelIcon,
+  EyeIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
-import type { ResumeTemplate, TargetJobInfo } from '@/lib/types/resume-optimizer';
-import { fetchResumeTemplates } from '@/services/resumeOptimizerService';
 import { TEMPLATE_CATEGORIES } from '@/lib/resume-types';
+import type { ResumeTemplate } from '@/lib/types/resume-optimizer';
+import { fetchResumeTemplates } from '@/services/resumeOptimizerService';
+import TargetJobInputForm, { useTargetJobForm } from '@/components/resume-optimizer/TargetJobInputForm';
 
 const resumeTemplates: ResumeTemplate[] = [
   {
@@ -226,11 +227,15 @@ const ResumeCreatePage: NextPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'template' | 'details'>('template');
 
-  const [targetJob, setTargetJob] = useState<TargetJobInfo>({
-    title: '',
-    keywords: '',
-  });
+  // Use the custom hook for target job form management
+  const {
+    formData: targetJobFormData,
+    isValid: isTargetJobValid,
+    handleChange: handleTargetJobChange,
+    convertToTargetJobInfo,
+  } = useTargetJobForm();
 
   useEffect(() => {
     const loadTemplates = async (): Promise<void> => {
@@ -257,35 +262,42 @@ const ResumeCreatePage: NextPage = () => {
     if (selectedCategory === 'all') {
       setFilteredTemplates(templates);
     } else {
-      setFilteredTemplates(templates.filter(template => template.category === selectedCategory));
+      setFilteredTemplates(templates.filter((template) => template.category === selectedCategory));
     }
   }, [selectedCategory, templates]);
 
   const handleTemplateSelect = useCallback((template: ResumeTemplate): void => {
     setSelectedTemplate(template);
     setShowPreview(false);
+    // Auto-advance to details step after template selection
+    setTimeout(() => setCurrentStep('details'), 300);
   }, []);
 
   const handlePreviewToggle = useCallback((): void => {
-    setShowPreview(prev => !prev);
+    setShowPreview((prev) => !prev);
   }, []);
 
   const handleAnalyze = useCallback(async (): Promise<void> => {
-    if (!selectedTemplate || !targetJob.title.trim()) {
+    if (!selectedTemplate || !isTargetJobValid) {
       return;
     }
 
     setIsAnalyzing(true);
 
     try {
+      const targetJob = convertToTargetJobInfo();
+      
       // Store data in sessionStorage for the analysis page
-      sessionStorage.setItem('resumeOptimizerData', JSON.stringify({
-        resumeText: selectedTemplate.content,
-        targetJob,
-        source: 'template',
-        templateId: selectedTemplate.id,
-        templateName: selectedTemplate.name,
-      }));
+      sessionStorage.setItem(
+        'resumeOptimizerData',
+        JSON.stringify({
+          resumeText: selectedTemplate.content,
+          targetJob,
+          source: 'template',
+          templateId: selectedTemplate.id,
+          templateName: selectedTemplate.name,
+        })
+      );
 
       // Navigate to analysis page
       router.push('/resume-optimizer/analyze');
@@ -295,294 +307,304 @@ const ResumeCreatePage: NextPage = () => {
     } finally {
       setIsAnalyzing(false);
     }
-  }, [selectedTemplate, targetJob, router]);
-
-  const handleInputChange = useCallback((field: keyof TargetJobInfo, value: string): void => {
-    setTargetJob(prev => ({ ...prev, [field]: value }));
-  }, []);
+  }, [selectedTemplate, isTargetJobValid, convertToTargetJobInfo, router]);
 
   const getCategoryColor = (category: ResumeTemplate['category']): string => {
-    return TEMPLATE_CATEGORIES[category]?.color || 'badge-neutral';
+    const colors = {
+      tech: 'from-blue-500 to-cyan-500',
+      business: 'from-green-500 to-emerald-500',
+      creative: 'from-purple-500 to-pink-500',
+      general: 'from-gray-500 to-slate-500',
+    };
+    return colors[category as keyof typeof colors] || 'from-gray-500 to-slate-500';
   };
 
-  const getCategoryIcon = (category: ResumeTemplate['category']): string => {
-    return TEMPLATE_CATEGORIES[category]?.icon || '📄';
+  const getCategoryIcon = (category: ResumeTemplate['category']): JSX.Element => {
+    const icons = {
+      tech: <DocumentTextIcon className="w-6 h-6" />,
+      business: <DocumentTextIcon className="w-6 h-6" />,
+      creative: <SparklesIcon className="w-6 h-6" />,
+      general: <DocumentTextIcon className="w-6 h-6" />,
+    };
+    return icons[category as keyof typeof icons] || <DocumentTextIcon className="w-6 h-6" />;
   };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
-        <div className="container mx-auto max-w-6xl">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center">
-              <span className="loading loading-spinner loading-lg text-primary mb-4"></span>
-              <p className="text-lg text-gray-600">Loading templates...</p>
-            </div>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
+        <div className="text-center animate-fade-in">
+          <div className="relative">
+            <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-8"></div>
+            <SparklesIcon className="w-8 h-8 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
+          <h2 className="text-2xl font-bold text-white mb-2">Loading Templates</h2>
+          <p className="text-white/70">Preparing your resume creation experience...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
-      <div className="container mx-auto max-w-6xl">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/3 rounded-full blur-3xl animate-pulse delay-500"></div>
+      </div>
+
+      <div className="relative z-10 min-h-screen">
         {/* Header */}
-        <div className="flex items-center mb-8">
-          <Link href="/resume-optimizer" className="btn btn-ghost btn-sm mr-4">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
-            Back
-          </Link>
-          <h1 className="text-3xl font-bold text-gray-800">Create from Scratch</h1>
+        <div className="backdrop-blur-sm bg-white/10 border-b border-white/20">
+          <div className="container mx-auto max-w-7xl px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Link 
+                  href="/resume-optimizer" 
+                  className="group flex items-center space-x-2 text-white/80 hover:text-white transition-all duration-200 hover:bg-white/10 px-3 py-2 rounded-lg"
+                >
+                  <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
+                  <span className="font-medium">Back</span>
+                </Link>
+                <div className="h-6 w-px bg-white/20"></div>
+                <h1 className="text-2xl font-bold text-white">Create Your Resume</h1>
+              </div>
+              
+              {/* Progress Indicator */}
+              <div className="flex items-center space-x-3">
+                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-all duration-300 ${
+                  currentStep === 'template' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    currentStep === 'template' ? 'bg-white' : 'bg-white/40'
+                  }`}></div>
+                  <span className="text-sm font-medium">Template</span>
+                </div>
+                <div className={`flex items-center space-x-2 px-3 py-1 rounded-full transition-all duration-300 ${
+                  currentStep === 'details' ? 'bg-white/20 text-white' : 'bg-white/10 text-white/60'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    currentStep === 'details' ? 'bg-white' : 'bg-white/40'
+                  }`}></div>
+                  <span className="text-sm font-medium">Details</span>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         {error && (
-          <div className="alert alert-warning mb-8">
-            <ExclamationTriangleIcon className="w-5 h-5" />
-            <span>{error}</span>
+          <div className="container mx-auto max-w-7xl px-6 py-4">
+            <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4 backdrop-blur-sm animate-fade-in">
+              <div className="flex items-center space-x-3">
+                <ExclamationTriangleIcon className="w-5 h-5 text-yellow-400 flex-shrink-0" />
+                <span className="text-yellow-100">{error}</span>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Template Selection */}
-          <div className="lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold">Choose a Template</h2>
-              <div className="dropdown dropdown-end">
-                <div tabIndex={0} role="button" className="btn btn-outline btn-sm">
-                  <FunnelIcon className="w-4 h-4 mr-1" />
-                  Filter
-                </div>
-                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
-                  <li>
+        <div className="container mx-auto max-w-7xl px-6 py-8">
+          {currentStep === 'template' ? (
+            /* Template Selection Step */
+            <div className="animate-fade-in">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold text-white mb-4">Choose Your Starting Point</h2>
+                <p className="text-xl text-white/70 max-w-2xl mx-auto">
+                  Select a professionally crafted template that matches your career field and goals
+                </p>
+              </div>
+
+              {/* Category Filter */}
+              <div className="flex justify-center mb-8">
+                <div className="backdrop-blur-sm bg-white/10 rounded-2xl p-2 border border-white/20">
+                  <div className="flex space-x-2">
                     <button
                       onClick={() => setSelectedCategory('all')}
-                      className={selectedCategory === 'all' ? 'active' : ''}
+                      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        selectedCategory === 'all'
+                          ? 'bg-white text-purple-900 shadow-lg'
+                          : 'text-white/80 hover:text-white hover:bg-white/10'
+                      }`}
                     >
                       All Templates
                     </button>
-                  </li>
-                  {Object.entries(TEMPLATE_CATEGORIES).map(([key, category]) => (
-                    <li key={key}>
+                    {Object.entries(TEMPLATE_CATEGORIES).map(([key, category]) => (
                       <button
+                        key={key}
                         onClick={() => setSelectedCategory(key)}
-                        className={selectedCategory === key ? 'active' : ''}
+                        className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 flex items-center space-x-2 ${
+                          selectedCategory === key
+                            ? 'bg-white text-purple-900 shadow-lg'
+                            : 'text-white/80 hover:text-white hover:bg-white/10'
+                        }`}
                       >
-                        <span className="mr-2">{category.icon}</span>
-                        {category.label}
+                        <span>{category.icon}</span>
+                        <span>{category.label}</span>
                       </button>
-                    </li>
-                  ))}
-                </ul>
+                    ))}
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div className="grid md:grid-cols-2 gap-4">
-              {filteredTemplates.map((template) => (
-                <div
-                  key={template.id}
-                  className={`card bg-white shadow-lg cursor-pointer transition-all duration-200 hover:shadow-xl ${
-                    selectedTemplate?.id === template.id ? 'ring-2 ring-primary' : ''
-                  }`}
-                  onClick={() => handleTemplateSelect(template)}
-                >
-                  <div className="card-body">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center">
-                        <span className="text-2xl mr-2">{getCategoryIcon(template.category)}</span>
-                        <DocumentTextIcon className="w-6 h-6 text-gray-400" />
+              {/* Template Grid */}
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTemplates.map((template, index) => (
+                  <div
+                    key={template.id}
+                    className={`group relative backdrop-blur-sm bg-white/10 border border-white/20 rounded-2xl p-6 cursor-pointer transition-all duration-300 hover:bg-white/20 hover:scale-105 hover:shadow-2xl animate-fade-in ${
+                      selectedTemplate?.id === template.id 
+                        ? 'ring-2 ring-white shadow-2xl bg-white/20 scale-105' 
+                        : ''
+                    }`}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                    onClick={() => handleTemplateSelect(template)}
+                  >
+                    {/* Template Header */}
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`p-3 rounded-xl bg-gradient-to-r ${getCategoryColor(template.category)} shadow-lg`}>
+                        {getCategoryIcon(template.category)}
                       </div>
                       {selectedTemplate?.id === template.id && (
-                        <CheckCircleIcon className="w-6 h-6 text-primary" />
+                        <div className="bg-green-500 p-2 rounded-full animate-bounce">
+                          <CheckCircleIcon className="w-5 h-5 text-white" />
+                        </div>
                       )}
                     </div>
-                    <h3 className="card-title text-lg">{template.name}</h3>
-                    <p className="text-gray-600 text-sm mb-3">{template.description}</p>
-                    <div className="flex justify-between items-center">
-                      <span className={`badge ${getCategoryColor(template.category)} badge-sm`}>
+
+                    {/* Template Content */}
+                    <h3 className="text-xl font-bold text-white mb-2">{template.name}</h3>
+                    <p className="text-white/70 mb-4 line-clamp-2">{template.description}</p>
+
+                    {/* Template Footer */}
+                    <div className="flex items-center justify-between">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r ${getCategoryColor(template.category)} text-white shadow-lg`}>
                         {TEMPLATE_CATEGORIES[template.category]?.label || template.category}
                       </span>
-                      <div className="flex gap-2">
+                      
+                      <div className="flex space-x-2">
                         {selectedTemplate?.id === template.id && (
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               handlePreviewToggle();
                             }}
-                            className="btn btn-sm btn-outline"
+                            className="p-2 bg-white/20 hover:bg-white/30 rounded-lg transition-all duration-200"
                           >
-                            <EyeIcon className="w-4 h-4" />
+                            <EyeIcon className="w-4 h-4 text-white" />
                           </button>
                         )}
-                        <button
-                          className={`btn btn-sm ${
-                            selectedTemplate?.id === template.id ? 'btn-primary' : 'btn-outline'
-                          }`}
-                        >
-                          {selectedTemplate?.id === template.id ? 'Selected' : 'Select'}
-                        </button>
                       </div>
                     </div>
+
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {filteredTemplates.length === 0 && (
-              <div className="text-center py-12">
-                <DocumentTextIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500">No templates found for the selected category.</p>
+                ))}
               </div>
-            )}
-          </div>
 
-          {/* Target Job & Preview */}
-          <div className="space-y-6">
-            {/* Target Job Section */}
-            <div className="card bg-white shadow-lg">
-              <div className="card-body">
-                <h2 className="card-title mb-4">Target Job Information</h2>
-
-                <div className="form-control mb-4">
-                  <label className="label">
-                    <span className="label-text font-medium">Target Job Title *</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Software Engineer"
-                    value={targetJob.title}
-                    onChange={(e) => handleInputChange('title', e.target.value)}
-                    className="input input-bordered w-full"
-                    required
-                  />
+              {filteredTemplates.length === 0 && (
+                <div className="text-center py-16 animate-fade-in">
+                  <DocumentTextIcon className="w-16 h-16 text-white/40 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-white mb-2">No Templates Found</h3>
+                  <p className="text-white/70">Try selecting a different category to see more templates.</p>
                 </div>
-
-                <div className="form-control mb-4">
-                  <label className="label">
-                    <span className="label-text font-medium">Keywords (comma-separated)</span>
-                  </label>
-                  <textarea
-                    placeholder="e.g., React, Node.js, TypeScript"
-                    value={targetJob.keywords}
-                    onChange={(e) => handleInputChange('keywords', e.target.value)}
-                    className="textarea textarea-bordered w-full h-20"
-                  />
-                </div>
-
-                <div className="form-control mb-6">
-                  <label className="label">
-                    <span className="label-text font-medium">Company (optional)</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g., Google, Microsoft"
-                    value={targetJob.company || ''}
-                    onChange={(e) => handleInputChange('company', e.target.value)}
-                    className="input input-bordered w-full"
-                  />
-                </div>
-
-                {/* Analyze Button */}
-                <button
-                  onClick={handleAnalyze}
-                  disabled={!selectedTemplate || !targetJob.title.trim() || isAnalyzing}
-                  className="btn btn-success w-full"
-                >
-                  {isAnalyzing ? (
-                    <>
-                      <span className="loading loading-spinner loading-sm mr-2"></span>
-                      Preparing Template...
-                    </>
-                  ) : (
-                    'Start with Template'
-                  )}
-                </button>
-              </div>
+              )}
             </div>
+          ) : (
+            /* Job Details Step */
+            <div className="animate-fade-in max-w-2xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-4xl font-bold text-white mb-4">Tell Us About Your Target Role</h2>
+                <p className="text-xl text-white/70">
+                  Help us optimize your resume for the perfect job match
+                </p>
+              </div>
 
-            {/* Template Preview */}
-            {selectedTemplate && (
-              <div className="card bg-white shadow-lg">
-                <div className="card-body">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="card-title">Template Preview</h3>
+              <div className="backdrop-blur-sm bg-white/10 border border-white/20 rounded-2xl p-8">
+                {/* Selected Template Preview */}
+                {selectedTemplate && (
+                  <div className="mb-8 p-4 bg-white/10 rounded-xl border border-white/20">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className={`p-2 rounded-lg bg-gradient-to-r ${getCategoryColor(selectedTemplate.category)}`}>
+                        {getCategoryIcon(selectedTemplate.category)}
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-white">{selectedTemplate.name}</h3>
+                        <p className="text-sm text-white/70">{selectedTemplate.description}</p>
+                      </div>
+                    </div>
                     <button
-                      onClick={handlePreviewToggle}
-                      className="btn btn-sm btn-outline"
+                      onClick={() => setCurrentStep('template')}
+                      className="text-sm text-white/80 hover:text-white transition-colors duration-200"
                     >
-                      <EyeIcon className="w-4 h-4 mr-1" />
-                      {showPreview ? 'Hide' : 'Show'} Full
+                      ← Change template
                     </button>
                   </div>
-                  <div className="bg-gray-50 p-4 rounded-lg max-h-96 overflow-y-auto">
-                    <pre className="whitespace-pre-wrap text-xs text-gray-700 font-mono">
-                      {showPreview 
-                        ? selectedTemplate.content 
-                        : `${selectedTemplate.content.substring(0, 500)}...`
-                      }
-                    </pre>
-                  </div>
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-500">Category:</span>
-                      <span className={`badge ${getCategoryColor(selectedTemplate.category)} badge-sm`}>
-                        {TEMPLATE_CATEGORIES[selectedTemplate.category]?.label || selectedTemplate.category}
-                      </span>
-                    </div>
-                    {selectedTemplate.tags && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {selectedTemplate.tags.map((tag, index) => (
-                          <span key={index} className="badge badge-outline badge-xs">
-                            {tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-sm text-gray-500 mt-3">
-                    This template will be loaded into the editor where you can customize it for your
-                    needs.
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+                )}
 
-        {/* Help Section */}
-        <div className="card bg-white shadow-lg mt-8">
-          <div className="card-body">
-            <h3 className="card-title mb-4">How to Use Templates</h3>
-            <div className="grid md:grid-cols-3 gap-6">
-              <div className="text-center">
-                <div className="bg-blue-50 p-3 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                  <span className="text-xl">1️⃣</span>
+                {/* Target Job Input Form */}
+                <div className="mb-8">
+                  <TargetJobInputForm
+                    initialData={targetJobFormData}
+                    onChange={handleTargetJobChange}
+                    isLoading={isAnalyzing}
+                    validateOnChange
+                    className="[&_.label-text]:text-white [&_.label-text]:font-semibold [&_.input]:bg-white/20 [&_.input]:border-white/30 [&_.input]:text-white [&_.input]:placeholder:text-white/50 [&_.input]:backdrop-blur-sm [&_.input:focus]:bg-white/30 [&_.input:focus]:border-white/50 [&_.textarea]:bg-white/20 [&_.textarea]:border-white/30 [&_.textarea]:text-white [&_.textarea]:placeholder:text-white/50 [&_.textarea]:backdrop-blur-sm [&_.textarea:focus]:bg-white/30 [&_.textarea:focus]:border-white/50 [&_.badge]:badge-secondary [&_.alert]:alert-info [&_.alert]:bg-white/10 [&_.alert]:border-white/20 [&_.alert]:text-white"
+                  />
                 </div>
-                <h4 className="font-semibold mb-2">Choose Template</h4>
-                <p className="text-sm text-gray-600">
-                  Select a template that matches your career field
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="bg-green-50 p-3 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                  <span className="text-xl">2️⃣</span>
+
+                {/* Action Buttons */}
+                <div className="flex space-x-4 mt-8">
+                  <button
+                    onClick={() => setCurrentStep('template')}
+                    className="btn btn-lg flex-1 bg-white/20 border-white/30 text-white hover:bg-white/30 hover:border-white/50 transition-all duration-200"
+                  >
+                    ← Back to Templates
+                  </button>
+                  <button
+                    onClick={handleAnalyze}
+                    disabled={!selectedTemplate || !isTargetJobValid || isAnalyzing}
+                    className="btn btn-lg flex-1 bg-gradient-to-r from-green-500 to-emerald-500 border-0 text-white hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <span className="loading loading-spinner loading-sm mr-2"></span>
+                        Creating Your Resume...
+                      </>
+                    ) : (
+                      <>
+                        <SparklesIcon className="w-5 h-5 mr-2" />
+                        Start Building
+                      </>
+                    )}
+                  </button>
                 </div>
-                <h4 className="font-semibold mb-2">Add Job Details</h4>
-                <p className="text-sm text-gray-600">
-                  Enter your target job title and relevant keywords
-                </p>
-              </div>
-              <div className="text-center">
-                <div className="bg-purple-50 p-3 rounded-full w-12 h-12 mx-auto mb-3 flex items-center justify-center">
-                  <span className="text-xl">3️⃣</span>
-                </div>
-                <h4 className="font-semibold mb-2">Customize & Optimize</h4>
-                <p className="text-sm text-gray-600">
-                  Edit the template and get AI-powered optimization suggestions
-                </p>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Template Preview Modal */}
+          {showPreview && selectedTemplate && (
+            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
+              <div className="bg-white rounded-2xl max-w-4xl max-h-[90vh] overflow-hidden shadow-2xl">
+                <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                  <h3 className="text-xl font-bold text-gray-900">Template Preview</h3>
+                  <button
+                    onClick={handlePreviewToggle}
+                    className="btn btn-sm btn-circle btn-ghost"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="p-6 overflow-y-auto max-h-[70vh]">
+                  <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono leading-relaxed">
+                    {selectedTemplate.content}
+                  </pre>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

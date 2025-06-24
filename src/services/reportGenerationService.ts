@@ -340,7 +340,11 @@ export class ReportGenerationService {
           escapeCSV(item.totalCompensation),
           escapeCSV(item.bonus || ''),
           escapeCSV(item.equity || ''),
-          escapeCSV(Array.isArray(item.benefits) ? item.benefits.join('; ') : (item.benefits?.toString() || '')),
+          escapeCSV(
+            Array.isArray(item.benefits)
+              ? item.benefits.join('; ')
+              : item.benefits?.toString() || ''
+          ),
           escapeCSV(item.currency),
           escapeCSV(item.timestamp),
           escapeCSV(item.source),

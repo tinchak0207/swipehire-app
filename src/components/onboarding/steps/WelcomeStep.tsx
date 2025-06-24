@@ -145,8 +145,8 @@ export default function WelcomeStep({
             <div className="text-center">
               <div
                 className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
-                  data.userType === 'jobseeker' 
-                    ? 'bg-white/20 shadow-lg' 
+                  data.userType === 'jobseeker'
+                    ? 'bg-white/20 shadow-lg'
                     : 'bg-gradient-to-br from-blue-400 to-blue-600 group-hover:shadow-xl group-hover:scale-110'
                 } `}
               >
@@ -166,19 +166,25 @@ export default function WelcomeStep({
                   />
                 </svg>
               </div>
-              <h3 className={`mb-4 font-bold text-2xl ${
-                data.userType === 'jobseeker' ? 'text-white' : 'text-gray-800'
-              }`}>
+              <h3
+                className={`mb-4 font-bold text-2xl ${
+                  data.userType === 'jobseeker' ? 'text-white' : 'text-gray-800'
+                }`}
+              >
                 I'm Looking for Jobs
               </h3>
-              <p className={`mb-6 text-base leading-relaxed ${
-                data.userType === 'jobseeker' ? 'text-white/90' : 'text-gray-600'
-              }`}>
+              <p
+                className={`mb-6 text-base leading-relaxed ${
+                  data.userType === 'jobseeker' ? 'text-white/90' : 'text-gray-600'
+                }`}
+              >
                 Find your next career opportunity with AI-powered matching and career guidance
               </p>
-              <ul className={`space-y-2 text-left text-sm ${
-                data.userType === 'jobseeker' ? 'text-white/80' : 'text-gray-500'
-              }`}>
+              <ul
+                className={`space-y-2 text-left text-sm ${
+                  data.userType === 'jobseeker' ? 'text-white/80' : 'text-gray-500'
+                }`}
+              >
                 <li className="flex items-center">
                   <span className="mr-2">•</span>
                   Career path recommendations
@@ -211,8 +217,8 @@ export default function WelcomeStep({
             <div className="text-center">
               <div
                 className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
-                  data.userType === 'recruiter' 
-                    ? 'bg-white/20 shadow-lg' 
+                  data.userType === 'recruiter'
+                    ? 'bg-white/20 shadow-lg'
                     : 'bg-gradient-to-br from-green-400 to-green-600 group-hover:shadow-xl group-hover:scale-110'
                 } `}
               >
@@ -232,19 +238,25 @@ export default function WelcomeStep({
                   />
                 </svg>
               </div>
-              <h3 className={`mb-4 font-bold text-2xl ${
-                data.userType === 'recruiter' ? 'text-white' : 'text-gray-800'
-              }`}>
+              <h3
+                className={`mb-4 font-bold text-2xl ${
+                  data.userType === 'recruiter' ? 'text-white' : 'text-gray-800'
+                }`}
+              >
                 I'm Hiring Talent
               </h3>
-              <p className={`mb-6 text-base leading-relaxed ${
-                data.userType === 'recruiter' ? 'text-white/90' : 'text-gray-600'
-              }`}>
+              <p
+                className={`mb-6 text-base leading-relaxed ${
+                  data.userType === 'recruiter' ? 'text-white/90' : 'text-gray-600'
+                }`}
+              >
                 Discover exceptional candidates with intelligent screening and matching tools
               </p>
-              <ul className={`space-y-2 text-left text-sm ${
-                data.userType === 'recruiter' ? 'text-white/80' : 'text-gray-500'
-              }`}>
+              <ul
+                className={`space-y-2 text-left text-sm ${
+                  data.userType === 'recruiter' ? 'text-white/80' : 'text-gray-500'
+                }`}
+              >
                 <li className="flex items-center">
                   <span className="mr-2">•</span>
                   AI-powered candidate matching
@@ -269,9 +281,9 @@ export default function WelcomeStep({
 
       {/* Action Buttons */}
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-        <button 
-          onClick={onSkip} 
-          className="text-gray-500 hover:text-gray-700 font-medium transition-colors duration-200" 
+        <button
+          onClick={onSkip}
+          className="text-gray-500 hover:text-gray-700 font-medium transition-colors duration-200"
           disabled={isLoading}
         >
           Skip Setup (Complete Later)
@@ -295,7 +307,12 @@ export default function WelcomeStep({
             ) : (
               <>
                 Continue Setup
-                <svg className="ml-2 h-5 w-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="ml-2 h-5 w-5 inline"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -311,9 +328,7 @@ export default function WelcomeStep({
 
       {/* Time Estimate */}
       <div className="mt-12 text-center">
-        <p className="text-gray-500 text-sm">
-          ⏱️ This setup takes about 3-5 minutes to complete
-        </p>
+        <p className="text-gray-500 text-sm">⏱️ This setup takes about 3-5 minutes to complete</p>
       </div>
     </div>
   );

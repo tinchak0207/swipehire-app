@@ -8,12 +8,12 @@ export default function OnboardingPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { markWizardCompleted, markWizardSkipped } = useOnboardingWizard();
-  
+
   const returnTo = searchParams.get('returnTo');
 
   const handleComplete = () => {
     markWizardCompleted();
-    
+
     // Handle different return destinations
     if (returnTo === 'resume-optimizer-import') {
       router.push('/resume-optimizer/import?onboarding=completed');
@@ -25,10 +25,10 @@ export default function OnboardingPage() {
 
   const handleSkip = () => {
     markWizardSkipped();
-    
+
     // Handle different return destinations for skip case
     if (returnTo === 'resume-optimizer-import') {
-      // If they skip onboarding but came from resume optimizer, 
+      // If they skip onboarding but came from resume optimizer,
       // still redirect back but with a note
       router.push('/resume-optimizer/import?onboarding=skipped');
     } else {
@@ -37,7 +37,5 @@ export default function OnboardingPage() {
     }
   };
 
-  return (
-    <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />
-  );
+  return <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />;
 }

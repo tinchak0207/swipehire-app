@@ -2,16 +2,21 @@
 
 import {
   ArrowLeftIcon,
+  CheckCircleIcon,
   DocumentArrowUpIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  CheckCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
-import { useState, useCallback, useRef } from 'react';
-import type { ResumeUploadState, TargetJobInfo, FileValidationResult, ResumeParsingProgress } from '@/lib/resume-types';
+import { useCallback, useRef, useState } from 'react';
+import type {
+  FileValidationResult,
+  ResumeParsingProgress,
+  ResumeUploadState,
+  TargetJobInfo,
+} from '@/lib/resume-types';
 
 interface ExtendedUploadState extends ResumeUploadState {
   progress: number;
@@ -35,7 +40,7 @@ interface ExtendedUploadState extends ResumeUploadState {
  */
 const ResumeUploadPage: NextPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   const [uploadState, setUploadState] = useState<ExtendedUploadState>({
     file: null,
     isUploading: false,
@@ -61,7 +66,7 @@ const ResumeUploadPage: NextPage = () => {
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       'application/msword', // .doc files
     ];
-    
+
     const allowedExtensions = ['.pdf', '.docx', '.doc'];
     const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
 
@@ -97,28 +102,31 @@ const ResumeUploadPage: NextPage = () => {
     };
   }, []);
 
-  const handleFileSelection = useCallback((file: File): void => {
-    const validation = validateFile(file);
-    
-    if (!validation.isValid) {
+  const handleFileSelection = useCallback(
+    (file: File): void => {
+      const validation = validateFile(file);
+
+      if (!validation.isValid) {
+        setUploadState((prev) => ({
+          ...prev,
+          error: validation.error || 'Invalid file',
+          file: null,
+          dragActive: false,
+        }));
+        return;
+      }
+
       setUploadState((prev) => ({
         ...prev,
-        error: validation.error || 'Invalid file',
-        file: null,
+        file,
+        error: null,
         dragActive: false,
+        progress: 0,
+        stage: 'uploading',
       }));
-      return;
-    }
-
-    setUploadState((prev) => ({
-      ...prev,
-      file,
-      error: null,
-      dragActive: false,
-      progress: 0,
-      stage: 'uploading',
-    }));
-  }, [validateFile]);
+    },
+    [validateFile]
+  );
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const file = event.target.files?.[0];
@@ -139,15 +147,18 @@ const ResumeUploadPage: NextPage = () => {
     setUploadState((prev) => ({ ...prev, dragActive: false }));
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent<HTMLDivElement>): void => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) {
-      handleFileSelection(files[0]);
-    }
-  }, [handleFileSelection]);
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>): void => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        handleFileSelection(files[0]);
+      }
+    },
+    [handleFileSelection]
+  );
 
   const clearFile = useCallback((): void => {
     setUploadState((prev) => ({
@@ -159,7 +170,7 @@ const ResumeUploadPage: NextPage = () => {
       progress: 0,
       stage: 'uploading',
     }));
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -170,18 +181,18 @@ const ResumeUploadPage: NextPage = () => {
       return;
     }
 
-    setUploadState((prev) => ({ 
-      ...prev, 
-      isUploading: true, 
-      error: null, 
+    setUploadState((prev) => ({
+      ...prev,
+      isUploading: true,
+      error: null,
       progress: 0,
-      stage: 'uploading'
+      stage: 'uploading',
     }));
 
     try {
       // Import the file parsing service dynamically to avoid SSR issues
       const { parseFile } = await import('@/services/fileParsingService');
-      
+
       // Parse the file with progress tracking
       const result = await parseFile(uploadState.file, {
         onProgress: (progress) => {
@@ -214,12 +225,11 @@ const ResumeUploadPage: NextPage = () => {
         extractionTime: result.metadata.extractionTime,
         pageCount: result.metadata.pageCount,
       });
-
     } catch (error) {
       console.error('File parsing error:', error);
-      
+
       let errorMessage = 'Failed to process the file. Please try again.';
-      
+
       // Provide more specific error messages based on error type
       if (error instanceof Error) {
         if (error.message.includes('timeout')) {
@@ -227,7 +237,8 @@ const ResumeUploadPage: NextPage = () => {
         } else if (error.message.includes('corrupted')) {
           errorMessage = 'The file appears to be corrupted. Please try with a different file.';
         } else if (error.message.includes('password')) {
-          errorMessage = 'Password-protected files are not supported. Please remove the password and try again.';
+          errorMessage =
+            'Password-protected files are not supported. Please remove the password and try again.';
         } else if (error.message.includes('format')) {
           errorMessage = 'This file format is not supported or the file is corrupted.';
         } else if (error.message.includes('size')) {
@@ -278,7 +289,11 @@ const ResumeUploadPage: NextPage = () => {
       <div className="container mx-auto max-w-5xl">
         {/* Header */}
         <div className="flex items-center mb-8">
-          <Link href="/resume-optimizer" className="btn btn-ghost btn-sm mr-4" aria-label="Go back to resume optimizer">
+          <Link
+            href="/resume-optimizer"
+            className="btn btn-ghost btn-sm mr-4"
+            aria-label="Go back to resume optimizer"
+          >
             <ArrowLeftIcon className="w-4 h-4 mr-2" />
             Back
           </Link>
@@ -303,8 +318,8 @@ const ResumeUploadPage: NextPage = () => {
                   uploadState.dragActive
                     ? 'border-primary bg-primary/5 scale-105'
                     : uploadState.file
-                    ? 'border-success bg-success/5'
-                    : 'border-gray-300 hover:border-primary hover:bg-primary/5'
+                      ? 'border-success bg-success/5'
+                      : 'border-gray-300 hover:border-primary hover:bg-primary/5'
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
@@ -327,7 +342,7 @@ const ResumeUploadPage: NextPage = () => {
                   className="hidden"
                   aria-hidden="true"
                 />
-                
+
                 {uploadState.file ? (
                   <div className="space-y-3">
                     <CheckCircleIcon className="w-12 h-12 text-success mx-auto" />
@@ -354,7 +369,9 @@ const ResumeUploadPage: NextPage = () => {
                     <DocumentArrowUpIcon className="w-12 h-12 text-gray-400 mx-auto" />
                     <div>
                       <p className="font-medium text-gray-700">
-                        {uploadState.dragActive ? 'Drop your file here' : 'Click to upload or drag & drop'}
+                        {uploadState.dragActive
+                          ? 'Drop your file here'
+                          : 'Click to upload or drag & drop'}
                       </p>
                       <p className="text-sm text-gray-500">PDF, DOC, or DOCX (max 10MB)</p>
                     </div>
@@ -377,9 +394,9 @@ const ResumeUploadPage: NextPage = () => {
                     <span className="text-sm font-medium text-gray-700">{getStageMessage()}</span>
                     <span className="text-sm text-gray-500">{uploadState.progress}%</span>
                   </div>
-                  <progress 
-                    className="progress progress-primary w-full" 
-                    value={uploadState.progress} 
+                  <progress
+                    className="progress progress-primary w-full"
+                    value={uploadState.progress}
                     max="100"
                     aria-label={`Upload progress: ${uploadState.progress}%`}
                   />
@@ -472,14 +489,12 @@ const ResumeUploadPage: NextPage = () => {
 
               {/* Advanced Options Toggle */}
               <div className="collapse collapse-arrow bg-gray-50 mb-6">
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   checked={showAdvanced}
                   onChange={(e) => setShowAdvanced(e.target.checked)}
                 />
-                <div className="collapse-title text-sm font-medium">
-                  Advanced Options
-                </div>
+                <div className="collapse-title text-sm font-medium">Advanced Options</div>
                 <div className="collapse-content">
                   <div className="form-control">
                     <label className="label">
@@ -488,7 +503,9 @@ const ResumeUploadPage: NextPage = () => {
                     <textarea
                       placeholder="Paste the full job description here for better analysis..."
                       value={targetJob.description}
-                      onChange={(e) => setTargetJob((prev) => ({ ...prev, description: e.target.value }))}
+                      onChange={(e) =>
+                        setTargetJob((prev) => ({ ...prev, description: e.target.value }))
+                      }
                       className="textarea textarea-bordered w-full h-32 bg-white text-gray-800 placeholder-gray-500"
                     />
                   </div>
@@ -536,21 +553,29 @@ const ResumeUploadPage: NextPage = () => {
               {uploadState.metadata && (
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">{uploadState.metadata.wordCount.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {uploadState.metadata.wordCount.toLocaleString()}
+                    </div>
                     <div className="text-xs text-gray-600">Words</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">{uploadState.metadata.characterCount.toLocaleString()}</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {uploadState.metadata.characterCount.toLocaleString()}
+                    </div>
                     <div className="text-xs text-gray-600">Characters</div>
                   </div>
                   {uploadState.metadata.pageCount && (
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-800">{uploadState.metadata.pageCount}</div>
+                      <div className="text-2xl font-bold text-gray-800">
+                        {uploadState.metadata.pageCount}
+                      </div>
                       <div className="text-xs text-gray-600">Pages</div>
                     </div>
                   )}
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">{(uploadState.metadata.extractionTime / 1000).toFixed(1)}s</div>
+                    <div className="text-2xl font-bold text-gray-800">
+                      {(uploadState.metadata.extractionTime / 1000).toFixed(1)}s
+                    </div>
                     <div className="text-xs text-gray-600">Processing Time</div>
                   </div>
                 </div>
@@ -565,7 +590,10 @@ const ResumeUploadPage: NextPage = () => {
                 <InformationCircleIcon className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-blue-800">
                   <p className="font-medium">Review the extracted text</p>
-                  <p>Make sure all important information was captured correctly. The AI will analyze this text to provide optimization suggestions.</p>
+                  <p>
+                    Make sure all important information was captured correctly. The AI will analyze
+                    this text to provide optimization suggestions.
+                  </p>
                 </div>
               </div>
             </div>

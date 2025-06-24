@@ -507,8 +507,8 @@ export const UserPreferencesProvider = ({
   );
 
   return (
-  <UserPreferencesContext.Provider value={contextValue}>
-  {children}
-  </UserPreferencesContext.Provider>
+    <UserPreferencesContext.Provider value={contextValue}>
+      {children}
+    </UserPreferencesContext.Provider>
   );
 };

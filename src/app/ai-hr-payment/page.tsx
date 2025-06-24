@@ -142,17 +142,18 @@ export default function AiHrPaymentPage() {
           'Could not generate company reply style at this time. Please try again later.'
         );
         setSuggestedGuidelines([]);
-        toast({
-          title: 'AI Style Generation Failed',
-          description: "There was an issue generating the company's communication style.",
-          variant: 'destructive',
-        });
+          toast({
+            title: 'AI Style Generation Failed',
+            description: "There was an issue generating the company's communication style.",
+            type: 'error',
+            onClose: () => {}
+          });
       } finally {
         setIsLoadingAiStyle(false);
       }
     }
 
-    void fetchCompanyStyle();
+    fetchCompanyStyle();
   }, [fullBackendUser, toast, isAuthenticated, preferences.isLoading]);
 
   useEffect(() => {
@@ -219,7 +220,12 @@ export default function AiHrPaymentPage() {
       router.push('/');
     } catch (error) {
       console.error('Error signing out: ', error);
-      toast({ title: 'Logout Failed', description: 'Could not sign out.', variant: 'destructive' });
+      toast({ 
+        title: 'Logout Failed',
+        description: 'Could not sign out.',
+        type: 'error',
+        onClose: () => {}
+      });
     }
   };
 
@@ -232,7 +238,8 @@ export default function AiHrPaymentPage() {
       toast({
         title: 'Invalid Input',
         description: 'Please enter a valid number of replies.',
-        variant: 'default',
+        type: 'info',
+        onClose: () => {}
       });
       return;
     }
@@ -252,25 +259,38 @@ export default function AiHrPaymentPage() {
   const handlePlanSelectionAndConceptualPayment = async (
     plan: 'per_reply' | 'monthly'
   ): Promise<void> => {
-    setSelectedPlan(plan);
-    setIsSubmittingPayment(true);
+    try {
+      setSelectedPlan(plan);
+      setIsSubmittingPayment(true);
 
-    console.log(`Redirecting to Stripe for ${plan} plan (conceptual)`);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log(`Redirecting to Stripe for ${plan} plan (conceptual)`);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    await setPreferences({
-      hasAiHumanResourcesFeature: true,
-      aiHumanResourcesTier: plan,
-    });
+      await setPreferences({
+        hasAiHumanResourcesFeature: true,
+        aiHumanResourcesTier: plan,
+      });
 
-    setIsSubmittingPayment(false);
-    toast({
-      title: 'AI Human Resources Activated!',
-      description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
-      duration: 8000,
-    });
-    
-    return Promise.resolve();
+      toast({
+        title: 'AI Human Resources Activated!',
+        description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
+        type: 'success',
+        duration: 8000,
+        onClose: () => {}
+      });
+      return;
+    } catch (error) {
+      console.error('Error processing payment:', error);
+      toast({
+        title: 'Payment Processing Failed',
+        description: 'There was an issue processing your payment selection.',
+        type: 'error',
+        onClose: () => {}
+      });
+      return;
+    } finally {
+      setIsSubmittingPayment(false);
+    }
   };
 
   const isPerReplyRecommended = recommendedPlan === 'per_reply';

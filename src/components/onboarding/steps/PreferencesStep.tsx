@@ -12,7 +12,7 @@ interface PreferencesStepProps {
 export default function PreferencesStep({
   data,
   onUpdate: onUpdateAction,
-  onNext: onNextAction, 
+  onNext: onNextAction,
   onBack: onBackAction,
   isLoading,
 }: PreferencesStepProps) {
@@ -21,7 +21,10 @@ export default function PreferencesStep({
     onUpdateAction({ preferences: updatedPrefs });
   };
 
-  const handleNotificationChannelChange = (channel: keyof typeof data.preferences.notificationChannels, value: boolean) => {
+  const handleNotificationChannelChange = (
+    channel: keyof typeof data.preferences.notificationChannels,
+    value: boolean
+  ) => {
     const updatedPrefs = {
       ...data.preferences,
       notificationChannels: {
@@ -32,7 +35,10 @@ export default function PreferencesStep({
     onUpdateAction({ preferences: updatedPrefs });
   };
 
-  const handleNotificationSubscriptionChange = (subscription: keyof typeof data.preferences.notificationSubscriptions, value: boolean) => {
+  const handleNotificationSubscriptionChange = (
+    subscription: keyof typeof data.preferences.notificationSubscriptions,
+    value: boolean
+  ) => {
     const updatedPrefs = {
       ...data.preferences,
       notificationSubscriptions: {
@@ -91,13 +97,18 @@ export default function PreferencesStep({
                 <div key={key} className="form-control">
                   <label className="label cursor-pointer">
                     <span className="label-text">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                     </span>
                     <input
                       type="checkbox"
                       className="toggle toggle-primary"
                       checked={value}
-                      onChange={(e) => handleNotificationChannelChange(key as keyof typeof data.preferences.notificationChannels, e.target.checked)}
+                      onChange={(e) =>
+                        handleNotificationChannelChange(
+                          key as keyof typeof data.preferences.notificationChannels,
+                          e.target.checked
+                        )
+                      }
                     />
                   </label>
                 </div>
@@ -115,13 +126,18 @@ export default function PreferencesStep({
                 <div key={key} className="form-control">
                   <label className="label cursor-pointer">
                     <span className="label-text">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
+                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                     </span>
                     <input
                       type="checkbox"
                       className="toggle toggle-primary"
                       checked={value}
-                      onChange={(e) => handleNotificationSubscriptionChange(key as keyof typeof data.preferences.notificationSubscriptions, e.target.checked)}
+                      onChange={(e) =>
+                        handleNotificationSubscriptionChange(
+                          key as keyof typeof data.preferences.notificationSubscriptions,
+                          e.target.checked
+                        )
+                      }
                     />
                   </label>
                 </div>

@@ -2,8 +2,13 @@
  * @jest-environment jsdom
  */
 
-import { validateFile, FileParsingError, formatFileSize, getFileTypeIcon } from '../fileParsingService';
 import type { FileValidationResult } from '@/lib/resume-types';
+import {
+  FileParsingError,
+  formatFileSize,
+  getFileTypeIcon,
+  validateFile,
+} from '../fileParsingService';
 
 // Mock PDF.js
 jest.mock('pdfjs-dist', () => ({
@@ -11,25 +16,28 @@ jest.mock('pdfjs-dist', () => ({
   getDocument: jest.fn(() => ({
     promise: Promise.resolve({
       numPages: 2,
-      getPage: jest.fn((pageNum) => Promise.resolve({
-        getTextContent: jest.fn(() => Promise.resolve({
-          items: [
-            { str: 'Sample PDF text content' },
-            { str: 'from page ' + pageNum },
-          ]
-        }))
-      }))
-    })
+      getPage: jest.fn((pageNum) =>
+        Promise.resolve({
+          getTextContent: jest.fn(() =>
+            Promise.resolve({
+              items: [{ str: 'Sample PDF text content' }, { str: 'from page ' + pageNum }],
+            })
+          ),
+        })
+      ),
+    }),
   })),
-  version: '3.11.174'
+  version: '3.11.174',
 }));
 
 // Mock Mammoth
 jest.mock('mammoth', () => ({
-  extractRawText: jest.fn(() => Promise.resolve({
-    value: 'Sample DOCX text content extracted successfully',
-    messages: []
-  }))
+  extractRawText: jest.fn(() =>
+    Promise.resolve({
+      value: 'Sample DOCX text content extracted successfully',
+      messages: [],
+    })
+  ),
 }));
 
 describe('fileParsingService', () => {
@@ -37,45 +45,45 @@ describe('fileParsingService', () => {
     it('should validate PDF files correctly', () => {
       const pdfFile = new File(['test'], 'resume.pdf', { type: 'application/pdf' });
       const result: FileValidationResult = validateFile(pdfFile);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.fileInfo).toEqual({
         name: 'resume.pdf',
         size: 4, // 'test' is 4 bytes
-        type: 'application/pdf'
+        type: 'application/pdf',
       });
     });
 
     it('should validate DOCX files correctly', () => {
-      const docxFile = new File(['test'], 'resume.docx', { 
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+      const docxFile = new File(['test'], 'resume.docx', {
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       });
       const result: FileValidationResult = validateFile(docxFile);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.fileInfo).toEqual({
         name: 'resume.docx',
         size: 4,
-        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       });
     });
 
     it('should validate DOC files correctly', () => {
       const docFile = new File(['test'], 'resume.doc', { type: 'application/msword' });
       const result: FileValidationResult = validateFile(docFile);
-      
+
       expect(result.isValid).toBe(true);
       expect(result.fileInfo).toEqual({
         name: 'resume.doc',
         size: 4,
-        type: 'application/msword'
+        type: 'application/msword',
       });
     });
 
     it('should reject unsupported file types', () => {
       const txtFile = new File(['test'], 'resume.txt', { type: 'text/plain' });
       const result: FileValidationResult = validateFile(txtFile);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Please upload a PDF, DOC, or DOCX file only.');
     });
@@ -84,7 +92,7 @@ describe('fileParsingService', () => {
       const largeContent = 'x'.repeat(11 * 1024 * 1024); // 11MB
       const largeFile = new File([largeContent], 'large.pdf', { type: 'application/pdf' });
       const result: FileValidationResult = validateFile(largeFile);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('File size must be less than 10MB.');
     });
@@ -92,7 +100,7 @@ describe('fileParsingService', () => {
     it('should reject empty files', () => {
       const emptyFile = new File([], 'empty.pdf', { type: 'application/pdf' });
       const result: FileValidationResult = validateFile(emptyFile);
-      
+
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('The selected file appears to be empty.');
     });
@@ -100,7 +108,7 @@ describe('fileParsingService', () => {
     it('should validate files by extension when MIME type is missing', () => {
       const pdfFile = new File(['test'], 'resume.pdf', { type: '' });
       const result: FileValidationResult = validateFile(pdfFile);
-      
+
       expect(result.isValid).toBe(true);
     });
   });
@@ -130,7 +138,7 @@ describe('fileParsingService', () => {
     it('should create error with correct properties', () => {
       const originalError = new Error('Original error');
       const error = new FileParsingError('Test message', 'TEST_CODE', originalError);
-      
+
       expect(error.message).toBe('Test message');
       expect(error.code).toBe('TEST_CODE');
       expect(error.originalError).toBe(originalError);

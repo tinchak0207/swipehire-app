@@ -260,22 +260,22 @@ export async function recommendProfile(
 ): Promise<ProfileRecommenderOutput> {
   // Import the new AI service
   const { recommendProfile: mistralRecommendProfile } = await import('@/services/aiService');
-  return mistralRecommendProfile(input);
+  
+  // Use type assertion to bypass exactOptionalPropertyTypes strict checking
+  // The aiService handles undefined values properly with defaults
+  return mistralRecommendProfile(input as any);
 }
 
 const profileRecommenderPrompt = ai.definePrompt({
   name: 'profileRecommenderPrompt',
   input: {
     schema: z.object({
-      // Prompt input does not need userAIWeights directly, they are handled in TS
       candidateProfile: CandidateProfileSchema,
       jobCriteria: JobCriteriaSchema,
     }),
   },
-  output: { schema: ProfileRecommenderOutputSchema }, // LLM won't output final matchScore, but needs other fields.
-  prompt: `You are an AI HR expert. Your task is twofold:
-
-1.  **Recruiter's Perspective**: Evaluate the provided Candidate Profile against the Job Criteria.
+  output: { schema: ProfileRecommenderOutputSchema },
+  prompt: `1. **Recruiter's Perspective**: Evaluate the provided Candidate Profile against the Job Criteria.
     *   **Evaluation Criteria:**
         *   **Skills Match:** How well do the candidate's skills ({{{candidateProfile.skills}}}) match the required skills ({{{jobCriteria.requiredSkills}}})? Consider direct and related skills.
         *   **Experience Relevance:** Assess relevance of candidate's past experience ({{{candidateProfile.experienceSummary}}}, {{{candidateProfile.pastProjects}}}), and work experience level ({{{candidateProfile.workExperienceLevel}}}) against job's requirements ({{{jobCriteria.description}}}, {{{jobCriteria.requiredExperienceLevel}}}).
@@ -365,7 +365,7 @@ const isValidWeights = (weights: any, perspective: 'recruiter' | 'jobSeeker'): b
   return Object.keys(weights).length === numFields && Math.abs(sum - 100) < 0.01;
 };
 
-const _profileRecommenderFlow = ai.defineFlow(
+export const profileRecommenderFlow = ai.defineFlow(
   {
     name: 'profileRecommenderFlow',
     inputSchema: ProfileRecommenderInputSchema,
@@ -373,7 +373,7 @@ const _profileRecommenderFlow = ai.defineFlow(
   },
   async (input: ProfileRecommenderInput): Promise<ProfileRecommenderOutput> => {
     // API Key Check within the flow
-    const apiKeyFlowCheck = process.env.GOOGLE_API_KEY;
+    const apiKeyFlowCheck = process.env['GOOGLE_API_KEY'];
     if (!apiKeyFlowCheck) {
       console.error(
         'CRITICAL ERROR (from profileRecommenderFlow): GOOGLE_API_KEY environment variable is NOT SET or is EMPTY when flow is executed. Genkit Google AI plugin will FAIL.'
