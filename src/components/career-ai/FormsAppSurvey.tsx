@@ -159,6 +159,43 @@ export default function FormsAppSurvey({ onCompleteAction }: FormsAppSurveyProps
     };
   }, [onCompleteAction, surveyStarted]);
 
+  const initializeForm = () => {
+    try {
+      // Wait a bit for the script to fully initialize
+      setTimeout(() => {
+        if (typeof window.formsapp === 'function') {
+          // Initialize exactly as provided by forms.app
+          new window.formsapp(
+            '685190dedd9ab40002e7de9a',
+            'standard',
+            {
+              width: '100vw',
+              height: '600px',
+            },
+            'https://17scaqk8.forms.app'
+          );
+          setIsLoading(false);
+
+          // Fallback: If we don't receive a start event within 3 seconds, assume survey is ready
+          setTimeout(() => {
+            if (!surveyStarted) {
+              console.log('Fallback: Setting survey as started after timeout');
+              setSurveyStarted(true);
+            }
+          }, 3000);
+        } else {
+          console.error('Forms.app function not available');
+          setHasError(true);
+          setIsLoading(false);
+        }
+      }, 100);
+    } catch (error) {
+      console.error('Error initializing forms.app:', error);
+      setHasError(true);
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Prevent multiple script loads
     if (scriptLoadedRef.current) return;
@@ -199,44 +236,7 @@ export default function FormsAppSurvey({ onCompleteAction }: FormsAppSurveyProps
         script.parentNode.removeChild(script);
       }
     };
-  }, [initializeForm]);
-
-  const initializeForm = () => {
-    try {
-      // Wait a bit for the script to fully initialize
-      setTimeout(() => {
-        if (typeof window.formsapp === 'function') {
-          // Initialize exactly as provided by forms.app
-          new window.formsapp(
-            '685190dedd9ab40002e7de9a',
-            'standard',
-            {
-              width: '100vw',
-              height: '600px',
-            },
-            'https://17scaqk8.forms.app'
-          );
-          setIsLoading(false);
-
-          // Fallback: If we don't receive a start event within 3 seconds, assume survey is ready
-          setTimeout(() => {
-            if (!surveyStarted) {
-              console.log('Fallback: Setting survey as started after timeout');
-              setSurveyStarted(true);
-            }
-          }, 3000);
-        } else {
-          console.error('Forms.app function not available');
-          setHasError(true);
-          setIsLoading(false);
-        }
-      }, 100);
-    } catch (error) {
-      console.error('Error initializing forms.app:', error);
-      setHasError(true);
-      setIsLoading(false);
-    }
-  };
+  }, []);
 
   if (hasError) {
     return (

@@ -1,6 +1,9 @@
 'use client';
 
 import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 import {
   Brain,
   Calculator,
@@ -12,8 +15,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
 import {
   type GenerateCompanyReplyStyleInput,
   generateCompanyReplyStyle,
@@ -32,7 +33,6 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 
@@ -50,6 +50,7 @@ export default function AiHrPaymentPage() {
   const [suggestedGuidelines, setSuggestedGuidelines] = useState<string[]>([]);
 
   const [typedStyle, setTypedStyle] = useState('');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [currentTypingIndex, setCurrentTypingIndex] = useState(0);
   const [isTypewriterComplete, setIsTypewriterComplete] = useState(false);
 
@@ -145,8 +146,7 @@ export default function AiHrPaymentPage() {
         toast({
           title: 'AI Style Generation Failed',
           description: "There was an issue generating the company's communication style.",
-          type: 'error',
-          onClose: () => {},
+          variant: 'destructive',
         });
       } finally {
         setIsLoadingAiStyle(false);
@@ -159,8 +159,8 @@ export default function AiHrPaymentPage() {
   useEffect(() => {
     if (companyStyleAnalysis && currentTypingIndex < companyStyleAnalysis.length) {
       const timeoutId = setTimeout(() => {
-        setTypedStyle((prev) => prev + companyStyleAnalysis[currentTypingIndex]);
-        setCurrentTypingIndex((prev) => prev + 1);
+        setTypedStyle((prev: string) => prev + companyStyleAnalysis[currentTypingIndex]);
+        setCurrentTypingIndex((prev: number) => prev + 1);
       }, 50);
       return () => clearTimeout(timeoutId);
     }
@@ -223,8 +223,7 @@ export default function AiHrPaymentPage() {
       toast({
         title: 'Logout Failed',
         description: 'Could not sign out.',
-        type: 'error',
-        onClose: () => {},
+        variant: 'destructive',
       });
     }
   };
@@ -238,8 +237,6 @@ export default function AiHrPaymentPage() {
       toast({
         title: 'Invalid Input',
         description: 'Please enter a valid number of replies.',
-        type: 'info',
-        onClose: () => {},
       });
       return;
     }
@@ -274,20 +271,15 @@ export default function AiHrPaymentPage() {
       toast({
         title: 'AI Human Resources Activated!',
         description: `You've selected the ${plan === 'monthly' ? 'Monthly Subscription' : 'Pay Per Reply'} plan. This is a conceptual payment flow. No actual payment was processed.`,
-        type: 'success',
         duration: 8000,
-        onClose: () => {},
       });
-      return;
     } catch (error) {
       console.error('Error processing payment:', error);
       toast({
         title: 'Payment Processing Failed',
         description: 'There was an issue processing your payment selection.',
-        type: 'error',
-        onClose: () => {},
+        variant: 'destructive',
       });
-      return;
     } finally {
       setIsSubmittingPayment(false);
     }
@@ -350,7 +342,7 @@ export default function AiHrPaymentPage() {
                     Suggested AI Reply Guidelines:
                   </h4>
                   <ul className="list-inside list-disc space-y-1 text-slate-300 text-sm">
-                    {suggestedGuidelines.map((guideline, index) => (
+                    {suggestedGuidelines.map((guideline: string, index: number) => (
                       <li key={`guideline-${index}-${guideline.slice(0, 20)}`}>{guideline}</li>
                     ))}
                   </ul>

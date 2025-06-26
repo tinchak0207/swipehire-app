@@ -1,6 +1,6 @@
 {
   "IDX.aI.enableInlineCompletion": true,
   "IDX.aI.enableCodebaseIndexing": true,
-  "codium.codeCompletion.enable": false,
+  "codium.codeCompletion.enable": true,
   "typescript.tsdk": "node_modules\\typescript\\lib"
 }

@@ -42,38 +42,40 @@ export function AppHeader({
 
   return (
     <header
-      className={cn('sticky top-0 z-40 border-gray-200 border-b bg-white shadow-sm', className)}
+      className={cn('sticky top-0 z-40 w-full border-gray-200 border-b bg-white shadow-sm', className)}
     >
-      <div className="container mx-auto px-4 py-3 sm:py-4">
-        <div className="flex items-center justify-between gap-4 sm:gap-6">
-          {/* Logo Section */}
-          <Link href="/" className="flex shrink-0 items-center gap-3">
-            <FileVideo2 className="h-8 w-8 text-black sm:h-10 sm:w-10" />
-            <div className="flex flex-col">
-              <h1 className="font-bold text-black text-xl sm:text-2xl">SwipeHire</h1>
-              <p className="hidden text-gray-600 text-xs sm:text-sm md:block">
-                Recruit Smarter, Not Harder.
-              </p>
-            </div>
-            {isGuestMode && (
-              <Badge
-                variant="secondary"
-                className="ml-3 border-blue-200 bg-blue-100 text-blue-800 text-xs"
-              >
-                <Eye className="mr-1 h-3 w-3 text-black" />
-                <span className="text-black">Guest Mode</span>
-              </Badge>
-            )}
-          </Link>
+      <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
+        <div className="flex items-center gap-4 sm:gap-6">
+          {/* Logo Section - Left */}
+          <div className="flex shrink-0 items-center">
+            <Link href="/" className="flex shrink-0 items-center gap-3">
+              <FileVideo2 className="h-8 w-8 text-black sm:h-10 sm:w-10" />
+              <div className="flex flex-col">
+                <h1 className="font-bold text-black text-xl sm:text-2xl">SwipeHire</h1>
+                <p className="hidden text-gray-600 text-xs sm:text-sm lg:block">
+                  Recruit Smarter, Not Harder.
+                </p>
+              </div>
+              {isGuestMode && (
+                <Badge
+                  variant="secondary"
+                  className="ml-3 border-blue-200 bg-blue-100 text-blue-800 text-xs"
+                >
+                  <Eye className="mr-1 h-3 w-3 text-black" />
+                  <span className="text-black">Guest Mode</span>
+                </Badge>
+              )}
+            </Link>
+          </div>
 
-          {/* Desktop Search Bar */}
-          <div className="mx-6 hidden max-w-2xl flex-1 sm:block">
-            <div className="relative">
-              <Search className="-translate-y-1/2 absolute top-1/2 left-3 h-5 w-5 text-gray-400" />
+          {/* Desktop Search Bar - Center (Optimized) */}
+          <div className="mx-4 hidden flex-1 justify-center sm:flex lg:mx-8">
+            <div className="relative w-full max-w-2xl">
+              <Search className="-translate-y-1/2 absolute top-1/2 left-4 h-5 w-5 text-gray-400" />
               <Input
                 type="search"
                 placeholder="Search jobs, companies, talent..."
-                className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2.5 pr-4 pl-10 text-black transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-200"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pr-6 pl-12 text-black text-base transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:shadow-lg sm:py-3.5 lg:py-4"
                 value={searchTerm}
                 onChange={handleSearchChange}
               />
@@ -97,7 +99,7 @@ export function AppHeader({
             {isAuthenticated && userName && !isGuestMode && (
               <div className="hidden items-center gap-3 sm:flex">
                 <UserAvatar
-                  src={userPhotoURL}
+                  src={userPhotoURL || null}
                   alt={userName || 'User'}
                   fallbackText={userName
                     ?.split(' ')
@@ -119,7 +121,7 @@ export function AppHeader({
             {isAuthenticated && userName && !isGuestMode && (
               <div className="sm:hidden">
                 <UserAvatar
-                  src={userPhotoURL}
+                  src={userPhotoURL || null}
                   alt={userName || 'User'}
                   fallbackText={userName
                     ?.split(' ')

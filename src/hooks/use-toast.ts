@@ -3,17 +3,23 @@
 // Inspired by react-hot-toast library
 import * as React from 'react';
 
-import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
-
 const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 1000000;
 
-export type ToasterToast = ToastProps & {
+type ToastVariant = 'default' | 'destructive';
+
+export interface ToastProps {
   id: string;
   title?: React.ReactNode;
   description?: React.ReactNode;
-  action?: ToastActionElement;
-};
+  action?: React.ReactElement;
+  variant?: ToastVariant;
+  duration?: number;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export type ToasterToast = ToastProps;
 
 const actionTypes = {
   ADD_TOAST: 'ADD_TOAST',
