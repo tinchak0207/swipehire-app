@@ -219,16 +219,16 @@ export async function updateRecruiterJob(
     targetUrl
   );
   console.log('[Frontend Service] Job data being sent:', JSON.stringify(jobData, null, 2));
-  
+
   try {
     const response = await fetch(targetUrl, {
       method: 'POST', // Changed method to POST
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(jobData),
     });
-    
+
     console.log(`[Frontend Service] Update job response status: ${response.status}`);
-    
+
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -236,28 +236,37 @@ export async function updateRecruiterJob(
       console.error('[Frontend Service] Error updating job (JSON):', errorData);
       throw new Error(errorData.message);
     }
-    
+
     const responseData = await response.json();
     console.log('[Frontend Service] Raw response data:', JSON.stringify(responseData, null, 2));
-    
+
     // Handle different response formats from backend
     let updatedJob: CompanyJobOpening;
-    
+
     if (responseData && responseData.job) {
       // Expected format: { message: string; job: CompanyJobOpening }
       updatedJob = responseData.job;
-      console.log('[Frontend Service] Job updated successfully (nested format):', updatedJob.title || 'No title');
+      console.log(
+        '[Frontend Service] Job updated successfully (nested format):',
+        updatedJob.title || 'No title'
+      );
     } else if (responseData && responseData.title) {
       // Direct job object format
       updatedJob = responseData;
-      console.log('[Frontend Service] Job updated successfully (direct format):', updatedJob.title || 'No title');
+      console.log(
+        '[Frontend Service] Job updated successfully (direct format):',
+        updatedJob.title || 'No title'
+      );
     } else {
       // Fallback - use the original job data with updates
       console.warn('[Frontend Service] Unexpected response format, using fallback');
       updatedJob = { ...jobData } as CompanyJobOpening;
-      console.log('[Frontend Service] Job updated successfully (fallback):', updatedJob.title || 'No title');
+      console.log(
+        '[Frontend Service] Job updated successfully (fallback):',
+        updatedJob.title || 'No title'
+      );
     }
-    
+
     return updatedJob;
   } catch (error: any) {
     console.error(

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 // Type definition for user profile
 // Ideally, move this to a separate contracts file (e.g., src/contracts/user.ts)
 interface UserProfile {

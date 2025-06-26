@@ -1,9 +1,6 @@
 'use client';
 
 import { signOut } from 'firebase/auth';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
 import {
   Brain,
   Calculator,
@@ -15,6 +12,8 @@ import {
   Sparkles,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 import {
   type GenerateCompanyReplyStyleInput,
   generateCompanyReplyStyle,
@@ -33,6 +32,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { cn } from '@/lib/utils';
 
