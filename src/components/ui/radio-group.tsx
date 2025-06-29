@@ -1,38 +1,69 @@
 'use client';
 
-import * as RadioGroupPrimitive from '@radix-ui/react-radio-group';
-import { Circle } from 'lucide-react';
-import * as React from 'react';
+import React, { createContext, useContext } from 'react';
 
-import { cn } from '@/lib/utils';
+interface RadioGroupContextType {
+  value: string;
+  onValueChange: (value: string) => void;
+}
 
-const RadioGroup = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
->(({ className, ...props }, ref) => {
-  return <RadioGroupPrimitive.Root className={cn('grid gap-2', className)} {...props} ref={ref} />;
-});
-RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
+const RadioGroupContext = createContext<RadioGroupContextType | null>(null);
 
-const RadioGroupItem = React.forwardRef<
-  React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
->(({ className, ...props }, ref) => {
+interface RadioGroupProps {
+  value: string;
+  onValueChange: (value: string) => void;
+  children: React.ReactNode;
+  className?: string;
+}
+
+export const RadioGroup = ({
+  value,
+  onValueChange,
+  children,
+  className = '',
+}: RadioGroupProps) => {
   return (
-    <RadioGroupPrimitive.Item
-      ref={ref}
-      className={cn(
-        'aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-        className
-      )}
-      {...props}
-    >
-      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <Circle className="h-2.5 w-2.5 fill-current text-current" />
-      </RadioGroupPrimitive.Indicator>
-    </RadioGroupPrimitive.Item>
+    <RadioGroupContext.Provider value={{ value, onValueChange }}>
+      <div className={`flex flex-col gap-2 ${className}`} role="radiogroup">
+        {children}
+      </div>
+    </RadioGroupContext.Provider>
   );
-});
-RadioGroupItem.displayName = RadioGroupPrimitive.Item.displayName;
+};
 
-export { RadioGroup, RadioGroupItem };
+interface RadioGroupItemProps {
+  value: string;
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}
+
+export const RadioGroupItem = ({
+  value,
+  children,
+  className = '',
+  disabled = false,
+}: RadioGroupItemProps) => {
+  const context = useContext(RadioGroupContext);
+  
+  if (!context) {
+    throw new Error('RadioGroupItem must be used within a RadioGroup');
+  }
+
+  const { value: selectedValue, onValueChange } = context;
+  const isSelected = selectedValue === value;
+
+  return (
+    <label className={`flex items-center gap-2 cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}>
+      <input
+        type="radio"
+        checked={isSelected}
+        onChange={() => !disabled && onValueChange(value)}
+        disabled={disabled}
+        className="radio radio-primary"
+        value={value}
+      />
+      <span>{children}</span>
+    </label>
+  );
+};

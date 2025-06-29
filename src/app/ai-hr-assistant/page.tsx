@@ -15,7 +15,8 @@ import { auth } from '@/lib/firebase';
 import 'aos/dist/aos.css';
 
 export default function AiHrAssistantPage() {
-  const { currentUser, fullBackendUser, mongoDbUserId, preferences } = useUserPreferences();
+  const { fullBackendUser, mongoDbUserId, preferences } = useUserPreferences();
+  const currentUser = fullBackendUser; // Use fullBackendUser as currentUser
   const router = useRouter();
 
   // State for chat animation
@@ -82,12 +83,12 @@ export default function AiHrAssistantPage() {
       // This is a basic way to sequence after AOS.
       setTimeout(
         () => {
-          if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset.aosId) {
+          if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset['aosId']) {
             // Check if AOS processed it
             animateChat();
           }
         },
-        Number.parseFloat((cardElement as HTMLElement).dataset.aosDelay || '0') + 200
+        Number.parseFloat((cardElement as HTMLElement).dataset['aosDelay'] || '0') + 200
       ); // Delay by AOS delay + buffer
     } else {
       // Fallback if AOS selector fails, run after a fixed delay
@@ -131,12 +132,12 @@ export default function AiHrAssistantPage() {
   }
 
   const isAuthenticated = !!currentUser && !!mongoDbUserId;
-  const userName = fullBackendUser?.name || currentUser?.displayName || null;
-  let userPhotoURL = currentUser?.photoURL || null;
+  const userName = fullBackendUser?.name || null;
+  let userPhotoURL: string | null = null;
   if (fullBackendUser?.profileAvatarUrl) {
     if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
       const CUSTOM_BACKEND_URL =
-        process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+        process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
       userPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
     } else {
       userPhotoURL = fullBackendUser.profileAvatarUrl;

@@ -13,7 +13,9 @@ interface CareerDashboardProps {
     values: string[];
     careerExpectations: string;
   };
-  onBackToQuestionnaire?: () => void;
+  onBackToQuestionnaire?: (() => void) | undefined;
+  userName?: string | null;
+  userPhotoURL?: string | null;
 }
 
 interface CareerRecommendation {

@@ -1,5 +1,6 @@
 import '@testing-library/jest-dom';
 import 'whatwg-fetch';
+import 'jest-axe/extend-expect';
 
 // Polyfill for Node.js environment
 import { TextDecoder, TextEncoder } from 'node:util';

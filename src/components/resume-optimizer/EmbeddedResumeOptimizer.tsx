@@ -45,7 +45,7 @@ export function EmbeddedResumeOptimizer({
         suggestions: [
           {
             id: 'suggestion-1',
-            type: 'keyword',
+            type: 'keyword', // Valid types: 'keyword' | 'grammar' | 'format' | 'achievement' | 'structure' | 'ats'
             title: 'Add Missing Keywords',
             description: 'Include relevant industry keywords to improve ATS compatibility',
             impact: 'high',
@@ -115,7 +115,7 @@ export function EmbeddedResumeOptimizer({
     <div className={`space-y-6 ${className}`}>
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">Resume Optimizer</h3>
-
+        
         <div className="space-y-2">
           <label htmlFor="resume-text" className="block text-sm font-medium">
             Resume Text
@@ -143,15 +143,19 @@ export function EmbeddedResumeOptimizer({
           <h4 className="font-semibold">Analysis Results</h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{analysisResult.overallScore}%</div>
+              <div className="text-2xl font-bold text-blue-600">
+                {analysisResult.overallScore}%
+              </div>
               <div className="text-sm text-gray-600">Overall Score</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{analysisResult.atsScore}%</div>
+              <div className="text-2xl font-bold text-green-600">
+                {analysisResult.atsScore}%
+              </div>
               <div className="text-sm text-gray-600">ATS Score</div>
             </div>
           </div>
-
+          
           {analysisResult.strengths.length > 0 && (
             <div>
               <h5 className="font-medium text-green-700">Strengths:</h5>

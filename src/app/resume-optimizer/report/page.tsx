@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  ArrowDownTrayIcon,
   ArrowLeftIcon,
   CogIcon,
   DocumentDuplicateIcon,
@@ -596,7 +595,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
           onAutoSave={handleAutoSave}
           onReanalyze={handleReanalyze}
           isReanalyzing={state.isReanalyzing}
-          targetJobInfo={state.targetJobInfo}
+          targetJobInfo={state.targetJobInfo || undefined}
           className="animate-fade-in"
         />
       </div>

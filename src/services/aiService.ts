@@ -438,6 +438,62 @@ Make it authentic and engaging.`;
 }
 
 /**
+ * Icebreaker Question Generator Service
+ * Generates icebreaker questions for recruiters
+ */
+export async function generateIcebreakerQuestion(params: {
+  candidateName: string;
+  jobDescription: string;
+  candidateSkills: string;
+  companyNeeds: string;
+  pastProjects: string;
+}): Promise<{
+  question: string;
+  reasoning: string;
+}> {
+  try {
+    const systemPrompt = `You are an expert recruiter and conversation facilitator. Generate thoughtful icebreaker questions.
+    
+    Return a complete JSON object:
+    {
+      "question": "the icebreaker question",
+      "reasoning": "brief explanation of why this question was chosen"
+    }`;
+
+    const userPrompt = `Generate an icebreaker question for:
+- Candidate: ${params.candidateName}
+- Skills: ${params.candidateSkills}
+- Job: ${params.jobDescription.substring(0, 200)}
+- Company needs: ${params.companyNeeds.substring(0, 100)}
+- Past projects: ${params.pastProjects.substring(0, 100)}
+
+Make it personalized, engaging, and professional.`;
+
+    const response = await generateWithRetry({
+      prompt: userPrompt,
+      systemPrompt,
+      model: 'mistral-small',
+      temperature: 0.7,
+      maxTokens: 500,
+    });
+
+    const fallbackOutput = {
+      question: `Hi ${params.candidateName}, I noticed your experience with ${params.candidateSkills}. What initially drew you to this field?`,
+      reasoning:
+        'Generated a fallback question based on candidate skills when AI output was unavailable.',
+    };
+
+    return parseAIResponse(response.text, fallbackOutput);
+  } catch (error) {
+    console.error('Icebreaker question generation failed:', error);
+    throw new AIError(
+      error instanceof Error ? error.message : 'Icebreaker question generation failed',
+      'ICEBREAKER_QUESTION_ERROR'
+    );
+  }
+}
+
+/**
  * Icebreaker Generator Service
  * Generates conversation starters for matches
  */
@@ -623,6 +679,7 @@ export default {
   recommendProfile,
   answerCompanyQuestion,
   generateVideoScript,
+  generateIcebreakerQuestion,
   generateIcebreaker,
   analyzeResume,
   generateChatReply,

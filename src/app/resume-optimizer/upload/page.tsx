@@ -123,6 +123,14 @@ const ResumeUploadPage: NextPage = () => {
         dragActive: false,
         progress: 0,
         stage: 'uploading',
+        metadata: {
+          fileName: file.name,
+          fileSize: file.size,
+          fileType: file.type,
+          wordCount: 0,
+          characterCount: 0,
+          extractionTime: 0,
+        },
       }));
     },
     [validateFile]
@@ -187,6 +195,7 @@ const ResumeUploadPage: NextPage = () => {
       error: null,
       progress: 0,
       stage: 'uploading',
+      metadata: prev.metadata,
     }));
 
     try {

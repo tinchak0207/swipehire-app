@@ -35,9 +35,10 @@ export default function CompletionStep({
         id: i,
         left: Math.random() * 100,
         delay: Math.random() * 3,
-        color: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'][
-          Math.floor(Math.random() * 6)
-        ],
+        color:
+          ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'][
+            Math.floor(Math.random() * 6)
+          ] || '#ff6b6b',
         size: Math.random() * 10 + 5,
       }));
       setConfettiPieces(pieces);
@@ -87,9 +88,9 @@ export default function CompletionStep({
       {/* Success Header */}
       <div className="mb-12 text-center">
         <div className="mb-6">
-          <div className="mx-auto mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-full bg-success/10">
+          <div className="mx-auto mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-full bg-black/10">
             <svg
-              className="h-12 w-12 text-success"
+              className="h-12 w-12 text-black"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -102,7 +103,7 @@ export default function CompletionStep({
               />
             </svg>
           </div>
-          <h1 className="mb-4 font-bold text-4xl text-base-content">🎉 Welcome to SwipeHire!</h1>
+          <h1 className="mb-4 font-bold text-4xl text-black">🎉 Welcome to SwipeHire!</h1>
           <p className="text-base-content/70 text-lg">
             Your profile is set up and you're ready to{' '}
             {isJobSeeker ? 'find your dream job' : 'discover amazing talent'}!
@@ -113,7 +114,7 @@ export default function CompletionStep({
       {/* Setup Summary */}
       <div className="mb-8 grid gap-6 md:grid-cols-2">
         {/* Profile Summary */}
-        <div className="card bg-base-200">
+        <div className="card bg-white text-black">
           <div className="card-body">
             <h3 className="card-title text-lg">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,7 +163,7 @@ export default function CompletionStep({
         </div>
 
         {/* Goals Summary */}
-        <div className="card bg-base-200">
+        <div className="card bg-white text-black">
           <div className="card-body">
             <h3 className="card-title text-lg">
               <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">

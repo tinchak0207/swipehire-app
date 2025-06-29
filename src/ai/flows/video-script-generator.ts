@@ -108,14 +108,14 @@ Script:
 `,
 });
 
-const _generateVideoScriptFlow = ai.defineFlow(
+export const generateVideoScriptFlow = ai.defineFlow(
   {
     name: 'generateVideoScriptFlow',
     inputSchema: GenerateVideoScriptInputSchema,
     outputSchema: GenerateVideoScriptOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
+    const { output } = await prompt.generate(input);
     if (!output || !output.script || output.script.trim() === '') {
       console.warn('Video script generator returned empty script for input:', input);
       // Provide a default placeholder script if the AI returns empty

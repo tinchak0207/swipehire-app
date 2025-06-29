@@ -5,10 +5,16 @@
 
 import { useCallback, useRef, useState } from 'react';
 import type {
-  AnalysisLoadingState,
   ResumeAnalysisRequest,
   ResumeAnalysisResponse,
 } from '@/lib/types/resume-optimizer';
+
+export interface AnalysisLoadingState {
+  isLoading: boolean;
+  progress: number;
+  stage?: string;
+  message?: string;
+}
 import {
   analyzeResume,
   checkBackendAvailability,
@@ -402,11 +408,11 @@ export const useSimpleResumeAnalysis = () => {
         targetJob: {
           title: targetJobTitle,
           keywords: targetJobKeywords || '',
-          description: options?.targetJobDescription,
-          company: options?.targetJobCompany,
+          description: options?.targetJobDescription || '',
+          company: options?.targetJobCompany || '',
         },
         userId: options?.userId,
-        templateId: options?.templateId,
+        templateId: options?.templateId || '',
       };
 
       return await startAnalysis(request);
@@ -422,6 +428,36 @@ export const useSimpleResumeAnalysis = () => {
     analyze,
     clearError,
     reset,
+  };
+};
+
+/**
+ * Hook to manage and display loading state from useResumeAnalysis
+ */
+export const useAnalysisLoadingState = (loadingState: AnalysisLoadingState) => {
+  // This hook can be expanded to include more complex logic for displaying loading states
+  return {
+    isLoading: loadingState.isLoading,
+    progress: loadingState.progress,
+    stage: loadingState.stage,
+    message: loadingState.message,
+  };
+};
+
+/**
+ * Hook to manage and display error state from useResumeAnalysis
+ */
+export const useAnalysisErrorHandler = (
+  error: ResumeAnalysisError | null,
+  clearError: () => void
+) => {
+  // This hook can be expanded to include more complex error handling, e.g., logging to a service
+  return {
+    error,
+    clearError,
+    hasError: error !== null,
+    errorMessage: error?.message,
+    errorDetails: error?.details,
   };
 };
 

@@ -292,3 +292,191 @@
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out forwards;
   }
+
+  /* Portfolio Editor White Theme - Force white background with black text */
+  .portfolio-editor-white-theme {
+    @apply bg-white text-black;
+  }
+  
+  .portfolio-editor-white-theme .card {
+    @apply bg-white text-black border border-gray-200 shadow-lg;
+  }
+  
+  .portfolio-editor-white-theme .card-body {
+    @apply bg-white text-black;
+  }
+  
+  .portfolio-editor-white-theme .card-title {
+    @apply text-black;
+  }
+  
+  .portfolio-editor-white-theme .input {
+    @apply bg-white text-black border-gray-300 focus:border-gray-500;
+  }
+  
+  .portfolio-editor-white-theme .textarea {
+    @apply bg-white text-black border-gray-300 focus:border-gray-500;
+  }
+  
+  .portfolio-editor-white-theme .btn {
+    @apply bg-white text-black border-gray-300 hover:bg-gray-50;
+  }
+  
+  .portfolio-editor-white-theme .btn-primary {
+    @apply bg-blue-600 text-white border-blue-600 hover:bg-blue-700;
+  }
+  
+  .portfolio-editor-white-theme .btn-success {
+    @apply bg-green-600 text-white border-green-600 hover:bg-green-700;
+  }
+  
+  .portfolio-editor-white-theme .btn-accent {
+    @apply bg-purple-600 text-white border-purple-600 hover:bg-purple-700;
+  }
+  
+  .portfolio-editor-white-theme .btn-outline {
+    @apply bg-transparent text-black border-gray-400 hover:bg-gray-100;
+  }
+  
+  .portfolio-editor-white-theme .label-text {
+    @apply text-black font-medium;
+  }
+  
+  .portfolio-editor-white-theme .alert {
+    @apply bg-white text-black border border-gray-300;
+  }
+  
+  .portfolio-editor-white-theme .alert-warning {
+    @apply bg-yellow-50 text-yellow-800 border-yellow-200;
+  }
+  
+  .portfolio-editor-white-theme .modal-box {
+    @apply bg-white text-black;
+  }
+  
+  .portfolio-editor-white-theme .stats {
+    @apply bg-white text-black border border-gray-200;
+  }
+  
+  .portfolio-editor-white-theme .stat {
+    @apply bg-white text-black;
+  }
+  
+  .portfolio-editor-white-theme .stat-title {
+    @apply text-gray-600;
+  }
+  
+  .portfolio-editor-white-theme .stat-value {
+    @apply text-black;
+  }
+  
+  .portfolio-editor-white-theme .toggle {
+    @apply bg-gray-300;
+  }
+  
+  .portfolio-editor-white-theme .toggle:checked {
+    @apply bg-blue-600;
+  }
+  
+  .portfolio-editor-white-theme .badge {
+    @apply bg-gray-100 text-black border-gray-300;
+  }
+  
+  .portfolio-editor-white-theme .select {
+    @apply bg-white text-black border-gray-300 focus:border-gray-500;
+  }
+  
+  .portfolio-editor-white-theme .dropdown-content {
+    @apply bg-white text-black border border-gray-200 shadow-lg;
+  }
+  
+  .portfolio-editor-white-theme .menu li > * {
+    @apply text-black hover:bg-gray-100;
+  }
+  
+  .portfolio-editor-white-theme .divider {
+    @apply border-gray-300;
+  }
+  
+  .portfolio-editor-white-theme .collapse {
+    @apply bg-white text-black border border-gray-200;
+  }
+  
+  .portfolio-editor-white-theme .collapse-title {
+    @apply text-black;
+  }
+  
+  .portfolio-editor-white-theme .collapse-content {
+    @apply bg-white text-black;
+  }
+  
+  .portfolio-editor-white-theme .file-input {
+    @apply bg-white text-black border-gray-300;
+  }
+  
+  .portfolio-editor-white-theme .progress {
+    @apply bg-gray-200;
+  }
+  
+  .portfolio-editor-white-theme .progress::-webkit-progress-value {
+    @apply bg-blue-600;
+  }
+  
+  .portfolio-editor-white-theme .progress::-moz-progress-bar {
+    @apply bg-blue-600;
+  }
+  
+  /* Ensure text inputs and form elements are properly styled */
+  .portfolio-editor-white-theme input[type="text"],
+  .portfolio-editor-white-theme input[type="email"],
+  .portfolio-editor-white-theme input[type="url"],
+  .portfolio-editor-white-theme input[type="number"],
+  .portfolio-editor-white-theme input[type="search"] {
+    @apply bg-white text-black border-gray-300 focus:border-blue-500 focus:ring-blue-500;
+  }
+  
+  .portfolio-editor-white-theme input[type="text"]::placeholder,
+  .portfolio-editor-white-theme input[type="email"]::placeholder,
+  .portfolio-editor-white-theme input[type="url"]::placeholder,
+  .portfolio-editor-white-theme input[type="number"]::placeholder,
+  .portfolio-editor-white-theme input[type="search"]::placeholder,
+  .portfolio-editor-white-theme textarea::placeholder {
+    @apply text-gray-500;
+  }
+  
+  /* Override any dark theme styles that might interfere */
+  .portfolio-editor-white-theme * {
+    color: inherit !important;
+  }
+  
+  .portfolio-editor-white-theme h1,
+  .portfolio-editor-white-theme h2,
+  .portfolio-editor-white-theme h3,
+  .portfolio-editor-white-theme h4,
+  .portfolio-editor-white-theme h5,
+  .portfolio-editor-white-theme h6 {
+    @apply text-black;
+  }
+  
+  .portfolio-editor-white-theme p,
+  .portfolio-editor-white-theme span,
+  .portfolio-editor-white-theme div {
+    @apply text-black;
+  }
+  
+  /* Tag Input specific styling for white theme */
+  .portfolio-editor-white-theme .tag-input-container {
+    @apply bg-white border-gray-300 text-black;
+  }
+  
+  .portfolio-editor-white-theme .tag-input-container input {
+    @apply bg-transparent text-black placeholder-gray-500;
+  }
+  
+  .portfolio-editor-white-theme .tag-badge {
+    @apply bg-gray-100 text-black border-gray-300;
+  }
+  
+  .portfolio-editor-white-theme .tag-remove-btn {
+    @apply text-gray-500 hover:text-gray-700;
+  }

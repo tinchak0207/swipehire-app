@@ -13,7 +13,7 @@ export default function TargetJobDemoPage() {
   const [submittedData, setSubmittedData] = useState<TargetJobFormData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { formData, isValid, handleChange, reset, convertToTargetJobInfo } = useTargetJobForm({
+  const { formData, isValid, handleChange, reset } = useTargetJobForm({
     title: 'Senior Software Engineer',
     keywords: 'React, TypeScript, Node.js',
   });

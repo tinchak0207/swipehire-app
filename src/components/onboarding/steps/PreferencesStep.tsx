@@ -101,7 +101,9 @@ export default function PreferencesStep({
                     </span>
                     <input
                       type="checkbox"
-                      className="toggle toggle-primary"
+                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 
+                        hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2
+                        transition-colors duration-200 ease-in-out"
                       checked={value}
                       onChange={(e) =>
                         handleNotificationChannelChange(
@@ -130,7 +132,9 @@ export default function PreferencesStep({
                     </span>
                     <input
                       type="checkbox"
-                      className="toggle toggle-primary"
+                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 
+                        hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2
+                        transition-colors duration-200 ease-in-out"
                       checked={value}
                       onChange={(e) =>
                         handleNotificationSubscriptionChange(

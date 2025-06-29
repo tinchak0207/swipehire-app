@@ -90,11 +90,39 @@ const ResumeImportPage: NextPage = () => {
         newUrl.searchParams.delete('onboarding');
         window.history.replaceState({}, '', newUrl.toString());
 
-        // Wait a moment for the backend to process the onboarding data
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Try loading profile data with increasing delays
+        let retries = 5;
+        let success = false;
 
-        // Retry loading profile data after onboarding completion
-        await loadProfileData();
+        while (retries > 0 && !success) {
+          console.log(`Attempting to load profile data (${retries} retries remaining)`);
+          await loadProfileData();
+
+          // Check updated state for profile data
+          await new Promise((resolve) => setTimeout(resolve, 0)); // Allow state to update
+
+          // Get fresh state
+          const freshState = await new Promise<ProfileImportState>((resolve) => {
+            setImportState((prev) => {
+              resolve(prev);
+              return prev;
+            });
+          });
+
+          if (freshState.profileData) {
+            console.log('Successfully loaded profile data');
+            success = true;
+          } else {
+            const delay = (6 - retries) * 1000;
+            console.log(`No profile data yet, waiting ${delay}ms before retrying`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            retries--;
+          }
+        }
+
+        if (!success) {
+          console.log('Failed to load profile data after all retries');
+        }
 
         // Hide message after 5 seconds
         setTimeout(() => setShowOnboardingMessage(false), 5000);

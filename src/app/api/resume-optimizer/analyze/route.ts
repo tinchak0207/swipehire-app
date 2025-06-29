@@ -234,6 +234,41 @@ async function performResumeAnalysis(
     overallScore: Math.round(overallScore),
     atsScore: Math.round(atsScore),
     suggestions,
+    grammarCheck: {
+      score: 85,
+      totalIssues: 2,
+      issues: [],
+      overallReadability: 80,
+    },
+    formatAnalysis: {
+      score: 80,
+      atsCompatibility: 75,
+      issues: [],
+      recommendations: ['Use consistent formatting', 'Ensure proper section headers'],
+      sectionStructure: [
+        {
+          name: 'Contact Information',
+          present: true,
+          order: 1,
+          recommended: true,
+        },
+        {
+          name: 'Professional Summary',
+          present: false,
+          order: 2,
+          recommended: true,
+        },
+      ],
+    },
+    quantitativeAnalysis: {
+      score: 60,
+      achievementsWithNumbers: 1,
+      totalAchievements: 5,
+      suggestions: [],
+      impactWords: [],
+    },
+    createdAt: new Date().toISOString(),
+    processingTime: 2000,
     strengths: [
       ...(hasContactInfo ? ['Clear contact information'] : []),
       ...(hasExperience ? ['Professional experience included'] : []),
@@ -314,8 +349,8 @@ async function performResumeAnalysis(
     metadata: {
       analysisDate: new Date().toISOString(),
       targetJobTitle: targetJob.title,
-      targetCompany: targetJob.company,
-      templateUsed: templateId,
+      ...(targetJob.company && { targetCompany: targetJob.company }),
+      ...(templateId && { templateUsed: templateId }),
       wordCount,
       processingTime: 2000,
     },

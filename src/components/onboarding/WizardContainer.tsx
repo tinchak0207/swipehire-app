@@ -110,11 +110,13 @@ const initialWizardData: WizardData = {
 interface WizardContainerProps {
   onCompleteAction: () => void;
   onSkipAction: () => void;
+  returnTo?: string | null;
 }
 
 export default function WizardContainer({
   onCompleteAction = () => console.log('Wizard complete!'),
   onSkipAction,
+  returnTo,
 }: WizardContainerProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
@@ -297,9 +299,19 @@ export default function WizardContainer({
       }
 
       setShowConfetti(true);
-      setTimeout(() => {
+      console.log('Calling onCompleteAction...');
+      try {
         onCompleteAction();
-      }, 3000);
+        console.log('onCompleteAction completed successfully');
+      } catch (error) {
+        console.error('Error during completion:', error);
+        // Fallback redirect if the action fails
+        console.log('Falling back to window.location redirect');
+        window.location.href =
+          returnTo === 'resume-optimizer-import'
+            ? '/resume-optimizer/import?onboarding=completed'
+            : '/';
+      }
     }
   };
 
@@ -355,7 +367,7 @@ export default function WizardContainer({
             data={wizardData}
             onUpdate={updateWizardData}
             onNext={handleNext}
-            onBackAction={handleBack}
+            onBack={handleBack}
             isLoading={isLoading}
           />
         );

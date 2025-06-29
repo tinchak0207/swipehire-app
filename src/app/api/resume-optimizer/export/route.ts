@@ -80,20 +80,19 @@ async function generateExport(
   await new Promise((resolve) => setTimeout(resolve, 2000));
 
   try {
-    let exportData: string;
     let fileExtension: string;
 
     switch (format) {
       case 'txt':
-        exportData = await generateTextExport(resumeText);
+        await generateTextExport(resumeText);
         fileExtension = 'txt';
         break;
       case 'pdf':
-        exportData = await generatePDFExport(resumeText, template);
+        await generatePDFExport(resumeText, template);
         fileExtension = 'pdf';
         break;
       case 'docx':
-        exportData = await generateDOCXExport(resumeText, template);
+        await generateDOCXExport(resumeText, template);
         fileExtension = 'docx';
         break;
       default:

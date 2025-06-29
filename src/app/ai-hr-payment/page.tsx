@@ -167,6 +167,7 @@ export default function AiHrPaymentPage() {
     if (companyStyleAnalysis && currentTypingIndex >= companyStyleAnalysis.length) {
       setIsTypewriterComplete(true);
     }
+    return undefined;
   }, [companyStyleAnalysis, currentTypingIndex]);
 
   useEffect(() => {

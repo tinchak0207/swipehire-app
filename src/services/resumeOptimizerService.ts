@@ -14,7 +14,17 @@ import type {
   UserProfileData,
 } from '@/lib/types/resume-optimizer';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+/**
+ * Helper to get cookie value by name
+ */
+const getCookie = (name: string): string | undefined => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+  return undefined;
+};
+
+const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || '/api';
 
 /**
  * Validates uploaded file for resume processing
@@ -84,7 +94,9 @@ export const extractTextFromFile = async (file: File): Promise<string> => {
 /**
  * Maps onboarding profile data to resume optimizer format
  */
-const mapOnboardingProfileToResumeProfile = (onboardingProfile: any): UserProfileData | null => {
+export const mapOnboardingProfileToResumeProfile = (
+  onboardingProfile: any
+): UserProfileData | null => {
   if (!onboardingProfile) return null;
 
   // Extract basic info
@@ -94,19 +106,40 @@ const mapOnboardingProfileToResumeProfile = (onboardingProfile: any): UserProfil
 
   // Map profile data from onboarding system
   const profileData: UserProfileData = {
-    name,
+    name:
+      name || onboardingProfile.profileHeadline || onboardingProfile.companyName || 'Profile User',
     email,
     phone,
     location: onboardingProfile.profileLocationPreference || '',
-    summary: onboardingProfile.profileExperienceSummary || onboardingProfile.profileHeadline || '',
+    summary:
+      onboardingProfile.profileExperienceSummary ||
+      onboardingProfile.profileHeadline ||
+      onboardingProfile.companyDescription ||
+      '',
     skills: onboardingProfile.profileSkills
       ? onboardingProfile.profileSkills
           .split(',')
           .map((s: string) => s.trim())
           .filter(Boolean)
       : [],
-    experience: [],
-    education: [],
+    experience: [
+      {
+        title: onboardingProfile.profileHeadline || 'Professional',
+        company: onboardingProfile.companyName || 'Company',
+        duration: onboardingProfile.profileWorkExperienceLevel || '',
+        description:
+          onboardingProfile.profileExperienceSummary || onboardingProfile.companyDescription || '',
+        achievements: [],
+        technologies: [],
+      },
+    ],
+    education: [
+      {
+        degree: onboardingProfile.profileEducationLevel || 'Degree',
+        school: 'Educational Institution',
+        year: new Date().getFullYear().toString(),
+      },
+    ],
   };
 
   // Add LinkedIn if available
@@ -143,39 +176,60 @@ const mapOnboardingProfileToResumeProfile = (onboardingProfile: any): UserProfil
  */
 export const fetchUserProfile = async (userId?: string): Promise<UserProfileData | null> => {
   try {
-    // First try to get from the backend user profile API
-    const backendUrl = `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/profile`;
+    // Try to get token from cookies first (most secure option)
+    const cookieToken = getCookie('authToken');
+    const storageToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    let authToken = cookieToken || storageToken;
 
-    const backendResponse = await fetch(backendUrl, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include', // Include cookies for authentication
-    });
+    if (!authToken) {
+      console.error('User appears logged in but no auth token found in any storage');
 
-    if (backendResponse.ok) {
-      const backendResult = await backendResponse.json();
-      if (backendResult.success && backendResult.data) {
-        // Map the onboarding profile data to resume optimizer format
-        const mappedProfile = mapOnboardingProfileToResumeProfile(backendResult.data);
-        if (mappedProfile) {
-          return mappedProfile;
+      // Attempt to refresh token before giving up
+      try {
+        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (refreshResponse.ok) {
+          const { token } = await refreshResponse.json();
+          // Only store in HttpOnly cookie, not in localStorage
+          document.cookie = `authToken=${token}; Path=/; HttpOnly; Secure; SameSite=Strict`;
+          // Use the new token for this request
+          authToken = token;
         }
+      } catch (err) {
+        console.error('Token refresh failed:', err);
+        return null;
       }
     }
 
-    // Fallback to the original API endpoint
-    const url = userId ? `${API_BASE_URL}/user/profile/${userId}` : `${API_BASE_URL}/user/profile`;
+    if (!authToken) {
+      return null;
+    }
+
+    // First try to get from the Next.js API route
+    const url = `${API_BASE_URL}/user/profile${userId ? `/${userId}` : ''}`;
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'x-user-id': userId || '',
+        authorization: `Bearer ${authToken}`,
       },
     });
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // Clear invalid tokens
+        document.cookie = 'authToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        localStorage.removeItem('authToken');
+        sessionStorage.removeItem('authToken');
+
+        throw new Error('Session expired - please sign in again');
+      }
+
       if (response.status === 404) {
         return null; // No profile found
       }
@@ -401,18 +455,20 @@ export interface BackendAnalysisRequest {
   targetJob: {
     title: string;
     keywords: string;
-    description?: string;
-    company?: string;
+    description?: string | undefined;
+    company?: string | undefined;
   };
-  analysisOptions?: {
-    includeATSAnalysis?: boolean;
-    includeKeywordAnalysis?: boolean;
-    includeGrammarCheck?: boolean;
-    includeQuantitativeAnalysis?: boolean;
-    includeFormatAnalysis?: boolean;
-  };
-  userId?: string;
-  templateId?: string;
+  analysisOptions?:
+    | {
+        includeATSAnalysis?: boolean;
+        includeKeywordAnalysis?: boolean;
+        includeGrammarCheck?: boolean;
+        includeQuantitativeAnalysis?: boolean;
+        includeFormatAnalysis?: boolean;
+      }
+    | undefined;
+  userId?: string | undefined;
+  templateId?: string | undefined;
 }
 
 export interface BackendAnalysisResponse {
@@ -442,6 +498,7 @@ export interface BackendAnalysisResponse {
       score: number;
       totalIssues: number;
       issues: Array<{
+        id: string;
         type: 'spelling' | 'grammar' | 'punctuation' | 'style';
         severity: 'error' | 'warning' | 'suggestion';
         message: string;
@@ -594,7 +651,7 @@ export const analyzeResume = async (
     });
 
     // Try backend AI service first
-    const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
     const analysisEndpoint = `${backendUrl}/api/resume/analyze`;
 
     // Set up request with timeout and abort controller
@@ -812,6 +869,8 @@ function transformBackendResponse(
     id: backendData.analysisId,
     overallScore: backendData.overallScore,
     atsScore: backendData.atsCompatibilityScore,
+    strengths: [], // Temporary default
+    weaknesses: [], // Temporary default
     keywordAnalysis: {
       score: backendData.keywordAnalysis.score,
       totalKeywords:
@@ -853,7 +912,7 @@ function transformBackendResponse(
  */
 export const checkBackendAvailability = async (): Promise<boolean> => {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
     const healthEndpoint = `${backendUrl}/api/health`;
 
     const response = await fetch(healthEndpoint, {
@@ -931,7 +990,7 @@ export const reanalyzeResume = async (
     });
 
     // Try backend first
-    const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+    const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
     const reanalysisEndpoint = `${backendUrl}/api/resume/reanalyze`;
 
     const controller = new AbortController();
@@ -1219,9 +1278,10 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
   }
 
   // Projects (if available)
-  if (profileData.projects && profileData.projects.length > 0) {
+  const projects = profileData.projects || [];
+  if (projects.length > 0) {
     resumeText += 'KEY PROJECTS\n\n';
-    profileData.projects.forEach((project, index) => {
+    projects.forEach((project, index) => {
       resumeText += `${project.name}`;
       if (project.role) resumeText += ` | ${project.role}`;
       if (project.duration) resumeText += ` | ${project.duration}`;
@@ -1229,7 +1289,7 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
 
       resumeText += `${project.description}\n`;
 
-      if (project.technologies && project.technologies.length > 0) {
+      if (project.technologies?.length) {
         resumeText += `Technologies: ${project.technologies.join(', ')}\n`;
       }
 
@@ -1237,7 +1297,7 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
         resumeText += `URL: ${project.url}\n`;
       }
 
-      if (index < profileData.projects.length - 1) {
+      if (index < projects.length - 1) {
         resumeText += '\n';
       }
     });
@@ -1264,14 +1324,15 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
   }
 
   // Certifications (if available)
-  if (profileData.certifications && profileData.certifications.length > 0) {
+  const certifications = profileData.certifications || [];
+  if (certifications.length > 0) {
     resumeText += 'CERTIFICATIONS\n\n';
-    profileData.certifications.forEach((cert, index) => {
+    certifications.forEach((cert, index) => {
       resumeText += `${cert.name} | ${cert.issuer} | ${cert.date}\n`;
       if (cert.credentialId) resumeText += `Credential ID: ${cert.credentialId}\n`;
       if (cert.expiryDate) resumeText += `Expires: ${cert.expiryDate}\n`;
 
-      if (index < profileData.certifications.length - 1) {
+      if (index < certifications.length - 1) {
         resumeText += '\n';
       }
     });
@@ -1281,13 +1342,14 @@ export const generateResumeFromProfile = (profileData: UserProfileData): string 
   // Skills
   if (profileData.skills.length > 0) {
     resumeText += 'TECHNICAL SKILLS\n';
-    resumeText += profileData.skills.join(' • ') + '\n\n';
+    resumeText += (profileData.skills || []).join(' • ') + '\n\n';
   }
 
   // Languages (if available)
-  if (profileData.languages && profileData.languages.length > 0) {
+  const languages = profileData.languages || [];
+  if (languages.length > 0) {
     resumeText += 'LANGUAGES\n';
-    const languageStrings = profileData.languages.map(
+    const languageStrings = languages.map(
       (lang) =>
         `${lang.language} (${lang.proficiency.charAt(0).toUpperCase() + lang.proficiency.slice(1)})`
     );

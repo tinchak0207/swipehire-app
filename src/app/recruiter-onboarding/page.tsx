@@ -39,7 +39,7 @@ export default function RecruiterOnboardingPage() {
   } = useUserPreferences();
 
   useEffect(() => {
-    if (!preferences.loadingPreferences) {
+    if (!preferences.isLoading) {
       if (
         fullBackendUser?.selectedRole !== 'recruiter' ||
         fullBackendUser?.companyProfileComplete === true
@@ -59,7 +59,7 @@ export default function RecruiterOnboardingPage() {
           companyName: fullBackendUser.companyName || fullBackendUser.companyNameForJobs || '',
           companyIndustry:
             fullBackendUser.companyIndustry || fullBackendUser.companyIndustryForJobs || '',
-          companyScale: fullBackendUser.companyScale || undefined,
+          companyScale: fullBackendUser.companyScale,
           companyAddress: fullBackendUser.companyAddress || '',
           companyWebsite: fullBackendUser.companyWebsite || '',
           companyDescription: fullBackendUser.companyDescription || '',
@@ -68,7 +68,7 @@ export default function RecruiterOnboardingPage() {
         }));
       }
     }
-  }, [fullBackendUser, preferences.loadingPreferences, router, toast]);
+  }, [fullBackendUser, preferences.isLoading, router, toast]);
 
   const handleNextStep = () => {
     setCurrentStep((prev) => Math.min(prev + 1, TOTAL_STEPS));
@@ -141,16 +141,16 @@ export default function RecruiterOnboardingPage() {
         console.log('[RecruiterOnboarding] Updating context with companyProfileComplete: true');
         updateFullBackendUserFields({
           companyProfileComplete: true,
-          companyName: onboardingData.companyName,
-          companyIndustry: onboardingData.companyIndustry,
+          companyName: onboardingData.companyName || '',
+          companyIndustry: onboardingData.companyIndustry || '',
           companyScale: onboardingData.companyScale,
-          companyAddress: onboardingData.companyAddress,
-          companyWebsite: onboardingData.companyWebsite,
-          companyDescription: onboardingData.companyDescription,
-          companyCultureHighlights: onboardingData.companyCultureHighlights,
-          companyNameForJobs: onboardingData.companyName,
-          companyIndustryForJobs: onboardingData.companyIndustry,
-          name: onboardingData.recruiterFullName,
+          companyAddress: onboardingData.companyAddress || '',
+          companyWebsite: onboardingData.companyWebsite || '',
+          companyDescription: onboardingData.companyDescription || '',
+          companyCultureHighlights: onboardingData.companyCultureHighlights || [],
+          companyNameForJobs: onboardingData.companyName || '',
+          companyIndustryForJobs: onboardingData.companyIndustry || '',
+          name: onboardingData.recruiterFullName || '',
         });
       }
 
@@ -202,7 +202,7 @@ export default function RecruiterOnboardingPage() {
       }
       const step2DataForSubmission = {
         businessLicense: onboardingData.businessLicense,
-        organizationCode: onboardingData.organizationCode,
+        organizationCode: onboardingData.organizationCode || undefined,
         companyVerificationDocuments: onboardingData.companyVerificationDocuments,
       };
       handleStep2DataUpdateAndProceed(step2DataForSubmission); // This now also calls handleNextStep
@@ -243,7 +243,7 @@ export default function RecruiterOnboardingPage() {
     router.push('/');
   };
 
-  if (preferences.loadingPreferences || !fullBackendUser) {
+  if (preferences.isLoading || !fullBackendUser) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-100 via-gray-50 to-slate-200">
         <Loader2 className="h-16 w-16 animate-spin text-primary" />

@@ -37,5 +37,11 @@ export default function OnboardingPage() {
     }
   };
 
-  return <WizardContainer onComplete={handleComplete} onSkip={handleSkip} />;
+  return (
+    <WizardContainer
+      onCompleteAction={handleComplete}
+      onSkipAction={handleSkip}
+      returnTo={returnTo}
+    />
+  );
 }

@@ -28,12 +28,7 @@ export default function CareerAIPage() {
   const [isGuestMode, setIsGuestMode] = useState(false);
   const [_isLoading, setIsLoading] = useState(true);
 
-  const {
-    fullBackendUser,
-    mongoDbUserId,
-    fetchAndSetUserPreferences,
-    preferences: { isLoading: preferencesLoading },
-  } = useUserPreferences();
+  const { fullBackendUser, fetchAndSetUserPreferences } = useUserPreferences();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -105,7 +100,7 @@ export default function CareerAIPage() {
   const getUserPhotoURL = () => {
     if (fullBackendUser?.profileAvatarUrl) {
       if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
-        return `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
+        return `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL']}${fullBackendUser.profileAvatarUrl}`;
       }
       return fullBackendUser.profileAvatarUrl;
     }
@@ -150,7 +145,7 @@ export default function CareerAIPage() {
             </div>
 
             {/* Forms.app Survey - Clean Implementation */}
-            <FormsAppSurvey onComplete={handleQuestionnaireSubmit} />
+            <FormsAppSurvey onCompleteAction={handleQuestionnaireSubmit} />
 
             {/* Divider */}
             <div className="divider divider-primary">

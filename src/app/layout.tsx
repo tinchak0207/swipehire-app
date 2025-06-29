@@ -1,107 +1,29 @@
-'use client'; // Make RootLayout a client component to use hooks
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import { AuthWrapper } from "@/components/AuthWrapper";
+import QueryProvider from "@/components/QueryProvider";
+import "./globals.css";
 
-import { GeistMono } from 'geist/font/mono';
-import { GeistSans } from 'geist/font/sans';
-import { Montserrat } from 'next/font/google';
-import './globals.css';
-import type { User } from 'firebase/auth'; // Import User type
-import { onAuthStateChanged } from 'firebase/auth';
-import Script from 'next/script';
-// Added imports for UserPreferencesProvider and auth
-import type React from 'react'; // Added React and hooks
-import { useEffect, useState } from 'react';
-import { Toaster } from '@/components/ui/toaster';
-import { UserPreferencesProvider } from '@/contexts/UserPreferencesContext';
-import { auth } from '@/lib/firebase';
-import { QueryProvider } from '@/providers/QueryProvider';
+const inter = Inter({ subsets: ["latin"] });
 
-const geistSans = GeistSans;
-const geistMono = GeistMono;
-
-const montserrat = Montserrat({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
-  variable: '--font-montserrat',
-});
+export const metadata: Metadata = {
+  title: "SwipeHire",
+  description: "Revolutionizing the hiring process",
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [currentUserForProvider, setCurrentUserForProvider] = useState<User | null>(null);
-  const [_authLoading, setAuthLoading] = useState(true);
-
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setCurrentUserForProvider(user);
-      setAuthLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
-
   return (
-    <html lang="en">
-      <head>
-        <title>SwipeHire: AI Video Resumes, Talent Matching & Recruitment Platform</title>
-        <meta
-          name="description"
-          content="Revolutionize your job search or hiring process with SwipeHire. Create AI-powered video resumes, find remote job opportunities, and connect with top talent using our innovative swipe-to-find jobs and AI recruitment software."
-        />
-        <meta
-          name="keywords"
-          content="AI Resume, Video Resume, Swipe to Find Jobs, Privacy Recruitment Platform, Remote Job Opportunities, AI Recruitment Software, Video Interview Tool, Talent Matching System, Unbiased Recruitment, Efficient Recruitment, SwipeHire"
-        />
-        <meta
-          name="trustpilot-one-time-domain-verification-id"
-          content="e5d7bcf9-aeda-4aa9-9def-923a0bf35fa1"
-        />
-
-        {/* Favicon Links */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        <link rel="manifest" href="/manifest.json" />
-
-        {/* Preconnect to critical origins */}
-        <link rel="preconnect" href="https://launchgns.com" />
-        <link rel="dns-prefetch" href="https://launchgns.com" />
-
-        <link rel="preconnect" href="https://www.googletagmanager.com" />
-        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
-
-        <link rel="preconnect" href="https://firebase.googleapis.com" />
-        <link rel="dns-prefetch" href="https://firebase.googleapis.com" />
-
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        {/* Montserrat font is loaded via next/font, so preconnects for it are handled. Other googleapis might be needed by Firebase/GTM. */}
-
-        <Script
-          type="text/javascript"
-          src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js"
-          strategy="afterInteractive"
-          async
-        />
-
-        {/* AI Agent Script */}
-        <Script
-          id="ai-agent-script"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `"use strict";(()=>{((t,n,d,a="parent")=>{let o=(e,c)=>{if(!e)throw"Invalid namespace";e.q.push(c)},i=document,r,m=window.location.origin;t[n]=t[n]||(()=>{let e=t[n]||{};if(!e.loaded){e.q=e.q||[];let c=\`\${d}/embed/agent-sdk.umd.js?id=\${a}&referrer=\${m}\`,s=i.createElement("script");s.src=c,i.head.appendChild(s),e.loaded=!0}return e})(),t[n].init=e=>{if(!(t[n]||{}).loaded)throw"Agent not initialized yet!";if(typeof e!="string")throw\`Invalid agent id: \${e}\`;if(r)return;r=i.createElement("script");let s=\`\${d}/embed/agent\`,h=\`\${d}/embed/agent-embed.umd.js?call_id=\${e}&iframeOrg=\${d}&iframeSrc=\${s}&referrer=\${m}\`;r.src=h,i.head.appendChild(r)},t[n].user=e=>{o(t[n],{cmd:"ud",data:e})},t[n].show=e=>{o(t[n],{cmd:"show",chat:e})},t[n].hide=e=>{o(t[n],{cmd:"hide",chat:e})}})(window,"AiAgent","https://prod.fluidworks.ai");AiAgent.init("94aa8774-cb27-4f74-a44f-2906c25ec780");})();`,
-          }}
-        />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} font-sans antialiased`}
-      >
+    <html lang="en" data-theme="light">
+      <body className={inter.className}>
         <QueryProvider>
-          <UserPreferencesProvider currentUser={currentUserForProvider}>
+          <AuthWrapper>
             {children}
-          </UserPreferencesProvider>
+          </AuthWrapper>
         </QueryProvider>
-        <Toaster />
       </body>
     </html>
   );

@@ -406,7 +406,7 @@ export const profileRecommenderFlow = ai.defineFlow(
       personalityAssessment: input.candidateProfile.personalityAssessment || [],
     };
 
-    const { output: llmOutputPartial } = await profileRecommenderPrompt({
+    const { output: llmOutputPartial } = await profileRecommenderPrompt.generate({
       candidateProfile: candidateProfileWithDefaults,
       jobCriteria: input.jobCriteria,
     });

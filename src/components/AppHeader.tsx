@@ -42,10 +42,7 @@ export function AppHeader({
 
   return (
     <header
-      className={cn(
-        'sticky top-0 z-40 w-full border-gray-200 border-b bg-white shadow-sm',
-        className
-      )}
+      className={cn('sticky top-0 z-40 w-full border-gray-200 border-b bg-white shadow-sm', className)}
     >
       <div className="w-full px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
         <div className="flex items-center gap-4 sm:gap-6">
@@ -102,7 +99,7 @@ export function AppHeader({
             {isAuthenticated && userName && !isGuestMode && (
               <div className="hidden items-center gap-3 sm:flex">
                 <UserAvatar
-                  src={userPhotoURL || null}
+                  src={userPhotoURL ?? null}
                   alt={userName || 'User'}
                   fallbackText={userName
                     ?.split(' ')
@@ -124,7 +121,7 @@ export function AppHeader({
             {isAuthenticated && userName && !isGuestMode && (
               <div className="sm:hidden">
                 <UserAvatar
-                  src={userPhotoURL || null}
+                  src={userPhotoURL ?? null}
                   alt={userName || 'User'}
                   fallbackText={userName
                     ?.split(' ')

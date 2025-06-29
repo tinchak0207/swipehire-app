@@ -98,7 +98,7 @@ const editVideoFlow = ai.defineFlow(
     outputSchema: EditVideoOutputSchema,
   },
   async (input: EditVideoInput) => {
-    const { output } = await prompt(input);
+    const { output } = await prompt.generate(input);
 
     // Ensure the output structure always includes editedVideoDataUri using the input videoDataUri
     // and provides a fallback for analysis if the AI output is problematic.
