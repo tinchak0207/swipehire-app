@@ -1,7 +1,7 @@
 import useSWR from 'swr';
 import { IWorkflow } from '@/contracts/IWorkflow';
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export function useWorkflow(id: string) {
   const { data, error, mutate } = useSWR<IWorkflow>(`/api/workflows/${id}`, fetcher);

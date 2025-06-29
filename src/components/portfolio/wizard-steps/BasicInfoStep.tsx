@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { FileText, Sparkles, Tag, User } from 'lucide-react';
+import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { User, FileText, Tag, Sparkles } from 'lucide-react';
 import TagSelector from '../TagSelector';
 
 interface BasicInfoStepProps {
@@ -14,7 +14,7 @@ interface BasicInfoStepProps {
 
 /**
  * Basic Info Step Component
- * 
+ *
  * Collects essential portfolio information with:
  * - Smart input fields with contextual icons
  * - Real-time character counting
@@ -26,16 +26,34 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
   const [titleFocused, setTitleFocused] = useState(false);
   const [descriptionFocused, setDescriptionFocused] = useState(false);
 
-  const { register, formState: { errors }, watch, setValue } = form;
-  
+  const {
+    register,
+    formState: { errors },
+    watch,
+    setValue,
+  } = form;
+
   const title = watch('title') || '';
   const description = watch('description') || '';
   const tags = watch('tags') || [];
 
   const suggestedTags = [
-    'Web Development', 'Mobile Apps', 'UI/UX Design', 'Frontend', 'Backend',
-    'Full Stack', 'React', 'Node.js', 'Python', 'JavaScript', 'TypeScript',
-    'Design', 'Photography', 'Marketing', 'Data Science', 'Machine Learning'
+    'Web Development',
+    'Mobile Apps',
+    'UI/UX Design',
+    'Frontend',
+    'Backend',
+    'Full Stack',
+    'React',
+    'Node.js',
+    'Python',
+    'JavaScript',
+    'TypeScript',
+    'Design',
+    'Photography',
+    'Marketing',
+    'Data Science',
+    'Machine Learning',
   ];
 
   const handleTagsChange = (newTags: string[]) => {
@@ -57,28 +75,26 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           <span>Portfolio Title</span>
           <span className="text-red-300">*</span>
         </label>
-        
+
         <div className="relative">
           <motion.input
             {...register('title')}
             type="text"
             placeholder="e.g., John Doe - Full Stack Developer"
             className={`w-full px-6 py-4 bg-white/10 backdrop-blur-sm border-2 rounded-2xl text-white placeholder-white/50 text-lg transition-all duration-300 focus:outline-none ${
-              titleFocused || title
-                ? 'border-white/50 bg-white/20'
-                : 'border-white/20'
+              titleFocused || title ? 'border-white/50 bg-white/20' : 'border-white/20'
             } ${errors.title ? 'border-red-400' : ''}`}
             onFocus={() => setTitleFocused(true)}
             onBlur={() => setTitleFocused(false)}
             whileFocus={{ scale: 1.02 }}
           />
-          
+
           {/* Character counter */}
           <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-white/50 text-sm">
             {title.length}/100
           </div>
         </div>
-        
+
         {errors.title && (
           <motion.p
             initial={{ opacity: 0, x: -10 }}
@@ -89,7 +105,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             <span>{errors.title.message}</span>
           </motion.p>
         )}
-        
+
         <p className="text-white/60 text-sm">
           This will be the main heading of your portfolio. Make it memorable!
         </p>
@@ -106,28 +122,26 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           <FileText className="w-5 h-5" />
           <span>About You</span>
         </label>
-        
+
         <div className="relative">
           <motion.textarea
             {...register('description')}
             placeholder="Tell visitors about yourself, your skills, and what makes you unique..."
             rows={4}
             className={`w-full px-6 py-4 bg-white/10 backdrop-blur-sm border-2 rounded-2xl text-white placeholder-white/50 text-lg transition-all duration-300 focus:outline-none resize-none ${
-              descriptionFocused || description
-                ? 'border-white/50 bg-white/20'
-                : 'border-white/20'
+              descriptionFocused || description ? 'border-white/50 bg-white/20' : 'border-white/20'
             } ${errors.description ? 'border-red-400' : ''}`}
             onFocus={() => setDescriptionFocused(true)}
             onBlur={() => setDescriptionFocused(false)}
             whileFocus={{ scale: 1.02 }}
           />
-          
+
           {/* Character counter */}
           <div className="absolute right-4 bottom-4 text-white/50 text-sm">
             {description.length}/500
           </div>
         </div>
-        
+
         {errors.description && (
           <motion.p
             initial={{ opacity: 0, x: -10 }}
@@ -138,7 +152,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             <span>{errors.description.message}</span>
           </motion.p>
         )}
-        
+
         <p className="text-white/60 text-sm">
           Optional: A brief introduction that appears at the top of your portfolio.
         </p>
@@ -155,7 +169,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           <Tag className="w-5 h-5" />
           <span>Skills & Interests</span>
         </label>
-        
+
         <div className="bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-2xl p-6">
           <TagSelector
             selectedTags={tags}
@@ -164,7 +178,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             className="bg-transparent border-white/30 text-white placeholder-white/50"
             tagClassName="bg-white/20 text-white border-white/30"
           />
-          
+
           {/* Suggested tags */}
           <div className="mt-4">
             <p className="text-white/70 text-sm mb-3 flex items-center space-x-1">
@@ -194,7 +208,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             </div>
           </div>
         </div>
-        
+
         {errors.tags && (
           <motion.p
             initial={{ opacity: 0, x: -10 }}
@@ -205,7 +219,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             <span>{errors.tags.message}</span>
           </motion.p>
         )}
-        
+
         <p className="text-white/60 text-sm">
           Add up to 10 tags to help people discover your portfolio. ({tags.length}/10)
         </p>
@@ -223,19 +237,14 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             <Sparkles className="w-4 h-4" />
             <span>Preview</span>
           </h3>
-          
+
           <div className="space-y-3">
             <h4 className="text-2xl font-bold text-white">{title}</h4>
-            {description && (
-              <p className="text-white/80 leading-relaxed">{description}</p>
-            )}
+            {description && <p className="text-white/80 leading-relaxed">{description}</p>}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag: string) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-white/20 text-white text-sm rounded-full"
-                  >
+                  <span key={tag} className="px-3 py-1 bg-white/20 text-white text-sm rounded-full">
                     {tag}
                   </span>
                 ))}

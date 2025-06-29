@@ -1,8 +1,7 @@
-
 import React from 'react';
-import NavigationPanel from '../panels/NavigationPanel';
 import CanvasArea from '../panels/CanvasArea';
 import ConfigurationPanel from '../panels/ConfigurationPanel';
+import NavigationPanel from '../panels/NavigationPanel';
 import DataDashboard from '../visualization/DataDashboard';
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {

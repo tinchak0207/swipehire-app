@@ -5,7 +5,9 @@ export default function WorkflowsPage() {
     <main className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-4xl font-bold">My Workflows</h1>
-        <Link href="/dashboard/workflows/new" className="btn btn-primary">New Workflow</Link>
+        <Link href="/dashboard/workflows/new" className="btn btn-primary">
+          New Workflow
+        </Link>
       </div>
       <div className="overflow-x-auto">
         <table className="table w-full">
@@ -21,9 +23,13 @@ export default function WorkflowsPage() {
             {/* Placeholder for workflow rows */}
             <tr>
               <td>
-                <Link href="/dashboard/workflows/123" className="link">Software Engineer Screening</Link>
+                <Link href="/dashboard/workflows/123" className="link">
+                  Software Engineer Screening
+                </Link>
               </td>
-              <td><span className="badge badge-success">Active</span></td>
+              <td>
+                <span className="badge badge-success">Active</span>
+              </td>
               <td>2 hours ago</td>
               <td>
                 <button className="btn btn-ghost btn-xs">details</button>

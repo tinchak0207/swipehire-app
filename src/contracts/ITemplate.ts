@@ -1,4 +1,3 @@
-
 import { IWorkflow } from './IWorkflow';
 
 export interface ITemplate extends IWorkflow {

@@ -14,7 +14,9 @@ export async function GET(request: Request) {
   let filteredTemplates = templates;
 
   if (filterBy) {
-    filteredTemplates = templates.filter(t => t.name.includes(filterBy) || t.description?.includes(filterBy));
+    filteredTemplates = templates.filter(
+      (t) => t.name.includes(filterBy) || t.description?.includes(filterBy)
+    );
   }
 
   const sortedTemplates = filteredTemplates.sort((a, b) => {

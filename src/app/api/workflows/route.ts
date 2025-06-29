@@ -26,7 +26,9 @@ export async function GET(request: Request) {
   let filteredWorkflows = workflows;
 
   if (filterBy) {
-    filteredWorkflows = workflows.filter(w => w.name.includes(filterBy) || w.description?.includes(filterBy));
+    filteredWorkflows = workflows.filter(
+      (w) => w.name.includes(filterBy) || w.description?.includes(filterBy)
+    );
   }
 
   const sortedWorkflows = filteredWorkflows.sort((a, b) => {

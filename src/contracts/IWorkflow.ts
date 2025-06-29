@@ -1,4 +1,4 @@
-import { Node, Edge } from 'reactflow';
+import { Edge, Node } from 'reactflow';
 
 // Using a discriminated union for type-safe config handling
 export type CardNodeConfig = IAnalyzeResumeConfig | IConditionConfig | ISendInviteConfig;

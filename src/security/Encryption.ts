@@ -1,4 +1,3 @@
-
 export class EncryptionService {
   public encrypt(data: string): string {
     // In a real application, this would use a strong encryption algorithm.

@@ -1,20 +1,20 @@
-    'use client';
+'use client';
 
-import React, { useState, useCallback } from 'react';
-import { Project, ExternalLink, Media } from '@/lib/types/portfolio';
-import { useToast } from '@/hooks/use-toast';
-import TagSelector from './TagSelector';
-import MediaUploader from './MediaUploader';
-import { 
-  TrashIcon, 
-  GripVerticalIcon, 
-  ChevronUpIcon, 
+import {
   ChevronDownIcon,
-  PlusIcon,
+  ChevronUpIcon,
   ExternalLinkIcon,
-  GithubIcon,
   EyeIcon,
+  GithubIcon,
+  GripVerticalIcon,
+  PlusIcon,
+  TrashIcon,
 } from 'lucide-react';
+import React, { useCallback, useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { ExternalLink, Media, Project } from '@/lib/types/portfolio';
+import MediaUploader from './MediaUploader';
+import TagSelector from './TagSelector';
 
 interface ProjectEditorProps {
   project: Project;
@@ -29,7 +29,7 @@ interface ProjectEditorProps {
 
 /**
  * ProjectEditor Component
- * 
+ *
  * A comprehensive editor for individual projects within a portfolio.
  * Features:
  * - Basic project information (title, description)
@@ -62,23 +62,32 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
   /**
    * Handle field updates
    */
-  const handleFieldUpdate = useCallback((field: keyof Project, value: any) => {
-    onUpdate({ [field]: value });
-  }, [onUpdate]);
+  const handleFieldUpdate = useCallback(
+    (field: keyof Project, value: any) => {
+      onUpdate({ [field]: value });
+    },
+    [onUpdate]
+  );
 
   /**
    * Handle media updates
    */
-  const handleMediaUpdate = useCallback((media: Media[]) => {
-    onUpdate({ media });
-  }, [onUpdate]);
+  const handleMediaUpdate = useCallback(
+    (media: Media[]) => {
+      onUpdate({ media });
+    },
+    [onUpdate]
+  );
 
   /**
    * Handle tag updates
    */
-  const handleTagsUpdate = useCallback((tags: string[]) => {
-    onUpdate({ tags });
-  }, [onUpdate]);
+  const handleTagsUpdate = useCallback(
+    (tags: string[]) => {
+      onUpdate({ tags });
+    },
+    [onUpdate]
+  );
 
   /**
    * Add external link
@@ -132,17 +141,20 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
   /**
    * Remove external link
    */
-  const handleRemoveLink = useCallback((linkIndex: number) => {
-    const updatedLinks = project.links.filter((_, i) => i !== linkIndex);
-    onUpdate({ links: updatedLinks });
-  }, [project.links, onUpdate]);
+  const handleRemoveLink = useCallback(
+    (linkIndex: number) => {
+      const updatedLinks = project.links.filter((_, i) => i !== linkIndex);
+      onUpdate({ links: updatedLinks });
+    },
+    [project.links, onUpdate]
+  );
 
   /**
    * Move project up
    */
   const handleMoveUp = useCallback(() => {
     if (index === 0) return;
-    
+
     const reordered = [...allProjects];
     const currentProject = reordered[index];
     const previousProject = reordered[index - 1];
@@ -158,7 +170,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
    */
   const handleMoveDown = useCallback(() => {
     if (index === allProjects.length - 1) return;
-    
+
     const reordered = [...allProjects];
     const currentProject = reordered[index];
     const nextProject = reordered[index + 1];
@@ -202,26 +214,26 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
   };
 
   return (
-    <div className={`card bg-base-100 border border-base-300 shadow-sm transition-all duration-200 ${
-      isDragging ? 'shadow-lg ring-2 ring-primary ring-opacity-50 rotate-1' : ''
-    }`}>
+    <div
+      className={`card bg-base-100 border border-base-300 shadow-sm transition-all duration-200 ${
+        isDragging ? 'shadow-lg ring-2 ring-primary ring-opacity-50 rotate-1' : ''
+      }`}
+    >
       {/* Project Header */}
       <div className="card-body p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Drag Handle */}
-            <div 
+            <div
               className="cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content/80 transition-colors"
               {...dragHandleProps}
             >
               <GripVerticalIcon className="w-5 h-5" />
             </div>
-            
+
             {/* Project Title */}
             <div className="flex-1">
-              <h3 className="font-medium">
-                {project.title || `Project ${index + 1}`}
-              </h3>
+              <h3 className="font-medium">{project.title || `Project ${index + 1}`}</h3>
               <div className="text-sm text-base-content/60">
                 {project.media.length} media • {project.links.length} links
               </div>
@@ -251,10 +263,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
             </div>
 
             {/* Expand/Collapse */}
-            <button
-              className="btn btn-ghost btn-sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-            >
+            <button className="btn btn-ghost btn-sm" onClick={() => setIsExpanded(!isExpanded)}>
               {isExpanded ? 'Collapse' : 'Expand'}
             </button>
 
@@ -373,7 +382,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                 <div className="card bg-base-200 border border-base-300">
                   <div className="card-body p-4">
                     <h4 className="font-medium mb-3">Add External Link</h4>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="form-control">
                         <label className="label py-1">
@@ -382,10 +391,12 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                         <select
                           className="select select-bordered select-sm"
                           value={newLink.type}
-                          onChange={(e) => setNewLink(prev => ({ 
-                            ...prev, 
-                            type: e.target.value as ExternalLink['type'] 
-                          }))}
+                          onChange={(e) =>
+                            setNewLink((prev) => ({
+                              ...prev,
+                              type: e.target.value as ExternalLink['type'],
+                            }))
+                          }
                         >
                           <option value="other">Other</option>
                           <option value="github">GitHub</option>
@@ -404,10 +415,12 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                           placeholder="e.g., View Source Code"
                           className="input input-bordered input-sm"
                           value={newLink.label}
-                          onChange={(e) => setNewLink(prev => ({ 
-                            ...prev, 
-                            label: e.target.value 
-                          }))}
+                          onChange={(e) =>
+                            setNewLink((prev) => ({
+                              ...prev,
+                              label: e.target.value,
+                            }))
+                          }
                         />
                       </div>
 
@@ -420,10 +433,12 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                           placeholder="https://..."
                           className="input input-bordered input-sm"
                           value={newLink.url}
-                          onChange={(e) => setNewLink(prev => ({ 
-                            ...prev, 
-                            url: e.target.value 
-                          }))}
+                          onChange={(e) =>
+                            setNewLink((prev) => ({
+                              ...prev,
+                              url: e.target.value,
+                            }))
+                          }
                         />
                       </div>
                     </div>
@@ -435,10 +450,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                       >
                         Cancel
                       </button>
-                      <button
-                        className="btn btn-primary btn-sm"
-                        onClick={handleAddLink}
-                      >
+                      <button className="btn btn-primary btn-sm" onClick={handleAddLink}>
                         Add Link
                       </button>
                     </div>

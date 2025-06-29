@@ -1,4 +1,3 @@
-
 export interface IVariable {
   _id: string;
   workflowId: string;

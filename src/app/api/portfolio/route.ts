@@ -1,50 +1,60 @@
 /**
  * Portfolio API Routes - Core CRUD Operations
- * 
+ *
  * Implements the main portfolio endpoints for listing and creating portfolios
  * with proper validation, authentication, and error handling.
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { 
-  Portfolio
-} from '@/lib/types/portfolio';
+import { Portfolio } from '@/lib/types/portfolio';
 
 // Validation schemas using Zod
 const portfolioCreateSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title must be less than 100 characters'),
-  description: z.string().min(1, 'Description is required').max(1000, 'Description must be less than 1000 characters'),
-  projects: z.array(z.object({
-    title: z.string().min(1, 'Project title is required'),
-    description: z.string().min(1, 'Project description is required'),
-    media: z.array(z.object({
-              type: z.literal('image'),
-      url: z.string().url('Invalid media URL'),
-      alt: z.string().optional(),
-      poster: z.string().url().optional(),
-      duration: z.number().optional(),
-      size: z.number().optional(),
-      width: z.number().optional(),
-      height: z.number().optional(),
-    })),
-    links: z.array(z.object({
-      type: z.enum(['github', 'demo', 'behance', 'dribbble', 'linkedin', 'website', 'other']),
-      url: z.string().url('Invalid link URL'),
-      label: z.string().min(1, 'Link label is required'),
-      icon: z.string().optional(),
-    })),
-    tags: z.array(z.string()),
-    order: z.number().int().min(0),
-    featured: z.boolean(),
-    status: z.enum(['draft', 'published', 'archived']),
-  })),
+  description: z
+    .string()
+    .min(1, 'Description is required')
+    .max(1000, 'Description must be less than 1000 characters'),
+  projects: z.array(
+    z.object({
+      title: z.string().min(1, 'Project title is required'),
+      description: z.string().min(1, 'Project description is required'),
+      media: z.array(
+        z.object({
+          type: z.literal('image'),
+          url: z.string().url('Invalid media URL'),
+          alt: z.string().optional(),
+          poster: z.string().url().optional(),
+          duration: z.number().optional(),
+          size: z.number().optional(),
+          width: z.number().optional(),
+          height: z.number().optional(),
+        })
+      ),
+      links: z.array(
+        z.object({
+          type: z.enum(['github', 'demo', 'behance', 'dribbble', 'linkedin', 'website', 'other']),
+          url: z.string().url('Invalid link URL'),
+          label: z.string().min(1, 'Link label is required'),
+          icon: z.string().optional(),
+        })
+      ),
+      tags: z.array(z.string()),
+      order: z.number().int().min(0),
+      featured: z.boolean(),
+      status: z.enum(['draft', 'published', 'archived']),
+    })
+  ),
   layout: z.enum(['grid', 'list', 'carousel', 'masonry']),
   theme: z.enum(['light', 'dark', 'auto', 'colorful', 'minimal']),
   tags: z.array(z.string()),
   isPublished: z.boolean(),
   visibility: z.enum(['public', 'private', 'unlisted']),
-  url: z.string().min(1, 'URL slug is required').regex(/^[a-z0-9-]+$/, 'URL must contain only lowercase letters, numbers, and hyphens'),
+  url: z
+    .string()
+    .min(1, 'URL slug is required')
+    .regex(/^[a-z0-9-]+$/, 'URL must contain only lowercase letters, numbers, and hyphens'),
   customCss: z.string().optional(),
   customDomain: z.string().url().optional(),
   seoTitle: z.string().max(60).optional(),
@@ -77,7 +87,7 @@ async function authenticateUser(request: NextRequest): Promise<string | null> {
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return null;
   }
-  
+
   // Mock user ID - replace with actual JWT validation
   return 'user-123';
 }
@@ -86,18 +96,16 @@ async function authenticateUser(request: NextRequest): Promise<string | null> {
  * Generate unique portfolio URL slug
  */
 function generateUniqueUrl(baseUrl: string, userId: string): string {
-  const existingUrls = portfolios
-    .filter(p => p.userId === userId)
-    .map(p => p.url);
-  
+  const existingUrls = portfolios.filter((p) => p.userId === userId).map((p) => p.url);
+
   let url = baseUrl;
   let counter = 1;
-  
+
   while (existingUrls.includes(url)) {
     url = `${baseUrl}-${counter}`;
     counter++;
   }
-  
+
   return url;
 }
 
@@ -125,10 +133,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Authenticate user
     const userId = await authenticateUser(request);
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     // Parse query parameters
@@ -148,10 +153,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const validationResult = portfolioFiltersSchema.safeParse(rawFilters);
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Invalid filters',
-          details: validationResult.error.errors 
+          details: validationResult.error.errors,
         },
         { status: 400 }
       );
@@ -160,40 +165,41 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const filters = validationResult.data;
 
     // Filter portfolios by user
-    let userPortfolios = portfolios.filter(p => p.userId === userId);
+    let userPortfolios = portfolios.filter((p) => p.userId === userId);
 
     // Apply search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
-      userPortfolios = userPortfolios.filter(p => 
-        p.title.toLowerCase().includes(searchLower) ||
-        p.description.toLowerCase().includes(searchLower) ||
-        p.tags.some(tag => tag.toLowerCase().includes(searchLower))
+      userPortfolios = userPortfolios.filter(
+        (p) =>
+          p.title.toLowerCase().includes(searchLower) ||
+          p.description.toLowerCase().includes(searchLower) ||
+          p.tags.some((tag) => tag.toLowerCase().includes(searchLower))
       );
     }
 
     // Apply tag filter
     if (filters.tags && filters.tags.length > 0) {
-      userPortfolios = userPortfolios.filter(p =>
-        filters.tags!.some(tag => p.tags.includes(tag))
+      userPortfolios = userPortfolios.filter((p) =>
+        filters.tags!.some((tag) => p.tags.includes(tag))
       );
     }
 
     // Apply layout filter
     if (filters.layout) {
-      userPortfolios = userPortfolios.filter(p => p.layout === filters.layout);
+      userPortfolios = userPortfolios.filter((p) => p.layout === filters.layout);
     }
 
     // Apply visibility filter
     if (filters.visibility) {
-      userPortfolios = userPortfolios.filter(p => p.visibility === filters.visibility);
+      userPortfolios = userPortfolios.filter((p) => p.visibility === filters.visibility);
     }
 
     // Sort portfolios
     userPortfolios.sort((a, b) => {
       const aValue = a[filters.sortBy as keyof Portfolio] as string | number;
       const bValue = b[filters.sortBy as keyof Portfolio] as string | number;
-      
+
       if (filters.sortOrder === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
       } else {
@@ -207,13 +213,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const paginatedPortfolios = userPortfolios.slice(startIndex, endIndex);
 
     return NextResponse.json(paginatedPortfolios);
-
   } catch (error) {
     console.error('Error fetching portfolios:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
@@ -225,10 +227,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Authenticate user
     const userId = await authenticateUser(request);
     if (!userId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
     // Parse request body
@@ -238,10 +237,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validationResult = portfolioCreateSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Validation failed',
-          details: validationResult.error.errors 
+          details: validationResult.error.errors,
         },
         { status: 400 }
       );
@@ -251,9 +250,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // Check if URL is already taken by this user
     const existingPortfolio = portfolios.find(
-      p => p.userId === userId && p.url === portfolioData.url
+      (p) => p.userId === userId && p.url === portfolioData.url
     );
-    
+
     if (existingPortfolio) {
       return NextResponse.json(
         { success: false, error: 'URL slug already exists' },
@@ -275,7 +274,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         id: `project-${Date.now()}-${index}`,
         title: project.title,
         description: project.description,
-        media: project.media.map(mediaItem => {
+        media: project.media.map((mediaItem) => {
           if (mediaItem.type === 'image') {
             return {
               type: 'image' as const,
@@ -333,12 +332,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     portfolios.push(newPortfolio);
 
     return NextResponse.json(newPortfolio, { status: 201 });
-
   } catch (error) {
     console.error('Error creating portfolio:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

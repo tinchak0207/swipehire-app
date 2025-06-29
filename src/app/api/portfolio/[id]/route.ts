@@ -265,7 +265,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 /**
  * DELETE /api/portfolio/[id] - Delete a portfolio
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id:string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const portfolioId = params.id;
 

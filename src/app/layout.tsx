@@ -1,14 +1,14 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { AuthWrapper } from "@/components/AuthWrapper";
-import QueryProvider from "@/components/QueryProvider";
-import "./globals.css";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import { AuthWrapper } from '@/components/AuthWrapper';
+import QueryProvider from '@/components/QueryProvider';
+import './globals.css';
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: "SwipeHire",
-  description: "Revolutionizing the hiring process",
+  title: 'SwipeHire',
+  description: 'Revolutionizing the hiring process',
 };
 
 export default function RootLayout({
@@ -20,9 +20,7 @@ export default function RootLayout({
     <html lang="en" data-theme="light">
       <body className={inter.className}>
         <QueryProvider>
-          <AuthWrapper>
-            {children}
-          </AuthWrapper>
+          <AuthWrapper>{children}</AuthWrapper>
         </QueryProvider>
       </body>
     </html>

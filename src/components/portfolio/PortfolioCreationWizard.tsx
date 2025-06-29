@@ -1,31 +1,30 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  ArrowLeft, 
-  ArrowRight, 
-  Sparkles, 
-  Rocket, 
-  Target, 
-  Palette,
-  CheckCircle
-} from 'lucide-react';
-import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  Palette,
+  Rocket,
+  Sparkles,
+  Target,
+} from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useCreatePortfolio } from '@/hooks/usePortfolio';
 import { PortfolioDraft } from '@/lib/types/portfolio';
-
-// Step components
-import WelcomeStep from './wizard-steps/WelcomeStep';
 import BasicInfoStep from './wizard-steps/BasicInfoStep';
-import ThemeSelectionStep from './wizard-steps/ThemeSelectionStep';
 import ProjectsStep from './wizard-steps/ProjectsStep';
 import ReviewStep from './wizard-steps/ReviewStep';
 import SuccessStep from './wizard-steps/SuccessStep';
+import ThemeSelectionStep from './wizard-steps/ThemeSelectionStep';
+// Step components
+import WelcomeStep from './wizard-steps/WelcomeStep';
 
 // Validation schemas for each step
 const stepSchemas = {
@@ -40,15 +39,21 @@ const stepSchemas = {
     layout: z.enum(['grid', 'masonry', 'list']),
   }),
   projects: z.object({
-    projects: z.array(z.object({
-      title: z.string().min(1, 'Project title required'),
-      description: z.string().min(1, 'Project description required'),
-      technologies: z.array(z.string()),
-      links: z.array(z.object({
-        type: z.enum(['github', 'live', 'demo']),
-        url: z.string().url('Invalid URL'),
-      })),
-    })).min(1, 'At least one project required'),
+    projects: z
+      .array(
+        z.object({
+          title: z.string().min(1, 'Project title required'),
+          description: z.string().min(1, 'Project description required'),
+          technologies: z.array(z.string()),
+          links: z.array(
+            z.object({
+              type: z.enum(['github', 'live', 'demo']),
+              url: z.string().url('Invalid URL'),
+            })
+          ),
+        })
+      )
+      .min(1, 'At least one project required'),
   }),
   review: z.object({}),
 };
@@ -109,7 +114,7 @@ const steps: WizardStep[] = [
 
 /**
  * Portfolio Creation Wizard
- * 
+ *
  * A full-screen immersive multi-step wizard for creating portfolios with:
  * - Dynamic gradient backgrounds that transition between steps
  * - Smooth animations using Framer Motion
@@ -130,7 +135,7 @@ const PortfolioCreationWizard: React.FC = () => {
   const [portfolioData, setPortfolioData] = useState<Partial<PortfolioDraft>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-const currentStep = steps[currentStepIndex] as WizardStep;
+  const currentStep = steps[currentStepIndex] as WizardStep;
   const isFirstStep = currentStepIndex === 0;
   const isLastStep = currentStepIndex === steps.length - 1;
 
@@ -143,7 +148,7 @@ const currentStep = steps[currentStepIndex] as WizardStep;
   // Navigation handlers
   const goToNextStep = useCallback(async () => {
     if (currentStep.key === 'welcome') {
-      setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex((prev) => prev + 1);
       return;
     }
 
@@ -151,28 +156,28 @@ const currentStep = steps[currentStepIndex] as WizardStep;
     if (!isValid) return;
 
     const stepData = form.getValues();
-    setPortfolioData(prev => ({ ...prev, ...stepData }));
+    setPortfolioData((prev) => ({ ...prev, ...stepData }));
 
     if (isLastStep) {
       await handleSubmit();
     } else {
-      setCurrentStepIndex(prev => prev + 1);
+      setCurrentStepIndex((prev) => prev + 1);
     }
   }, [currentStep.key, form, isLastStep]);
 
   const goToPreviousStep = useCallback(() => {
     if (!isFirstStep) {
-      setCurrentStepIndex(prev => prev - 1);
+      setCurrentStepIndex((prev) => prev - 1);
     }
   }, [isFirstStep]);
 
   // Handle final submission
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
-    
+
     try {
       const finalData = { ...portfolioData, ...form.getValues() };
-      
+
       const portfolioPayload = {
         title: finalData.title || 'My Portfolio',
         description: finalData.description || '',
@@ -186,14 +191,13 @@ const currentStep = steps[currentStepIndex] as WizardStep;
       };
 
       const result = await createPortfolioMutation.mutateAsync(portfolioPayload);
-      
+
       setIsCompleted(true);
-      
+
       // Redirect after celebration
       setTimeout(() => {
         router.push(`/portfolio/edit/${result.id}`);
       }, 3000);
-      
     } catch (error) {
       toast({
         title: 'Error',
@@ -229,7 +233,9 @@ const currentStep = steps[currentStepIndex] as WizardStep;
   const StepComponent = currentStep.component;
 
   return (
-    <div className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${currentStep.gradient} transition-all duration-1000 ease-in-out`}>
+    <div
+      className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${currentStep.gradient} transition-all duration-1000 ease-in-out`}
+    >
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" />
@@ -244,9 +250,7 @@ const currentStep = steps[currentStepIndex] as WizardStep;
             <div
               key={step.key}
               className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                index <= currentStepIndex
-                  ? 'bg-white shadow-lg'
-                  : 'bg-white/30'
+                index <= currentStepIndex ? 'bg-white shadow-lg' : 'bg-white/30'
               }`}
             />
           ))}
@@ -304,7 +308,7 @@ const currentStep = steps[currentStepIndex] as WizardStep;
             transition={{ delay: 0.3, duration: 0.5 }}
             className="flex justify-between items-center mt-8"
           >
-              <button
+            <button
               onClick={goToPreviousStep}
               disabled={isFirstStep}
               className={`flex items-center space-x-2 px-6 py-3 rounded-full transition-all duration-200 ${
@@ -340,7 +344,8 @@ const currentStep = steps[currentStepIndex] as WizardStep;
             transition={{ delay: 1, duration: 0.5 }}
             className="text-center mt-8 text-white/50 text-sm"
           >
-            Press <kbd className="px-2 py-1 bg-white/20 rounded text-xs">Ctrl+Enter</kbd> to continue, <kbd className="px-2 py-1 bg-white/20 rounded text-xs">Esc</kbd> to go back
+            Press <kbd className="px-2 py-1 bg-white/20 rounded text-xs">Ctrl+Enter</kbd> to
+            continue, <kbd className="px-2 py-1 bg-white/20 rounded text-xs">Esc</kbd> to go back
           </motion.div>
         </div>
       </div>

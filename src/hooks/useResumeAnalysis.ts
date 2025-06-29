@@ -4,10 +4,7 @@
  */
 
 import { useCallback, useRef, useState } from 'react';
-import type {
-  ResumeAnalysisRequest,
-  ResumeAnalysisResponse,
-} from '@/lib/types/resume-optimizer';
+import type { ResumeAnalysisRequest, ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 
 export interface AnalysisLoadingState {
   isLoading: boolean;
@@ -15,6 +12,7 @@ export interface AnalysisLoadingState {
   stage?: string;
   message?: string;
 }
+
 import {
   analyzeResume,
   checkBackendAvailability,

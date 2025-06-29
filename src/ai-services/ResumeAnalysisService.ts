@@ -1,4 +1,3 @@
-
 export class ResumeAnalysisService {
   public async analyzeResume(resume: string) {
     // In a real application, this would use OCR and NLP to analyze the resume.

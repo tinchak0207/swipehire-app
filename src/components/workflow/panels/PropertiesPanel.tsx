@@ -11,10 +11,10 @@ interface PropertiesPanelProps {
 export default function PropertiesPanel({ selectedNode, onConfigChange }: PropertiesPanelProps) {
   if (!selectedNode) {
     return (
-        <aside className="p-4 bg-base-200 h-screen overflow-y-auto">
-            <h2 className="text-lg font-bold">Properties</h2>
-            <p>Select a node to see its properties.</p>
-        </aside>
+      <aside className="p-4 bg-base-200 h-screen overflow-y-auto">
+        <h2 className="text-lg font-bold">Properties</h2>
+        <p>Select a node to see its properties.</p>
+      </aside>
     );
   }
 
@@ -28,10 +28,15 @@ export default function PropertiesPanel({ selectedNode, onConfigChange }: Proper
               <label className="label">
                 <span className="label-text">Required Degree</span>
               </label>
-              <select 
+              <select
                 className="select select-bordered w-full"
                 value={analyzeConfig.requiredDegree}
-                onChange={(e) => onConfigChange(selectedNode.id, { ...analyzeConfig, requiredDegree: e.target.value })}
+                onChange={(e) =>
+                  onConfigChange(selectedNode.id, {
+                    ...analyzeConfig,
+                    requiredDegree: e.target.value,
+                  })
+                }
               >
                 <option>High School</option>
                 <option>Bachelor</option>
@@ -44,18 +49,10 @@ export default function PropertiesPanel({ selectedNode, onConfigChange }: Proper
         );
       case 'Condition':
         const conditionConfig = selectedNode.data as IConditionConfig;
-        return (
-            <form className="space-y-4">
-                {/* Form fields for IConditionConfig */}
-            </form>
-        )
+        return <form className="space-y-4">{/* Form fields for IConditionConfig */}</form>;
       case 'SendInvite':
         const sendInviteConfig = selectedNode.data as ISendInviteConfig;
-        return (
-            <form className="space-y-4">
-                {/* Form fields for ISendInviteConfig */}
-            </form>
-        )
+        return <form className="space-y-4">{/* Form fields for ISendInviteConfig */}</form>;
       default:
         return <p>Unknown card type.</p>;
     }

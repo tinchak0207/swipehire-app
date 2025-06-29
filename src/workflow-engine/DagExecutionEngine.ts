@@ -1,7 +1,12 @@
-
-import { IWorkflow, IAnalyzeResumeConfig, IConditionConfig, ISendInviteConfig, WorkflowNode } from '@/contracts/IWorkflow';
 import { Node } from 'reactflow';
 import { ResumeAnalysisService } from '@/ai-services/ResumeAnalysisService';
+import {
+  IAnalyzeResumeConfig,
+  IConditionConfig,
+  ISendInviteConfig,
+  IWorkflow,
+  WorkflowNode,
+} from '@/contracts/IWorkflow';
 
 export class DagExecutionEngine {
   private workflow: IWorkflow;
@@ -24,7 +29,7 @@ export class DagExecutionEngine {
 
     for (const edge of this.workflow.edges) {
       const sourceNeighbors = this.adj.get(edge.source);
-      const targetNode = this.workflow.nodes.find(n => n.id === edge.target);
+      const targetNode = this.workflow.nodes.find((n) => n.id === edge.target);
       if (sourceNeighbors && targetNode) {
         sourceNeighbors.push(targetNode);
       }
@@ -65,13 +70,13 @@ export class DagExecutionEngine {
     const resumeAnalysisService = new ResumeAnalysisService();
     const result = await resumeAnalysisService.analyzeResume(this.variables.get('resume_path'));
     this.variables.set(`${node.id}.match_score`, result.match_score);
-    console.log("Resume analysis result:", result);
+    console.log('Resume analysis result:', result);
   }
 
   private async handleCondition(node: Node<IConditionConfig>) {
     console.log(`Evaluating condition for node ${node.id}`);
     const { variable, operator, value } = node.data;
-    const variableName = variable.replace(/[{}]/g, "");
+    const variableName = variable.replace(/[{}]/g, '');
     const actualValue = this.variables.get(variableName);
 
     if (actualValue === undefined) {
@@ -81,22 +86,22 @@ export class DagExecutionEngine {
 
     let result = false;
     switch (operator) {
-      case "eq":
+      case 'eq':
         result = actualValue == value;
         break;
-      case "neq":
+      case 'neq':
         result = actualValue != value;
         break;
-      case "gt":
+      case 'gt':
         result = actualValue > value;
         break;
-      case "lt":
+      case 'lt':
         result = actualValue < value;
         break;
-      case "gte":
+      case 'gte':
         result = actualValue >= value;
         break;
-      case "lte":
+      case 'lte':
         result = actualValue <= value;
         break;
     }
@@ -120,8 +125,8 @@ export class DagExecutionEngine {
   private async handleSendInvite(node: Node<ISendInviteConfig>) {
     console.log(`Sending invite for node ${node.id}`);
     const { template } = node.data;
-    const resolvedTemplate = template.replace(/{\w+\.\w+}/g, match => {
-      const variableName = match.replace(/[{}]/g, "");
+    const resolvedTemplate = template.replace(/{\w+\.\w+}/g, (match) => {
+      const variableName = match.replace(/[{}]/g, '');
       return this.variables.get(variableName) || match;
     });
     console.log(`Rendered template: ${resolvedTemplate}`);
@@ -147,13 +152,13 @@ export class DagExecutionEngine {
     for (const node of nodes) {
       for (const edge of this.workflow.edges) {
         if (edge.source === node.id) {
-          adj.get(node.id)!.push(nodes.find(n => n.id === edge.target)!);
+          adj.get(node.id)!.push(nodes.find((n) => n.id === edge.target)!);
           inDegree.set(edge.target, (inDegree.get(edge.target) || 0) + 1);
         }
       }
     }
 
-    const queue = nodes.filter(node => inDegree.get(node.id) === 0);
+    const queue = nodes.filter((node) => inDegree.get(node.id) === 0);
     const result: WorkflowNode[] = [];
 
     while (queue.length > 0) {
@@ -169,7 +174,7 @@ export class DagExecutionEngine {
     }
 
     if (result.length !== nodes.length) {
-      throw new Error("Cycle detected in graph");
+      throw new Error('Cycle detected in graph');
     }
 
     return result;

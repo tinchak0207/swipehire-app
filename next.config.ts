@@ -13,7 +13,7 @@ const nextConfig: NextConfig = {
     optimizeCss: true,
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-    // Enable compression
+  // Enable compression
   compress: true,
   // Enable static optimization
   trailingSlash: false,

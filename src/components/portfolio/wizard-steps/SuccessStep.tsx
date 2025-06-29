@@ -1,20 +1,17 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, Rocket, ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CheckCircle, ExternalLink, Rocket } from 'lucide-react';
 import Link from 'next/link';
+import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface SuccessStepProps {
   portfolioId?: string;
   onComplete?: () => void;
 }
 
-const SuccessStep: React.FC<SuccessStepProps> = ({ 
-  portfolioId,
-  onComplete
-}) => {
+const SuccessStep: React.FC<SuccessStepProps> = ({ portfolioId, onComplete }) => {
   return (
     <div className="space-y-8">
       <motion.div
@@ -27,7 +24,8 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
         </div>
         <h2 className="text-3xl font-bold text-white mb-2">Portfolio Created!</h2>
         <p className="text-white/80 max-w-2xl mx-auto">
-          Your portfolio has been successfully created and published. You can view it now or continue editing later.
+          Your portfolio has been successfully created and published. You can view it now or
+          continue editing later.
         </p>
       </motion.div>
 
@@ -48,11 +46,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({
 
       {onComplete && (
         <div className="flex justify-center pt-6">
-          <Button
-            type="button"
-            onClick={onComplete}
-            className="bg-blue-500 hover:bg-blue-600"
-          >
+          <Button type="button" onClick={onComplete} className="bg-blue-500 hover:bg-blue-600">
             <Rocket className="w-5 h-5 mr-2" />
             Get Started
           </Button>

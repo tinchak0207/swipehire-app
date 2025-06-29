@@ -1,4 +1,3 @@
-
 import { IWorkflow } from '@/contracts/IWorkflow';
 
 export class CollaborationControlsService {

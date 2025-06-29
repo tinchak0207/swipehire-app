@@ -1,18 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Check, Eye, Grid3X3, Layers, Layout, List, Palette, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { 
-  Palette, 
-  Layout, 
-  Sparkles, 
-  Grid3X3, 
-  List, 
-  Layers,
-  Check,
-  Eye
-} from 'lucide-react';
 
 interface ThemeSelectionStepProps {
   form: UseFormReturn<any>;
@@ -98,7 +89,7 @@ const layouts: LayoutOption[] = [
 
 /**
  * Theme Selection Step Component
- * 
+ *
  * Allows users to choose their portfolio theme and layout with:
  * - Interactive theme previews
  * - Layout visualization
@@ -107,9 +98,9 @@ const layouts: LayoutOption[] = [
  */
 const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onDataChange }) => {
   const [previewTheme, setPreviewTheme] = useState<string | null>(null);
-  
+
   const { setValue, watch } = form;
-  
+
   const selectedTheme = watch('theme') || 'modern';
   const selectedLayout = watch('layout') || 'grid';
 
@@ -136,7 +127,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
           <Palette className="w-6 h-6 text-white" />
           <h3 className="text-2xl font-bold text-white">Choose Your Theme</h3>
         </div>
-        
+
         <div className="grid md:grid-cols-2 gap-6">
           {themes.map((theme, index) => (
             <motion.div
@@ -153,7 +144,9 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
             >
               <div className="bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-2xl p-6 transition-all duration-300 hover:bg-white/20 hover:scale-105">
                 {/* Theme preview */}
-                <div className={`w-full h-32 rounded-xl mb-4 ${theme.preview} relative overflow-hidden`}>
+                <div
+                  className={`w-full h-32 rounded-xl mb-4 ${theme.preview} relative overflow-hidden`}
+                >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="absolute bottom-2 left-2 right-2">
                     <div className="bg-white/20 backdrop-blur-sm rounded p-2">
@@ -161,7 +154,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                       <div className="h-1 bg-white/30 rounded w-2/3" />
                     </div>
                   </div>
-                  
+
                   {/* Selection indicator */}
                   {selectedTheme === theme.id && (
                     <motion.div
@@ -172,7 +165,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                       <Check className="w-5 h-5 text-green-600" />
                     </motion.div>
                   )}
-                  
+
                   {/* Preview overlay */}
                   {previewTheme === theme.id && (
                     <motion.div
@@ -186,12 +179,12 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                     </motion.div>
                   )}
                 </div>
-                
+
                 {/* Theme info */}
                 <div className="space-y-3">
                   <h4 className="text-xl font-bold text-white">{theme.name}</h4>
                   <p className="text-white/70 text-sm">{theme.description}</p>
-                  
+
                   {/* Features */}
                   <div className="flex flex-wrap gap-2">
                     {theme.features.map((feature) => (
@@ -221,7 +214,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
           <Layout className="w-6 h-6 text-white" />
           <h3 className="text-2xl font-bold text-white">Select Layout Style</h3>
         </div>
-        
+
         <div className="grid md:grid-cols-3 gap-4">
           {layouts.map((layout, index) => (
             <motion.div
@@ -245,7 +238,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                       <div className="bg-white/30 rounded" />
                     </div>
                   )}
-                  
+
                   {layout.id === 'masonry' && (
                     <div className="grid grid-cols-2 gap-2 h-full">
                       <div className="space-y-2">
@@ -258,7 +251,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                       </div>
                     </div>
                   )}
-                  
+
                   {layout.id === 'list' && (
                     <div className="space-y-2 h-full">
                       <div className="flex space-x-2">
@@ -275,7 +268,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Selection indicator */}
                   {selectedLayout === layout.id && (
                     <motion.div
@@ -287,7 +280,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                     </motion.div>
                   )}
                 </div>
-                
+
                 {/* Layout info */}
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
@@ -313,18 +306,18 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
           <Sparkles className="w-4 h-4" />
           <span>Your Selection</span>
         </h4>
-        
+
         <div className="grid md:grid-cols-2 gap-4">
           <div>
             <p className="text-white/60 text-sm">Theme</p>
             <p className="text-white font-medium">
-              {themes.find(t => t.id === selectedTheme)?.name}
+              {themes.find((t) => t.id === selectedTheme)?.name}
             </p>
           </div>
           <div>
             <p className="text-white/60 text-sm">Layout</p>
             <p className="text-white font-medium">
-              {layouts.find(l => l.id === selectedLayout)?.name}
+              {layouts.find((l) => l.id === selectedLayout)?.name}
             </p>
           </div>
         </div>

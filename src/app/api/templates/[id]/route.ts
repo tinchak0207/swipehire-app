@@ -1,4 +1,3 @@
-
 import { NextResponse } from 'next/server';
 import { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
 
@@ -7,7 +6,7 @@ let templates: IWorkflowTemplate[] = [];
 let workflows: IWorkflow[] = [];
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
-  const template = templates.find(t => t._id === params.id);
+  const template = templates.find((t) => t._id === params.id);
   if (template) {
     const newWorkflow: IWorkflow = {
       ...template,

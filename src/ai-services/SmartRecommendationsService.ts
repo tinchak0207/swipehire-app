@@ -1,4 +1,3 @@
-
 export class SmartRecommendationsService {
   public async generateInterviewQuestions(jobDescription: string) {
     // In a real application, this would use AI to generate relevant interview questions.

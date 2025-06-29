@@ -1,4 +1,3 @@
-
 import React from 'react';
 import AlertSystem from '../visualization/AlertSystem';
 

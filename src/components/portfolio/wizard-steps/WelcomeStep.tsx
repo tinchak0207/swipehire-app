@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Zap, Star, Trophy } from 'lucide-react';
+import { Sparkles, Star, Trophy, Zap } from 'lucide-react';
+import React from 'react';
 
 interface WelcomeStepProps {
   onNext: () => void;
@@ -10,7 +10,7 @@ interface WelcomeStepProps {
 
 /**
  * Welcome Step Component
- * 
+ *
  * Introduces users to the portfolio creation process with:
  * - Animated feature highlights
  * - Engaging visual elements
@@ -57,10 +57,10 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
             Ready to showcase your amazing work?
           </h2>
         </div>
-        
+
         <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
-          Join thousands of professionals who've built stunning portfolios with our intuitive wizard. 
-          No design skills required – just your passion and creativity.
+          Join thousands of professionals who've built stunning portfolios with our intuitive
+          wizard. No design skills required – just your passion and creativity.
         </p>
       </motion.div>
 
@@ -82,12 +82,8 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
               <feature.icon className="w-6 h-6 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
-              {feature.title}
-            </h3>
-            <p className="text-white/70 text-sm">
-              {feature.description}
-            </p>
+            <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
+            <p className="text-white/70 text-sm">{feature.description}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -104,14 +100,11 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
           className="inline-flex items-center space-x-3 px-12 py-4 bg-white text-gray-900 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
         >
           <span>Let's Get Started</span>
-          <motion.div
-            animate={{ x: [0, 5, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-          >
+          <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
             <Sparkles className="w-5 h-5 group-hover:text-purple-600 transition-colors duration-300" />
           </motion.div>
         </button>
-        
+
         <p className="text-white/50 text-sm mt-4">
           Takes less than 5 minutes • No credit card required
         </p>

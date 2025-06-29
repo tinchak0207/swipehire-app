@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import {
   ArrowPathIcon,
   CheckIcon,
@@ -10,7 +9,7 @@ import {
   XMarkIcon,
 } from '@heroicons/react/24/outline';
 import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { EditorState } from '@/lib/types/resume-optimizer';
 
 // Dynamically import ReactQuill to avoid SSR issues

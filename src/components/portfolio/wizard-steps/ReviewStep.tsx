@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
+import { AlertCircle, CheckCircle, Code, ExternalLink, FileText, Image, Tag } from 'lucide-react';
+import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { CheckCircle, AlertCircle, ExternalLink, FileText, Image, Tag, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -15,14 +15,13 @@ interface ReviewStepProps {
   onPrevious: () => void;
 }
 
-const ReviewStep: React.FC<ReviewStepProps> = ({ 
-  form, 
-  onSubmit,
-  onPrevious
-}) => {
+const ReviewStep: React.FC<ReviewStepProps> = ({ form, onSubmit, onPrevious }) => {
   const { toast } = useToast();
-  const { watch, formState: { errors } } = form;
-  
+  const {
+    watch,
+    formState: { errors },
+  } = form;
+
   const formData = watch();
 
   const handleSubmit = () => {
@@ -30,7 +29,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
       toast({
         title: 'Validation Error',
         description: 'Please fix all errors before submitting',
-        variant: 'destructive'
+        variant: 'destructive',
       });
       return;
     }
@@ -49,7 +48,8 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Review Your Portfolio</h2>
         <p className="text-white/80 max-w-2xl mx-auto">
-          Please review all the information below before submitting your portfolio. Make sure everything looks correct.
+          Please review all the information below before submitting your portfolio. Make sure
+          everything looks correct.
         </p>
       </motion.div>
 
@@ -58,7 +58,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
         {/* Left Column */}
         <div className="space-y-6">
           {/* Basic Info */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6"
@@ -74,16 +74,17 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
               </div>
               <div>
                 <p className="text-white/70 text-sm">About You</p>
-                <p className="text-white font-medium">
-                  {formData.description || 'Not provided'}
-                </p>
+                <p className="text-white font-medium">{formData.description || 'Not provided'}</p>
               </div>
               <div>
                 <p className="text-white/70 text-sm">Skills & Interests</p>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {formData.tags?.length > 0 ? (
                     formData.tags.map((tag: string) => (
-                      <span key={tag} className="px-3 py-1 bg-white/20 text-white text-sm rounded-full">
+                      <span
+                        key={tag}
+                        className="px-3 py-1 bg-white/20 text-white text-sm rounded-full"
+                      >
                         {tag}
                       </span>
                     ))
@@ -96,7 +97,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
           </motion.div>
 
           {/* Theme Selection */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
@@ -106,34 +107,41 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
               <Image className="w-5 h-5 text-purple-400" />
               <h3 className="text-white font-semibold">Theme</h3>
             </div>
-            <p className="text-white font-medium capitalize">
-              {formData.theme || 'Default'}
-            </p>
+            <p className="text-white font-medium capitalize">{formData.theme || 'Default'}</p>
           </motion.div>
         </div>
 
         {/* Right Column */}
         <div className="space-y-6">
           {/* Projects */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6"
           >
             <div className="flex items-center space-x-3 mb-4">
               <Code className="w-5 h-5 text-yellow-400" />
-              <h3 className="text-white font-semibold">Projects ({formData.projects?.length || 0})</h3>
+              <h3 className="text-white font-semibold">
+                Projects ({formData.projects?.length || 0})
+              </h3>
             </div>
             <div className="space-y-4">
               {formData.projects?.length > 0 ? (
                 formData.projects.map((project: any, index: number) => (
                   <div key={index} className="border-b border-white/10 pb-4 last:border-0">
-                    <h4 className="text-white font-medium">{project.title || `Project ${index + 1}`}</h4>
-                    <p className="text-white/70 text-sm mt-1">{project.description || 'No description'}</p>
+                    <h4 className="text-white font-medium">
+                      {project.title || `Project ${index + 1}`}
+                    </h4>
+                    <p className="text-white/70 text-sm mt-1">
+                      {project.description || 'No description'}
+                    </p>
                     {project.technologies?.length > 0 && (
                       <div className="flex flex-wrap gap-2 mt-2">
                         {project.technologies.map((tech: string) => (
-                          <span key={tech} className="px-2 py-1 bg-white/10 text-white text-xs rounded-full">
+                          <span
+                            key={tech}
+                            className="px-2 py-1 bg-white/10 text-white text-xs rounded-full"
+                          >
                             {tech}
                           </span>
                         ))}
@@ -151,19 +159,15 @@ const ReviewStep: React.FC<ReviewStepProps> = ({
 
       {/* Action Buttons */}
       <div className="flex justify-between pt-6">
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           onClick={onPrevious}
           className="text-white border-white/30 hover:bg-white/10"
         >
           Back
         </Button>
-        <Button 
-          type="button" 
-          onClick={handleSubmit}
-          className="bg-green-500 hover:bg-green-600"
-        >
+        <Button type="button" onClick={handleSubmit} className="bg-green-500 hover:bg-green-600">
           Submit Portfolio
         </Button>
       </div>

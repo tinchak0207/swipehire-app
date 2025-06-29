@@ -5,7 +5,7 @@ import PortfolioCreationWizard from '@/components/portfolio/PortfolioCreationWiz
 
 /**
  * New Portfolio Creation Page
- * 
+ *
  * Features a full-screen immersive wizard experience with:
  * - Gradient backgrounds that transition between steps
  * - Smooth animations and transitions

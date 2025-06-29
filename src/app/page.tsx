@@ -215,14 +215,15 @@ function AppContent() {
       // Check if backend URL is available
       if (!CUSTOM_BACKEND_URL || CUSTOM_BACKEND_URL === 'undefined') {
         console.error('[AppContent] Backend URL is not configured properly:', CUSTOM_BACKEND_URL);
-          const errorMessage = CUSTOM_BACKEND_URL === 'undefined' 
-            ? 'Backend URL is not configured (undefined)' 
+        const errorMessage =
+          CUSTOM_BACKEND_URL === 'undefined'
+            ? 'Backend URL is not configured (undefined)'
             : 'Backend service is not configured';
-          toast({
-            title: 'Configuration Error',
-            description: errorMessage,
-            variant: 'destructive',
-          });
+        toast({
+          title: 'Configuration Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
         return null;
       }
 

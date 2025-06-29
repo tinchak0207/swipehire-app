@@ -16,12 +16,7 @@ interface RadioGroupProps {
   className?: string;
 }
 
-export const RadioGroup = ({
-  value,
-  onValueChange,
-  children,
-  className = '',
-}: RadioGroupProps) => {
+export const RadioGroup = ({ value, onValueChange, children, className = '' }: RadioGroupProps) => {
   return (
     <RadioGroupContext.Provider value={{ value, onValueChange }}>
       <div className={`flex flex-col gap-2 ${className}`} role="radiogroup">
@@ -45,7 +40,7 @@ export const RadioGroupItem = ({
   disabled = false,
 }: RadioGroupItemProps) => {
   const context = useContext(RadioGroupContext);
-  
+
   if (!context) {
     throw new Error('RadioGroupItem must be used within a RadioGroup');
   }
@@ -54,7 +49,9 @@ export const RadioGroupItem = ({
   const isSelected = selectedValue === value;
 
   return (
-    <label className={`flex items-center gap-2 cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}>
+    <label
+      className={`flex items-center gap-2 cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+    >
       <input
         type="radio"
         checked={isSelected}

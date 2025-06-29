@@ -1,20 +1,20 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { UseFormReturn, FieldError } from 'react-hook-form';
-import { 
-  Plus, 
-  Rocket, 
-  Github, 
-  Eye, 
-  Trash2, 
-  GripVertical,
+import { AnimatePresence, motion } from 'framer-motion';
+import {
   AlertCircle,
   CheckCircle,
+  Eye,
+  Github,
+  Globe,
+  GripVertical,
+  Plus,
+  Rocket,
+  Trash2,
   X,
-  Globe
 } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { FieldError, UseFormReturn } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 
 /**
@@ -49,25 +49,46 @@ interface ProjectsStepProps {
 /**
  * Link type options for project external links
  */
-const LINK_TYPES: Array<{ value: ProjectLink['type']; label: string; icon: React.ComponentType }> = [
-  { value: 'github', label: 'GitHub Repository', icon: Github },
-  { value: 'live', label: 'Live Demo', icon: Eye },
-  { value: 'demo', label: 'Demo/Preview', icon: Globe },
-] as const;
+const LINK_TYPES: Array<{ value: ProjectLink['type']; label: string; icon: React.ComponentType }> =
+  [
+    { value: 'github', label: 'GitHub Repository', icon: Github },
+    { value: 'live', label: 'Live Demo', icon: Eye },
+    { value: 'demo', label: 'Demo/Preview', icon: Globe },
+  ] as const;
 
 /**
  * Popular technology suggestions
  */
 const POPULAR_TECHNOLOGIES = [
-  'React', 'Next.js', 'TypeScript', 'JavaScript', 'Node.js', 'Python', 
-  'HTML', 'CSS', 'Tailwind CSS', 'Vue.js', 'Angular', 'Express.js',
-  'MongoDB', 'PostgreSQL', 'MySQL', 'Firebase', 'AWS', 'Docker',
-  'Git', 'Figma', 'Photoshop', 'Illustrator', 'Sketch', 'Adobe XD'
+  'React',
+  'Next.js',
+  'TypeScript',
+  'JavaScript',
+  'Node.js',
+  'Python',
+  'HTML',
+  'CSS',
+  'Tailwind CSS',
+  'Vue.js',
+  'Angular',
+  'Express.js',
+  'MongoDB',
+  'PostgreSQL',
+  'MySQL',
+  'Firebase',
+  'AWS',
+  'Docker',
+  'Git',
+  'Figma',
+  'Photoshop',
+  'Illustrator',
+  'Sketch',
+  'Adobe XD',
 ];
 
 /**
  * ProjectsStep Component
- * 
+ *
  * A comprehensive step for adding and managing projects in the portfolio wizard.
  * Features:
  * - Add/remove multiple projects
@@ -79,20 +100,21 @@ const POPULAR_TECHNOLOGIES = [
  * - Smooth animations with Framer Motion
  * - Accessibility considerations
  */
-const ProjectsStep: React.FC<ProjectsStepProps> = ({ 
-  form, 
-  data, 
-  onDataChange 
-}) => {
+const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange }) => {
   const { toast } = useToast();
-  const { formState: { errors }, watch, setValue, trigger } = form;
-  
+  const {
+    formState: { errors },
+    watch,
+    setValue,
+    trigger,
+  } = form;
+
   // Watch projects array from form
   const projects: ProjectData[] = watch('projects') || [];
-  
+
   // Local state for UI interactions
   const [expandedProject, setExpandedProject] = useState<number>(0);
-  
+
   // Initialize projects if empty
   useEffect(() => {
     if (projects.length === 0) {
@@ -109,11 +131,14 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({
   }, []);
 
   // Update form data when projects change
-  const updateProjects = useCallback((updatedProjects: ProjectData[]) => {
-    setValue('projects', updatedProjects);
-    onDataChange({ ...data, projects: updatedProjects });
-    trigger('projects'); // Trigger validation
-  }, [setValue, onDataChange, data, trigger]);
+  const updateProjects = useCallback(
+    (updatedProjects: ProjectData[]) => {
+      setValue('projects', updatedProjects);
+      onDataChange({ ...data, projects: updatedProjects });
+      trigger('projects'); // Trigger validation
+    },
+    [setValue, onDataChange, data, trigger]
+  );
 
   // Add new project
   const addProject = useCallback(() => {
@@ -126,7 +151,7 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({
     const updatedProjects = [...projects, newProject];
     updateProjects(updatedProjects);
     setExpandedProject(updatedProjects.length - 1);
-    
+
     toast({
       title: 'Project Added',
       description: 'New project has been added to your portfolio.',
@@ -134,35 +159,41 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({
   }, [projects, updateProjects, toast]);
 
   // Remove project
-  const removeProject = useCallback((index: number) => {
-    if (projects.length <= 1) {
+  const removeProject = useCallback(
+    (index: number) => {
+      if (projects.length <= 1) {
+        toast({
+          title: 'Cannot Remove',
+          description: 'You must have at least one project in your portfolio.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const updatedProjects = projects.filter((_, i) => i !== index);
+      updateProjects(updatedProjects);
+
+      if (expandedProject >= updatedProjects.length) {
+        setExpandedProject(Math.max(0, updatedProjects.length - 1));
+      }
+
       toast({
-        title: 'Cannot Remove',
-        description: 'You must have at least one project in your portfolio.',
-        variant: 'destructive',
+        title: 'Project Removed',
+        description: 'Project has been removed from your portfolio.',
       });
-      return;
-    }
-    
-    const updatedProjects = projects.filter((_, i) => i !== index);
-    updateProjects(updatedProjects);
-    
-    if (expandedProject >= updatedProjects.length) {
-      setExpandedProject(Math.max(0, updatedProjects.length - 1));
-    }
-    
-    toast({
-      title: 'Project Removed',
-      description: 'Project has been removed from your portfolio.',
-    });
-  }, [projects, updateProjects, expandedProject, toast]);
+    },
+    [projects, updateProjects, expandedProject, toast]
+  );
 
   // Update specific project
-  const updateProject = useCallback((index: number, updatedProject: ProjectData) => {
-    const updatedProjects = [...projects];
-    updatedProjects[index] = updatedProject;
-    updateProjects(updatedProjects);
-  }, [projects, updateProjects]);
+  const updateProject = useCallback(
+    (index: number, updatedProject: ProjectData) => {
+      const updatedProjects = [...projects];
+      updatedProjects[index] = updatedProject;
+      updateProjects(updatedProjects);
+    },
+    [projects, updateProjects]
+  );
 
   return (
     <div className="space-y-8">
@@ -178,7 +209,8 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({
         </div>
         <h2 className="text-2xl font-bold text-white mb-2">Showcase Your Best Work</h2>
         <p className="text-white/80 max-w-2xl mx-auto">
-          Add your most impressive projects to create a compelling portfolio. Include details about technologies used and provide links to live demos or source code.
+          Add your most impressive projects to create a compelling portfolio. Include details about
+          technologies used and provide links to live demos or source code.
         </p>
       </motion.div>
 
@@ -214,7 +246,9 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({
             <div>
               <h3 className="font-semibold text-lg">Add New Project</h3>
               <p className="text-white/70 text-sm">
-                {projects.length === 0 ? 'Add your first project to get started' : 'Add another project to your portfolio'}
+                {projects.length === 0
+                  ? 'Add your first project to get started'
+                  : 'Add another project to your portfolio'}
               </p>
             </div>
           </div>
@@ -229,10 +263,10 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({
           >
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <span>
-              {(errors['projects'] as FieldError)?.message || 
-               (Object.values(errors['projects']).some((p: unknown) => (p as FieldError)?.message) 
-                ? 'Some projects have errors' 
-                : 'Please add at least one project')}
+              {(errors['projects'] as FieldError)?.message ||
+                (Object.values(errors['projects']).some((p: unknown) => (p as FieldError)?.message)
+                  ? 'Some projects have errors'
+                  : 'Please add at least one project')}
             </span>
           </motion.div>
         )}
@@ -314,7 +348,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   // Remove technology
   const removeTechnology = (techToRemove: string) => {
-    updateField('technologies', project.technologies.filter(tech => tech !== techToRemove));
+    updateField(
+      'technologies',
+      project.technologies.filter((tech) => tech !== techToRemove)
+    );
   };
 
   // Add link
@@ -327,7 +364,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
   // Remove link
   const removeLink = (linkIndex: number) => {
-    updateField('links', project.links.filter((_, i) => i !== linkIndex));
+    updateField(
+      'links',
+      project.links.filter((_, i) => i !== linkIndex)
+    );
   };
 
   return (
@@ -368,7 +408,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             </button>
           </div>
         </div>
-        
+
         {isExpanded && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
@@ -379,9 +419,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           >
             {/* Project Title */}
             <div className="space-y-2">
-              <label className="block text-white font-medium">
-                Project Title *
-              </label>
+              <label className="block text-white font-medium">Project Title *</label>
               <input
                 type="text"
                 value={project.title}
@@ -399,9 +437,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
             {/* Project Description */}
             <div className="space-y-2">
-              <label className="block text-white font-medium">
-                Project Description *
-              </label>
+              <label className="block text-white font-medium">Project Description *</label>
               <textarea
                 value={project.description}
                 onChange={(e) => updateField('description', e.target.value)}
@@ -419,10 +455,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
             {/* Technologies */}
             <div className="space-y-3">
-              <label className="block text-white font-medium">
-                Technologies Used
-              </label>
-              
+              <label className="block text-white font-medium">Technologies Used</label>
+
               {/* Technology Tags */}
               {project.technologies.length > 0 && (
                 <div className="flex flex-wrap gap-2">
@@ -472,31 +506,32 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               <div className="space-y-2">
                 <p className="text-white/70 text-sm">Popular technologies:</p>
                 <div className="flex flex-wrap gap-2">
-                  {POPULAR_TECHNOLOGIES.filter(tech => !project.technologies.includes(tech)).slice(0, 8).map((tech) => (
-                    <button
-                      key={tech}
-                      type="button"
-                      onClick={() => addTechnology(tech)}
-                      className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-sm hover:bg-white/20 transition-colors"
-                    >
-                      {tech}
-                    </button>
-                  ))}
+                  {POPULAR_TECHNOLOGIES.filter((tech) => !project.technologies.includes(tech))
+                    .slice(0, 8)
+                    .map((tech) => (
+                      <button
+                        key={tech}
+                        type="button"
+                        onClick={() => addTechnology(tech)}
+                        className="px-3 py-1 bg-white/10 text-white/80 rounded-full text-sm hover:bg-white/20 transition-colors"
+                      >
+                        {tech}
+                      </button>
+                    ))}
                 </div>
               </div>
             </div>
 
             {/* Project Links */}
             <div className="space-y-3">
-              <label className="block text-white font-medium">
-                Project Links
-              </label>
+              <label className="block text-white font-medium">Project Links</label>
 
               {/* Existing Links */}
               {project.links.length > 0 && (
                 <div className="space-y-2">
                   {project.links.map((link, linkIndex) => {
-                    const LinkIcon = LINK_TYPES.find(type => type.value === link.type)?.icon || Github;
+                    const LinkIcon =
+                      LINK_TYPES.find((type) => type.value === link.type)?.icon || Github;
                     return (
                       <div
                         key={linkIndex}
@@ -505,7 +540,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         <LinkIcon className="w-5 h-5 text-white/70" />
                         <div className="flex-1">
                           <p className="text-white font-medium">
-                            {LINK_TYPES.find(type => type.value === link.type)?.label}
+                            {LINK_TYPES.find((type) => type.value === link.type)?.label}
                           </p>
                           <p className="text-white/70 text-sm truncate">{link.url}</p>
                         </div>
@@ -527,7 +562,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   <select
                     value={newLink.type}
-                    onChange={(e) => setNewLink({ ...newLink, type: e.target.value as ProjectLink['type'] })}
+                    onChange={(e) =>
+                      setNewLink({ ...newLink, type: e.target.value as ProjectLink['type'] })
+                    }
                     className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-white/30 focus:border-transparent"
                   >
                     {LINK_TYPES.map((type) => (
