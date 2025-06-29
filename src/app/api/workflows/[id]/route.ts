@@ -1,6 +1,5 @@
-
-import { NextResponse } from 'next/server';
 import { sql } from '@vercel/postgres';
+import { NextResponse } from 'next/server';
 
 export async function GET(_request: Request, { params }: { params: { id: string } }) {
   try {
@@ -11,11 +10,14 @@ export async function GET(_request: Request, { params }: { params: { id: string 
     const workflow = rows[0];
 
     if (!workflow) {
-        return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+      return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
     if (workflow['editing_user_id'] && workflow['editing_user_id'] !== userId) {
-        return NextResponse.json({ error: 'This workflow is currently being edited by another user.' }, { status: 409 });
+      return NextResponse.json(
+        { error: 'This workflow is currently being edited by another user.' },
+        { status: 409 }
+      );
     }
 
     await sql`UPDATE workflows SET editing_user_id = ${userId} WHERE id = ${workflowId}`;

@@ -1,21 +1,37 @@
-
 'use client';
 
 import React from 'react';
-import ReactFlow, { ReactFlowProvider, OnNodesChange, OnEdgesChange, OnConnect, Node, Edge, Controls, Background } from 'reactflow';
+import ReactFlow, {
+  Background,
+  Controls,
+  Edge,
+  Node,
+  OnConnect,
+  OnEdgesChange,
+  OnNodesChange,
+  ReactFlowProvider,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
 
 interface WorkflowCanvasProps {
-    nodes: Node[];
-    edges: Edge[];
-    onNodesChange: OnNodesChange;
-    onEdgesChange: OnEdgesChange;
-    onConnect: OnConnect;
-    nodeTypes: any;
-    onInit: (instance: any) => void;
+  nodes: Node[];
+  edges: Edge[];
+  onNodesChange: OnNodesChange;
+  onEdgesChange: OnEdgesChange;
+  onConnect: OnConnect;
+  nodeTypes: any;
+  onInit: (instance: any) => void;
 }
 
-const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodes, edges, onNodesChange, onEdgesChange, onConnect, nodeTypes, onInit }) => {
+const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
+  nodes,
+  edges,
+  onNodesChange,
+  onEdgesChange,
+  onConnect,
+  nodeTypes,
+  onInit,
+}) => {
   return (
     <div style={{ height: '100%' }}>
       <ReactFlowProvider>
@@ -29,8 +45,8 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({ nodes, edges, onNodesCh
           onInit={onInit}
           fitView
         >
-            <Controls />
-            <Background />
+          <Controls />
+          <Background />
         </ReactFlow>
       </ReactFlowProvider>
     </div>
