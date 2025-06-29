@@ -1,27 +1,38 @@
-import { ObjectId } from 'mongodb';
+
 import { NextResponse } from 'next/server';
-import { IWorkflow } from '@/contracts/IWorkflow';
-import clientPromise from '@/services/db/mongodb';
-import { workflowService } from '@/services/workflow.service';
+import { sql } from '@vercel/postgres';
+import { runWorkflow } from '@/services/workflowRunner';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
-    const client = await clientPromise;
-    const db = client.db('swipehire');
-    const workflow = await db
-      .collection<IWorkflow>('workflows')
-      .findOne({ _id: new ObjectId(params.id) });
+    const workflowId = parseInt(params.id, 10);
+    const userId = 1; // Hardcoded for now
 
-    if (!workflow) {
-      return new NextResponse('Not Found', { status: 404 });
+    const { rows: userRows } = await sql`SELECT tier FROM users WHERE id = ${userId}`;
+    const user = userRows[0];
+
+    const { rows: runRows } = await sql`SELECT COUNT(*) as count FROM workflow_runs WHERE user_id = ${userId} AND created_at > NOW() - INTERVAL '1 month'`;
+    const runCount = parseInt(runRows[0]?.['count'] ?? '0', 10);
+
+    if (user?.['tier'] === 'free' && runCount >= 50) {
+        return NextResponse.json({ error: 'Free tier run limit reached. Upgrade for more runs.' }, { status: 403 });
     }
 
-    // Do not await this, as it can be a long-running process
-    workflowService.run(workflow);
+    const { rows } = await sql`SELECT * FROM workflows WHERE id = ${workflowId}`;
+    const workflow = rows[0];
 
-    return NextResponse.json({ success: true, message: 'Workflow execution started.' });
-  } catch (e) {
-    console.error(e);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    if (!workflow) {
+        return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+    }
+
+    const payload = await request.json();
+    await runWorkflow(workflow as any, payload);
+
+    await sql`INSERT INTO workflow_runs (workflow_id, user_id) VALUES (${workflowId}, ${userId})`
+
+    return NextResponse.json({ message: 'Workflow run initiated' });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Failed to run workflow' }, { status: 500 });
   }
 }

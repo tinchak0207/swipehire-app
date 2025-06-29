@@ -29,6 +29,7 @@ export default function WorkflowCanvas({ workflow }: WorkflowCanvasProps) {
         onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
+        connectionRadius={150}
       >
         <Controls />
         <MiniMap />

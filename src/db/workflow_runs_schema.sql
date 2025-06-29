@@ -1,0 +1,7 @@
+
+CREATE TABLE workflow_runs (
+    id SERIAL PRIMARY KEY,
+    workflow_id INTEGER NOT NULL REFERENCES workflows(id),
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

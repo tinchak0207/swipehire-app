@@ -227,21 +227,22 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
     // Update projects if provided
     if (updateData.projects) {
-      updatedPortfolio.projects = updateData.projects.map((project): Project => {
+      updatedPortfolio.projects = updateData.projects.map((project) => {
         const existingProject = project.id
           ? existingPortfolio.projects.find((p) => p.id === project.id)
           : undefined;
 
+        const { status, ...rest } = project;
         const newProject: Project = {
-          ...project,
+          ...(rest as unknown as Project),
           id: project.id || `project-${Date.now()}-${Math.random()}`,
           createdAt: existingProject?.createdAt || now,
           updatedAt: now,
           comments: existingProject?.comments || [],
           likes: existingProject?.likes || 0,
-          isPublished: project.status === 'published',
+          isPublished: status === 'published',
           technologies: existingProject?.technologies || [],
-          duration: existing.duration || '',
+          duration: existingProject?.duration || '',
           role: existingProject?.role || '',
         };
 

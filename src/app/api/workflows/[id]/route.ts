@@ -1,35 +1,28 @@
+
 import { NextResponse } from 'next/server';
-import { IWorkflow } from '@/contracts/IWorkflow';
+import { sql } from '@vercel/postgres';
 
-// Mock database
-let workflows: IWorkflow[] = [];
+export async function GET(_request: Request, { params }: { params: { id: string } }) {
+  try {
+    const workflowId = parseInt(params.id, 10);
+    const userId = 1; // Hardcoded for now
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-  const workflow = workflows.find((w) => w._id === params.id);
-  if (workflow) {
+    const { rows } = await sql`SELECT * FROM workflows WHERE id = ${workflowId}`;
+    const workflow = rows[0];
+
+    if (!workflow) {
+        return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
+    }
+
+    if (workflow['editing_user_id'] && workflow['editing_user_id'] !== userId) {
+        return NextResponse.json({ error: 'This workflow is currently being edited by another user.' }, { status: 409 });
+    }
+
+    await sql`UPDATE workflows SET editing_user_id = ${userId} WHERE id = ${workflowId}`;
+
     return NextResponse.json(workflow);
-  } else {
-    return new Response('Workflow not found', { status: 404 });
-  }
-}
-
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-  const body = await request.json();
-  const index = workflows.findIndex((w) => w._id === params.id);
-  if (index !== -1) {
-    workflows[index] = { ...workflows[index], ...body, updatedAt: new Date() };
-    return NextResponse.json(workflows[index]);
-  } else {
-    return new Response('Workflow not found', { status: 404 });
-  }
-}
-
-export async function DELETE(request: Request, { params }: { params: { id: string } }) {
-  const index = workflows.findIndex((w) => w._id === params.id);
-  if (index !== -1) {
-    workflows.splice(index, 1);
-    return new Response(null, { status: 204 });
-  } else {
-    return new Response('Workflow not found', { status: 404 });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Failed to fetch workflow' }, { status: 500 });
   }
 }
