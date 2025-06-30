@@ -1,16 +1,17 @@
-import { Handle, Position } from '@reactflow/core';
+
+import { Handle, Position } from 'reactflow';
 import React from 'react';
 
-const NewCandidateNode = () => {
+const DataMetricTriggerNode = () => {
   return (
     <div className="card w-72 bg-primary text-primary-content shadow-xl">
       <div className="card-body">
-        <h2 className="card-title">New Candidate</h2>
-        <p>Triggers when a new candidate is received.</p>
+        <h2 className="card-title">Data Metric Trigger</h2>
+        <p>Triggers based on data metrics.</p>
       </div>
       <Handle type="source" position={Position.Right} className="w-4 h-4" />
     </div>
   );
 };
 
-export default NewCandidateNode;
+export default DataMetricTriggerNode;

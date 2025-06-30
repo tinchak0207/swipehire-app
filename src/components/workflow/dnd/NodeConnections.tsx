@@ -1,18 +1,29 @@
+import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 import React from 'react';
-import ReactFlow from 'reactflow';
-import 'reactflow/dist/style.css';
 
-const initialNodes = [
-  { id: '1', position: { x: 0, y: 0 }, data: { label: '1' } },
-  { id: '2', position: { x: 0, y: 100 }, data: { label: '2' } },
-];
-const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
+const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string) => {
+  event.dataTransfer.setData('application/reactflow', nodeType);
+  event.dataTransfer.effectAllowed = 'move';
+};
 
 const NodeConnections = () => {
   return (
-    <div style={{ width: '100%', height: '100%' }}>
-      <ReactFlow nodes={initialNodes} edges={initialEdges} />
-    </div>
+    <aside className="w-80 p-4 bg-gray-50">
+      <h2 className="text-lg font-semibold mb-4">Nodes</h2>
+      <div className="grid grid-cols-2 gap-4">
+        {WORKFLOW_NODE_DEFINITIONS.map((def) => (
+          <div
+            key={def.type}
+            className="flex flex-col items-center justify-center p-4 border rounded-md cursor-grab bg-white shadow-sm hover:shadow-md transition-shadow"
+            onDragStart={(event) => onDragStart(event, def.type)}
+            draggable
+          >
+            <def.icon className="w-8 h-8 mb-2 text-gray-600" />
+            <span className="text-sm text-center text-gray-700">{def.title}</span>
+          </div>
+        ))}
+      </div>
+    </aside>
   );
 };
 

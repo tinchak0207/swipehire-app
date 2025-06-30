@@ -1,12 +1,13 @@
+
 import React, { memo } from 'react';
 import { Handle, NodeProps, Position } from 'reactflow';
 
-const InvokeAINode: React.FC<NodeProps> = ({ data }) => {
+const FeedbackCollectionNode: React.FC<NodeProps> = ({ data }) => {
   return (
-    <div className="card w-72 bg-secondary text-secondary-content shadow-xl">
+    <div className="card w-72 bg-neutral text-neutral-content shadow-xl">
       <div className="card-body">
-        <h2 className="card-title">Invoke AI</h2>
-        <p>Invokes a custom AI prompt.</p>
+        <h2 className="card-title">Feedback Collection</h2>
+        <p>Collects feedback from various sources.</p>
         <div className="card-actions justify-end">
           <button className="btn btn-primary btn-sm" onClick={() => data.openModal(data)}>
             Open
@@ -19,4 +20,4 @@ const InvokeAINode: React.FC<NodeProps> = ({ data }) => {
   );
 };
 
-export default memo(InvokeAINode);
+export default memo(FeedbackCollectionNode);

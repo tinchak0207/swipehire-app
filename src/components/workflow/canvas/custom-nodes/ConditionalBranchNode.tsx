@@ -1,3 +1,4 @@
+
 import React, { memo, useState } from 'react';
 import { Handle, NodeProps, Position } from 'reactflow';
 import { FiChevronDown, FiChevronUp, FiGitMerge, FiPlus, FiTrash2 } from 'react-icons/fi';
@@ -8,12 +9,12 @@ interface Condition {
   comparisonValue: string;
 }
 
-interface ConditionNodeData {
+interface ConditionalBranchNodeData {
   conditions: Condition[];
   logicalOperator: 'AND' | 'OR';
 }
 
-const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
+const ConditionalBranchNode: React.FC<NodeProps<ConditionalBranchNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [conditions, setConditions] = useState<Condition[]>(data?.conditions ?? [{ inputVariable: '', operator: '==', comparisonValue: '' }]);
   const [logicalOperator, setLogicalOperator] = useState<'AND' | 'OR'>(data?.logicalOperator ?? 'AND');
@@ -55,7 +56,7 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Condition</h2>
+              <h2 className="card-title text-lg font-bold">Conditional Branch</h2>
               <p className="text-sm text-gray-500">Route based on logic</p>
             </div>
           </div>
@@ -122,4 +123,4 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
   );
 };
 
-export default memo(ConditionNode);
+export default memo(ConditionalBranchNode);

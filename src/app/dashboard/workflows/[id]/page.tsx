@@ -10,13 +10,14 @@ import { useWorkflow } from '@/hooks/useWorkflow';
 
 export default function WorkflowEditorPage() {
   const params = useParams();
-  const { workflow, isLoading, isError } = useWorkflow(params.id as string);
+  const id = params ? (params['id'] as string) : null;
+  const { workflow, isLoading, isError } = useWorkflow(id);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   if (isLoading) return <div>Loading...</div>;
   if (isError || !workflow) return <div>Error loading workflow.</div>;
 
-  const onConfigChange = (nodeId: string, newConfig: any) => {
+  const onConfigChange = () => {
     // This would be passed down to the properties panel to update the node
   };
 
@@ -24,7 +25,7 @@ export default function WorkflowEditorPage() {
     <div className="flex h-screen">
       <ComponentLibrary />
       <main className="flex-1">
-        <WorkflowCanvas workflow={workflow} />
+        <WorkflowCanvas workflow={workflow} onNodeClick={setSelectedNode} />
       </main>
       <PropertiesPanel selectedNode={selectedNode} onConfigChange={onConfigChange} />
     </div>

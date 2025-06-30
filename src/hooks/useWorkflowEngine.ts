@@ -1,33 +1,76 @@
-import { useCallback, useState } from 'react';
-import {
-  addEdge,
-  applyEdgeChanges,
-  applyNodeChanges,
-  Connection,
-  Edge,
-  EdgeChange,
-  Node,
-  NodeChange,
-} from 'reactflow';
-import { IWorkflow } from '@/contracts/IWorkflow';
 
-export function useWorkflowEngine(initialWorkflow: IWorkflow) {
-  const [nodes, setNodes] = useState<Node[]>(initialWorkflow.nodes);
+import { IWorkflow } from '@/contracts/IWorkflow';
+import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
+import { useCallback, useState } from 'react';
+import { addEdge, applyEdgeChanges, applyNodeChanges, Connection, Edge, EdgeChange, Node, NodeChange, OnConnect, OnEdgesChange, OnNodesChange } from 'reactflow';
+
+import { ReactFlowInstance } from 'reactflow';
+
+export function useWorkflowEngine(initialWorkflow: IWorkflow, reactFlowInstance: ReactFlowInstance | null) {
+  const initialNodes = initialWorkflow.nodes.map((node) => ({
+    ...node,
+    data: {
+      ...node.data,
+      definition: WORKFLOW_NODE_DEFINITIONS.find((d) => d.type === node.type),
+    },
+  }));
+  const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialWorkflow.edges);
 
-  const onNodesChange = useCallback(
+  const onNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [setNodes]
   );
 
-  const onEdgesChange = useCallback(
+  const onEdgesChange: OnEdgesChange = useCallback(
     (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     [setEdges]
   );
 
-  const onConnect = useCallback(
+  const onConnect: OnConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
     [setEdges]
+  );
+
+  const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+
+      const type = event.dataTransfer.getData('application/reactflow');
+
+      // check if the dropped element is valid
+      if (typeof type === 'undefined' || !type) {
+        return;
+      }
+
+      const definition = WORKFLOW_NODE_DEFINITIONS.find((d) => d.type === type);
+      if (!definition) {
+        return;
+      }
+
+      if (!reactFlowInstance) {
+        return;
+      }
+
+      const position = reactFlowInstance.screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      const newNode: Node = {
+        id: `${type}-${+new Date()}`,
+        type,
+        position,
+        data: { definition },
+      };
+
+      setNodes((nds) => nds.concat(newNode));
+    },
+    [reactFlowInstance, setNodes]
   );
 
   return {
@@ -36,7 +79,7 @@ export function useWorkflowEngine(initialWorkflow: IWorkflow) {
     onNodesChange,
     onEdgesChange,
     onConnect,
-    setNodes,
-    setEdges,
+    onDragOver,
+    onDrop,
   };
 }

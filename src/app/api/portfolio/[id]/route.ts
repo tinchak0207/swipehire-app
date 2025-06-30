@@ -107,9 +107,9 @@ function findPortfolioById(portfolioId: string): Portfolio | null {
 /**
  * GET /api/portfolio/[id] - Get specific portfolio
  */
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const portfolioId = params.id;
+    const { id: portfolioId } = await params;
 
     // Check if this is a public request (no auth header) or authenticated request
     const userId = await authenticateUser(request);
@@ -154,9 +154,9 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 /**
  * PUT /api/portfolio/[id] - Update a portfolio
  */
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const portfolioId = params.id;
+    const { id: portfolioId } = await params;
 
     // Authenticate user
     const userId = await authenticateUser(request);
@@ -266,9 +266,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 /**
  * DELETE /api/portfolio/[id] - Delete a portfolio
  */
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const portfolioId = params.id;
+    const { id: portfolioId } = await params;
 
     // Authenticate user
     const userId = await authenticateUser(request);
