@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
 
 // Mock databases
 let templates: IWorkflowTemplate[] = [];
 let workflows: IWorkflow[] = [];
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const template = templates.find((t) => t._id === params.id);
   if (template) {
     const newWorkflow: IWorkflow = {
