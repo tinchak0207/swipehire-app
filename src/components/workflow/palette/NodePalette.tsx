@@ -1,16 +1,18 @@
-
-import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 import { useMemo } from 'react';
+import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 
 export default function NodePalette() {
   const categorizedNodes = useMemo(() => {
-    return WORKFLOW_NODE_DEFINITIONS.reduce((acc, node) => {
-      if (!acc[node.category]) {
-        acc[node.category] = [];
-      }
-      acc[node.category]!.push(node);
-      return acc;
-    }, {} as Record<string, typeof WORKFLOW_NODE_DEFINITIONS>);
+    return WORKFLOW_NODE_DEFINITIONS.reduce(
+      (acc, node) => {
+        if (!acc[node.category]) {
+          acc[node.category] = [];
+        }
+        acc[node.category]!.push(node);
+        return acc;
+      },
+      {} as Record<string, typeof WORKFLOW_NODE_DEFINITIONS>
+    );
   }, []);
 
   const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string) => {

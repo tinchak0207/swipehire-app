@@ -1,17 +1,17 @@
 'use client';
 
+import React, { useEffect, useState } from 'react';
+import { Node, ReactFlowInstance } from 'reactflow';
 import WorkflowCanvas from '@/components/workflow/canvas/WorkflowCanvas';
 import NodePalette from '@/components/workflow/palette/NodePalette';
 import { IWorkflow } from '@/contracts/IWorkflow';
 import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
-import React, { useEffect, useState } from 'react';
-import { Node, ReactFlowInstance } from 'reactflow';
-
 
 function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) {
   const [workflow, setWorkflow] = useState(initialWorkflow);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop } = useWorkflowEngine(workflow, reactFlowInstance);
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop } =
+    useWorkflowEngine(workflow, reactFlowInstance);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const handleNodeClickAction = (node: Node) => {
@@ -51,7 +51,19 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
       <div className="drawer-content flex flex-col">
         <header className="p-4 bg-base-200 border-b border-base-300 flex items-center gap-4">
           <label htmlFor="my-drawer-2" className="btn btn-square btn-ghost lg:hidden">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" className="inline-block w-6 h-6 stroke-current"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              className="inline-block w-6 h-6 stroke-current"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M4 6h16M4 12h16M4 18h16"
+              ></path>
+            </svg>
           </label>
           <input
             type="text"
@@ -60,15 +72,28 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
             value={workflow.name}
             onChange={(e) => setWorkflow({ ...workflow, name: e.target.value })}
           />
-          <button className="btn btn-primary" onClick={() => handleSave()}>Save</button>
+          <button className="btn btn-primary" onClick={() => handleSave()}>
+            Save
+          </button>
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-secondary">Save as Template</label>
-            <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-              <li><a onClick={() => handleSave(true, false)}>Save as Private Template</a></li>
-              <li><a onClick={() => handleSave(true, true)}>Save as Public Template</a></li>
+            <label tabIndex={0} className="btn btn-secondary">
+              Save as Template
+            </label>
+            <ul
+              tabIndex={0}
+              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
+            >
+              <li>
+                <a onClick={() => handleSave(true, false)}>Save as Private Template</a>
+              </li>
+              <li>
+                <a onClick={() => handleSave(true, true)}>Save as Public Template</a>
+              </li>
             </ul>
           </div>
-          <button className="btn btn-accent" onClick={handleRun}>Run</button>
+          <button className="btn btn-accent" onClick={handleRun}>
+            Run
+          </button>
         </header>
         <main className="flex-1 bg-base-300">
           <WorkflowCanvas

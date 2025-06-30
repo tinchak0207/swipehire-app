@@ -1,9 +1,6 @@
-
-
-import { Handle, Position } from 'reactflow';
 import React, { memo, useState } from 'react';
-import { NodeProps } from 'reactflow';
-import { FiPlayCircle, FiChevronDown, FiChevronUp, FiUpload } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiPlayCircle, FiUpload } from 'react-icons/fi';
+import { Handle, NodeProps, Position } from 'reactflow';
 
 interface ManualTriggerNodeData {
   jsonInput?: string;
@@ -25,7 +22,10 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
   return (
     <div className="card w-96 bg-base-100 shadow-xl border-2 border-success-focus">
       <div className="card-body p-4">
-        <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
               <div className="bg-success text-success-content rounded-full w-12 h-12">
@@ -42,13 +42,16 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">Manually initiates the workflow. You can provide a JSON object as the initial data payload.</p>
-            
+            <p className="text-sm text-gray-600">
+              Manually initiates the workflow. You can provide a JSON object as the initial data
+              payload.
+            </p>
+
             <div className="form-control w-full">
               <label className="label">
                 <span className="label-text font-semibold">Initial JSON Data (Optional)</span>
               </label>
-              <textarea 
+              <textarea
                 className="textarea textarea-bordered h-32 font-mono text-xs"
                 placeholder='{ "candidateId": "123", "jobId": "456" }'
                 value={jsonInput}
@@ -57,20 +60,43 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
             </div>
 
             <div className="form-control w-full">
-                <label htmlFor={`file-upload-${id}`} className="btn btn-sm btn-outline btn-primary">
-                    <FiUpload className="mr-2" /> Upload JSON File
-                </label>
-                <input id={`file-upload-${id}`} type="file" accept=".json" className="hidden" onChange={handleFileChange} />
+              <label htmlFor={`file-upload-${id}`} className="btn btn-sm btn-outline btn-primary">
+                <FiUpload className="mr-2" /> Upload JSON File
+              </label>
+              <input
+                id={`file-upload-${id}`}
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleFileChange}
+              />
             </div>
 
             <div className="alert alert-success text-xs mt-2">
-              <svg xmlns="http://www.w3.org/2000/svg" className="stroke-current shrink-0 h-6 w-6" fill="none" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="stroke-current shrink-0 h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
               <span>The provided JSON will be the output of this node.</span>
             </div>
           </div>
         )}
       </div>
-      <Handle type="source" position={Position.Right} id="output" className="w-4 h-4 !bg-success-focus" />
+      <Handle
+        type="source"
+        position={Position.Right}
+        id="output"
+        className="w-4 h-4 !bg-success-focus"
+      />
     </div>
   );
 };

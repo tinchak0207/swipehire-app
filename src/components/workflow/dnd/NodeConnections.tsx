@@ -1,5 +1,5 @@
-import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 import React from 'react';
+import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 
 const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string) => {
   event.dataTransfer.setData('application/reactflow', nodeType);

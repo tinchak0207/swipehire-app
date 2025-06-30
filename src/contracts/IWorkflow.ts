@@ -1,6 +1,5 @@
 import { Edge, Node } from 'reactflow';
 
-
 export interface IWorkflow {
   _id: string;
   userId: string;

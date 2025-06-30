@@ -1,6 +1,5 @@
-
-import { Handle, Position } from 'reactflow';
 import React from 'react';
+import { Handle, Position } from 'reactflow';
 
 const DataMetricTriggerNode = () => {
   return (

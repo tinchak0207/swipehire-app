@@ -1,8 +1,7 @@
-
 import React, { memo } from 'react';
 import { Handle, NodeProps, Position } from 'reactflow';
 
-const VideoInterviewIntegrationNode: React.FC<NodeProps> = ({ }) => {
+const VideoInterviewIntegrationNode: React.FC<NodeProps> = ({}) => {
   return (
     <div className="card w-72 bg-info text-info-content shadow-xl">
       <div className="card-body">

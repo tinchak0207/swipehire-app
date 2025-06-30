@@ -1,33 +1,66 @@
-
-
-
-import { NodeDefinition } from '@/lib/workflow-node-definitions';
 import { memo, useState } from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
+import { Handle, NodeProps, Position } from 'reactflow';
+import { NodeDefinition } from '@/lib/workflow-node-definitions';
 
 const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string]: any }>) => {
   const { definition, ...config } = data;
   const [expanded, setExpanded] = useState(false);
 
   // A simple function to render an appropriate input based on type
-  const renderInput = (key: string, type: string, value: any, onChange: (key: string, value: any) => void) => {
+  const renderInput = (
+    key: string,
+    type: string,
+    value: any,
+    onChange: (key: string, value: any) => void
+  ) => {
     switch (type) {
       case 'string':
-        return <input type="text" className="input input-bordered input-sm w-full" value={value || ''} onChange={(e) => onChange(key, e.target.value)} />;
+        return (
+          <input
+            type="text"
+            className="input input-bordered input-sm w-full"
+            value={value || ''}
+            onChange={(e) => onChange(key, e.target.value)}
+          />
+        );
       case 'number':
-        return <input type="number" className="input input-bordered input-sm w-full" value={value || 0} onChange={(e) => onChange(key, parseInt(e.target.value, 10))} />;
+        return (
+          <input
+            type="number"
+            className="input input-bordered input-sm w-full"
+            value={value || 0}
+            onChange={(e) => onChange(key, parseInt(e.target.value, 10))}
+          />
+        );
       case 'boolean':
-        return <input type="checkbox" className="toggle toggle-primary" checked={value || false} onChange={(e) => onChange(key, e.target.checked)} />;
+        return (
+          <input
+            type="checkbox"
+            className="toggle toggle-primary"
+            checked={value || false}
+            onChange={(e) => onChange(key, e.target.checked)}
+          />
+        );
       case 'select':
         return (
-          <select className="select select-bordered select-sm w-full" value={value || ''} onChange={(e) => onChange(key, e.target.value)}>
+          <select
+            className="select select-bordered select-sm w-full"
+            value={value || ''}
+            onChange={(e) => onChange(key, e.target.value)}
+          >
             {/* Assuming definition provides options for select */}
             <option value="">Select...</option>
           </select>
         );
       default:
-        return <textarea className="textarea textarea-bordered textarea-sm w-full" value={typeof value === 'object' ? JSON.stringify(value, null, 2) : (value || '')} onChange={(e) => onChange(key, e.target.value)} />;
+        return (
+          <textarea
+            className="textarea textarea-bordered textarea-sm w-full"
+            value={typeof value === 'object' ? JSON.stringify(value, null, 2) : value || ''}
+            onChange={(e) => onChange(key, e.target.value)}
+          />
+        );
     }
   };
 
@@ -38,7 +71,9 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
   };
 
   return (
-    <div className={`card w-96 bg-base-100 shadow-xl border-2 ${definition.color || 'border-gray-300'}`}>
+    <div
+      className={`card w-96 bg-base-100 shadow-xl border-2 ${definition.color || 'border-gray-300'}`}
+    >
       {definition.inputs?.map((input, index) => (
         <Handle
           key={`${id}-target-${input.name}`}
@@ -50,21 +85,26 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
         />
       ))}
       <div className="card-body p-4">
-        <div className="flex items-center justify-between cursor-pointer" onClick={() => setExpanded(!expanded)}>
-            <div className="flex items-center gap-3">
-                {definition.icon && (
-                    <div className={`avatar placeholder`}>
-                        <div className={`bg-neutral-focus text-neutral-content rounded-full w-10 h-10 ${definition.color?.replace('border', 'bg')}`}>
-                            <i className={`${definition.icon} text-xl`}></i>
-                        </div>
-                    </div>
-                )}
-                <div>
-                    <h2 className="card-title text-base font-bold">{definition.label}</h2>
-                    <p className="text-xs text-gray-500">{definition.description}</p>
+        <div
+          className="flex items-center justify-between cursor-pointer"
+          onClick={() => setExpanded(!expanded)}
+        >
+          <div className="flex items-center gap-3">
+            {definition.icon && (
+              <div className={`avatar placeholder`}>
+                <div
+                  className={`bg-neutral-focus text-neutral-content rounded-full w-10 h-10 ${definition.color?.replace('border', 'bg')}`}
+                >
+                  <i className={`${definition.icon} text-xl`}></i>
                 </div>
+              </div>
+            )}
+            <div>
+              <h2 className="card-title text-base font-bold">{definition.label}</h2>
+              <p className="text-xs text-gray-500">{definition.description}</p>
             </div>
-            {expanded ? <FiChevronUp /> : <FiChevronDown />}
+          </div>
+          {expanded ? <FiChevronUp /> : <FiChevronDown />}
         </div>
 
         {expanded && definition.config && (
@@ -76,7 +116,9 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
                   <span className="label-text text-xs font-medium">{field.label}</span>
                 </label>
                 {renderInput(key, field.type, config[key], handleConfigChange)}
-                {field.description && <p className="text-xs text-gray-500 mt-1">{field.description}</p>}
+                {field.description && (
+                  <p className="text-xs text-gray-500 mt-1">{field.description}</p>
+                )}
               </div>
             ))}
           </div>

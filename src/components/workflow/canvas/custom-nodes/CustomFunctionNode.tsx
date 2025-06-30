@@ -9,7 +9,10 @@ interface CustomFunctionNodeData {
 
 const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data, id }) => {
   const [expanded, setExpanded] = useState(false);
-  const [code, setCode] = useState(data.code || `// Write your JavaScript code here\n// The 'data' variable is available from the previous node\nreturn { ...data, customOutput: true };`);
+  const [code, setCode] = useState(
+    data.code ||
+      `// Write your JavaScript code here\n// The 'data' variable is available from the previous node\nreturn { ...data, customOutput: true };`
+  );
 
   return (
     <div className="card w-96 bg-base-100 shadow-xl border-2 border-purple-500">

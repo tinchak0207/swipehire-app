@@ -2,17 +2,14 @@
 
 import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { IWorkflow } from '@/contracts/IWorkflow';
-import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 import { useState } from 'react';
 import { ReactFlowInstance } from 'reactflow';
+import { IWorkflow } from '@/contracts/IWorkflow';
+import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 
 const nodeTypes = Object.fromEntries(
-  WORKFLOW_NODE_DEFINITIONS.filter((def) => def.component).map((def) => [
-    def.type,
-    def.component,
-  ])
+  WORKFLOW_NODE_DEFINITIONS.filter((def) => def.component).map((def) => [def.type, def.component])
 );
 
 import { Node } from 'reactflow';
@@ -24,10 +21,8 @@ interface WorkflowCanvasProps {
 
 export default function WorkflowCanvas({ workflow, onNodeClickAction }: WorkflowCanvasProps) {
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop } = useWorkflowEngine(
-    workflow,
-    reactFlowInstance
-  );
+  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop } =
+    useWorkflowEngine(workflow, reactFlowInstance);
 
   return (
     <div style={{ height: '100vh' }}>
