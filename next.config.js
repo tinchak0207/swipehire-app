@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
 const nextConfig = {
   transpilePackages: ['@reactflow/core'],
   webpack: (config, { isServer }) => {
@@ -11,6 +12,14 @@ const nextConfig = {
       test: /\.handlebars$/,
       loader: 'handlebars-loader',
     });
+
+    // Add path aliases from tsconfig.json
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@/ai': path.resolve(__dirname, 'src/ai'),
+      '@/components': path.resolve(__dirname, 'src/components'),
+      '@/components/ui': path.resolve(__dirname, 'src/components/ui')
+    };
 
     return config;
   },
