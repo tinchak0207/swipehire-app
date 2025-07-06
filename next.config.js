@@ -24,6 +24,7 @@ const nextConfig = {
       '@/lib': path.resolve(__dirname, 'src/lib'),
       '@/services': path.resolve(__dirname, 'src/services'),
       '@/app': path.resolve(__dirname, 'src/app'),
+      '@/utils': path.resolve(__dirname, 'src/utils'),
     };
 
     return config;
