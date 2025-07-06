@@ -1,10 +1,6 @@
 import { Node } from 'reactflow';
 import { ResumeAnalysisService } from '@/ai-services/ResumeAnalysisService';
-import {
-  IAnalyzeResumeConfig,
-  IConditionConfig,
-  IWorkflow,
-} from '@/contracts/IWorkflow';
+import { IAnalyzeResumeConfig, IConditionConfig, IWorkflow } from '@/contracts/IWorkflow';
 import { WorkflowNode } from '@/lib/types';
 
 export class DagExecutionEngine {
@@ -124,9 +120,12 @@ export class DagExecutionEngine {
   private async handleSendInvite(node: Node<any>) {
     console.log(`Sending invite for node ${node.id}`);
     const { template } = node.data.data;
-    const resolvedTemplate = template.replace(/\{\{(.+?)\}\}/g, (_match: any, variableName: string) => {
-      return this.variables.get(variableName.trim()) || '';
-    });
+    const resolvedTemplate = template.replace(
+      /\{\{(.+?)\}\}/g,
+      (_match: any, variableName: string) => {
+        return this.variables.get(variableName.trim()) || '';
+      }
+    );
     console.log(`Rendered template: ${resolvedTemplate}`);
 
     // Assume an EmailService is available

@@ -134,7 +134,9 @@ describe('useSalaryQuery', () => {
         data: filteredData,
         statistics: { ...mockStatistics, count: filteredData.length },
       };
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(mockResponse);
+      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
+        mockResponse
+      );
 
       const { result } = renderHook(() => useSalaryQuery(criteria), { wrapper });
 
@@ -156,7 +158,9 @@ describe('useSalaryQuery', () => {
     it('should handle empty criteria', async () => {
       const wrapper = createWrapper();
 
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(mockQueryResponse);
+      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
+        mockQueryResponse
+      );
 
       const { result } = renderHook(() => useSalaryQuery({}), { wrapper });
 
@@ -177,7 +181,9 @@ describe('useSalaryQuery', () => {
         ...mockQueryResponse,
         metadata: { ...mockQueryResponse.metadata, page: 2, pageSize: 5 },
       };
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(mockResponseWithPagination);
+      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
+        mockResponseWithPagination
+      );
 
       const { result } = renderHook(() => useSalaryQuery(criteria, 2, 5), { wrapper });
 
@@ -194,17 +200,24 @@ describe('useSalaryQuery', () => {
       const wrapper = createWrapper();
       const criteria: SalaryQueryCriteria = { jobTitle: 'error' };
 
-      (salaryDataService.salaryDataService.query
+      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockRejectedValue(
+        new Error('Network Error: Internal server error')
+      );
 
-      const { result } = renderHook(() => useSalaryQuery(criteria, 2, 5), { wrapper });
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
+      const { result } = renderHook(() => useSalaryQuery(criteria, 1, 10, { retry: false }), {
+        wrapper,
       });
 
-      expect(result.current.metadata?.page).toBe(2);
-      expect(result.current.metadata?.pageSize).toBe(5);
-      expect(salaryDataService.querySalaryData).toHaveBeenCalledWith(criteria, 2, 5);
+      await waitFor(
+        () => {
+          expect(result.current.isLoading).toBe(false);
+        },
+        { timeout: 3000 }
+      );
+
+      expect(result.current.isError).toBe(true);
+      expect(result.current.error).toBeDefined();
+      expect(result.current.error?.message).toContain('Network Error');
     });
 
     it('should handle network errors', async () => {
@@ -287,7 +300,9 @@ describe('useSalaryQuery', () => {
       const wrapper = createWrapper();
       const criteria: SalaryQueryCriteria = { jobTitle: 'error' };
 
-      (salaryDataService.getSalaryStatistics as jest.Mock).mockRejectedValue(new Error('Network Error: Internal server error'));
+      (salaryDataService.getSalaryStatistics as jest.Mock).mockRejectedValue(
+        new Error('Network Error: Internal server error')
+      );
 
       const { result } = renderHook(() => useSalaryStatistics(criteria, { retry: false }), {
         wrapper,
@@ -309,7 +324,10 @@ describe('useSalaryQuery', () => {
     it('should contribute salary data successfully', async () => {
       const wrapper = createWrapper();
 
-      (salaryDataService.contributeSalaryData as jest.Mock).mockResolvedValue({ success: true, id: 'contribution-123' });
+      (salaryDataService.contributeSalaryData as jest.Mock).mockResolvedValue({
+        success: true,
+        id: 'contribution-123',
+      });
 
       const { result } = renderHook(() => useSalaryContribution(), { wrapper });
 
@@ -340,7 +358,9 @@ describe('useSalaryQuery', () => {
     it('should handle contribution errors', async () => {
       const wrapper = createWrapper();
 
-      (salaryDataService.contributeSalaryData as jest.Mock).mockRejectedValue(new Error('Validation Error: Invalid data'));
+      (salaryDataService.contributeSalaryData as jest.Mock).mockRejectedValue(
+        new Error('Validation Error: Invalid data')
+      );
 
       const { result } = renderHook(() => useSalaryContribution(), { wrapper });
 

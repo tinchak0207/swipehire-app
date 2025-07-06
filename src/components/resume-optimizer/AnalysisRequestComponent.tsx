@@ -44,9 +44,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
   const { isLoading, progress, stage, message } = useAnalysisLoadingState(loadingState);
 
   const [retryCount, setRetryCount] = useState(0);
-  const { errorMessage } = useAnalysisErrorHandler(error, () =>
-    setRetryCount(prev => prev + 1),
-  );
+  const { errorMessage } = useAnalysisErrorHandler(error, () => setRetryCount((prev) => prev + 1));
   const errorSeverity = (error as any)?.severity || (error ? 'error' : undefined);
   const shouldRetry = (err: typeof error): boolean =>
     !!err && ((err as any).statusCode ? (err as any).statusCode >= 500 : false);
@@ -127,11 +125,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
       return;
     }
 
-    const result = await performReanalysis(
-      updatedResumeText,
-      analysisResult.id,
-      targetJob
-    );
+    const result = await performReanalysis(updatedResumeText, analysisResult.id, targetJob);
 
     if (result) {
       setRetryCount(0);
@@ -187,11 +181,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
                   <span className="font-semibold">{message}</span>
                   <span className="text-sm opacity-75">{progress}%</span>
                 </div>
-                <progress
-                  className={`progress w-full`}
-                  value={progress}
-                  max="100"
-                />
+                <progress className={`progress w-full`} value={progress} max="100" />
               </div>
             </div>
             <p className="text-sm opacity-75 ml-11"></p>
@@ -222,11 +212,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
           >
             <div className="flex items-start gap-2">
               <span className="text-lg">
-                {errorSeverity === 'error'
-                  ? '❌'
-                  : errorSeverity === 'warning'
-                    ? '⚠️'
-                    : 'ℹ️'}
+                {errorSeverity === 'error' ? '❌' : errorSeverity === 'warning' ? '⚠️' : 'ℹ️'}
               </span>
               <div className="flex-1">
                 <div className="font-semibold">Analysis Error</div>

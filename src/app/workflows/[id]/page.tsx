@@ -24,12 +24,12 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          ...workflow, 
-          nodes: workflowEngine.nodes, 
-          edges: workflowEngine.edges, 
-          isTemplate, 
-          isPublic 
+        body: JSON.stringify({
+          ...workflow,
+          nodes: workflowEngine.nodes,
+          edges: workflowEngine.edges,
+          isTemplate,
+          isPublic,
         }),
       });
 
@@ -101,10 +101,7 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
           </button>
         </header>
         <main className="flex-1 bg-base-300">
-          <WorkflowCanvas
-            workflow={workflow}
-            onNodeClickAction={handleNodeClickAction}
-          />
+          <WorkflowCanvas workflow={workflow} onNodeClickAction={handleNodeClickAction} />
         </main>
       </div>
       <div className="drawer-side">

@@ -416,7 +416,10 @@ export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProp
 
             {/* Filters */}
             <div className="mt-2 flex items-center gap-2">
-              <Select value={filterType} onValueChange={(value) => setFilterType(value as NotificationType | 'all')}>
+              <Select
+                value={filterType}
+                onValueChange={(value) => setFilterType(value as NotificationType | 'all')}
+              >
                 <SelectTrigger className="w-32">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue />
@@ -431,7 +434,10 @@ export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProp
                 </SelectContent>
               </Select>
 
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'timestamp' | 'priority')}>
+              <Select
+                value={sortBy}
+                onValueChange={(value) => setSortBy(value as 'timestamp' | 'priority')}
+              >
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>

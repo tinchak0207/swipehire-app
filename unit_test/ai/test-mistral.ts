@@ -3,8 +3,8 @@
  * Run this to verify that the AI service is working correctly
  */
 
-import aiService from '../../src/services/aiService';
 import { ai } from '../../src/ai/genkit';
+import aiService from '../../src/services/aiService';
 
 async function testMistralConnection() {
   console.log('🧪 Testing Mistral AI Connection...');

@@ -15,14 +15,7 @@ interface JobCardProps {
   imageUrl?: string;
 }
 
-const JobCard: React.FC<JobCardProps> = ({
-  company,
-  category,
-  title,
-  location,
-  type,
-  tags,
-}) => {
+const JobCard: React.FC<JobCardProps> = ({ company, category, title, location, type, tags }) => {
   return (
     <Card className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-xl">
       <CardContent className="p-0">

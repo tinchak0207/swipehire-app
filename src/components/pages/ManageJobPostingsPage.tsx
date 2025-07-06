@@ -85,8 +85,7 @@ import { type JobType, WorkExperienceLevel } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { deleteRecruiterJob, fetchRecruiterJobs, updateRecruiterJob } from '@/services/jobService';
 
-const CUSTOM_BACKEND_URL =
-  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 const JobStatusEnum = z.enum(['draft', 'active', 'paused', 'expired', 'filled', 'closed']);
 
@@ -550,7 +549,12 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                           height={96}
                           className="h-full w-full object-cover"
                           data-ai-hint={job.dataAiHint || 'job post image'}
-                          unoptimized={!!(fullMediaUrl?.startsWith(CUSTOM_BACKEND_URL) || fullMediaUrl?.startsWith('http://localhost'))}
+                          unoptimized={
+                            !!(
+                              fullMediaUrl?.startsWith(CUSTOM_BACKEND_URL) ||
+                              fullMediaUrl?.startsWith('http://localhost')
+                            )
+                          }
                         />
                       ) : mediaType === 'video' ? (
                         <Film className="h-10 w-10 text-muted-foreground" />
@@ -798,8 +802,8 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                     control={form.control}
                     name="tags"
                     render={() => (
-                    <div className="flex items-center gap-2">
-                    <Input
+                      <div className="flex items-center gap-2">
+                        <Input
                           placeholder="Type a tag and press Enter"
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
@@ -956,12 +960,10 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                       'Your Company'}
                   </p>
                   <h1 className="mt-1 break-words font-bold text-3xl text-white leading-tight sm:text-4xl">
-                  {previewingJob?.title?.split('(')[0]?.trim() ?? ''}
-                  {previewingJob?.title?.includes('(') && (
-                  <span className="block font-bold text-2xl">{`(${(                      
-                  previewingJob?.title ?? ''
-                  ).split('(')[1] || ''}`}</span>
-                  )}
+                    {previewingJob?.title?.split('(')[0]?.trim() ?? ''}
+                    {previewingJob?.title?.includes('(') && (
+                      <span className="block font-bold text-2xl">{`(${(previewingJob?.title ?? '').split('(')[1] || ''}`}</span>
+                    )}
                   </h1>
                   <div className="mt-3 flex items-center justify-center gap-x-1.5 text-base text-white/90">
                     {previewingJob.location && (

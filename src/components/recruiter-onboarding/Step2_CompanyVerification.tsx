@@ -76,10 +76,8 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
     // This component needs to pass its state up when a file is selected.
 
     const currentData: Partial<RecruiterOnboardingData> = {};
-    if (type === 'license')
-      currentData.businessLicense = file || { name: '' };
-    if (type === 'orgCode')
-      currentData.organizationCode = file || { name: '' };
+    if (type === 'license') currentData.businessLicense = file || { name: '' };
+    if (type === 'orgCode') currentData.organizationCode = file || { name: '' };
 
     // This is a bit of a hack to update parent data without triggering next step from here
     // This assumes `onSubmit` primarily updates data.

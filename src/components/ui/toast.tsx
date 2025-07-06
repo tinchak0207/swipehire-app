@@ -22,7 +22,14 @@ export interface ToastProps {
 /**
  * Toast notification component
  */
-const Toast: React.FC<ToastProps> = ({ id, type = 'info', title, description: message, duration = 5000, onClose }) => {
+const Toast: React.FC<ToastProps> = ({
+  id,
+  type = 'info',
+  title,
+  description: message,
+  duration = 5000,
+  onClose,
+}) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 

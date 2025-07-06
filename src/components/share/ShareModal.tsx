@@ -157,16 +157,16 @@ export function ShareModal({
                 level="M"
                 bgColor="#ffffff"
                 fgColor="#1E293B"
-                imageSettings={(
-                  qrCodeValue && qrCodeLogoUrl
+                imageSettings={
+                  (qrCodeValue && qrCodeLogoUrl
                     ? {
                         src: qrCodeLogoUrl,
                         height: 28,
                         width: 28,
                         excavate: true,
                       }
-                    : undefined
-                ) as any}
+                    : undefined) as any
+                }
               />
             </div>
             <p className="text-muted-foreground text-xs">Scan the QR code or visit:</p>

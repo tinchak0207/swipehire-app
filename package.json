@@ -139,7 +139,6 @@
     "@types/uuid": "^10.0.0",
     "axe-core": "^4.10.2",
     "critters": "^0.0.23",
-_V1_ERROR_
     "genkit-cli": "^1.8.0",
     "jest": "^30.0.2",
     "jest-axe": "^9.0.0",

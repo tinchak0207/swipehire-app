@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/card';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
-import type { RecruiterOnboardingData, BackendUser } from '@/lib/types';
+import type { BackendUser, RecruiterOnboardingData } from '@/lib/types';
 import { submitCompanyRegistration } from '@/services/recruiterService';
 
 const TOTAL_STEPS = 4;

@@ -87,8 +87,7 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
     onSubmit({
       presentationMethod,
       videoUrl: presentationMethod === 'video' ? flowRecordedVideoUrl || '' : '',
-      avatarDataUri:
-        presentationMethod === 'avatar' ? avatarDataUriFromGenerator || '' : '',
+      avatarDataUri: presentationMethod === 'avatar' ? avatarDataUriFromGenerator || '' : '',
     });
   };
 

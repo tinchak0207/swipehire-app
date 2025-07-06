@@ -66,9 +66,10 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
     defaultValues: {
       companyName: initialData?.companyName || '',
       companyIndustry: initialData?.companyIndustry || '',
-      companyScale: initialData?.companyScale && initialData.companyScale !== CompanyScale.UNSPECIFIED 
-        ? initialData.companyScale 
-        : CompanyScale.SCALE_1_10,
+      companyScale:
+        initialData?.companyScale && initialData.companyScale !== CompanyScale.UNSPECIFIED
+          ? initialData.companyScale
+          : CompanyScale.SCALE_1_10,
       companyAddress: initialData?.companyAddress || '',
       companyWebsite: initialData?.companyWebsite || '',
     },

@@ -227,9 +227,9 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
       )}
 
       {onDownloadError && (
-      <div className="alert alert-error mt-2">
-      <span className="text-sm">An error occurred during download.</span>
-      </div>
+        <div className="alert alert-error mt-2">
+          <span className="text-sm">An error occurred during download.</span>
+        </div>
       )}
     </div>
   );
@@ -368,13 +368,15 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           )}
 
           {/* Adopted Suggestions Info */}
-          {includeAnalysis && analysisResult?.suggestions && analysisResult.suggestions.length > 0 && (
-            <div className="alert alert-info">
-              <span className="text-sm">
-                Adopted suggestions will be highlighted in the report
-              </span>
-            </div>
-          )}
+          {includeAnalysis &&
+            analysisResult?.suggestions &&
+            analysisResult.suggestions.length > 0 && (
+              <div className="alert alert-info">
+                <span className="text-sm">
+                  Adopted suggestions will be highlighted in the report
+                </span>
+              </div>
+            )}
 
           {/* Error Display */}
           {onDownloadError && (

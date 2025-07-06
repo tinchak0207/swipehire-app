@@ -142,7 +142,9 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
 
       try {
         // Perform analysis with progress tracking
-        const result = await analyzeResume(request, (state) => updateLoadingState(state as AnalysisLoadingState));
+        const result = await analyzeResume(request, (state) =>
+          updateLoadingState(state as AnalysisLoadingState)
+        );
 
         // Check if request was cancelled
         if (abortControllerRef.current?.signal.aborted) {
@@ -234,11 +236,8 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
 
       try {
         // Perform re-analysis with progress tracking
-        const result = await reanalyzeResume(
-          resumeText,
-          originalAnalysisId,
-          targetJob,
-          (state) => updateLoadingState(state as AnalysisLoadingState)
+        const result = await reanalyzeResume(resumeText, originalAnalysisId, targetJob, (state) =>
+          updateLoadingState(state as AnalysisLoadingState)
         );
 
         // Check if request was cancelled

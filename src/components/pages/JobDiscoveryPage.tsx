@@ -51,7 +51,8 @@ const fallbackCompany: CompanyWithRecruiterId = {
   id: 'fallback-comp-01',
   name: 'No More Jobs Available',
   industry: 'Check Back Soon!',
-  description: 'No more jobs available at the moment. Please check back later for new opportunities.',
+  description:
+    'No more jobs available at the moment. Please check back later for new opportunities.',
   cultureHighlights: [],
   logoUrl: '/img/icons/empty-box.svg', // A placeholder icon
   jobOpenings: [
@@ -604,19 +605,22 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
             </div>
           )}
 
-        {!showFallbackCard && !isLoading && !isInitialLoading && displayedCompanies.length === 0 && (
-          <div className="flex h-full snap-start snap-always flex-col items-center justify-center bg-background p-6 text-center">
-            <SearchX className="mb-6 h-20 w-20 text-muted-foreground" />
-            <h2 className="mb-3 font-semibold text-2xl text-foreground">
-              {searchTerm || numActiveFilters > 0 ? 'No Jobs Found' : 'No More Jobs'}
-            </h2>
-            <p className="text-muted-foreground">
-              {searchTerm || numActiveFilters > 0
-                ? 'Try adjusting your search or filters.'
-                : "You've seen all opportunities for now, or check your Trash Bin."}
-            </p>
-          </div>
-        )}
+        {!showFallbackCard &&
+          !isLoading &&
+          !isInitialLoading &&
+          displayedCompanies.length === 0 && (
+            <div className="flex h-full snap-start snap-always flex-col items-center justify-center bg-background p-6 text-center">
+              <SearchX className="mb-6 h-20 w-20 text-muted-foreground" />
+              <h2 className="mb-3 font-semibold text-2xl text-foreground">
+                {searchTerm || numActiveFilters > 0 ? 'No Jobs Found' : 'No More Jobs'}
+              </h2>
+              <p className="text-muted-foreground">
+                {searchTerm || numActiveFilters > 0
+                  ? 'Try adjusting your search or filters.'
+                  : "You've seen all opportunities for now, or check your Trash Bin."}
+              </p>
+            </div>
+          )}
       </div>
     </div>
   );

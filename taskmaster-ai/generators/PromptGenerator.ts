@@ -21,7 +21,6 @@ export interface ComponentRequirements {
 }
 
 export class PromptGenerator {
-
   /**
    * Generates a comprehensive prompt for component creation
    */

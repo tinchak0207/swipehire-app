@@ -198,7 +198,10 @@ export function findInsertionPoint(content: string, section?: string): number {
       // Find the end of this section (next section or end of content)
       let endIndex = lines.length;
       for (let i = sectionIndex + 1; i < lines.length; i++) {
-        if (lines[i] && Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]!.trim()))) {
+        if (
+          lines[i] &&
+          Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]!.trim()))
+        ) {
           endIndex = i;
           break;
         }

@@ -865,7 +865,9 @@ export function CompanyCardContent({
                   }
                   size={110}
                   displayText={
-                    (showQuestionMark && !isHoveringMatchArea && !analysisTriggered ? '?' : undefined) || ''
+                    (showQuestionMark && !isHoveringMatchArea && !analysisTriggered
+                      ? '?'
+                      : undefined) || ''
                   }
                   isRingHovered={isHoveringMatchArea && !analysisTriggered && !isLoadingAiAnalysis}
                 />

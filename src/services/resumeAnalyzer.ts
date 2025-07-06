@@ -1,4 +1,4 @@
-                             import { Mistral } from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai';
 
 const apiKey = process.env['MISTRAL_API_KEY'];
 if (!apiKey) {

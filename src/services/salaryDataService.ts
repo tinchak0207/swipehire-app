@@ -336,7 +336,9 @@ export class SalaryDataService {
     return response.statistics;
   }
 
-  async contributeSalaryData(data: ContributeSalaryData): Promise<{ success: boolean; id: string }> {
+  async contributeSalaryData(
+    data: ContributeSalaryData
+  ): Promise<{ success: boolean; id: string }> {
     // This is a mock implementation.
     console.log('Contributing salary data:', data);
     return Promise.resolve({ success: true, id: `contribution-${Date.now()}` });

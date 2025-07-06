@@ -15,10 +15,9 @@ import { uploadDiaryImage } from '@/services/diaryService';
 
 interface CreateDiaryPostFormProps {
   onPostCreated: (
-    newPostData: Omit<
-      DiaryPost,
-      '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'
-    > & { diaryImageHint?: string }
+    newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'> & {
+      diaryImageHint?: string;
+    }
   ) => void;
   currentUserName: string | null;
   currentUserMongoId: string | null;

@@ -421,11 +421,7 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
                   Help categorize your job. Add up to 10 tags (letters, numbers, hyphens only, max
                   20 chars each).
                 </FormDescription>
-                <FormField
-                  control={form.control}
-                  name="actualTags"
-                  render={() => <FormItem />}
-                />
+                <FormField control={form.control} name="actualTags" render={() => <FormItem />} />
                 <FormMessage>
                   {form.formState.errors.actualTags?.message ||
                     form.formState.errors.actualTags?.root?.message}

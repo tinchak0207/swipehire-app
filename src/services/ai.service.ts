@@ -13,9 +13,7 @@ export interface AnalysisResult {
 }
 
 class AIService {
-  async analyzeTextResume(
-    config: IAnalyzeResumeConfig
-  ): Promise<AnalysisResult> {
+  async analyzeTextResume(config: IAnalyzeResumeConfig): Promise<AnalysisResult> {
     console.log('Analyzing text resume with config:', config);
     // Simulate API call to Mistral
     await new Promise((resolve) => setTimeout(resolve, 1000));

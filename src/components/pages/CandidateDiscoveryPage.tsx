@@ -94,13 +94,13 @@ function CandidateDetailsModal({
   candidate,
   aiRecruiterMatchScore,
   aiRecruiterReasoning,
-    isLoadingAiAnalysis,
+  isLoadingAiAnalysis,
   isGuestMode,
   activeAccordionItem,
   setActiveAccordionItem,
   onFetchAiAnalysis,
   onPassCandidate,
-  }: {
+}: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   candidate: Candidate | null;
@@ -168,9 +168,9 @@ function CandidateDetailsModal({
     !showFullSummaryModal
       ? `${candidate.experienceSummary.substring(0, MAX_SUMMARY_LENGTH_MODAL_INITIAL)}...`
       : candidate.experienceSummary;
-      
-      const modalAvatarSrc = candidate.avatarUrl
-      ? candidate.avatarUrl.startsWith('/uploads/')
+
+  const modalAvatarSrc = candidate.avatarUrl
+    ? candidate.avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
       : candidate.avatarUrl
     : 'https://placehold.co/80x80.png';

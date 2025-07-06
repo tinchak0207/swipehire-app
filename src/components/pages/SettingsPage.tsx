@@ -114,8 +114,7 @@ import { NotificationItemType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { deleteUserAccount, requestDataExport } from '@/services/userService';
 
-const CUSTOM_BACKEND_URL =
-  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;

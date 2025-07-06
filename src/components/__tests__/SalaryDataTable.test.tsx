@@ -164,7 +164,9 @@ describe('SalaryDataTable', () => {
 
     it('renders custom empty state message', () => {
       const customMessage = 'Custom empty message';
-      render(<SalaryDataTable data={[]} statistics={undefined} emptyStateMessage={customMessage} />);
+      render(
+        <SalaryDataTable data={[]} statistics={undefined} emptyStateMessage={customMessage} />
+      );
 
       expect(screen.getByText(customMessage)).toBeInTheDocument();
     });

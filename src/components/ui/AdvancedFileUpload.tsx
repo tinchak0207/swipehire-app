@@ -606,7 +606,16 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
         });
       }
     },
-    [files, validation, validateFile, createUploadedFile, onFilesChange, autoUpload, uploadOptions, uploadFile]
+    [
+      files,
+      validation,
+      validateFile,
+      createUploadedFile,
+      onFilesChange,
+      autoUpload,
+      uploadOptions,
+      uploadFile,
+    ]
   );
 
   // Handle drag and drop

@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  CloudUploadIcon,
-  EyeIcon,
-  ImageIcon,
-  MusicIcon,
-  VideoIcon,
-  X,
-} from 'lucide-react';
+import { CloudUploadIcon, EyeIcon, ImageIcon, MusicIcon, VideoIcon, X } from 'lucide-react';
 import Image from 'next/image';
 import React, { useCallback, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
