@@ -18,7 +18,7 @@ const nextConfig = {
       ...config.resolve.alias,
       '@/ai': path.resolve(__dirname, 'src/ai'),
       '@/components': path.resolve(__dirname, 'src/components'),
-      '@/components/ui': path.resolve(__dirname, 'src/components/ui')
+      '@/components/ui': path.resolve(__dirname, 'src/components/ui'),
     };
 
     return config;
