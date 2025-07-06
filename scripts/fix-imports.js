@@ -10,7 +10,7 @@ function fixFlowImports() {
     if (file.endsWith('.ts')) {
       const filePath = path.join(flowsDir, file);
       let content = fs.readFileSync(filePath, 'utf-8');
-      
+
       // Replace relative imports with @/ alias
       content = content.replace(/from\s+['"]\.\.\/ai\/genkit['"]/g, "from '@/ai/genkit'");
 
