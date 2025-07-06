@@ -337,7 +337,7 @@ export function testHeadingHierarchy(container: HTMLElement): void {
     const currentLevel = levels[i];
     const previousLevel = levels[i - 1];
 
-    if (currentLevel > previousLevel) {
+    if (currentLevel && previousLevel && currentLevel > previousLevel) {
       expect(currentLevel - previousLevel).toBeLessThanOrEqual(1);
     }
   }

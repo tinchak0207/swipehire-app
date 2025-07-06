@@ -161,7 +161,7 @@ const ResumeUploadPage: NextPage = () => {
       e.stopPropagation();
 
       const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) {
+      if (files.length > 0 && files[0]) {
         handleFileSelection(files[0]);
       }
     },
@@ -169,15 +169,15 @@ const ResumeUploadPage: NextPage = () => {
   );
 
   const clearFile = useCallback((): void => {
-    setUploadState((prev) => ({
-      ...prev,
+    setUploadState({
       file: null,
+      isUploading: false,
       error: null,
       extractedText: null,
-      metadata: undefined,
       progress: 0,
       stage: 'uploading',
-    }));
+      dragActive: false,
+    });
 
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -195,7 +195,6 @@ const ResumeUploadPage: NextPage = () => {
       error: null,
       progress: 0,
       stage: 'uploading',
-      metadata: prev.metadata,
     }));
 
     try {

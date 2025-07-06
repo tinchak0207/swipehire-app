@@ -1,7 +1,7 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import React, { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiFilePlus } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import { type NodeProps } from 'reactflow';
 
 interface NewResumeSubmissionTriggerNodeData {
   source: string; // e.g., 'email-inbox', 'api-endpoint', 'careers-page'
@@ -10,7 +10,6 @@ interface NewResumeSubmissionTriggerNodeData {
 
 const NewResumeSubmissionTriggerNode: React.FC<NodeProps<NewResumeSubmissionTriggerNodeData>> = ({
   data,
-  id,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [source, setSource] = useState(data.source || 'careers-page');

@@ -186,8 +186,8 @@ export async function recommendProfile(
       locationPreference:
         input.candidateProfile.locationPreference || LocationPreference.UNSPECIFIED,
       languages: input.candidateProfile.languages || [],
-      salaryExpectationMin: input.candidateProfile.salaryExpectationMin,
-      salaryExpectationMax: input.candidateProfile.salaryExpectationMax,
+      salaryExpectationMin: input.candidateProfile.salaryExpectationMin || 0,
+      salaryExpectationMax: input.candidateProfile.salaryExpectationMax || 0,
       availability: input.candidateProfile.availability || Availability.UNSPECIFIED,
       jobTypePreference: input.candidateProfile.jobTypePreference || [],
       personalityAssessment: input.candidateProfile.personalityAssessment || [],
@@ -323,7 +323,10 @@ Provide scores (0-100) and brief analysis. Keep responses concise.`;
             ...parsedResponse.candidateJobFitAnalysis,
             matchScoreForCandidate: Math.round(jobSeekerMatchScore),
           }
-        : fallbackOutput.candidateJobFitAnalysis,
+        : fallbackOutput.candidateJobFitAnalysis!,
+      optimalWorkStyles: parsedResponse.optimalWorkStyles || [],
+      isUnderestimatedTalent: parsedResponse.isUnderestimatedTalent || false,
+      underestimatedReasoning: parsedResponse.underestimatedReasoning || '',
     };
   } catch (error) {
     console.error('Profile recommendation failed:', error);

@@ -11,8 +11,14 @@ import { useWorkflow } from '@/hooks/useWorkflow';
 export default function WorkflowEditorPage() {
   const params = useParams();
   const id = params ? (params['id'] as string) : null;
-  const { workflow, isLoading, isError } = useWorkflow(id);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
+
+  // Early return if no ID is available
+  if (!id) {
+    return <div>Invalid workflow ID.</div>;
+  }
+
+  const { workflow, isLoading, isError } = useWorkflow(id);
 
   if (isLoading) return <div>Loading...</div>;
   if (isError || !workflow) return <div>Error loading workflow.</div>;
@@ -25,7 +31,7 @@ export default function WorkflowEditorPage() {
     <div className="flex h-screen">
       <ComponentLibrary />
       <main className="flex-1">
-        <WorkflowCanvas workflow={workflow} onNodeClick={setSelectedNode} />
+        <WorkflowCanvas workflow={workflow} onNodeClickAction={setSelectedNode} />
       </main>
       <PropertiesPanel selectedNode={selectedNode} onConfigChange={onConfigChange} />
     </div>

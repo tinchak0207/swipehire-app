@@ -131,7 +131,7 @@ export function getContrastRatio(foreground: string, background: string): number
       return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
     });
 
-    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    return 0.2126 * (r || 0) + 0.7152 * (g || 0) + 0.0722 * (b || 0);
   }
 
   const l1 = getLuminance(foreground);

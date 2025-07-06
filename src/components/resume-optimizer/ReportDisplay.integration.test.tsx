@@ -1,6 +1,7 @@
 'use client';
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+// @ts-ignore
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 import ReportDisplay from './ReportDisplay';
@@ -231,7 +232,9 @@ describe('ReportDisplay Integration Tests', () => {
     await waitFor(() => {
       const adoptButtons = screen.getAllByText('Adopt');
       expect(adoptButtons.length).toBeGreaterThan(0);
-      fireEvent.click(adoptButtons[0]);
+      if (adoptButtons[0]) {
+        fireEvent.click(adoptButtons[0]);
+      }
     });
 
     expect(mockOnSuggestionAdopt).toHaveBeenCalledWith('suggestion-1');
@@ -259,7 +262,9 @@ describe('ReportDisplay Integration Tests', () => {
     await waitFor(() => {
       const ignoreButtons = screen.getAllByText('Ignore');
       expect(ignoreButtons.length).toBeGreaterThan(0);
-      fireEvent.click(ignoreButtons[0]);
+      if (ignoreButtons[0]) {
+        fireEvent.click(ignoreButtons[0]);
+      }
     });
 
     expect(mockOnSuggestionIgnore).toHaveBeenCalledWith('suggestion-1');
@@ -352,7 +357,7 @@ describe('ReportDisplay Integration Tests', () => {
     // Find and click modify button
     await waitFor(() => {
       const modifyButtons = screen.getAllByText('Modify');
-      if (modifyButtons.length > 0) {
+      if (modifyButtons.length > 0 && modifyButtons[0]) {
         fireEvent.click(modifyButtons[0]);
       }
     });

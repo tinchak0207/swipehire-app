@@ -16,5 +16,7 @@ export function AuthWrapper({ children }: { children: ReactNode }) {
     return <div>Error: {error.message}</div>;
   }
 
-  return <UserPreferencesProvider currentUser={user}>{children}</UserPreferencesProvider>;
+  return (
+    <UserPreferencesProvider currentUser={user ?? null}>{children}</UserPreferencesProvider>
+  );
 }

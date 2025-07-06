@@ -85,7 +85,8 @@ import { type JobType, WorkExperienceLevel } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { deleteRecruiterJob, fetchRecruiterJobs, updateRecruiterJob } from '@/services/jobService';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL =
+  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 const JobStatusEnum = z.enum(['draft', 'active', 'paused', 'expired', 'filled', 'closed']);
 
@@ -331,8 +332,8 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
       description: data.description,
       salaryRange: data.salaryRange,
       tags: data.actualTags,
-      location: data.location,
-      videoOrImageUrl: data.videoOrImageUrl || undefined,
+      location: data.location || '',
+      videoOrImageUrl: data.videoOrImageUrl || '',
       jobType: (data.jobType as JobType) || undefined,
       requiredExperienceLevel: (data.requiredExperienceLevel as WorkExperienceLevel) || undefined,
       status: data.status || 'active',
@@ -358,7 +359,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     if (!mongoDbUserId || !jobId) return;
     setIsSubmitting(true); // Can use a more specific loading state if needed
     try {
-      await updateRecruiterJob(mongoDbUserId, jobId, { status: newStatus });
+      await updateRecruiterJob(mongoDbUserId, jobId, { status: newStatus || 'active' });
       toast({ title: 'Job Status Updated', description: `Job status changed to ${newStatus}.` });
       loadJobs();
     } catch (error: any) {
@@ -411,26 +412,6 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
     if (/\.(jpg|jpeg|png|gif|webp)$/i.test(url)) return 'image';
     if (/\.(mp4|webm|ogv|mov)$/i.test(url)) return 'video';
     return 'unknown';
-  };
-
-  const _getStatusBadgeVariant = (
-    status?: CompanyJobOpening['status']
-  ): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    switch (status) {
-      case 'active':
-        return 'default'; // Primary
-      case 'paused':
-        return 'secondary';
-      case 'filled':
-        return 'outline'; // Green-ish if customized
-      case 'expired':
-      case 'closed':
-        return 'destructive';
-      case 'draft':
-        return 'secondary';
-      default:
-        return 'secondary';
-    }
   };
 
   const getStatusBadgeClasses = (status?: CompanyJobOpening['status']): string => {
@@ -569,10 +550,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                           height={96}
                           className="h-full w-full object-cover"
                           data-ai-hint={job.dataAiHint || 'job post image'}
-                          unoptimized={
-                            fullMediaUrl.startsWith(CUSTOM_BACKEND_URL) ||
-                            fullMediaUrl.startsWith('http://localhost')
-                          }
+                          unoptimized={!!(fullMediaUrl?.startsWith(CUSTOM_BACKEND_URL) || fullMediaUrl?.startsWith('http://localhost'))}
                         />
                       ) : mediaType === 'video' ? (
                         <Film className="h-10 w-10 text-muted-foreground" />
@@ -597,8 +575,11 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                 <CardFooter className="border-t pt-3 pb-3">
                   <Select
                     value={job.status || 'active'}
-                    onValueChange={(newStatus: CompanyJobOpening['status']) =>
-                      handleChangeJobStatus((job as any)._id, newStatus)
+                    onValueChange={(newStatus: string) =>
+                      handleChangeJobStatus(
+                        (job as any)._id,
+                        newStatus as CompanyJobOpening['status']
+                      )
                     }
                     disabled={isSubmitting}
                   >
@@ -771,7 +752,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                         <Briefcase className="mr-2 h-4 w-4 text-muted-foreground" />
                         Job Status
                       </FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select job status" />
@@ -816,9 +797,9 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                   <FormField
                     control={form.control}
                     name="tags"
-                    render={({ field }) => (
-                      <div className="flex items-center gap-2">
-                        <Input
+                    render={() => (
+                    <div className="flex items-center gap-2">
+                    <Input
                           placeholder="Type a tag and press Enter"
                           value={tagInput}
                           onChange={(e) => setTagInput(e.target.value)}
@@ -951,12 +932,14 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                         className="object-contain"
                         data-ai-hint="company logo"
                         unoptimized={
-                          (
-                            previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl
-                          )?.startsWith(CUSTOM_BACKEND_URL) ||
-                          (
-                            previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl
-                          )?.startsWith('http://localhost')
+                          !!(
+                            (
+                              previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl
+                            )?.startsWith(CUSTOM_BACKEND_URL) ||
+                            (
+                              previewingJob.companyLogoForJob || fullBackendUser?.profileAvatarUrl
+                            )?.startsWith('http://localhost')
+                          )
                         }
                       />
                     ) : (
@@ -973,10 +956,12 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                       'Your Company'}
                   </p>
                   <h1 className="mt-1 break-words font-bold text-3xl text-white leading-tight sm:text-4xl">
-                    {previewingJob.title.split('(')[0].trim()}
-                    {previewingJob.title.includes('(') && (
-                      <span className="block font-bold text-2xl">{`(${previewingJob.title.split('(')[1]}`}</span>
-                    )}
+                  {previewingJob?.title?.split('(')[0]?.trim() ?? ''}
+                  {previewingJob?.title?.includes('(') && (
+                  <span className="block font-bold text-2xl">{`(${(                      
+                  previewingJob?.title ?? ''
+                  ).split('(')[1] || ''}`}</span>
+                  )}
                   </h1>
                   <div className="mt-3 flex items-center justify-center gap-x-1.5 text-base text-white/90">
                     {previewingJob.location && (

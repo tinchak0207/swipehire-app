@@ -61,7 +61,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     maxFileSize,
     timeout,
     onSuccess: onFileExtracted,
-    onError,
+    onError: onError || (() => {}),
   });
 
   const getStageMessage = (): string => {

@@ -14,7 +14,7 @@ interface DataFilterNodeData {
   logicalOperator: 'AND' | 'OR';
 }
 
-const DataFilterNode: React.FC<NodeProps<DataFilterNodeData>> = ({ data, id }) => {
+const DataFilterNode: React.FC<NodeProps<DataFilterNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [conditions, setConditions] = useState<FilterCondition[]>(
     data.conditions || [{ field: '', operator: '==', value: '' }]
@@ -25,8 +25,10 @@ const DataFilterNode: React.FC<NodeProps<DataFilterNodeData>> = ({ data, id }) =
 
   const updateCondition = (index: number, field: keyof FilterCondition, value: string) => {
     const newConditions = [...conditions];
-    newConditions[index][field] = value;
-    setConditions(newConditions);
+    if (newConditions[index]) {
+      (newConditions[index] as any)[field] = value;
+      setConditions(newConditions);
+    }
   };
 
   const addCondition = () => {

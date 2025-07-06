@@ -78,7 +78,6 @@ interface MarketSalaryInquiryPageProps {
 
 export const MarketSalaryInquiryPage: React.FC<MarketSalaryInquiryPageProps> = ({
   isGuestMode = false,
-  currentUserRole = null,
 }) => {
   // State management
   const [queryCriteria, setQueryCriteria] = useState<SalaryQueryCriteria>({});
@@ -89,7 +88,6 @@ export const MarketSalaryInquiryPage: React.FC<MarketSalaryInquiryPageProps> = (
 
   // Fetch salary data using the hook
   const {
-    data: salaryResponse,
     salaryData,
     statistics,
     metadata,

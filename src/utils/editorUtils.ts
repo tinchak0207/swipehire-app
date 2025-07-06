@@ -174,6 +174,14 @@ function applyGenericSuggestion(content: string, suggestion: OptimizationSuggest
   return content + '\n\n[Suggestion Applied]: ' + suggestion.suggestion;
 }
 
+const sectionPatterns: { [key: string]: RegExp } = {
+  summary: /^summary$/i,
+  experience: /^experience$/i,
+  education: /^education$/i,
+  skills: /^skills$/i,
+  projects: /^projects$/i,
+};
+
 /**
  * Find the best position to insert content based on section
  */
@@ -183,15 +191,6 @@ export function findInsertionPoint(content: string, section?: string): number {
   const lines = content.split('\n');
 
   // Common section patterns
-  const sectionPatterns: Record<string, RegExp> = {
-    summary: /^(professional summary|summary|objective|profile)/i,
-    experience: /^(experience|work history|professional experience|employment)/i,
-    education: /^(education|academic background|schooling)/i,
-    skills: /^(skills|technical skills|core competencies|technologies)/i,
-    projects: /^(projects|portfolio|notable projects)/i,
-    certifications: /^(certifications|certificates|credentials)/i,
-  };
-
   const pattern = sectionPatterns[section.toLowerCase()];
   if (pattern) {
     const sectionIndex = lines.findIndex((line) => pattern.test(line.trim()));
@@ -199,7 +198,7 @@ export function findInsertionPoint(content: string, section?: string): number {
       // Find the end of this section (next section or end of content)
       let endIndex = lines.length;
       for (let i = sectionIndex + 1; i < lines.length; i++) {
-        if (Object.values(sectionPatterns).some((p) => p.test(lines[i].trim()))) {
+        if (lines[i] && Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]!.trim()))) {
           endIndex = i;
           break;
         }

@@ -3,7 +3,7 @@
 
 import type { Company, CompanyJobOpening } from '@/lib/types';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface JobOpeningPayload
   extends Omit<
@@ -157,7 +157,7 @@ export async function fetchJobsFromBackend(): Promise<{
     }
 
     console.log(`[Frontend Service] Fetched ${jobs.length} jobs from backend.`);
-    return { jobs, hasMore: false, nextCursor: undefined };
+    return { jobs, hasMore: false };
   } catch (error: any) {
     console.error('[Frontend Service] Error in fetchJobsFromBackend service:', error.message);
     console.error('[Frontend Service] Full error object for fetchJobsFromBackend:', error);

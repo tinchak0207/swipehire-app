@@ -58,7 +58,7 @@ const FormSchema = z.object({
   desiredWorkStyle: z
     .string()
     .min(5, 'Please describe your desired work style in at least 5 characters.'),
-  toneAndStyle: z.enum(['professional', 'friendly', 'technical', 'sales']),
+  toneAndStyle: z.enum(['professional', 'friendly', 'technical', 'sales', 'general']),
   industryTemplate: z.enum(['technology', 'creative', 'finance', 'education', 'general']),
 });
 

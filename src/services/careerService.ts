@@ -26,7 +26,7 @@ export async function getCareerRecommendations(
   // TODO: Implement actual API call to AI service
   // For now returning mock data based on profile
   const mockStages = ['exploration', 'early', 'mid', 'late', 'transition'];
-  const randomStage = mockStages[Math.floor(Math.random() * mockStages.length)];
+  const randomStage = mockStages[Math.floor(Math.random() * mockStages.length)] || 'exploration';
 
   return {
     careerStage: randomStage,

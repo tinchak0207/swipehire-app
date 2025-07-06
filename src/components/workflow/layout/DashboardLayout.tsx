@@ -4,7 +4,7 @@ import ConfigurationPanel from '../panels/ConfigurationPanel';
 import NavigationPanel from '../panels/NavigationPanel';
 import DataDashboard from '../visualization/DataDashboard';
 
-const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
+const DashboardLayout = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <div className="w-64 bg-white shadow-md">

@@ -11,7 +11,7 @@ import { taskmasterConfig } from '../config/taskmaster.config';
 import { type ComponentRequirements, promptGenerator } from '../generators/PromptGenerator';
 
 interface CLIOptions {
-  type?: 'page' | 'component' | 'hook' | 'service' | 'utility';
+  type?: 'page' | 'component' | 'hook' | 'service' | 'utility' | undefined;
   name?: string;
   description?: string;
   features?: string[];
@@ -35,23 +35,30 @@ class TaskmasterCLI {
       switch (arg) {
         case '--type':
         case '-t':
-          this.options.type = args[++i] as CLIOptions['type'];
+          const typeArg = args[++i];
+          if (typeArg && ['page', 'component', 'hook', 'service', 'utility'].includes(typeArg)) {
+            this.options.type = typeArg as CLIOptions['type'];
+          }
           break;
         case '--name':
         case '-n':
-          this.options.name = args[++i];
+          const nameArg = args[++i];
+          if (nameArg) this.options.name = nameArg;
           break;
         case '--description':
         case '-d':
-          this.options.description = args[++i];
+          const descArg = args[++i];
+          if (descArg) this.options.description = descArg;
           break;
         case '--features':
         case '-f':
-          this.options.features = args[++i].split(',').map((f) => f.trim());
+          const featuresArg = args[++i];
+          if (featuresArg) this.options.features = featuresArg.split(',').map((f) => f.trim());
           break;
         case '--output':
         case '-o':
-          this.options.output = args[++i];
+          const outputArg = args[++i];
+          if (outputArg) this.options.output = outputArg;
           break;
         case '--interactive':
         case '-i':
@@ -61,14 +68,12 @@ class TaskmasterCLI {
         case '-h':
           this.showHelp();
           process.exit(0);
-          break;
         case '--config':
         case '-c':
           this.showConfig();
           process.exit(0);
-          break;
         default:
-          if (arg.startsWith('-')) {
+          if (arg?.startsWith('-')) {
             console.error(`Unknown option: ${arg}`);
             this.showHelp();
             process.exit(1);

@@ -28,7 +28,7 @@ import {
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface VideoRecorderUIProps {
   onRecordingComplete?: (videoDataUrl: string) => void;
@@ -150,7 +150,7 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
     }
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRecording, elapsedTime, toast, handleStopRecording]);
+  }, [isRecording, elapsedTime, toast]);
 
   const handleStartRecording = async () => {
     if (!hasCameraPermission || !videoRef.current?.srcObject) {

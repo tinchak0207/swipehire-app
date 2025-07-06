@@ -8,7 +8,7 @@ interface AICapabilityCallNodeData {
   inputData: string;
 }
 
-const AICapabilityCallNode: React.FC<NodeProps<AICapabilityCallNodeData>> = ({ data, id }) => {
+const AICapabilityCallNode: React.FC<NodeProps<AICapabilityCallNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [capability, setCapability] = useState(data.capability || '');
   const [inputData, setInputData] = useState(data.inputData || '');

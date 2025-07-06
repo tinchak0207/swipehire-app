@@ -74,7 +74,7 @@ interface CareerPlanningSidebarProps {
   /** Back to questionnaire handler */
   onBackToQuestionnaire?: () => void;
   /** User display name */
-  userName?: string | null;
+  userName?: string | null | undefined;
   /** User photo URL */
   userPhotoURL?: string | null;
 }
@@ -105,7 +105,6 @@ export function CareerPlanningSidebar({
   activeTab,
   setActiveTab,
   careerStage,
-  userData,
   goalsCount = 0,
   completedGoalsCount = 0,
   careerPathsCount = 0,
@@ -176,14 +175,14 @@ export function CareerPlanningSidebar({
       label: 'Career Paths',
       icon: MapPin,
       description: 'Explore recommended career directions',
-      badge: careerPathsCount > 0 ? careerPathsCount : undefined,
+      badge: careerPathsCount > 0 ? careerPathsCount : 0,
     },
     {
       value: 'goals',
       label: 'Goals & Milestones',
       icon: Target,
       description: 'Set and track your career objectives',
-      badge: goalsCount > 0 ? `${completedGoalsCount}/${goalsCount}` : undefined,
+      badge: goalsCount > 0 ? `${completedGoalsCount}/${goalsCount}` : '0/0',
     },
   ];
 

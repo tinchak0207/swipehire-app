@@ -96,7 +96,7 @@ export function EmbeddedResumeOptimizer({
         metadata: {
           analysisDate: new Date().toISOString(),
           targetJobTitle: targetJob?.title || 'General Position',
-          targetCompany: targetJob?.company,
+          targetCompany: targetJob?.company || '',
           wordCount: resumeText.split(' ').length,
           processingTime: 1500,
         },

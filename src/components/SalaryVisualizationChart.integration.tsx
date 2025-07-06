@@ -75,9 +75,9 @@ export const SalaryVisualizationIntegration: React.FC = () => {
       {/* Query Form */}
       <div className="mx-auto max-w-4xl">
         <SalaryQueryForm
-          onSubmit={handleFormSubmit}
           loading={isLoading}
-          initialData={hasSubmitted ? convertCriteriaToFormData(queryCriteria) : undefined}
+          initialData={hasSubmitted ? convertCriteriaToFormData(queryCriteria) : {}}
+          onSubmitAction={handleFormSubmit}
         />
       </div>
 

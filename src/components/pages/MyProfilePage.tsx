@@ -65,7 +65,7 @@ import {
   WorkExperienceLevel,
 } from '@/lib/types';
 
-const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const envBackendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
 const CUSTOM_BACKEND_URL =
   envBackendUrl && envBackendUrl.trim() !== '' ? envBackendUrl : 'http://localhost:5000';
 
@@ -364,7 +364,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     const newJobType = currentSelectedJobType as JobType;
     if (
       newJobType &&
-      jobTypeEnumOptions.includes(newJobType) &&
+      jobTypeEnumOptions.includes(newJobType as (typeof jobTypeEnumOptions)[number]) &&
       !jobTypePreferenceList.includes(newJobType)
     ) {
       if (jobTypePreferenceList.length < 5) {
@@ -570,7 +570,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     experienceSummary,
     skills: skillList,
     avatarUrl: currentDisplayAvatarUrl,
-    videoResumeUrl: videoPortfolioLink || undefined,
+    videoResumeUrl: videoPortfolioLink || '',
     location:
       fullBackendUser?.address && fullBackendUser?.country
         ? `${fullBackendUser.address}, ${fullBackendUser.country}`
@@ -581,8 +581,8 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
     educationLevel: educationLevel as EducationLevel,
     locationPreference: locationPreference as LocationPreference,
     languages: languageList,
-    salaryExpectationMin: salaryExpectationMin ? Number.parseInt(salaryExpectationMin) : undefined,
-    salaryExpectationMax: salaryExpectationMax ? Number.parseInt(salaryExpectationMax) : undefined,
+    salaryExpectationMin: salaryExpectationMin ? Number.parseInt(salaryExpectationMin) : 0,
+    salaryExpectationMax: salaryExpectationMax ? Number.parseInt(salaryExpectationMax) : 0,
     availability: availability as Availability,
     jobTypePreference: jobTypePreferenceList,
     cardTheme: selectedCardTheme,
@@ -666,7 +666,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 fieldLabel="My Avatar"
                 buttonText="Upload New Avatar"
                 buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
-                selectedFileName={avatarFile?.name}
+                selectedFileName={avatarFile?.name || null}
                 onFileSelected={handleAvatarFileSelected}
                 inputProps={{ accept: 'image/*' }}
                 fieldDescription="Max 5MB. PNG, JPG, GIF."
@@ -1001,7 +1001,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Select
               value={selectedCardTheme}
               onValueChange={setSelectedCardTheme}
-              disabled={isGuestMode}
+              disabled={!!isGuestMode}
             >
               <SelectTrigger id="selectedCardTheme">
                 <SelectValue placeholder="Select card theme" />
@@ -1026,7 +1026,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <Select
               value={profileVisibility}
               onValueChange={setProfileVisibility}
-              disabled={isGuestMode}
+              disabled={!!isGuestMode}
             >
               <SelectTrigger id="profileVisibility">
                 <SelectValue placeholder="Set profile visibility" />
@@ -1193,7 +1193,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         itemName={fullBackendUser?.name || 'My Profile'}
         itemDescription={profileHeadline || 'Check out my profile on SwipeHire!'}
         itemType="profile"
-        shareUrl={mongoDbUserId ? `${appOriginForShare}/user/${mongoDbUserId}` : undefined}
+        shareUrl={mongoDbUserId ? `${appOriginForShare}/user/${mongoDbUserId}` : ''}
         qrCodeLogoUrl="/assets/logo-favicon.png"
       />
     </div>

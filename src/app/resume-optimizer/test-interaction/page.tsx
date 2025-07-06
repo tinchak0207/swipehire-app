@@ -176,7 +176,7 @@ JavaScript, React, Node.js`);
     addToast({
       type: 'success',
       title: 'Suggestion Adopted',
-      message: 'The suggestion has been marked as adopted.',
+      description: 'The suggestion has been marked as adopted.',
       duration: 3000,
     });
   };
@@ -192,7 +192,7 @@ JavaScript, React, Node.js`);
     addToast({
       type: 'info',
       title: 'Suggestion Ignored',
-      message: 'The suggestion has been marked as ignored.',
+      description: 'The suggestion has been marked as ignored.',
       duration: 3000,
     });
   };
@@ -205,7 +205,7 @@ JavaScript, React, Node.js`);
     addToast({
       type: 'success',
       title: 'Suggestion Modified',
-      message: 'The suggestion has been modified and adopted.',
+      description: 'The suggestion has been modified and adopted.',
       duration: 3000,
     });
   };
@@ -230,7 +230,7 @@ JavaScript, React, Node.js`);
     addToast({
       type: 'success',
       title: 'Applied to Editor',
-      message: `"${suggestion.title}" has been applied to the resume content.`,
+      description: `"${suggestion.title}" has been applied to the resume content.`,
       duration: 4000,
     });
   };
@@ -250,7 +250,7 @@ JavaScript, React, Node.js`);
     addToast({
       type: 'success',
       title: 'Reanalysis Complete',
-      message: 'Your resume has been reanalyzed with the updated content.',
+      description: 'Your resume has been reanalyzed with the updated content.',
       duration: 5000,
     });
   };

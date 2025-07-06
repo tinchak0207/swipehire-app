@@ -202,8 +202,8 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
       description: data.description,
       salaryRange: data.compensation,
       actualTags: data.actualTags,
-      location: data.location || undefined,
-      videoOrImageUrl: data.mediaFile ? undefined : data.videoOrImageUrl,
+      location: data.location || '',
+      videoOrImageUrl: data.mediaFile ? '' : data.videoOrImageUrl || '',
     };
 
     try {
@@ -421,7 +421,11 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
                   Help categorize your job. Add up to 10 tags (letters, numbers, hyphens only, max
                   20 chars each).
                 </FormDescription>
-                <FormField control={form.control} name="actualTags" render={() => null} />
+                <FormField
+                  control={form.control}
+                  name="actualTags"
+                  render={() => <FormItem />}
+                />
                 <FormMessage>
                   {form.formState.errors.actualTags?.message ||
                     form.formState.errors.actualTags?.root?.message}
@@ -437,7 +441,7 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
                     fieldLabel="Optional: Picture or Video (Max 10MB)"
                     buttonText="Upload Media"
                     buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
-                    selectedFileName={value?.name}
+                    selectedFileName={value?.name || null}
                     onFileSelected={(file) => onChange(file)}
                     inputProps={{ accept: 'image/*,video/*', ...restField }}
                     disabled={!isPostingAllowed || !!form.watch('videoOrImageUrl')}

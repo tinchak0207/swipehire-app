@@ -18,8 +18,8 @@ const NodeConnections = () => {
             onDragStart={(event) => onDragStart(event, def.type)}
             draggable
           >
-            <def.icon className="w-8 h-8 mb-2 text-gray-600" />
-            <span className="text-sm text-center text-gray-700">{def.title}</span>
+            <i className={`${def.icon} w-8 h-8 mb-2 text-gray-600`}></i>
+            <span className="text-sm text-center text-gray-700">{def.label}</span>
           </div>
         ))}
       </div>

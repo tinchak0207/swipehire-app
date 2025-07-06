@@ -13,7 +13,6 @@ interface CloudStorageIntegrationNodeData {
 
 const CloudStorageIntegrationNode: React.FC<NodeProps<CloudStorageIntegrationNodeData>> = ({
   data,
-  id,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [provider, setProvider] = useState(data.provider || 'aws-s3');

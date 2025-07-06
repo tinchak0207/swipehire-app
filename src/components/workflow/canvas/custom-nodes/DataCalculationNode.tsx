@@ -12,7 +12,7 @@ interface DataCalculationNodeData {
   steps: CalculationStep[];
 }
 
-const DataCalculationNode: React.FC<NodeProps<DataCalculationNodeData>> = ({ data, id }) => {
+const DataCalculationNode: React.FC<NodeProps<DataCalculationNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [steps, setSteps] = useState<CalculationStep[]>(
     data.steps || [{ outputVariable: '', expression: '' }]

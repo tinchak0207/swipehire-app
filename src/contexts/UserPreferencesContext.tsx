@@ -390,6 +390,7 @@ export const UserPreferencesProvider = ({
 
       return () => clearTimeout(timeout);
     }
+    return undefined;
   }, [currentUser, mongoDbUserId, preferences.isLoading]);
 
   useEffect(() => {
@@ -399,6 +400,7 @@ export const UserPreferencesProvider = ({
       mediaQuery.addEventListener('change', handleChange);
       return () => mediaQuery.removeEventListener('change', handleChange);
     }
+    return undefined;
   }, [preferences.theme, applyTheme]);
 
   const setPreferences = useCallback(

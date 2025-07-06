@@ -16,7 +16,6 @@ import { ApplicantCard } from '@/components/match/ApplicantCard';
 import { FocusedChatPanel } from '@/components/match/FocusedChatPanel';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -35,7 +34,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     []
   );
   const [isLoading, setIsLoading] = useState(true);
-  const { mongoDbUserId, preferences, fullBackendUser } = useUserPreferences();
+  const { mongoDbUserId, fullBackendUser } = useUserPreferences();
   const { toast } = useToast();
 
   const [focusedMatch, setFocusedMatch] = useState<
@@ -149,7 +148,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
         const firstPending = populatedMatches.find(
           (m) => m.applicationTimestamp && m.status === 'active'
         );
-        setFocusedMatch(firstPending || populatedMatches[0]);
+        setFocusedMatch(firstPending || populatedMatches[0] || null);
       } else {
         setFocusedMatch(null);
       }
@@ -182,7 +181,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
       setMatches((prev) => prev.filter((m) => m._id !== matchIdToArchive));
       if (focusedMatch?._id === matchIdToArchive) {
         const remainingMatches = matches.filter((m) => m._id !== matchIdToArchive);
-        setFocusedMatch(remainingMatches.length > 0 ? remainingMatches[0] : null);
+        setFocusedMatch(remainingMatches.length > 0 ? remainingMatches[0] || null : null);
       }
     } catch (error: any) {
       toast({
@@ -364,7 +363,9 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                       pendingApplicants.map((match) => (
                         <div
                           key={match._id}
-                          ref={(el) => applicantCardRefs.current.set(match._id!, el)}
+                          ref={(el) => {
+                            if (match._id) applicantCardRefs.current.set(match._id, el);
+                          }}
                           data-match-id={match._id}
                           onClick={() => handleApplicantCardClick(match)}
                           className="cursor-pointer"
@@ -408,18 +409,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
             </div>
           </TabsContent>
           <TabsContent value="ai_hr_tool" className="mt-0 min-h-0 flex-grow overflow-y-auto p-1">
-            {fullBackendUser?.aiHrToolEnabled ? (
-              <AiHumanResourcesTab />
-            ) : (
-              <div className="flex h-full flex-col items-center justify-center">
-                <p className="mb-4 text-center text-lg">
-                  AI HR Tool is not enabled for your account.
-                </p>
-                <Button onClick={() => (window.location.href = '/ai-hr-assistant')}>
-                  Enable AI HR Tool
-                </Button>
-              </div>
-            )}
+            <AiHumanResourcesTab />
           </TabsContent>
         </Tabs>
         <Alert

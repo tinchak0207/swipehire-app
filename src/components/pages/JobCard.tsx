@@ -22,8 +22,6 @@ const JobCard: React.FC<JobCardProps> = ({
   location,
   type,
   tags,
-  description,
-  imageUrl,
 }) => {
   return (
     <Card className="mx-auto w-full max-w-md overflow-hidden rounded-2xl bg-white shadow-lg transition-all duration-300 hover:shadow-xl">

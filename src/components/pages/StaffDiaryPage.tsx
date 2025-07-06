@@ -289,6 +289,8 @@ export function StaffDiaryPage({
                     post={post}
                     onLikePost={handleLikePost}
                     onCommentAdded={handleCommentAdded}
+                    onCommentUpdated={() => {}}
+                    onCommentDeleted={() => {}}
                     isLikedByCurrentUser={
                       currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false
                     }
@@ -334,6 +336,8 @@ export function StaffDiaryPage({
                     post={post}
                     onLikePost={handleLikePost}
                     onCommentAdded={handleCommentAdded}
+                    onCommentUpdated={() => {}}
+                    onCommentDeleted={() => {}}
                     isLikedByCurrentUser={
                       currentUserMongoId ? !!post.likedBy?.includes(currentUserMongoId) : false
                     }

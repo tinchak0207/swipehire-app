@@ -21,8 +21,6 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { useAccessibility } from '@/hooks/useAccessibility';
-import { usePerformance } from '@/hooks/usePerformance';
 import { cn } from '@/lib/utils';
 
 /**
@@ -89,13 +87,25 @@ export interface AdvancedSearchFilterProps {
 /**
  * Custom hook for managing search state with debouncing
  */
+function debounce<F extends (...args: any[]) => any>(func: F, waitFor: number) {
+  let timeout: NodeJS.Timeout | null = null;
+
+  const debounced = (...args: Parameters<F>) => {
+    if (timeout !== null) {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+    timeout = setTimeout(() => func(...args), waitFor);
+  };
+
+  return debounced as (...args: Parameters<F>) => void;
+}
+
 const useSearchState = (
   initialFilters: Partial<SearchFilters>,
   onFiltersChange: (filters: SearchFilters) => void,
   debounceMs = 300
 ) => {
-  const { debounce } = usePerformance();
-
   const [searchState, setSearchState] = useState<SearchFilters>({
     query: '',
     filters: {},
@@ -106,7 +116,7 @@ const useSearchState = (
 
   const debouncedOnFiltersChange = useMemo(
     () => debounce(onFiltersChange, debounceMs),
-    [onFiltersChange, debounce, debounceMs]
+    [onFiltersChange, debounceMs]
   );
 
   useEffect(() => {
@@ -125,15 +135,10 @@ const FilterGroupComponent: React.FC<{
   onChange: (value: unknown) => void;
 }> = ({ group, value, onChange }) => {
   const [isCollapsed, setIsCollapsed] = useState(group.defaultCollapsed ?? false);
-  const { announceToScreenReader } = useAccessibility();
 
   const handleToggleCollapse = useCallback(() => {
     setIsCollapsed(!isCollapsed);
-    announceToScreenReader(
-      `${group.label} filter ${isCollapsed ? 'expanded' : 'collapsed'}`,
-      'polite'
-    );
-  }, [isCollapsed, group.label, announceToScreenReader]);
+  }, [isCollapsed, group.label]);
 
   const renderFilterContent = () => {
     switch (group.type) {
@@ -220,7 +225,7 @@ const FilterGroupComponent: React.FC<{
 
       case 'select':
         return (
-          <Select value={value?.toString()} onValueChange={onChange}>
+          <Select value={value?.toString() || ''} onValueChange={(value) => onChange(value)}>
             <SelectTrigger>
               <SelectValue placeholder={group.placeholder} />
             </SelectTrigger>
@@ -364,11 +369,7 @@ export const AdvancedSearchFilter: React.FC<AdvancedSearchFilterProps> = ({
   const [saveSearchName, setSaveSearchName] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { announceToScreenReader, useFocusTrap } = useAccessibility();
-  const { debounce } = usePerformance();
-
-  // Focus trap for filter panel when expanded
-  const filterPanelRef = useFocusTrap(showFilters);
+  const filterPanelRef = useRef<HTMLDivElement>(null);
 
   const activeFilterCount = useMemo(() => {
     let count = 0;
@@ -380,10 +381,10 @@ export const AdvancedSearchFilter: React.FC<AdvancedSearchFilterProps> = ({
   }, [searchState]);
 
   const handleQueryChange = useCallback(
-    debounce((query: string) => {
+    (query: string) => {
       setSearchState((prev) => ({ ...prev, query }));
-    }, 300),
-    []
+    },
+    [setSearchState]
   );
 
   const handleFilterChange = useCallback(
@@ -400,12 +401,8 @@ export const AdvancedSearchFilter: React.FC<AdvancedSearchFilterProps> = ({
     (sortId: string) => {
       const sort = sortOptions.find((s) => s.id === sortId) || null;
       setSearchState((prev) => ({ ...prev, sort }));
-      announceToScreenReader(
-        sort ? `Sorted by ${sort.label} ${sort.direction}` : 'Sort removed',
-        'polite'
-      );
     },
-    [sortOptions, setSearchState, announceToScreenReader]
+    [sortOptions, setSearchState]
   );
 
   const handleClearFilters = useCallback(() => {
@@ -415,31 +412,27 @@ export const AdvancedSearchFilter: React.FC<AdvancedSearchFilterProps> = ({
       sort: null,
       dateRange: { from: null, to: null },
     });
-    announceToScreenReader('All filters cleared', 'polite');
     searchInputRef.current?.focus();
-  }, [setSearchState, announceToScreenReader]);
+  }, [setSearchState]);
 
   const handleSaveSearch = useCallback(() => {
     if (saveSearchName.trim() && onSaveSearch) {
       onSaveSearch(saveSearchName.trim(), searchState);
       setSaveSearchName('');
-      announceToScreenReader(`Search saved as ${saveSearchName}`, 'polite');
     }
-  }, [saveSearchName, onSaveSearch, searchState, announceToScreenReader]);
+  }, [saveSearchName, onSaveSearch, searchState]);
 
   const handleLoadSearch = useCallback(
     (filters: SearchFilters) => {
       setSearchState(filters);
       onLoadSearch?.(filters);
-      announceToScreenReader('Saved search loaded', 'polite');
     },
-    [setSearchState, onLoadSearch, announceToScreenReader]
+    [setSearchState, onLoadSearch]
   );
 
   const toggleFilters = useCallback(() => {
     setShowFilters(!showFilters);
-    announceToScreenReader(`Filters ${showFilters ? 'hidden' : 'shown'}`, 'polite');
-  }, [showFilters, announceToScreenReader]);
+  }, [showFilters]);
 
   return (
     <div className={cn('space-y-4', className)} aria-label={ariaLabel}>

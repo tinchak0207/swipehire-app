@@ -78,8 +78,8 @@ export function PerformanceProvider({
       }
 
       // Report to custom analytics endpoint
-      if (process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT) {
-        fetch(process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT, {
+      if (process.env['NEXT_PUBLIC_ANALYTICS_ENDPOINT']) {
+        fetch(process.env['NEXT_PUBLIC_ANALYTICS_ENDPOINT'], {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -144,6 +144,7 @@ export function PerformanceProvider({
         });
       }
     }
+    return undefined;
   }, [isHighPressure, memoryInfo, enableAnalytics]);
 
   // Performance observer for long tasks
@@ -173,6 +174,7 @@ export function PerformanceProvider({
         console.warn('Long task observer not supported:', error);
       }
     }
+    return undefined;
   }, [enableAnalytics]);
 
   // Monitor for layout shifts
@@ -201,6 +203,7 @@ export function PerformanceProvider({
         console.warn('Layout shift observer not supported:', error);
       }
     }
+    return undefined;
   }, []);
 
   // Report custom metrics
@@ -234,6 +237,7 @@ export function PerformanceProvider({
 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [metrics, memoryInfo, slowResources, largeResources]);
 
   const contextValue: PerformanceContextType = {

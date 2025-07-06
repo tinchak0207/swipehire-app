@@ -35,8 +35,6 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
   analysisResult,
   format,
   includeAnalysis = false,
-  adoptedSuggestions = [],
-  fileName,
   variant = 'primary',
   size = 'md',
   disabled = false,
@@ -46,25 +44,23 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
   onDownloadError,
   children,
 }) => {
-  const { isDownloading, downloadError, downloadResume, clearError } = useResumeDownload({
-    onDownloadStart,
+  const { isDownloading, downloadResume, clearError } = useResumeDownload({
+    onDownloadStart: onDownloadStart || (() => {}),
     onDownloadSuccess: (result) => {
       if (result.fileName) {
         onDownloadSuccess?.(result.fileName);
       }
     },
-    onDownloadError,
+    onDownloadError: onDownloadError || (() => {}),
   });
 
   const handleDownload = async (): Promise<void> => {
     clearError();
 
-    await downloadResume(resumeContent, analysisResult, {
+    await downloadResume(resumeContent, analysisResult || null, {
       format,
       includeAnalysis,
       includeSuggestions: includeAnalysis,
-      adoptedSuggestions,
-      fileName,
     });
   };
 
@@ -145,25 +141,21 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
   resumeContent,
   analysisResult,
   includeAnalysis = false,
-  adoptedSuggestions = [],
-  fileName,
   disabled = false,
   className = '',
   onDownloadStart,
   onDownloadSuccess,
   onDownloadError,
 }) => {
-  const { isDownloading, downloadError, downloadPDF, downloadDOCX, clearError } = useResumeDownload(
-    {
-      onDownloadStart,
-      onDownloadSuccess: (result) => {
-        if (result.fileName) {
-          onDownloadSuccess?.(result.fileName);
-        }
-      },
-      onDownloadError,
-    }
-  );
+  const { isDownloading, downloadPDF, downloadDOCX, clearError } = useResumeDownload({
+    onDownloadStart: onDownloadStart || (() => {}),
+    onDownloadSuccess: (result) => {
+      if (result.fileName) {
+        onDownloadSuccess?.(result.fileName);
+      }
+    },
+    onDownloadError: onDownloadError || (() => {}),
+  });
 
   const handlePDFDownload = async (): Promise<void> => {
     clearError();
@@ -234,10 +226,10 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
         </ul>
       )}
 
-      {downloadError && (
-        <div className="alert alert-error mt-2">
-          <span className="text-sm">{downloadError}</span>
-        </div>
+      {onDownloadError && (
+      <div className="alert alert-error mt-2">
+      <span className="text-sm">An error occurred during download.</span>
+      </div>
       )}
     </div>
   );
@@ -248,7 +240,6 @@ export interface DownloadOptionsModalProps {
   onClose: () => void;
   resumeContent: string;
   analysisResult?: ResumeAnalysisResponse | null;
-  adoptedSuggestions?: string[];
   onDownloadSuccess?: (fileName: string) => void;
   onDownloadError?: (error: string) => void;
 }
@@ -261,7 +252,6 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
   onClose,
   resumeContent,
   analysisResult,
-  adoptedSuggestions = [],
   onDownloadSuccess,
   onDownloadError,
 }) => {
@@ -269,14 +259,14 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
   const [fileName, setFileName] = React.useState('');
   const [selectedFormat, setSelectedFormat] = React.useState<'pdf' | 'docx'>('pdf');
 
-  const { isDownloading, downloadError, downloadResume, clearError } = useResumeDownload({
+  const { isDownloading, downloadResume, clearError } = useResumeDownload({
     onDownloadSuccess: (result) => {
       if (result.fileName) {
         onDownloadSuccess?.(result.fileName);
         onClose();
       }
     },
-    onDownloadError,
+    onDownloadError: onDownloadError || (() => {}),
   });
 
   React.useEffect(() => {
@@ -290,13 +280,20 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
   const handleDownload = async (): Promise<void> => {
     clearError();
 
-    await downloadResume(resumeContent, analysisResult, {
+    const options: {
+      format: 'pdf' | 'docx';
+      includeAnalysis: boolean;
+      includeSuggestions: boolean;
+      fileName?: string;
+    } = {
       format: selectedFormat,
       includeAnalysis,
       includeSuggestions: includeAnalysis,
-      adoptedSuggestions,
-      fileName: fileName.trim() || undefined,
-    });
+    };
+    if (fileName.trim()) {
+      options.fileName = fileName.trim();
+    }
+    await downloadResume(resumeContent, analysisResult || null, options);
   };
 
   if (!isOpen) return null;
@@ -371,18 +368,18 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           )}
 
           {/* Adopted Suggestions Info */}
-          {includeAnalysis && adoptedSuggestions.length > 0 && (
+          {includeAnalysis && analysisResult?.suggestions && analysisResult.suggestions.length > 0 && (
             <div className="alert alert-info">
               <span className="text-sm">
-                {adoptedSuggestions.length} adopted suggestion(s) will be highlighted in the report
+                Adopted suggestions will be highlighted in the report
               </span>
             </div>
           )}
 
           {/* Error Display */}
-          {downloadError && (
+          {onDownloadError && (
             <div className="alert alert-error">
-              <span className="text-sm">{downloadError}</span>
+              <span className="text-sm">An error occurred during download.</span>
             </div>
           )}
         </div>

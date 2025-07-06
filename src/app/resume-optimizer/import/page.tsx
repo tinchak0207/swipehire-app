@@ -37,7 +37,7 @@ const ResumeImportPage: NextPage = () => {
   });
 
   // Check if user just completed onboarding
-  const onboardingStatus = searchParams.get('onboarding');
+  const onboardingStatus = searchParams?.get('onboarding') || null;
   const [showOnboardingMessage, setShowOnboardingMessage] = useState(false);
 
   const [targetJob, setTargetJob] = useState<TargetJobInfo>({

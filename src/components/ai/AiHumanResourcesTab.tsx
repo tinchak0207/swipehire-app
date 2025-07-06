@@ -138,7 +138,9 @@ export function AiHumanResourcesTab() {
                   htmlFor="plan-per-reply"
                   className="flex cursor-pointer items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-background has-[:checked]:border-primary has-[:checked]:bg-primary/10"
                 >
-                  <RadioGroupItem value="per_reply" id="plan-per-reply" />
+                  <RadioGroupItem value="per_reply">
+                    {' '}
+                  </RadioGroupItem>
                   <div>
                     <span className="font-medium">Pay Per Reply</span>
                     <p className="text-muted-foreground text-xs">
@@ -150,7 +152,9 @@ export function AiHumanResourcesTab() {
                   htmlFor="plan-monthly"
                   className="flex cursor-pointer items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-background has-[:checked]:border-primary has-[:checked]:bg-primary/10"
                 >
-                  <RadioGroupItem value="monthly" id="plan-monthly" />
+                  <RadioGroupItem value="monthly">
+                    {' '}
+                  </RadioGroupItem>
                   <div>
                     <span className="font-medium">Monthly Subscription</span>
                     <p className="text-muted-foreground text-xs">

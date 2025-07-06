@@ -32,22 +32,24 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
   const {
     analysisResult,
     isAnalyzing,
-    isReanalyzing,
     loadingState,
     error,
     isBackendAvailable,
-    performAnalysis,
-    performReanalysis,
     clearError,
     checkBackend,
+    startAnalysis: performAnalysis,
+    startReanalysis: performReanalysis,
   } = useResumeAnalysis();
 
-  const { isLoading, progress, stage, message, progressColor, stageIcon, stageDescription } =
-    useAnalysisLoadingState(loadingState);
-
-  const { getErrorMessage, getErrorSeverity, shouldRetry } = useAnalysisErrorHandler();
+  const { isLoading, progress, stage, message } = useAnalysisLoadingState(loadingState);
 
   const [retryCount, setRetryCount] = useState(0);
+  const { errorMessage } = useAnalysisErrorHandler(error, () =>
+    setRetryCount(prev => prev + 1),
+  );
+  const errorSeverity = (error as any)?.severity || (error ? 'error' : undefined);
+  const shouldRetry = (err: typeof error): boolean =>
+    !!err && ((err as any).statusCode ? (err as any).statusCode >= 500 : false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   // Check backend availability on mount
@@ -64,10 +66,10 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
 
   // Handle errors
   useEffect(() => {
-    if (error && onError) {
-      onError(getErrorMessage(error));
+    if (error && onError && errorMessage) {
+      onError(errorMessage);
     }
-  }, [error, onError, getErrorMessage]);
+  }, [error, onError, errorMessage]);
 
   /**
    * Start initial analysis
@@ -88,8 +90,8 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
       targetJob: {
         title: targetJob.title.trim(),
         keywords: targetJob.keywords?.trim() || '',
-        description: targetJob.description?.trim(),
-        company: targetJob.company?.trim(),
+        description: targetJob.description?.trim() || '',
+        company: targetJob.company?.trim() || '',
       },
     };
 
@@ -125,7 +127,11 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
       return;
     }
 
-    const result = await performReanalysis(updatedResumeText, analysisResult.id, targetJob);
+    const result = await performReanalysis(
+      updatedResumeText,
+      analysisResult.id,
+      targetJob
+    );
 
     if (result) {
       setRetryCount(0);
@@ -175,20 +181,20 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {isLoading && (
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl">{stageIcon}</span>
+              <span className="text-2xl"></span>
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-semibold">{message}</span>
                   <span className="text-sm opacity-75">{progress}%</span>
                 </div>
                 <progress
-                  className={`progress ${progressColor} w-full`}
+                  className={`progress w-full`}
                   value={progress}
                   max="100"
                 />
               </div>
             </div>
-            <p className="text-sm opacity-75 ml-11">{stageDescription}</p>
+            <p className="text-sm opacity-75 ml-11"></p>
 
             {/* Stage-specific information */}
             {stage === 'analyzing' && (
@@ -207,24 +213,24 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {error && (
           <div
             className={`alert ${
-              getErrorSeverity(error) === 'error'
+              errorSeverity === 'error'
                 ? 'alert-error'
-                : getErrorSeverity(error) === 'warning'
+                : errorSeverity === 'warning'
                   ? 'alert-warning'
                   : 'alert-info'
             } mb-4`}
           >
             <div className="flex items-start gap-2">
               <span className="text-lg">
-                {getErrorSeverity(error) === 'error'
+                {errorSeverity === 'error'
                   ? '❌'
-                  : getErrorSeverity(error) === 'warning'
+                  : errorSeverity === 'warning'
                     ? '⚠️'
                     : 'ℹ️'}
               </span>
               <div className="flex-1">
                 <div className="font-semibold">Analysis Error</div>
-                <div className="text-sm">{getErrorMessage(error)}</div>
+                <div className="text-sm">{errorMessage}</div>
                 {error.details && (
                   <details className="mt-2">
                     <summary className="text-xs cursor-pointer opacity-75">
@@ -344,9 +350,9 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
               <button
                 className="btn btn-outline"
                 onClick={() => handleReanalysis(resumeText)}
-                disabled={isReanalyzing}
+                disabled={isAnalyzing}
               >
-                {isReanalyzing ? 'Re-analyzing...' : 'Re-analyze'}
+                {isAnalyzing ? 'Re-analyzing...' : 'Re-analyze'}
               </button>
               <button
                 className="btn btn-primary"
@@ -367,7 +373,6 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
                 {
                   isBackendAvailable,
                   isAnalyzing,
-                  isReanalyzing,
                   loadingState,
                   error: error
                     ? {

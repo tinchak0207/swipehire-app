@@ -45,7 +45,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
 
         // Try to create a simple document to test worker
         const testArrayBuffer = new ArrayBuffer(8);
-        const testDoc = pdfjsLib.getDocument({ data: testArrayBuffer });
+        pdfjsLib.getDocument({ data: testArrayBuffer });
 
         // If we get here without error, local worker is working
         return true;

@@ -24,6 +24,7 @@ import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 import { mockCandidates, mockCompanies } from '@/lib/mockData';
 import type { Company, JobFilters } from '@/lib/types';
+import { JobType, LocationPreference } from '@/lib/types';
 import { passCompany, retrieveCompany } from '@/services/interactionService';
 import { fetchJobsFromBackend } from '@/services/jobService';
 import { recordLike } from '@/services/matchService';
@@ -32,6 +33,7 @@ const ITEMS_PER_BATCH = 3;
 
 interface CompanyWithRecruiterId extends Company {
   recruiterUserId?: string; // Ensure this is part of the type if backend sends it
+  isFallback?: boolean;
 }
 
 interface JobDiscoveryPageProps {
@@ -45,6 +47,29 @@ const initialJobFilters: JobFilters = {
   jobTypes: new Set(),
 };
 
+const fallbackCompany: CompanyWithRecruiterId = {
+  id: 'fallback-comp-01',
+  name: 'No More Jobs Available',
+  industry: 'Check Back Soon!',
+  description: 'No more jobs available at the moment. Please check back later for new opportunities.',
+  cultureHighlights: [],
+  logoUrl: '/img/icons/empty-box.svg', // A placeholder icon
+  jobOpenings: [
+    {
+      _id: 'fallback-job-01',
+      title: 'We are constantly adding new opportunities.',
+      description:
+        'It looks like you have seen all the available jobs that match your profile. Please check back later for new listings. You can also try adjusting your filters or search criteria.',
+      tags: ['fallback'],
+      salaryMin: 0,
+      salaryMax: 0,
+      jobType: JobType.FULL_TIME,
+      workLocationType: LocationPreference.REMOTE,
+    },
+  ],
+  isFallback: true, // Custom property to identify this card
+};
+
 export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
   const [masterJobFeed, setMasterJobFeed] = useState<CompanyWithRecruiterId[]>([]);
   const [displayedCompanies, setDisplayedCompanies] = useState<CompanyWithRecruiterId[]>([]);
@@ -54,6 +79,7 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
   const [hasMore, setHasMore] = useState(true);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [isTrashBinOpen, setIsTrashBinOpen] = useState(false);
+  const [showFallbackCard, setShowFallbackCard] = useState(false);
 
   const [activeFilters, setActiveFilters] = useState<JobFilters>(initialJobFilters);
 
@@ -79,7 +105,7 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
           : null);
       setJobSeekerRepresentedCandidateId(
         storedCandidateId ||
-          (mockCandidates.length > 0
+          (mockCandidates.length > 0 && mockCandidates[0]
             ? mockCandidates[0].id
             : `cand-user-${mongoDbUserId.slice(0, 5)}`)
       );
@@ -110,14 +136,21 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
       errorOccurred = true;
     }
 
-    const jobsToSet =
-      fetchedJobs.length === 0 || errorOccurred
-        ? (mockCompanies.map((mc) => ({
-            ...mc,
-            // Ensure recruiterUserId is present for mock data if needed by other logic
-            recruiterUserId: mc.recruiterUserId || `mock-recruiter-${mc.id}`,
-          })) as CompanyWithRecruiterId[])
-        : fetchedJobs;
+    let jobsToSet: CompanyWithRecruiterId[] = [];
+    if (errorOccurred) {
+      jobsToSet = mockCompanies.map((mc) => ({
+        ...mc,
+        recruiterUserId: mc.recruiterUserId || `mock-recruiter-${mc.id}`,
+      })) as CompanyWithRecruiterId[];
+    } else {
+      jobsToSet = fetchedJobs;
+    }
+
+    if (jobsToSet.length === 0) {
+      setShowFallbackCard(true);
+    } else {
+      setShowFallbackCard(false);
+    }
 
     setMasterJobFeed(jobsToSet);
     setIsInitialLoading(false);
@@ -234,7 +267,8 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading && !isInitialLoading) {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && hasMore && !isLoading && !isInitialLoading) {
           loadMoreCompaniesFromLocal();
         }
       },
@@ -306,7 +340,7 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
           likedProfileType: 'company', // Liked profile is the recruiter representing the company/job
           likingUserRole: 'jobseeker',
           likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId,
-          jobOpeningTitle: jobOpening?.title,
+          jobOpeningTitle: jobOpening?.title || '',
         });
         if (response.success) {
           toast({ title: `Interested in job at ${company.name}` });
@@ -469,6 +503,7 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
                   <Card key={company.id} className="flex items-center space-x-3 p-3 shadow-sm">
                     {company.logoUrl && (
                       <Image
+                        key={`image-${company.id}`}
                         src={company.logoUrl}
                         alt={company.name}
                         width={48}
@@ -482,12 +517,15 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
                         {company.name}
                       </p>
                       <p className="truncate text-muted-foreground text-xs">
-                        {company.jobOpenings && company.jobOpenings.length > 0
+                        {company.jobOpenings &&
+                        company.jobOpenings.length > 0 &&
+                        company.jobOpenings[0]
                           ? company.jobOpenings[0].title
                           : company.industry}
                       </p>
                     </div>
                     <Button
+                      key={`button-${company.id}`}
                       variant="outline"
                       size="sm"
                       onClick={() => handleRetrieveCompany(company.id)}
@@ -512,24 +550,44 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
         className="no-scrollbar w-full flex-grow snap-y snap-mandatory overflow-y-auto scroll-smooth pb-40"
         style={{ height: `calc(100vh - ${fixedElementsHeight})` }}
       >
-        {displayedCompanies.map((company) => (
+        {showFallbackCard ? (
           <div
-            key={company.id}
+            key={fallbackCompany.id}
             className="flex min-h-full snap-start snap-always flex-col items-center justify-center bg-background p-1 sm:p-2"
           >
             <SwipeCard
-              className={`flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'shadow-green-500/30 ring-2 ring-green-500' : 'shadow-lg hover:shadow-xl'}`}
+              className={`flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl`}
             >
-              {/* Pass the company object which contains jobOpenings to CompanyCardContent */}
               <CompanyCardContent
-                company={company}
-                onSwipeAction={handleAction}
-                isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)}
+                company={fallbackCompany}
+                onSwipeAction={() => {}}
                 isGuestMode={mongoDbUserId === null}
+                isFallback
               />
             </SwipeCard>
           </div>
-        ))}
+        ) : (
+          displayedCompanies.map((company) => (
+            <div
+              key={company.id}
+              className="flex min-h-full snap-start snap-always flex-col items-center justify-center bg-background p-1 sm:p-2"
+            >
+              <SwipeCard
+                key={`swipe-${company.id}`}
+                className={`flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'shadow-green-500/30 ring-2 ring-green-500' : 'shadow-lg hover:shadow-xl'}`}
+              >
+                {/* Pass the company object which contains jobOpenings to CompanyCardContent */}
+                <CompanyCardContent
+                  key={`content-${company.id}`}
+                  company={company}
+                  onSwipeAction={handleAction}
+                  isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)}
+                  isGuestMode={mongoDbUserId === null}
+                />
+              </SwipeCard>
+            </div>
+          ))
+        )}
         {isLoading && !isInitialLoading && (
           <div className="flex h-full snap-start snap-always items-center justify-center p-4">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -546,7 +604,7 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
             </div>
           )}
 
-        {!isLoading && !isInitialLoading && displayedCompanies.length === 0 && (
+        {!showFallbackCard && !isLoading && !isInitialLoading && displayedCompanies.length === 0 && (
           <div className="flex h-full snap-start snap-always flex-col items-center justify-center bg-background p-6 text-center">
             <SearchX className="mb-6 h-20 w-20 text-muted-foreground" />
             <h2 className="mb-3 font-semibold text-2xl text-foreground">

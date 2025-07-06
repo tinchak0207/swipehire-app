@@ -125,8 +125,8 @@ interface SalaryDataServiceConfig {
 }
 
 const defaultConfig: SalaryDataServiceConfig = {
-  baseUrl: process.env.NEXT_PUBLIC_SALARY_API_URL || 'https://api.salarydata.com/v1',
-  apiKey: process.env.NEXT_PUBLIC_SALARY_API_KEY,
+  baseUrl: process.env['NEXT_PUBLIC_SALARY_API_URL'] || 'https://api.salarydata.com/v1',
+  apiKey: process.env['NEXT_PUBLIC_SALARY_API_KEY'],
   timeout: 10000,
   retryAttempts: 3,
   retryDelay: 1000,
@@ -330,7 +330,41 @@ export class SalaryDataService {
     }
   }
 
-  // ... (rest of the class methods remain unchanged)
+  async getSalaryStatistics(criteria: SalaryQueryCriteria): Promise<SalaryStatistics> {
+    // This is a mock implementation. In a real scenario, this would be a separate API endpoint.
+    const response = await this.querySalaryData(criteria, 1, 1000); // Fetch a large sample
+    return response.statistics;
+  }
+
+  async contributeSalaryData(data: ContributeSalaryData): Promise<{ success: boolean; id: string }> {
+    // This is a mock implementation.
+    console.log('Contributing salary data:', data);
+    return Promise.resolve({ success: true, id: `contribution-${Date.now()}` });
+  }
+
+  async getTrendingSalaries(timeframe: string): Promise<SalaryDataPoint[]> {
+    // This is a mock implementation.
+    console.log(`Fetching trending salaries for timeframe: ${timeframe}`);
+    return Promise.resolve(fallbackSalaryData.data);
+  }
+
+  async compareSalaries(
+    criteria1: SalaryQueryCriteria,
+    criteria2: SalaryQueryCriteria
+  ): Promise<any> {
+    // This is a mock implementation.
+    const stats1 = await this.getSalaryStatistics(criteria1);
+    const stats2 = await this.getSalaryStatistics(criteria2);
+    return Promise.resolve({
+      comparison1: stats1,
+      comparison2: stats2,
+      difference: {
+        median: stats2.median - stats1.median,
+        mean: stats2.mean - stats1.mean,
+        percentageChange: ((stats2.median - stats1.median) / stats1.median) * 100,
+      },
+    });
+  }
 }
 
 // Export singleton instance

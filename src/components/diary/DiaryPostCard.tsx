@@ -45,11 +45,12 @@ interface DiaryPostCardProps {
   onCommentUpdated: (postId: string, updatedPost: DiaryPost) => void; // New prop
   onCommentDeleted: (postId: string, updatedPost: DiaryPost) => void; // New prop
   isLikedByCurrentUser: boolean;
-  isGuestMode?: boolean;
+  isGuestMode?: boolean | undefined;
   currentUserId?: string | null;
 }
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL =
+  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 export function DiaryPostCard({
   post,
@@ -131,7 +132,7 @@ export function DiaryPostCard({
       const commentPayload = {
         userId: currentUserId,
         userName: fullBackendUser.name,
-        userAvatarUrl: fullBackendUser.profileAvatarUrl,
+        userAvatarUrl: fullBackendUser.profileAvatarUrl || '',
         text: newCommentText.trim(),
       };
       const updatedPost = await addCommentToDiaryPost(post._id, commentPayload);
@@ -251,8 +252,8 @@ export function DiaryPostCard({
                 fill
                 style={{ objectFit: 'cover' }}
                 data-ai-hint={imageHint}
-                priority={post.isFeatured}
-                unoptimized={isBackendImage}
+                priority={post.isFeatured || false}
+                unoptimized={!!isBackendImage}
               />
             ) : (
               <img
@@ -373,14 +374,12 @@ export function DiaryPostCard({
                           />
                           <div className="flex gap-1">
                             <Button
-                              size="xs"
                               onClick={handleSaveEditedComment}
                               disabled={isSubmittingComment || !editingComment.text.trim()}
                             >
                               Save
                             </Button>
                             <Button
-                              size="xs"
                               variant="ghost"
                               onClick={() => setEditingComment(null)}
                               disabled={isSubmittingComment}
@@ -396,7 +395,6 @@ export function DiaryPostCard({
                         <div className="mt-1 flex gap-1">
                           <Button
                             variant="ghost"
-                            size="xs"
                             className="h-auto p-0 text-blue-600 hover:text-blue-700"
                             onClick={() => handleEditComment(comment)}
                           >
@@ -404,7 +402,6 @@ export function DiaryPostCard({
                           </Button>
                           <Button
                             variant="ghost"
-                            size="xs"
                             className="h-auto p-0 text-red-600 hover:text-red-700"
                             onClick={() => handleDeleteComment(comment._id)}
                           >

@@ -9,9 +9,8 @@ import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 
 function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) {
   const [workflow, setWorkflow] = useState(initialWorkflow);
-  const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
-  const { nodes, edges, onNodesChange, onEdgesChange, onConnect, onDragOver, onDrop } =
-    useWorkflowEngine(workflow, reactFlowInstance);
+  const [reactFlowInstance] = useState<ReactFlowInstance | null>(null);
+  const workflowEngine = useWorkflowEngine(workflow, reactFlowInstance);
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const handleNodeClickAction = (node: Node) => {
@@ -25,7 +24,13 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...workflow, nodes, edges, isTemplate, isPublic }),
+        body: JSON.stringify({ 
+          ...workflow, 
+          nodes: workflowEngine.nodes, 
+          edges: workflowEngine.edges, 
+          isTemplate, 
+          isPublic 
+        }),
       });
 
       if (response.ok) {
@@ -97,15 +102,8 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
         </header>
         <main className="flex-1 bg-base-300">
           <WorkflowCanvas
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onDragOver={onDragOver}
-            onDrop={onDrop}
+            workflow={workflow}
             onNodeClickAction={handleNodeClickAction}
-            setReactFlowInstance={setReactFlowInstance}
           />
         </main>
       </div>
@@ -117,19 +115,20 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
   );
 }
 
-export default function WorkflowEditorPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function WorkflowEditorPage({ params }: { params: Promise<{ id: string }> }) {
   const [workflow, setWorkflow] = useState<IWorkflow | null>(null);
 
   useEffect(() => {
-    if (id) {
-      fetch(`/api/workflows/${id}`)
-        .then((res) => res.json())
-        .then((data: IWorkflow) => {
-          setWorkflow(data);
-        });
-    }
-  }, [id]);
+    params.then((resolvedParams) => {
+      if (resolvedParams.id) {
+        fetch(`/api/workflows/${resolvedParams.id}`)
+          .then((res) => res.json())
+          .then((data: IWorkflow) => {
+            setWorkflow(data);
+          });
+      }
+    });
+  }, [params]);
 
   if (!workflow) {
     return <div>Loading...</div>;

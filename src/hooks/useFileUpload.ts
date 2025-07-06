@@ -5,7 +5,6 @@
 
 import { useCallback, useState } from 'react';
 import type {
-  FileParsingOptions,
   FileValidationResult,
   ParsedFileResult,
   ResumeParsingProgress,
@@ -22,7 +21,7 @@ interface ExtendedUploadState extends ResumeUploadState {
 interface UseFileUploadOptions {
   maxFileSize?: number;
   timeout?: number;
-  onSuccess?: (result: ParsedFileResult) => void;
+  onSuccess?: ((result: ParsedFileResult) => void) | undefined;
   onError?: (error: Error) => void;
 }
 
@@ -115,7 +114,6 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
           file: null,
           dragActive: false,
           extractedText: null,
-          metadata: undefined,
         }));
         return;
       }
@@ -128,7 +126,6 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
         progress: 0,
         stage: 'uploading',
         extractedText: null,
-        metadata: undefined,
       }));
     },
     [validateFile]
@@ -162,7 +159,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
       e.stopPropagation();
 
       const files = Array.from(e.dataTransfer.files);
-      if (files.length > 0) {
+      if (files.length > 0 && files[0]) {
         handleFileSelection(files[0]);
       }
     },
@@ -175,7 +172,6 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
       file: null,
       error: null,
       extractedText: null,
-      metadata: undefined,
       progress: 0,
       stage: 'uploading',
       dragActive: false,

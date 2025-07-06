@@ -22,10 +22,6 @@ export default function ProgressTracker({ goals, careerStage }: ProgressTrackerP
   const [reports, setReports] = useState<CareerReport[]>([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
   const loadData = async () => {
     try {
       setLoading(true);
@@ -41,6 +37,10 @@ export default function ProgressTracker({ goals, careerStage }: ProgressTrackerP
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    loadData();
+  }, []);
 
   const generateReport = async (type: 'skills' | 'progress' | 'market' | 'goals') => {
     try {

@@ -1,6 +1,6 @@
 import { Handle, Position } from '@reactflow/core';
 import React, { memo, useState } from 'react';
-import { FiChevronDown, FiChevronUp, FiFileText, FiPlus } from 'react-icons/fi';
+import { FiChevronDown, FiChevronUp, FiFileText } from 'react-icons/fi';
 import { NodeProps } from 'reactflow';
 
 interface AnalyzeResumeNodeData {
@@ -19,7 +19,7 @@ const availableFields = [
   'Overall Sentiment',
 ];
 
-const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data, id }) => {
+const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [selectedFields, setSelectedFields] = useState<string[]>(
     data.analysisFields || ['Skills', 'Work Experience']

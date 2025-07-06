@@ -335,7 +335,7 @@ export function useTrendingSalary(
     queryKey: SALARY_QUERY_KEYS.trending(timeframe),
     queryFn: async (): Promise<SalaryDataPoint[]> => {
       try {
-        return await salaryDataService.getTrendingSalaryData(timeframe);
+        return await salaryDataService.getTrendingSalaries(timeframe);
       } catch (error) {
         if (error instanceof ValidationError) {
           throw new Error(`Validation Error: ${error.message}`);

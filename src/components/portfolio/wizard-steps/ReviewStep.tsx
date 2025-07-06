@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { AlertCircle, CheckCircle, Code, ExternalLink, FileText, Image, Tag } from 'lucide-react';
+import { CheckCircle, Code, FileText, Image } from 'lucide-react';
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';

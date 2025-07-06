@@ -156,7 +156,7 @@ describe('SalaryDataTable', () => {
     });
 
     it('renders empty state when no data provided', () => {
-      render(<SalaryDataTable data={[]} />);
+      render(<SalaryDataTable data={[]} statistics={undefined} />);
 
       expect(screen.getByText('No Data Available')).toBeInTheDocument();
       expect(screen.getByText('No salary data available')).toBeInTheDocument();
@@ -164,7 +164,7 @@ describe('SalaryDataTable', () => {
 
     it('renders custom empty state message', () => {
       const customMessage = 'Custom empty message';
-      render(<SalaryDataTable data={[]} emptyStateMessage={customMessage} />);
+      render(<SalaryDataTable data={[]} statistics={undefined} emptyStateMessage={customMessage} />);
 
       expect(screen.getByText(customMessage)).toBeInTheDocument();
     });
@@ -303,14 +303,14 @@ describe('SalaryDataTable', () => {
   });
 
   describe('Pagination', () => {
-    const largeMockData = Array.from({ length: 25 }, (_, i) => ({
-      ...mockSalaryData[0],
+    const largeMockData: SalaryDataPoint[] = Array.from({ length: 25 }, (_, i) => ({
+      ...mockSalaryData[0]!,
       id: `item-${i}`,
       jobTitle: `Job Title ${i}`,
     }));
 
     it('paginates data correctly', () => {
-      render(<SalaryDataTable data={largeMockData} pageSize={10} />);
+      render(<SalaryDataTable data={largeMockData} statistics={mockStatistics} pageSize={10} />);
 
       // Should show pagination controls
       expect(screen.getByLabelText('Next page')).toBeInTheDocument();
@@ -322,7 +322,7 @@ describe('SalaryDataTable', () => {
 
     it('navigates between pages', async () => {
       const user = userEvent.setup();
-      render(<SalaryDataTable data={largeMockData} pageSize={10} />);
+      render(<SalaryDataTable data={largeMockData} statistics={mockStatistics} pageSize={10} />);
 
       const nextButton = screen.getByLabelText('Next page');
       await user.click(nextButton);
@@ -331,7 +331,7 @@ describe('SalaryDataTable', () => {
     });
 
     it('disables navigation buttons appropriately', () => {
-      render(<SalaryDataTable data={largeMockData} pageSize={10} />);
+      render(<SalaryDataTable data={largeMockData} statistics={mockStatistics} pageSize={10} />);
 
       const prevButton = screen.getByLabelText('Previous page');
       expect(prevButton).toBeDisabled();
@@ -345,6 +345,7 @@ describe('SalaryDataTable', () => {
       render(<SalaryDataTable {...defaultProps} onRowClick={mockOnRowClick} />);
 
       const firstRow = screen.getAllByRole('row')[1]; // Skip header row
+      if (!firstRow) throw new Error('First row not found');
       await user.click(firstRow);
 
       expect(mockOnRowClick).toHaveBeenCalledTimes(1);
@@ -363,6 +364,7 @@ describe('SalaryDataTable', () => {
       render(<SalaryDataTable {...defaultProps} onRowClick={mockOnRowClick} />);
 
       const firstRow = screen.getAllByRole('row')[1]; // Skip header row
+      if (!firstRow) throw new Error('First row not found');
       firstRow.focus();
 
       await user.keyboard('{Enter}');
@@ -462,14 +464,14 @@ describe('SalaryDataTable', () => {
 
   describe('Performance', () => {
     it('handles large datasets efficiently', () => {
-      const largeDataset = Array.from({ length: 1000 }, (_, i) => ({
-        ...mockSalaryData[0],
+      const largeDataset: SalaryDataPoint[] = Array.from({ length: 1000 }, (_, i) => ({
+        ...mockSalaryData[0]!,
         id: `large-item-${i}`,
         jobTitle: `Job ${i}`,
       }));
 
       const startTime = performance.now();
-      render(<SalaryDataTable data={largeDataset} pageSize={50} />);
+      render(<SalaryDataTable data={largeDataset} statistics={mockStatistics} pageSize={50} />);
       const endTime = performance.now();
 
       // Should render within reasonable time (less than 100ms)
@@ -477,13 +479,13 @@ describe('SalaryDataTable', () => {
     });
 
     it('only renders visible rows when paginated', () => {
-      const largeDataset = Array.from({ length: 100 }, (_, i) => ({
-        ...mockSalaryData[0],
+      const largeDataset: SalaryDataPoint[] = Array.from({ length: 100 }, (_, i) => ({
+        ...mockSalaryData[0]!,
         id: `large-item-${i}`,
         jobTitle: `Job ${i}`,
       }));
 
-      render(<SalaryDataTable data={largeDataset} pageSize={10} />);
+      render(<SalaryDataTable data={largeDataset} statistics={mockStatistics} pageSize={10} />);
 
       // Should only render 10 data rows + 1 header row
       expect(screen.getAllByRole('row')).toHaveLength(11);
@@ -511,33 +513,33 @@ describe('SalaryDataTable', () => {
         },
       ];
 
-      render(<SalaryDataTable data={incompleteData} />);
+      render(<SalaryDataTable data={incompleteData} statistics={mockStatistics} />);
       expect(screen.getByText('Test Job')).toBeInTheDocument();
     });
 
     it('handles zero values correctly', () => {
       const zeroData: SalaryDataPoint[] = [
         {
-          ...mockSalaryData[0],
+          ...mockSalaryData[0]!,
           baseSalary: 0,
           totalCompensation: 0,
         },
       ];
 
-      render(<SalaryDataTable data={zeroData} />);
+      render(<SalaryDataTable data={zeroData} statistics={mockStatistics} />);
       expect(screen.getAllByText('$0')).toHaveLength(2); // Base salary and total compensation
     });
 
     it('handles very long text values', () => {
       const longTextData: SalaryDataPoint[] = [
         {
-          ...mockSalaryData[0],
+          ...mockSalaryData[0]!,
           jobTitle: 'Very Long Job Title That Should Be Handled Gracefully Without Breaking Layout',
           region: 'Very Long Region Name That Might Cause Layout Issues If Not Handled Properly',
         },
       ];
 
-      render(<SalaryDataTable data={longTextData} />);
+      render(<SalaryDataTable data={longTextData} statistics={mockStatistics} />);
       expect(screen.getByText(/Very Long Job Title/)).toBeInTheDocument();
     });
   });

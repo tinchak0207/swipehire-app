@@ -12,8 +12,8 @@ export class CollaborationControlsService {
 
   public releaseLock(workflow: IWorkflow, userId: string): boolean {
     if (workflow.lockedBy === userId) {
-      workflow.lockedBy = undefined;
-      workflow.lockExpiresAt = undefined;
+      delete workflow.lockedBy;
+      delete workflow.lockExpiresAt;
       return true;
     }
     return false;

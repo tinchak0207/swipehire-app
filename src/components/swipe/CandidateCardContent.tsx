@@ -61,7 +61,7 @@ import { Availability, EducationLevel, LocationPreference, WorkExperienceLevel }
 import { cn } from '@/lib/utils';
 import { CardDescription, CardFooter, CardTitle } from '../ui/card';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
@@ -138,7 +138,7 @@ function CandidateDetailsModal({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           currentVideoRef
             .play()
             .catch((error) =>
@@ -201,7 +201,7 @@ function CandidateDetailsModal({
               height={60}
               className="rounded-full border-2 border-accent object-cover"
               data-ai-hint={candidate.dataAiHint || 'person'}
-              unoptimized={needsUnoptimizedModal}
+              unoptimized={!!needsUnoptimizedModal}
             />
           ) : (
             <UserCircleIcon className="h-16 w-16 rounded-full border-2 border-accent p-1 text-muted-foreground" />
@@ -329,8 +329,8 @@ function CandidateDetailsModal({
               type="single"
               collapsible
               className="w-full"
-              value={activeAccordionItem}
-              onValueChange={setActiveAccordionItem}
+              value={activeAccordionItem || ''}
+              onValueChange={(value) => setActiveAccordionItem(value)}
             >
               <AccordionItem value="ai-assessment">
                 <AccordionTrigger className="font-heading font-semibold text-foreground text-lg hover:no-underline data-[state=open]:text-primary">
@@ -573,18 +573,17 @@ export function CandidateCardContent({
     try {
       const candidateForAI: CandidateProfileForAI = {
         id: candidate.id,
-        role: candidate.role || undefined,
-        experienceSummary: candidate.experienceSummary || undefined,
-        skills: candidate.skills || [],
-        location: candidate.location || undefined,
-        desiredWorkStyle: candidate.desiredWorkStyle || undefined,
-        pastProjects: candidate.pastProjects || undefined,
-        workExperienceLevel: candidate.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
+        role: candidate.role,
+        experienceSummary: candidate.experienceSummary,
+        skills: candidate.skills,
+        location: candidate.location || '',
+        desiredWorkStyle: candidate.desiredWorkStyle || '',
+        pastProjects: candidate.pastProjects || '',
         educationLevel: candidate.educationLevel || EducationLevel.UNSPECIFIED,
         locationPreference: candidate.locationPreference || LocationPreference.UNSPECIFIED,
         languages: candidate.languages || [],
-        salaryExpectationMin: candidate.salaryExpectationMin,
-        salaryExpectationMax: candidate.salaryExpectationMax,
+        salaryExpectationMin: candidate.salaryExpectationMin || 0,
+        salaryExpectationMax: candidate.salaryExpectationMax || 0,
         availability: candidate.availability || Availability.UNSPECIFIED,
         jobTypePreference: candidate.jobTypePreference || [],
         personalityAssessment: candidate.personalityAssessment || [],
@@ -874,7 +873,7 @@ export function CandidateCardContent({
                 description: 'Sign in to interact.',
                 variant: 'default',
               });
-            } else if (isGuestMode && action === 'details') {
+            } else if (isGuestMode) {
               handleDetailsButtonClick(e);
             }
           };
@@ -985,7 +984,7 @@ export function CandidateCardContent({
                 )}
                 data-ai-hint={candidate.dataAiHint || 'person professional'}
                 priority
-                unoptimized={needsUnoptimizedCard}
+                unoptimized={!!needsUnoptimizedCard}
               />
             ) : (
               <UserCircleIcon className="h-full w-full rounded-full border-2 border-accent bg-white p-1 text-gray-300 shadow-lg dark:bg-slate-700 dark:text-gray-500" />
@@ -1161,7 +1160,7 @@ export function CandidateCardContent({
         aiRecruiterReasoning={aiRecruiterReasoning}
         aiRecruiterWeightedScores={aiRecruiterWeightedScores}
         isLoadingAiAnalysis={isLoadingAiAnalysis}
-        isGuestMode={isGuestMode}
+        isGuestMode={isGuestMode || false}
         activeAccordionItem={activeAccordionItemModal}
         setActiveAccordionItem={setActiveAccordionItemModal}
         onFetchAiAnalysis={fetchAiRecruiterAnalysis}
@@ -1174,7 +1173,7 @@ export function CandidateCardContent({
         itemName={candidate.name}
         itemDescription={candidate.role}
         itemType="candidate profile"
-        shareUrl={candidate.id ? `${appOriginForShare}/candidate/${candidate.id}` : undefined}
+        shareUrl={candidate.id ? `${appOriginForShare}/candidate/${candidate.id}` : ''}
         qrCodeLogoUrl="/assets/logo-favicon.png"
       />
     </>

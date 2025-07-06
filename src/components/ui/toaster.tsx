@@ -4,7 +4,13 @@ import { ToastContainer } from '@/components/ui/toast';
 import { useToast } from '@/hooks/use-toast';
 
 export function Toaster() {
-  const { toasts } = useToast();
+  const { toasts, dismiss } = useToast();
 
-  return <ToastContainer toasts={toasts} onRemoveToast={() => {}} />;
+  const toastsWithOnClose = toasts.map((toast) => ({
+    ...toast,
+    title: toast.title || 'Notification',
+    onClose: () => dismiss(toast.id),
+  }));
+
+  return <ToastContainer toasts={toastsWithOnClose} onRemoveToast={dismiss} />;
 }

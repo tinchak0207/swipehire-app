@@ -1,4 +1,4 @@
-import * as MistralClient from '@mistralai/mistralai';
+import { Mistral } from '@mistralai/mistralai';
 import { sql } from '@vercel/postgres';
 import { Edge, Node } from 'reactflow';
 import { analyzeResume } from './resumeAnalyzer.js';
@@ -7,7 +7,7 @@ const apiKey = process.env['MISTRAL_API_KEY'];
 if (!apiKey) {
   throw new Error('MISTRAL_API_KEY is not defined in the environment variables');
 }
-const client = new MistralClient.default(apiKey);
+const client = new Mistral({ apiKey });
 
 const executeNode = async (node: Node, payload: any, workflowId: string) => {
   switch (node.type) {
@@ -24,7 +24,7 @@ const executeNode = async (node: Node, payload: any, workflowId: string) => {
       console.log('Sending communication:', node.data.message);
       return payload;
     case 'invokeAI':
-      const response = await client.chat({
+      const response = await client.chat.complete({
         model: 'mistral-large-latest',
         messages: [
           {

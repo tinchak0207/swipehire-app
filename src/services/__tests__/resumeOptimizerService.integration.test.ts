@@ -5,10 +5,9 @@
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 import type {
-  AnalysisLoadingState,
   ResumeAnalysisRequest,
-  ResumeAnalysisResponse,
 } from '@/lib/types/resume-optimizer';
+import type { AnalysisLoadingState } from '@/hooks/useResumeAnalysis';
 import {
   analyzeResume,
   checkBackendAvailability,
@@ -27,7 +26,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
     jest.clearAllMocks();
     // Reset environment variables
     process.env = { ...originalEnv };
-    process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL = 'http://localhost:5000';
+    process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] = 'http://localhost:5000';
 
     // Reset the global fetch mock
     mockFetch.mockClear();
@@ -122,7 +121,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
       } as Response);
 
       const progressStates: AnalysisLoadingState[] = [];
-      const onProgress = (state: AnalysisLoadingState) => {
+      const onProgress = (state: any) => {
         progressStates.push(state);
       };
 
@@ -559,7 +558,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
 describe('Resume Optimizer Service - Performance Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL = 'http://localhost:5000';
+    process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] = 'http://localhost:5000';
 
     // Reset the global fetch mock
     mockFetch.mockClear();

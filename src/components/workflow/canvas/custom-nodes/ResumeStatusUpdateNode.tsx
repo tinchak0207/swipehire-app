@@ -7,7 +7,7 @@ interface ResumeStatusUpdateNodeData {
   stage: string;
 }
 
-const ResumeStatusUpdateNode: React.FC<NodeProps<ResumeStatusUpdateNodeData>> = ({ data, id }) => {
+const ResumeStatusUpdateNode: React.FC<NodeProps<ResumeStatusUpdateNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [newStatus, setNewStatus] = useState(data?.newStatus || '');
   const [stage, setStage] = useState(data?.stage || '');

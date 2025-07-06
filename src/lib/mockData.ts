@@ -316,8 +316,8 @@ export const mockMatches: Match[] = [
         nextStepSuggestion: "They might reach out soon if there's a fit.",
       },
     ],
-    candidate: mockCandidates.find((c) => c.id === 'cand1'),
-    company: mockCompanies.find((c) => c.id === 'comp1'),
+    candidate: mockCandidates.find((c) => c.id === 'cand1')!,
+    company: mockCompanies.find((c) => c.id === 'comp1')!,
   },
   {
     _id: 'matchmock2',
@@ -337,8 +337,8 @@ export const mockMatches: Match[] = [
         description: 'Applied for Graphic Designer at Creative Spark Inc.',
       },
     ],
-    candidate: mockCandidates.find((c) => c.id === 'cand2'),
-    company: mockCompanies.find((c) => c.id === 'comp2'),
+    candidate: mockCandidates.find((c) => c.id === 'cand2')!,
+    company: mockCompanies.find((c) => c.id === 'comp2')!,
   },
   {
     _id: 'matchmock3',
@@ -371,8 +371,8 @@ export const mockMatches: Match[] = [
         nextStepSuggestion: 'Prepare for the next steps.',
       },
     ],
-    candidate: mockCandidates.find((c) => c.id === 'cand3'),
-    company: mockCompanies.find((c) => c.id === 'comp3'),
+    candidate: mockCandidates.find((c) => c.id === 'cand3')!,
+    company: mockCompanies.find((c) => c.id === 'comp3')!,
   },
   {
     _id: 'matchmock4',
@@ -392,16 +392,16 @@ export const mockMatches: Match[] = [
         description: 'Applied.',
       },
     ],
-    candidate: mockCandidates.find((c) => c.id === 'cand2'),
-    company: mockCompanies.find((c) => c.id === 'comp1'),
+    candidate: mockCandidates.find((c) => c.id === 'cand2')!,
+    company: mockCompanies.find((c) => c.id === 'comp1')!,
   },
 ];
 
 mockMatches.forEach((match) => {
   if (!match.candidate)
-    match.candidate = mockCandidates.find((c) => c.id === match.candidateProfileIdForDisplay);
+    match.candidate = mockCandidates.find((c) => c.id === match.candidateProfileIdForDisplay)!;
   if (!match.company)
-    match.company = mockCompanies.find((c) => c.id === match.companyProfileIdForDisplay);
+    match.company = mockCompanies.find((c) => c.id === match.companyProfileIdForDisplay)!;
 });
 
 export const mockNotifications: NotificationItem[] = [

@@ -35,8 +35,8 @@ export function ScrollProgressBar() {
       style={{ width: `${scrollPercentage}%` }}
       role="progressbar"
       aria-valuenow={scrollPercentage}
-      aria-valuemin="0"
-      aria-valuemax="100"
+      aria-valuemin={0}
+      aria-valuemax={100}
       aria-label="Page scroll progress"
     />
   );

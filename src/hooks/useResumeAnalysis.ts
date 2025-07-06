@@ -71,8 +71,6 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
     loadingState: {
       isLoading: false,
       progress: 0,
-      stage: undefined,
-      message: undefined,
     },
     isBackendAvailable: null,
     currentRequestId: null,
@@ -144,7 +142,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
 
       try {
         // Perform analysis with progress tracking
-        const result = await analyzeResume(request, updateLoadingState);
+        const result = await analyzeResume(request, (state) => updateLoadingState(state as AnalysisLoadingState));
 
         // Check if request was cancelled
         if (abortControllerRef.current?.signal.aborted) {
@@ -240,7 +238,7 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
           resumeText,
           originalAnalysisId,
           targetJob,
-          updateLoadingState
+          (state) => updateLoadingState(state as AnalysisLoadingState)
         );
 
         // Check if request was cancelled
@@ -358,8 +356,6 @@ export const useResumeAnalysis = (): UseResumeAnalysisReturn => {
       loadingState: {
         isLoading: false,
         progress: 0,
-        stage: undefined,
-        message: undefined,
       },
       isBackendAvailable: null,
       currentRequestId: null,
@@ -409,7 +405,7 @@ export const useSimpleResumeAnalysis = () => {
           description: options?.targetJobDescription || '',
           company: options?.targetJobCompany || '',
         },
-        userId: options?.userId,
+        userId: options?.userId || '',
         templateId: options?.templateId || '',
       };
 

@@ -55,9 +55,9 @@ export const SalaryQueryFormExample: React.FC = () => {
         {/* Form Section */}
         <div>
           <SalaryQueryForm
-            onSubmit={handleFormSubmit}
             loading={isLoading}
             initialData={initialData}
+            onSubmitAction={handleFormSubmit}
           />
         </div>
 

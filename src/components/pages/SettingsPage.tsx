@@ -114,7 +114,8 @@ import { NotificationItemType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { deleteUserAccount, requestDataExport } from '@/services/userService';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL =
+  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -416,6 +417,7 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
     const user = auth.currentUser;
     if (user && mongoDbUserId) {
       const currentPreferencesToSave: UserPreferences = {
+        isLoading: contextLoading,
         theme: localTheme,
         featureFlags: localFeatureFlags,
         defaultAIScriptTone: defaultAIScriptTone,
@@ -729,17 +731,18 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
         </CardHeader>
         <CardContent>
           <RadioGroup
-            value={selectedRoleInSettings || undefined}
-            onValueChange={(value: UserRole) => {
+            value={selectedRoleInSettings || ''}
+            onValueChange={(value: string) => {
               if (value !== selectedRoleInSettings) {
-                setSelectedRoleInSettings(value);
+                setSelectedRoleInSettings(value as UserRole);
               }
             }}
             className="space-y-2"
-            disabled={isGuestMode as boolean | undefined}
           >
             <div className="flex items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-              <RadioGroupItem value="recruiter" id="role-recruiter" />
+              <RadioGroupItem value="recruiter" disabled={!!isGuestMode}>
+                <></>
+              </RadioGroupItem>
               <Label
                 htmlFor="role-recruiter"
                 className="flex cursor-pointer items-center text-base"
@@ -749,7 +752,9 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
               </Label>
             </div>
             <div className="flex items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-              <RadioGroupItem value="jobseeker" id="role-jobseeker" />
+              <RadioGroupItem value="jobseeker" disabled={!!isGuestMode}>
+                <></>
+              </RadioGroupItem>
               <Label
                 htmlFor="role-jobseeker"
                 className="flex cursor-pointer items-center text-base"
@@ -1045,28 +1050,33 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
             <Label className="text-base">Theme</Label>
             <RadioGroup
               value={localTheme}
-              onValueChange={(value: UserPreferences['theme']) => {
+              onValueChange={(value: string) => {
                 if (value !== localTheme) {
-                  setLocalTheme(value);
+                  setLocalTheme(value as UserPreferences['theme']);
                 }
               }}
               className="flex flex-col gap-2 sm:flex-row"
-              disabled={isGuestMode}
             >
               <div className="flex flex-1 items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-                <RadioGroupItem value="light" id="theme-light" />
+                <RadioGroupItem value="light" disabled={!!isGuestMode}>
+                  <></>
+                </RadioGroupItem>
                 <Label htmlFor="theme-light" className="flex cursor-pointer items-center">
                   <Sun className="mr-2 h-4 w-4 text-yellow-500" /> Light
                 </Label>
               </div>
               <div className="flex flex-1 items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-                <RadioGroupItem value="dark" id="theme-dark" />
+                <RadioGroupItem value="dark" disabled={!!isGuestMode}>
+                  <></>
+                </RadioGroupItem>
                 <Label htmlFor="theme-dark" className="flex cursor-pointer items-center">
                   <Moon className="mr-2 h-4 w-4 text-blue-400" /> Dark
                 </Label>
               </div>
               <div className="flex flex-1 items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-                <RadioGroupItem value="system" id="theme-system" />
+                <RadioGroupItem value="system" disabled={!!isGuestMode}>
+                  <></>
+                </RadioGroupItem>
                 <Label htmlFor="theme-system" className="flex cursor-pointer items-center">
                   <Laptop className="mr-2 h-4 w-4 text-gray-500" /> System
                 </Label>

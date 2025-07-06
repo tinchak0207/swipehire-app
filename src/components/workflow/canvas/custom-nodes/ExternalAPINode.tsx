@@ -15,7 +15,7 @@ interface ExternalAPINodeData {
   body?: string;
 }
 
-const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data, id }) => {
+const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [url, setUrl] = useState(data?.url || '');
   const [method, setMethod] = useState<'GET' | 'POST' | 'PUT' | 'DELETE'>(data?.method || 'GET');
@@ -23,8 +23,10 @@ const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data, id })
 
   const updateHeader = (index: number, field: keyof KeyValuePair, value: string) => {
     const newHeaders = [...headers];
-    newHeaders[index][field] = value;
-    setHeaders(newHeaders);
+    if (newHeaders[index]) {
+      newHeaders[index][field] = value;
+      setHeaders(newHeaders);
+    }
   };
 
   const addHeader = () => {

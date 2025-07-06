@@ -5,7 +5,6 @@ import {
   EyeIcon,
   ImageIcon,
   MusicIcon,
-  TrashIcon,
   VideoIcon,
   X,
 } from 'lucide-react';
@@ -115,7 +114,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         // Create FormData
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('type', file.type.split('/')[0]); // image, video, or audio
+        formData.append('type', file.type.split('/')[0] || ''); // image, video, or audio
 
         // Upload file
         const result = await uploadMediaMutation.mutateAsync(formData);
@@ -265,7 +264,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   /**
    * Get media preview
    */
-  const getMediaPreview = (mediaItem: Media, index: number) => {
+  const getMediaPreview = (mediaItem: Media) => {
     switch (mediaItem.type) {
       case 'image':
         return (
@@ -380,7 +379,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             <div key={index} className="space-y-2">
               {/* Media Preview */}
               <div className="relative">
-                {getMediaPreview(mediaItem, index)}
+                {getMediaPreview(mediaItem)}
 
                 {/* Remove Button */}
                 <button

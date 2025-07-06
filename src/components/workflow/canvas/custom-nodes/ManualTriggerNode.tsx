@@ -1,6 +1,6 @@
-import React, { memo, useState } from 'react';
+import React, { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiPlayCircle, FiUpload } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface ManualTriggerNodeData {
   jsonInput?: string;

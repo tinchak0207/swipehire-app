@@ -28,7 +28,6 @@ import LoopExecutionNode from '../canvas/custom-nodes/LoopExecutionNode';
 import ManualTriggerNode from '../canvas/custom-nodes/ManualTriggerNode';
 import NewCandidateNode from '../canvas/custom-nodes/NewCandidateNode';
 import NewResumeSubmissionTriggerNode from '../canvas/custom-nodes/NewResumeSubmissionTriggerNode';
-import Node from '../canvas/custom-nodes/Node';
 import NotificationDispatchNode from '../canvas/custom-nodes/NotificationDispatchNode';
 import PriorityJudgmentNode from '../canvas/custom-nodes/PriorityJudgmentNode';
 import ResumeAnalysisNode from '../canvas/custom-nodes/ResumeAnalysisNode';

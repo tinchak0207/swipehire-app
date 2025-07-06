@@ -16,8 +16,7 @@ import {
   X,
   XCircle,
 } from 'lucide-react';
-import type React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,7 +35,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAccessibility } from '@/hooks/useAccessibility';
 import { cn } from '@/lib/utils';
 
 /**
@@ -116,7 +114,7 @@ export interface AdvancedNotificationSystemProps {
 /**
  * Notification icon mapping
  */
-const NOTIFICATION_ICONS: Record<NotificationType, React.ComponentType<{ className?: string }>> = {
+const NOTIFICATION_ICONS: Record<NotificationType, React.ElementType> = {
   info: Info,
   success: CheckCircle,
   warning: AlertCircle,
@@ -146,7 +144,6 @@ const NotificationItem: React.FC<{
   compact?: boolean;
 }> = ({ notification, onAction, onStatusChange, compact = false }) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const { announceToScreenReader } = useAccessibility();
 
   const Icon = NOTIFICATION_ICONS[notification.type];
   const isUnread = notification.status === 'unread';
@@ -155,26 +152,22 @@ const NotificationItem: React.FC<{
   const handleMarkAsRead = useCallback(() => {
     if (isUnread) {
       onStatusChange('read');
-      announceToScreenReader(`${notification.title} marked as read`, 'polite');
     }
-  }, [isUnread, onStatusChange, notification.title, announceToScreenReader]);
+  }, [isUnread, onStatusChange, notification.title]);
 
   const handleArchive = useCallback(() => {
     onStatusChange('archived');
-    announceToScreenReader(`${notification.title} archived`, 'polite');
-  }, [onStatusChange, notification.title, announceToScreenReader]);
+  }, [onStatusChange, notification.title]);
 
   const handleDismiss = useCallback(() => {
     onStatusChange('dismissed');
-    announceToScreenReader(`${notification.title} dismissed`, 'polite');
-  }, [onStatusChange, notification.title, announceToScreenReader]);
+  }, [onStatusChange, notification.title]);
 
   const handleAction = useCallback(
     (actionId: string) => {
       onAction(actionId);
-      announceToScreenReader(`Action performed on ${notification.title}`, 'polite');
     },
-    [onAction, notification.title, announceToScreenReader]
+    [onAction, notification.title]
   );
 
   return (
@@ -301,15 +294,10 @@ const NotificationItem: React.FC<{
  */
 export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProps> = ({
   notifications,
-  settings,
   onNotificationAction,
   onNotificationStatusChange,
-  onSettingsChange,
   onMarkAllRead,
-  onClearAll,
   maxDisplayCount = 50,
-  groupByType = false,
-  showSettings = true,
   className,
   position = 'top-right',
 }) => {
@@ -318,8 +306,7 @@ export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProp
   const [filterType, setFilterType] = useState<NotificationType | 'all'>('all');
   const [sortBy, setSortBy] = useState<'timestamp' | 'priority'>('timestamp');
 
-  const { announceToScreenReader, useFocusTrap } = useAccessibility();
-  const panelRef = useFocusTrap(isOpen);
+  const panelRef = React.useRef<HTMLDivElement>(null);
 
   // Filter and sort notifications
   const filteredNotifications = useMemo(() => {
@@ -372,13 +359,11 @@ export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProp
 
   const handleMarkAllRead = useCallback(() => {
     onMarkAllRead?.();
-    announceToScreenReader('All notifications marked as read', 'polite');
-  }, [onMarkAllRead, announceToScreenReader]);
+  }, [onMarkAllRead]);
 
   const togglePanel = useCallback(() => {
     setIsOpen(!isOpen);
-    announceToScreenReader(`Notification panel ${isOpen ? 'closed' : 'opened'}`, 'polite');
-  }, [isOpen, announceToScreenReader]);
+  }, [isOpen]);
 
   return (
     <div className={cn('relative', className)}>
@@ -431,7 +416,7 @@ export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProp
 
             {/* Filters */}
             <div className="mt-2 flex items-center gap-2">
-              <Select value={filterType} onValueChange={setFilterType}>
+              <Select value={filterType} onValueChange={(value) => setFilterType(value as NotificationType | 'all')}>
                 <SelectTrigger className="w-32">
                   <Filter className="mr-2 h-4 w-4" />
                   <SelectValue />
@@ -446,7 +431,7 @@ export const AdvancedNotificationSystem: React.FC<AdvancedNotificationSystemProp
                 </SelectContent>
               </Select>
 
-              <Select value={sortBy} onValueChange={setSortBy}>
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as 'timestamp' | 'priority')}>
                 <SelectTrigger className="w-32">
                   <SelectValue />
                 </SelectTrigger>

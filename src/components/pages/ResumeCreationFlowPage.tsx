@@ -41,7 +41,8 @@ export interface ResumeData {
 
 const TOTAL_STEPS = 4;
 const LOCAL_STORAGE_KEY = 'swipeHireResumeBuilderProgress_v2';
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL =
+  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface ResumeCreationFlowPageProps {
   isGuestMode?: boolean;
@@ -141,8 +142,8 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
   }) => {
     updateResumeData({
       presentationMethod: data.presentationMethod,
-      recordedVideoUrl: data.videoUrl,
-      avatarDataUri: data.avatarDataUri,
+      recordedVideoUrl: data.videoUrl || '',
+      avatarDataUri: data.avatarDataUri || '',
     });
     handleNextStep();
   };
@@ -171,19 +172,20 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
       // The VideoRecorderUI already has a "Save Video Resume" button that handles upload.
       // This flow should ideally leverage that by making Step 3 ensure the video is saved to profile first.
       // For now, we'll save what we have.
-      payload.profileVideoPortfolioLink = resumeData.recordedVideoUrl;
+      payload['profileVideoPortfolioLink'] = resumeData.recordedVideoUrl;
     }
     if (resumeData.presentationMethod === 'avatar' && resumeData.avatarDataUri) {
-      payload.profileAvatarUrl = resumeData.avatarDataUri; // Assuming avatarDataUri can be directly saved or is a URL
+      payload['profileAvatarUrl'] = resumeData.avatarDataUri; // Assuming avatarDataUri can be directly saved or is a URL
       // If it's a base64 data URI, backend might need to handle it.
       // For simplicity, we assume profileAvatarUrl can take it, or Step3 has already uploaded and provided a URL.
     }
 
     // Add resume text and other relevant fields to be saved on the user's profile
-    if (resumeData.resumeText) payload.profileResumeText = resumeData.resumeText;
-    if (resumeData.desiredWorkStyle) payload.profileDesiredWorkStyle = resumeData.desiredWorkStyle;
+    if (resumeData.resumeText) payload['profileResumeText'] = resumeData.resumeText;
+    if (resumeData.desiredWorkStyle)
+      payload['profileDesiredWorkStyle'] = resumeData.desiredWorkStyle;
     if (resumeData.suggestedSkills && resumeData.suggestedSkills.length > 0)
-      payload.profileSkills = resumeData.suggestedSkills.join(',');
+      payload['profileSkills'] = resumeData.suggestedSkills.join(',');
 
     try {
       const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${mongoDbUserId}/profile`, {
@@ -231,13 +233,13 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
           <Step1_ResumeInput
             initialData={resumeData}
             onSubmit={handleStep1Submit}
-            isProcessing={resumeData.isProcessingResume}
+            isProcessing={resumeData.isProcessingResume || false}
           />
         );
       case 2:
         return (
           <Step2_ScriptEditor
-            initialScript={resumeData.initialScript}
+            initialScript={resumeData.initialScript || ''}
             onSubmit={handleStep2Submit}
           />
         );

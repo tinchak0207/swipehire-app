@@ -522,7 +522,7 @@ export interface CompanyReview {
   id?: string;
   _id?: string;
   companyId: string;
-  jobId?: string;
+  jobId?: string | undefined;
   reviewerUserId: string;
   responsivenessRating: number;
   attitudeRating: number;
@@ -636,4 +636,11 @@ export interface SkillAssessment {
   lastUpdated: string;
   resources: string[];
   marketDemand: 'low' | 'medium' | 'high';
+}
+
+export interface WorkflowNode {
+  id: string;
+  type: string;
+  data: any;
+  position: { x: number; y: number };
 }

@@ -1,5 +1,5 @@
-import { action } from '@storybook/addon-actions';
 import type { Meta, StoryObj } from '@storybook/react';
+import { fn } from '@storybook/test';
 import type { TargetJobFormData } from './TargetJobInputForm';
 import TargetJobInputForm from './TargetJobInputForm';
 
@@ -73,8 +73,8 @@ type Story = StoryObj<typeof TargetJobInputForm>;
 // Default story
 export const Default: Story = {
   args: {
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -89,8 +89,8 @@ export const WithInitialData: Story = {
       description:
         'Looking for a senior software engineer role at a leading tech company with focus on full-stack development and cloud technologies.',
     },
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -100,8 +100,8 @@ export const WithSubmitButton: Story = {
   args: {
     showSubmitButton: true,
     submitButtonText: 'Analyze Resume',
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -116,8 +116,8 @@ export const LoadingState: Story = {
       title: 'Product Manager',
       keywords: 'Product Strategy, Agile, Scrum, Analytics',
     },
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
   },
 };
 
@@ -130,8 +130,8 @@ export const WithValidationErrors: Story = {
       company: 'A'.repeat(101), // Too long
     },
     validateOnChange: true,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
   },
 };
 
@@ -147,8 +147,8 @@ export const TechRole: Story = {
         'Seeking a full-stack developer position at an innovative startup where I can work with modern technologies and contribute to product development.',
     },
     showSubmitButton: true,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -164,8 +164,8 @@ export const BusinessRole: Story = {
         'Looking for a marketing manager role at a large corporation with opportunities to lead digital marketing initiatives and drive brand growth.',
     },
     showSubmitButton: true,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -181,8 +181,8 @@ export const CreativeRole: Story = {
         'Passionate about creating intuitive and beautiful user experiences. Seeking a UX/UI designer role at a creative agency.',
     },
     showSubmitButton: true,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -194,11 +194,11 @@ export const CustomValidation: Story = {
       const errors: Record<string, string> = {};
 
       if (data.title && !data.title.toLowerCase().includes('senior')) {
-        errors.title = 'Title must include "Senior" for this example';
+        errors['title'] = 'Title must include "Senior" for this example';
       }
 
       if (data.keywords && data.keywords.split(',').length < 3) {
-        errors.keywords = 'Please provide at least 3 keywords';
+        errors['keywords'] = 'Please provide at least 3 keywords';
       }
 
       return {
@@ -207,8 +207,8 @@ export const CustomValidation: Story = {
       };
     },
     validateOnChange: true,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: () => {},
+    onSubmit: () => {},
   },
 };
 
@@ -217,8 +217,8 @@ export const MinimalForm: Story = {
   args: {
     className: 'max-w-md',
     validateOnChange: false,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
   },
 };
 
@@ -230,8 +230,8 @@ export const ManyKeywords: Story = {
       keywords:
         'JavaScript, TypeScript, React, Vue.js, Angular, Node.js, Express, Python, Django, Flask, Java, Spring Boot, C#, .NET, PHP, Laravel, Ruby, Rails, Go, Rust, HTML5, CSS3, SASS, LESS, Tailwind CSS, Bootstrap, PostgreSQL, MySQL, MongoDB, Redis, AWS, Azure, GCP, Docker, Kubernetes, Jenkins, GitLab CI, GitHub Actions, Terraform, Ansible',
     },
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
     validateOnChange: true,
   },
 };
@@ -242,8 +242,8 @@ export const Playground: Story = {
     showSubmitButton: true,
     submitButtonText: 'Continue',
     validateOnChange: true,
-    onChange: action('onChange'),
-    onSubmit: action('onSubmit'),
+    onChange: fn(),
+    onSubmit: fn(),
   },
   parameters: {
     docs: {

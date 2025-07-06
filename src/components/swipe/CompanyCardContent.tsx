@@ -79,8 +79,9 @@ import { CardFooter } from '../ui/card';
 interface CompanyCardContentProps {
   company: Company;
   onSwipeAction: (companyId: string, action: 'like' | 'pass' | 'details') => void;
-  isLiked: boolean;
+  isLiked?: boolean;
   isGuestMode?: boolean;
+  isFallback?: boolean;
 }
 
 const MAX_COMPANY_DESCRIPTION_LENGTH_MODAL_INITIAL = 200;
@@ -89,7 +90,7 @@ const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
 
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 const incrementAnalytic = (key: string) => {
   if (typeof window !== 'undefined') {
@@ -191,6 +192,7 @@ export function CompanyCardContent({
   onSwipeAction,
   isLiked,
   isGuestMode,
+  isFallback = false,
 }: CompanyCardContentProps) {
   const cardRootRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -340,14 +342,14 @@ export function CompanyCardContent({
             jobOpening.requiredExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
           requiredEducationLevel: jobOpening.requiredEducationLevel || EducationLevel.UNSPECIFIED,
           workLocationType: jobOpening.workLocationType || LocationPreference.UNSPECIFIED,
-          jobLocation: jobOpening.location || undefined,
+          jobLocation: jobOpening.location || '',
           requiredLanguages: jobOpening.requiredLanguages || [],
-          salaryMin: jobOpening.salaryMin,
-          salaryMax: jobOpening.salaryMax,
+          salaryMin: jobOpening.salaryMin || 0,
+          salaryMax: jobOpening.salaryMax || 0,
           jobType: jobOpening.jobType || JobType.UNSPECIFIED,
           companyCultureKeywords:
             jobOpening.companyCultureKeywords || company.cultureHighlights || [],
-          companyIndustry: company.industry || undefined,
+          companyIndustry: company.industry,
         };
         let userAIWeights: UserAIWeights | undefined;
         if (typeof window !== 'undefined') {
@@ -562,7 +564,7 @@ export function CompanyCardContent({
         userQuestion: userQuestion,
       };
       const result = await answerCompanyQuestion(companyInput);
-      setAiAnswer(result.aiAnswer);
+      setAiAnswer(result.aiAnswer || null);
     } catch (error) {
       console.error('Error asking AI about company:', error);
       toast({
@@ -794,9 +796,9 @@ export function CompanyCardContent({
             {company.name}
           </p>
           <h1 className="mt-1 break-words font-bold text-3xl text-white leading-tight sm:text-4xl">
-            {jobOpening?.title.split('(')[0].trim()}
-            {jobOpening?.title.includes('(') && (
-              <span className="block font-bold text-2xl">{`(${jobOpening?.title.split('(')[1]}`}</span>
+            {jobOpening?.title?.split('(')[0]?.trim() ?? ''}
+            {jobOpening?.title?.includes('(') && (
+              <span className="block font-bold text-2xl">{`(${(jobOpening?.title ?? '').split('(')[1] || ''}`}</span>
             )}
           </h1>
           <div className="mt-3 flex items-center justify-center gap-x-1.5 text-base text-white/90">
@@ -863,7 +865,7 @@ export function CompanyCardContent({
                   }
                   size={110}
                   displayText={
-                    showQuestionMark && !isHoveringMatchArea && !analysisTriggered ? '?' : undefined
+                    (showQuestionMark && !isHoveringMatchArea && !analysisTriggered ? '?' : undefined) || ''
                   }
                   isRingHovered={isHoveringMatchArea && !analysisTriggered && !isLoadingAiAnalysis}
                 />
@@ -904,185 +906,176 @@ export function CompanyCardContent({
         </div>
 
         <CardFooter className="mt-auto grid grid-cols-4 justify-items-center gap-4 border-white/10 border-t bg-transparent p-4">
-          <TooltipProvider>
-            {' '}
-            <Tooltip>
-              {' '}
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isGuestMode) handleLocalSwipeAction('pass');
-                    else toast({ title: 'Guest Mode', description: 'Interactions disabled.' });
-                  }}
-                  disabled={isGuestMode}
-                  className="flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:border-red-400/50 hover:bg-red-500/20 hover:text-red-300 hover:shadow-lg"
-                  aria-label={`Pass on ${company.name}`}
-                  data-no-drag="true"
-                >
-                  {' '}
-                  {isGuestMode ? (
-                    <Lock className="mb-1 h-6 w-6" />
-                  ) : (
-                    <X className="mb-1 h-6 w-6 text-white/90" />
-                  )}{' '}
-                  <span className="text-sm">Pass</span>{' '}
-                </Button>
-              </TooltipTrigger>{' '}
-              <TooltipContent className="border-slate-700 bg-slate-800 text-white">
-                <p>Not Interested</p>
-              </TooltipContent>{' '}
-            </Tooltip>{' '}
-          </TooltipProvider>
-
-          <TooltipProvider>
-            {' '}
-            <Tooltip>
-              {' '}
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  onClick={handleDetailsButtonClick}
-                  className="flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:border-blue-400/50 hover:bg-blue-500/20 hover:text-blue-300 hover:shadow-lg"
-                  aria-label={`View details for ${company.name}`}
-                  data-no-drag="true"
-                  data-modal-trigger="true"
-                >
-                  {' '}
-                  <Eye className="mb-1 h-6 w-6 text-white/90" />{' '}
-                  <span className="text-sm">Profile</span>{' '}
-                </Button>
-              </TooltipTrigger>{' '}
-              <TooltipContent className="border-slate-700 bg-slate-800 text-white">
-                <p>View Full Details</p>
-              </TooltipContent>{' '}
-            </Tooltip>{' '}
-          </TooltipProvider>
-
-          <TooltipProvider>
-            {' '}
-            <Tooltip>
-              {' '}
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    if (!isGuestMode) handleLocalSwipeAction('like');
-                    else toast({ title: 'Guest Mode', description: 'Interactions disabled.' });
-                  }}
-                  disabled={isGuestMode}
-                  className={cn(
-                    'flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:shadow-lg',
-                    isLiked && !isGuestMode
-                      ? 'bg-pink-500/20 text-pink-300 ring-2 ring-pink-400 hover:border-pink-400/70 hover:bg-pink-500/30 hover:text-pink-200'
-                      : 'hover:border-green-400/50 hover:bg-green-500/20 hover:text-green-300'
-                  )}
-                  aria-label={`Like ${company.name}`}
-                  data-no-drag="true"
-                >
-                  {' '}
-                  {isGuestMode ? (
-                    <Lock className="mb-1 h-6 w-6" />
-                  ) : (
-                    <Heart
-                      className={cn(
-                        'mb-1 h-6 w-6 text-white/90',
-                        isLiked && !isGuestMode && 'fill-pink-400 text-pink-400'
+          {!isFallback ? (
+            <>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isGuestMode) handleLocalSwipeAction('pass');
+                        else toast({ title: 'Guest Mode', description: 'Interactions disabled.' });
+                      }}
+                      disabled={isGuestMode}
+                      className="flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:border-red-400/50 hover:bg-red-500/20 hover:text-red-300 hover:shadow-lg"
+                      aria-label={`Pass on ${company.name}`}
+                      data-no-drag="true"
+                    >
+                      {isGuestMode ? (
+                        <Lock className="mb-1 h-6 w-6" />
+                      ) : (
+                        <X className="mb-1 h-6 w-6 text-white/90" />
                       )}
-                    />
-                  )}{' '}
-                  <span className="text-sm">Like</span>{' '}
-                </Button>
-              </TooltipTrigger>{' '}
-              <TooltipContent className="border-slate-700 bg-slate-800 text-white">
-                <p>I'm Interested!</p>
-              </TooltipContent>{' '}
-            </Tooltip>{' '}
-          </TooltipProvider>
+                      <span className="text-sm">Pass</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="border-slate-700 bg-slate-800 text-white">
+                    <p>Not Interested</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
-          <DropdownMenu>
-            {' '}
-            <TooltipProvider>
-              {' '}
-              <Tooltip>
-                {' '}
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    disabled={isGuestMode}
-                    className="flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:border-purple-400/50 hover:bg-purple-500/20 hover:text-purple-300 hover:shadow-lg"
-                    aria-label={`Share ${company.name}`}
-                    data-no-drag="true"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    {' '}
-                    {isGuestMode ? (
-                      <Lock className="mb-1 h-6 w-6" />
-                    ) : (
-                      <Share2 className="mb-1 h-6 w-6 text-white/90" />
-                    )}{' '}
-                    <span className="text-sm">Share</span>{' '}
-                  </Button>
-                </TooltipTrigger>{' '}
-                <TooltipContent
-                  className={cn(
-                    isGuestMode && 'border-red-600 bg-red-500 text-white',
-                    !isGuestMode && 'border-slate-700 bg-slate-800 text-white'
-                  )}
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={handleDetailsButtonClick}
+                      className="flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:border-blue-400/50 hover:bg-blue-500/20 hover:text-blue-300 hover:shadow-lg"
+                      aria-label={`View details for ${company.name}`}
+                      data-no-drag="true"
+                      data-modal-trigger="true"
+                    >
+                      <Eye className="mb-1 h-6 w-6 text-white/90" />
+                      <span className="text-sm">Profile</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="border-slate-700 bg-slate-800 text-white">
+                    <p>View Full Details</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (!isGuestMode) handleLocalSwipeAction('like');
+                        else toast({ title: 'Guest Mode', description: 'Interactions disabled.' });
+                      }}
+                      disabled={isGuestMode}
+                      className={cn(
+                        'flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:shadow-lg',
+                        isLiked && !isGuestMode
+                          ? 'bg-pink-500/20 text-pink-300 ring-2 ring-pink-400 hover:border-pink-400/70 hover:bg-pink-500/30 hover:text-pink-200'
+                          : 'hover:border-green-400/50 hover:bg-green-500/20 hover:text-green-300'
+                      )}
+                      aria-label={`Like ${company.name}`}
+                      data-no-drag="true"
+                    >
+                      {isGuestMode ? (
+                        <Lock className="mb-1 h-6 w-6" />
+                      ) : (
+                        <Heart
+                          className={cn(
+                            'mb-1 h-6 w-6 text-white/90',
+                            isLiked && !isGuestMode && 'fill-pink-400 text-pink-400'
+                          )}
+                        />
+                      )}
+                      <span className="text-sm">Like</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent className="border-slate-700 bg-slate-800 text-white">
+                    <p>I'm Interested!</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <DropdownMenu>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        disabled={isGuestMode}
+                        className="flex h-[72px] w-[72px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-white/10 font-medium text-sm text-white/80 shadow-md backdrop-blur-sm transition-colors hover:border-purple-400/50 hover:bg-purple-500/20 hover:text-purple-300 hover:shadow-lg"
+                        aria-label={`Share ${company.name}`}
+                        data-no-drag="true"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {isGuestMode ? (
+                          <Lock className="mb-1 h-6 w-6" />
+                        ) : (
+                          <Share2 className="mb-1 h-6 w-6 text-white/90" />
+                        )}
+                        <span className="text-sm">Share</span>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      className={cn(
+                        isGuestMode && 'border-red-600 bg-red-500 text-white',
+                        !isGuestMode && 'border-slate-700 bg-slate-800 text-white'
+                      )}
+                    >
+                      <p>{isGuestMode ? 'Sign in to share' : 'Share this opportunity'}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-40 border-slate-600 bg-slate-700 text-white"
+                  data-no-drag="true"
                 >
-                  <p>{isGuestMode ? 'Sign in to share' : 'Share this opportunity'}</p>
-                </TooltipContent>{' '}
-              </Tooltip>{' '}
-            </TooltipProvider>
-            <DropdownMenuContent
-              align="end"
-              className="w-40 border-slate-600 bg-slate-700 text-white"
-              data-no-drag="true"
-            >
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShareAction('copy');
-                }}
-                className="hover:!bg-slate-600 focus:!bg-slate-600"
-                data-no-drag="true"
-              >
-                <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShareAction('email');
-                }}
-                className="hover:!bg-slate-600 focus:!bg-slate-600"
-                data-no-drag="true"
-              >
-                <Mail className="mr-2 h-4 w-4" /> Email
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShareAction('linkedin');
-                }}
-                className="hover:!bg-slate-600 focus:!bg-slate-600"
-                data-no-drag="true"
-              >
-                <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleShareAction('twitter');
-                }}
-                className="hover:!bg-slate-600 focus:!bg-slate-600"
-                data-no-drag="true"
-              >
-                <Twitter className="mr-2 h-4 w-4" /> X / Twitter
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShareAction('copy');
+                    }}
+                    className="hover:!bg-slate-600 focus:!bg-slate-600"
+                    data-no-drag="true"
+                  >
+                    <LinkIcon className="mr-2 h-4 w-4" /> Copy Link
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShareAction('email');
+                    }}
+                    className="hover:!bg-slate-600 focus:!bg-slate-600"
+                    data-no-drag="true"
+                  >
+                    <Mail className="mr-2 h-4 w-4" /> Email
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShareAction('linkedin');
+                    }}
+                    className="hover:!bg-slate-600 focus:!bg-slate-600"
+                    data-no-drag="true"
+                  >
+                    <Linkedin className="mr-2 h-4 w-4" /> LinkedIn
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleShareAction('twitter');
+                    }}
+                    className="hover:!bg-slate-600 focus:!bg-slate-600"
+                    data-no-drag="true"
+                  >
+                    <Twitter className="mr-2 h-4 w-4" /> X / Twitter
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
+          ) : null}
         </CardFooter>
       </div>
 
@@ -1213,8 +1206,7 @@ export function CompanyCardContent({
                 type="single"
                 collapsible
                 className="w-full"
-                value={activeAccordionItem}
-                onOpenChange={setActiveAccordionItem}
+                value={activeAccordionItem || ''}
               >
                 <AccordionItem value="reputation-guarantee" className="border-b-0">
                   <AccordionTrigger className="font-semibold text-custom-light-purple-text text-lg hover:no-underline data-[state=open]:text-custom-primary-purple">

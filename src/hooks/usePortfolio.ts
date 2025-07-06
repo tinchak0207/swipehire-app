@@ -266,7 +266,7 @@ export function useLikePortfolio(): UseMutationResult<
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ portfolioId, isLiked }) => {
+    mutationFn: async () => {
       // TODO: Implement actual like/unlike API endpoint
       await new Promise((resolve) => setTimeout(resolve, 500)); // Mock delay
     },

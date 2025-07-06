@@ -214,7 +214,9 @@ Bachelor of Science in Computer Science | Tech University | 2020`,
 ];
 
 export const AnalysisTestComponent: React.FC = () => {
-  const [selectedScenario, setSelectedScenario] = useState<TestScenario>(TEST_SCENARIOS[0]);
+  const [selectedScenario, setSelectedScenario] = useState<TestScenario>(
+    TEST_SCENARIOS[0] || ({} as TestScenario)
+  );
   const [customResumeText, setCustomResumeText] = useState('');
   const [customTargetJob, setCustomTargetJob] = useState<TargetJobInfo>({
     title: '',

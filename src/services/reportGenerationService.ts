@@ -170,7 +170,7 @@ export class ReportGenerationService {
         ];
 
         autoTable(doc, {
-          head: [statisticsData[0]],
+          head: [statisticsData[0] as any],
           body: statisticsData.slice(1),
           startY: yPosition,
           theme: 'grid',
@@ -343,7 +343,7 @@ export class ReportGenerationService {
           escapeCSV(
             Array.isArray(item.benefits)
               ? item.benefits.join('; ')
-              : item.benefits?.toString() || ''
+              : (item.benefits as any)?.toString() || ''
           ),
           escapeCSV(item.currency),
           escapeCSV(item.timestamp),

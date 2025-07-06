@@ -1,7 +1,7 @@
 // src/services/diaryService.ts
 import type { DiaryPost } from '@/lib/types';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface CreateDiaryPostPayload {
   title: string;
@@ -37,8 +37,8 @@ export async function fetchDiaryPosts(): Promise<DiaryPost[]> {
         .catch(() => ({ message: `Failed to fetch diary posts. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
-    const posts: DiaryPost[] = await response.json();
-    return posts.map((post) => ({ ...post, id: post._id }));
+    const posts = await response.json();
+    return posts.map((post: any) => ({ ...post, id: post._id.toString() }));
   } catch (error) {
     console.error('Error in fetchDiaryPosts:', error);
     throw error;
@@ -70,8 +70,8 @@ export async function createDiaryPost(postData: CreateDiaryPostPayload): Promise
         errorData.message || `Failed to create diary post. Status: ${response.status}`
       );
     }
-    const newPost: DiaryPost = await response.json();
-    return { ...newPost, id: newPost._id };
+    const newPost = await response.json();
+    return { ...newPost, id: newPost._id.toString() };
   } catch (error) {
     console.error('Error in createDiaryPost:', error);
     throw error;
@@ -93,8 +93,8 @@ export async function toggleLikeDiaryPost(postId: string, userId: string): Promi
         .catch(() => ({ message: `Failed to toggle like. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
-    const updatedPost: DiaryPost = await response.json();
-    return { ...updatedPost, id: updatedPost._id };
+    const updatedPost = await response.json();
+    return { ...updatedPost, id: updatedPost._id.toString() };
   } catch (error) {
     console.error('Error in toggleLikeDiaryPost:', error);
     throw error;
@@ -146,8 +146,8 @@ export async function addCommentToDiaryPost(
         .catch(() => ({ message: `Failed to add comment. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
-    const updatedPost: DiaryPost = await response.json();
-    return { ...updatedPost, id: updatedPost._id };
+    const updatedPost = await response.json();
+    return { ...updatedPost, id: updatedPost._id.toString() };
   } catch (error) {
     console.error('Error in addCommentToDiaryPost service:', error);
     throw error;

@@ -653,7 +653,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
             showToolbar={true}
             showControls={true}
             autoSave={enableAutoSave}
-            onAutoSave={onAutoSave || undefined}
+            onAutoSave={onAutoSave || (() => Promise.resolve())}
             className="w-full"
           />
 

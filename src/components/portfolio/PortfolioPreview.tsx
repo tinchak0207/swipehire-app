@@ -86,7 +86,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
         {/* Project Media */}
         {project.media.length > 0 && (
           <div className="mb-4">
-            {project.media.length === 1 ? (
+            {project.media.length === 1 && project.media[0] ? (
               renderMedia(project.media[0], 0)
             ) : (
               <div className="carousel carousel-center max-w-full space-x-4">
@@ -191,7 +191,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                     {/* Media Column */}
                     {project.media.length > 0 && (
                       <div>
-                        {project.media.length === 1 ? (
+                        {project.media.length === 1 && project.media[0] ? (
                           renderMedia(project.media[0], 0)
                         ) : (
                           <div className="carousel carousel-center w-full space-x-4">

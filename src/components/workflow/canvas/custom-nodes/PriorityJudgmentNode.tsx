@@ -12,7 +12,7 @@ interface PriorityJudgmentNodeData {
   defaultPriority: 'High' | 'Medium' | 'Low';
 }
 
-const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ data, id }) => {
+const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [rules, setRules] = useState<PriorityRule[]>(
     data?.rules || [{ condition: '', priority: 'Medium' }]

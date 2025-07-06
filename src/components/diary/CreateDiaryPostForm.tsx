@@ -15,7 +15,10 @@ import { uploadDiaryImage } from '@/services/diaryService';
 
 interface CreateDiaryPostFormProps {
   onPostCreated: (
-    newPostData: Omit<DiaryPost, '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'>
+    newPostData: Omit<
+      DiaryPost,
+      '_id' | 'createdAt' | 'updatedAt' | 'likes' | 'likedBy'
+    > & { diaryImageHint?: string }
   ) => void;
   currentUserName: string | null;
   currentUserMongoId: string | null;
@@ -109,9 +112,9 @@ export function CreateDiaryPostForm({
         content,
         authorId: currentUserMongoId,
         authorName: currentUserName,
-        authorAvatarUrl: currentUserAvatarUrl || undefined,
-        imageUrl: finalImageUrl,
-        diaryImageHint: diaryImageHint.trim() || undefined,
+        authorAvatarUrl: currentUserAvatarUrl || '',
+        imageUrl: finalImageUrl || '',
+        diaryImageHint: diaryImageHint.trim(),
         tags: tags
           .split(',')
           .map((tag) => tag.trim())
@@ -173,7 +176,7 @@ export function CreateDiaryPostForm({
         fieldLabel="Upload Image (Optional, Max 5MB)"
         buttonText="Choose Image"
         buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
-        selectedFileName={imageFile?.name}
+        selectedFileName={imageFile?.name ?? null}
         onFileSelected={handleFileSelected}
         inputProps={{ accept: 'image/*' }}
         disabled={isSubmitting}

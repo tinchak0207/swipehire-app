@@ -4,11 +4,12 @@ import { NextResponse } from 'next/server';
 // A real implementation would query a database or cache (like Redis)
 // to get the current status of a long-running workflow execution.
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const resolvedParams = await params;
     // In a real app, you would look up the execution status using the id.
     const status = {
-      workflowId: params.id,
+      workflowId: resolvedParams.id,
       status: 'completed', // or 'running', 'failed'
       steps: [
         { name: 'Analyze Resume', status: 'completed' },

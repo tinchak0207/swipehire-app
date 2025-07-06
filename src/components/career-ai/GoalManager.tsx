@@ -30,7 +30,7 @@ export default function GoalManager({ goals, onGoalsUpdate }: GoalManagerProps) 
       text: newGoal.text.trim(),
       completed: false,
       createdAt: new Date().toISOString(),
-      targetDate: newGoal.targetDate || undefined,
+      targetDate: newGoal.targetDate || '',
       actionSteps: [],
       progress: 0,
       priority: newGoal.priority,

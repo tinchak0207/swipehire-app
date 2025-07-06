@@ -9,7 +9,7 @@ export default function OnboardingPage() {
   const searchParams = useSearchParams();
   const { markWizardCompleted, markWizardSkipped } = useOnboardingWizard();
 
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams?.get('returnTo') ?? null;
 
   const handleComplete = () => {
     markWizardCompleted();

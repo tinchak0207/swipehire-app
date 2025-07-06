@@ -6,10 +6,16 @@ import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import TagSelector from '../TagSelector';
 
+interface PortfolioBasicInfo {
+  title: string;
+  description?: string;
+  tags: string[];
+}
+
 interface BasicInfoStepProps {
-  form: UseFormReturn<any>;
-  data: any;
-  onDataChange: (data: any) => void;
+  form: UseFormReturn<PortfolioBasicInfo>;
+  data: PortfolioBasicInfo;
+  onDataChange: (data: PortfolioBasicInfo) => void;
 }
 
 /**
@@ -102,7 +108,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             className="text-red-300 text-sm flex items-center space-x-1"
           >
             <span>⚠️</span>
-            <span>{errors.title.message}</span>
+            <span>{errors.title?.message as string}</span>
           </motion.p>
         )}
 
@@ -149,7 +155,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             className="text-red-300 text-sm flex items-center space-x-1"
           >
             <span>⚠️</span>
-            <span>{errors.description.message}</span>
+            <span>{errors.description?.message as string}</span>
           </motion.p>
         )}
 
@@ -175,8 +181,6 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             selectedTags={tags}
             onTagsChange={handleTagsChange}
             placeholder="Add tags that describe your skills..."
-            className="bg-transparent border-white/30 text-white placeholder-white/50"
-            tagClassName="bg-white/20 text-white border-white/30"
           />
 
           {/* Suggested tags */}
@@ -216,7 +220,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             className="text-red-300 text-sm flex items-center space-x-1"
           >
             <span>⚠️</span>
-            <span>{errors.tags.message}</span>
+            <span>{errors.tags?.message as string}</span>
           </motion.p>
         )}
 

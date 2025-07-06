@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react';
+import React, { useState } from 'react';
 import { FiBriefcase, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import { Handle, NodeProps, Position } from 'reactflow';
 
@@ -9,7 +9,6 @@ interface JobStatusChangeTriggerNodeData {
 
 const JobStatusChangeTriggerNode: React.FC<NodeProps<JobStatusChangeTriggerNodeData>> = ({
   data,
-  id,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [fromStatus, setFromStatus] = useState(data?.fromStatus || 'any');

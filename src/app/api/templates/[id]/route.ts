@@ -5,8 +5,9 @@ import { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
 let templates: IWorkflowTemplate[] = [];
 let workflows: IWorkflow[] = [];
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const template = templates.find((t) => t._id === params.id);
+export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params;
+  const template = templates.find((t) => t._id === resolvedParams.id);
   if (template) {
     const newWorkflow: IWorkflow = {
       ...template,

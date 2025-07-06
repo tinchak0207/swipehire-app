@@ -82,6 +82,8 @@ export function generateValidationReport(code: string, filePath: string, compone
   return codeValidator.generateReport(result);
 }
 
+import { taskmasterConfig } from './config/taskmaster.config';
+
 // Default export
 export default {
   generateComponentPrompt,

@@ -61,8 +61,8 @@ export function createLazyImageObserver(
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const img = entry.target as HTMLImageElement;
-          const src = img.dataset.src;
-          const srcset = img.dataset.srcset;
+          const src = img.dataset['src'];
+          const srcset = img.dataset['srcset'];
 
           if (src) {
             img.src = src;
@@ -161,7 +161,7 @@ export class WebVitalsReporter {
     this.observePerformanceEntries('first-input', (entries) => {
       const fidEntry = entries[0];
       if (fidEntry) {
-        this.metrics.fid = fidEntry.processingStart - fidEntry.startTime;
+        this.metrics.fid = (fidEntry as any).processingStart - fidEntry.startTime;
         this.onMetric?.('FID', this.metrics.fid);
       }
     });
@@ -409,7 +409,7 @@ export class ViewportLoader {
 
   constructor(
     private onLoad: (element: Element) => void,
-    private options: IntersectionObserverInit = {}
+    options: IntersectionObserverInit = {}
   ) {
     this.observer = new IntersectionObserver(this.handleIntersection.bind(this), {
       rootMargin: '50px',

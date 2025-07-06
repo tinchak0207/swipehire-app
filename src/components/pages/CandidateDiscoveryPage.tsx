@@ -4,15 +4,12 @@ import {
   Bookmark,
   Brain,
   Briefcase,
-  CheckCircle,
   ChevronsUpDown,
   Clock,
   Filter,
   Globe,
-  Info,
   Loader2,
   Lock,
-  XCircle as LucideXCircle,
   MapPin,
   RotateCcw,
   SearchX,
@@ -57,7 +54,6 @@ import type {
   CandidateFilters,
   CandidateProfileForAI,
   JobCriteriaForAI,
-  PersonalityTraitAssessment,
   ProfileRecommenderOutput,
   RecruiterPerspectiveWeights,
   UserAIWeights,
@@ -68,7 +64,7 @@ import { passCandidate, retrieveCandidate } from '@/services/interactionService'
 import { recordLike } from '@/services/matchService';
 
 const ITEMS_PER_BATCH = 3;
-const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const envBackendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
 const CUSTOM_BACKEND_URL =
   envBackendUrl && envBackendUrl.trim() !== '' ? envBackendUrl : 'http://localhost:5000';
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;
@@ -98,21 +94,18 @@ function CandidateDetailsModal({
   candidate,
   aiRecruiterMatchScore,
   aiRecruiterReasoning,
-  aiRecruiterWeightedScores,
-  isLoadingAiAnalysis,
+    isLoadingAiAnalysis,
   isGuestMode,
   activeAccordionItem,
   setActiveAccordionItem,
   onFetchAiAnalysis,
   onPassCandidate,
-  onShareProfile,
-}: {
+  }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   candidate: Candidate | null;
   aiRecruiterMatchScore: number | null;
   aiRecruiterReasoning: string | null;
-  aiRecruiterWeightedScores: RecruiterWeightedScores | null;
   isLoadingAiAnalysis: boolean;
   isGuestMode?: boolean;
   activeAccordionItem: string | undefined;
@@ -120,6 +113,7 @@ function CandidateDetailsModal({
   onFetchAiAnalysis: () => void;
   onPassCandidate: (candidateId: string) => void;
   onShareProfile: () => void;
+  aiRecruiterWeightedScores: RecruiterWeightedScores | null;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [showFullSummaryModal, setShowFullSummaryModal] = useState(false);
@@ -144,7 +138,7 @@ function CandidateDetailsModal({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           currentVideoRef
             .play()
             .catch((error) =>
@@ -174,22 +168,9 @@ function CandidateDetailsModal({
     !showFullSummaryModal
       ? `${candidate.experienceSummary.substring(0, MAX_SUMMARY_LENGTH_MODAL_INITIAL)}...`
       : candidate.experienceSummary;
-
-  const _renderPersonalityFitIcon = (fit: PersonalityTraitAssessment['fit']) => {
-    switch (fit) {
-      case 'positive':
-        return <CheckCircle className="mr-1.5 h-4 w-4 shrink-0 text-green-500" />;
-      case 'neutral':
-        return <Info className="mr-1.5 h-4 w-4 shrink-0 text-amber-500" />;
-      case 'negative':
-        return <LucideXCircle className="mr-1.5 h-4 w-4 shrink-0 text-red-500" />;
-      default:
-        return null;
-    }
-  };
-
-  const modalAvatarSrc = candidate.avatarUrl
-    ? candidate.avatarUrl.startsWith('/uploads/')
+      
+      const modalAvatarSrc = candidate.avatarUrl
+      ? candidate.avatarUrl.startsWith('/uploads/')
       ? `${CUSTOM_BACKEND_URL}${candidate.avatarUrl}`
       : candidate.avatarUrl
     : 'https://placehold.co/80x80.png';
@@ -374,7 +355,7 @@ function CandidateDetailsModal({
               type="single"
               collapsible
               className="w-full"
-              value={activeAccordionItem}
+              value={activeAccordionItem || ''}
               onValueChange={setActiveAccordionItem}
             >
               <AccordionItem value="ai-assessment" className="border-b-0">
@@ -526,10 +507,8 @@ export function CandidateDiscoveryPage({
   const { toast } = useToast();
   const {
     mongoDbUserId,
-    preferences,
     passedCandidateIds: passedCandidateProfileIdsFromContext,
     updatePassedCandidateIds,
-    fetchAndSetUserPreferences,
   } = useUserPreferences();
   const [recruiterRepresentedCompanyId, setRecruiterRepresentedCompanyId] = useState<string | null>(
     null
@@ -704,7 +683,8 @@ export function CandidateDiscoveryPage({
     if (observer.current) observer.current.disconnect();
     observer.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoading) {
+        const entry = entries[0];
+        if (entry && entry.isIntersecting && hasMore && !isLoading) {
           loadMoreCandidates();
         }
       },
@@ -735,20 +715,23 @@ export function CandidateDiscoveryPage({
     try {
       const candidateForAI: CandidateProfileForAI = {
         id: selectedCandidateForDetails.id,
-        role: selectedCandidateForDetails.role || undefined,
-        experienceSummary: selectedCandidateForDetails.experienceSummary || undefined,
+        role: selectedCandidateForDetails.role || '',
+        experienceSummary: selectedCandidateForDetails.experienceSummary || '',
         skills: selectedCandidateForDetails.skills || [],
-        location: selectedCandidateForDetails.location || undefined,
-        desiredWorkStyle: selectedCandidateForDetails.desiredWorkStyle || undefined,
-        pastProjects: selectedCandidateForDetails.pastProjects || undefined,
+        location: selectedCandidateForDetails.location || '',
+        desiredWorkStyle: selectedCandidateForDetails.desiredWorkStyle || '',
+        pastProjects: selectedCandidateForDetails.pastProjects || '',
         workExperienceLevel:
           selectedCandidateForDetails.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
         educationLevel: selectedCandidateForDetails.educationLevel || EducationLevel.UNSPECIFIED,
         locationPreference:
           selectedCandidateForDetails.locationPreference || LocationPreference.UNSPECIFIED,
         languages: selectedCandidateForDetails.languages || [],
-        salaryExpectationMin: selectedCandidateForDetails.salaryExpectationMax,
-        salaryExpectationMax: selectedCandidateForDetails.salaryExpectationMax,
+        salaryExpectationMin:
+          selectedCandidateForDetails.salaryExpectationMin ||
+          selectedCandidateForDetails.salaryExpectationMax ||
+          0,
+        salaryExpectationMax: selectedCandidateForDetails.salaryExpectationMax || 0,
         availability: selectedCandidateForDetails.availability || Availability.UNSPECIFIED,
         jobTypePreference: selectedCandidateForDetails.jobTypePreference || [],
         personalityAssessment: selectedCandidateForDetails.personalityAssessment || [],
@@ -1088,7 +1071,7 @@ export function CandidateDiscoveryPage({
           aiRecruiterReasoning={aiRecruiterReasoningModal}
           aiRecruiterWeightedScores={aiRecruiterWeightedScoresModal}
           isLoadingAiAnalysis={isLoadingAiAnalysisModal}
-          isGuestMode={isGuestMode}
+          isGuestMode={!!isGuestMode}
           activeAccordionItem={activeAccordionItemModal}
           setActiveAccordionItem={setActiveAccordionItemModal}
           onFetchAiAnalysis={fetchAiRecruiterAnalysisForModal}
@@ -1107,7 +1090,7 @@ export function CandidateDiscoveryPage({
           shareUrl={
             selectedCandidateForDetails.id
               ? `${appOriginForShare}/candidate/${selectedCandidateForDetails.id}`
-              : undefined
+              : ''
           }
           qrCodeLogoUrl="/assets/logo-favicon.png"
         />
@@ -1126,7 +1109,7 @@ export function CandidateDiscoveryPage({
               candidate={candidate}
               onAction={handleAction}
               isLiked={likedCandidateProfileIds.has(candidate.id)}
-              isGuestMode={isGuestMode}
+              isGuestMode={!!isGuestMode}
             />
           </div>
         ))}

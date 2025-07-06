@@ -138,8 +138,8 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
       if (useSimpleMode && 'analyze' in simpleAnalysis) {
         // Simple mode analysis
         await simpleAnalysis.analyze(resumeText, targetJob.title, targetJob.keywords, {
-          targetJobDescription: targetJob.description,
-          targetJobCompany: targetJob.company,
+          targetJobDescription: targetJob.description || '',
+          targetJobCompany: targetJob.company || '',
           userId: 'demo-user',
         });
       } else if ('startAnalysis' in advancedAnalysis) {

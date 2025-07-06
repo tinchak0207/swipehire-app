@@ -8,6 +8,7 @@ import {
   EdgeChange,
   Node,
   NodeChange,
+  NodeRemoveChange,
   OnConnect,
   OnEdgesChange,
   OnNodesChange,
@@ -31,8 +32,24 @@ export function useWorkflowEngine(
   const [edges, setEdges] = useState<Edge[]>(initialWorkflow.edges);
 
   const onNodesChange: OnNodesChange = useCallback(
-    (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [setNodes]
+    (changes: NodeChange[]) => {
+      const nodeRemoveChanges = changes.filter(
+        (change): change is NodeRemoveChange => change.type === 'remove',
+      );
+
+      if (nodeRemoveChanges.length > 0) {
+        const removedNodeIds = nodeRemoveChanges.map((change) => change.id);
+        setEdges((eds) =>
+          eds.filter(
+            (edge) =>
+              !removedNodeIds.includes(edge.source) && !removedNodeIds.includes(edge.target),
+          ),
+        );
+      }
+
+      setNodes((nds) => applyNodeChanges(changes, nds));
+    },
+    [setNodes, setEdges],
   );
 
   const onEdgesChange: OnEdgesChange = useCallback(

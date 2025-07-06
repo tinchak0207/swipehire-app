@@ -11,17 +11,18 @@ import { useEffect, useState } from 'react';
 
 export interface ToastProps {
   id: string;
-  type: 'success' | 'error' | 'warning' | 'info';
-  title: string;
-  message?: string;
+  type?: 'success' | 'error' | 'warning' | 'info';
+  title: React.ReactNode;
+  description?: React.ReactNode;
   duration?: number;
   onClose: (id: string) => void;
+  action?: React.ReactElement;
 }
 
 /**
  * Toast notification component
  */
-const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000, onClose }) => {
+const Toast: React.FC<ToastProps> = ({ id, type = 'info', title, description: message, duration = 5000, onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
@@ -38,6 +39,7 @@ const Toast: React.FC<ToastProps> = ({ id, type, title, message, duration = 5000
       }, duration);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [duration]);
 
   const handleClose = () => {

@@ -1,7 +1,7 @@
 // src/services/chatService.ts
 import type { ChatMessage } from '@/lib/types';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface SendMessagePayload {
   matchId: string;
@@ -25,8 +25,8 @@ export async function sendMessage(payload: SendMessagePayload): Promise<ChatMess
         .catch(() => ({ message: `Failed to send message. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
-    const newMessage: ChatMessage = await response.json();
-    return { ...newMessage, id: newMessage._id }; // Ensure frontend id is mapped
+    const newMessage = await response.json();
+    return { ...newMessage, id: newMessage._id.toString() }; // Ensure frontend id is mapped
   } catch (error) {
     console.error('Error in sendMessage service:', error);
     throw error;
@@ -48,8 +48,8 @@ export async function fetchMessages(matchId: string): Promise<ChatMessage[]> {
         .catch(() => ({ message: `Failed to fetch messages. Status: ${response.status}` }));
       throw new Error(errorData.message);
     }
-    const messages: ChatMessage[] = await response.json();
-    return messages.map((msg) => ({ ...msg, id: msg._id })); // Ensure frontend id is mapped
+    const messages = await response.json();
+    return messages.map((msg: any) => ({ ...msg, id: msg._id.toString() })); // Ensure frontend id is mapped
   } catch (error) {
     console.error('Error in fetchMessages service:', error);
     throw error;

@@ -35,8 +35,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAccessibility } from '@/hooks/useAccessibility';
-import { usePerformance } from '@/hooks/usePerformance';
 import { cn } from '@/lib/utils';
 
 /**
@@ -114,12 +112,7 @@ const AccessibleTooltip: React.FC<{
   payload?: Array<{ value: number; dataKey: string; color: string }>;
   label?: string;
 }> = ({ active, payload, label }) => {
-  const { announceToScreenReader } = useAccessibility();
-
   if (active && payload && payload.length > 0) {
-    const content = `${label}: ${payload[0].value}`;
-    announceToScreenReader(content, 'polite');
-
     return (
       <div className="rounded-lg border border-border bg-background p-3 shadow-lg">
         <p className="font-medium text-foreground">{label}</p>
@@ -149,12 +142,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   className,
 }) => {
   const [isVisible, setIsVisible] = useState(true);
-  const { announceToScreenReader } = useAccessibility();
 
   const handleVisibilityToggle = useCallback(() => {
     setIsVisible(!isVisible);
-    announceToScreenReader(`${title} metric ${isVisible ? 'hidden' : 'shown'}`, 'polite');
-  }, [isVisible, title, announceToScreenReader]);
+  }, [isVisible, title]);
 
   const changeIcon = useMemo(() => {
     if (changeType === 'increase') return TrendingUp;
@@ -208,7 +199,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           {trend && trend.length > 0 && (
             <div className="mt-4 h-16">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={trend}>
+                <LineChart data={trend as any}>
                   <Line
                     type="monotone"
                     dataKey="value"
@@ -233,8 +224,6 @@ const ChartComponent: React.FC<{
   config: ChartConfig;
   data: readonly DataPoint[];
 }> = ({ config, data }) => {
-  const { debounce } = usePerformance();
-
   const debouncedData = useMemo(() => data, [data]);
 
   const commonProps = {
@@ -246,7 +235,7 @@ const ChartComponent: React.FC<{
     switch (config.type) {
       case 'bar':
         return (
-          <BarChart {...commonProps}>
+          <BarChart {...commonProps} data={data as any[]}>
             {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
             <XAxis dataKey={config.xAxisKey || 'label'} />
             <YAxis />
@@ -262,7 +251,7 @@ const ChartComponent: React.FC<{
 
       case 'line':
         return (
-          <LineChart {...commonProps}>
+          <LineChart {...commonProps} data={data as any[]}>
             {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
             <XAxis dataKey={config.xAxisKey || 'label'} />
             <YAxis />
@@ -281,7 +270,7 @@ const ChartComponent: React.FC<{
 
       case 'area':
         return (
-          <AreaChart {...commonProps}>
+          <AreaChart {...commonProps} data={data as any[]}>
             {config.showGrid && <CartesianGrid strokeDasharray="3 3" />}
             <XAxis dataKey={config.xAxisKey || 'label'} />
             <YAxis />
@@ -299,11 +288,11 @@ const ChartComponent: React.FC<{
 
       case 'pie':
         return (
-          <PieChart {...commonProps}>
+          <PieChart {...commonProps} data={data as any[]}>
             {config.showTooltip && <Tooltip content={<AccessibleTooltip />} />}
             {config.showLegend && <Legend />}
             <Pie
-              data={debouncedData}
+              data={debouncedData as any[]}
               cx="50%"
               cy="50%"
               labelLine={false}
@@ -327,7 +316,7 @@ const ChartComponent: React.FC<{
 
       case 'radar':
         return (
-          <RadarChart {...commonProps}>
+          <RadarChart {...commonProps} data={data as any[]}>
             <PolarGrid />
             <PolarAngleAxis dataKey={config.xAxisKey || 'label'} />
             <PolarRadiusAxis />
@@ -352,7 +341,6 @@ const ChartComponent: React.FC<{
     <ResponsiveContainer
       width="100%"
       height={config.height || 300}
-      role="img"
       aria-label={`${config.type} chart showing ${config.title}`}
     >
       {renderChart()}
@@ -379,9 +367,6 @@ export const AdvancedDataVisualization: React.FC<AdvancedDataVisualizationProps>
   const [activeTab, setActiveTab] = useState('chart');
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
-  const { announceToScreenReader } = useAccessibility();
-  const { debounce } = usePerformance();
-
   const filteredData = useMemo(() => {
     if (filterCategory === 'all') return data;
     return data.filter((item) => item.category === filterCategory);
@@ -393,17 +378,15 @@ export const AdvancedDataVisualization: React.FC<AdvancedDataVisualizationProps>
   }, [data]);
 
   const handleExport = useCallback(
-    debounce((format: 'csv' | 'json' | 'pdf') => {
+    (format: 'csv' | 'json' | 'pdf') => {
       onDataExport?.(format);
-      announceToScreenReader(`Data exported as ${format.toUpperCase()}`, 'polite');
-    }, 300),
-    []
+    },
+    [onDataExport]
   );
 
   const handleRefresh = useCallback(() => {
     onRefresh?.();
-    announceToScreenReader('Data refreshed', 'polite');
-  }, [onRefresh, announceToScreenReader]);
+  }, [onRefresh]);
 
   if (error) {
     return (
@@ -466,7 +449,7 @@ export const AdvancedDataVisualization: React.FC<AdvancedDataVisualizationProps>
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map((category) => (
-                      <SelectItem key={category} value={category}>
+                      <SelectItem key={category} value={category as string}>
                         {category === 'all' ? 'All Categories' : category}
                       </SelectItem>
                     ))}

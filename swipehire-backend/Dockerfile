@@ -18,8 +18,4 @@ COPY . .
 # Cloud Run will automatically set the PORT environment variable.
 # Your app needs to listen on the port specified by this env var.
 # Make sure your index.js listens on process.env.PORT || 5000
-ENV PORT 8080
-EXPOSE 8080
-
-# Keep container running for debugging
-CMD ["/bin/sh", "-c", "node index.js & tail -f /dev/null"]
+CMD ["node", "index.js"]

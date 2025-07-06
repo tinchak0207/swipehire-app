@@ -171,7 +171,7 @@ export default function CareerDashboardDemo() {
                   <span className="font-medium text-base-content">Experience:</span>
                   <ul className="ml-2 list-inside list-disc text-base-content opacity-80">
                     {sampleUserProfiles[selectedProfile].experience.slice(0, 2).map((exp, i) => (
-                      <li key={i}>{exp}</li>
+                      <li key={`exp-${i}-${exp.slice(0, 10)}`}>{exp}</li>
                     ))}
                     {sampleUserProfiles[selectedProfile].experience.length > 2 && (
                       <li>+ {sampleUserProfiles[selectedProfile].experience.length - 2} more...</li>
@@ -182,7 +182,7 @@ export default function CareerDashboardDemo() {
                   <span className="font-medium text-base-content">Key Skills:</span>
                   <div className="mt-1 flex flex-wrap gap-1">
                     {sampleUserProfiles[selectedProfile].skills.slice(0, 4).map((skill, i) => (
-                      <span key={i} className="badge badge-info badge-sm">
+                      <span key={`skill-${i}-${skill}`} className="badge badge-info badge-sm">
                         {skill}
                       </span>
                     ))}

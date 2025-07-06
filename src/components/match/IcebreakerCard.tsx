@@ -65,7 +65,8 @@ import { fetchMessages, sendMessage } from '@/services/chatService'; // Correcte
 import { archiveMatch } from '@/services/matchService';
 import { ApplicationStatusTimeline } from './ApplicationStatusTimeline';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL =
+  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 let socket: Socket | null = null;
 
 const isMongoObjectId = (id: string): boolean => {
@@ -92,7 +93,7 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
   const [icebreaker, setIcebreaker] = useState<string | null>(null);
   const [isLoadingIcebreaker, setIsLoadingIcebreaker] = useState(false);
   const { toast } = useToast();
-  const { mongoDbUserId, preferences } = useUserPreferences();
+  const { mongoDbUserId } = useUserPreferences();
   const currentUserName =
     typeof window !== 'undefined' ? localStorage.getItem('userNameSettings') || 'User' : 'User';
 
@@ -230,7 +231,6 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
       if (!isMongoObjectId(match._id)) {
         return;
       }
-      const _roomName = `chat-${match._id}`;
       currentSocket.emit('joinRoom', match._id);
       const handleNewMessage = (newMessage: ChatMessage) => {
         if (newMessage.matchId === match._id) {
@@ -318,7 +318,6 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
       loadChatMessages();
       return () => {
         if (isMongoObjectId(match._id)) {
-          const _roomName = `chat-${match._id}`;
         }
         currentSocket.off('newMessage', handleNewMessage);
         currentSocket.off('userTyping', handleUserTyping);
@@ -332,6 +331,7 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       };
     }
+    return () => {};
   }, [isChatOpen, match._id, mongoDbUserId, getSocket, loadChatMessages]);
 
   useEffect(() => {
@@ -351,7 +351,7 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
         pastProjects: match.candidate.pastProjects || 'various projects',
       };
       const result = await generateIcebreakerQuestion(requestData);
-      setIcebreaker(result.icebreakerQuestion);
+      setIcebreaker(result.question);
       incrementAnalytic('analytics_icebreakers_generated');
       toast({ title: 'Icebreaker Generated!', description: 'Ready to start the conversation.' });
     } catch (error) {
@@ -551,7 +551,7 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
             type="single"
             collapsible
             className="w-full"
-            value={isTimelineExpanded ? 'status' : undefined}
+            value={isTimelineExpanded ? 'status' : ''}
             onValueChange={(value) => setIsTimelineExpanded(value === 'status')}
           >
             <AccordionItem value="status" className="border-b-0">
@@ -817,8 +817,8 @@ export function IcebreakerCard({ match, onMatchArchived }: IcebreakerCardProps) 
             <CompanyReviewForm
               companyId={match.company.id}
               companyName={match.company.name}
-              jobId={match.jobOpeningTitle}
-              jobTitle={match.jobOpeningTitle}
+              jobId={match.jobOpeningTitle || ''}
+              jobTitle={match.jobOpeningTitle || ''}
               onReviewSubmitted={() => {
                 setShowInterviewFeedbackDialog(false);
                 const newStatus: ApplicationStatusUpdate = {

@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -45,7 +46,7 @@ const FormSchema = z.object({
     })
     .optional()
     .refine(
-      (files) => !files || files.length === 0 || files?.[0]?.size <= 10 * 1024 * 1024,
+      (files) => !files || files.length === 0 || (files?.[0]?.size ?? 0) <= 10 * 1024 * 1024,
       'Max file size is 10MB.'
     )
     .refine(
@@ -73,7 +74,7 @@ export function VideoEditor({ initialVideoDataUri }: VideoEditorProps) {
   const [selectedFilter, setSelectedFilter] = useState('');
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(FormSchema),
+    resolver: zodResolver(FormSchema) as any,
   });
 
   useEffect(() => {

@@ -7,7 +7,7 @@ interface CustomFunctionNodeData {
   code: string;
 }
 
-const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data, id }) => {
+const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [code, setCode] = useState(
     data.code ||

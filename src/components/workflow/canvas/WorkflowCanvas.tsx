@@ -12,7 +12,7 @@ const nodeTypes = Object.fromEntries(
   WORKFLOW_NODE_DEFINITIONS.filter((def) => def.component).map((def) => [def.type, def.component])
 );
 
-import { Node } from 'reactflow';
+import { Node, NodeTypes } from 'reactflow';
 
 interface WorkflowCanvasProps {
   workflow: IWorkflow;
@@ -35,11 +35,12 @@ export default function WorkflowCanvas({ workflow, onNodeClickAction }: Workflow
         onDragOver={onDragOver}
         onDrop={onDrop}
         onNodeClick={(_, node) => onNodeClickAction(node)}
-        nodeTypes={nodeTypes}
+        nodeTypes={nodeTypes as NodeTypes}
         fitView
         onlyRenderVisibleElements
         connectionRadius={150}
         onInit={setReactFlowInstance}
+        deleteKeyCode={['Delete']}
       >
         <Controls />
         <MiniMap />

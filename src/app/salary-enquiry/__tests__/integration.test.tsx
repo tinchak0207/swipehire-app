@@ -3,7 +3,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { reportGenerationService } from '@/services/reportGenerationService';
-import { salaryDataService } from '@/services/salaryDataService';
 import MarketSalaryEnquiryPage from '../page';
 
 // Mock the services

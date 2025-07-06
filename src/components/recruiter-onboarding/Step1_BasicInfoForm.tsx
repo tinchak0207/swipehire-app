@@ -66,7 +66,9 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
     defaultValues: {
       companyName: initialData?.companyName || '',
       companyIndustry: initialData?.companyIndustry || '',
-      companyScale: initialData?.companyScale || CompanyScale.UNSPECIFIED,
+      companyScale: initialData?.companyScale && initialData.companyScale !== CompanyScale.UNSPECIFIED 
+        ? initialData.companyScale 
+        : CompanyScale.SCALE_1_10,
       companyAddress: initialData?.companyAddress || '',
       companyWebsite: initialData?.companyWebsite || '',
     },
@@ -75,7 +77,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
   // This 'internalFormSubmitHandler' is called when the form is submitted
   // (e.g., by the parent's button with type="submit" and form="step1Form")
   const internalFormSubmitHandler: SubmitHandler<BasicInfoFormValues> = (data) => {
-    onSubmit(data); // This will call handleStep1Submit in the parent
+    onSubmit({ ...data, companyWebsite: data.companyWebsite || '' }); // This will call handleStep1Submit in the parent
   };
 
   return (
@@ -83,7 +85,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
       {/* Add id="step1Form" here */}
       <form
         id="step1Form"
-        onSubmit={form.handleSubmit(internalFormSubmitHandler)}
+        onSubmit={form.handleSubmit(internalFormSubmitHandler as SubmitHandler<any>)}
         className="animate-fadeInPage space-y-6"
       >
         <Alert variant="default" className="border-blue-200 bg-blue-50 text-blue-700">
@@ -98,7 +100,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
         </Alert>
 
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="companyName"
           render={({ field }) => (
             <FormItem>
@@ -114,7 +116,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
           )}
         />
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="companyIndustry"
           render={({ field }) => (
             <FormItem>
@@ -130,7 +132,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
           )}
         />
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="companyScale"
           render={({ field }) => (
             <FormItem>
@@ -161,7 +163,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
           )}
         />
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="companyAddress"
           render={({ field }) => (
             <FormItem>
@@ -180,7 +182,7 @@ export function Step1_BasicInfoForm({ initialData, onSubmit }: Step1Props) {
           )}
         />
         <FormField
-          control={form.control}
+          control={form.control as any}
           name="companyWebsite"
           render={({ field }) => (
             <FormItem>

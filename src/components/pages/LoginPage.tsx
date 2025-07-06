@@ -1,11 +1,11 @@
 'use client';
 
 import {
-  type FirebaseError,
   GoogleAuthProvider,
   signInWithPopup,
   type UserCredential,
 } from 'firebase/auth';
+import type { FirebaseError } from 'firebase/app';
 import { CheckCircle, Chrome, Eye, FileVideo2, Loader2, ShieldCheck, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';

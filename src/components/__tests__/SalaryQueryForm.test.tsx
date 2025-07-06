@@ -15,6 +15,7 @@ describe('SalaryQueryForm', () => {
 
   const defaultProps = {
     onSubmit: mockOnSubmit,
+    onSubmitAction: mockOnSubmit,
     loading: false,
   };
 

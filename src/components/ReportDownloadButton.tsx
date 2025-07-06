@@ -288,7 +288,6 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
               setDropdownOpen(!dropdownOpen);
             }
           }}
-          disabled={isDisabled}
           aria-label={`Download salary report options (${salaryData.length} records)`}
           aria-expanded={dropdownOpen}
           aria-haspopup="menu"

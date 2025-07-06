@@ -72,7 +72,7 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
 
   return (
     <div
-      className={`card w-96 bg-base-100 shadow-xl border-2 ${definition.color || 'border-gray-300'}`}
+      className={`card w-96 bg-base-100 shadow-xl border-2 border-gray-300`}
     >
       {definition.inputs?.map((input, index) => (
         <Handle
@@ -93,7 +93,7 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
             {definition.icon && (
               <div className={`avatar placeholder`}>
                 <div
-                  className={`bg-neutral-focus text-neutral-content rounded-full w-10 h-10 ${definition.color?.replace('border', 'bg')}`}
+                  className={`bg-neutral-focus text-neutral-content rounded-full w-10 h-10`}
                 >
                   <i className={`${definition.icon} text-xl`}></i>
                 </div>
@@ -107,18 +107,15 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
         </div>
 
-        {expanded && definition.config && (
+        {expanded && (
           <div className="mt-4 pt-4 border-t border-base-300 space-y-3">
-            <h3 class="text-sm font-semibold">Configuration</h3>
-            {Object.entries(definition.config).map(([key, field]) => (
+            <h3 className="text-sm font-semibold">Configuration</h3>
+            {Object.entries(config).map(([key, value]) => (
               <div key={key} className="form-control w-full">
                 <label className="label pb-1">
-                  <span className="label-text text-xs font-medium">{field.label}</span>
+                  <span className="label-text text-xs font-medium">{key}</span>
                 </label>
-                {renderInput(key, field.type, config[key], handleConfigChange)}
-                {field.description && (
-                  <p className="text-xs text-gray-500 mt-1">{field.description}</p>
-                )}
+                {renderInput(key, typeof value, value, handleConfigChange)}
               </div>
             ))}
           </div>

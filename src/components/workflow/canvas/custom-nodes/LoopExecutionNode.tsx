@@ -6,7 +6,7 @@ interface LoopExecutionNodeData {
   loopOver: string;
 }
 
-const LoopExecutionNode: React.FC<NodeProps<LoopExecutionNodeData>> = ({ data, id }) => {
+const LoopExecutionNode: React.FC<NodeProps<LoopExecutionNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [loopOver, setLoopOver] = useState(data?.loopOver || '');
 

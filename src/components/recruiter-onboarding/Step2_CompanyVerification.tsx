@@ -4,8 +4,7 @@ import { Info, ShieldCheck, UploadCloud } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CustomFileInput } from '@/components/ui/custom-file-input';
-import { useToast } from '@/hooks/use-toast';
-import type { CompanyVerificationDocument, RecruiterOnboardingData } from '@/lib/types';
+import type { RecruiterOnboardingData } from '@/lib/types';
 
 interface Step2Props {
   initialData?: Partial<RecruiterOnboardingData>;
@@ -15,7 +14,6 @@ interface Step2Props {
 export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props) {
   const [businessLicenseFile, setBusinessLicenseFile] = useState<File | null>(null);
   const [organizationCodeFile, setOrganizationCodeFile] = useState<File | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (initialData?.businessLicense instanceof File) {
@@ -25,41 +23,6 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
       setOrganizationCodeFile(initialData.organizationCode);
     }
   }, [initialData]);
-
-  // Called by parent to trigger data processing for this step
-  // This function is now effectively called by the parent's "Next Step" button onClick for step 2
-  const _processStep2Data = () => {
-    if (!businessLicenseFile) {
-      toast({
-        title: 'Missing Document',
-        description: 'Please upload a business license.',
-        variant: 'destructive',
-      });
-      return false; // Indicate failure
-    }
-    const verificationDocuments: CompanyVerificationDocument[] = [];
-    if (businessLicenseFile) {
-      verificationDocuments.push({
-        type: 'business_license',
-        fileName: businessLicenseFile.name,
-        uploadedAt: new Date().toISOString(),
-      });
-    }
-    if (organizationCodeFile) {
-      verificationDocuments.push({
-        type: 'organization_code',
-        fileName: organizationCodeFile.name,
-        uploadedAt: new Date().toISOString(),
-      });
-    }
-
-    onSubmit({
-      businessLicense: businessLicenseFile || undefined,
-      organizationCode: organizationCodeFile || undefined,
-      companyVerificationDocuments: verificationDocuments,
-    });
-    return true; // Indicate success
-  };
 
   // This function is conceptually part of the parent's action now.
   // The parent will call props.onSubmit (which is handleStep2Submit in RecruiterOnboardingPage)
@@ -73,15 +36,10 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
   // Modified: When a file is selected, we update the parent's `onboardingData`
   // The parent's `handleStep2Submit` will be responsible for the `handleNextStep` call.
   const handleFileChange = (file: File | null, type: 'license' | 'orgCode') => {
-    let _newBusinessLicense = businessLicenseFile;
-    let _newOrganizationCode = organizationCodeFile;
-
     if (type === 'license') {
       setBusinessLicenseFile(file);
-      _newBusinessLicense = file;
     } else if (type === 'orgCode') {
       setOrganizationCodeFile(file);
-      _newOrganizationCode = file;
     }
 
     // Pass the current state of both files to the parent
@@ -118,8 +76,10 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
     // This component needs to pass its state up when a file is selected.
 
     const currentData: Partial<RecruiterOnboardingData> = {};
-    if (type === 'license') currentData.businessLicense = file || undefined;
-    if (type === 'orgCode') currentData.organizationCode = file || undefined;
+    if (type === 'license')
+      currentData.businessLicense = file || { name: '' };
+    if (type === 'orgCode')
+      currentData.organizationCode = file || { name: '' };
 
     // This is a bit of a hack to update parent data without triggering next step from here
     // This assumes `onSubmit` primarily updates data.
@@ -153,7 +113,7 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
         fieldLabel="Business License (Required)"
         buttonText="Upload Business License"
         buttonIcon={<UploadCloud className="mr-2 h-4 w-4" />}
-        selectedFileName={businessLicenseFile?.name}
+        selectedFileName={businessLicenseFile?.name || null}
         onFileSelected={(file) => handleFileChange(file, 'license')}
         fieldDescription="Max 5MB. PDF, JPG, PNG formats are typically accepted."
         inputProps={{ accept: '.pdf,.jpg,.jpeg,.png' }}
@@ -164,7 +124,7 @@ export function Step2_CompanyVerification({ initialData, onSubmit }: Step2Props)
         fieldLabel="Organization Code Certificate (Optional)"
         buttonText="Upload Organization Code"
         buttonIcon={<UploadCloud className="mr-2 h-4 w-4" />}
-        selectedFileName={organizationCodeFile?.name}
+        selectedFileName={organizationCodeFile?.name || null}
         onFileSelected={(file) => handleFileChange(file, 'orgCode')}
         fieldDescription="Max 5MB. PDF, JPG, PNG formats."
         inputProps={{ accept: '.pdf,.jpg,.jpeg,.png' }}

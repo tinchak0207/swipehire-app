@@ -30,8 +30,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { useAccessibility } from '@/hooks/useAccessibility';
-import { usePerformance } from '@/hooks/usePerformance';
 import { cn } from '@/lib/utils';
 
 /**
@@ -109,8 +107,8 @@ const getFileCategory = (type: string): FileCategory => {
 /**
  * File icon mapping
  */
-const FILE_ICONS: Record<FileCategory, React.ComponentType<{ className?: string }>> = {
-  image: Image,
+const FILE_ICONS: Record<FileCategory, React.ElementType> = {
+  image: FileText,
   video: Video,
   audio: Music,
   document: FileText,
@@ -139,20 +137,17 @@ const FilePreview: React.FC<{
   showMetadata?: boolean;
 }> = ({ file, onRemove, onRetry, showMetadata = false }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const { announceToScreenReader } = useAccessibility();
 
   const Icon = FILE_ICONS[file.category];
   const previewUrl = file.url || (file.file ? URL.createObjectURL(file.file) : undefined);
 
   const handleRemove = useCallback(() => {
     onRemove();
-    announceToScreenReader(`${file.name} removed`, 'polite');
-  }, [onRemove, file.name, announceToScreenReader]);
+  }, [onRemove, file.name]);
 
   const handleRetry = useCallback(() => {
     onRetry?.();
-    announceToScreenReader(`Retrying upload for ${file.name}`, 'polite');
-  }, [onRetry, file.name, announceToScreenReader]);
+  }, [onRetry, file.name]);
 
   const renderPreview = () => {
     if (file.category === 'image' && previewUrl) {
@@ -387,9 +382,7 @@ const CameraCapture: React.FC<{
     canvas.toBlob(
       (blob) => {
         if (blob) {
-          const file = new File([blob], `capture-${Date.now()}.jpg`, {
-            type: 'image/jpeg',
-          });
+          const file = new File([blob], `capture-${Date.now()}.jpg`, { type: 'image/jpeg' });
           onCapture(file);
           onClose();
         }
@@ -433,7 +426,6 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
   validation,
   uploadOptions,
   onFilesChange,
-  onUploadComplete,
   onUploadError,
   initialFiles = [],
   disabled = false,
@@ -441,7 +433,6 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
   showPreview = true,
   showMetadata = false,
   allowCamera = false,
-  allowMicrophone = false,
   dragAndDrop = true,
   autoUpload = true,
   className,
@@ -454,9 +445,7 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
-  const { announceToScreenReader, useFocusTrap } = useAccessibility();
-  const { debounce } = usePerformance();
-  const cameraRef = useFocusTrap(showCamera);
+  const cameraRef = useRef<HTMLDivElement>(null);
 
   // Validate file against rules
   const validateFile = useCallback(
@@ -586,7 +575,6 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
       // Check total file count
       if (files.length + fileList.length > validation.maxFiles) {
         errors.push(`Maximum ${validation.maxFiles} files allowed`);
-        announceToScreenReader(`Error: Maximum ${validation.maxFiles} files allowed`, 'assertive');
         return;
       }
 
@@ -601,7 +589,8 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
       });
 
       if (errors.length > 0) {
-        announceToScreenReader(`Upload errors: ${errors.join(', ')}`, 'assertive');
+        // Optionally, handle displaying these errors to the user
+        console.error('File validation errors:', errors);
         return;
       }
 
@@ -610,8 +599,6 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
       setFiles(updatedFiles);
       onFilesChange(updatedFiles);
 
-      announceToScreenReader(`${newFiles.length} files added`, 'polite');
-
       // Auto-upload if enabled
       if (autoUpload && uploadOptions) {
         newFiles.forEach((file) => {
@@ -619,17 +606,7 @@ export const AdvancedFileUpload: React.FC<AdvancedFileUploadProps> = ({
         });
       }
     },
-    [
-      files,
-      validation,
-      validateFile,
-      createUploadedFile,
-      onFilesChange,
-      autoUpload,
-      uploadOptions,
-      uploadFile,
-      announceToScreenReader,
-    ]
+    [files, validation, validateFile, createUploadedFile, onFilesChange, autoUpload, uploadOptions, uploadFile]
   );
 
   // Handle drag and drop

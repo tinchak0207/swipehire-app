@@ -47,8 +47,8 @@ interface CareerPlanningDashboardProps {
     careerExpectations: string;
   };
   onBackToQuestionnaire?: () => void;
-  userName?: string | null;
-  userPhotoURL?: string | null;
+  userName?: string | null | undefined;
+  userPhotoURL?: string | null | undefined;
 }
 
 /**
@@ -609,7 +609,7 @@ export default function CareerPlanningDashboard({
                       </Button>
                       <div className="flex-1">
                         <div className="mb-1 flex items-center space-x-2">
-                          <Badge className={goalTypeColors[goal.type]} size="sm">
+                          <Badge className={goalTypeColors[goal.type]}>
                             {goalTypeLabels[goal.type]}
                           </Badge>
                           <span className="text-muted-foreground text-xs">
@@ -712,16 +712,16 @@ export default function CareerPlanningDashboard({
       <div className="flex min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
         <CareerPlanningSidebar
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(value) => setActiveTab(value as TabContent)}
           careerStage={careerStage}
           userData={userData}
           goalsCount={goals.length}
           completedGoalsCount={completedGoalsCount}
           careerPathsCount={careerPaths.length}
           isLoading={loading}
-          onBackToQuestionnaire={onBackToQuestionnaire}
+          onBackToQuestionnaire={onBackToQuestionnaire ?? (() => {})}
           userName={userName}
-          userPhotoURL={userPhotoURL}
+          userPhotoURL={userPhotoURL ?? null}
         />
         <SidebarInset className="flex-1">
           <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white/80 px-4 backdrop-blur-sm">

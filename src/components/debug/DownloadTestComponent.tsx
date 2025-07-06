@@ -251,7 +251,6 @@ export const DownloadTestComponent: React.FC = () => {
         onClose={() => setShowModal(false)}
         resumeContent={mockResumeContent}
         analysisResult={includeAnalysis ? mockAnalysisResult : null}
-        adoptedSuggestions={['suggestion-1']}
         onDownloadSuccess={handleDownloadSuccess}
         onDownloadError={handleDownloadError}
       />

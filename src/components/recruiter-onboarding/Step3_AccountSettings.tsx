@@ -56,7 +56,7 @@ export function Step3_AccountSettings({ initialData, onSubmit }: Step3Props) {
   });
 
   const internalFormSubmitHandler: SubmitHandler<AccountSettingsFormValues> = (data) => {
-    onSubmit(data);
+    onSubmit({ ...data, recruiterContactPhone: data.recruiterContactPhone || '' });
   };
 
   return (

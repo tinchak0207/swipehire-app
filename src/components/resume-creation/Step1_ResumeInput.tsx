@@ -150,7 +150,7 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
             onValueChange={(value) =>
               setToneAndStyle(value as ResumeProcessorInput['toneAndStyle'])
             }
-            disabled={isProcessing}
+            disabled={isProcessing || false}
           >
             <SelectTrigger id="toneAndStyle" className="text-sm">
               <SelectValue placeholder="Select tone" />
@@ -173,7 +173,7 @@ export function Step1_ResumeInput({ initialData, onSubmit, isProcessing }: Step1
             onValueChange={(value) =>
               setIndustryTemplate(value as ResumeProcessorInput['industryTemplate'])
             }
-            disabled={isProcessing}
+            disabled={isProcessing || false}
           >
             <SelectTrigger id="industryTemplate" className="text-sm">
               <SelectValue placeholder="Select industry" />

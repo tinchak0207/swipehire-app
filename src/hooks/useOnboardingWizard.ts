@@ -42,7 +42,7 @@ export function useOnboardingWizard() {
     // 1. User hasn't completed or skipped it
     // 2. User has selected a role (basic requirement)
     // 3. User preferences are loaded
-    const shouldShow = !hasCompletedWizard && !hasSkippedWizard && hasSelectedRole;
+    const shouldShow = !hasCompletedWizard && !hasSkippedWizard && !!hasSelectedRole;
 
     setState({
       shouldShowWizard: shouldShow,

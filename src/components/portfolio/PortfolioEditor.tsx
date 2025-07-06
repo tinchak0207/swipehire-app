@@ -26,7 +26,6 @@ import { useCreatePortfolio, useUpdatePortfolio } from '@/hooks/usePortfolio';
 import { PortfolioDraft, PortfolioLayout, Project } from '@/lib/types/portfolio';
 import LayoutSelector from './LayoutSelector';
 import PortfolioPreview from './PortfolioPreview';
-import ProjectEditor from './ProjectEditor';
 import SortableProjectEditor from './SortableProjectEditor';
 import TagSelector from './TagSelector';
 

@@ -11,12 +11,7 @@ interface CareerAIChatProps {
   onGoalUpdate?: (goalId: number) => void;
 }
 
-export default function CareerAIChat({
-  profile,
-  goals,
-  currentStage,
-  onGoalUpdate,
-}: CareerAIChatProps) {
+export default function CareerAIChat({ profile, goals, currentStage }: CareerAIChatProps) {
   const [messages, setMessages] = useState<CareerChatMessage[]>([
     {
       id: 'welcome',
@@ -58,9 +53,9 @@ export default function CareerAIChat({
 
     try {
       const aiResponse = await sendCareerChatMessage(inputMessage, {
-        profile,
-        goals,
-        currentStage,
+        ...(profile && { profile }),
+        ...(goals && { goals }),
+        ...(currentStage && { currentStage }),
       });
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {

@@ -17,8 +17,6 @@ interface BaseFieldProps {
   label: string;
   error?: string;
   helperText?: string;
-  required?: boolean;
-  className?: string;
   labelClassName?: string;
   inputClassName?: string;
 }
@@ -26,7 +24,9 @@ interface BaseFieldProps {
 // Input Field Component
 export interface AccessibleInputProps
   extends InputHTMLAttributes<HTMLInputElement>,
-    BaseFieldProps {}
+    BaseFieldProps {
+  required?: boolean;
+}
 
 export const AccessibleInput = forwardRef<HTMLInputElement, AccessibleInputProps>(
   (
@@ -99,7 +99,9 @@ AccessibleInput.displayName = 'AccessibleInput';
 // Textarea Field Component
 export interface AccessibleTextareaProps
   extends TextareaHTMLAttributes<HTMLTextAreaElement>,
-    BaseFieldProps {}
+    BaseFieldProps {
+  required?: boolean;
+}
 
 export const AccessibleTextarea = forwardRef<HTMLTextAreaElement, AccessibleTextareaProps>(
   (
@@ -173,6 +175,7 @@ AccessibleTextarea.displayName = 'AccessibleTextarea';
 export interface AccessibleSelectProps
   extends SelectHTMLAttributes<HTMLSelectElement>,
     BaseFieldProps {
+  required?: boolean;
   options: Array<{ value: string; label: string; disabled?: boolean }>;
   placeholder?: string;
 }

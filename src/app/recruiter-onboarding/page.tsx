@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/card';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
-import type { RecruiterOnboardingData } from '@/lib/types';
+import type { RecruiterOnboardingData, BackendUser } from '@/lib/types';
 import { submitCompanyRegistration } from '@/services/recruiterService';
 
 const TOTAL_STEPS = 4;
@@ -54,18 +54,25 @@ export default function RecruiterOnboardingPage() {
         fullBackendUser?.selectedRole === 'recruiter' &&
         fullBackendUser?.companyProfileComplete === false
       ) {
-        setOnboardingData((prev) => ({
-          ...prev,
-          companyName: fullBackendUser.companyName || fullBackendUser.companyNameForJobs || '',
-          companyIndustry:
-            fullBackendUser.companyIndustry || fullBackendUser.companyIndustryForJobs || '',
-          companyScale: fullBackendUser.companyScale,
-          companyAddress: fullBackendUser.companyAddress || '',
-          companyWebsite: fullBackendUser.companyWebsite || '',
-          companyDescription: fullBackendUser.companyDescription || '',
-          companyCultureHighlights: fullBackendUser.companyCultureHighlights || [],
-          recruiterFullName: fullBackendUser.name || '',
-        }));
+        setOnboardingData((prev) => {
+          const updated: Partial<RecruiterOnboardingData> = {
+            ...prev,
+            companyName: fullBackendUser.companyName || fullBackendUser.companyNameForJobs || '',
+            companyIndustry:
+              fullBackendUser.companyIndustry || fullBackendUser.companyIndustryForJobs || '',
+            companyAddress: fullBackendUser.companyAddress || '',
+            companyWebsite: fullBackendUser.companyWebsite || '',
+            companyDescription: fullBackendUser.companyDescription || '',
+            companyCultureHighlights: fullBackendUser.companyCultureHighlights || [],
+            recruiterFullName: fullBackendUser.name || '',
+          };
+
+          if (fullBackendUser.companyScale) {
+            updated.companyScale = fullBackendUser.companyScale;
+          }
+
+          return updated;
+        });
       }
     }
   }, [fullBackendUser, preferences.isLoading, router, toast]);
@@ -139,11 +146,10 @@ export default function RecruiterOnboardingPage() {
       // Update context immediately with the expected state
       if (updateFullBackendUserFields) {
         console.log('[RecruiterOnboarding] Updating context with companyProfileComplete: true');
-        updateFullBackendUserFields({
+        const updateData: Partial<BackendUser> = {
           companyProfileComplete: true,
           companyName: onboardingData.companyName || '',
           companyIndustry: onboardingData.companyIndustry || '',
-          companyScale: onboardingData.companyScale,
           companyAddress: onboardingData.companyAddress || '',
           companyWebsite: onboardingData.companyWebsite || '',
           companyDescription: onboardingData.companyDescription || '',
@@ -151,7 +157,13 @@ export default function RecruiterOnboardingPage() {
           companyNameForJobs: onboardingData.companyName || '',
           companyIndustryForJobs: onboardingData.companyIndustry || '',
           name: onboardingData.recruiterFullName || '',
-        });
+        };
+
+        if (onboardingData.companyScale) {
+          updateData.companyScale = onboardingData.companyScale;
+        }
+
+        updateFullBackendUserFields(updateData);
       }
 
       // Refresh user preferences to get updated backend data with force refresh
@@ -200,11 +212,13 @@ export default function RecruiterOnboardingPage() {
         });
         return;
       }
-      const step2DataForSubmission = {
+      const step2DataForSubmission: Partial<RecruiterOnboardingData> = {
         businessLicense: onboardingData.businessLicense,
-        organizationCode: onboardingData.organizationCode || undefined,
-        companyVerificationDocuments: onboardingData.companyVerificationDocuments,
+        companyVerificationDocuments: onboardingData.companyVerificationDocuments || [],
       };
+      if (onboardingData.organizationCode) {
+        step2DataForSubmission.organizationCode = onboardingData.organizationCode;
+      }
       handleStep2DataUpdateAndProceed(step2DataForSubmission); // This now also calls handleNextStep
     }
     // For steps 1 and 3, the button's type="submit" and form attribute handle form submission via RHF.

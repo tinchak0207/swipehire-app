@@ -54,7 +54,6 @@ export function ApplicationStatusTimeline({ statusHistory }: ApplicationStatusTi
     (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
   );
   const currentStageIndex = sortedHistory.length - 1;
-  const _currentStatusUpdate = sortedHistory[currentStageIndex];
 
   const getTimeAgo = (timestamp: string) => {
     try {

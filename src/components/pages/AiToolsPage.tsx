@@ -5,7 +5,6 @@ import {
   Brain,
   Camera,
   Clapperboard,
-  FileText,
   Info,
   Lock,
   PlayCircle,
@@ -143,7 +142,7 @@ export function AiToolsPage({ isGuestMode, currentUserRole }: AiToolsPageProps) 
               Back to AI Tools Overview
             </Button>
             <div className="relative flex-grow">
-              <ResumeCreationFlowPage isGuestMode={isGuestMode} />
+              <ResumeCreationFlowPage isGuestMode={isGuestMode || false} />
             </div>
           </div>
         </div>

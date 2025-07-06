@@ -1,10 +1,10 @@
-import * as MistralClient from '@mistralai/mistralai';
+                             import { Mistral } from '@mistralai/mistralai';
 
 const apiKey = process.env['MISTRAL_API_KEY'];
 if (!apiKey) {
   throw new Error('MISTRAL_API_KEY is not defined in the environment variables');
 }
-const client = new MistralClient(apiKey);
+const client = new Mistral({ apiKey });
 
 interface ResumePayload {
   resume_text: string;
@@ -19,7 +19,7 @@ export const analyzeResume = async (payload: ResumePayload, config: ResumeConfig
   const { resume_text } = payload;
   const { skills, experience } = config;
 
-  const response = await client.chat({
+  const response = await client.chat.complete({
     model: 'mistral-large-latest',
     messages: [
       {

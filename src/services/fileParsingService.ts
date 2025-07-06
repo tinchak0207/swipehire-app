@@ -318,8 +318,6 @@ async function parseDOCX(file: File, options: FileParsingOptions = {}): Promise<
     // Extract text using Mammoth with enhanced options
     const result = await mammoth.extractRawText({
       arrayBuffer,
-      // Additional options for better text extraction
-      convertImage: mammoth.images.ignoreAll, // Ignore images for text extraction
     });
 
     if (result.messages.length > 0) {

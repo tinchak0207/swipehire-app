@@ -6,7 +6,7 @@ async function getWorkflows() {
   const db = client.db('swipehire');
   const workflows = await db.collection('workflows').find({}).toArray();
   // Convert _id to string for serialization
-  return workflows.map((workflow) => ({
+  return workflows.map((workflow: any) => ({
     ...workflow,
     _id: workflow._id.toString(),
   }));

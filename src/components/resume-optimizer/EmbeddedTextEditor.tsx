@@ -385,7 +385,6 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
             /* Edit Mode */
             <div className="quill-editor-container" aria-label="Resume content editor">
               <ReactQuill
-                ref={quillRef}
                 theme="snow"
                 value={content}
                 onChange={handleContentChange}

@@ -11,7 +11,6 @@ interface EnterpriseOAIntegrationNodeData {
 
 const EnterpriseOAIntegrationNode: React.FC<NodeProps<EnterpriseOAIntegrationNodeData>> = ({
   data,
-  id,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const [system, setSystem] = useState(data.system || 'workday');

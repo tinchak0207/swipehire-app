@@ -14,7 +14,6 @@ export interface AnalysisResult {
 
 class AIService {
   async analyzeTextResume(
-    resumeText: string,
     config: IAnalyzeResumeConfig
   ): Promise<AnalysisResult> {
     console.log('Analyzing text resume with config:', config);

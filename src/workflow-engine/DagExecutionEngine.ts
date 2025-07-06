@@ -3,10 +3,9 @@ import { ResumeAnalysisService } from '@/ai-services/ResumeAnalysisService';
 import {
   IAnalyzeResumeConfig,
   IConditionConfig,
-  ISendInviteConfig,
   IWorkflow,
-  WorkflowNode,
 } from '@/contracts/IWorkflow';
+import { WorkflowNode } from '@/lib/types';
 
 export class DagExecutionEngine {
   private workflow: IWorkflow;
@@ -31,13 +30,13 @@ export class DagExecutionEngine {
       const sourceNeighbors = this.adj.get(edge.source);
       const targetNode = this.workflow.nodes.find((n) => n.id === edge.target);
       if (sourceNeighbors && targetNode) {
-        sourceNeighbors.push(targetNode);
+        sourceNeighbors.push(targetNode as WorkflowNode);
       }
     }
   }
 
   public async execute() {
-    const sortedNodes = this.topologicalSort(this.workflow.nodes);
+    const sortedNodes = this.topologicalSort(this.workflow.nodes as WorkflowNode[]);
     for (const node of sortedNodes) {
       if (this.skippedNodes.has(node.id)) {
         console.log(`Skipping node ${node.id} due to failed condition.`);
@@ -58,7 +57,7 @@ export class DagExecutionEngine {
         await this.handleCondition(node as Node<IConditionConfig>);
         break;
       case 'SendInvite':
-        await this.handleSendInvite(node as Node<ISendInviteConfig>);
+        await this.handleSendInvite(node as Node<any>);
         break;
       default:
         console.warn(`Unknown card type: ${cardType}`);
@@ -75,7 +74,7 @@ export class DagExecutionEngine {
 
   private async handleCondition(node: Node<IConditionConfig>) {
     console.log(`Evaluating condition for node ${node.id}`);
-    const { variable, operator, value } = node.data;
+    const { variable, operator, value } = node.data as any;
     const variableName = variable.replace(/[{}]/g, '');
     const actualValue = this.variables.get(variableName);
 
@@ -86,22 +85,22 @@ export class DagExecutionEngine {
 
     let result = false;
     switch (operator) {
-      case 'eq':
+      case '==':
         result = actualValue == value;
         break;
-      case 'neq':
+      case '!=':
         result = actualValue != value;
         break;
-      case 'gt':
+      case '>':
         result = actualValue > value;
         break;
-      case 'lt':
+      case '<':
         result = actualValue < value;
         break;
-      case 'gte':
+      case '>=':
         result = actualValue >= value;
         break;
-      case 'lte':
+      case '<=':
         result = actualValue <= value;
         break;
     }
@@ -110,7 +109,7 @@ export class DagExecutionEngine {
     this.variables.set(`${node.id}.result`, result);
 
     if (!result) {
-      this.skipSubsequentNodes(node);
+      this.skipSubsequentNodes(node as WorkflowNode);
     }
   }
 
@@ -122,12 +121,11 @@ export class DagExecutionEngine {
     }
   }
 
-  private async handleSendInvite(node: Node<ISendInviteConfig>) {
+  private async handleSendInvite(node: Node<any>) {
     console.log(`Sending invite for node ${node.id}`);
-    const { template } = node.data;
-    const resolvedTemplate = template.replace(/{\w+\.\w+}/g, (match) => {
-      const variableName = match.replace(/[{}]/g, '');
-      return this.variables.get(variableName) || match;
+    const { template } = node.data.data;
+    const resolvedTemplate = template.replace(/\{\{(.+?)\}\}/g, (_match: any, variableName: string) => {
+      return this.variables.get(variableName.trim()) || '';
     });
     console.log(`Rendered template: ${resolvedTemplate}`);
 

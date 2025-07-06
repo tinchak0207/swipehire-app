@@ -7,7 +7,7 @@ interface NewCandidateNodeData {
   jobId?: string;
 }
 
-const NewCandidateNode: React.FC<NodeProps<NewCandidateNodeData>> = ({ data, id }) => {
+const NewCandidateNode: React.FC<NodeProps<NewCandidateNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [sourceType, setSourceType] = useState(data?.sourceType || 'manual');
 

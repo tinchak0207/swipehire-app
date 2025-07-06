@@ -27,7 +27,8 @@ import type { Candidate, ChatMessage, Company, Match } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { fetchMessages, sendMessage } from '@/services/chatService';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL =
+  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 let socket: Socket | null = null;
 
 const isMongoObjectId = (id: string): boolean => {
@@ -203,7 +204,6 @@ export function FocusedChatPanel({ match, mongoDbUserId }: FocusedChatPanelProps
   useEffect(() => {
     const currentSocket = getSocket();
     if (match?._id && currentSocket && mongoDbUserId && isMongoObjectId(match._id)) {
-      const _roomName = `chat-${match._id}`;
       currentSocket.emit('joinRoom', match._id);
       const handleNewMessage = (newMessage: ChatMessage) => {
         if (newMessage.matchId === match._id) {
@@ -307,12 +307,13 @@ export function FocusedChatPanel({ match, mongoDbUserId }: FocusedChatPanelProps
       setMessages([]);
       setIsLoadingMessages(false); /*setAiSuggestedReply(null);*/
     }
+    return () => {};
   }, [match?._id, mongoDbUserId, getSocket, loadChatMessages]);
 
   useEffect(() => {
     if (messages.length > 0 /*|| aiSuggestedReply*/)
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages /*, aiSuggestedReply*/]);
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!currentMessage.trim() || !mongoDbUserId || !match?._id || !isMongoObjectId(match._id)) {
@@ -415,7 +416,7 @@ export function FocusedChatPanel({ match, mongoDbUserId }: FocusedChatPanelProps
               height={40}
               className="rounded-md object-cover"
               data-ai-hint={contactDataAiHint}
-              unoptimized={avatarNeedsUnoptimized}
+              unoptimized={!!avatarNeedsUnoptimized}
             />
           ) : (
             <AvatarFallback className="rounded-md bg-slate-200 text-slate-600">
@@ -478,7 +479,7 @@ export function FocusedChatPanel({ match, mongoDbUserId }: FocusedChatPanelProps
                     height={32}
                     className="self-start rounded-md object-cover"
                     data-ai-hint={contactDataAiHint}
-                    unoptimized={avatarNeedsUnoptimized}
+                    unoptimized={!!avatarNeedsUnoptimized}
                   />
                 ) : (
                   <Avatar className="h-8 w-8 self-start rounded-md">
@@ -535,7 +536,6 @@ export function FocusedChatPanel({ match, mongoDbUserId }: FocusedChatPanelProps
             <Button
               key={qr.key}
               variant="outline"
-              size="xs"
               onClick={() =>
                 handleQuickReplyClick(/*qr.key or qr.label could be passed if needed*/)
               }

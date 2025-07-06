@@ -236,7 +236,7 @@ export function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorProps) {
                       <PersonStanding className="mr-2 h-5 w-5 text-muted-foreground" />
                       Gender
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select gender" />
@@ -263,7 +263,7 @@ export function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorProps) {
                       <User className="mr-2 h-5 w-5 text-muted-foreground" />
                       Age Range
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select age range" />
@@ -292,7 +292,7 @@ export function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorProps) {
                     <Briefcase className="mr-2 h-5 w-5 text-muted-foreground" /> Professional Image
                     & Clothing Style
                   </FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select professional style" />
@@ -321,7 +321,7 @@ export function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorProps) {
                       <Smile className="mr-2 h-5 w-5 text-muted-foreground" />
                       Expression / Pose
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select expression/pose" />
@@ -348,7 +348,7 @@ export function AvatarGenerator({ onAvatarGenerated }: AvatarGeneratorProps) {
                       <ImageIcon className="mr-2 h-5 w-5 text-muted-foreground" />
                       Background Environment
                     </FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value ?? ''}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select background" />

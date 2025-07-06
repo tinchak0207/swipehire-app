@@ -76,9 +76,9 @@ const ResumeOptimizerReportPage: NextPage = () => {
         setState((prev) => ({ ...prev, isLoading: true, error: null }));
 
         // Try to get analysis ID from URL params
-        const analysisId = searchParams.get('id');
+        const analysisId = searchParams?.get('id') || null;
 
-        if (analysisId) {
+        if (analysisId && analysisId.trim() !== '') {
           // Load from API using analysis ID
           const response = await fetch(`/api/resume-optimizer/analysis/${analysisId}`);
           if (!response.ok) {
@@ -322,7 +322,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
           addToast({
             type: 'success',
             title: 'Reanalysis Complete',
-            message: `New analysis generated with score: ${data.data.overallScore}/100`,
+            description: `New analysis generated with score: ${data.data.overallScore}/100`,
             duration: 5000,
           });
         } else {
@@ -336,7 +336,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
         addToast({
           type: 'error',
           title: 'Reanalysis Failed',
-          message: error instanceof Error ? error.message : 'Failed to reanalyze resume',
+          description: error instanceof Error ? error.message : 'Failed to reanalyze resume',
           duration: 7000,
         });
       }
@@ -370,7 +370,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
         addToast({
           type: 'success',
           title: 'Suggestion Applied',
-          message: `"${suggestion.title}" has been applied to your resume`,
+          description: `"${suggestion.title}" has been applied to your resume`,
           duration: 3000,
         });
       } catch (error) {
@@ -394,7 +394,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
         addToast({
           type: 'warning',
           title: 'Suggestion Applied (Basic)',
-          message: 'Suggestion was applied using basic formatting',
+          description: 'Suggestion was applied using basic formatting',
           duration: 4000,
         });
       }
@@ -408,7 +408,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
       addToast({
         type: 'success',
         title: 'Download Complete',
-        message: `${fileName} has been downloaded successfully`,
+        description: `${fileName} has been downloaded successfully`,
         duration: 4000,
       });
     },
@@ -421,7 +421,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
       addToast({
         type: 'error',
         title: 'Download Failed',
-        message: error,
+        description: error,
         duration: 6000,
       });
     },
@@ -450,7 +450,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
         addToast({
           type: 'success',
           title: 'Link Copied',
-          message: 'Report link has been copied to clipboard',
+          description: 'Report link has been copied to clipboard',
           duration: 3000,
         });
       }
@@ -459,7 +459,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
       addToast({
         type: 'error',
         title: 'Share Failed',
-        message: 'Failed to share the report',
+        description: 'Failed to share the report',
         duration: 4000,
       });
     }
@@ -595,7 +595,14 @@ const ResumeOptimizerReportPage: NextPage = () => {
           onAutoSave={handleAutoSave}
           onReanalyze={handleReanalyze}
           isReanalyzing={state.isReanalyzing}
-          targetJobInfo={state.targetJobInfo || undefined}
+          targetJobInfo={
+            state.targetJobInfo || {
+              title: 'General Position',
+              keywords: '',
+              description: '',
+              company: '',
+            }
+          }
           className="animate-fade-in"
         />
       </div>
@@ -649,7 +656,6 @@ const ResumeOptimizerReportPage: NextPage = () => {
         onClose={handleToggleDownloadModal}
         resumeContent={state.currentResumeText}
         analysisResult={state.analysisResult}
-        adoptedSuggestions={[...state.adoptedSuggestions]}
         onDownloadSuccess={handleDownloadSuccess}
         onDownloadError={handleDownloadError}
       />

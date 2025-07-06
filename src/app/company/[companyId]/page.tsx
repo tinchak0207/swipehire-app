@@ -21,7 +21,7 @@ interface ReviewSummary {
 
 export default function CompanyProfilePage() {
   const params = useParams();
-  const companyId = params['companyId'] as string; // This is the mock ID like 'comp1' or slug from URL
+  const companyId = params?.['companyId'] as string; // This is the mock ID like 'comp1' or slug from URL
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [_reviews, _setReviews] = useState<CompanyReview[]>([]);
@@ -162,7 +162,7 @@ export default function CompanyProfilePage() {
                 <div className="flex flex-wrap gap-2">
                   {cultureHighlights.map((highlight, index) => (
                     <span
-                      key={index}
+                      key={`culture-${index}-${highlight}`}
                       className="rounded-full bg-secondary px-3 py-1 text-secondary-foreground text-sm shadow-sm"
                     >
                       {highlight}

@@ -406,10 +406,10 @@ describe('SalaryVisualizationChart', () => {
     it('handles data with missing optional fields', () => {
       const dataWithMissingFields: SalaryDataPoint[] = [
         {
-          ...mockSalaryData[0],
-          bonus: undefined,
-          equity: undefined,
-          benefits: undefined,
+          ...mockSalaryData[0]!,
+          bonus: 0,
+          equity: 0,
+          benefits: [],
         },
       ];
 
@@ -423,10 +423,11 @@ describe('SalaryVisualizationChart', () => {
     it('renders efficiently with large datasets', () => {
       // Create a large dataset
       const largeDataset: SalaryDataPoint[] = Array.from({ length: 1000 }, (_, index) => ({
-        ...mockSalaryData[0],
+        ...mockSalaryData[0]!,
         id: `test-${index}`,
         baseSalary: 100000 + index * 1000,
         totalCompensation: 150000 + index * 1500,
+        jobTitle: `Job Title ${index}`,
       }));
 
       const startTime = performance.now();

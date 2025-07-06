@@ -9,7 +9,7 @@ interface DataExportNodeData {
   storageProvider: 's3' | 'google-drive' | 'local';
 }
 
-const DataExportNode: React.FC<NodeProps<DataExportNodeData>> = ({ data, id }) => {
+const DataExportNode: React.FC<NodeProps<DataExportNodeData>> = ({ data }) => {
   const [expanded, setExpanded] = useState(false);
   const [format, setFormat] = useState(data.format || 'CSV');
   const [fileName, setFileName] = useState(data.fileName || 'export-{{timestamp}}.csv');

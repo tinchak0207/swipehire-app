@@ -320,7 +320,7 @@ export const SalaryDataTableExample: React.FC = () => {
         data={exampleSalaryData}
         statistics={exampleStatistics}
         loading={loading}
-        error={error}
+        error={error || undefined}
         showStatistics={showStatistics}
         enableFiltering={enableFiltering}
         enableSorting={enableSorting}
@@ -373,6 +373,7 @@ export const SalaryDataTableExample: React.FC = () => {
         <h2 className="font-bold text-2xl">Empty State Example</h2>
         <SalaryDataTable
           data={[]}
+          statistics={undefined}
           emptyStateMessage="No salary data matches your current filters"
         />
       </div>
@@ -382,6 +383,7 @@ export const SalaryDataTableExample: React.FC = () => {
         <h2 className="font-bold text-2xl">Minimal Configuration</h2>
         <SalaryDataTable
           data={exampleSalaryData.slice(0, 3)}
+          statistics={undefined}
           showStatistics={false}
           enableFiltering={false}
           enableSorting={false}

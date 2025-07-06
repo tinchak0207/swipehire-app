@@ -347,7 +347,7 @@ describe('SalaryDataService', () => {
         json: () => Promise.resolve(mockTrendingData),
       });
 
-      const result = await service.getTrendingSalaryData('month');
+      const result = await service.getTrendingSalaries('month');
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('/salary/trending?timeframe=month'),
@@ -364,7 +364,7 @@ describe('SalaryDataService', () => {
         json: () => Promise.resolve(mockTrendingData),
       });
 
-      await service.getTrendingSalaryData();
+      await service.getTrendingSalaries('month');
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('timeframe=month'),

@@ -1,9 +1,10 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 
-export async function GET(_request: Request, { params }: { params: { id: string } }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const workflowId = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const workflowId = parseInt(resolvedParams.id, 10);
     const userId = 1; // Hardcoded for now
 
     const { rows } = await sql`SELECT * FROM workflows WHERE id = ${workflowId}`;

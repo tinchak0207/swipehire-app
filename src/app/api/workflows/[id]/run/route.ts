@@ -2,9 +2,10 @@ import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
 import { runWorkflow } from '@/services/workflowRunner';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const workflowId = parseInt(params.id, 10);
+    const resolvedParams = await params;
+    const workflowId = parseInt(resolvedParams.id, 10);
     const userId = 1; // Hardcoded for now
 
     const { rows: userRows } = await sql`SELECT tier FROM users WHERE id = ${userId}`;
