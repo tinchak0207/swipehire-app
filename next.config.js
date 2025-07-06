@@ -22,6 +22,8 @@ const nextConfig = {
       '@/contexts': path.resolve(__dirname, 'src/contexts'),
       '@/hooks': path.resolve(__dirname, 'src/hooks'),
       '@/lib': path.resolve(__dirname, 'src/lib'),
+      '@/services': path.resolve(__dirname, 'src/services'),
+      '@/app': path.resolve(__dirname, 'src/app'),
     };
 
     return config;
