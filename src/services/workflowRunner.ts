@@ -33,6 +33,9 @@ const executeNode = async (node: Node, payload: any, workflowId: string) => {
           },
         ],
       });
+      if (!response?.choices?.[0]?.message?.content) {
+        throw new Error('Invalid AI response format');
+      }
       return { ...payload, ai_suggestion: response.choices[0].message.content };
     default:
       return payload;

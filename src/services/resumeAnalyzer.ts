@@ -33,7 +33,8 @@ export const analyzeResume = async (payload: ResumePayload, config: ResumeConfig
     ],
   });
 
-  const score = parseInt(response.choices[0].message.content, 10) || 0;
+  const content = response.choices?.[0]?.message?.content;
+  const score = typeof content === 'string' ? parseInt(content, 10) || 0 : 0;
 
   return { ...payload, match_score: score };
 };

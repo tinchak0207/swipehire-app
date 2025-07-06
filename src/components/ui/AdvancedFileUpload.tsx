@@ -7,7 +7,7 @@ import {
   CheckCircle,
   Download,
   Eye,
-  File,
+  File as FileIcon,
   FileText,
   Loader2,
   Music,
@@ -113,7 +113,7 @@ const FILE_ICONS: Record<FileCategory, React.ElementType> = {
   audio: Music,
   document: FileText,
   archive: Archive,
-  other: File,
+  other: FileIcon,
 };
 
 /**
