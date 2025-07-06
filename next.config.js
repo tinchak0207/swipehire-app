@@ -21,7 +21,7 @@ const nextConfig = {
       '@/components/ui': path.resolve(__dirname, 'src/components/ui'),
       '@/contexts': path.resolve(__dirname, 'src/contexts'),
       '@/hooks': path.resolve(__dirname, 'src/hooks'),
-      '@/lib': path.resolve(__dirname, 'src/lib')
+      '@/lib': path.resolve(__dirname, 'src/lib'),
     };
 
     return config;
