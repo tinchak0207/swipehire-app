@@ -1,5 +1,5 @@
 // src/services/userService.ts
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+import API_CONFIG from '../config/api';
 
 export async function deleteUserAccount(
   userId: string
@@ -8,7 +8,7 @@ export async function deleteUserAccount(
     throw new Error('User ID is required to delete an account.');
   }
   try {
-    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userId}/account`, {
+    const response = await fetch(API_CONFIG.getUrl('user', `/${userId}/account`), {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -32,7 +32,7 @@ export async function requestDataExport(
     throw new Error('User ID is required to request a data export.');
   }
   try {
-    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/users/${userId}/request-data-export`, {
+    const response = await fetch(API_CONFIG.getUrl('user', `/${userId}/request-data-export`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

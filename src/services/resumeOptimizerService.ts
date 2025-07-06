@@ -3,6 +3,7 @@
  * Handles API calls and business logic for the resume optimization feature
  */
 
+import API_CONFIG from '../config/api';
 import type {
   ApiResponse,
   ExportOptions,
@@ -650,9 +651,8 @@ export const analyzeResume = async (
       message: 'Analyzing resume with AI...',
     });
 
-    // Try backend AI service first
-    const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
-    const analysisEndpoint = `${backendUrl}/api/resume/analyze`;
+// Try backend AI service first
+const analysisEndpoint = API_CONFIG.getUrl('resume', '/analyze');
 
     // Set up request with timeout and abort controller
     const controller = new AbortController();
@@ -912,8 +912,7 @@ function transformBackendResponse(
  */
 export const checkBackendAvailability = async (): Promise<boolean> => {
   try {
-    const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
-    const healthEndpoint = `${backendUrl}/api/health`;
+    const healthEndpoint = API_CONFIG.getUrl('health');
 
     const response = await fetch(healthEndpoint, {
       method: 'GET',
@@ -990,8 +989,7 @@ export const reanalyzeResume = async (
     });
 
     // Try backend first
-    const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
-    const reanalysisEndpoint = `${backendUrl}/api/resume/reanalyze`;
+    const reanalysisEndpoint = API_CONFIG.getUrl('resume', '/reanalyze');
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60000);

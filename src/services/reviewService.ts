@@ -1,7 +1,6 @@
 // src/services/reviewService.ts
+import API_CONFIG from '../config/api';
 import type { CompanyReview } from '../lib/types';
-
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface SubmitReviewPayload
   extends Omit<
@@ -28,7 +27,7 @@ export async function submitCompanyReview(
   }
 
   try {
-    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/reviews/company`, {
+    const response = await fetch(API_CONFIG.getUrl('user', '/reviews/company'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...payload, reviewerUserId }),
@@ -58,7 +57,7 @@ export async function submitCompanyReview(
 
 export async function getCompanyReviews(companyUserId: string): Promise<CompanyReview[]> {
   try {
-    const response = await fetch(`${CUSTOM_BACKEND_URL}/api/reviews/company/${companyUserId}`);
+    const response = await fetch(API_CONFIG.getUrl('user', `/reviews/company/${companyUserId}`));
     if (!response.ok) {
       const errorData = await response
         .json()
@@ -80,7 +79,7 @@ export async function getCompanyReviewSummary(companyUserId: string): Promise<{
 }> {
   try {
     const response = await fetch(
-      `${CUSTOM_BACKEND_URL}/api/reviews/company/${companyUserId}/summary`
+      API_CONFIG.getUrl('user', `/reviews/company/${companyUserId}/summary`)
     );
     if (!response.ok) {
       const errorData = await response
