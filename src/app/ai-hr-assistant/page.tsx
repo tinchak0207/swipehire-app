@@ -7,11 +7,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type React from 'react'; // Added useState
 import { useEffect, useState } from 'react';
-import { AppHeader } from '@/components/AppHeader';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import { auth } from '@/lib/firebase';
+import { AppHeader } from '../../components/AppHeader';
+import { Button } from '../../components/ui/button';
+import { Card, CardContent } from '../../components/ui/card';
+import { useUserPreferences } from '../../contexts/UserPreferencesContext';
+import { auth } from '../../lib/firebase';
 import 'aos/dist/aos.css';
 
 export default function AiHrAssistantPage() {
