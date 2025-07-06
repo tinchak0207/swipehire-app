@@ -12,7 +12,7 @@ interface ApiConfig {
 
 const API_CONFIG: ApiConfig = {
   baseUrl: process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'],
-  
+
   endpoints: {
     user: '/api/users',
     resume: '/api/resume',
@@ -25,7 +25,7 @@ const API_CONFIG: ApiConfig = {
       throw new Error('NEXT_PUBLIC_CUSTOM_BACKEND_URL environment variable is not set');
     }
     return `${this.baseUrl}${this.endpoints[endpoint]}${path}`;
-  }
+  },
 };
 
 export default API_CONFIG;

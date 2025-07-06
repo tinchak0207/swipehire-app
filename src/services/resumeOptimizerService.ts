@@ -651,8 +651,8 @@ export const analyzeResume = async (
       message: 'Analyzing resume with AI...',
     });
 
-// Try backend AI service first
-const analysisEndpoint = API_CONFIG.getUrl('resume', '/analyze');
+    // Try backend AI service first
+    const analysisEndpoint = API_CONFIG.getUrl('resume', '/analyze');
 
     // Set up request with timeout and abort controller
     const controller = new AbortController();
