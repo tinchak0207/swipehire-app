@@ -7,8 +7,8 @@ import type {
   SalaryQueryCriteria,
   SalaryQueryResponse,
   SalaryStatistics,
-} from '@/services/salaryDataService';
-import * as salaryDataService from '@/services/salaryDataService';
+} from '../../services/salaryDataService';
+import * as salaryDataService from '../../services/salaryDataService';
 import {
   useSalaryComparison,
   useSalaryContribution,

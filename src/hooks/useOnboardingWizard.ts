@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useUserPreferences } from '../contexts/UserPreferencesContext';
 
 export interface OnboardingState {
   shouldShowWizard: boolean;

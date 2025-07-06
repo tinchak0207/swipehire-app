@@ -5,7 +5,7 @@
  * It maintains compatibility with existing flow interfaces while using the new AI provider.
  */
 
-import { AIError, type AIGenerateParams, type AIGenerateResponse, ai } from '@/ai/genkit';
+import { AIError, type AIGenerateParams, type AIGenerateResponse, ai } from '../ai/genkit';
 import type {
   AIScriptTone,
   CandidateProfileForAI,
@@ -16,8 +16,8 @@ import type {
   ProfileRecommenderInput,
   ProfileRecommenderOutput,
   RecruiterPerspectiveWeights,
-} from '@/lib/types';
-import { Availability, EducationLevel, LocationPreference, WorkExperienceLevel } from '@/lib/types';
+} from '../lib/types';
+import { Availability, EducationLevel, LocationPreference, WorkExperienceLevel } from '../lib/types';
 
 /**
  * Default weights for AI scoring

@@ -1,7 +1,7 @@
 // src/services/jobService.ts
 // 'use server'; // Removed this directive
 
-import type { Company, CompanyJobOpening } from '@/lib/types';
+import type { Company, CompanyJobOpening } from '../lib/types';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 

@@ -29,7 +29,7 @@ The CareerDashboard component has been successfully fixed and enhanced with mode
 ### 1. Basic Usage
 
 ```tsx
-import CareerDashboard from '@/components/career-ai/CareerDashboard'
+import CareerDashboard from '../components/career-ai/CareerDashboard'
 
 const userData = {
   education: 'Bachelor in Computer Science',

@@ -14,8 +14,8 @@ import {
   OnNodesChange,
   ReactFlowInstance,
 } from 'reactflow';
-import { IWorkflow } from '@/contracts/IWorkflow';
-import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
+import { IWorkflow } from '../contracts/IWorkflow';
+import { WORKFLOW_NODE_DEFINITIONS } from '../lib/workflow-node-definitions';
 
 export function useWorkflowEngine(
   initialWorkflow: IWorkflow,

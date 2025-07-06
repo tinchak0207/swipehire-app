@@ -2,7 +2,7 @@
  * @jest-environment jsdom
  */
 
-import type { FileValidationResult } from '@/lib/resume-types';
+import type { FileValidationResult } from '../../lib/resume-types';
 import {
   FileParsingError,
   formatFileSize,

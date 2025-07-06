@@ -3,12 +3,12 @@
  */
 
 import { useCallback, useState } from 'react';
-import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
+import type { ResumeAnalysisResponse } from '../lib/types/resume-optimizer';
 import {
   type DownloadOptions,
   type DownloadResult,
   ResumeDownloadService,
-} from '@/services/resumeDownloadService';
+} from '../services/resumeDownloadService';
 
 export interface UseResumeDownloadOptions {
   onDownloadStart?: () => void;

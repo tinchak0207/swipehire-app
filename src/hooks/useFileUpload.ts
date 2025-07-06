@@ -9,7 +9,7 @@ import type {
   ParsedFileResult,
   ResumeParsingProgress,
   ResumeUploadState,
-} from '@/lib/resume-types';
+} from '../lib/resume-types';
 
 interface ExtendedUploadState extends ResumeUploadState {
   progress: number;
@@ -193,7 +193,7 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
     try {
       // Import the file parsing service dynamically to avoid SSR issues
-      const { parseFile: parseFileService } = await import('@/services/fileParsingService');
+      const { parseFile: parseFileService } = await import('../services/fileParsingService');
 
       // Parse the file with progress tracking
       const result = await parseFileService(uploadState.file, {

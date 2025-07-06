@@ -11,7 +11,7 @@ import {
   type SalaryStatistics,
   salaryDataService,
   ValidationError,
-} from '@/services/salaryDataService';
+} from '../services/salaryDataService';
 
 // Query keys for React Query
 const SALARY_QUERY_KEYS = {

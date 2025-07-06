@@ -6,7 +6,7 @@ import type {
   CareerReport,
   Goal,
   SkillAssessment,
-} from '@/lib/types';
+} from '../lib/types';
 
 interface CareerRecommendation {
   careerStage: string;

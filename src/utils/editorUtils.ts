@@ -2,7 +2,7 @@
  * Utility functions for editor content manipulation
  */
 
-import type { OptimizationSuggestion } from '@/lib/types/resume-optimizer';
+import type { OptimizationSuggestion } from '../lib/types/resume-optimizer';
 
 /**
  * Apply a suggestion to editor content

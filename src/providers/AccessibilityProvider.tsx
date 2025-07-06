@@ -6,8 +6,8 @@
 'use client';
 
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
-import { useAriaLiveRegion, useSkipLinks, useUserPreferences } from '@/hooks/useAccessibility';
-import { addCriticalResourceHints } from '@/lib/performance';
+import { useAriaLiveRegion, useSkipLinks, useUserPreferences } from '../hooks/useAccessibility';
+import { addCriticalResourceHints } from '../lib/performance';
 
 interface AccessibilityContextType {
   reducedMotion: boolean;

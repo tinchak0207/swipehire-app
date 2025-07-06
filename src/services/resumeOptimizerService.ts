@@ -12,7 +12,7 @@ import type {
   ResumeAnalysisResponse,
   ResumeTemplate,
   UserProfileData,
-} from '@/lib/types/resume-optimizer';
+} from '../lib/types/resume-optimizer';
 
 /**
  * Helper to get cookie value by name

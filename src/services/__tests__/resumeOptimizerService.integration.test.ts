@@ -4,8 +4,8 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
-import type { AnalysisLoadingState } from '@/hooks/useResumeAnalysis';
-import type { ResumeAnalysisRequest } from '@/lib/types/resume-optimizer';
+import type { AnalysisLoadingState } from '../../hooks/useResumeAnalysis';
+import type { ResumeAnalysisRequest } from '../../lib/types/resume-optimizer';
 import {
   analyzeResume,
   checkBackendAvailability,

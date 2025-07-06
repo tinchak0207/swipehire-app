@@ -1,7 +1,7 @@
 import { Node } from 'reactflow';
-import { ResumeAnalysisService } from '@/ai-services/ResumeAnalysisService';
-import { IAnalyzeResumeConfig, IConditionConfig, IWorkflow } from '@/contracts/IWorkflow';
-import { WorkflowNode } from '@/lib/types';
+import { ResumeAnalysisService } from '../ai-services/ResumeAnalysisService';
+import { IAnalyzeResumeConfig, IConditionConfig, IWorkflow } from '../contracts/IWorkflow';
+import { WorkflowNode } from '../lib/types';
 
 export class DagExecutionEngine {
   private workflow: IWorkflow;

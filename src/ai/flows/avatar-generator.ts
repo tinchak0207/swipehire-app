@@ -11,7 +11,7 @@
  */
 
 import { z } from 'genkit';
-import { ai } from '@/ai/genkit';
+import { ai } from '../ai/genkit';
 
 const GenderEnum = z
   .enum(['male', 'female', 'non-binary', 'unspecified'])

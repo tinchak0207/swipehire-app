@@ -12,7 +12,7 @@ import {
   throttle,
   ViewportLoader,
   WebVitalsReporter,
-} from '@/lib/performance';
+} from '../lib/performance';
 
 /**
  * Hook for debouncing values

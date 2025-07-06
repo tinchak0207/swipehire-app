@@ -19,7 +19,7 @@ import {
   PortfolioListResponse,
   PortfolioSearchParams,
   UpdatePortfolioRequest,
-} from '@/lib/types/portfolio';
+} from '../lib/types/portfolio';
 
 // API base URL - in production, this should come from environment variables
 const API_BASE_URL = '/api';

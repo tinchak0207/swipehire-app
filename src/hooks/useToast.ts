@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import type { ToastProps } from '@/components/ui/toast';
+import type { ToastProps } from '../components/ui/toast';
 
 export interface UseToastReturn {
   toasts: ToastProps[];

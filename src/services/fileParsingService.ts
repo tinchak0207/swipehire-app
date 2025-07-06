@@ -5,7 +5,7 @@
  */
 
 import mammoth from 'mammoth';
-import type { FileValidationResult, ResumeParsingProgress } from '@/lib/resume-types';
+import type { FileValidationResult, ResumeParsingProgress } from '../lib/resume-types';
 
 // Dynamic import for PDF.js to avoid SSR issues
 let pdfjsLib: any = null;

@@ -6,7 +6,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import { AlignmentType, Document, HeadingLevel, Packer, Paragraph, TextRun } from 'docx';
-import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
+import type { ResumeAnalysisResponse } from '../lib/types/resume-optimizer';
 
 // Extend jsPDF type to include autoTable
 declare module 'jspdf' {

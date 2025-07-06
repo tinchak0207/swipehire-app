@@ -1,5 +1,5 @@
 // src/services/chatService.ts
-import type { ChatMessage } from '@/lib/types';
+import type { ChatMessage } from '../lib/types';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 

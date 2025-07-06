@@ -6,12 +6,12 @@
 'use client';
 
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
-import { useMemoryMonitor, useResourceMonitor, useWebVitals } from '@/hooks/usePerformance';
+import { useMemoryMonitor, useResourceMonitor, useWebVitals } from '../hooks/usePerformance';
 import {
   type PerformanceMetrics,
   type ResourceTiming,
   registerServiceWorker,
-} from '@/lib/performance';
+} from '../lib/performance';
 
 interface PerformanceContextType {
   metrics: Partial<PerformanceMetrics>;

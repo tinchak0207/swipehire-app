@@ -1,5 +1,5 @@
 // src/services/diaryService.ts
-import type { DiaryPost } from '@/lib/types';
+import type { DiaryPost } from '../lib/types';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 

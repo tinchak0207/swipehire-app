@@ -1,5 +1,5 @@
 // src/services/reviewService.ts
-import type { CompanyReview } from '@/lib/types';
+import type { CompanyReview } from '../lib/types';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 

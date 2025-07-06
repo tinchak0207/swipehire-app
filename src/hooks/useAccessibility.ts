@@ -11,7 +11,7 @@ import {
   prefersHighContrast,
   prefersReducedMotion,
   trapFocus,
-} from '@/lib/accessibility';
+} from '../lib/accessibility';
 
 /**
  * Hook for managing focus trap in modals/dialogs

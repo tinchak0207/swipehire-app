@@ -1,5 +1,5 @@
 // src/services/recruiterService.ts
-import type { BackendUser, RecruiterOnboardingData } from '@/lib/types';
+import type { BackendUser, RecruiterOnboardingData } from '../lib/types';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
