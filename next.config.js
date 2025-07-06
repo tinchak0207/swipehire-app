@@ -5,11 +5,11 @@ const nextConfig = {
     if (!isServer) {
       config.resolve.fallback.fs = false;
     }
-    
+
     // Add handlebars loader
     config.module.rules.push({
       test: /\.handlebars$/,
-      loader: 'handlebars-loader'
+      loader: 'handlebars-loader',
     });
 
     return config;
