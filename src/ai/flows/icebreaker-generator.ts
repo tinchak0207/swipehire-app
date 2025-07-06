@@ -9,7 +9,7 @@
  */
 
 import { z } from 'zod';
-import { ai } from '../ai/genkit';
+import { ai } from '@/ai/genkit';
 
 const GenerateIcebreakerQuestionInputSchema = z.object({
   candidateName: z.string().describe('The name of the candidate.'),
