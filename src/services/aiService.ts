@@ -17,7 +17,12 @@ import type {
   ProfileRecommenderOutput,
   RecruiterPerspectiveWeights,
 } from '../lib/types';
-import { Availability, EducationLevel, LocationPreference, WorkExperienceLevel } from '../lib/types';
+import {
+  Availability,
+  EducationLevel,
+  LocationPreference,
+  WorkExperienceLevel,
+} from '../lib/types';
 
 /**
  * Default weights for AI scoring
