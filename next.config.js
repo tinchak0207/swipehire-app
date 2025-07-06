@@ -19,6 +19,9 @@ const nextConfig = {
       '@/ai': path.resolve(__dirname, 'src/ai'),
       '@/components': path.resolve(__dirname, 'src/components'),
       '@/components/ui': path.resolve(__dirname, 'src/components/ui'),
+      '@/contexts': path.resolve(__dirname, 'src/contexts'),
+      '@/hooks': path.resolve(__dirname, 'src/hooks'),
+      '@/lib': path.resolve(__dirname, 'src/lib')
     };
 
     return config;
