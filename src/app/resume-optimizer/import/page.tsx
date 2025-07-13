@@ -181,10 +181,10 @@ const ResumeImportPage: NextPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <div className="text-center">
-              <span className="loading loading-spinner loading-lg text-primary mb-4"></span>
-              <p className="text-lg text-gray-600">Loading your profile data...</p>
+              <span className="loading loading-spinner loading-lg mb-4 text-primary" />
+              <p className="text-gray-600 text-lg">Loading your profile data...</p>
             </div>
           </div>
         </div>
@@ -196,21 +196,21 @@ const ResumeImportPage: NextPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="mb-8 flex items-center">
           <Link href="/resume-optimizer" className="btn btn-ghost btn-sm mr-4">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back
           </Link>
-          <h1 className="text-3xl font-bold text-gray-800">Import from Profile</h1>
+          <h1 className="font-bold text-3xl text-gray-800">Import from Profile</h1>
         </div>
 
         {/* Onboarding completion success message */}
         {showOnboardingMessage && (
           <div className="alert alert-success mb-8">
-            <CheckCircleIcon className="w-5 h-5" />
+            <CheckCircleIcon className="h-5 w-5" />
             <div className="flex-1">
               <span className="font-semibold">Profile completed successfully!</span>
-              <p className="text-sm mt-1">
+              <p className="mt-1 text-sm">
                 Your SwipeHire profile is now ready. We can now import your profile data for resume
                 optimization.
               </p>
@@ -227,10 +227,10 @@ const ResumeImportPage: NextPage = () => {
         {/* Onboarding skipped message */}
         {onboardingStatus === 'skipped' && (
           <div className="alert alert-info mb-8">
-            <InformationCircleIcon className="w-5 h-5" />
+            <InformationCircleIcon className="h-5 w-5" />
             <div className="flex-1">
               <span className="font-semibold">Onboarding skipped</span>
-              <p className="text-sm mt-1">
+              <p className="mt-1 text-sm">
                 You can complete your profile later to use the import feature. For now, you can
                 upload a resume file instead.
               </p>
@@ -243,7 +243,7 @@ const ResumeImportPage: NextPage = () => {
 
         {importState.error && (
           <div className="alert alert-error mb-8">
-            <ExclamationTriangleIcon className="w-5 h-5" />
+            <ExclamationTriangleIcon className="h-5 w-5" />
             <div className="flex-1">
               <span>{importState.error}</span>
             </div>
@@ -252,18 +252,18 @@ const ResumeImportPage: NextPage = () => {
               className="btn btn-sm btn-outline btn-error"
               disabled={importState.isLoading}
             >
-              <ArrowPathIcon className="w-4 h-4 mr-1" />
+              <ArrowPathIcon className="mr-1 h-4 w-4" />
               Retry
             </button>
           </div>
         )}
 
         {!importState.hasProfile && !importState.error && (
-          <div className="card bg-white shadow-lg mb-8">
+          <div className="card mb-8 bg-white shadow-lg">
             <div className="card-body text-center">
-              <UserIcon className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No Profile Data Found</h2>
-              <p className="text-gray-600 mb-4">
+              <UserIcon className="mx-auto mb-4 h-16 w-16 text-gray-400" />
+              <h2 className="mb-2 font-semibold text-xl">No Profile Data Found</h2>
+              <p className="mb-4 text-gray-600">
                 It looks like you haven't completed your SwipeHire profile yet. Complete your
                 profile first to use this feature.
               </p>
@@ -275,33 +275,33 @@ const ResumeImportPage: NextPage = () => {
         )}
 
         {importState.profileData && (
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div className="grid gap-8 lg:grid-cols-2">
             {/* Profile Data Preview */}
             <div className="card bg-white shadow-lg">
               <div className="card-body">
-                <div className="flex items-center mb-4">
-                  <CheckCircleIcon className="w-6 h-6 text-green-600 mr-2" />
+                <div className="mb-4 flex items-center">
+                  <CheckCircleIcon className="mr-2 h-6 w-6 text-green-600" />
                   <h2 className="card-title">Profile Data Found</h2>
                 </div>
 
                 {/* Personal Info */}
                 <div className="mb-6">
-                  <h3 className="font-semibold text-lg mb-2">{importState.profileData.name}</h3>
+                  <h3 className="mb-2 font-semibold text-lg">{importState.profileData.name}</h3>
                   <p className="text-gray-600">{importState.profileData.email}</p>
                   <p className="text-gray-600">{importState.profileData.phone}</p>
                 </div>
 
                 {/* Experience */}
                 <div className="mb-6">
-                  <h4 className="font-semibold mb-2">Experience</h4>
+                  <h4 className="mb-2 font-semibold">Experience</h4>
                   <div className="space-y-3">
                     {importState.profileData.experience.map((exp: any, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                      <div key={index} className="rounded-lg bg-gray-50 p-3">
                         <p className="font-medium">{exp.title}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-gray-600 text-sm">
                           {exp.company} • {exp.duration}
                         </p>
-                        <p className="text-sm mt-1">{exp.description.substring(0, 100)}...</p>
+                        <p className="mt-1 text-sm">{exp.description.substring(0, 100)}...</p>
                       </div>
                     ))}
                   </div>
@@ -309,12 +309,12 @@ const ResumeImportPage: NextPage = () => {
 
                 {/* Education */}
                 <div className="mb-6">
-                  <h4 className="font-semibold mb-2">Education</h4>
+                  <h4 className="mb-2 font-semibold">Education</h4>
                   <div className="space-y-2">
                     {importState.profileData.education.map((edu: any, index: number) => (
-                      <div key={index} className="bg-gray-50 p-3 rounded-lg">
+                      <div key={index} className="rounded-lg bg-gray-50 p-3">
                         <p className="font-medium">{edu.degree}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-gray-600 text-sm">
                           {edu.school} • {edu.year}
                         </p>
                       </div>
@@ -324,7 +324,7 @@ const ResumeImportPage: NextPage = () => {
 
                 {/* Skills */}
                 <div>
-                  <h4 className="font-semibold mb-2">Skills</h4>
+                  <h4 className="mb-2 font-semibold">Skills</h4>
                   <div className="flex flex-wrap gap-2">
                     {importState.profileData.skills.map((skill: string, index: number) => (
                       <span key={index} className="badge badge-outline">
@@ -363,7 +363,7 @@ const ResumeImportPage: NextPage = () => {
                     placeholder="e.g., Product Strategy, Agile, User Research, Analytics"
                     value={targetJob.keywords}
                     onChange={(e) => handleInputChange('keywords', e.target.value)}
-                    className="textarea textarea-bordered w-full h-24"
+                    className="textarea textarea-bordered h-24 w-full"
                   />
                   <label className="label">
                     <span className="label-text-alt text-gray-500">
@@ -393,7 +393,7 @@ const ResumeImportPage: NextPage = () => {
                 >
                   {isAnalyzing ? (
                     <>
-                      <span className="loading loading-spinner loading-sm mr-2"></span>
+                      <span className="loading loading-spinner loading-sm mr-2" />
                       Preparing Analysis...
                     </>
                   ) : (

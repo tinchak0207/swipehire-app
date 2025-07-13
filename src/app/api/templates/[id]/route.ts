@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
+import { type NextRequest, NextResponse } from 'next/server';
+import type { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
 
 // Mock databases
-let templates: IWorkflowTemplate[] = [];
-let workflows: IWorkflow[] = [];
+const templates: IWorkflowTemplate[] = [];
+const workflows: IWorkflow[] = [];
 
 export async function POST(_request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
@@ -20,7 +20,6 @@ export async function POST(_request: NextRequest, { params }: { params: Promise<
     };
     workflows.push(newWorkflow);
     return NextResponse.json(newWorkflow);
-  } else {
-    return new Response('Template not found', { status: 404 });
   }
+  return new Response('Template not found', { status: 404 });
 }

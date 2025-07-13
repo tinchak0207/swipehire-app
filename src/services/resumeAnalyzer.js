@@ -146,6 +146,6 @@ const generateSummary = (resumeContent) => {
   const firstFewSentences = sentences.slice(0, 3).join('. ');
 
   return firstFewSentences.length > 200
-    ? firstFewSentences.substring(0, 200) + '...'
+    ? `${firstFewSentences.substring(0, 200)}...`
     : firstFewSentences;
 };

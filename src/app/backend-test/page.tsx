@@ -23,7 +23,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface UserPreferences {
   theme?: 'light' | 'dark';
@@ -90,9 +90,10 @@ export default function BackendTestPage() {
         title: 'User Fetched!',
         description: `Data for ${data.name} (ID: ${data._id}) loaded.`,
       });
-    } catch (err: any) {
-      setFetchError(err.message);
-      toast({ title: 'Fetch Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setFetchError(errorMessage);
+      toast({ title: 'Fetch Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoadingFetch(false);
     }
@@ -152,9 +153,10 @@ export default function BackendTestPage() {
       setUserIdToUpdate(createdUser._id); // Pre-fill for easy updating
       // Optionally clear form fields
       // setNewName(''); setNewEmail(''); setNewTheme('light'); setNewFeatureFlagsJson('{\n  "newFeatureX": true,\n  "betaAccess": false\n}');
-    } catch (err: any) {
-      setCreateError(err.message);
-      toast({ title: 'Create User Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setCreateError(errorMessage);
+      toast({ title: 'Create User Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoadingCreate(false);
     }
@@ -202,9 +204,10 @@ export default function BackendTestPage() {
       const { message, user: updatedUser }: { message: string; user: User } = await response.json();
       toast({ title: 'User Updated!', description: `${message} (User: ${updatedUser.name})` });
       setUserData(updatedUser); // Update displayed data if this user was fetched
-    } catch (err: any) {
-      setUpdateError(err.message);
-      toast({ title: 'Update User Error', description: err.message, variant: 'destructive' });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+      setUpdateError(errorMessage);
+      toast({ title: 'Update User Error', description: errorMessage, variant: 'destructive' });
     } finally {
       setIsLoadingUpdate(false);
     }

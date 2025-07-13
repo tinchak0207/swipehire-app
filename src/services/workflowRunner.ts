@@ -1,9 +1,9 @@
 import { Mistral } from '@mistralai/mistralai';
 import { sql } from '@vercel/postgres';
-import { Edge, Node } from 'reactflow';
+import type { Edge, Node } from 'reactflow';
 import { analyzeResume } from './resumeAnalyzer.js';
 
-const apiKey = process.env['MISTRAL_API_KEY'];
+const apiKey = process.env.MISTRAL_API_KEY;
 if (!apiKey) {
   throw new Error('MISTRAL_API_KEY is not defined in the environment variables');
 }
@@ -23,7 +23,7 @@ const executeNode = async (node: Node, payload: any, workflowId: string) => {
     case 'sendCommunication':
       console.log('Sending communication:', node.data.message);
       return payload;
-    case 'invokeAI':
+    case 'invokeAI': {
       const response = await client.chat.complete({
         model: 'mistral-large-latest',
         messages: [
@@ -37,6 +37,7 @@ const executeNode = async (node: Node, payload: any, workflowId: string) => {
         throw new Error('Invalid AI response format');
       }
       return { ...payload, ai_suggestion: response.choices[0].message.content };
+    }
     default:
       return payload;
   }

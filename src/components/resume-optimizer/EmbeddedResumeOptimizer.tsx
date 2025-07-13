@@ -114,10 +114,10 @@ export function EmbeddedResumeOptimizer({
   return (
     <div className={`space-y-6 ${className}`}>
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold">Resume Optimizer</h3>
+        <h3 className="font-semibold text-lg">Resume Optimizer</h3>
 
         <div className="space-y-2">
-          <label htmlFor="resume-text" className="block text-sm font-medium">
+          <label htmlFor="resume-text" className="block font-medium text-sm">
             Resume Text
           </label>
           <textarea
@@ -125,37 +125,37 @@ export function EmbeddedResumeOptimizer({
             value={resumeText}
             onChange={(e) => setResumeText(e.target.value)}
             placeholder="Paste your resume text here..."
-            className="w-full h-40 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="h-40 w-full resize-none rounded-md border border-gray-300 p-3 focus:border-transparent focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
         <button
           onClick={handleAnalyze}
           disabled={!resumeText.trim() || isAnalyzing}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {isAnalyzing ? 'Analyzing...' : 'Analyze Resume'}
         </button>
       </div>
 
       {analysisResult && (
-        <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+        <div className="space-y-4 rounded-lg bg-gray-50 p-4">
           <h4 className="font-semibold">Analysis Results</h4>
           <div className="grid grid-cols-2 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{analysisResult.overallScore}%</div>
-              <div className="text-sm text-gray-600">Overall Score</div>
+              <div className="font-bold text-2xl text-blue-600">{analysisResult.overallScore}%</div>
+              <div className="text-gray-600 text-sm">Overall Score</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{analysisResult.atsScore}%</div>
-              <div className="text-sm text-gray-600">ATS Score</div>
+              <div className="font-bold text-2xl text-green-600">{analysisResult.atsScore}%</div>
+              <div className="text-gray-600 text-sm">ATS Score</div>
             </div>
           </div>
 
           {analysisResult.strengths.length > 0 && (
             <div>
               <h5 className="font-medium text-green-700">Strengths:</h5>
-              <ul className="list-disc list-inside text-sm text-gray-600">
+              <ul className="list-inside list-disc text-gray-600 text-sm">
                 {analysisResult.strengths.map((strength, index) => (
                   <li key={index}>{strength}</li>
                 ))}
@@ -166,7 +166,7 @@ export function EmbeddedResumeOptimizer({
           {analysisResult.weaknesses.length > 0 && (
             <div>
               <h5 className="font-medium text-red-700">Areas for Improvement:</h5>
-              <ul className="list-disc list-inside text-sm text-gray-600">
+              <ul className="list-inside list-disc text-gray-600 text-sm">
                 {analysisResult.weaknesses.map((weakness, index) => (
                   <li key={index}>{weakness}</li>
                 ))}

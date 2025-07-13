@@ -1,5 +1,5 @@
-import { UseMutationOptions, useMutation } from '@tanstack/react-query';
-import { Edge, Node } from 'reactflow';
+import { type UseMutationOptions, useMutation } from '@tanstack/react-query';
+import type { Edge, Node } from 'reactflow';
 
 export interface SaveWorkflowPayload {
   name: string;

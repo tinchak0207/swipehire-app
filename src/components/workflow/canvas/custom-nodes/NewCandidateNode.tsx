@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiUserPlus } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface NewCandidateNodeData {
   sourceType: string;
@@ -18,21 +19,21 @@ const NewCandidateNode: React.FC<NodeProps<NewCandidateNodeData>> = ({ data }) =
   };
 
   return (
-    <div className="card w-80 bg-base-100 shadow-xl border-2 border-primary-focus">
+    <div className="card w-80 border-2 border-primary-focus bg-base-100 shadow-xl">
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-primary text-primary-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-primary text-primary-content">
                 <FiUserPlus className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">New Candidate</h2>
-              <p className="text-sm text-gray-500">Trigger: New candidate entry</p>
+              <h2 className="card-title font-bold text-lg">New Candidate</h2>
+              <p className="text-gray-500 text-sm">Trigger: New candidate entry</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -40,7 +41,7 @@ const NewCandidateNode: React.FC<NodeProps<NewCandidateNodeData>> = ({ data }) =
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               This node triggers the workflow when a new candidate is added from a specified source.
             </p>
             <div className="form-control w-full">
@@ -70,19 +71,19 @@ const NewCandidateNode: React.FC<NodeProps<NewCandidateNodeData>> = ({ data }) =
                 />
               </div>
             )}
-            <div className="alert alert-info text-xs mt-2">
+            <div className="alert alert-info mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                className="stroke-current shrink-0 w-6 h-6"
+                className="h-6 w-6 shrink-0 stroke-current"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The output of this node will be the new candidate's data object.</span>
             </div>
@@ -93,7 +94,7 @@ const NewCandidateNode: React.FC<NodeProps<NewCandidateNodeData>> = ({ data }) =
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-primary-focus"
+        className="!bg-primary-focus h-4 w-4"
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ICardDefinition } from '@/contracts/ICard';
+import type { ICardDefinition } from '@/contracts/ICard';
 
 const cardDefinitions: ICardDefinition[] = [
   {

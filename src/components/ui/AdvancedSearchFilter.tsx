@@ -138,7 +138,7 @@ const FilterGroupComponent: React.FC<{
 
   const handleToggleCollapse = useCallback(() => {
     setIsCollapsed(!isCollapsed);
-  }, [isCollapsed, group.label]);
+  }, [isCollapsed]);
 
   const renderFilterContent = () => {
     switch (group.type) {

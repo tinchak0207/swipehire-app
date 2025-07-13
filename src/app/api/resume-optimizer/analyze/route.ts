@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import type {
   ApiResponse,
   MatchedKeyword,
@@ -299,10 +299,10 @@ async function performResumeAnalysis(
           relatedTerms: [],
         })),
       keywordDensity: matchedKeywords.reduce(
-        (acc, curr) => ({
-          ...acc,
-          [curr.keyword]: curr.frequency / resumeWords.length,
-        }),
+        (acc, curr) => {
+          acc[curr.keyword] = curr.frequency / resumeWords.length;
+          return acc;
+        },
         {} as Record<string, number>
       ),
       recommendations:

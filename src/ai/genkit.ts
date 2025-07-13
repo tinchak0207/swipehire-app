@@ -1,4 +1,5 @@
 import { Mistral } from '@mistralai/mistralai';
+import type { z } from 'zod';
 
 /**
  * Available Mistral AI models
@@ -83,7 +84,7 @@ export class AIError extends Error {
  * Initialize Mistral AI client
  */
 function createMistralClient(): Mistral {
-  const apiKey = process.env['MISTRAL_API_KEY'] || process.env['NEXT_PUBLIC_MISTRAL_API_KEY'];
+  const apiKey = process.env.MISTRAL_API_KEY || process.env.NEXT_PUBLIC_MISTRAL_API_KEY;
 
   if (!apiKey) {
     console.error('MISTRAL_API_KEY environment variable is required');
@@ -207,8 +208,9 @@ export const ai = {
 
       // Handle Mistral API errors
       if (error && typeof error === 'object' && 'status' in error) {
-        const statusCode = (error as any).status;
-        const message = (error as any).message || 'Mistral API error';
+        const statusCode = error instanceof Error && 'status' in error ? error.status : 500;
+        const message =
+          error instanceof Error ? error.message || 'Mistral API error' : 'Mistral API error';
         throw new AIError(message, 'API_ERROR', statusCode);
       }
 
@@ -280,7 +282,7 @@ export const ai = {
    */
   isAvailable: (): boolean => {
     try {
-      const apiKey = process.env['MISTRAL_API_KEY'] || process.env['NEXT_PUBLIC_MISTRAL_API_KEY'];
+      const apiKey = process.env.MISTRAL_API_KEY || process.env.NEXT_PUBLIC_MISTRAL_API_KEY;
       return !!apiKey;
     } catch {
       return false;
@@ -316,8 +318,8 @@ export const ai = {
    */
   definePrompt: (options: {
     name: string;
-    input: { schema: any };
-    output: { schema: any };
+    input: { schema: z.ZodTypeAny };
+    output: { schema: z.ZodTypeAny };
     prompt: string;
   }) => {
     return {
@@ -325,7 +327,7 @@ export const ai = {
       input: options.input,
       output: options.output,
       prompt: options.prompt,
-      generate: async (_input: any): Promise<any> => {
+      generate: async (_input: unknown): Promise<unknown> => {
         // This is a simplified implementation for compatibility
         // In a real scenario, you'd want to parse the prompt template
         const response = await ai.generate({
@@ -353,10 +355,10 @@ export const ai = {
   defineFlow: (
     _options: {
       name: string;
-      inputSchema: any;
-      outputSchema: any;
+      inputSchema: unknown;
+      outputSchema: unknown;
     },
-    handler: (input: any) => Promise<any>
+    handler: (input: unknown) => Promise<unknown>
   ) => {
     return handler;
   },

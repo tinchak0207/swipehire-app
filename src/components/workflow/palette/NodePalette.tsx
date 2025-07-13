@@ -8,7 +8,7 @@ export default function NodePalette() {
         if (!acc[node.category]) {
           acc[node.category] = [];
         }
-        acc[node.category]!.push(node);
+        acc[node.category]?.push(node);
         return acc;
       },
       {} as Record<string, typeof WORKFLOW_NODE_DEFINITIONS>
@@ -21,16 +21,16 @@ export default function NodePalette() {
   };
 
   return (
-    <aside className="w-72 bg-base-200 p-4 overflow-y-auto">
-      <h2 className="text-lg font-bold mb-4">Nodes</h2>
+    <aside className="w-72 overflow-y-auto bg-base-200 p-4">
+      <h2 className="mb-4 font-bold text-lg">Nodes</h2>
       {Object.entries(categorizedNodes).map(([category, nodes]) => (
         <div key={category} className="mb-4">
-          <h3 className="font-bold capitalize mb-2">{category}</h3>
+          <h3 className="mb-2 font-bold capitalize">{category}</h3>
           <div className="space-y-2">
             {nodes.map((node) => (
               <div
                 key={node.type}
-                className="p-2 border rounded-md bg-base-100 cursor-grab"
+                className="cursor-grab rounded-md border bg-base-100 p-2"
                 onDragStart={(event) => onDragStart(event, node.type)}
                 draggable
               >

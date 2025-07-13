@@ -5,12 +5,12 @@
  * and security measures including file type validation and size limits.
  */
 
-import { existsSync } from 'fs';
-import { mkdir, writeFile } from 'fs/promises';
-import { NextRequest, NextResponse } from 'next/server';
-import path from 'path';
+import { existsSync } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import path from 'node:path';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Media } from '@/lib/types/portfolio';
+import type { Media } from '@/lib/types/portfolio';
 
 // File validation schema
 const fileValidationSchema = z.object({

@@ -5,9 +5,9 @@
  * with proper validation, authentication, and error handling.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Portfolio } from '@/lib/types/portfolio';
+import type { Portfolio } from '@/lib/types/portfolio';
 
 // Validation schemas using Zod
 const portfolioCreateSchema = z.object({
@@ -74,7 +74,7 @@ const portfolioFiltersSchema = z.object({
 });
 
 // Mock database - In production, replace with actual database operations
-let portfolios: Portfolio[] = [];
+const portfolios: Portfolio[] = [];
 let nextId = 1;
 
 /**
@@ -181,7 +181,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Apply tag filter
     if (filters.tags && filters.tags.length > 0) {
       userPortfolios = userPortfolios.filter((p) =>
-        filters.tags!.some((tag) => p.tags.includes(tag))
+        filters.tags.some((tag) => p.tags.includes(tag))
       );
     }
 
@@ -202,14 +202,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       if (filters.sortOrder === 'asc') {
         return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     });
 
     // Calculate pagination
-    const startIndex = (filters.page! - 1) * filters.limit!;
-    const endIndex = startIndex + filters.limit!;
+    const startIndex = (filters.page - 1) * filters.limit;
+    const endIndex = startIndex + filters.limit;
     const paginatedPortfolios = userPortfolios.slice(startIndex, endIndex);
 
     return NextResponse.json(paginatedPortfolios);
@@ -284,7 +283,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               ...(mediaItem.height !== undefined && { height: mediaItem.height }),
               ...(mediaItem.size !== undefined && { size: mediaItem.size }),
             };
-          } else if (mediaItem.type === 'video') {
+          }
+          if (mediaItem.type === 'video') {
             return {
               type: 'video' as const,
               url: mediaItem.url,
@@ -292,14 +292,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               ...(mediaItem.duration !== undefined && { duration: mediaItem.duration }),
               ...(mediaItem.size !== undefined && { size: mediaItem.size }),
             };
-          } else {
-            return {
-              type: 'audio' as const,
-              url: mediaItem.url,
-              ...(mediaItem.duration !== undefined && { duration: mediaItem.duration }),
-              ...(mediaItem.size !== undefined && { size: mediaItem.size }),
-            };
           }
+          return {
+            type: 'audio' as const,
+            url: mediaItem.url,
+            ...(mediaItem.duration !== undefined && { duration: mediaItem.duration }),
+            ...(mediaItem.size !== undefined && { size: mediaItem.size }),
+          };
         }),
         links: project.links,
         tags: project.tags,

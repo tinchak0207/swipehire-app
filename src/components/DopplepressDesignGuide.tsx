@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 
 interface ButtonProps {
   children: React.ReactNode;
@@ -24,8 +24,9 @@ export const TypographyStyles = {
 // Button Component
 export const DopplepressButton = ({ children }: { children: React.ReactNode }) => (
   <Button
-    className={`rounded-full px-6 py-3 shadow-sm hover:shadow-md 
-               transition-all duration-200 bg-primary hover:bg-primary-dark`}
+    className={
+      'rounded-full bg-primary px-6 py-3 shadow-sm transition-all duration-200 hover:bg-primary-dark hover:shadow-md'
+    }
   >
     {children}
   </Button>
@@ -34,8 +35,9 @@ export const DopplepressButton = ({ children }: { children: React.ReactNode }) =
 // Card Component
 export const DopplepressCard = ({ children }: { children: React.ReactNode }) => (
   <Card
-    className={`shadow-sm rounded-lg border border-gray-100 
-               transition-all hover:shadow-md bg-background`}
+    className={
+      'rounded-lg border border-gray-100 bg-background shadow-sm transition-all hover:shadow-md'
+    }
   >
     {children}
   </Card>

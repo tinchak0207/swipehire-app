@@ -2,10 +2,10 @@
 
 import { EyeIcon, PencilIcon, PlusIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import React from 'react';
+import type React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useDeletePortfolio, usePortfolios } from '@/hooks/usePortfolio';
-import { Portfolio } from '@/lib/types/portfolio';
+import type { Portfolio } from '@/lib/types/portfolio';
 
 interface PortfolioCardProps {
   portfolio: Portfolio;
@@ -23,7 +23,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
         title: 'Link copied!',
         description: 'Portfolio link has been copied to clipboard.',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Failed to copy',
         description: 'Could not copy link to clipboard.',
@@ -45,13 +45,13 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
   return (
     <div className="card bg-base-100 shadow-xl">
       <div className="card-body">
-        <div className="flex justify-between items-start">
+        <div className="flex items-start justify-between">
           <div className="flex-1">
-            <h2 className="card-title text-lg font-semibold">{portfolio.title}</h2>
-            <p className="text-base-content/70 text-sm mt-1 line-clamp-2">
+            <h2 className="card-title font-semibold text-lg">{portfolio.title}</h2>
+            <p className="mt-1 line-clamp-2 text-base-content/70 text-sm">
               {portfolio.description}
             </p>
-            <div className="flex flex-wrap gap-1 mt-2">
+            <div className="mt-2 flex flex-wrap gap-1">
               {portfolio.tags.slice(0, 3).map((tag) => (
                 <span key={tag} className="badge badge-outline badge-sm">
                   {tag}
@@ -70,7 +70,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                className="inline-block w-4 h-4 stroke-current"
+                className="inline-block h-4 w-4 stroke-current"
               >
                 <path
                   strokeLinecap="round"
@@ -80,25 +80,22 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
                 />
               </svg>
             </div>
-            <ul
-              tabIndex={0}
-              className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
-            >
+            <ul className="dropdown-content menu z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
               <li>
                 <Link href={`/portfolio/view/${portfolio.id}`} className="flex items-center gap-2">
-                  <EyeIcon className="w-4 h-4" />
+                  <EyeIcon className="h-4 w-4" />
                   View Portfolio
                 </Link>
               </li>
               <li>
                 <Link href={`/portfolio/edit/${portfolio.id}`} className="flex items-center gap-2">
-                  <PencilIcon className="w-4 h-4" />
+                  <PencilIcon className="h-4 w-4" />
                   Edit Portfolio
                 </Link>
               </li>
               <li>
                 <button onClick={handleShare} className="flex items-center gap-2">
-                  <ShareIcon className="w-4 h-4" />
+                  <ShareIcon className="h-4 w-4" />
                   Share Portfolio
                 </button>
               </li>
@@ -107,7 +104,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
                   onClick={handleDelete}
                   className="flex items-center gap-2 text-error hover:bg-error hover:text-error-content"
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <TrashIcon className="h-4 w-4" />
                   Delete Portfolio
                 </button>
               </li>
@@ -116,26 +113,26 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
         </div>
 
         <div className="stats stats-horizontal mt-4">
-          <div className="stat py-2 px-3">
+          <div className="stat px-3 py-2">
             <div className="stat-title text-xs">Views</div>
             <div className="stat-value text-sm">{portfolio.stats.views}</div>
           </div>
-          <div className="stat py-2 px-3">
+          <div className="stat px-3 py-2">
             <div className="stat-title text-xs">Likes</div>
             <div className="stat-value text-sm">{portfolio.stats.likes}</div>
           </div>
-          <div className="stat py-2 px-3">
+          <div className="stat px-3 py-2">
             <div className="stat-title text-xs">Projects</div>
             <div className="stat-value text-sm">{portfolio.projects.length}</div>
           </div>
         </div>
 
-        <div className="flex justify-between items-center mt-4">
+        <div className="mt-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={`badge ${portfolio.isPublished ? 'badge-success' : 'badge-warning'}`}>
               {portfolio.isPublished ? 'Published' : 'Draft'}
             </div>
-            <span className="text-xs text-base-content/50">
+            <span className="text-base-content/50 text-xs">
               Updated {new Date(portfolio.updatedAt).toLocaleDateString()}
             </span>
           </div>
@@ -157,7 +154,7 @@ const PortfolioDashboard: React.FC = () => {
         title: 'Portfolio deleted',
         description: 'Your portfolio has been successfully deleted.',
       });
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Delete failed',
         description: 'Failed to delete portfolio. Please try again.',
@@ -169,22 +166,22 @@ const PortfolioDashboard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <div className="skeleton h-8 w-48"></div>
-          <div className="skeleton h-12 w-40"></div>
+        <div className="mb-8 flex items-center justify-between">
+          <div className="skeleton h-8 w-48" />
+          <div className="skeleton h-12 w-40" />
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <div key={`skeleton-${i}`} className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton h-6 w-3/4 mb-2"></div>
-                <div className="skeleton h-4 w-full mb-1"></div>
-                <div className="skeleton h-4 w-2/3 mb-4"></div>
-                <div className="flex gap-2 mb-4">
-                  <div className="skeleton h-6 w-16"></div>
-                  <div className="skeleton h-6 w-20"></div>
+                <div className="skeleton mb-2 h-6 w-3/4" />
+                <div className="skeleton mb-1 h-4 w-full" />
+                <div className="skeleton mb-4 h-4 w-2/3" />
+                <div className="mb-4 flex gap-2">
+                  <div className="skeleton h-6 w-16" />
+                  <div className="skeleton h-6 w-20" />
                 </div>
-                <div className="skeleton h-16 w-full"></div>
+                <div className="skeleton h-16 w-full" />
               </div>
             </div>
           ))}
@@ -199,7 +196,7 @@ const PortfolioDashboard: React.FC = () => {
         <div className="alert alert-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="stroke-current shrink-0 h-6 w-6"
+            className="h-6 w-6 shrink-0 stroke-current"
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -222,22 +219,22 @@ const PortfolioDashboard: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+      <div className="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <h1 className="text-3xl font-bold">My Portfolios</h1>
-          <p className="text-base-content/70 mt-1">
+          <h1 className="font-bold text-3xl">My Portfolios</h1>
+          <p className="mt-1 text-base-content/70">
             Create and manage your professional portfolios
           </p>
         </div>
         <Link href="/portfolio/new" className="btn btn-primary gap-2">
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className="h-5 w-5" />
           Create New Portfolio
         </Link>
       </div>
 
       {/* Summary Stats */}
       {portfolios && Array.isArray(portfolios) && portfolios.length > 0 && (
-        <div className="stats stats-horizontal shadow mb-8 w-full">
+        <div className="stats stats-horizontal mb-8 w-full shadow">
           <div className="stat">
             <div className="stat-title">Total Portfolios</div>
             <div className="stat-value text-primary">{portfolios.length}</div>
@@ -268,11 +265,11 @@ const PortfolioDashboard: React.FC = () => {
           {/* Published Portfolios */}
           {publishedPortfolios.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
                 <span className="badge badge-success">Published</span>
                 Published Portfolios ({publishedPortfolios.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {publishedPortfolios.map((portfolio: Portfolio) => (
                   <PortfolioCard
                     key={portfolio.id}
@@ -287,11 +284,11 @@ const PortfolioDashboard: React.FC = () => {
           {/* Draft Portfolios */}
           {draftPortfolios.length > 0 && (
             <div>
-              <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
+              <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
                 <span className="badge badge-warning">Draft</span>
                 Draft Portfolios ({draftPortfolios.length})
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {draftPortfolios.map((portfolio: Portfolio) => (
                   <PortfolioCard
                     key={portfolio.id}
@@ -305,8 +302,8 @@ const PortfolioDashboard: React.FC = () => {
         </div>
       ) : (
         /* Empty State */
-        <div className="text-center py-16">
-          <div className="max-w-md mx-auto">
+        <div className="py-16 text-center">
+          <div className="mx-auto max-w-md">
             <div className="mb-6">
               <svg
                 className="mx-auto h-24 w-24 text-base-content/20"
@@ -323,12 +320,12 @@ const PortfolioDashboard: React.FC = () => {
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-base-content mb-2">No portfolios yet</h3>
-            <p className="text-base-content/70 mb-6">
+            <h3 className="mb-2 font-medium text-base-content text-lg">No portfolios yet</h3>
+            <p className="mb-6 text-base-content/70">
               Get started by creating your first portfolio to showcase your work and projects.
             </p>
             <Link href="/portfolio/new" className="btn btn-primary gap-2">
-              <PlusIcon className="w-5 h-5" />
+              <PlusIcon className="h-5 w-5" />
               Create Your First Portfolio
             </Link>
           </div>

@@ -3,7 +3,7 @@
 import { sql } from '@vercel/postgres';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -48,8 +48,8 @@ const AnalyticsPage = () => {
 
   return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Analytics</h1>
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="font-bold text-2xl">Analytics</h1>
         <button className="btn btn-primary" onClick={exportPdf}>
           Export to PDF
         </button>

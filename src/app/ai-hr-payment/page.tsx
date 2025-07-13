@@ -71,7 +71,7 @@ export default function AiHrPaymentPage() {
   if (fullBackendUser?.profileAvatarUrl) {
     if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
       const CUSTOM_BACKEND_URL =
-        process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+        process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
       userPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
     } else {
       userPhotoURL = fullBackendUser.profileAvatarUrl;

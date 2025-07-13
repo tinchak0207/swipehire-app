@@ -2,7 +2,7 @@
 
 import {
   CalendarIcon,
-  ExternalLinkIcon,
+  ExternalLink as ExternalLinkIcon,
   EyeIcon,
   GithubIcon,
   HeartIcon,
@@ -10,8 +10,8 @@ import {
   TagIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import React from 'react';
-import { Media, PortfolioDraft, Project } from '@/lib/types/portfolio';
+import type React from 'react';
+import type { Media, PortfolioDraft, Project } from '@/lib/types/portfolio';
 
 interface PortfolioPreviewProps {
   portfolio: PortfolioDraft;
@@ -31,11 +31,11 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
   const getLinkIcon = (type: string) => {
     switch (type) {
       case 'github':
-        return <GithubIcon className="w-4 h-4" />;
+        return <GithubIcon className="h-4 w-4" />;
       case 'demo':
-        return <EyeIcon className="w-4 h-4" />;
+        return <EyeIcon className="h-4 w-4" />;
       default:
-        return <ExternalLinkIcon className="w-4 h-4" />;
+        return <ExternalLinkIcon className="h-4 w-4" />;
     }
   };
 
@@ -52,7 +52,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
             alt={mediaItem.alt}
             width={400}
             height={300}
-            className="w-full h-48 object-cover rounded-lg"
+            className="h-48 w-full rounded-lg object-cover"
           />
         );
       case 'video':
@@ -62,14 +62,14 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
             src={mediaItem.url}
             poster={mediaItem.poster}
             controls
-            className="w-full h-48 object-cover rounded-lg"
+            className="h-48 w-full rounded-lg object-cover"
           />
         );
       case 'audio':
         return (
           <div
             key={index}
-            className="w-full h-24 bg-base-200 rounded-lg flex items-center justify-center"
+            className="flex h-24 w-full items-center justify-center rounded-lg bg-base-200"
           >
             <audio src={mediaItem.url} controls className="w-full max-w-sm" />
           </div>
@@ -81,7 +81,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
    * Render project card
    */
   const renderProjectCard = (project: Project, index: number) => (
-    <div key={project.id} className="card bg-base-100 shadow-lg hover:shadow-xl transition-shadow">
+    <div key={project.id} className="card bg-base-100 shadow-lg transition-shadow hover:shadow-xl">
       <div className="card-body p-6">
         {/* Project Media */}
         {project.media.length > 0 && (
@@ -101,19 +101,19 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
         )}
 
         {/* Project Title */}
-        <h3 className="card-title text-xl mb-2">{project.title || `Project ${index + 1}`}</h3>
+        <h3 className="card-title mb-2 text-xl">{project.title || `Project ${index + 1}`}</h3>
 
         {/* Project Description */}
         {project.description && (
-          <p className="text-base-content/80 mb-4 line-clamp-3">{project.description}</p>
+          <p className="mb-4 line-clamp-3 text-base-content/80">{project.description}</p>
         )}
 
         {/* Project Tags */}
         {project.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="mb-4 flex flex-wrap gap-2">
             {project.tags.map((tag, tagIndex) => (
               <div key={tagIndex} className="badge badge-outline badge-sm">
-                <TagIcon className="w-3 h-3 mr-1" />
+                <TagIcon className="mr-1 h-3 w-3" />
                 {tag}
               </div>
             ))}
@@ -139,17 +139,17 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
         )}
 
         {/* Project Stats */}
-        <div className="flex items-center gap-4 mt-4 text-sm text-base-content/60">
+        <div className="mt-4 flex items-center gap-4 text-base-content/60 text-sm">
           <div className="flex items-center gap-1">
-            <HeartIcon className="w-4 h-4" />
+            <HeartIcon className="h-4 w-4" />
             <span>{project.likes}</span>
           </div>
           <div className="flex items-center gap-1">
-            <MessageCircleIcon className="w-4 h-4" />
+            <MessageCircleIcon className="h-4 w-4" />
             <span>{project.comments.length}</span>
           </div>
           <div className="flex items-center gap-1">
-            <CalendarIcon className="w-4 h-4" />
+            <CalendarIcon className="h-4 w-4" />
             <span>{new Date(project.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
@@ -165,9 +165,9 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
 
     if (sortedProjects.length === 0) {
       return (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📁</div>
-          <h3 className="text-xl font-medium mb-2">No Projects Yet</h3>
+        <div className="py-12 text-center">
+          <div className="mb-4 text-6xl">📁</div>
+          <h3 className="mb-2 font-medium text-xl">No Projects Yet</h3>
           <p className="text-base-content/60">Add some projects to see them in the preview.</p>
         </div>
       );
@@ -176,7 +176,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
     switch (portfolio.layout) {
       case 'grid':
         return (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {sortedProjects.map((project, index) => renderProjectCard(project, index))}
           </div>
         );
@@ -187,7 +187,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
             {sortedProjects.map((project, index) => (
               <div key={project.id} className="card bg-base-100 shadow-lg">
                 <div className="card-body p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                     {/* Media Column */}
                     {project.media.length > 0 && (
                       <div>
@@ -207,7 +207,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
 
                     {/* Content Column */}
                     <div className="space-y-4">
-                      <h3 className="text-2xl font-bold">
+                      <h3 className="font-bold text-2xl">
                         {project.title || `Project ${index + 1}`}
                       </h3>
 
@@ -219,7 +219,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                         <div className="flex flex-wrap gap-2">
                           {project.tags.map((tag, tagIndex) => (
                             <div key={tagIndex} className="badge badge-outline">
-                              <TagIcon className="w-3 h-3 mr-1" />
+                              <TagIcon className="mr-1 h-3 w-3" />
                               {tag}
                             </div>
                           ))}
@@ -243,17 +243,17 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                         </div>
                       )}
 
-                      <div className="flex items-center gap-4 text-sm text-base-content/60">
+                      <div className="flex items-center gap-4 text-base-content/60 text-sm">
                         <div className="flex items-center gap-1">
-                          <HeartIcon className="w-4 h-4" />
+                          <HeartIcon className="h-4 w-4" />
                           <span>{project.likes}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <MessageCircleIcon className="w-4 h-4" />
+                          <MessageCircleIcon className="h-4 w-4" />
                           <span>{project.comments.length}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <CalendarIcon className="w-4 h-4" />
+                          <CalendarIcon className="h-4 w-4" />
                           <span>{new Date(project.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -286,18 +286,18 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
       {/* Portfolio Header */}
       <div className="bg-base-100 shadow-sm">
         <div className="container mx-auto px-6 py-8">
-          <div className="text-center max-w-4xl mx-auto">
-            <h1 className="text-4xl font-bold mb-4">{portfolio.title || 'Untitled Portfolio'}</h1>
+          <div className="mx-auto max-w-4xl text-center">
+            <h1 className="mb-4 font-bold text-4xl">{portfolio.title || 'Untitled Portfolio'}</h1>
 
             {portfolio.description && (
-              <p className="text-lg text-base-content/80 mb-6">{portfolio.description}</p>
+              <p className="mb-6 text-base-content/80 text-lg">{portfolio.description}</p>
             )}
 
             {portfolio.tags.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2 mb-6">
+              <div className="mb-6 flex flex-wrap justify-center gap-2">
                 {portfolio.tags.map((tag, index) => (
                   <div key={index} className="badge badge-primary badge-lg">
-                    <TagIcon className="w-4 h-4 mr-1" />
+                    <TagIcon className="mr-1 h-4 w-4" />
                     {tag}
                   </div>
                 ))}
@@ -333,7 +333,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
       <div className="container mx-auto px-6 py-8">{renderProjects()}</div>
 
       {/* Footer */}
-      <div className="bg-base-100 mt-12">
+      <div className="mt-12 bg-base-100">
         <div className="container mx-auto px-6 py-8 text-center">
           <p className="text-base-content/60">Created with SwipeHire Portfolio Builder</p>
         </div>

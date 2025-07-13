@@ -1,4 +1,5 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiShare2 } from 'react-icons/fi';
 import { Handle, type NodeProps, Position } from 'reactflow';
 
@@ -11,22 +12,22 @@ const SubworkflowCallNode: React.FC<NodeProps<SubworkflowCallNodeData>> = ({ dat
   const [workflowId, setWorkflowId] = useState(data.workflowId || '');
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-teal-500">
-      <Handle type="target" position={Position.Left} id="input" className="w-4 h-4 !bg-teal-500" />
+    <div className="card w-96 border-2 border-teal-500 bg-base-100 shadow-xl">
+      <Handle type="target" position={Position.Left} id="input" className="!bg-teal-500 h-4 w-4" />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-teal-500 text-white rounded-full w-12 h-12 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-500 text-white">
                 <FiShare2 className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Sub-Workflow</h2>
-              <p className="text-sm text-gray-500">Execute another workflow</p>
+              <h2 className="card-title font-bold text-lg">Sub-Workflow</h2>
+              <p className="text-gray-500 text-sm">Execute another workflow</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -34,7 +35,7 @@ const SubworkflowCallNode: React.FC<NodeProps<SubworkflowCallNodeData>> = ({ dat
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Executes another workflow as a subroutine. The current data payload is passed to the
               sub-workflow.
             </p>
@@ -57,10 +58,10 @@ const SubworkflowCallNode: React.FC<NodeProps<SubworkflowCallNodeData>> = ({ dat
               </select>
             </div>
 
-            <div className="alert alert-teal text-xs mt-2">
+            <div className="alert alert-teal mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -69,7 +70,7 @@ const SubworkflowCallNode: React.FC<NodeProps<SubworkflowCallNodeData>> = ({ dat
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 The output of this node will be the final data payload from the executed
@@ -83,7 +84,7 @@ const SubworkflowCallNode: React.FC<NodeProps<SubworkflowCallNodeData>> = ({ dat
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-teal-500"
+        className="!bg-teal-500 h-4 w-4"
       />
     </div>
   );

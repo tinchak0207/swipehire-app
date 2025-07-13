@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
+import type React from 'react';
+import { memo } from 'react';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 const ResumeAnalysisNode: React.FC<NodeProps> = ({ data }) => {
   return (
@@ -13,20 +14,20 @@ const ResumeAnalysisNode: React.FC<NodeProps> = ({ data }) => {
           </button>
         </div>
       </div>
-      <Handle type="target" position={Position.Left} className="w-4 h-4" />
+      <Handle type="target" position={Position.Left} className="h-4 w-4" />
       <Handle
         type="source"
         id="pass"
         position={Position.Right}
         style={{ top: '30%' }}
-        className="w-4 h-4"
+        className="h-4 w-4"
       />
       <Handle
         type="source"
         id="fail"
         position={Position.Right}
         style={{ top: '70%' }}
-        className="w-4 h-4"
+        className="h-4 w-4"
       />
     </div>
   );

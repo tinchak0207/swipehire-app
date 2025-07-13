@@ -1,8 +1,8 @@
 'use client';
 
 import { GridIcon, ListIcon, SlidersIcon } from 'lucide-react';
-import React from 'react';
-import { PortfolioLayout } from '@/lib/types/portfolio';
+import type React from 'react';
+import type { PortfolioLayout } from '@/lib/types/portfolio';
 
 interface LayoutSelectorProps {
   selectedLayout: PortfolioLayout;
@@ -27,13 +27,13 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       value: 'grid',
       label: 'Grid Layout',
       description: 'Display projects in a responsive grid',
-      icon: <GridIcon className="w-5 h-5" />,
+      icon: <GridIcon className="h-5 w-5" />,
       preview: (
-        <div className="grid grid-cols-2 gap-1 w-12 h-8">
-          <div className="bg-primary/30 rounded-sm"></div>
-          <div className="bg-primary/30 rounded-sm"></div>
-          <div className="bg-primary/30 rounded-sm"></div>
-          <div className="bg-primary/30 rounded-sm"></div>
+        <div className="grid h-8 w-12 grid-cols-2 gap-1">
+          <div className="rounded-sm bg-primary/30" />
+          <div className="rounded-sm bg-primary/30" />
+          <div className="rounded-sm bg-primary/30" />
+          <div className="rounded-sm bg-primary/30" />
         </div>
       ),
     },
@@ -41,13 +41,13 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       value: 'list',
       label: 'List Layout',
       description: 'Display projects in a vertical list',
-      icon: <ListIcon className="w-5 h-5" />,
+      icon: <ListIcon className="h-5 w-5" />,
       preview: (
-        <div className="space-y-1 w-12 h-8">
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
+        <div className="h-8 w-12 space-y-1">
+          <div className="h-1.5 rounded-sm bg-primary/30" />
+          <div className="h-1.5 rounded-sm bg-primary/30" />
+          <div className="h-1.5 rounded-sm bg-primary/30" />
+          <div className="h-1.5 rounded-sm bg-primary/30" />
         </div>
       ),
     },
@@ -55,12 +55,12 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       value: 'carousel',
       label: 'Carousel Layout',
       description: 'Display projects in a sliding carousel',
-      icon: <SlidersIcon className="w-5 h-5" />,
+      icon: <SlidersIcon className="h-5 w-5" />,
       preview: (
-        <div className="flex gap-1 w-12 h-8 overflow-hidden">
-          <div className="bg-primary/50 rounded-sm flex-shrink-0 w-6"></div>
-          <div className="bg-primary/30 rounded-sm flex-shrink-0 w-6"></div>
-          <div className="bg-primary/20 rounded-sm flex-shrink-0 w-6"></div>
+        <div className="flex h-8 w-12 gap-1 overflow-hidden">
+          <div className="w-6 flex-shrink-0 rounded-sm bg-primary/50" />
+          <div className="w-6 flex-shrink-0 rounded-sm bg-primary/30" />
+          <div className="w-6 flex-shrink-0 rounded-sm bg-primary/20" />
         </div>
       ),
     },
@@ -69,7 +69,7 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
   return (
     <div className="space-y-4">
       {/* Layout Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {layouts.map((layout) => (
           <div
             key={layout.value}
@@ -82,7 +82,7 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
           >
             <div className="card-body p-4">
               {/* Header */}
-              <div className="flex items-center justify-between mb-3">
+              <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   {layout.icon}
                   <span className="font-medium text-sm">{layout.label}</span>
@@ -99,10 +99,10 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
               </div>
 
               {/* Preview */}
-              <div className="flex justify-center mb-3">{layout.preview}</div>
+              <div className="mb-3 flex justify-center">{layout.preview}</div>
 
               {/* Description */}
-              <p className="text-xs text-base-content/70 text-center">{layout.description}</p>
+              <p className="text-center text-base-content/70 text-xs">{layout.description}</p>
             </div>
           </div>
         ))}
@@ -114,7 +114,7 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
           <div className="text-sm">
             <strong>Selected: {layouts.find((l) => l.value === selectedLayout)?.label}</strong>
           </div>
-          <div className="text-xs mt-1 opacity-80">
+          <div className="mt-1 text-xs opacity-80">
             {selectedLayout === 'grid' &&
               'Projects will be displayed in a responsive grid that adapts to screen size.'}
             {selectedLayout === 'list' &&
@@ -127,9 +127,9 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
 
       {/* Layout-specific Options */}
       {selectedLayout === 'grid' && (
-        <div className="card bg-base-100 border border-base-300">
+        <div className="card border border-base-300 bg-base-100">
           <div className="card-body p-4">
-            <h4 className="font-medium text-sm mb-3">Grid Options</h4>
+            <h4 className="mb-3 font-medium text-sm">Grid Options</h4>
             <div className="space-y-3">
               <div className="form-control">
                 <label className="label py-1">
@@ -162,9 +162,9 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       )}
 
       {selectedLayout === 'carousel' && (
-        <div className="card bg-base-100 border border-base-300">
+        <div className="card border border-base-300 bg-base-100">
           <div className="card-body p-4">
-            <h4 className="font-medium text-sm mb-3">Carousel Options</h4>
+            <h4 className="mb-3 font-medium text-sm">Carousel Options</h4>
             <div className="space-y-3">
               <div className="form-control">
                 <label className="label py-1">

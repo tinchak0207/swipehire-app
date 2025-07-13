@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiBell, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface NotificationDispatchNodeData {
   recipient: string; // e.g., 'recruiter', 'hiring-manager', 'custom-user'
@@ -15,22 +16,22 @@ const NotificationDispatchNode: React.FC<NodeProps<NotificationDispatchNodeData>
   const [message, setMessage] = useState(data.message || '');
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-pink-500">
-      <Handle type="target" position={Position.Left} id="input" className="w-4 h-4 !bg-pink-500" />
+    <div className="card w-96 border-2 border-pink-500 bg-base-100 shadow-xl">
+      <Handle type="target" position={Position.Left} id="input" className="!bg-pink-500 h-4 w-4" />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-pink-500 text-white rounded-full w-12 h-12 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-pink-500 text-white">
                 <FiBell className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Send Notification</h2>
-              <p className="text-sm text-gray-500">Alert internal stakeholders</p>
+              <h2 className="card-title font-bold text-lg">Send Notification</h2>
+              <p className="text-gray-500 text-sm">Alert internal stakeholders</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -38,7 +39,7 @@ const NotificationDispatchNode: React.FC<NodeProps<NotificationDispatchNodeData>
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Sends an in-app or email notification to an internal user or team.
             </p>
 
@@ -84,13 +85,13 @@ const NotificationDispatchNode: React.FC<NodeProps<NotificationDispatchNodeData>
                 placeholder="e.g., New high-priority candidate {{candidate.name}} has applied for {{job.title}}."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-              ></textarea>
+              />
             </div>
 
-            <div className="alert alert-pink text-xs mt-2">
+            <div className="alert alert-pink mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -99,7 +100,7 @@ const NotificationDispatchNode: React.FC<NodeProps<NotificationDispatchNodeData>
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>This node does not have an output. It simply fires off the notification.</span>
             </div>

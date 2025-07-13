@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
+import type React from 'react';
+import { memo } from 'react';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 const DataMetricReferenceNode: React.FC<NodeProps> = ({}) => {
   return (
@@ -8,7 +9,7 @@ const DataMetricReferenceNode: React.FC<NodeProps> = ({}) => {
         <h2 className="card-title">Data Metric Reference</h2>
         <p>References a data metric.</p>
       </div>
-      <Handle type="source" position={Position.Right} className="w-4 h-4" />
+      <Handle type="source" position={Position.Right} className="h-4 w-4" />
     </div>
   );
 };

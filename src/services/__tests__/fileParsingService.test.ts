@@ -20,7 +20,7 @@ jest.mock('pdfjs-dist', () => ({
         Promise.resolve({
           getTextContent: jest.fn(() =>
             Promise.resolve({
-              items: [{ str: 'Sample PDF text content' }, { str: 'from page ' + pageNum }],
+              items: [{ str: 'Sample PDF text content' }, { str: `from page ${pageNum}` }],
             })
           ),
         })

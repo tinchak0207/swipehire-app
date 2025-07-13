@@ -90,9 +90,9 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
 
   const getIcon = (): React.ReactNode => {
     if (format === 'pdf') {
-      return <DocumentIcon className="w-4 h-4" />;
+      return <DocumentIcon className="h-4 w-4" />;
     }
-    return <DocumentTextIcon className="w-4 h-4" />;
+    return <DocumentTextIcon className="h-4 w-4" />;
   };
 
   const getDefaultText = (): string => {
@@ -108,7 +108,7 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     >
       {isDownloading ? (
         <>
-          <span className="loading loading-spinner loading-sm"></span>
+          <span className="loading loading-spinner loading-sm" />
           Generating...
         </>
       ) : (
@@ -179,29 +179,26 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
       >
         {isDownloading ? (
           <>
-            <span className="loading loading-spinner loading-sm"></span>
+            <span className="loading loading-spinner loading-sm" />
             Generating...
           </>
         ) : (
           <>
-            <ArrowDownTrayIcon className="w-4 h-4" />
+            <ArrowDownTrayIcon className="h-4 w-4" />
             Download
           </>
         )}
       </div>
 
       {!isDisabled && (
-        <ul
-          tabIndex={0}
-          className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52"
-        >
+        <ul className="dropdown-content menu z-[1] w-52 rounded-box bg-base-100 p-2 shadow">
           <li>
             <button
               onClick={handlePDFDownload}
               className="flex items-center space-x-2"
               disabled={isDownloading}
             >
-              <DocumentIcon className="w-4 h-4" />
+              <DocumentIcon className="h-4 w-4" />
               <span>Download as PDF</span>
             </button>
           </li>
@@ -211,13 +208,13 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
               className="flex items-center space-x-2"
               disabled={isDownloading}
             >
-              <DocumentTextIcon className="w-4 h-4" />
+              <DocumentTextIcon className="h-4 w-4" />
               <span>Download as DOCX</span>
             </button>
           </li>
           {includeAnalysis && (
             <>
-              <div className="divider my-1"></div>
+              <div className="divider my-1" />
               <li className="menu-title">
                 <span className="text-xs">Includes analysis report</span>
               </li>
@@ -301,7 +298,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
   return (
     <div className="modal modal-open">
       <div className="modal-box">
-        <h3 className="font-bold text-lg mb-4">Download Options</h3>
+        <h3 className="mb-4 font-bold text-lg">Download Options</h3>
 
         <div className="space-y-4">
           {/* Format Selection */}
@@ -397,12 +394,12 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           >
             {isDownloading ? (
               <>
-                <span className="loading loading-spinner loading-sm"></span>
+                <span className="loading loading-spinner loading-sm" />
                 Generating...
               </>
             ) : (
               <>
-                <ArrowDownTrayIcon className="w-4 h-4" />
+                <ArrowDownTrayIcon className="h-4 w-4" />
                 Download {selectedFormat.toUpperCase()}
               </>
             )}

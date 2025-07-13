@@ -236,7 +236,10 @@ export default function FormsAppSurvey({ onCompleteAction }: FormsAppSurveyProps
         script.parentNode.removeChild(script);
       }
     };
-  }, []);
+  }, [
+    // Script exists, initialize the form
+    initializeForm,
+  ]);
 
   if (hasError) {
     return (

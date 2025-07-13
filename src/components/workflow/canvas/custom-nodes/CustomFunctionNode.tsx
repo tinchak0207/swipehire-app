@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCode } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface CustomFunctionNodeData {
   code: string;
@@ -15,27 +16,27 @@ const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data 
   );
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-purple-500">
+    <div className="card w-96 border-2 border-purple-500 bg-base-100 shadow-xl">
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className="w-4 h-4 !bg-purple-500"
+        className="!bg-purple-500 h-4 w-4"
       />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-purple-500 text-white rounded-full w-12 h-12 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-500 text-white">
                 <FiCode className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Custom Function</h2>
-              <p className="text-sm text-gray-500">Execute custom JavaScript</p>
+              <h2 className="card-title font-bold text-lg">Custom Function</h2>
+              <p className="text-gray-500 text-sm">Execute custom JavaScript</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -43,7 +44,7 @@ const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data 
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Write custom JavaScript code to process the data payload. The function has access to a
               `data` variable containing the output from the previous node.
             </p>
@@ -54,17 +55,17 @@ const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data 
               </label>
               <div className="mockup-code h-64 text-sm">
                 <textarea
-                  className="bg-gray-800 text-white w-full h-full p-4 font-mono"
+                  className="h-full w-full bg-gray-800 p-4 font-mono text-white"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                 />
               </div>
             </div>
 
-            <div className="alert alert-purple text-xs mt-2">
+            <div className="alert alert-purple mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -84,7 +85,7 @@ const CustomFunctionNode: React.FC<NodeProps<CustomFunctionNodeData>> = ({ data 
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-purple-500"
+        className="!bg-purple-500 h-4 w-4"
       />
     </div>
   );

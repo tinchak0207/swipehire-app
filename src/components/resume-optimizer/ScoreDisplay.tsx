@@ -47,7 +47,6 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
           score: 'text-4xl',
           label: 'text-base',
         };
-      case 'md':
       default:
         return {
           container: 'p-4',
@@ -61,21 +60,21 @@ const ScoreDisplay: React.FC<ScoreDisplayProps> = ({
   const percentage = Math.round((score / maxScore) * 100);
 
   return (
-    <div className={`text-center rounded-lg ${sizeClasses.container} ${getScoreBgColor(score)}`}>
+    <div className={`rounded-lg text-center ${sizeClasses.container} ${getScoreBgColor(score)}`}>
       <div className={`font-bold ${sizeClasses.score} ${getScoreColor(score)}`}>
         {score}
         {maxScore !== 100 && <span className="text-gray-500">/{maxScore}</span>}
       </div>
-      <div className={`font-medium ${sizeClasses.label} text-gray-700 mb-2`}>{label}</div>
+      <div className={`font-medium ${sizeClasses.label} mb-2 text-gray-700`}>{label}</div>
 
       {showProgress && (
         <div className="w-full">
           <progress
-            className={`progress w-full h-2 ${getProgressColor(score)}`}
+            className={`progress h-2 w-full ${getProgressColor(score)}`}
             value={score}
             max={maxScore}
           />
-          <div className="text-xs text-gray-600 mt-1">{percentage}%</div>
+          <div className="mt-1 text-gray-600 text-xs">{percentage}%</div>
         </div>
       )}
     </div>

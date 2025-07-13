@@ -53,7 +53,7 @@ export const dynamic = 'force-dynamic'; // Ensure fresh data on each request
 // GET /api/user/profile
 export async function GET(request: Request) {
   // Verify backend URL is configured
-  const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
+  const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
   if (!backendUrl) {
     console.error('Backend URL not configured');
     return NextResponse.json({ error: 'Server configuration error' }, { status: 500 });

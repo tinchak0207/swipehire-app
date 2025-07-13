@@ -1,6 +1,23 @@
 import { sql } from '@vercel/postgres';
 import { NextResponse } from 'next/server';
+import type { Edge, Node } from 'reactflow';
 import { runWorkflow } from '@/services/workflowRunner';
+
+interface DatabaseWorkflow {
+  id: number;
+  name: string;
+  user_id: number;
+  definition: {
+    nodes: Node[];
+    edges: Edge[];
+  };
+  resume_count: number;
+  is_template: boolean;
+  is_public: boolean;
+  editing_user_id: number | null;
+  created_at: string;
+  updated_at: string;
+}
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -13,9 +30,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { rows: runRows } =
       await sql`SELECT COUNT(*) as count FROM workflow_runs WHERE user_id = ${userId} AND created_at > NOW() - INTERVAL '1 month'`;
-    const runCount = parseInt(runRows[0]?.['count'] ?? '0', 10);
+    const runCount = parseInt(runRows[0]?.count ?? '0', 10);
 
-    if (user?.['tier'] === 'free' && runCount >= 50) {
+    if (user?.tier === 'free' && runCount >= 50) {
       return NextResponse.json(
         { error: 'Free tier run limit reached. Upgrade for more runs.' },
         { status: 403 }
@@ -23,14 +40,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const { rows } = await sql`SELECT * FROM workflows WHERE id = ${workflowId}`;
-    const workflow = rows[0];
+    const dbWorkflow = rows[0] as DatabaseWorkflow;
 
-    if (!workflow) {
+    if (!dbWorkflow) {
       return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
+    // Convert database workflow to the format expected by runWorkflow
+    const workflow = {
+      id: dbWorkflow.id.toString(),
+      definition: dbWorkflow.definition,
+    };
+
     const payload = await request.json();
-    await runWorkflow(workflow as any, payload);
+    await runWorkflow(workflow, payload);
 
     await sql`INSERT INTO workflow_runs (workflow_id, user_id) VALUES (${workflowId}, ${userId})`;
 

@@ -452,7 +452,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <TestimonialCard
                 quote="SwipeHire's video resume feature helped me stand out and land my dream job! The AI feedback was invaluable."
                 author="Sarah L."
-                role="Software Engineer"
                 avatar="https://placehold.co/100x100/A663CC/FFFFFF.png?text=SL"
                 aosAnimation="fade-right"
                 aosDelay="0"
@@ -460,7 +459,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <TestimonialCard
                 quote="Finding qualified candidates used to be a chore. SwipeHire's AI recruitment software and talent matching system is a game-changer."
                 author="John B."
-                role="Hiring Manager"
                 avatar="https://placehold.co/100x100/63A6FF/FFFFFF.png?text=JB"
                 aosAnimation="fade-up"
                 data-aos-delay="100"
@@ -468,7 +466,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <TestimonialCard
                 quote="The AI tools for video resumes are incredibly helpful. This platform made my job search efficient and modern!"
                 author="Maria G."
-                role="UX Designer"
                 avatar="https://placehold.co/100x100/FF6B6B/FFFFFF.png?text=MG"
                 aosAnimation="fade-left"
                 data-aos-delay="200"

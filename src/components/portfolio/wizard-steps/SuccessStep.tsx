@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { CheckCircle, ExternalLink, Rocket } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface SuccessStepProps {
@@ -17,13 +17,13 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ portfolioId, onComplete }) =>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-6"
+        className="space-y-6 text-center"
       >
-        <div className="inline-flex items-center justify-center w-24 h-24 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 mb-4">
-          <CheckCircle className="w-12 h-12 text-green-400" />
+        <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full border border-white/30 bg-white/20 backdrop-blur-sm">
+          <CheckCircle className="h-12 w-12 text-green-400" />
         </div>
-        <h2 className="text-3xl font-bold text-white mb-2">Portfolio Created!</h2>
-        <p className="text-white/80 max-w-2xl mx-auto">
+        <h2 className="mb-2 font-bold text-3xl text-white">Portfolio Created!</h2>
+        <p className="mx-auto max-w-2xl text-white/80">
           Your portfolio has been successfully created and published. You can view it now or
           continue editing later.
         </p>
@@ -33,12 +33,12 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ portfolioId, onComplete }) =>
         <div className="flex flex-col items-center space-y-4">
           <Button asChild variant="default" className="bg-green-500 hover:bg-green-600">
             <Link href={`/portfolio/${portfolioId}`} target="_blank">
-              <ExternalLink className="w-5 h-5 mr-2" />
+              <ExternalLink className="mr-2 h-5 w-5" />
               View Portfolio
             </Link>
           </Button>
 
-          <p className="text-white/60 text-sm text-center">
+          <p className="text-center text-sm text-white/60">
             Share your portfolio with anyone using this link
           </p>
         </div>
@@ -47,7 +47,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ portfolioId, onComplete }) =>
       {onComplete && (
         <div className="flex justify-center pt-6">
           <Button type="button" onClick={onComplete} className="bg-blue-500 hover:bg-blue-600">
-            <Rocket className="w-5 h-5 mr-2" />
+            <Rocket className="mr-2 h-5 w-5" />
             Get Started
           </Button>
         </div>

@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     const output: GenerateIcebreakerQuestionOutput = await generateIcebreakerQuestion(flowInput);
 
     return NextResponse.json(output, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[API Route /api/ai/generate-icebreaker] Error:', error);
     let errorMessage = 'Failed to generate icebreaker question.';
     if (error.message) {

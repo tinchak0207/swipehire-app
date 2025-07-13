@@ -74,7 +74,7 @@ export function AccessibleModal({
 
     element.addEventListener('keydown', handleKeyDown);
     return () => element.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, closeOnEscape, onClose]);
+  }, [isOpen, keyboardHandlers.Escape]);
 
   // Save focus when modal opens and restore when it closes
   useEffect(() => {

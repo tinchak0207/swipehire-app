@@ -37,18 +37,18 @@ export default function TargetJobDemoPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12">
       <div className="container mx-auto max-w-4xl px-6">
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Target Job Input Form Demo</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+        <div className="mb-12 text-center">
+          <h1 className="mb-4 font-bold text-4xl text-gray-900">Target Job Input Form Demo</h1>
+          <p className="mx-auto max-w-2xl text-gray-600 text-xl">
             This component allows users to specify their target job information for resume
             optimization. It includes validation, real-time feedback, and accessibility features.
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid gap-8 lg:grid-cols-2">
           {/* Form Section */}
-          <div className="bg-white rounded-2xl shadow-xl p-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Target Job Information</h2>
+          <div className="rounded-2xl bg-white p-8 shadow-xl">
+            <h2 className="mb-6 font-bold text-2xl text-gray-900">Target Job Information</h2>
 
             <TargetJobInputForm
               initialData={formData}
@@ -62,7 +62,7 @@ export default function TargetJobDemoPage() {
             />
 
             {/* Reset Button */}
-            <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="mt-6 border-gray-200 border-t pt-6">
               <button onClick={handleReset} className="btn btn-outline btn-sm" disabled={isLoading}>
                 Reset Form
               </button>
@@ -72,8 +72,8 @@ export default function TargetJobDemoPage() {
           {/* Info Section */}
           <div className="space-y-6">
             {/* Current State */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Current Form State</h3>
+            <div className="rounded-2xl bg-white p-8 shadow-xl">
+              <h3 className="mb-4 font-bold text-gray-900 text-xl">Current Form State</h3>
 
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
@@ -106,21 +106,21 @@ export default function TargetJobDemoPage() {
 
             {/* Submitted Data */}
             {submittedData && (
-              <div className="bg-green-50 border border-green-200 rounded-2xl p-8">
-                <h3 className="text-xl font-bold text-green-900 mb-4">
+              <div className="rounded-2xl border border-green-200 bg-green-50 p-8">
+                <h3 className="mb-4 font-bold text-green-900 text-xl">
                   ✅ Form Submitted Successfully!
                 </h3>
 
                 <div className="space-y-3">
                   <div>
                     <span className="font-medium text-green-800">Job Title:</span>
-                    <p className="text-green-700 mt-1">{submittedData.title}</p>
+                    <p className="mt-1 text-green-700">{submittedData.title}</p>
                   </div>
 
                   {submittedData.keywords && (
                     <div>
                       <span className="font-medium text-green-800">Keywords:</span>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         {submittedData.keywords.split(',').map((keyword, index) => (
                           <span key={index} className="badge badge-success badge-sm">
                             {keyword.trim()}
@@ -133,14 +133,14 @@ export default function TargetJobDemoPage() {
                   {submittedData.company && (
                     <div>
                       <span className="font-medium text-green-800">Company:</span>
-                      <p className="text-green-700 mt-1">{submittedData.company}</p>
+                      <p className="mt-1 text-green-700">{submittedData.company}</p>
                     </div>
                   )}
 
                   {submittedData.description && (
                     <div>
                       <span className="font-medium text-green-800">Description:</span>
-                      <p className="text-green-700 mt-1 text-sm">
+                      <p className="mt-1 text-green-700 text-sm">
                         {submittedData.description.substring(0, 100)}
                         {submittedData.description.length > 100 ? '...' : ''}
                       </p>
@@ -151,32 +151,32 @@ export default function TargetJobDemoPage() {
             )}
 
             {/* Features */}
-            <div className="bg-white rounded-2xl shadow-xl p-8">
-              <h3 className="text-xl font-bold text-gray-900 mb-4">Component Features</h3>
+            <div className="rounded-2xl bg-white p-8 shadow-xl">
+              <h3 className="mb-4 font-bold text-gray-900 text-xl">Component Features</h3>
 
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                   Real-time validation with error messages
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                   Keywords parsing with badge display
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                   Accessibility support with ARIA attributes
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                   Loading states and disabled inputs
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                   Form summary with entered information
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="h-2 w-2 rounded-full bg-blue-500" />
                   Responsive design with DaisyUI components
                 </li>
               </ul>
@@ -185,9 +185,9 @@ export default function TargetJobDemoPage() {
         </div>
 
         {/* Code Example */}
-        <div className="mt-12 bg-gray-900 rounded-2xl p-8 text-white">
-          <h3 className="text-xl font-bold mb-4">Usage Example</h3>
-          <pre className="text-sm overflow-x-auto">
+        <div className="mt-12 rounded-2xl bg-gray-900 p-8 text-white">
+          <h3 className="mb-4 font-bold text-xl">Usage Example</h3>
+          <pre className="overflow-x-auto text-sm">
             <code>{`import TargetJobInputForm, { useTargetJobForm } from '@/components/resume-optimizer/TargetJobInputForm';
 
 function MyComponent() {

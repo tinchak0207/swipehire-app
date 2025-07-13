@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
-import { NodeDefinition } from '@/lib/workflow-node-definitions';
+import { Handle, type NodeProps, Position } from 'reactflow';
+import type { NodeDefinition } from '@/lib/workflow-node-definitions';
 
 const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string]: any }>) => {
   const { definition, ...config } = data;
@@ -71,7 +71,7 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
   };
 
   return (
-    <div className={`card w-96 bg-base-100 shadow-xl border-2 border-gray-300`}>
+    <div className={'card w-96 border-2 border-gray-300 bg-base-100 shadow-xl'}>
       {definition.inputs?.map((input, index) => (
         <Handle
           key={`${id}-target-${input.name}`}
@@ -79,37 +79,37 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
           position={Position.Left}
           id={input.name}
           style={{ top: `${(index + 1) * 25}%` }}
-          className="w-3 h-3 !bg-blue-500"
+          className="!bg-blue-500 h-3 w-3"
         />
       ))}
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center gap-3">
             {definition.icon && (
-              <div className={`avatar placeholder`}>
-                <div className={`bg-neutral-focus text-neutral-content rounded-full w-10 h-10`}>
-                  <i className={`${definition.icon} text-xl`}></i>
+              <div className={'avatar placeholder'}>
+                <div className={'h-10 w-10 rounded-full bg-neutral-focus text-neutral-content'}>
+                  <i className={`${definition.icon} text-xl`} />
                 </div>
               </div>
             )}
             <div>
-              <h2 className="card-title text-base font-bold">{definition.label}</h2>
-              <p className="text-xs text-gray-500">{definition.description}</p>
+              <h2 className="card-title font-bold text-base">{definition.label}</h2>
+              <p className="text-gray-500 text-xs">{definition.description}</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
         </div>
 
         {expanded && (
-          <div className="mt-4 pt-4 border-t border-base-300 space-y-3">
-            <h3 className="text-sm font-semibold">Configuration</h3>
+          <div className="mt-4 space-y-3 border-base-300 border-t pt-4">
+            <h3 className="font-semibold text-sm">Configuration</h3>
             {Object.entries(config).map(([key, value]) => (
               <div key={key} className="form-control w-full">
                 <label className="label pb-1">
-                  <span className="label-text text-xs font-medium">{key}</span>
+                  <span className="label-text font-medium text-xs">{key}</span>
                 </label>
                 {renderInput(key, typeof value, value, handleConfigChange)}
               </div>
@@ -124,7 +124,7 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
           position={Position.Right}
           id={output.name}
           style={{ top: `${(index + 1) * 25}%` }}
-          className="w-3 h-3 !bg-green-500"
+          className="!bg-green-500 h-3 w-3"
         />
       ))}
     </div>

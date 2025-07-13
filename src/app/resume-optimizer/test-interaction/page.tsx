@@ -221,7 +221,7 @@ JavaScript, React, Node.js`);
       newContent = currentContent.replace(suggestion.beforeText, suggestion.afterText);
     } else {
       // Append the suggestion
-      newContent = currentContent + '\n\n[Applied]: ' + suggestion.suggestion;
+      newContent = `${currentContent}\n\n[Applied]: ${suggestion.suggestion}`;
     }
 
     setCurrentContent(newContent);
@@ -264,19 +264,19 @@ JavaScript, React, Node.js`);
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200 sticky top-0 z-40 backdrop-blur-sm bg-white/95">
+      <div className="sticky top-0 z-40 border-slate-200 border-b bg-white bg-white/95 backdrop-blur-sm">
         <div className="container mx-auto max-w-7xl px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link
                 href="/resume-optimizer"
-                className="group flex items-center space-x-2 text-slate-600 hover:text-slate-900 transition-colors duration-200"
+                className="group flex items-center space-x-2 text-slate-600 transition-colors duration-200 hover:text-slate-900"
               >
-                <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
+                <ArrowLeftIcon className="group-hover:-translate-x-1 h-5 w-5 transition-transform duration-200" />
                 <span className="font-medium">Back to Optimizer</span>
               </Link>
-              <div className="h-6 w-px bg-slate-300"></div>
-              <h1 className="text-2xl font-bold text-slate-900">Editor Interaction Test</h1>
+              <div className="h-6 w-px bg-slate-300" />
+              <h1 className="font-bold text-2xl text-slate-900">Editor Interaction Test</h1>
             </div>
 
             <div className="badge badge-info">Test Environment</div>
@@ -286,11 +286,11 @@ JavaScript, React, Node.js`);
 
       {/* Instructions */}
       <div className="container mx-auto max-w-7xl px-6 py-6">
-        <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-          <h2 className="text-lg font-semibold text-blue-900 mb-3">Test Instructions</h2>
-          <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-800">
+        <div className="mb-8 rounded-xl border border-blue-200 bg-blue-50 p-6">
+          <h2 className="mb-3 font-semibold text-blue-900 text-lg">Test Instructions</h2>
+          <div className="grid gap-4 text-blue-800 text-sm md:grid-cols-2">
             <div>
-              <h3 className="font-medium mb-2">Features to Test:</h3>
+              <h3 className="mb-2 font-medium">Features to Test:</h3>
               <ul className="space-y-1">
                 <li>• Click "Adopt" to mark suggestions as adopted</li>
                 <li>• Click "Apply to Editor" to modify resume content</li>
@@ -300,7 +300,7 @@ JavaScript, React, Node.js`);
               </ul>
             </div>
             <div>
-              <h3 className="font-medium mb-2">Expected Behavior:</h3>
+              <h3 className="mb-2 font-medium">Expected Behavior:</h3>
               <ul className="space-y-1">
                 <li>• Toast notifications for all actions</li>
                 <li>• Real-time content updates in editor</li>

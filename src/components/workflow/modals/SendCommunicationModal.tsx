@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Node } from 'reactflow';
+import type React from 'react';
+import { useState } from 'react';
+import type { Node } from 'reactflow';
 
 interface SendCommunicationModalProps {
   node: Node;
@@ -31,7 +32,7 @@ const SendCommunicationModal: React.FC<SendCommunicationModalProps> = ({
             placeholder="Hi {candidate_name}, ..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-          ></textarea>
+          />
         </div>
         <div className="modal-action">
           <button className="btn" onClick={onCancel}>

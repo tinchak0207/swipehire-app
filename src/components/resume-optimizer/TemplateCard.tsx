@@ -19,7 +19,6 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, isSelected, onSel
         return 'badge-info';
       case 'education':
         return 'badge-secondary';
-      case 'general':
       default:
         return 'badge-neutral';
     }
@@ -27,21 +26,21 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, isSelected, onSel
 
   return (
     <div
-      className={`card bg-white shadow-lg cursor-pointer transition-all duration-200 hover:shadow-xl ${
+      className={`card cursor-pointer bg-white shadow-lg transition-all duration-200 hover:shadow-xl ${
         isSelected ? 'ring-2 ring-primary' : ''
       }`}
       onClick={() => onSelect(template)}
     >
       <div className="card-body">
-        <div className="flex items-start justify-between mb-2">
-          <DocumentTextIcon className="w-8 h-8 text-gray-400" />
-          {isSelected && <CheckCircleIcon className="w-6 h-6 text-primary" />}
+        <div className="mb-2 flex items-start justify-between">
+          <DocumentTextIcon className="h-8 w-8 text-gray-400" />
+          {isSelected && <CheckCircleIcon className="h-6 w-6 text-primary" />}
         </div>
 
         <h3 className="card-title text-lg">{template.name}</h3>
-        <p className="text-gray-600 text-sm mb-3">{template.description}</p>
+        <p className="mb-3 text-gray-600 text-sm">{template.description}</p>
 
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <span className={`badge ${getCategoryColor(template.category)} badge-sm`}>
             {template.category}
           </span>
@@ -51,7 +50,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, isSelected, onSel
         </div>
 
         {template.tags && template.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-2">
+          <div className="mt-2 flex flex-wrap gap-1">
             {template.tags.slice(0, 3).map((tag, index) => (
               <span key={index} className="badge badge-outline badge-xs">
                 {tag}

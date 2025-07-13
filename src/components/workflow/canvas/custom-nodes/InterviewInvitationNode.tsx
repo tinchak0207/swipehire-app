@@ -1,14 +1,15 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo } from 'react';
-import { NodeProps } from 'reactflow';
+import type React from 'react';
+import { memo } from 'react';
+import type { NodeProps } from 'reactflow';
 
 const InterviewInvitationNode: React.FC<NodeProps> = ({}) => {
   return (
-    <div className="card w-72 bg-base-100 shadow-md border border-gray-200">
+    <div className="card w-72 border border-gray-200 bg-base-100 shadow-md">
       <div className="card-body p-4">
         <div className="flex items-center space-x-4">
           <div className="avatar">
-            <div className="w-12 h-12 rounded-full bg-success flex items-center justify-center">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-6 w-6 text-success-content"
@@ -26,13 +27,13 @@ const InterviewInvitationNode: React.FC<NodeProps> = ({}) => {
             </div>
           </div>
           <div>
-            <h2 className="card-title text-base font-semibold">Interview Invitation</h2>
-            <p className="text-xs text-gray-500">Sends an interview invitation.</p>
+            <h2 className="card-title font-semibold text-base">Interview Invitation</h2>
+            <p className="text-gray-500 text-xs">Sends an interview invitation.</p>
           </div>
         </div>
       </div>
-      <Handle type="target" position={Position.Left} className="w-4 h-4 !bg-success" />
-      <Handle type="source" position={Position.Right} className="w-4 h-4 !bg-success" />
+      <Handle type="target" position={Position.Left} className="!bg-success h-4 w-4" />
+      <Handle type="source" position={Position.Right} className="!bg-success h-4 w-4" />
     </div>
   );
 };

@@ -44,35 +44,35 @@ const ResumeOptimizerPage: NextPage = () => {
       <div className="container mx-auto max-w-6xl px-4 py-8">
         {/* Header Section */}
         <div
-          className={`text-center mb-12 transition-all duration-1000 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          className={`mb-12 text-center transition-all duration-1000 ${
+            isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
           }`}
         >
-          <div className="flex items-center justify-center mb-4">
-            <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-3 rounded-full">
-              <DocumentArrowUpIcon className="w-8 h-8 text-white" />
+          <div className="mb-4 flex items-center justify-center">
+            <div className="rounded-full bg-gradient-to-r from-purple-600 to-blue-600 p-3">
+              <DocumentArrowUpIcon className="h-8 w-8 text-white" />
             </div>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Resume Optimizer</h1>
-          <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-6">
+          <h1 className="mb-4 font-bold text-4xl text-gray-800 md:text-5xl">Resume Optimizer</h1>
+          <p className="mx-auto mb-6 max-w-3xl text-gray-600 text-lg">
             Transform your resume with AI-powered analysis, ATS compatibility checks, and
             personalized suggestions. Increase your chances of landing interviews with data-driven
             optimization.
           </p>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mb-8">
+          <div className="mx-auto mb-8 grid max-w-4xl grid-cols-2 gap-4 md:grid-cols-4">
             {quickStats.map((stat, index) => (
               <div
                 key={stat.label}
-                className={`bg-white/70 backdrop-blur-sm rounded-lg p-4 transition-all duration-700 ${
-                  isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                className={`rounded-lg bg-white/70 p-4 backdrop-blur-sm transition-all duration-700 ${
+                  isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
                 }`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
-                <div className="text-2xl mb-1">{stat.icon}</div>
-                <div className="text-xl font-bold text-gray-800">{stat.value}</div>
-                <div className="text-xs text-gray-600">{stat.label}</div>
+                <div className="mb-1 text-2xl">{stat.icon}</div>
+                <div className="font-bold text-gray-800 text-xl">{stat.value}</div>
+                <div className="text-gray-600 text-xs">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -80,8 +80,8 @@ const ResumeOptimizerPage: NextPage = () => {
 
         {/* Main Options Grid */}
         <div
-          className={`grid md:grid-cols-3 gap-6 mb-12 transition-all duration-1000 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`mb-12 grid gap-6 transition-all duration-1000 md:grid-cols-3 ${
+            isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}
           style={{ transitionDelay: '400ms' }}
         >
@@ -91,26 +91,26 @@ const ResumeOptimizerPage: NextPage = () => {
             className="group"
             aria-label="Upload existing resume"
           >
-            <div className="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-2 border-transparent hover:border-blue-200">
-              <div className="card-body text-center p-8">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-blue-100 rounded-full group-hover:bg-blue-200 transition-colors">
-                    <DocumentArrowUpIcon className="w-8 h-8 text-blue-600" />
+            <div className="card border-2 border-transparent bg-white shadow-lg transition-all duration-300 hover:border-blue-200 hover:shadow-xl group-hover:scale-105">
+              <div className="card-body p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="rounded-full bg-blue-100 p-4 transition-colors group-hover:bg-blue-200">
+                    <DocumentArrowUpIcon className="h-8 w-8 text-blue-600" />
                   </div>
                 </div>
-                <h2 className="card-title text-xl mb-3 justify-center">Upload Resume</h2>
-                <p className="text-gray-600 mb-4">
+                <h2 className="card-title mb-3 justify-center text-xl">Upload Resume</h2>
+                <p className="mb-4 text-gray-600">
                   Upload your existing resume in PDF or DOCX format for instant AI-powered analysis
                 </p>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <ClockIcon className="w-4 h-4 mr-1" />
+                <div className="mb-4 flex items-center justify-center">
+                  <div className="flex items-center text-gray-500 text-sm">
+                    <ClockIcon className="mr-1 h-4 w-4" />
                     <span>~2 minutes</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-center text-blue-600 font-medium">
+                <div className="flex items-center justify-center font-medium text-blue-600">
                   Get Started
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             </div>
@@ -122,26 +122,26 @@ const ResumeOptimizerPage: NextPage = () => {
             className="group"
             aria-label="Import from SwipeHire profile"
           >
-            <div className="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-2 border-transparent hover:border-green-200">
-              <div className="card-body text-center p-8">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-green-100 rounded-full group-hover:bg-green-200 transition-colors">
-                    <UserIcon className="w-8 h-8 text-green-600" />
+            <div className="card border-2 border-transparent bg-white shadow-lg transition-all duration-300 hover:border-green-200 hover:shadow-xl group-hover:scale-105">
+              <div className="card-body p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="rounded-full bg-green-100 p-4 transition-colors group-hover:bg-green-200">
+                    <UserIcon className="h-8 w-8 text-green-600" />
                   </div>
                 </div>
-                <h2 className="card-title text-xl mb-3 justify-center">Import from Profile</h2>
-                <p className="text-gray-600 mb-4">
+                <h2 className="card-title mb-3 justify-center text-xl">Import from Profile</h2>
+                <p className="mb-4 text-gray-600">
                   Use your existing SwipeHire profile data to create an optimized resume instantly
                 </p>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <CheckCircleIcon className="w-4 h-4 mr-1" />
+                <div className="mb-4 flex items-center justify-center">
+                  <div className="flex items-center text-gray-500 text-sm">
+                    <CheckCircleIcon className="mr-1 h-4 w-4" />
                     <span>Pre-filled data</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-center text-green-600 font-medium">
+                <div className="flex items-center justify-center font-medium text-green-600">
                   Import Now
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             </div>
@@ -153,26 +153,26 @@ const ResumeOptimizerPage: NextPage = () => {
             className="group"
             aria-label="Create resume from professional templates"
           >
-            <div className="card bg-white shadow-lg hover:shadow-xl transition-all duration-300 group-hover:scale-105 border-2 border-transparent hover:border-purple-200">
-              <div className="card-body text-center p-8">
-                <div className="flex justify-center mb-4">
-                  <div className="p-4 bg-purple-100 rounded-full group-hover:bg-purple-200 transition-colors">
-                    <PlusIcon className="w-8 h-8 text-purple-600" />
+            <div className="card border-2 border-transparent bg-white shadow-lg transition-all duration-300 hover:border-purple-200 hover:shadow-xl group-hover:scale-105">
+              <div className="card-body p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="rounded-full bg-purple-100 p-4 transition-colors group-hover:bg-purple-200">
+                    <PlusIcon className="h-8 w-8 text-purple-600" />
                   </div>
                 </div>
-                <h2 className="card-title text-xl mb-3 justify-center">Create from Scratch</h2>
-                <p className="text-gray-600 mb-4">
+                <h2 className="card-title mb-3 justify-center text-xl">Create from Scratch</h2>
+                <p className="mb-4 text-gray-600">
                   Start with professional templates and build your resume from the ground up
                 </p>
-                <div className="flex items-center justify-center mb-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <StarIcon className="w-4 h-4 mr-1" />
+                <div className="mb-4 flex items-center justify-center">
+                  <div className="flex items-center text-gray-500 text-sm">
+                    <StarIcon className="mr-1 h-4 w-4" />
                     <span>6 templates</span>
                   </div>
                 </div>
-                <div className="flex items-center justify-center text-purple-600 font-medium">
+                <div className="flex items-center justify-center font-medium text-purple-600">
                   Start Building
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>
             </div>
@@ -181,48 +181,48 @@ const ResumeOptimizerPage: NextPage = () => {
 
         {/* Features Section */}
         <div
-          className={`bg-white rounded-lg shadow-lg p-8 mb-12 transition-all duration-1000 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`mb-12 rounded-lg bg-white p-8 shadow-lg transition-all duration-1000 ${
+            isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}
           style={{ transitionDelay: '600ms' }}
         >
-          <h3 className="text-2xl font-bold text-center mb-6 text-gray-800">
+          <h3 className="mb-6 text-center font-bold text-2xl text-gray-800">
             Comprehensive Resume Analysis
           </h3>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="text-center group">
-              <div className="bg-blue-50 p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            <div className="group text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-blue-50 p-3 transition-colors group-hover:bg-blue-100">
                 <span className="text-2xl">📊</span>
               </div>
-              <h4 className="font-semibold mb-2">ATS Compatibility</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="mb-2 font-semibold">ATS Compatibility</h4>
+              <p className="text-gray-600 text-sm">
                 Get detailed ATS compatibility scores and formatting recommendations
               </p>
             </div>
-            <div className="text-center group">
-              <div className="bg-green-50 p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+            <div className="group text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-green-50 p-3 transition-colors group-hover:bg-green-100">
                 <span className="text-2xl">🎯</span>
               </div>
-              <h4 className="font-semibold mb-2">Keyword Optimization</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="mb-2 font-semibold">Keyword Optimization</h4>
+              <p className="text-gray-600 text-sm">
                 Match job requirements with intelligent keyword suggestions and placement
               </p>
             </div>
-            <div className="text-center group">
-              <div className="bg-purple-50 p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+            <div className="group text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-purple-50 p-3 transition-colors group-hover:bg-purple-100">
                 <span className="text-2xl">✏️</span>
               </div>
-              <h4 className="font-semibold mb-2">Real-time Editor</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="mb-2 font-semibold">Real-time Editor</h4>
+              <p className="text-gray-600 text-sm">
                 Edit and reanalyze your resume instantly with live feedback
               </p>
             </div>
-            <div className="text-center group">
-              <div className="bg-orange-50 p-3 rounded-full w-16 h-16 mx-auto mb-3 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+            <div className="group text-center">
+              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-orange-50 p-3 transition-colors group-hover:bg-orange-100">
                 <span className="text-2xl">📥</span>
               </div>
-              <h4 className="font-semibold mb-2">Export Options</h4>
-              <p className="text-sm text-gray-600">
+              <h4 className="mb-2 font-semibold">Export Options</h4>
+              <p className="text-gray-600 text-sm">
                 Download optimized resume in multiple formats (PDF, DOCX)
               </p>
             </div>
@@ -231,80 +231,80 @@ const ResumeOptimizerPage: NextPage = () => {
 
         {/* Additional Features */}
         <div
-          className={`grid md:grid-cols-2 gap-8 transition-all duration-1000 ${
-            isLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          className={`grid gap-8 transition-all duration-1000 md:grid-cols-2 ${
+            isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}
           style={{ transitionDelay: '800ms' }}
         >
           {/* How It Works */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">How It Works</h3>
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 font-bold text-gray-800 text-xl">How It Works</h3>
             <div className="space-y-4">
               <div className="flex items-start">
-                <div className="bg-blue-100 rounded-full p-2 mr-3 mt-1">
-                  <span className="text-sm font-bold text-blue-600">1</span>
+                <div className="mt-1 mr-3 rounded-full bg-blue-100 p-2">
+                  <span className="font-bold text-blue-600 text-sm">1</span>
                 </div>
                 <div>
                   <h4 className="font-semibold">Choose Your Method</h4>
-                  <p className="text-sm text-gray-600">Upload, import, or create from templates</p>
+                  <p className="text-gray-600 text-sm">Upload, import, or create from templates</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="bg-green-100 rounded-full p-2 mr-3 mt-1">
-                  <span className="text-sm font-bold text-green-600">2</span>
+                <div className="mt-1 mr-3 rounded-full bg-green-100 p-2">
+                  <span className="font-bold text-green-600 text-sm">2</span>
                 </div>
                 <div>
                   <h4 className="font-semibold">Add Target Job</h4>
-                  <p className="text-sm text-gray-600">Specify job title and relevant keywords</p>
+                  <p className="text-gray-600 text-sm">Specify job title and relevant keywords</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="bg-purple-100 rounded-full p-2 mr-3 mt-1">
-                  <span className="text-sm font-bold text-purple-600">3</span>
+                <div className="mt-1 mr-3 rounded-full bg-purple-100 p-2">
+                  <span className="font-bold text-purple-600 text-sm">3</span>
                 </div>
                 <div>
                   <h4 className="font-semibold">Get AI Analysis</h4>
-                  <p className="text-sm text-gray-600">Receive detailed optimization report</p>
+                  <p className="text-gray-600 text-sm">Receive detailed optimization report</p>
                 </div>
               </div>
               <div className="flex items-start">
-                <div className="bg-orange-100 rounded-full p-2 mr-3 mt-1">
-                  <span className="text-sm font-bold text-orange-600">4</span>
+                <div className="mt-1 mr-3 rounded-full bg-orange-100 p-2">
+                  <span className="font-bold text-orange-600 text-sm">4</span>
                 </div>
                 <div>
                   <h4 className="font-semibold">Optimize & Download</h4>
-                  <p className="text-sm text-gray-600">Apply suggestions and export final resume</p>
+                  <p className="text-gray-600 text-sm">Apply suggestions and export final resume</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Key Benefits */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-xl font-bold mb-4 text-gray-800">Key Benefits</h3>
+          <div className="rounded-lg bg-white p-6 shadow-lg">
+            <h3 className="mb-4 font-bold text-gray-800 text-xl">Key Benefits</h3>
             <div className="space-y-3">
               <div className="flex items-center">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+                <CheckCircleIcon className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-sm">Increase interview callback rates</span>
               </div>
               <div className="flex items-center">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+                <CheckCircleIcon className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-sm">Pass ATS screening systems</span>
               </div>
               <div className="flex items-center">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+                <CheckCircleIcon className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-sm">Highlight relevant skills and experience</span>
               </div>
               <div className="flex items-center">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+                <CheckCircleIcon className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-sm">Professional formatting and layout</span>
               </div>
               <div className="flex items-center">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+                <CheckCircleIcon className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-sm">Industry-specific recommendations</span>
               </div>
               <div className="flex items-center">
-                <CheckCircleIcon className="w-5 h-5 text-green-600 mr-3" />
+                <CheckCircleIcon className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-sm">Grammar and spelling optimization</span>
               </div>
             </div>

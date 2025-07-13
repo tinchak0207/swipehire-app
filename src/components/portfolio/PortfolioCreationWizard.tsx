@@ -12,12 +12,13 @@ import {
   Target,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useCreatePortfolio } from '@/hooks/usePortfolio';
-import { PortfolioDraft } from '@/lib/types/portfolio';
+import type { PortfolioDraft } from '@/lib/types/portfolio';
 import BasicInfoStep from './wizard-steps/BasicInfoStep';
 import ProjectsStep from './wizard-steps/ProjectsStep';
 import ReviewStep from './wizard-steps/ReviewStep';
@@ -163,7 +164,7 @@ const PortfolioCreationWizard: React.FC = () => {
     } else {
       setCurrentStepIndex((prev) => prev + 1);
     }
-  }, [currentStep.key, form, isLastStep]);
+  }, [currentStep.key, form, isLastStep, handleSubmit]);
 
   const goToPreviousStep = useCallback(() => {
     if (!isFirstStep) {
@@ -198,7 +199,7 @@ const PortfolioCreationWizard: React.FC = () => {
       setTimeout(() => {
         router.push(`/portfolio/edit/${result.id}`);
       }, 3000);
-    } catch (error) {
+    } catch (_error) {
       toast({
         title: 'Error',
         description: 'Failed to create portfolio. Please try again.',
@@ -234,22 +235,22 @@ const PortfolioCreationWizard: React.FC = () => {
 
   return (
     <div
-      className={`min-h-screen relative overflow-hidden bg-gradient-to-br ${currentStep.gradient} transition-all duration-1000 ease-in-out`}
+      className={`relative min-h-screen overflow-hidden bg-gradient-to-br ${currentStep.gradient} transition-all duration-1000 ease-in-out`}
     >
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl animate-pulse delay-500" />
+        <div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-white/10 blur-3xl" />
+        <div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-white/10 blur-3xl delay-1000" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-96 w-96 transform animate-pulse rounded-full bg-white/5 blur-3xl delay-500" />
       </div>
 
       {/* Progress indicator */}
-      <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-6 py-3 border border-white/20">
+      <div className="-translate-x-1/2 absolute top-8 left-1/2 z-20 transform">
+        <div className="flex items-center space-x-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 backdrop-blur-sm">
           {steps.map((step, index) => (
             <div
               key={step.key}
-              className={`w-3 h-3 rounded-full transition-all duration-300 ${
+              className={`h-3 w-3 rounded-full transition-all duration-300 ${
                 index <= currentStepIndex ? 'bg-white shadow-lg' : 'bg-white/30'
               }`}
             />
@@ -258,7 +259,7 @@ const PortfolioCreationWizard: React.FC = () => {
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-4xl">
           {/* Step header */}
           <motion.div
@@ -267,15 +268,15 @@ const PortfolioCreationWizard: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className="text-center mb-12"
+            className="mb-12 text-center"
           >
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 mb-6">
-              <currentStep.icon className="w-8 h-8 text-white" />
+            <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/20 backdrop-blur-sm">
+              <currentStep.icon className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-5xl md:text-6xl font-extrabold text-white mb-6 font-montserrat tracking-tight">
+            <h1 className="mb-6 font-extrabold font-montserrat text-5xl text-white tracking-tight md:text-6xl">
               {currentStep.title}
             </h1>
-            <p className="text-xl md:text-2xl font-medium text-white/95 max-w-2xl mx-auto leading-relaxed">
+            <p className="mx-auto max-w-2xl font-medium text-white/95 text-xl leading-relaxed md:text-2xl">
               {currentStep.subtitle}
             </p>
           </motion.div>
@@ -288,7 +289,7 @@ const PortfolioCreationWizard: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.5 }}
-              className="bg-white/10 backdrop-blur-sm rounded-3xl border border-white/20 shadow-3xl p-8 md:p-12"
+              className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-3xl backdrop-blur-sm md:p-12"
             >
               <StepComponent
                 form={form}
@@ -306,34 +307,34 @@ const PortfolioCreationWizard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.5 }}
-            className="flex justify-between items-center mt-8"
+            className="mt-8 flex items-center justify-between"
           >
             <button
               onClick={goToPreviousStep}
               disabled={isFirstStep}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-full transition-all duration-200 ${
+              className={`flex items-center space-x-2 rounded-full px-6 py-3 transition-all duration-200 ${
                 isFirstStep
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'bg-white/20 backdrop-blur-sm border border-white/30 text-white hover:bg-white/30 hover:scale-105'
+                  ? 'cursor-not-allowed opacity-50'
+                  : 'border border-white/30 bg-white/20 text-white backdrop-blur-sm hover:scale-105 hover:bg-white/30'
               }`}
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="h-5 w-5" />
               <span>Back</span>
             </button>
 
-            <div className="text-white/60 text-sm">
+            <div className="text-sm text-white/60">
               Step {currentStepIndex + 1} of {steps.length}
             </div>
 
             <button
               onClick={goToNextStep}
               disabled={isSubmitting}
-              className="focus:outline-none focus:ring-4 focus:ring-white/30 flex items-center space-x-2 px-8 py-3.5 bg-gradient-to-r from-yellow-400 to-yellow-500 text-gray-900 rounded-full font-bold transition-all duration-200 hover:scale-105 hover:shadow-xl hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center space-x-2 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-3.5 font-bold text-gray-900 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <span>
                 {isSubmitting ? 'Creating...' : isLastStep ? 'Create Portfolio' : 'Continue'}
               </span>
-              {!isSubmitting && <ArrowRight className="w-5 h-5" />}
+              {!isSubmitting && <ArrowRight className="h-5 w-5" />}
             </button>
           </motion.div>
 
@@ -342,10 +343,10 @@ const PortfolioCreationWizard: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
-            className="text-center mt-8 text-white/50 text-sm"
+            className="mt-8 text-center text-sm text-white/50"
           >
-            Press <kbd className="px-2 py-1 bg-white/20 rounded text-xs">Ctrl+Enter</kbd> to
-            continue, <kbd className="px-2 py-1 bg-white/20 rounded text-xs">Esc</kbd> to go back
+            Press <kbd className="rounded bg-white/20 px-2 py-1 text-xs">Ctrl+Enter</kbd> to
+            continue, <kbd className="rounded bg-white/20 px-2 py-1 text-xs">Esc</kbd> to go back
           </motion.div>
         </div>
       </div>

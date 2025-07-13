@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCloud, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface KeyValuePair {
   key: string;
@@ -38,27 +39,27 @@ const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data }) => 
   };
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-error-focus">
+    <div className="card w-96 border-2 border-error-focus bg-base-100 shadow-xl">
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className="w-4 h-4 !bg-error-focus"
+        className="!bg-error-focus h-4 w-4"
       />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-error text-error-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-error text-error-content">
                 <FiCloud className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">External API Call</h2>
-              <p className="text-sm text-gray-500">Integrate with any service</p>
+              <h2 className="card-title font-bold text-lg">External API Call</h2>
+              <p className="text-gray-500 text-sm">Integrate with any service</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -66,7 +67,7 @@ const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data }) => 
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Sends an HTTP request to a specified URL. Use data from previous nodes with template
               values like {'{{variableName}}'}
             </p>
@@ -140,14 +141,14 @@ const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data }) => 
                 <textarea
                   className="textarea textarea-bordered h-24 font-mono text-xs"
                   placeholder='{ "key": "value", "itemId": "{{input.id}}" }'
-                ></textarea>
+                />
               </div>
             )}
 
-            <div className="alert alert-error text-xs mt-2">
+            <div className="alert alert-error mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -167,7 +168,7 @@ const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data }) => 
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-error-focus"
+        className="!bg-error-focus h-4 w-4"
       />
     </div>
   );

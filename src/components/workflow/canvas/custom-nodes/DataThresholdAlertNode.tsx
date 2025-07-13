@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
+import type React from 'react';
+import { memo } from 'react';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 const DataThresholdAlertNode: React.FC<NodeProps> = ({ data }) => {
   return (
@@ -8,7 +9,7 @@ const DataThresholdAlertNode: React.FC<NodeProps> = ({ data }) => {
         <h2 className="card-title">Data Threshold Alert</h2>
         <p>{data.condition || 'When...'}</p>
       </div>
-      <Handle type="source" position={Position.Right} className="w-4 h-4" />
+      <Handle type="source" position={Position.Right} className="h-4 w-4" />
     </div>
   );
 };

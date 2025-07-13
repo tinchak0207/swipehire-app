@@ -61,28 +61,28 @@ const validateFormData = (data: TargetJobFormData): ValidationResult => {
 
   // Validate job title
   if (!data.title.trim()) {
-    errors['title'] = 'Job title is required';
+    errors.title = 'Job title is required';
   } else if (data.title.trim().length < 2) {
-    errors['title'] = 'Job title must be at least 2 characters long';
+    errors.title = 'Job title must be at least 2 characters long';
   } else if (data.title.trim().length > 100) {
-    errors['title'] = 'Job title must be less than 100 characters';
+    errors.title = 'Job title must be less than 100 characters';
   }
 
   // Validate keywords (optional but if provided, should be meaningful)
   if (data.keywords.trim() && data.keywords.trim().length < 3) {
-    errors['keywords'] = 'Keywords must be at least 3 characters long';
+    errors.keywords = 'Keywords must be at least 3 characters long';
   } else if (data.keywords.length > 500) {
-    errors['keywords'] = 'Keywords must be less than 500 characters';
+    errors.keywords = 'Keywords must be less than 500 characters';
   }
 
   // Validate company (optional)
   if (data.company && data.company.trim().length > 100) {
-    errors['company'] = 'Company name must be less than 100 characters';
+    errors.company = 'Company name must be less than 100 characters';
   }
 
   // Validate description (optional)
   if (data.description && data.description.trim().length > 1000) {
-    errors['description'] = 'Description must be less than 1000 characters';
+    errors.description = 'Description must be less than 1000 characters';
   }
 
   return {
@@ -219,8 +219,8 @@ export default function TargetJobInputForm({
         {/* Job Title Field */}
         <div className="form-control">
           <label htmlFor="target-job-title" className="label">
-            <span className="label-text font-semibold text-base flex items-center gap-2">
-              <BriefcaseIcon className="w-5 h-5 text-primary" />
+            <span className="label-text flex items-center gap-2 font-semibold text-base">
+              <BriefcaseIcon className="h-5 w-5 text-primary" />
               Target Job Title
               <span className="text-error">*</span>
             </span>
@@ -235,7 +235,7 @@ export default function TargetJobInputForm({
               onFocus={() => handleFocus('title')}
               onBlur={handleBlur}
               className={`input input-bordered w-full pr-10 transition-all duration-200 ${
-                validation.errors['title']
+                validation.errors.title
                   ? 'input-error border-error focus:border-error'
                   : focusedField === 'title'
                     ? 'input-primary border-primary'
@@ -244,31 +244,31 @@ export default function TargetJobInputForm({
               disabled={isLoading}
               required
               maxLength={100}
-              aria-describedby={validation.errors['title'] ? 'title-error' : undefined}
+              aria-describedby={validation.errors.title ? 'title-error' : undefined}
             />
             {/* Status Icon */}
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              {validation.errors['title'] ? (
-                <ExclamationCircleIcon className="w-5 h-5 text-error" />
+              {validation.errors.title ? (
+                <ExclamationCircleIcon className="h-5 w-5 text-error" />
               ) : formData.title.trim() ? (
-                <CheckCircleIcon className="w-5 h-5 text-success" />
+                <CheckCircleIcon className="h-5 w-5 text-success" />
               ) : null}
             </div>
           </div>
           {/* Error Message */}
-          {validation.errors['title'] && (
+          {validation.errors.title && (
             <div className="label">
-              <span id="title-error" className="label-text-alt text-error flex items-center gap-1">
-                <ExclamationCircleIcon className="w-4 h-4" />
-                {validation.errors['title']}
+              <span id="title-error" className="label-text-alt flex items-center gap-1 text-error">
+                <ExclamationCircleIcon className="h-4 w-4" />
+                {validation.errors.title}
               </span>
             </div>
           )}
           {/* Help Text */}
-          {!validation.errors['title'] && focusedField === 'title' && (
+          {!validation.errors.title && focusedField === 'title' && (
             <div className="label">
-              <span className="label-text-alt text-base-content/60 flex items-center gap-1">
-                <InformationCircleIcon className="w-4 h-4" />
+              <span className="label-text-alt flex items-center gap-1 text-base-content/60">
+                <InformationCircleIcon className="h-4 w-4" />
                 Enter the exact job title you're targeting for better optimization
               </span>
             </div>
@@ -278,8 +278,8 @@ export default function TargetJobInputForm({
         {/* Keywords Field */}
         <div className="form-control">
           <label htmlFor="target-job-keywords" className="label">
-            <span className="label-text font-semibold text-base flex items-center gap-2">
-              <TagIcon className="w-5 h-5 text-secondary" />
+            <span className="label-text flex items-center gap-2 font-semibold text-base">
+              <TagIcon className="h-5 w-5 text-secondary" />
               Key Skills & Keywords
             </span>
           </label>
@@ -291,8 +291,8 @@ export default function TargetJobInputForm({
               onChange={(e) => handleInputChange('keywords', e.target.value)}
               onFocus={() => handleFocus('keywords')}
               onBlur={handleBlur}
-              className={`textarea textarea-bordered w-full h-24 resize-none transition-all duration-200 ${
-                validation.errors['keywords']
+              className={`textarea textarea-bordered h-24 w-full resize-none transition-all duration-200 ${
+                validation.errors.keywords
                   ? 'textarea-error border-error focus:border-error'
                   : focusedField === 'keywords'
                     ? 'textarea-secondary border-secondary'
@@ -300,7 +300,7 @@ export default function TargetJobInputForm({
               }`}
               disabled={isLoading}
               maxLength={500}
-              aria-describedby={validation.errors['keywords'] ? 'keywords-error' : undefined}
+              aria-describedby={validation.errors.keywords ? 'keywords-error' : undefined}
             />
           </div>
 
@@ -323,23 +323,23 @@ export default function TargetJobInputForm({
           )}
 
           {/* Error Message */}
-          {validation.errors['keywords'] && (
+          {validation.errors.keywords && (
             <div className="label">
               <span
                 id="keywords-error"
-                className="label-text-alt text-error flex items-center gap-1"
+                className="label-text-alt flex items-center gap-1 text-error"
               >
-                <ExclamationCircleIcon className="w-4 h-4" />
-                {validation.errors['keywords']}
+                <ExclamationCircleIcon className="h-4 w-4" />
+                {validation.errors.keywords}
               </span>
             </div>
           )}
 
           {/* Help Text */}
-          {!validation.errors['keywords'] && (
+          {!validation.errors.keywords && (
             <div className="label">
-              <span className="label-text-alt text-base-content/60 flex items-center gap-1">
-                <InformationCircleIcon className="w-4 h-4" />
+              <span className="label-text-alt flex items-center gap-1 text-base-content/60">
+                <InformationCircleIcon className="h-4 w-4" />
                 Separate multiple keywords with commas. Include technical skills, soft skills, and
                 industry terms.
               </span>
@@ -350,8 +350,8 @@ export default function TargetJobInputForm({
         {/* Company Field */}
         <div className="form-control">
           <label htmlFor="target-job-company" className="label">
-            <span className="label-text font-semibold text-base flex items-center gap-2">
-              <BuildingOfficeIcon className="w-5 h-5 text-accent" />
+            <span className="label-text flex items-center gap-2 font-semibold text-base">
+              <BuildingOfficeIcon className="h-5 w-5 text-accent" />
               Target Company (Optional)
             </span>
           </label>
@@ -365,7 +365,7 @@ export default function TargetJobInputForm({
               onFocus={() => handleFocus('company')}
               onBlur={handleBlur}
               className={`input input-bordered w-full pr-10 transition-all duration-200 ${
-                validation.errors['company']
+                validation.errors.company
                   ? 'input-error border-error focus:border-error'
                   : focusedField === 'company'
                     ? 'input-accent border-accent'
@@ -373,34 +373,34 @@ export default function TargetJobInputForm({
               }`}
               disabled={isLoading}
               maxLength={100}
-              aria-describedby={validation.errors['company'] ? 'company-error' : undefined}
+              aria-describedby={validation.errors.company ? 'company-error' : undefined}
             />
             {/* Status Icon */}
             {formData.company?.trim() && (
               <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                <CheckCircleIcon className="w-5 h-5 text-success" />
+                <CheckCircleIcon className="h-5 w-5 text-success" />
               </div>
             )}
           </div>
 
           {/* Error Message */}
-          {validation.errors['company'] && (
+          {validation.errors.company && (
             <div className="label">
               <span
                 id="company-error"
-                className="label-text-alt text-error flex items-center gap-1"
+                className="label-text-alt flex items-center gap-1 text-error"
               >
-                <ExclamationCircleIcon className="w-4 h-4" />
-                {validation.errors['company']}
+                <ExclamationCircleIcon className="h-4 w-4" />
+                {validation.errors.company}
               </span>
             </div>
           )}
 
           {/* Help Text */}
-          {!validation.errors['company'] && focusedField === 'company' && (
+          {!validation.errors.company && focusedField === 'company' && (
             <div className="label">
-              <span className="label-text-alt text-base-content/60 flex items-center gap-1">
-                <InformationCircleIcon className="w-4 h-4" />
+              <span className="label-text-alt flex items-center gap-1 text-base-content/60">
+                <InformationCircleIcon className="h-4 w-4" />
                 Specify a company name or type (e.g., "startup", "enterprise") for targeted
                 optimization
               </span>
@@ -411,8 +411,8 @@ export default function TargetJobInputForm({
         {/* Job Description Field */}
         <div className="form-control">
           <label htmlFor="target-job-description" className="label">
-            <span className="label-text font-semibold text-base flex items-center gap-2">
-              <InformationCircleIcon className="w-5 h-5 text-info" />
+            <span className="label-text flex items-center gap-2 font-semibold text-base">
+              <InformationCircleIcon className="h-5 w-5 text-info" />
               Job Description (Optional)
             </span>
           </label>
@@ -424,8 +424,8 @@ export default function TargetJobInputForm({
               onChange={(e) => handleInputChange('description', e.target.value)}
               onFocus={() => handleFocus('description')}
               onBlur={handleBlur}
-              className={`textarea textarea-bordered w-full h-32 resize-none transition-all duration-200 ${
-                validation.errors['description']
+              className={`textarea textarea-bordered h-32 w-full resize-none transition-all duration-200 ${
+                validation.errors.description
                   ? 'textarea-error border-error focus:border-error'
                   : focusedField === 'description'
                     ? 'textarea-info border-info'
@@ -433,7 +433,7 @@ export default function TargetJobInputForm({
               }`}
               disabled={isLoading}
               maxLength={1000}
-              aria-describedby={validation.errors['description'] ? 'description-error' : undefined}
+              aria-describedby={validation.errors.description ? 'description-error' : undefined}
             />
           </div>
 
@@ -447,23 +447,23 @@ export default function TargetJobInputForm({
           )}
 
           {/* Error Message */}
-          {validation.errors['description'] && (
+          {validation.errors.description && (
             <div className="label">
               <span
                 id="description-error"
-                className="label-text-alt text-error flex items-center gap-1"
+                className="label-text-alt flex items-center gap-1 text-error"
               >
-                <ExclamationCircleIcon className="w-4 h-4" />
-                {validation.errors['description']}
+                <ExclamationCircleIcon className="h-4 w-4" />
+                {validation.errors.description}
               </span>
             </div>
           )}
 
           {/* Help Text */}
-          {!validation.errors['description'] && focusedField === 'description' && (
+          {!validation.errors.description && focusedField === 'description' && (
             <div className="label">
-              <span className="label-text-alt text-base-content/60 flex items-center gap-1">
-                <InformationCircleIcon className="w-4 h-4" />
+              <span className="label-text-alt flex items-center gap-1 text-base-content/60">
+                <InformationCircleIcon className="h-4 w-4" />
                 Including the job description helps our AI provide more targeted optimization
                 suggestions
               </span>
@@ -474,10 +474,10 @@ export default function TargetJobInputForm({
         {/* Form Summary */}
         {(formData.title.trim() || parsedKeywords.length > 0) && (
           <div className="alert alert-info">
-            <InformationCircleIcon className="w-6 h-6" />
+            <InformationCircleIcon className="h-6 w-6" />
             <div>
               <h3 className="font-bold">Target Job Summary</h3>
-              <div className="text-sm mt-1">
+              <div className="mt-1 text-sm">
                 {formData.title.trim() && (
                   <p>
                     <strong>Position:</strong> {formData.title}
@@ -509,13 +509,13 @@ export default function TargetJobInputForm({
             >
               {isLoading ? (
                 <>
-                  <span className="loading loading-spinner loading-sm"></span>
+                  <span className="loading loading-spinner loading-sm" />
                   Processing...
                 </>
               ) : (
                 <>
                   {submitButtonText}
-                  <BriefcaseIcon className="w-5 h-5 ml-2" />
+                  <BriefcaseIcon className="ml-2 h-5 w-5" />
                 </>
               )}
             </button>

@@ -16,10 +16,10 @@ import type { EditorState } from '@/lib/types/resume-optimizer';
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => (
-    <div className="bg-base-200 rounded-lg p-8 animate-pulse">
-      <div className="h-4 bg-base-300 rounded w-3/4 mb-4"></div>
-      <div className="h-4 bg-base-300 rounded w-1/2 mb-4"></div>
-      <div className="h-4 bg-base-300 rounded w-5/6"></div>
+    <div className="animate-pulse rounded-lg bg-base-200 p-8">
+      <div className="mb-4 h-4 w-3/4 rounded bg-base-300" />
+      <div className="mb-4 h-4 w-1/2 rounded bg-base-300" />
+      <div className="h-4 w-5/6 rounded bg-base-300" />
     </div>
   ),
 });
@@ -208,6 +208,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
         onAutoSave,
         autoSaveInterval,
         autoSaveError,
+        handleAutoSave,
       ]
     );
 
@@ -281,17 +282,17 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
     }, []);
 
     return (
-      <div className={`bg-base-100 rounded-xl border border-base-300 shadow-sm ${className}`}>
+      <div className={`rounded-xl border border-base-300 bg-base-100 shadow-sm ${className}`}>
         {/* Editor Header */}
         {showControls && (
-          <div className="flex items-center justify-between p-4 border-b border-base-300">
+          <div className="flex items-center justify-between border-base-300 border-b p-4">
             <div className="flex items-center space-x-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <DocumentTextIcon className="w-5 h-5 text-primary" />
+              <div className="rounded-lg bg-primary/10 p-2">
+                <DocumentTextIcon className="h-5 w-5 text-primary" />
               </div>
               <div>
                 <h3 className="font-semibold text-base-content">Resume Editor</h3>
-                <div className="flex items-center space-x-4 text-sm text-base-content/70">
+                <div className="flex items-center space-x-4 text-base-content/70 text-sm">
                   <span>{controls.wordCount} words</span>
                   <span>•</span>
                   <span>{controls.characterCount} characters</span>
@@ -317,13 +318,13 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
                 <div className="flex items-center space-x-2">
                   {isAutoSaving && (
                     <div className="flex items-center space-x-2 text-info">
-                      <div className="loading loading-spinner loading-xs"></div>
+                      <div className="loading loading-spinner loading-xs" />
                       <span className="text-xs">Saving...</span>
                     </div>
                   )}
                   {autoSaveError && (
                     <div className="tooltip tooltip-left" data-tip={autoSaveError}>
-                      <XMarkIcon className="w-4 h-4 text-error" />
+                      <XMarkIcon className="h-4 w-4 text-error" />
                     </div>
                   )}
                 </div>
@@ -337,7 +338,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
                   className="btn btn-sm btn-primary"
                   aria-label="Save changes"
                 >
-                  <CheckIcon className="w-4 h-4" />
+                  <CheckIcon className="h-4 w-4" />
                   Save
                 </button>
               )}
@@ -349,9 +350,9 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
                 aria-label={controls.isPreviewMode ? 'Exit preview mode' : 'Enter preview mode'}
               >
                 {controls.isPreviewMode ? (
-                  <EyeSlashIcon className="w-4 h-4" />
+                  <EyeSlashIcon className="h-4 w-4" />
                 ) : (
-                  <EyeIcon className="w-4 h-4" />
+                  <EyeIcon className="h-4 w-4" />
                 )}
                 {controls.isPreviewMode ? 'Edit' : 'Preview'}
               </button>
@@ -363,7 +364,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
                 className="btn btn-sm btn-ghost"
                 aria-label="Reset to original content"
               >
-                <ArrowPathIcon className="w-4 h-4" />
+                <ArrowPathIcon className="h-4 w-4" />
                 Reset
               </button>
             </div>
@@ -403,25 +404,25 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
         </div>
         {/* Loading overlay */}
         {isAutoSaving && (
-          <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center">
-            <div className="bg-base-100 rounded-lg p-4 shadow-lg border border-base-300">
+          <div className="absolute inset-0 flex items-center justify-center bg-base-100/50">
+            <div className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-lg">
               <div className="flex items-center space-x-3">
-                <div className="loading loading-spinner loading-sm text-primary"></div>
-                <span className="text-sm font-medium">Saving changes...</span>
+                <div className="loading loading-spinner loading-sm text-primary" />
+                <span className="font-medium text-sm">Saving changes...</span>
               </div>
             </div>
           </div>
         )}
         {/* Editor Footer */}
         {showControls && (
-          <div className="flex items-center justify-between p-3 border-t border-base-300 bg-base-50">
-            <div className="text-xs text-base-content/60">
+          <div className="flex items-center justify-between border-base-300 border-t bg-base-50 p-3">
+            <div className="text-base-content/60 text-xs">
               {readOnly ? 'Read-only mode' : 'Click to edit • Auto-formatting enabled'}
             </div>
 
             {autoSaveError && (
               <div className="alert alert-error alert-sm max-w-xs">
-                <XMarkIcon className="w-4 h-4" />
+                <XMarkIcon className="h-4 w-4" />
                 <span className="text-xs">{autoSaveError}</span>
               </div>
             )}

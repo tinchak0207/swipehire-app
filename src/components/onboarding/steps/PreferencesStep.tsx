@@ -61,7 +61,7 @@ export default function PreferencesStep({
 
       <div className="space-y-8">
         {/* Theme Selection */}
-        <div className="card bg-white/30 backdrop-blur-md border border-white/20 shadow-lg">
+        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md">
           <div className="card-body">
             <h3 className="card-title mb-4 text-xl">Appearance Settings</h3>
             <div className="space-y-4">
@@ -89,7 +89,7 @@ export default function PreferencesStep({
         </div>
 
         {/* Notification Channels */}
-        <div className="card bg-white/30 backdrop-blur-md border border-white/20 shadow-lg">
+        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md">
           <div className="card-body">
             <h3 className="card-title mb-4 text-xl">Notification Channels</h3>
             <div className="space-y-4">
@@ -101,9 +101,7 @@ export default function PreferencesStep({
                     </span>
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 
-                        hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2
-                        transition-colors duration-200 ease-in-out"
+                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-colors duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
                       checked={value}
                       onChange={(e) =>
                         handleNotificationChannelChange(
@@ -120,7 +118,7 @@ export default function PreferencesStep({
         </div>
 
         {/* Notification Subscriptions */}
-        <div className="card bg-white/30 backdrop-blur-md border border-white/20 shadow-lg">
+        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md">
           <div className="card-body">
             <h3 className="card-title mb-4 text-xl">Email Subscriptions</h3>
             <div className="space-y-4">
@@ -132,9 +130,7 @@ export default function PreferencesStep({
                     </span>
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 
-                        hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2
-                        transition-colors duration-200 ease-in-out"
+                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-colors duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
                       checked={value}
                       onChange={(e) =>
                         handleNotificationSubscriptionChange(
@@ -168,7 +164,7 @@ export default function PreferencesStep({
           >
             {isLoading ? (
               <>
-                <span className="loading loading-spinner loading-sm"></span>
+                <span className="loading loading-spinner loading-sm" />
                 Saving...
               </>
             ) : (

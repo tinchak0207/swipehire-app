@@ -1,6 +1,6 @@
 'use client';
 
-import { Node } from 'reactflow';
+import type { Node } from 'reactflow';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;
@@ -10,8 +10,8 @@ interface PropertiesPanelProps {
 export default function PropertiesPanel({ selectedNode, onConfigChange }: PropertiesPanelProps) {
   if (!selectedNode) {
     return (
-      <aside className="p-4 bg-base-200 h-screen overflow-y-auto">
-        <h2 className="text-lg font-bold">Properties</h2>
+      <aside className="h-screen overflow-y-auto bg-base-200 p-4">
+        <h2 className="font-bold text-lg">Properties</h2>
         <p>Select a node to see its properties.</p>
       </aside>
     );
@@ -66,8 +66,8 @@ export default function PropertiesPanel({ selectedNode, onConfigChange }: Proper
   };
 
   return (
-    <aside className="w-96 p-4 bg-base-200 h-screen overflow-y-auto">
-      <h2 className="text-lg font-bold mb-4">{selectedNode.data.definition.label} Properties</h2>
+    <aside className="h-screen w-96 overflow-y-auto bg-base-200 p-4">
+      <h2 className="mb-4 font-bold text-lg">{selectedNode.data.definition.label} Properties</h2>
       {renderConfigForm()}
     </aside>
   );

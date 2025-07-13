@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext } from 'react';
+import type React from 'react';
+import { createContext, useContext } from 'react';
 
 interface RadioGroupContextType {
   value: string;
@@ -50,7 +51,7 @@ export const RadioGroupItem = ({
 
   return (
     <label
-      className={`flex items-center gap-2 cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${className}`}
+      className={`flex cursor-pointer items-center gap-2 ${disabled ? 'cursor-not-allowed opacity-50' : ''} ${className}`}
     >
       <input
         type="radio"

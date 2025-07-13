@@ -24,8 +24,8 @@ const templates = [
 const TemplatesPage = () => {
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Template Marketplace</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <h1 className="mb-4 font-bold text-2xl">Template Marketplace</h1>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {templates.map((template) => (
           <div key={template.id} className="card bg-base-200 shadow-xl">
             <div className="card-body">

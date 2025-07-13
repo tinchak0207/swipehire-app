@@ -36,15 +36,15 @@ export default function ProgressIndicator({
     <div className="w-full">
       {/* Progress Bar */}
       <div className="mb-8">
-        <div className="mb-3 flex justify-between text-gray-700 text-sm font-medium">
+        <div className="mb-3 flex justify-between font-medium text-gray-700 text-sm">
           <span>
             Step {currentStep} of {totalSteps}
           </span>
           <span>{Math.round(progressPercentage)}% Complete</span>
         </div>
-        <div className="h-3 w-full rounded-full bg-white/80 backdrop-blur-sm shadow-inner">
+        <div className="h-3 w-full rounded-full bg-white/80 shadow-inner backdrop-blur-sm">
           <div
-            className={`h-3 rounded-full transition-all duration-700 ease-out shadow-sm ${getCurrentStepGradient()}`}
+            className={`h-3 rounded-full shadow-sm transition-all duration-700 ease-out ${getCurrentStepGradient()}`}
             style={{ width: `${progressPercentage}%` }}
           />
         </div>

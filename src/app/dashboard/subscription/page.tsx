@@ -9,7 +9,7 @@ const SubscriptionPage = async () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Subscription</h1>
+      <h1 className="mb-4 font-bold text-2xl">Subscription</h1>
       <div className="card bg-base-200 shadow-xl">
         <div className="card-body">
           <h2 className="card-title">Current Tier: {subscription.tier}</h2>

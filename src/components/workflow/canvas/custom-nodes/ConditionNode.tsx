@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiGitMerge, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface Condition {
   inputVariable: string;
@@ -48,27 +49,27 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
   };
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-warning-focus">
+    <div className="card w-96 border-2 border-warning-focus bg-base-100 shadow-xl">
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className="w-4 h-4 !bg-warning-focus"
+        className="!bg-warning-focus h-4 w-4"
       />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-warning text-warning-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-warning text-warning-content">
                 <FiGitMerge className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Condition</h2>
-              <p className="text-sm text-gray-500">Route based on logic</p>
+              <h2 className="card-title font-bold text-lg">Condition</h2>
+              <p className="text-gray-500 text-sm">Route based on logic</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -76,14 +77,14 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Directs the workflow down different paths based on one or more conditions.
             </p>
 
             {conditions.map((cond, index) => (
-              <div key={index} className="p-2 border border-base-300 rounded-lg space-y-2">
+              <div key={index} className="space-y-2 rounded-lg border border-base-300 p-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold">Condition {index + 1}</span>
+                  <span className="font-semibold text-xs">Condition {index + 1}</span>
                   <button onClick={() => removeCondition(index)} className="btn btn-xs btn-ghost">
                     <FiTrash2 className="text-error" />
                   </button>
@@ -167,9 +168,9 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
         id="true"
         position={Position.Right}
         style={{ top: '35%' }}
-        className="w-4 h-4 !bg-success-focus"
+        className="!bg-success-focus h-4 w-4"
       >
-        <div className="absolute -left-8 top-1/2 -translate-y-1/2 text-xs bg-success text-success-content px-1 rounded">
+        <div className="-left-8 -translate-y-1/2 absolute top-1/2 rounded bg-success px-1 text-success-content text-xs">
           TRUE
         </div>
       </Handle>
@@ -178,9 +179,9 @@ const ConditionNode: React.FC<NodeProps<ConditionNodeData>> = ({ data }) => {
         id="false"
         position={Position.Right}
         style={{ top: '65%' }}
-        className="w-4 h-4 !bg-error-focus"
+        className="!bg-error-focus h-4 w-4"
       >
-        <div className="absolute -left-8 top-1/2 -translate-y-1/2 text-xs bg-error text-error-content px-1 rounded">
+        <div className="-left-8 -translate-y-1/2 absolute top-1/2 rounded bg-error px-1 text-error-content text-xs">
           FALSE
         </div>
       </Handle>

@@ -65,7 +65,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
   return (
     <div
-      className={`border rounded-lg p-4 transition-all duration-200 ${
+      className={`rounded-lg border p-4 transition-all duration-200 ${
         isAdopted
           ? 'border-green-300 bg-green-50'
           : isIgnored
@@ -73,14 +73,14 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             : 'border-gray-200 hover:border-gray-300'
       }`}
     >
-      <div className="flex items-start justify-between mb-3">
+      <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
           <span className="text-xl" title={suggestion.type}>
             {getTypeIcon(suggestion.type)}
           </span>
           <div>
             <h4 className="font-semibold text-gray-800">{suggestion.title}</h4>
-            <div className="flex items-center gap-2 mt-1">
+            <div className="mt-1 flex items-center gap-2">
               <span className={`badge badge-sm ${getImpactColor(suggestion.impact)}`}>
                 {suggestion.impact} impact
               </span>
@@ -101,7 +101,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 className="btn btn-success btn-sm"
                 title="Adopt this suggestion"
               >
-                <CheckIcon className="w-4 h-4" />
+                <CheckIcon className="h-4 w-4" />
                 Adopt
               </button>
               {onApplyToEditor && (
@@ -110,7 +110,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   className="btn btn-primary btn-sm"
                   title="Apply this suggestion to the editor"
                 >
-                  <DocumentTextIcon className="w-4 h-4" />
+                  <DocumentTextIcon className="h-4 w-4" />
                   Apply to Editor
                 </button>
               )}
@@ -120,7 +120,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                   className="btn btn-outline btn-sm"
                   title="Modify this suggestion"
                 >
-                  <PencilIcon className="w-4 h-4" />
+                  <PencilIcon className="h-4 w-4" />
                   Modify
                 </button>
               )}
@@ -129,7 +129,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 className="btn btn-ghost btn-sm"
                 title="Ignore this suggestion"
               >
-                <XMarkIcon className="w-4 h-4" />
+                <XMarkIcon className="h-4 w-4" />
                 Ignore
               </button>
             </>
@@ -147,22 +147,22 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           )}
 
           {isAdopted && (
-            <span className="text-green-600 text-sm font-medium flex items-center">
-              <CheckIcon className="w-4 h-4 mr-1" />
+            <span className="flex items-center font-medium text-green-600 text-sm">
+              <CheckIcon className="mr-1 h-4 w-4" />
               Adopted
             </span>
           )}
 
           {isIgnored && (
-            <span className="text-gray-500 text-sm font-medium flex items-center">
-              <XMarkIcon className="w-4 h-4 mr-1" />
+            <span className="flex items-center font-medium text-gray-500 text-sm">
+              <XMarkIcon className="mr-1 h-4 w-4" />
               Ignored
             </span>
           )}
         </div>
       </div>
 
-      <p className="text-gray-600 text-sm mb-3">{suggestion.description}</p>
+      <p className="mb-3 text-gray-600 text-sm">{suggestion.description}</p>
 
       {isEditing ? (
         <div className="space-y-2">
@@ -172,29 +172,29 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
           <textarea
             value={modifiedText}
             onChange={(e) => setModifiedText(e.target.value)}
-            className="textarea textarea-bordered w-full h-20 text-sm"
+            className="textarea textarea-bordered h-20 w-full text-sm"
             placeholder="Modify the suggestion text..."
           />
         </div>
       ) : (
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <p className="text-gray-800 text-sm font-medium">{suggestion.suggestion}</p>
+        <div className="rounded-lg bg-gray-50 p-3">
+          <p className="font-medium text-gray-800 text-sm">{suggestion.suggestion}</p>
         </div>
       )}
 
       {suggestion.beforeText && suggestion.afterText && !isEditing && (
         <div className="mt-3 space-y-2">
-          <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div className="font-medium text-gray-500 text-xs uppercase tracking-wide">
             Before & After
           </div>
-          <div className="grid md:grid-cols-2 gap-3">
-            <div className="bg-red-50 border border-red-200 p-2 rounded">
-              <div className="text-xs font-medium text-red-700 mb-1">Before:</div>
-              <div className="text-sm text-red-800">{suggestion.beforeText}</div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <div className="rounded border border-red-200 bg-red-50 p-2">
+              <div className="mb-1 font-medium text-red-700 text-xs">Before:</div>
+              <div className="text-red-800 text-sm">{suggestion.beforeText}</div>
             </div>
-            <div className="bg-green-50 border border-green-200 p-2 rounded">
-              <div className="text-xs font-medium text-green-700 mb-1">After:</div>
-              <div className="text-sm text-green-800">{suggestion.afterText}</div>
+            <div className="rounded border border-green-200 bg-green-50 p-2">
+              <div className="mb-1 font-medium text-green-700 text-xs">After:</div>
+              <div className="text-green-800 text-sm">{suggestion.afterText}</div>
             </div>
           </div>
         </div>

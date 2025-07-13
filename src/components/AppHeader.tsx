@@ -78,7 +78,7 @@ export function AppHeader({
               <Input
                 type="search"
                 placeholder="Search jobs, companies, talent..."
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pr-6 pl-12 text-black text-base transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-200 focus:shadow-lg sm:py-3.5 lg:py-4"
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3 pr-6 pl-12 text-base text-black transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white focus:shadow-lg focus:ring-2 focus:ring-blue-200 sm:py-3.5 lg:py-4"
                 value={searchTerm}
                 onChange={handleSearchChange}
               />

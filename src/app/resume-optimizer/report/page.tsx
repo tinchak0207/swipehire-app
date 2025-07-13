@@ -377,7 +377,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
         console.error('Error applying suggestion to editor:', error);
 
         // Fallback to simple append
-        const newContent = state.currentResumeText + '\n\n[Applied]: ' + suggestion.suggestion;
+        const newContent = `${state.currentResumeText}\n\n[Applied]: ${suggestion.suggestion}`;
         setState((prev) => ({
           ...prev,
           currentResumeText: newContent,
@@ -481,13 +481,13 @@ const ResumeOptimizerReportPage: NextPage = () => {
   // Error state
   if (state.error) {
     return (
-      <div className="min-h-screen bg-stone-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-8">
-          <div className="w-16 h-16 bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <DocumentDuplicateIcon className="w-8 h-8 text-stone-600" />
+      <div className="flex min-h-screen items-center justify-center bg-stone-50">
+        <div className="mx-auto max-w-md p-8 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-stone-100">
+            <DocumentDuplicateIcon className="h-8 w-8 text-stone-600" />
           </div>
-          <h2 className="text-2xl font-bold text-stone-900 mb-2">Report Not Found</h2>
-          <p className="text-stone-700 mb-6">{state.error}</p>
+          <h2 className="mb-2 font-bold text-2xl text-stone-900">Report Not Found</h2>
+          <p className="mb-6 text-stone-700">{state.error}</p>
           <div className="space-y-3">
             <Link href="/resume-optimizer" className="btn btn-primary btn-block">
               Start New Analysis
@@ -502,28 +502,28 @@ const ResumeOptimizerReportPage: NextPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white relative overflow-hidden">
+    <div className="relative min-h-screen overflow-hidden bg-white">
       {/* Header */}
-      <div className="relative bg-white border-b border-stone-200 sticky top-0 z-40">
+      <div className="relative sticky top-0 z-40 border-stone-200 border-b bg-white">
         <div className="container mx-auto max-w-7xl px-6 py-5">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
               <Link
                 href="/resume-optimizer"
-                className="group flex items-center space-x-3 text-stone-600 hover:text-stone-900 transition-all duration-300 hover:scale-105"
+                className="group flex items-center space-x-3 text-stone-600 transition-all duration-300 hover:scale-105 hover:text-stone-900"
               >
-                <div className="p-2 rounded-full bg-stone-100 group-hover:bg-stone-200 transition-colors duration-300">
-                  <ArrowLeftIcon className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform duration-300" />
+                <div className="rounded-full bg-stone-100 p-2 transition-colors duration-300 group-hover:bg-stone-200">
+                  <ArrowLeftIcon className="group-hover:-translate-x-0.5 h-4 w-4 transition-transform duration-300" />
                 </div>
                 <span className="font-semibold">Back to Optimizer</span>
               </Link>
-              <div className="h-8 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent"></div>
+              <div className="h-8 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
               <div className="flex items-center space-x-3">
-                <div className="p-2 rounded-xl bg-stone-100 border border-stone-200">
-                  <DocumentDuplicateIcon className="w-6 h-6 text-stone-600" />
+                <div className="rounded-xl border border-stone-200 bg-stone-100 p-2">
+                  <DocumentDuplicateIcon className="h-6 w-6 text-stone-600" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-stone-900 tracking-tight">
+                  <h1 className="font-bold text-2xl text-stone-900 tracking-tight">
                     Analysis Report
                   </h1>
                   <p className="text-sm text-stone-600">
@@ -538,10 +538,10 @@ const ResumeOptimizerReportPage: NextPage = () => {
               <div className="flex items-center space-x-2">
                 <button
                   onClick={handleShare}
-                  className="group relative px-4 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 text-stone-700 hover:text-stone-900 transition-all duration-300"
+                  className="group relative rounded-xl border border-stone-200 bg-white px-4 py-2 text-stone-700 transition-all duration-300 hover:border-stone-300 hover:bg-stone-50 hover:text-stone-900"
                   title="Share report"
                 >
-                  <ShareIcon className="w-4 h-4 mr-2 inline" />
+                  <ShareIcon className="mr-2 inline h-4 w-4" />
                   Share
                 </button>
 
@@ -556,18 +556,18 @@ const ResumeOptimizerReportPage: NextPage = () => {
 
                 <button
                   onClick={handleToggleDownloadModal}
-                  className="group relative px-4 py-2 rounded-xl bg-white hover:bg-stone-50 border border-stone-200 hover:border-stone-300 text-stone-700 hover:text-stone-900 transition-all duration-300"
+                  className="group relative rounded-xl border border-stone-200 bg-white px-4 py-2 text-stone-700 transition-all duration-300 hover:border-stone-300 hover:bg-stone-50 hover:text-stone-900"
                   title="Advanced download options"
                 >
-                  <CogIcon className="w-4 h-4 mr-2 inline" />
+                  <CogIcon className="mr-2 inline h-4 w-4" />
                   Options
                 </button>
 
                 <button
                   onClick={handleEditResume}
-                  className="group relative px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold transition-all duration-300"
+                  className="group relative rounded-xl bg-stone-900 px-6 py-2.5 font-semibold text-white transition-all duration-300 hover:bg-stone-800"
                 >
-                  <PencilSquareIcon className="w-4 h-4 mr-2 inline" />
+                  <PencilSquareIcon className="mr-2 inline h-4 w-4" />
                   Edit Resume
                 </button>
               </div>
@@ -577,7 +577,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="relative container mx-auto max-w-7xl px-6 py-12">
+      <div className="container relative mx-auto max-w-7xl px-6 py-12">
         <ReportDisplay
           analysisResult={state.analysisResult}
           isLoading={state.isLoading}
@@ -609,12 +609,12 @@ const ResumeOptimizerReportPage: NextPage = () => {
 
       {/* Footer Actions */}
       {state.analysisResult && (
-        <div className="relative bg-white border-t border-stone-200 sticky bottom-0 z-40">
+        <div className="relative sticky bottom-0 z-40 border-stone-200 border-t bg-white">
           <div className="container mx-auto max-w-7xl px-6 py-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6 text-sm text-stone-600">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-stone-400"></div>
+                  <div className="h-2 w-2 rounded-full bg-stone-400" />
                   <span>
                     Analysis completed on{' '}
                     {new Date(state.analysisResult.createdAt).toLocaleDateString()}
@@ -622,7 +622,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
                 </div>
                 {state.analysisResult.metadata?.processingTime && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-1 h-1 rounded-full bg-stone-400"></div>
+                    <div className="h-1 w-1 rounded-full bg-stone-400" />
                     <span>Processed in {state.analysisResult.metadata.processingTime}ms</span>
                   </div>
                 )}
@@ -630,18 +630,18 @@ const ResumeOptimizerReportPage: NextPage = () => {
 
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2 text-sm text-stone-600">
-                  <div className="px-3 py-1 rounded-full bg-stone-100 border border-stone-200">
+                  <div className="rounded-full border border-stone-200 bg-stone-100 px-3 py-1">
                     <span className="font-semibold text-stone-700">
                       {state.adoptedSuggestions.size}
                     </span>
-                    <span className="text-stone-600 ml-1">suggestions adopted</span>
+                    <span className="ml-1 text-stone-600">suggestions adopted</span>
                   </div>
                 </div>
                 <button
                   onClick={handleEditResume}
-                  className="group relative px-6 py-2.5 rounded-xl bg-stone-900 hover:bg-stone-800 text-white font-semibold transition-all duration-300"
+                  className="group relative rounded-xl bg-stone-900 px-6 py-2.5 font-semibold text-white transition-all duration-300 hover:bg-stone-800"
                 >
-                  <PencilSquareIcon className="w-4 h-4 mr-2 inline" />
+                  <PencilSquareIcon className="mr-2 inline h-4 w-4" />
                   Continue Editing
                 </button>
               </div>

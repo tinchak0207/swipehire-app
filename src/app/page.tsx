@@ -1,16 +1,26 @@
 'use client';
 
-import { getRedirectResult, onAuthStateChanged, signOut, type User } from 'firebase/auth';
 import {
+  type User as FirebaseUser,
+  getRedirectResult,
+  onAuthStateChanged,
+  signOut,
+} from 'firebase/auth';
+import {
+  Bell,
   BookOpenText,
+  Brain,
   Briefcase,
+  Calendar,
   DollarSign,
   FilePlus2,
   FileText,
+  GitBranch,
   HeartHandshake,
   LayoutGrid,
   Loader2,
   Settings as SettingsIcon,
+  User,
   UserCircle,
   UserCog,
   Users,
@@ -41,7 +51,7 @@ import { mockNotifications } from '@/lib/mockData';
 import type { BackendUser, NotificationItem, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 const loadingComponent = () => (
   <div className="flex min-h-[calc(100vh-250px)] items-center justify-center">
     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -114,6 +124,26 @@ const ResumeOptimizerPage = dynamic(() => import('@/app/resume-optimizer/page'),
   loading: loadingComponent,
   ssr: false,
 });
+const WorkflowDashboardPage = dynamic(() => import('@/app/dashboard/workflows/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
+const PortfolioPage = dynamic(() => import('@/app/portfolio/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
+const EventsPage = dynamic(() => import('@/app/events/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
+const FollowupRemindersPage = dynamic(() => import('@/app/follow-up-reminders/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
+const InterviewGuidePage = dynamic(
+  () => import('@/components/pages/InterviewGuidePage').then((mod) => mod.InterviewGuidePage),
+  { loading: loadingComponent, ssr: false }
+);
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 const GUEST_MODE_KEY = 'isGuestModeActive';
@@ -121,7 +151,7 @@ const DISMISSED_BANNER_NOTIF_ID_KEY = 'dismissedBannerNotificationId';
 const HAS_SEEN_ONBOARDING_MODAL_KEY = 'hasSeenSwipeHireOnboardingV1';
 
 function AppContent() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<FirebaseUser | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
   const [userPhotoURL, setUserPhotoURL] = useState<string | null>(null);
 
@@ -519,7 +549,7 @@ function AppContent() {
             email: 'guest@example.com',
             displayName: 'Guest User',
           }),
-        } as User);
+        } as FirebaseUser);
       }
     } else if (!showOnboardingModal) {
       setShowWelcomePage(!hasSeenWelcome);
@@ -684,7 +714,7 @@ function AppContent() {
 
   const handleLoginBypass = useCallback(async () => {
     const mockUid = `mock-bypass-user-${Date.now()}`;
-    const mockUserInstance: User = {
+    const mockUserInstance: FirebaseUser = {
       uid: mockUid,
       email: 'dev.user@example.com',
       displayName: 'Dev User (Bypass)',
@@ -920,6 +950,56 @@ function AppContent() {
       description: 'AI-powered career and recruitment tools',
       isNew: true,
       shortcut: '⌘T',
+    },
+    {
+      value: 'interviewGuide',
+      label: 'Interview Guide',
+      icon: Brain,
+      component: (
+        <InterviewGuidePage
+          isGuestMode={isGuestModeActive}
+          currentUserRole={fullBackendUser?.selectedRole || null}
+        />
+      ),
+      description: 'Comprehensive interview preparation and skills training',
+      isNew: true,
+      shortcut: '⌘I',
+    },
+    {
+      value: 'workflows',
+      label: 'Build Workflow',
+      icon: GitBranch,
+      component: <WorkflowDashboardPage />,
+      description: 'Create and manage automated workflows for recruitment and career processes',
+      isNew: true,
+      shortcut: '⌘W',
+    },
+    {
+      value: 'myPortfolio',
+      label: 'My Portfolio',
+      icon: User,
+      component: <PortfolioPage />,
+      description: 'Showcase your work, projects, and professional achievements',
+      isNew: true,
+      shortcut: '⌘O',
+    },
+    {
+      value: 'industryEvents',
+      label: 'Industry Events',
+      icon: Calendar,
+      component: <EventsPage />,
+      description: 'Discover networking events, conferences, and workshops in your industry',
+      isNew: true,
+      shortcut: '⌘E',
+    },
+    {
+      value: 'followupReminders',
+      label: 'Follow-up Reminders',
+      icon: Bell,
+      component: <FollowupRemindersPage />,
+      description: 'Manage and track follow-ups for your job applications',
+      isNew: true,
+      shortcut: '⌘F',
     },
     {
       value: 'myMatches',

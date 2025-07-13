@@ -40,7 +40,7 @@ export default function ProgressTracker({ goals, careerStage }: ProgressTrackerP
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const generateReport = async (type: 'skills' | 'progress' | 'market' | 'goals') => {
     try {

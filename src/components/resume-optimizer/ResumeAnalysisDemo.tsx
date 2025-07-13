@@ -20,7 +20,7 @@ import type {
   ResumeAnalysisResponse,
   TargetJobInfo,
 } from '@/lib/types/resume-optimizer';
-import { ResumeAnalysisError } from '@/services/resumeOptimizerService';
+import type { ResumeAnalysisError } from '@/services/resumeOptimizerService';
 
 // Component Props Interface
 interface ResumeAnalysisDemoProps {
@@ -184,12 +184,12 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
       switch (error.code) {
         case 'NETWORK_ERROR':
         case 'REQUEST_TIMEOUT':
-          return <ExclamationTriangleIcon className="w-5 h-5" />;
+          return <ExclamationTriangleIcon className="h-5 w-5" />;
         case 'UNAUTHORIZED':
         case 'RATE_LIMITED':
-          return <XCircleIcon className="w-5 h-5" />;
+          return <XCircleIcon className="h-5 w-5" />;
         default:
-          return <InformationCircleIcon className="w-5 h-5" />;
+          return <InformationCircleIcon className="h-5 w-5" />;
       }
     };
 
@@ -213,7 +213,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
           <div className="flex-1">
             <h4 className="font-semibold">{error.message}</h4>
             {error.details && (
-              <p className="text-sm opacity-80 mt-1">
+              <p className="mt-1 text-sm opacity-80">
                 Code: {error.code} | Status: {error.statusCode}
               </p>
             )}
@@ -247,9 +247,9 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
     };
 
     return (
-      <div className="card bg-base-200 shadow-lg mb-6">
+      <div className="card mb-6 bg-base-200 shadow-lg">
         <div className="card-body">
-          <div className="flex items-center space-x-3 mb-4">
+          <div className="mb-4 flex items-center space-x-3">
             <span className="text-2xl">{getStageIcon()}</span>
             <div className="flex-1">
               <h3 className="font-semibold text-lg">Analyzing Resume</h3>
@@ -258,9 +258,9 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
           </div>
 
           {/* Progress bar */}
-          <div className="w-full bg-base-300 rounded-full h-2 mb-2">
+          <div className="mb-2 h-2 w-full rounded-full bg-base-300">
             <div
-              className="bg-primary h-2 rounded-full transition-all duration-300 ease-out"
+              className="h-2 rounded-full bg-primary transition-all duration-300 ease-out"
               style={{ width: `${loadingState.progress || 0}%` }}
             />
           </div>
@@ -272,7 +272,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
 
           {/* Cancel button */}
           {'cancelAnalysis' in advancedAnalysis && (
-            <div className="card-actions justify-end mt-4">
+            <div className="card-actions mt-4 justify-end">
               <button
                 type="button"
                 className="btn btn-sm btn-outline"
@@ -292,10 +292,10 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
    */
   const renderResults = (result: ResumeAnalysisResponse) => {
     return (
-      <div className="card bg-base-100 shadow-lg mb-6">
+      <div className="card mb-6 bg-base-100 shadow-lg">
         <div className="card-body">
-          <div className="flex items-center space-x-3 mb-4">
-            <CheckCircleIcon className="w-8 h-8 text-success" />
+          <div className="mb-4 flex items-center space-x-3">
+            <CheckCircleIcon className="h-8 w-8 text-success" />
             <div>
               <h3 className="font-bold text-xl">Analysis Complete!</h3>
               <p className="text-sm opacity-70">Processed in {result.processingTime}ms</p>
@@ -303,18 +303,18 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
           </div>
 
           {/* Score overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="stat bg-base-200 rounded-lg">
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div className="stat rounded-lg bg-base-200">
               <div className="stat-title">Overall Score</div>
               <div className="stat-value text-primary">{result.overallScore}</div>
               <div className="stat-desc">out of 100</div>
             </div>
-            <div className="stat bg-base-200 rounded-lg">
+            <div className="stat rounded-lg bg-base-200">
               <div className="stat-title">ATS Score</div>
               <div className="stat-value text-secondary">{result.atsScore}</div>
               <div className="stat-desc">Compatibility</div>
             </div>
-            <div className="stat bg-base-200 rounded-lg">
+            <div className="stat rounded-lg bg-base-200">
               <div className="stat-title">Keywords</div>
               <div className="stat-value text-accent">
                 {result.keywordAnalysis.matchedKeywords.length}
@@ -325,11 +325,11 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
 
           {/* Suggestions preview */}
           <div className="mb-4">
-            <h4 className="font-semibold mb-2">Top Suggestions</h4>
+            <h4 className="mb-2 font-semibold">Top Suggestions</h4>
             <div className="space-y-2">
               {result.suggestions.slice(0, 3).map((suggestion) => (
                 <div key={suggestion.id} className="alert alert-info">
-                  <InformationCircleIcon className="w-4 h-4" />
+                  <InformationCircleIcon className="h-4 w-4" />
                   <div className="flex-1">
                     <span className="font-medium">{suggestion.title}</span>
                     <p className="text-sm opacity-80">{suggestion.description}</p>
@@ -369,11 +369,11 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
   };
 
   return (
-    <div className={`max-w-4xl mx-auto p-6 ${className}`}>
+    <div className={`mx-auto max-w-4xl p-6 ${className}`}>
       {/* Header */}
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2 flex items-center justify-center space-x-2">
-          <SparklesIcon className="w-8 h-8 text-primary" />
+      <div className="mb-8 text-center">
+        <h1 className="mb-2 flex items-center justify-center space-x-2 font-bold text-3xl">
+          <SparklesIcon className="h-8 w-8 text-primary" />
           <span>Resume Analysis Demo</span>
         </h1>
         <p className="text-lg opacity-70">
@@ -393,7 +393,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
                   : 'alert-info'
             }`}
           >
-            <InformationCircleIcon className="w-5 h-5" />
+            <InformationCircleIcon className="h-5 w-5" />
             <span>
               Backend Status:{' '}
               {advancedAnalysis.isBackendAvailable === true
@@ -422,7 +422,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
       )}
 
       {/* Input form */}
-      <div className="card bg-base-100 shadow-lg mb-6">
+      <div className="card mb-6 bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title mb-4">Resume & Job Information</h2>
 
@@ -442,7 +442,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
           </div>
 
           {/* Target job inputs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-semibold">Job Title</span>
@@ -527,7 +527,7 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
                 </>
               ) : (
                 <>
-                  <SparklesIcon className="w-4 h-4 mr-2" />
+                  <SparklesIcon className="mr-2 h-4 w-4" />
                   Start Analysis
                 </>
               )}
@@ -547,10 +547,10 @@ export const ResumeAnalysisDemo: React.FC<ResumeAnalysisDemoProps> = ({
 
       {/* Debug information (development only) */}
       {process.env.NODE_ENV === 'development' && showAdvancedFeatures && (
-        <div className="card bg-base-200 shadow-lg mt-6">
+        <div className="card mt-6 bg-base-200 shadow-lg">
           <div className="card-body">
             <h3 className="card-title text-sm">Debug Information</h3>
-            <div className="text-xs font-mono bg-base-300 p-4 rounded overflow-auto max-h-40">
+            <div className="max-h-40 overflow-auto rounded bg-base-300 p-4 font-mono text-xs">
               <pre>
                 {JSON.stringify(
                   {

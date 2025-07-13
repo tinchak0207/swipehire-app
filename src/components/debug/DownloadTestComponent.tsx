@@ -4,7 +4,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import {
   DownloadButton,
   DownloadDropdown,
@@ -161,18 +162,18 @@ export const DownloadTestComponent: React.FC = () => {
   };
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold mb-8">Download Functionality Test</h1>
+    <div className="mx-auto max-w-4xl p-8">
+      <h1 className="mb-8 font-bold text-3xl">Download Functionality Test</h1>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Resume Content Preview</h2>
-        <div className="bg-gray-50 p-4 rounded border max-h-64 overflow-y-auto">
+      <div className="mb-8 rounded-lg bg-white p-6 shadow-lg">
+        <h2 className="mb-4 font-semibold text-xl">Resume Content Preview</h2>
+        <div className="max-h-64 overflow-y-auto rounded border bg-gray-50 p-4">
           <pre className="whitespace-pre-wrap text-sm">{mockResumeContent}</pre>
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">Download Options</h2>
+      <div className="mb-8 rounded-lg bg-white p-6 shadow-lg">
+        <h2 className="mb-4 font-semibold text-xl">Download Options</h2>
 
         <div className="space-y-4">
           <div className="form-control">
@@ -224,9 +225,9 @@ export const DownloadTestComponent: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-lg p-6">
-        <h2 className="text-xl font-semibold mb-4">Analysis Summary</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="rounded-lg bg-white p-6 shadow-lg">
+        <h2 className="mb-4 font-semibold text-xl">Analysis Summary</h2>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           <div className="stat">
             <div className="stat-title">Overall Score</div>
             <div className="stat-value text-primary">{mockAnalysisResult.overallScore}</div>

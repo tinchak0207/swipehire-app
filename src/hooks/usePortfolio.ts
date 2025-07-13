@@ -6,13 +6,13 @@
  */
 
 import {
-  UseMutationResult,
-  UseQueryResult,
+  type UseMutationResult,
+  type UseQueryResult,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
-import {
+import type {
   CreatePortfolioRequest,
   MediaUploadResponse,
   Portfolio,
@@ -71,20 +71,20 @@ class PortfolioService {
     });
 
     const url = `${API_BASE_URL}/portfolio?${searchParams.toString()}`;
-    const response = await this.fetchWithAuth(url);
+    const response = await PortfolioService.fetchWithAuth(url);
     return response.json();
   }
 
   static async getPortfolio(id: string): Promise<Portfolio> {
     const url = `${API_BASE_URL}/portfolio/${id}`;
-    const response = await this.fetchWithAuth(url);
+    const response = await PortfolioService.fetchWithAuth(url);
     return response.json();
   }
 
   static async createPortfolio(data: CreatePortfolioRequest): Promise<Portfolio> {
     try {
       const url = `${API_BASE_URL}/portfolio`;
-      const response = await this.fetchWithAuth(url, {
+      const response = await PortfolioService.fetchWithAuth(url, {
         method: 'POST',
         body: JSON.stringify(data),
       });
@@ -97,7 +97,7 @@ class PortfolioService {
 
   static async updatePortfolio(id: string, data: UpdatePortfolioRequest): Promise<Portfolio> {
     const url = `${API_BASE_URL}/portfolio/${id}`;
-    const response = await this.fetchWithAuth(url, {
+    const response = await PortfolioService.fetchWithAuth(url, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -106,7 +106,7 @@ class PortfolioService {
 
   static async deletePortfolio(id: string): Promise<{ success: boolean }> {
     const url = `${API_BASE_URL}/portfolio/${id}`;
-    const response = await this.fetchWithAuth(url, {
+    const response = await PortfolioService.fetchWithAuth(url, {
       method: 'DELETE',
     });
     return response.json();
@@ -114,7 +114,7 @@ class PortfolioService {
 
   static async uploadMedia(formData: FormData): Promise<MediaUploadResponse> {
     try {
-      const response = await this.fetchWithAuth(`${API_BASE_URL}/portfolio/upload`, {
+      const response = await PortfolioService.fetchWithAuth(`${API_BASE_URL}/portfolio/upload`, {
         method: 'POST',
         body: formData,
       });
@@ -127,7 +127,7 @@ class PortfolioService {
 
   static async getUploadInfo(): Promise<{ maxSize: number; allowedTypes: string[] }> {
     const url = `${API_BASE_URL}/portfolio/upload`;
-    const response = await this.fetchWithAuth(url);
+    const response = await PortfolioService.fetchWithAuth(url);
     return response.json();
   }
 }

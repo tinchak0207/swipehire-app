@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiMail, FiMessageSquare } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface SendCommunicationNodeData {
   channel: 'email' | 'sms';
@@ -15,21 +16,21 @@ const SendCommunicationNode: React.FC<NodeProps<SendCommunicationNodeData>> = ({
   const [templateId, setTemplateId] = useState(data.templateId || '');
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-accent-focus">
+    <div className="card w-96 border-2 border-accent-focus bg-base-100 shadow-xl">
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className="w-4 h-4 !bg-accent-focus"
+        className="!bg-accent-focus h-4 w-4"
       />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-accent text-accent-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-accent text-accent-content">
                 {channel === 'email' ? (
                   <FiMail className="h-6 w-6" />
                 ) : (
@@ -38,8 +39,8 @@ const SendCommunicationNode: React.FC<NodeProps<SendCommunicationNodeData>> = ({
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Send Communication</h2>
-              <p className="text-sm text-gray-500">Contact candidate via {channel}</p>
+              <h2 className="card-title font-bold text-lg">Send Communication</h2>
+              <p className="text-gray-500 text-sm">Contact candidate via {channel}</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -47,7 +48,7 @@ const SendCommunicationNode: React.FC<NodeProps<SendCommunicationNodeData>> = ({
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Sends a message to the candidate using a pre-defined template. Candidate data must be
               provided as input.
             </p>
@@ -104,10 +105,10 @@ const SendCommunicationNode: React.FC<NodeProps<SendCommunicationNodeData>> = ({
               </div>
             )}
 
-            <div className="alert alert-warning text-xs mt-2">
+            <div className="alert alert-warning mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -127,7 +128,7 @@ const SendCommunicationNode: React.FC<NodeProps<SendCommunicationNodeData>> = ({
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-accent-focus"
+        className="!bg-accent-focus h-4 w-4"
       />
     </div>
   );

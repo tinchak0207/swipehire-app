@@ -1,10 +1,10 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import React from 'react';
+import type React from 'react';
 import PortfolioEditor from '@/components/portfolio/PortfolioEditor';
 import { usePortfolio } from '@/hooks/usePortfolio';
-import { PortfolioDraft } from '@/lib/types/portfolio';
+import type { PortfolioDraft } from '@/lib/types/portfolio';
 
 /**
  * Edit Portfolio Page
@@ -14,13 +14,13 @@ import { PortfolioDraft } from '@/lib/types/portfolio';
  */
 const EditPortfolioPage: React.FC = () => {
   const params = useParams();
-  if (!params || !params['id']) {
+  if (!params || !params.id) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="alert alert-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="stroke-current shrink-0 h-6 w-6"
+            className="h-6 w-6 shrink-0 stroke-current"
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -36,7 +36,7 @@ const EditPortfolioPage: React.FC = () => {
       </div>
     );
   }
-  const portfolioId = params['id'] as string;
+  const portfolioId = params.id as string;
 
   const { data: portfolio, isLoading, error } = usePortfolio(portfolioId);
 
@@ -44,26 +44,26 @@ const EditPortfolioPage: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="skeleton h-8 w-64 mb-2"></div>
-          <div className="skeleton h-4 w-96"></div>
+          <div className="skeleton mb-2 h-8 w-64" />
+          <div className="skeleton h-4 w-96" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
           <div className="space-y-6">
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton h-6 w-32 mb-4"></div>
-                <div className="skeleton h-10 w-full mb-4"></div>
-                <div className="skeleton h-24 w-full mb-4"></div>
-                <div className="skeleton h-10 w-full"></div>
+                <div className="skeleton mb-4 h-6 w-32" />
+                <div className="skeleton mb-4 h-10 w-full" />
+                <div className="skeleton mb-4 h-24 w-full" />
+                <div className="skeleton h-10 w-full" />
               </div>
             </div>
           </div>
           <div className="space-y-6">
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton h-6 w-24 mb-4"></div>
-                <div className="skeleton h-64 w-full"></div>
+                <div className="skeleton mb-4 h-6 w-24" />
+                <div className="skeleton h-64 w-full" />
               </div>
             </div>
           </div>
@@ -78,7 +78,7 @@ const EditPortfolioPage: React.FC = () => {
         <div className="alert alert-error">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="stroke-current shrink-0 h-6 w-6"
+            className="h-6 w-6 shrink-0 stroke-current"
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -101,7 +101,7 @@ const EditPortfolioPage: React.FC = () => {
         <div className="alert alert-warning">
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="stroke-current shrink-0 h-6 w-6"
+            className="h-6 w-6 shrink-0 stroke-current"
             fill="none"
             viewBox="0 0 24 24"
           >
@@ -140,8 +140,8 @@ const EditPortfolioPage: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Edit Portfolio</h1>
-        <p className="text-base-content/70 mt-2">
+        <h1 className="font-bold text-3xl">Edit Portfolio</h1>
+        <p className="mt-2 text-base-content/70">
           Update your portfolio to keep it fresh and engaging.
         </p>
       </div>

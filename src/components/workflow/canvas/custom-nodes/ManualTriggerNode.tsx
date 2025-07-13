@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiPlayCircle, FiUpload } from 'react-icons/fi';
 import { Handle, type NodeProps, Position } from 'reactflow';
 
@@ -20,21 +21,21 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
   };
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-success-focus">
+    <div className="card w-96 border-2 border-success-focus bg-base-100 shadow-xl">
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-success text-success-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-success text-success-content">
                 <FiPlayCircle className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Manual Trigger</h2>
-              <p className="text-sm text-gray-500">Start workflow with custom data</p>
+              <h2 className="card-title font-bold text-lg">Manual Trigger</h2>
+              <p className="text-gray-500 text-sm">Start workflow with custom data</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -42,7 +43,7 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Manually initiates the workflow. You can provide a JSON object as the initial data
               payload.
             </p>
@@ -56,7 +57,7 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
                 placeholder='{ "candidateId": "123", "jobId": "456" }'
                 value={jsonInput}
                 onChange={(e) => setJsonInput(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="form-control w-full">
@@ -72,10 +73,10 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
               />
             </div>
 
-            <div className="alert alert-success text-xs mt-2">
+            <div className="alert alert-success mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -95,7 +96,7 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-success-focus"
+        className="!bg-success-focus h-4 w-4"
       />
     </div>
   );

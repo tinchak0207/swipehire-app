@@ -1,4 +1,3 @@
-import React from 'react';
 import NodeConnections from '../dnd/NodeConnections';
 
 const CanvasArea = () => {

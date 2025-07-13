@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiAward, FiChevronDown, FiChevronUp, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface PriorityRule {
   condition: string; // e.g., 'resume.score > 90'
@@ -37,22 +38,22 @@ const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ d
   };
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-red-500">
-      <Handle type="target" position={Position.Left} id="input" className="w-4 h-4 !bg-red-500" />
+    <div className="card w-96 border-2 border-red-500 bg-base-100 shadow-xl">
+      <Handle type="target" position={Position.Left} id="input" className="!bg-red-500 h-4 w-4" />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-red-500 text-white rounded-full w-12 h-12 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-500 text-white">
                 <FiAward className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Priority Judgment</h2>
-              <p className="text-sm text-gray-500">Assign priority level</p>
+              <h2 className="card-title font-bold text-lg">Priority Judgment</h2>
+              <p className="text-gray-500 text-sm">Assign priority level</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -60,15 +61,15 @@ const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ d
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Assigns a priority level based on a set of rules. The first rule that evaluates to
               true determines the priority.
             </p>
 
             {rules.map((rule, index) => (
-              <div key={index} className="p-2 border border-base-300 rounded-lg space-y-2">
+              <div key={index} className="space-y-2 rounded-lg border border-base-300 p-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold">Rule {index + 1}</span>
+                  <span className="font-semibold text-xs">Rule {index + 1}</span>
                   <button onClick={() => removeRule(index)} className="btn btn-xs btn-ghost">
                     <FiTrash2 className="text-error" />
                   </button>
@@ -121,10 +122,10 @@ const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ d
               </select>
             </div>
 
-            <div className="alert alert-error text-xs mt-2">
+            <div className="alert alert-error mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -133,14 +134,14 @@ const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ d
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The output data will be enhanced with a `priority` field.</span>
             </div>
           </div>
         )}
       </div>
-      <Handle type="source" position={Position.Right} id="output" className="w-4 h-4 !bg-red-500" />
+      <Handle type="source" position={Position.Right} id="output" className="!bg-red-500 h-4 w-4" />
     </div>
   );
 };

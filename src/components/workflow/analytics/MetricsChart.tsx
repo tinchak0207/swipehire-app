@@ -17,7 +17,7 @@ interface MetricsChartProps {
 
 export default function MetricsChart({ data }: MetricsChartProps) {
   return (
-    <div className="w-full h-96 bg-base-100 p-4 rounded-lg shadow-lg">
+    <div className="h-96 w-full rounded-lg bg-base-100 p-4 shadow-lg">
       <ResponsiveContainer>
         <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />

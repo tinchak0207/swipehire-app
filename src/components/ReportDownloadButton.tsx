@@ -254,7 +254,7 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
 
         {/* Feedback Toast */}
         {feedback.type && (
-          <div className={`toast toast-top toast-end z-50`}>
+          <div className={'toast toast-top toast-end z-50'}>
             <div
               className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'} shadow-lg`}
             >
@@ -319,15 +319,11 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
         </div>
 
         {dropdownOpen && (
-          <ul
-            tabIndex={0}
-            className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow-lg border border-base-300"
-            role="menu"
-          >
+          <ul className="dropdown-content menu z-[1] w-52 rounded-box border border-base-300 bg-base-100 p-2 shadow-lg">
             <li role="none">
               <button
                 type="button"
-                className="flex items-center gap-3 px-4 py-2 text-left hover:bg-base-200 rounded-lg transition-colors"
+                className="flex items-center gap-3 rounded-lg px-4 py-2 text-left transition-colors hover:bg-base-200"
                 onClick={handlePDFDownload}
                 disabled={loadingState !== 'idle'}
                 role="menuitem"
@@ -336,14 +332,14 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
                 <FileText className="h-4 w-4 text-red-500" />
                 <div>
                   <div className="font-medium text-base-content">Download PDF</div>
-                  <div className="text-xs text-base-content/70">Formatted report with charts</div>
+                  <div className="text-base-content/70 text-xs">Formatted report with charts</div>
                 </div>
               </button>
             </li>
             <li role="none">
               <button
                 type="button"
-                className="flex items-center gap-3 px-4 py-2 text-left hover:bg-base-200 rounded-lg transition-colors"
+                className="flex items-center gap-3 rounded-lg px-4 py-2 text-left transition-colors hover:bg-base-200"
                 onClick={handleCSVDownload}
                 disabled={loadingState !== 'idle'}
                 role="menuitem"
@@ -352,13 +348,13 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
                 <Table className="h-4 w-4 text-green-500" />
                 <div>
                   <div className="font-medium text-base-content">Download CSV</div>
-                  <div className="text-xs text-base-content/70">Raw data for analysis</div>
+                  <div className="text-base-content/70 text-xs">Raw data for analysis</div>
                 </div>
               </button>
             </li>
             <div className="divider my-1" />
             <li role="none">
-              <div className="px-4 py-2 text-xs text-base-content/50">
+              <div className="px-4 py-2 text-base-content/50 text-xs">
                 {salaryData.length} records available
               </div>
             </li>

@@ -45,6 +45,11 @@ const ResumeProcessorOutputSchema = z.object({
 });
 export type ResumeProcessorOutput = z.infer<typeof ResumeProcessorOutputSchema>;
 
+type ResumeAnalysisResult = {
+  suggestedSkills: string[];
+  experienceSummaryForScript: string;
+};
+
 export async function processResumeAndGenerateScript(
   input: ResumeProcessorInput
 ): Promise<ResumeProcessorOutput> {
@@ -66,7 +71,7 @@ const resumeProcessorFlow = ai.defineFlow(
     outputSchema: ResumeProcessorOutputSchema,
   },
   async (input: ResumeProcessorInput) => {
-    let analysisOutput;
+    let analysisOutput: ResumeAnalysisResult;
     try {
       console.log(
         'resumeProcessorFlow: Calling resumeAnalysisPrompt with resumeText length:',

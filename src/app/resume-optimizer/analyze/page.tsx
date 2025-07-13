@@ -131,10 +131,10 @@ const ResumeAnalyzePage: NextPage = () => {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
         <div className="container mx-auto max-w-4xl">
-          <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="flex min-h-[60vh] items-center justify-center">
             <div className="text-center">
-              <span className="loading loading-spinner loading-lg text-primary mb-4"></span>
-              <p className="text-lg text-gray-600">Loading analysis data...</p>
+              <span className="loading loading-spinner loading-lg mb-4 text-primary" />
+              <p className="text-gray-600 text-lg">Loading analysis data...</p>
             </div>
           </div>
         </div>
@@ -146,12 +146,12 @@ const ResumeAnalyzePage: NextPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
       <div className="container mx-auto max-w-4xl">
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="mb-8 flex items-center">
           <Link href="/resume-optimizer" className="btn btn-ghost btn-sm mr-4">
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back
           </Link>
-          <h1 className="text-3xl font-bold text-gray-800">Resume Analysis</h1>
+          <h1 className="font-bold text-3xl text-gray-800">Resume Analysis</h1>
           {isBackendAvailable !== null && (
             <div className={`badge ml-4 ${isBackendAvailable ? 'badge-success' : 'badge-warning'}`}>
               {isBackendAvailable ? 'AI Enhanced' : 'Local Mode'}
@@ -162,10 +162,10 @@ const ResumeAnalyzePage: NextPage = () => {
         {error ? (
           <div className="card bg-white shadow-lg">
             <div className="card-body text-center">
-              <ExclamationTriangleIcon className="w-16 h-16 text-error mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">Analysis Failed</h2>
-              <p className="text-gray-600 mb-6">{getErrorMessage(error)}</p>
-              <div className="flex gap-4 justify-center">
+              <ExclamationTriangleIcon className="mx-auto mb-4 h-16 w-16 text-error" />
+              <h2 className="mb-2 font-bold text-2xl text-gray-800">Analysis Failed</h2>
+              <p className="mb-6 text-gray-600">{getErrorMessage(error)}</p>
+              <div className="flex justify-center gap-4">
                 {shouldRetry(error) && (
                   <button onClick={handleRetry} className="btn btn-primary">
                     Try Again
@@ -182,8 +182,8 @@ const ResumeAnalyzePage: NextPage = () => {
             {/* Analysis Progress Card */}
             <div className="card bg-white shadow-lg">
               <div className="card-body">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-semibold text-gray-800">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="font-semibold text-gray-800 text-xl">
                     {isLoading ? 'Analyzing Your Resume...' : 'Analysis Complete!'}
                   </h2>
                   <div className="text-2xl">{stageIcon}</div>
@@ -191,7 +191,7 @@ const ResumeAnalyzePage: NextPage = () => {
 
                 {/* Progress Bar */}
                 <div className="mb-4">
-                  <div className="flex justify-between text-sm text-gray-600 mb-2">
+                  <div className="mb-2 flex justify-between text-gray-600 text-sm">
                     <span>{stageDescription}</span>
                     <span>{progress}%</span>
                   </div>
@@ -203,13 +203,13 @@ const ResumeAnalyzePage: NextPage = () => {
                 </div>
 
                 {/* Current Message */}
-                {message && <div className="text-sm text-gray-600 mb-4">{message}</div>}
+                {message && <div className="mb-4 text-gray-600 text-sm">{message}</div>}
 
                 {/* Analysis Details */}
                 {data && (
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <h3 className="font-medium text-gray-800 mb-2">Analysis Details</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="rounded-lg bg-gray-50 p-4">
+                    <h3 className="mb-2 font-medium text-gray-800">Analysis Details</h3>
+                    <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                       <div>
                         <span className="text-gray-600">Source:</span>
                         <span className="ml-2 font-medium">
@@ -240,13 +240,13 @@ const ResumeAnalyzePage: NextPage = () => {
 
             {/* Status Messages */}
             {isLoading && (
-              <div className="card bg-blue-50 border border-blue-200">
+              <div className="card border border-blue-200 bg-blue-50">
                 <div className="card-body">
                   <div className="flex items-start">
-                    <div className="loading loading-spinner loading-sm text-blue-600 mr-3 mt-1"></div>
+                    <div className="loading loading-spinner loading-sm mt-1 mr-3 text-blue-600" />
                     <div>
                       <h3 className="font-medium text-blue-800">AI Analysis in Progress</h3>
-                      <p className="text-blue-700 text-sm mt-1">
+                      <p className="mt-1 text-blue-700 text-sm">
                         Our AI is carefully analyzing your resume against the target job
                         requirements. This process typically takes 30-60 seconds.
                       </p>
@@ -257,13 +257,13 @@ const ResumeAnalyzePage: NextPage = () => {
             )}
 
             {analysisResult && (
-              <div className="card bg-green-50 border border-green-200">
+              <div className="card border border-green-200 bg-green-50">
                 <div className="card-body">
                   <div className="flex items-start">
-                    <CheckCircleIcon className="w-6 h-6 text-green-600 mr-3 mt-1" />
+                    <CheckCircleIcon className="mt-1 mr-3 h-6 w-6 text-green-600" />
                     <div>
                       <h3 className="font-medium text-green-800">Analysis Complete!</h3>
-                      <p className="text-green-700 text-sm mt-1">
+                      <p className="mt-1 text-green-700 text-sm">
                         Your resume has been successfully analyzed. Redirecting to the results
                         page...
                       </p>
@@ -277,8 +277,8 @@ const ResumeAnalyzePage: NextPage = () => {
             {isLoading && (
               <div className="card bg-white shadow-lg">
                 <div className="card-body">
-                  <h3 className="font-medium text-gray-800 mb-3">💡 While You Wait...</h3>
-                  <div className="space-y-2 text-sm text-gray-600">
+                  <h3 className="mb-3 font-medium text-gray-800">💡 While You Wait...</h3>
+                  <div className="space-y-2 text-gray-600 text-sm">
                     <p>• Our AI analyzes over 50 different aspects of your resume</p>
                     <p>• We compare your skills against job requirements</p>
                     <p>• We check for ATS (Applicant Tracking System) compatibility</p>

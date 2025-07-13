@@ -15,11 +15,11 @@ export default function TestEditorPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8">Editor Test</h1>
+      <div className="mx-auto max-w-4xl">
+        <h1 className="mb-8 font-bold text-3xl">Editor Test</h1>
 
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Status</h2>
+        <div className="mb-6 rounded-lg bg-white p-6 shadow">
+          <h2 className="mb-4 font-semibold text-xl">Status</h2>
           <p>Content Length: {content.length}</p>
           <p>Is Dirty: {editorState.isDirty ? 'Yes' : 'No'}</p>
         </div>

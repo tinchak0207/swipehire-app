@@ -143,11 +143,11 @@ const FilePreview: React.FC<{
 
   const handleRemove = useCallback(() => {
     onRemove();
-  }, [onRemove, file.name]);
+  }, [onRemove]);
 
   const handleRetry = useCallback(() => {
     onRetry?.();
-  }, [onRetry, file.name]);
+  }, [onRetry]);
 
   const renderPreview = () => {
     if (file.category === 'image' && previewUrl) {

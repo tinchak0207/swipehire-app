@@ -90,7 +90,7 @@ const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
 
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 const incrementAnalytic = (key: string) => {
   if (typeof window !== 'undefined') {
@@ -649,7 +649,7 @@ export function CompanyCardContent({
 
   let useRawImgTag = false;
   let isUnoptimizedForNextImage = false;
-  let finalEffectiveImageUrl = imageUrlToDisplay; // This will now be based directly on company.logoUrl after processing
+  let finalEffectiveImageUrl = imageUrlToDisplay;
 
   const KNOWN_NEXT_IMAGE_HOSTNAMES = [
     'placehold.co',
@@ -659,8 +659,11 @@ export function CompanyCardContent({
     '5000-firebase-studio-1748064333696.cluster-iktsryn7xnhpexlu6255bftka4.cloudworkstations.dev',
   ];
 
+  // Only process if we have a valid image URL
   if (
     finalEffectiveImageUrl &&
+    finalEffectiveImageUrl !== 'undefined' &&
+    finalEffectiveImageUrl.trim() !== '' &&
     !['https://placehold.co/500x350.png', 'https://placehold.co/100x100.png'].includes(
       finalEffectiveImageUrl
     )
@@ -717,14 +720,11 @@ export function CompanyCardContent({
     } else {
       finalEffectiveImageUrl = undefined;
       console.warn(
-        `[CompanyCardContent REVERTED: ${company.name}] Logo URL "${finalEffectiveImageUrl}" is neither /uploads/ nor absolute. Treating as no image.`
+        `[CompanyCardContent REVERTED: ${company?.name || 'Unknown Company'}] Logo URL "${imageUrlToDisplay}" is neither /uploads/ nor absolute. Treating as no image.`
       );
     }
   } else {
     finalEffectiveImageUrl = undefined; // No valid image, will fall back to icon
-    console.log(
-      `[CompanyCardContent REVERTED: ${company.name}] No valid company logo URL or only placeholder detected. Will use fallback icon.`
-    );
   }
 
   const reputationGuaranteePromises = [
@@ -1256,9 +1256,9 @@ export function CompanyCardContent({
                               常見被拒原因 (Common Rejection Reasons)
                             </h4>
                             <div className="flex flex-wrap gap-1.5">
-                              {company.commonRejectionReasons.map((reason) => (
+                              {company.commonRejectionReasons.map((reason, index) => (
                                 <Badge
-                                  key={reason}
+                                  key={`rejection-reason-${index}`}
                                   variant="outline"
                                   className="border-yellow-400/50 bg-yellow-400/10 text-xs text-yellow-300"
                                 >
@@ -1278,7 +1278,7 @@ export function CompanyCardContent({
                         </h4>
                         <ul className="list-inside list-disc space-y-1 pl-1 text-slate-300 text-xs">
                           {reputationGuaranteePromises.map((promise, index) => (
-                            <li key={index}>{promise}</li>
+                            <li key={`promise-${index}`}>{promise}</li>
                           ))}
                         </ul>
                       </div>
@@ -1458,9 +1458,9 @@ export function CompanyCardContent({
                     <Users2 className="mr-2 h-5 w-5" /> Culture Highlights
                   </h3>
                   <div className="flex flex-wrap gap-1.5">
-                    {company.cultureHighlights.map((highlight) => (
+                    {company.cultureHighlights.map((highlight, index) => (
                       <Badge
-                        key={highlight}
+                        key={`culture-highlight-${index}`}
                         variant="outline"
                         className="border-custom-primary-purple/70 bg-custom-primary-purple/10 text-custom-primary-purple text-sm"
                       >

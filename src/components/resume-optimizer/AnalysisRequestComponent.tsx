@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import {
   useAnalysisErrorHandler,
   useAnalysisLoadingState,
@@ -109,7 +110,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
     }
 
     // Exponential backoff delay
-    const delay = Math.pow(2, retryCount) * 1000;
+    const delay = 2 ** retryCount * 1000;
     await new Promise((resolve) => setTimeout(resolve, delay));
 
     setRetryCount((prev) => prev + 1);
@@ -174,17 +175,17 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {/* Analysis Progress */}
         {isLoading && (
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl"></span>
+            <div className="mb-3 flex items-center gap-3">
+              <span className="text-2xl" />
               <div className="flex-1">
-                <div className="flex justify-between items-center mb-1">
+                <div className="mb-1 flex items-center justify-between">
                   <span className="font-semibold">{message}</span>
                   <span className="text-sm opacity-75">{progress}%</span>
                 </div>
-                <progress className={`progress w-full`} value={progress} max="100" />
+                <progress className={'progress w-full'} value={progress} max="100" />
               </div>
             </div>
-            <p className="text-sm opacity-75 ml-11"></p>
+            <p className="ml-11 text-sm opacity-75" />
 
             {/* Stage-specific information */}
             {stage === 'analyzing' && (
@@ -219,17 +220,17 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
                 <div className="text-sm">{errorMessage}</div>
                 {error.details && (
                   <details className="mt-2">
-                    <summary className="text-xs cursor-pointer opacity-75">
+                    <summary className="cursor-pointer text-xs opacity-75">
                       Technical Details
                     </summary>
-                    <pre className="text-xs mt-1 opacity-60 whitespace-pre-wrap">
+                    <pre className="mt-1 whitespace-pre-wrap text-xs opacity-60">
                       {JSON.stringify(error.details, null, 2)}
                     </pre>
                   </details>
                 )}
               </div>
             </div>
-            <div className="flex gap-2 mt-3">
+            <div className="mt-3 flex gap-2">
               <button className="btn btn-sm btn-outline" onClick={handleClearError}>
                 Dismiss
               </button>
@@ -248,28 +249,28 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
 
         {/* Analysis Results Summary */}
         {analysisResult && !isLoading && (
-          <div className="bg-base-200 rounded-lg p-4 mb-4">
-            <h3 className="font-semibold mb-3 flex items-center gap-2">
+          <div className="mb-4 rounded-lg bg-base-200 p-4">
+            <h3 className="mb-3 flex items-center gap-2 font-semibold">
               <span className="text-lg">📊</span>
               Analysis Results
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{analysisResult.overallScore}</div>
+                <div className="font-bold text-2xl text-primary">{analysisResult.overallScore}</div>
                 <div className="text-xs opacity-75">Overall Score</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-secondary">{analysisResult.atsScore}</div>
+                <div className="font-bold text-2xl text-secondary">{analysisResult.atsScore}</div>
                 <div className="text-xs opacity-75">ATS Score</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-accent">
+                <div className="font-bold text-2xl text-accent">
                   {analysisResult.keywordAnalysis.score}
                 </div>
                 <div className="text-xs opacity-75">Keyword Match</div>
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-info">
+                <div className="font-bold text-2xl text-info">
                   {analysisResult.suggestions.length}
                 </div>
                 <div className="text-xs opacity-75">Suggestions</div>
@@ -282,13 +283,13 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         )}
 
         {/* Advanced Options */}
-        <div className="collapse collapse-arrow bg-base-200">
+        <div className="collapse-arrow collapse bg-base-200">
           <input
             type="checkbox"
             checked={showAdvancedOptions}
             onChange={(e) => setShowAdvancedOptions(e.target.checked)}
           />
-          <div className="collapse-title text-sm font-medium">Advanced Options</div>
+          <div className="collapse-title font-medium text-sm">Advanced Options</div>
           <div className="collapse-content">
             <div className="space-y-3">
               <div className="form-control">
@@ -320,7 +321,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         </div>
 
         {/* Action Buttons */}
-        <div className="card-actions justify-end mt-6">
+        <div className="card-actions mt-6 justify-end">
           {!analysisResult && (
             <button
               className={`btn btn-primary ${isLoading ? 'loading' : ''}`}
@@ -353,8 +354,8 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {/* Debug Information (Development Only) */}
         {process.env.NODE_ENV === 'development' && (
           <details className="mt-4">
-            <summary className="text-xs cursor-pointer opacity-50">Debug Information</summary>
-            <pre className="text-xs mt-2 opacity-40 whitespace-pre-wrap bg-base-300 p-2 rounded">
+            <summary className="cursor-pointer text-xs opacity-50">Debug Information</summary>
+            <pre className="mt-2 whitespace-pre-wrap rounded bg-base-300 p-2 text-xs opacity-40">
               {JSON.stringify(
                 {
                   isBackendAvailable,

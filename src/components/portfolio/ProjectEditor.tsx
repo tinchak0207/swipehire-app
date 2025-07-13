@@ -3,16 +3,17 @@
 import {
   ChevronDownIcon,
   ChevronUpIcon,
-  ExternalLinkIcon,
+  ExternalLink as ExternalLinkIcon,
   EyeIcon,
   GithubIcon,
   GripVerticalIcon,
   PlusIcon,
   TrashIcon,
 } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { ExternalLink, Media, Project } from '@/lib/types/portfolio';
+import type { ExternalLink, Media, Project } from '@/lib/types/portfolio';
 import MediaUploader from './MediaUploader';
 import TagSelector from './TagSelector';
 
@@ -187,11 +188,11 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
   const getLinkIcon = (type: ExternalLink['type']) => {
     switch (type) {
       case 'github':
-        return <GithubIcon className="w-4 h-4" />;
+        return <GithubIcon className="h-4 w-4" />;
       case 'demo':
-        return <EyeIcon className="w-4 h-4" />;
+        return <EyeIcon className="h-4 w-4" />;
       default:
-        return <ExternalLinkIcon className="w-4 h-4" />;
+        return <ExternalLinkIcon className="h-4 w-4" />;
     }
   };
 
@@ -215,8 +216,8 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
 
   return (
     <div
-      className={`card bg-base-100 border border-base-300 shadow-sm transition-all duration-200 ${
-        isDragging ? 'shadow-lg ring-2 ring-primary ring-opacity-50 rotate-1' : ''
+      className={`card border border-base-300 bg-base-100 shadow-sm transition-all duration-200 ${
+        isDragging ? 'rotate-1 shadow-lg ring-2 ring-primary ring-opacity-50' : ''
       }`}
     >
       {/* Project Header */}
@@ -225,16 +226,16 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
           <div className="flex items-center gap-3">
             {/* Drag Handle */}
             <div
-              className="cursor-grab active:cursor-grabbing text-base-content/40 hover:text-base-content/80 transition-colors"
+              className="cursor-grab text-base-content/40 transition-colors hover:text-base-content/80 active:cursor-grabbing"
               {...dragHandleProps}
             >
-              <GripVerticalIcon className="w-5 h-5" />
+              <GripVerticalIcon className="h-5 w-5" />
             </div>
 
             {/* Project Title */}
             <div className="flex-1">
               <h3 className="font-medium">{project.title || `Project ${index + 1}`}</h3>
-              <div className="text-sm text-base-content/60">
+              <div className="text-base-content/60 text-sm">
                 {project.media.length} media • {project.links.length} links
               </div>
             </div>
@@ -250,7 +251,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                 disabled={index === 0}
                 title="Move up"
               >
-                <ChevronUpIcon className="w-4 h-4" />
+                <ChevronUpIcon className="h-4 w-4" />
               </button>
               <button
                 className="btn btn-ghost btn-sm"
@@ -258,7 +259,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                 disabled={index === allProjects.length - 1}
                 title="Move down"
               >
-                <ChevronDownIcon className="w-4 h-4" />
+                <ChevronDownIcon className="h-4 w-4" />
               </button>
             </div>
 
@@ -273,7 +274,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
               onClick={onRemove}
               title="Remove project"
             >
-              <TrashIcon className="w-4 h-4" />
+              <TrashIcon className="h-4 w-4" />
             </button>
           </div>
         </div>
@@ -282,7 +283,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
         {isExpanded && (
           <div className="mt-6 space-y-6">
             {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="form-control">
                 <label className="label">
                   <span className="label-text font-medium">Project Title</span>
@@ -336,7 +337,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
 
             {/* External Links */}
             <div className="form-control">
-              <div className="flex justify-between items-center mb-3">
+              <div className="mb-3 flex items-center justify-between">
                 <label className="label p-0">
                   <span className="label-text font-medium">External Links</span>
                 </label>
@@ -344,24 +345,24 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                   className="btn btn-ghost btn-sm"
                   onClick={() => setShowLinkForm(!showLinkForm)}
                 >
-                  <PlusIcon className="w-4 h-4 mr-1" />
+                  <PlusIcon className="mr-1 h-4 w-4" />
                   Add Link
                 </button>
               </div>
 
               {/* Existing Links */}
               {project.links.length > 0 && (
-                <div className="space-y-2 mb-4">
+                <div className="mb-4 space-y-2">
                   {project.links.map((link, linkIndex) => (
                     <div
                       key={linkIndex}
-                      className="flex items-center justify-between p-3 bg-base-200 rounded-lg"
+                      className="flex items-center justify-between rounded-lg bg-base-200 p-3"
                     >
                       <div className="flex items-center gap-3">
                         {getLinkIcon(link.type)}
                         <div>
                           <div className="font-medium text-sm">{link.label}</div>
-                          <div className="text-xs text-base-content/60">
+                          <div className="text-base-content/60 text-xs">
                             {getLinkTypeLabel(link.type)} • {link.url}
                           </div>
                         </div>
@@ -370,7 +371,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                         className="btn btn-ghost btn-sm text-error"
                         onClick={() => handleRemoveLink(linkIndex)}
                       >
-                        <TrashIcon className="w-4 h-4" />
+                        <TrashIcon className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
@@ -379,11 +380,11 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
 
               {/* Add Link Form */}
               {showLinkForm && (
-                <div className="card bg-base-200 border border-base-300">
+                <div className="card border border-base-300 bg-base-200">
                   <div className="card-body p-4">
-                    <h4 className="font-medium mb-3">Add External Link</h4>
+                    <h4 className="mb-3 font-medium">Add External Link</h4>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                       <div className="form-control">
                         <label className="label py-1">
                           <span className="label-text text-sm">Type</span>
@@ -443,7 +444,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                       </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 mt-4">
+                    <div className="mt-4 flex justify-end gap-2">
                       <button
                         className="btn btn-ghost btn-sm"
                         onClick={() => setShowLinkForm(false)}

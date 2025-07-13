@@ -103,13 +103,13 @@ export default function GoalSettingStep({
   const totalGoals = Object.values(goals).flat().length;
 
   return (
-    <div className="mx-auto max-w-3xl bg-gradient-to-br from-blue-50 to-purple-50 p-8 rounded-2xl backdrop-blur-sm animate-fade-in">
+    <div className="mx-auto max-w-3xl animate-fade-in rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 p-8 backdrop-blur-sm">
       {/* Header */}
       <div className="mb-12 text-center">
-        <h2 className="mb-3 font-bold text-4xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h2 className="mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-4xl text-transparent">
           Set Your Goals
         </h2>
-        <p className="text-gray-600 text-lg max-w-lg mx-auto">
+        <p className="mx-auto max-w-lg text-gray-600 text-lg">
           {isJobSeeker
             ? 'Define your career aspirations and skill development targets'
             : 'Outline your hiring objectives and team growth plans'}
@@ -124,7 +124,7 @@ export default function GoalSettingStep({
           return (
             <div
               key={goalType.key}
-              className="card bg-white/90 border-0 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+              className="card rounded-xl border-0 bg-white/90 shadow-lg transition-all duration-300 hover:shadow-xl"
             >
               <div className="card-body text-black">
                 <div className="mb-4 flex items-center space-x-3">
@@ -171,7 +171,7 @@ export default function GoalSettingStep({
                   <input
                     type="text"
                     placeholder={`Add a ${goalType.label.toLowerCase().slice(0, -1)}...`}
-                    className="input input-lg flex-1 bg-white border-2 border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all text-gray-800 placeholder-gray-400"
+                    className="input input-lg flex-1 border-2 border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     value={newGoal.type === goalType.key ? newGoal.text : ''}
                     onChange={(e) => setNewGoal({ type: goalType.key, text: e.target.value })}
                     onKeyPress={(e) => {
@@ -185,8 +185,8 @@ export default function GoalSettingStep({
                     disabled={!newGoal.text.trim() || newGoal.type !== goalType.key}
                     className={`btn btn-lg ${
                       !newGoal.text.trim() || newGoal.type !== goalType.key
-                        ? 'opacity-50 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-md hover:shadow-lg transition-all'
+                        ? 'cursor-not-allowed opacity-50'
+                        : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transition-all hover:from-blue-600 hover:to-purple-700 hover:shadow-lg'
                     } rounded-lg`}
                   >
                     Add
@@ -243,7 +243,7 @@ export default function GoalSettingStep({
       )}
 
       {/* Integration Info */}
-      <div className="card mt-8 bg-white border border-gray-200 rounded-lg shadow-sm">
+      <div className="card mt-8 rounded-lg border border-gray-200 bg-white shadow-sm">
         <div className="card-body text-black">
           <div className="flex items-start space-x-3">
             <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-info/20">

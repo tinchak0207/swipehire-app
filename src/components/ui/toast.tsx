@@ -47,7 +47,7 @@ const Toast: React.FC<ToastProps> = ({
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [duration]);
+  }, [duration, handleClose]);
 
   const handleClose = () => {
     setIsExiting(true);
@@ -59,15 +59,15 @@ const Toast: React.FC<ToastProps> = ({
   const getIcon = () => {
     switch (type) {
       case 'success':
-        return <CheckCircleIcon className="w-6 h-6 text-success" />;
+        return <CheckCircleIcon className="h-6 w-6 text-success" />;
       case 'error':
-        return <XCircleIcon className="w-6 h-6 text-error" />;
+        return <XCircleIcon className="h-6 w-6 text-error" />;
       case 'warning':
-        return <ExclamationTriangleIcon className="w-6 h-6 text-warning" />;
+        return <ExclamationTriangleIcon className="h-6 w-6 text-warning" />;
       case 'info':
-        return <InformationCircleIcon className="w-6 h-6 text-info" />;
+        return <InformationCircleIcon className="h-6 w-6 text-info" />;
       default:
-        return <InformationCircleIcon className="w-6 h-6 text-info" />;
+        return <InformationCircleIcon className="h-6 w-6 text-info" />;
     }
   };
 
@@ -88,7 +88,7 @@ const Toast: React.FC<ToastProps> = ({
 
   return (
     <div
-      className={`alert ${getAlertClass()} shadow-lg transition-all duration-300 transform ${
+      className={`alert ${getAlertClass()} transform shadow-lg transition-all duration-300 ${
         isVisible && !isExiting ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
     >
@@ -102,7 +102,7 @@ const Toast: React.FC<ToastProps> = ({
         className="btn btn-sm btn-circle btn-ghost"
         aria-label="Close notification"
       >
-        <XMarkIcon className="w-4 h-4" />
+        <XMarkIcon className="h-4 w-4" />
       </button>
     </div>
   );

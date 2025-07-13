@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Node } from 'reactflow';
+import type { Node } from 'reactflow';
 
 interface AnalyzeResumeModalProps {
   node: Node;
@@ -60,7 +60,7 @@ const AnalyzeResumeModal: React.FC<AnalyzeResumeModalProps> = ({ node, onSave, o
             step="1"
             onChange={(e) => setThreshold(parseInt(e.target.value, 10))}
           />
-          <div className="w-full flex justify-between text-xs px-2">
+          <div className="flex w-full justify-between px-2 text-xs">
             <span>0%</span>
             <span>25%</span>
             <span>50%</span>

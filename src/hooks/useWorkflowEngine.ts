@@ -3,18 +3,18 @@ import {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  Connection,
-  Edge,
-  EdgeChange,
-  Node,
-  NodeChange,
-  NodeRemoveChange,
-  OnConnect,
-  OnEdgesChange,
-  OnNodesChange,
-  ReactFlowInstance,
+  type Connection,
+  type Edge,
+  type EdgeChange,
+  type Node,
+  type NodeChange,
+  type NodeRemoveChange,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  type ReactFlowInstance,
 } from 'reactflow';
-import { IWorkflow } from '../contracts/IWorkflow';
+import type { IWorkflow } from '../contracts/IWorkflow';
 import { WORKFLOW_NODE_DEFINITIONS } from '../lib/workflow-node-definitions';
 
 export function useWorkflowEngine(
@@ -31,34 +31,31 @@ export function useWorkflowEngine(
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialWorkflow.edges);
 
-  const onNodesChange: OnNodesChange = useCallback(
-    (changes: NodeChange[]) => {
-      const nodeRemoveChanges = changes.filter(
-        (change): change is NodeRemoveChange => change.type === 'remove'
+  const onNodesChange: OnNodesChange = useCallback((changes: NodeChange[]) => {
+    const nodeRemoveChanges = changes.filter(
+      (change): change is NodeRemoveChange => change.type === 'remove'
+    );
+
+    if (nodeRemoveChanges.length > 0) {
+      const removedNodeIds = nodeRemoveChanges.map((change) => change.id);
+      setEdges((eds) =>
+        eds.filter(
+          (edge) => !removedNodeIds.includes(edge.source) && !removedNodeIds.includes(edge.target)
+        )
       );
+    }
 
-      if (nodeRemoveChanges.length > 0) {
-        const removedNodeIds = nodeRemoveChanges.map((change) => change.id);
-        setEdges((eds) =>
-          eds.filter(
-            (edge) => !removedNodeIds.includes(edge.source) && !removedNodeIds.includes(edge.target)
-          )
-        );
-      }
-
-      setNodes((nds) => applyNodeChanges(changes, nds));
-    },
-    [setNodes, setEdges]
-  );
+    setNodes((nds) => applyNodeChanges(changes, nds));
+  }, []);
 
   const onEdgesChange: OnEdgesChange = useCallback(
     (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges]
+    []
   );
 
   const onConnect: OnConnect = useCallback(
     (connection: Connection) => setEdges((eds) => addEdge(connection, eds)),
-    [setEdges]
+    []
   );
 
   const onDragOver = useCallback((event: React.DragEvent<HTMLDivElement>) => {
@@ -91,7 +88,7 @@ export function useWorkflowEngine(
         y: event.clientY,
       });
       const newNode: Node = {
-        id: `${type}-${+new Date()}`,
+        id: `${type}-${Date.now()}`,
         type,
         position,
         data: { definition },
@@ -99,7 +96,7 @@ export function useWorkflowEngine(
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [reactFlowInstance, setNodes]
+    [reactFlowInstance]
   );
 
   return {

@@ -240,7 +240,7 @@ export default function WizardContainer({
 
       // Save to backend
       const response = await fetch(
-        `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+        `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
         {
           method: 'POST',
           headers: {
@@ -276,7 +276,7 @@ export default function WizardContainer({
       if (mongoDbUserId) {
         try {
           await fetch(
-            `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+            `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
             {
               method: 'POST',
               headers: {
@@ -325,7 +325,7 @@ export default function WizardContainer({
     if (mongoDbUserId) {
       try {
         await fetch(
-          `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+          `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
           {
             method: 'POST',
             headers: {

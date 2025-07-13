@@ -2,10 +2,11 @@
 
 import { CloudUploadIcon, EyeIcon, ImageIcon, MusicIcon, VideoIcon, X } from 'lucide-react';
 import Image from 'next/image';
-import React, { useCallback, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUploadMedia } from '@/hooks/usePortfolio';
-import { AudioMedia, ImageMedia, Media, VideoMedia } from '@/lib/types/portfolio';
+import type { AudioMedia, ImageMedia, Media, VideoMedia } from '@/lib/types/portfolio';
 
 interface MediaUploaderProps {
   media: Media[];
@@ -62,7 +63,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
         await uploadFile(file);
       }
     },
-    [media.length, maxFiles, toast]
+    [media.length, maxFiles, toast, uploadFile]
   );
 
   /**
@@ -154,7 +155,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           title: 'Upload Successful',
           description: `${file.name} has been uploaded successfully.`,
         });
-      } catch (error) {
+      } catch (_error) {
         toast({
           title: 'Upload Failed',
           description: `Failed to upload ${file.name}. Please try again.`,
@@ -246,11 +247,11 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const getMediaIcon = (mediaType: Media['type']) => {
     switch (mediaType) {
       case 'image':
-        return <ImageIcon className="w-5 h-5" />;
+        return <ImageIcon className="h-5 w-5" />;
       case 'video':
-        return <VideoIcon className="w-5 h-5" />;
+        return <VideoIcon className="h-5 w-5" />;
       case 'audio':
-        return <MusicIcon className="w-5 h-5" />;
+        return <MusicIcon className="h-5 w-5" />;
     }
   };
 
@@ -261,20 +262,20 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     switch (mediaItem.type) {
       case 'image':
         return (
-          <div className="relative group">
+          <div className="group relative">
             <Image
               src={mediaItem.url}
               alt={mediaItem.alt}
               width={120}
               height={120}
-              className="w-full h-24 object-cover rounded-lg"
+              className="h-24 w-full rounded-lg object-cover"
             />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+            <div className="absolute inset-0 flex items-center justify-center rounded-lg bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
               <button
                 className="btn btn-ghost btn-sm text-white"
                 onClick={() => setPreviewMedia(mediaItem)}
               >
-                <EyeIcon className="w-4 h-4" />
+                <EyeIcon className="h-4 w-4" />
               </button>
             </div>
           </div>
@@ -285,18 +286,18 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
             <video
               src={mediaItem.url}
               poster={mediaItem.poster}
-              className="w-full h-24 object-cover rounded-lg"
+              className="h-24 w-full rounded-lg object-cover"
               muted
             />
             <div className="absolute inset-0 flex items-center justify-center">
-              <VideoIcon className="w-8 h-8 text-white drop-shadow-lg" />
+              <VideoIcon className="h-8 w-8 text-white drop-shadow-lg" />
             </div>
           </div>
         );
       case 'audio':
         return (
-          <div className="w-full h-24 bg-base-200 rounded-lg flex items-center justify-center">
-            <MusicIcon className="w-8 h-8 text-base-content/60" />
+          <div className="flex h-24 w-full items-center justify-center rounded-lg bg-base-200">
+            <MusicIcon className="h-8 w-8 text-base-content/60" />
           </div>
         );
     }
@@ -306,9 +307,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     <div className="space-y-4">
       {/* Upload Area */}
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+        className={`rounded-lg border-2 border-dashed p-6 text-center transition-colors ${
           isDragging ? 'border-primary bg-primary/10' : 'border-base-300 hover:border-primary/50'
-        } ${media.length >= maxFiles ? 'opacity-50 pointer-events-none' : ''}`}
+        } ${media.length >= maxFiles ? 'pointer-events-none opacity-50' : ''}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -323,13 +324,13 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           disabled={media.length >= maxFiles}
         />
 
-        <CloudUploadIcon className="w-12 h-12 mx-auto mb-4 text-base-content/40" />
+        <CloudUploadIcon className="mx-auto mb-4 h-12 w-12 text-base-content/40" />
 
         <div className="space-y-2">
-          <p className="text-lg font-medium">
+          <p className="font-medium text-lg">
             {isDragging ? 'Drop files here' : 'Upload Media Files'}
           </p>
-          <p className="text-sm text-base-content/60">
+          <p className="text-base-content/60 text-sm">
             Drag and drop files here, or{' '}
             <button
               className="link link-primary"
@@ -339,10 +340,10 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
               browse files
             </button>
           </p>
-          <p className="text-xs text-base-content/50">
+          <p className="text-base-content/50 text-xs">
             Supports images, videos, and audio files (max 10MB each)
           </p>
-          <p className="text-xs text-base-content/50">
+          <p className="text-base-content/50 text-xs">
             {media.length} / {maxFiles} files uploaded
           </p>
         </div>
@@ -354,7 +355,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
           {Object.entries(uploadProgress).map(([fileId, progress]) => (
             <div key={fileId} className="flex items-center gap-3">
               <div className="flex-1">
-                <div className="flex justify-between text-sm mb-1">
+                <div className="mb-1 flex justify-between text-sm">
                   <span>Uploading...</span>
                   <span>{Math.round(progress)}%</span>
                 </div>
@@ -367,7 +368,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
       {/* Media Grid */}
       {media.length > 0 && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           {media.map((mediaItem, index) => (
             <div key={index} className="space-y-2">
               {/* Media Preview */}
@@ -376,16 +377,16 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
 
                 {/* Remove Button */}
                 <button
-                  className="absolute -top-2 -right-2 btn btn-circle btn-xs btn-error"
+                  className="-top-2 -right-2 btn btn-circle btn-xs btn-error absolute"
                   onClick={() => handleRemoveMedia(index)}
                 >
-                  <X className="w-3 h-3" />
+                  <X className="h-3 w-3" />
                 </button>
               </div>
 
               {/* Media Info */}
               <div className="space-y-1">
-                <div className="flex items-center gap-1 text-xs text-base-content/60">
+                <div className="flex items-center gap-1 text-base-content/60 text-xs">
                   {getMediaIcon(mediaItem.type)}
                   <span className="capitalize">{mediaItem.type}</span>
                 </div>
@@ -410,7 +411,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
       {previewMedia && previewMedia.type === 'image' && (
         <div className="modal modal-open">
           <div className="modal-box max-w-4xl">
-            <div className="flex justify-between items-center mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="font-bold text-lg">Image Preview</h3>
               <button className="btn btn-sm btn-circle" onClick={() => setPreviewMedia(null)}>
                 ✕
@@ -423,12 +424,12 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
                 alt={previewMedia.alt}
                 width={800}
                 height={600}
-                className="w-full h-auto rounded-lg"
+                className="h-auto w-full rounded-lg"
               />
             </div>
 
             <div className="mt-4">
-              <p className="text-sm text-base-content/60">
+              <p className="text-base-content/60 text-sm">
                 Alt text: {previewMedia.alt || 'No alt text provided'}
               </p>
             </div>

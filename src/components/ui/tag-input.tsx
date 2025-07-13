@@ -1,6 +1,7 @@
 'use client';
 
-import React, { KeyboardEvent, useState } from 'react';
+import type React from 'react';
+import { type KeyboardEvent, useState } from 'react';
 
 interface TagInputProps {
   tags: string[];
@@ -31,11 +32,11 @@ export const TagInput: React.FC<TagInputProps> = ({
   };
 
   return (
-    <div className="tag-input-container flex flex-wrap gap-2 items-center p-2 border rounded-lg bg-white border-gray-300">
+    <div className="tag-input-container flex flex-wrap items-center gap-2 rounded-lg border border-gray-300 bg-white p-2">
       {tags.map((tag, index) => (
         <div
           key={index}
-          className="tag-badge flex items-center gap-1 bg-gray-100 px-2 py-1 rounded-full text-sm text-black"
+          className="tag-badge flex items-center gap-1 rounded-full bg-gray-100 px-2 py-1 text-black text-sm"
         >
           {tag}
           <button
@@ -53,7 +54,7 @@ export const TagInput: React.FC<TagInputProps> = ({
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="flex-1 min-w-[100px] outline-none bg-transparent text-black placeholder-gray-500"
+        className="min-w-[100px] flex-1 bg-transparent text-black placeholder-gray-500 outline-none"
       />
     </div>
   );

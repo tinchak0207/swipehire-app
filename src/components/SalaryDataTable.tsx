@@ -616,7 +616,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
             </div>
 
             {/* Title with consistent styling */}
-            <h3 className="mb-3 font-bold text-gray-900 text-2xl">No Data Available</h3>
+            <h3 className="mb-3 font-bold text-2xl text-gray-900">No Data Available</h3>
 
             {/* Message with improved typography */}
             <p className="mb-6 max-w-md text-center text-gray-600 leading-relaxed">
@@ -640,7 +640,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                     d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <span className="text-sm text-blue-700">Try adjusting your search filters</span>
+                <span className="text-blue-700 text-sm">Try adjusting your search filters</span>
               </div>
 
               <div className="flex items-center gap-2 rounded-lg border border-green-200/50 bg-green-50/80 px-4 py-2 backdrop-blur-sm">
@@ -658,7 +658,7 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                     d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                   />
                 </svg>
-                <span className="text-sm text-green-700">Broaden your search terms</span>
+                <span className="text-green-700 text-sm">Broaden your search terms</span>
               </div>
             </div>
           </div>
@@ -752,13 +752,13 @@ export const SalaryDataTable: React.FC<SalaryDataTableProps> = ({
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={`px-6 py-4 whitespace-nowrap text-gray-900 text-sm ${column.className || ''}`}
+                      className={`whitespace-nowrap px-6 py-4 text-gray-900 text-sm ${column.className || ''}`}
                     >
                       {column.formatter
                         ? column.formatter(row[column.key as keyof SalaryDataPoint], row)
                         : String(row[column.key as keyof SalaryDataPoint] || '')}
                       {column.key === 'jobTitle' && !row.verified && (
-                        <span className="ml-2 inline-flex items-center rounded-full border border-gray-300/50 bg-gray-100/80 px-2 py-1 text-xs text-gray-600">
+                        <span className="ml-2 inline-flex items-center rounded-full border border-gray-300/50 bg-gray-100/80 px-2 py-1 text-gray-600 text-xs">
                           Unverified
                         </span>
                       )}

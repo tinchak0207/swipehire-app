@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles, Star, Trophy, Zap } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
 
 interface WelcomeStepProps {
   onNext: () => void;
@@ -37,7 +37,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
   ];
 
   return (
-    <div className="text-center space-y-8">
+    <div className="space-y-8 text-center">
       {/* Hero content */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
@@ -49,16 +49,16 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className="absolute -top-4 -right-4 text-white/30"
+            className="-top-4 -right-4 absolute text-white/30"
           >
-            <Sparkles className="w-8 h-8" />
+            <Sparkles className="h-8 w-8" />
           </motion.div>
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+          <h2 className="mb-4 font-bold text-3xl text-white md:text-4xl">
             Ready to showcase your amazing work?
           </h2>
         </div>
 
-        <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
+        <p className="mx-auto max-w-2xl text-white/80 text-xl leading-relaxed">
           Join thousands of professionals who've built stunning portfolios with our intuitive
           wizard. No design skills required – just your passion and creativity.
         </p>
@@ -69,7 +69,7 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.4 }}
-        className="grid md:grid-cols-3 gap-6 mt-12"
+        className="mt-12 grid gap-6 md:grid-cols-3"
       >
         {features.map((feature, index) => (
           <motion.div
@@ -77,13 +77,13 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-            className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 group"
+            className="group rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm transition-all duration-300 hover:bg-white/20"
           >
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mb-4 group-hover:scale-110 transition-transform duration-300">
-              <feature.icon className="w-6 h-6 text-white" />
+            <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-white/20 transition-transform duration-300 group-hover:scale-110">
+              <feature.icon className="h-6 w-6 text-white" />
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">{feature.title}</h3>
-            <p className="text-white/70 text-sm">{feature.description}</p>
+            <h3 className="mb-2 font-semibold text-lg text-white">{feature.title}</h3>
+            <p className="text-sm text-white/70">{feature.description}</p>
           </motion.div>
         ))}
       </motion.div>
@@ -97,25 +97,25 @@ const WelcomeStep: React.FC<WelcomeStepProps> = ({ onNext }) => {
       >
         <button
           onClick={onNext}
-          className="inline-flex items-center space-x-3 px-12 py-4 bg-white text-gray-900 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl group"
+          className="group inline-flex items-center space-x-3 rounded-full bg-white px-12 py-4 font-bold text-gray-900 text-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl"
         >
           <span>Let's Get Started</span>
           <motion.div animate={{ x: [0, 5, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-            <Sparkles className="w-5 h-5 group-hover:text-purple-600 transition-colors duration-300" />
+            <Sparkles className="h-5 w-5 transition-colors duration-300 group-hover:text-purple-600" />
           </motion.div>
         </button>
 
-        <p className="text-white/50 text-sm mt-4">
+        <p className="mt-4 text-sm text-white/50">
           Takes less than 5 minutes • No credit card required
         </p>
       </motion.div>
 
       {/* Floating elements */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         {[...Array(6)].map((_, i) => (
           <motion.div
             key={i}
-            className="absolute w-2 h-2 bg-white/20 rounded-full"
+            className="absolute h-2 w-2 rounded-full bg-white/20"
             style={{
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,

@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiDatabase, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface TalentPoolManagementNodeData {
   action: 'add' | 'update' | 'search';
@@ -27,22 +28,22 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
   };
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-lime-500">
-      <Handle type="target" position={Position.Left} id="input" className="w-4 h-4 !bg-lime-500" />
+    <div className="card w-96 border-2 border-lime-500 bg-base-100 shadow-xl">
+      <Handle type="target" position={Position.Left} id="input" className="!bg-lime-500 h-4 w-4" />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-lime-500 text-white rounded-full w-12 h-12 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-lime-500 text-white">
                 <FiDatabase className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Talent Pool</h2>
-              <p className="text-sm text-gray-500">Manage candidate database</p>
+              <h2 className="card-title font-bold text-lg">Talent Pool</h2>
+              <p className="text-gray-500 text-sm">Manage candidate database</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -50,7 +51,7 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Adds, updates, or searches for candidates in your central talent pool.
             </p>
 
@@ -73,7 +74,7 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
                 <label className="label">
                   <span className="label-text font-semibold">Tags to Apply</span>
                 </label>
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="mb-2 flex flex-wrap gap-2">
                   {tags.map((tag) => (
                     <div key={tag} className="badge badge-lg badge-primary gap-2">
                       <button onClick={() => removeTag(tag)}>
@@ -106,14 +107,14 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
                 <textarea
                   className="textarea textarea-bordered h-20"
                   placeholder="e.g., (javascript OR python) AND (react OR vue) AND NOT angular"
-                ></textarea>
+                />
               </div>
             )}
 
-            <div className="alert alert-lime text-xs mt-2">
+            <div className="alert alert-lime mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -122,7 +123,7 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 For 'Add', output is the candidate record. For 'Search', output is an array of
@@ -136,7 +137,7 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-lime-500"
+        className="!bg-lime-500 h-4 w-4"
       />
     </div>
   );

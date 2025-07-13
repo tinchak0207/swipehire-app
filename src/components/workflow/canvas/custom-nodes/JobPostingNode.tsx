@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiBriefcase, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface JobPostingNodeData {
   jobTitle: string;
@@ -26,27 +27,27 @@ const JobPostingNode: React.FC<NodeProps<JobPostingNodeData>> = ({ data }) => {
   };
 
   return (
-    <div className="card w-96 bg-base-100 shadow-xl border-2 border-info-focus">
+    <div className="card w-96 border-2 border-info-focus bg-base-100 shadow-xl">
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className="w-4 h-4 !bg-info-focus"
+        className="!bg-info-focus h-4 w-4"
       />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-info text-info-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-info text-info-content">
                 <FiBriefcase className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Post Job</h2>
-              <p className="text-sm text-gray-500">Distribute job opening</p>
+              <h2 className="card-title font-bold text-lg">Post Job</h2>
+              <p className="text-gray-500 text-sm">Distribute job opening</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -54,7 +55,7 @@ const JobPostingNode: React.FC<NodeProps<JobPostingNodeData>> = ({ data }) => {
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               This node posts a job description to selected platforms. Job data can be passed from a
               previous node or entered manually.
             </p>
@@ -81,7 +82,7 @@ const JobPostingNode: React.FC<NodeProps<JobPostingNodeData>> = ({ data }) => {
                 placeholder="Enter the job description here..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="form-control">
@@ -101,10 +102,10 @@ const JobPostingNode: React.FC<NodeProps<JobPostingNodeData>> = ({ data }) => {
               </div>
             </div>
 
-            <div className="alert alert-success text-xs mt-2">
+            <div className="alert alert-success mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="stroke-current shrink-0 h-6 w-6"
+                className="h-6 w-6 shrink-0 stroke-current"
                 fill="none"
                 viewBox="0 0 24 24"
               >
@@ -127,7 +128,7 @@ const JobPostingNode: React.FC<NodeProps<JobPostingNodeData>> = ({ data }) => {
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-info-focus"
+        className="!bg-info-focus h-4 w-4"
       />
     </div>
   );

@@ -55,8 +55,8 @@ export default function WelcomeStep({
 
         {/* Benefits */}
         <div className="mb-16 grid gap-8 md:grid-cols-3">
-          <div className="text-center group">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+          <div className="group text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-green-400 to-green-600 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl">
               <svg
                 className="h-8 w-8 text-white"
                 fill="none"
@@ -72,13 +72,13 @@ export default function WelcomeStep({
               </svg>
             </div>
             <h3 className="mb-3 font-bold text-gray-800 text-lg">Personalized Experience</h3>
-            <p className="text-gray-600 text-base leading-relaxed">
+            <p className="text-base text-gray-600 leading-relaxed">
               Get recommendations tailored to your specific role and preferences
             </p>
           </div>
 
-          <div className="text-center group">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+          <div className="group text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl">
               <svg
                 className="h-8 w-8 text-white"
                 fill="none"
@@ -94,13 +94,13 @@ export default function WelcomeStep({
               </svg>
             </div>
             <h3 className="mb-3 font-bold text-gray-800 text-lg">Goal Tracking</h3>
-            <p className="text-gray-600 text-base leading-relaxed">
+            <p className="text-base text-gray-600 leading-relaxed">
               Set and track your career goals with AI-powered insights
             </p>
           </div>
 
-          <div className="text-center group">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105">
+          <div className="group text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-orange-400 to-orange-600 shadow-lg transition-all duration-300 group-hover:scale-105 group-hover:shadow-xl">
               <svg
                 className="h-8 w-8 text-white"
                 fill="none"
@@ -116,7 +116,7 @@ export default function WelcomeStep({
               </svg>
             </div>
             <h3 className="mb-3 font-bold text-gray-800 text-lg">Smart Notifications</h3>
-            <p className="text-gray-600 text-base leading-relaxed">
+            <p className="text-base text-gray-600 leading-relaxed">
               Stay informed with customizable notification preferences
             </p>
           </div>
@@ -135,10 +135,10 @@ export default function WelcomeStep({
         <div className="mx-auto grid max-w-4xl gap-8 md:grid-cols-2">
           {/* Job Seeker Option */}
           <div
-            className={`group cursor-pointer rounded-2xl p-8 transition-all duration-500 hover:shadow-2xl backdrop-blur-sm ${
+            className={`group cursor-pointer rounded-2xl p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl ${
               data.userType === 'jobseeker'
-                ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white ring-4 ring-blue-200 shadow-2xl scale-105'
-                : 'bg-white/80 hover:bg-white shadow-lg hover:scale-102'
+                ? 'scale-105 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-2xl ring-4 ring-blue-200'
+                : 'bg-white/80 shadow-lg hover:scale-102 hover:bg-white'
             } `}
             onClick={() => handleRoleSelect('jobseeker')}
           >
@@ -147,7 +147,7 @@ export default function WelcomeStep({
                 className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
                   data.userType === 'jobseeker'
                     ? 'bg-white/20 shadow-lg'
-                    : 'bg-gradient-to-br from-blue-400 to-blue-600 group-hover:shadow-xl group-hover:scale-110'
+                    : 'bg-gradient-to-br from-blue-400 to-blue-600 group-hover:scale-110 group-hover:shadow-xl'
                 } `}
               >
                 <svg
@@ -207,10 +207,10 @@ export default function WelcomeStep({
 
           {/* Recruiter Option */}
           <div
-            className={`group cursor-pointer rounded-2xl p-8 transition-all duration-500 hover:shadow-2xl backdrop-blur-sm ${
+            className={`group cursor-pointer rounded-2xl p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl ${
               data.userType === 'recruiter'
-                ? 'bg-gradient-to-br from-green-500 to-green-600 text-white ring-4 ring-green-200 shadow-2xl scale-105'
-                : 'bg-white/80 hover:bg-white shadow-lg hover:scale-102'
+                ? 'scale-105 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-2xl ring-4 ring-green-200'
+                : 'bg-white/80 shadow-lg hover:scale-102 hover:bg-white'
             } `}
             onClick={() => handleRoleSelect('recruiter')}
           >
@@ -219,7 +219,7 @@ export default function WelcomeStep({
                 className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
                   data.userType === 'recruiter'
                     ? 'bg-white/20 shadow-lg'
-                    : 'bg-gradient-to-br from-green-400 to-green-600 group-hover:shadow-xl group-hover:scale-110'
+                    : 'bg-gradient-to-br from-green-400 to-green-600 group-hover:scale-110 group-hover:shadow-xl'
                 } `}
               >
                 <svg
@@ -283,7 +283,7 @@ export default function WelcomeStep({
       <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
         <button
           onClick={onSkip}
-          className="text-gray-500 hover:text-gray-700 font-medium transition-colors duration-200"
+          className="font-medium text-gray-500 transition-colors duration-200 hover:text-gray-700"
           disabled={isLoading}
         >
           Skip Setup (Complete Later)
@@ -293,22 +293,22 @@ export default function WelcomeStep({
           <button
             onClick={onNext}
             disabled={!canProceed || isLoading}
-            className={`px-8 py-4 rounded-xl font-bold text-lg transition-all duration-300 shadow-lg hover:shadow-xl ${
+            className={`rounded-xl px-8 py-4 font-bold text-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
               canProceed && !isLoading
-                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 hover:scale-105'
-                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:scale-105 hover:from-blue-600 hover:to-blue-700'
+                : 'cursor-not-allowed bg-gray-200 text-gray-400'
             }`}
           >
             {isLoading ? (
               <>
-                <span className="inline-block animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                <span className="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-white border-b-2" />
                 Saving...
               </>
             ) : (
               <>
                 Continue Setup
                 <svg
-                  className="ml-2 h-5 w-5 inline"
+                  className="ml-2 inline h-5 w-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"

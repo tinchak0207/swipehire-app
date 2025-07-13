@@ -75,10 +75,10 @@ University of Technology (2015-2019)</p>
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       {/* Header */}
-      <div className="bg-white border-b border-slate-200">
+      <div className="border-slate-200 border-b bg-white">
         <div className="container mx-auto max-w-7xl px-6 py-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">Embedded Text Editor Test</h1>
+            <h1 className="mb-2 font-bold text-3xl text-slate-900">Embedded Text Editor Test</h1>
             <p className="text-slate-600">
               Test the embedded real-time text editor component with sample resume content
             </p>
@@ -90,16 +90,16 @@ University of Technology (2015-2019)</p>
       <div className="container mx-auto max-w-5xl px-6 py-8">
         <div className="space-y-8">
           {/* Editor Status */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">Editor Status</h2>
-            <div className="grid md:grid-cols-3 gap-4">
-              <div className="stat bg-slate-50 rounded-lg">
+          <div className="rounded-xl border border-slate-200 bg-white p-6">
+            <h2 className="mb-4 font-semibold text-slate-900 text-xl">Editor Status</h2>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="stat rounded-lg bg-slate-50">
                 <div className="stat-title">Content Length</div>
                 <div className="stat-value text-primary">{content.length}</div>
                 <div className="stat-desc">characters</div>
               </div>
 
-              <div className="stat bg-slate-50 rounded-lg">
+              <div className="stat rounded-lg bg-slate-50">
                 <div className="stat-title">Editor State</div>
                 <div
                   className={`stat-value ${editorState.isDirty ? 'text-warning' : 'text-success'}`}
@@ -111,7 +111,7 @@ University of Technology (2015-2019)</p>
                 </div>
               </div>
 
-              <div className="stat bg-slate-50 rounded-lg">
+              <div className="stat rounded-lg bg-slate-50">
                 <div className="stat-title">Word Count</div>
                 <div className="stat-value text-info">
                   {
@@ -142,12 +142,12 @@ University of Technology (2015-2019)</p>
           />
 
           {/* Testing Instructions */}
-          <div className="bg-white rounded-xl border border-slate-200 p-6">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">Testing Instructions</h2>
-            <div className="grid md:grid-cols-2 gap-6">
+          <div className="rounded-xl border border-slate-200 bg-white p-6">
+            <h2 className="mb-4 font-semibold text-slate-900 text-xl">Testing Instructions</h2>
+            <div className="grid gap-6 md:grid-cols-2">
               <div>
-                <h3 className="font-semibold text-slate-800 mb-3">Features to Test:</h3>
-                <ul className="space-y-2 text-sm text-slate-600">
+                <h3 className="mb-3 font-semibold text-slate-800">Features to Test:</h3>
+                <ul className="space-y-2 text-slate-600 text-sm">
                   <li className="flex items-start space-x-2">
                     <span className="text-primary">•</span>
                     <span>Rich text formatting (bold, italic, headers, lists)</span>
@@ -176,8 +176,8 @@ University of Technology (2015-2019)</p>
               </div>
 
               <div>
-                <h3 className="font-semibold text-slate-800 mb-3">Expected Behavior:</h3>
-                <ul className="space-y-2 text-sm text-slate-600">
+                <h3 className="mb-3 font-semibold text-slate-800">Expected Behavior:</h3>
+                <ul className="space-y-2 text-slate-600 text-sm">
                   <li className="flex items-start space-x-2">
                     <span className="text-success">✓</span>
                     <span>Editor loads with sample resume content</span>
@@ -208,21 +208,21 @@ University of Technology (2015-2019)</p>
           </div>
 
           {/* Debug Information */}
-          <div className="bg-slate-900 text-slate-100 rounded-xl p-6">
-            <h2 className="text-xl font-semibold mb-4">Debug Information</h2>
+          <div className="rounded-xl bg-slate-900 p-6 text-slate-100">
+            <h2 className="mb-4 font-semibold text-xl">Debug Information</h2>
             <div className="space-y-4">
               <div>
-                <h3 className="font-medium text-slate-300 mb-2">Current Editor State:</h3>
-                <pre className="bg-slate-800 p-3 rounded text-xs overflow-auto">
+                <h3 className="mb-2 font-medium text-slate-300">Current Editor State:</h3>
+                <pre className="overflow-auto rounded bg-slate-800 p-3 text-xs">
                   {JSON.stringify(editorState, null, 2)}
                 </pre>
               </div>
 
               <div>
-                <h3 className="font-medium text-slate-300 mb-2">
+                <h3 className="mb-2 font-medium text-slate-300">
                   Content Preview (first 200 chars):
                 </h3>
-                <pre className="bg-slate-800 p-3 rounded text-xs overflow-auto">
+                <pre className="overflow-auto rounded bg-slate-800 p-3 text-xs">
                   {content.substring(0, 200)}...
                 </pre>
               </div>

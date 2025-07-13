@@ -1,7 +1,7 @@
-import { Node } from 'reactflow';
+import type { Node } from 'reactflow';
 import { ResumeAnalysisService } from '../ai-services/ResumeAnalysisService';
-import { IAnalyzeResumeConfig, IConditionConfig, IWorkflow } from '../contracts/IWorkflow';
-import { WorkflowNode } from '../lib/types';
+import type { IAnalyzeResumeConfig, IConditionConfig, IWorkflow } from '../contracts/IWorkflow';
+import type { WorkflowNode } from '../lib/types';
 
 export class DagExecutionEngine {
   private workflow: IWorkflow;
@@ -82,10 +82,10 @@ export class DagExecutionEngine {
     let result = false;
     switch (operator) {
       case '==':
-        result = actualValue == value;
+        result = actualValue === value;
         break;
       case '!=':
-        result = actualValue != value;
+        result = actualValue !== value;
         break;
       case '>':
         result = actualValue > value;
@@ -149,7 +149,7 @@ export class DagExecutionEngine {
     for (const node of nodes) {
       for (const edge of this.workflow.edges) {
         if (edge.source === node.id) {
-          adj.get(node.id)!.push(nodes.find((n) => n.id === edge.target)!);
+          adj.get(node.id)?.push(nodes.find((n) => n.id === edge.target)!);
           inDegree.set(edge.target, (inDegree.get(edge.target) || 0) + 1);
         }
       }

@@ -2,30 +2,66 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
-import React, { ChangeEvent, DragEvent, useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  type ChangeEvent,
+  type DragEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   addEdge,
-  Edge,
-  Node,
-  OnConnect,
-  OnEdgesChange,
-  OnNodesChange,
-  ReactFlowInstance,
+  type Edge,
+  type Node,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  type ReactFlowInstance,
   useEdgesState,
   useNodesState,
 } from 'reactflow';
 import WorkflowCanvas from '@/components/WorkflowCanvas';
 import AnalyzeResumeNode from '@/components/workflow/canvas/custom-nodes/AnalyzeResumeNode';
+import BackgroundCheckNode from '@/components/workflow/canvas/custom-nodes/BackgroundCheckNode';
+import CloudStorageIntegrationNode from '@/components/workflow/canvas/custom-nodes/CloudStorageIntegrationNode';
 import ConditionNode from '@/components/workflow/canvas/custom-nodes/ConditionNode';
+import CustomFunctionNode from '@/components/workflow/canvas/custom-nodes/CustomFunctionNode';
+import DataCalculationNode from '@/components/workflow/canvas/custom-nodes/DataCalculationNode';
+import DataExportNode from '@/components/workflow/canvas/custom-nodes/DataExportNode';
+import DataFilterNode from '@/components/workflow/canvas/custom-nodes/DataFilterNode';
+import DataMetricReferenceNode from '@/components/workflow/canvas/custom-nodes/DataMetricReferenceNode';
+import DataMetricTriggerNode from '@/components/workflow/canvas/custom-nodes/DataMetricTriggerNode';
 import DataThresholdAlertNode from '@/components/workflow/canvas/custom-nodes/DataThresholdAlertNode';
+import DataVisualizationNode from '@/components/workflow/canvas/custom-nodes/DataVisualizationNode';
+import EnterpriseOAIntegrationNode from '@/components/workflow/canvas/custom-nodes/EnterpriseOAIntegrationNode';
+import ExternalAPINode from '@/components/workflow/canvas/custom-nodes/ExternalAPINode';
+import FeedbackCollectionNode from '@/components/workflow/canvas/custom-nodes/FeedbackCollectionNode';
+import InterviewInvitationNode from '@/components/workflow/canvas/custom-nodes/InterviewInvitationNode';
 import InvokeAINode from '@/components/workflow/canvas/custom-nodes/InvokeAINode';
+import JobPostingNode from '@/components/workflow/canvas/custom-nodes/JobPostingNode';
+import JobStatusChangeTriggerNode from '@/components/workflow/canvas/custom-nodes/JobStatusChangeTriggerNode';
+import LoopExecutionNode from '@/components/workflow/canvas/custom-nodes/LoopExecutionNode';
+import ManualTriggerNode from '@/components/workflow/canvas/custom-nodes/ManualTriggerNode';
 import NewCandidateNode from '@/components/workflow/canvas/custom-nodes/NewCandidateNode';
+import NewResumeSubmissionTriggerNode from '@/components/workflow/canvas/custom-nodes/NewResumeSubmissionTriggerNode';
+import PriorityJudgmentNode from '@/components/workflow/canvas/custom-nodes/PriorityJudgmentNode';
+import ResumeStatusUpdateNode from '@/components/workflow/canvas/custom-nodes/ResumeStatusUpdateNode';
+import SalaryInquiryNode from '@/components/workflow/canvas/custom-nodes/SalaryInquiryNode';
+import ScheduledTriggerNode from '@/components/workflow/canvas/custom-nodes/ScheduledTriggerNode';
 import SendCommunicationNode from '@/components/workflow/canvas/custom-nodes/SendCommunicationNode';
+import SocialMediaIntegrationNode from '@/components/workflow/canvas/custom-nodes/SocialMediaIntegrationNode';
+import SubworkflowCallNode from '@/components/workflow/canvas/custom-nodes/SubworkflowCallNode';
+import TalentPoolManagementNode from '@/components/workflow/canvas/custom-nodes/TalentPoolManagementNode';
+import TaskAllocationNode from '@/components/workflow/canvas/custom-nodes/TaskAllocationNode';
+import TemplateApplicationNode from '@/components/workflow/canvas/custom-nodes/TemplateApplicationNode';
+import VideoInterviewIntegrationNode from '@/components/workflow/canvas/custom-nodes/VideoInterviewIntegrationNode';
+import WorkflowLogNode from '@/components/workflow/canvas/custom-nodes/WorkflowLogNode';
 import AnalyzeResumeModal from '@/components/workflow/modals/AnalyzeResumeModal';
 import InvokeAIModal from '@/components/workflow/modals/InvokeAIModal';
 import RunWorkflowModal from '@/components/workflow/modals/RunWorkflowModal';
 import SendCommunicationModal from '@/components/workflow/modals/SendCommunicationModal';
-import { SaveWorkflowPayload, useSaveWorkflow } from '@/hooks/useSaveWorkflow';
+import { type SaveWorkflowPayload, useSaveWorkflow } from '@/hooks/useSaveWorkflow';
 
 const queryClient = new QueryClient();
 
@@ -37,40 +73,40 @@ const nodeTypes = {
   dataThresholdAlert: DataThresholdAlertNode,
   invokeAI: InvokeAINode,
   // Triggers
-  newResumeSubmissionTrigger: NewCandidateNode,
-  jobStatusChangeTrigger: NewCandidateNode,
-  dataMetricTrigger: NewCandidateNode,
-  scheduledTrigger: NewCandidateNode,
-  manualTrigger: NewCandidateNode,
+  newResumeSubmissionTrigger: NewResumeSubmissionTriggerNode,
+  jobStatusChangeTrigger: JobStatusChangeTriggerNode,
+  dataMetricTrigger: DataMetricTriggerNode,
+  scheduledTrigger: ScheduledTriggerNode,
+  manualTrigger: ManualTriggerNode,
   // Actions
-  interviewInvitation: NewCandidateNode,
-  resumeStatusUpdate: NewCandidateNode,
-  jobPosting: NewCandidateNode,
-  dataExport: NewCandidateNode,
-  talentPoolManagement: NewCandidateNode,
-  salaryInquiry: NewCandidateNode,
-  feedbackCollection: NewCandidateNode,
-  taskAllocation: NewCandidateNode,
-  templateApplication: NewCandidateNode,
-  workflowLog: NewCandidateNode,
+  interviewInvitation: InterviewInvitationNode,
+  resumeStatusUpdate: ResumeStatusUpdateNode,
+  jobPosting: JobPostingNode,
+  dataExport: DataExportNode,
+  talentPoolManagement: TalentPoolManagementNode,
+  salaryInquiry: SalaryInquiryNode,
+  feedbackCollection: FeedbackCollectionNode,
+  taskAllocation: TaskAllocationNode,
+  templateApplication: TemplateApplicationNode,
+  workflowLog: WorkflowLogNode,
   // Decisions
-  loopExecution: NewCandidateNode,
-  priorityJudgment: NewCandidateNode,
+  loopExecution: LoopExecutionNode,
+  priorityJudgment: PriorityJudgmentNode,
   // Data
-  dataMetricReference: NewCandidateNode,
-  dataVisualization: NewCandidateNode,
-  dataCalculation: NewCandidateNode,
-  dataFilter: NewCandidateNode,
+  dataMetricReference: DataMetricReferenceNode,
+  dataVisualization: DataVisualizationNode,
+  dataCalculation: DataCalculationNode,
+  dataFilter: DataFilterNode,
   // Integrations
-  videoInterviewIntegration: NewCandidateNode,
-  backgroundCheck: NewCandidateNode,
-  enterpriseOaIntegration: NewCandidateNode,
-  socialMediaIntegration: NewCandidateNode,
-  cloudStorageIntegration: NewCandidateNode,
+  videoInterviewIntegration: VideoInterviewIntegrationNode,
+  backgroundCheck: BackgroundCheckNode,
+  enterpriseOaIntegration: EnterpriseOAIntegrationNode,
+  socialMediaIntegration: SocialMediaIntegrationNode,
+  cloudStorageIntegration: CloudStorageIntegrationNode,
   // Extensions
-  customFunction: NewCandidateNode,
-  subworkflowCall: NewCandidateNode,
-  externalApi: NewCandidateNode,
+  customFunction: CustomFunctionNode,
+  subworkflowCall: SubworkflowCallNode,
+  externalApi: ExternalAPINode,
 };
 
 let id = 2;
@@ -180,7 +216,7 @@ const WorkflowDashboardPage = () => {
           className="drawer-content flex flex-col items-center justify-center"
           ref={reactFlowWrapper}
         >
-          <div className="p-4 w-full bg-base-200 flex items-center gap-4">
+          <div className="flex w-full items-center gap-4 bg-base-200 p-4">
             <input
               type="text"
               placeholder="Workflow Name"
@@ -196,13 +232,8 @@ const WorkflowDashboardPage = () => {
               {saveWorkflowMutation.isPending ? 'Saving...' : 'Save'}
             </button>
             <div className="dropdown dropdown-end">
-              <label tabIndex={0} className="btn btn-secondary">
-                Save as Template
-              </label>
-              <ul
-                tabIndex={0}
-                className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
-              >
+              <label className="btn btn-secondary">Save as Template</label>
+              <ul className="dropdown-content menu w-52 rounded-box bg-base-100 p-2 shadow">
                 <li>
                   <a onClick={() => onSaveWorkflow(true, false)}>Save as Private Template</a>
                 </li>
@@ -219,7 +250,7 @@ const WorkflowDashboardPage = () => {
               Run
             </button>
           </div>
-          <div className="flex-grow w-full bg-base-300" onDrop={onDrop} onDragOver={onDragOver}>
+          <div className="w-full flex-grow bg-base-300" onDrop={onDrop} onDragOver={onDragOver}>
             <WorkflowCanvas
               nodes={nodes}
               edges={edges}
@@ -232,12 +263,8 @@ const WorkflowDashboardPage = () => {
           </div>
         </div>
         <div className="drawer-side">
-          <label
-            htmlFor="my-drawer-2"
-            aria-label="close sidebar"
-            className="drawer-overlay"
-          ></label>
-          <ul className="menu p-4 w-80 min-h-full bg-base-200 text-base-content">
+          <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay" />
+          <ul className="menu min-h-full w-80 bg-base-200 p-4 text-base-content">
             {/* Trigger Cards */}
             <li className="menu-title">
               <span>Trigger Cards</span>

@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
 
     const response = await ai.generate({
       prompt,
-      model: model as any,
+      model: model,
       temperature: 0.7,
       maxTokens: 500,
     });

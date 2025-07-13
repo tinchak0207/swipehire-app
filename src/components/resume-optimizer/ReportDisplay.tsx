@@ -78,27 +78,27 @@ const ReportSection: React.FC<SectionProps> = ({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <div className="group relative bg-white border border-stone-200 rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 hover:border-stone-300 overflow-hidden">
+    <div className="group relative overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition-all duration-300 hover:border-stone-300 hover:shadow-lg">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-6 py-5 text-left flex items-center justify-between hover:bg-stone-50 transition-colors duration-200"
+        className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors duration-200 hover:bg-stone-50"
       >
         <div className="flex items-center space-x-4">
-          <div className="p-2.5 rounded-xl bg-stone-100 border border-stone-200 group-hover:bg-stone-200 transition-colors duration-300">
+          <div className="rounded-xl border border-stone-200 bg-stone-100 p-2.5 transition-colors duration-300 group-hover:bg-stone-200">
             <div className="text-stone-600">{icon}</div>
           </div>
           <div className="flex items-center space-x-3">
-            <span className="text-lg font-semibold text-stone-900">{title}</span>
+            <span className="font-semibold text-lg text-stone-900">{title}</span>
             {badge && (
               <span
-                className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                className={`rounded-full px-2.5 py-1 font-medium text-xs ${
                   badgeColor === 'badge-success'
-                    ? 'bg-stone-100 text-stone-700 border border-stone-200'
+                    ? 'border border-stone-200 bg-stone-100 text-stone-700'
                     : badgeColor === 'badge-warning'
-                      ? 'bg-stone-100 text-stone-700 border border-stone-200'
+                      ? 'border border-stone-200 bg-stone-100 text-stone-700'
                       : badgeColor === 'badge-error'
-                        ? 'bg-stone-100 text-stone-700 border border-stone-200'
-                        : 'bg-stone-100 text-stone-700 border border-stone-200'
+                        ? 'border border-stone-200 bg-stone-100 text-stone-700'
+                        : 'border border-stone-200 bg-stone-100 text-stone-700'
                 }`}
               >
                 {badge}
@@ -107,14 +107,14 @@ const ReportSection: React.FC<SectionProps> = ({
           </div>
         </div>
         <ChevronDownIcon
-          className={`w-5 h-5 text-stone-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+          className={`h-5 w-5 text-stone-500 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
         />
       </button>
 
       <div
         className={`overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[2000px] opacity-100' : 'max-h-0 opacity-0'}`}
       >
-        <div className="px-6 pb-6 pt-2 border-t border-stone-100">
+        <div className="border-stone-100 border-t px-6 pt-2 pb-6">
           <div className="animate-fade-in">{children}</div>
         </div>
       </div>
@@ -126,19 +126,19 @@ const ReportSection: React.FC<SectionProps> = ({
  * Loading skeleton component for report sections
  */
 const ReportSkeleton: React.FC = () => (
-  <div className="space-y-8 animate-pulse">
+  <div className="animate-pulse space-y-8">
     {/* Overall Score Skeleton */}
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
       {[...Array(3)].map((_, i) => (
         <div
           key={i}
-          className="bg-white border border-stone-200 rounded-2xl p-8 h-40 relative overflow-hidden"
+          className="relative h-40 overflow-hidden rounded-2xl border border-stone-200 bg-white p-8"
         >
-          <div className="absolute inset-0 bg-stone-200 animate-pulse"></div>
+          <div className="absolute inset-0 animate-pulse bg-stone-200" />
           <div className="space-y-4">
-            <div className="h-4 bg-stone-200 rounded-full w-3/4"></div>
-            <div className="h-8 bg-stone-200 rounded-full w-1/2"></div>
-            <div className="h-3 bg-stone-200 rounded-full w-2/3"></div>
+            <div className="h-4 w-3/4 rounded-full bg-stone-200" />
+            <div className="h-8 w-1/2 rounded-full bg-stone-200" />
+            <div className="h-3 w-2/3 rounded-full bg-stone-200" />
           </div>
         </div>
       ))}
@@ -148,13 +148,13 @@ const ReportSkeleton: React.FC = () => (
     {[...Array(6)].map((_, i) => (
       <div
         key={i}
-        className="bg-white border border-stone-200 rounded-2xl p-6 h-32 relative overflow-hidden"
+        className="relative h-32 overflow-hidden rounded-2xl border border-stone-200 bg-white p-6"
       >
-        <div className="absolute inset-0 bg-stone-200 animate-pulse"></div>
+        <div className="absolute inset-0 animate-pulse bg-stone-200" />
         <div className="space-y-3">
-          <div className="h-5 bg-stone-200 rounded-full w-1/3"></div>
-          <div className="h-4 bg-stone-200 rounded-full w-full"></div>
-          <div className="h-4 bg-stone-200 rounded-full w-4/5"></div>
+          <div className="h-5 w-1/3 rounded-full bg-stone-200" />
+          <div className="h-4 w-full rounded-full bg-stone-200" />
+          <div className="h-4 w-4/5 rounded-full bg-stone-200" />
         </div>
       </div>
     ))}
@@ -165,19 +165,19 @@ const ReportSkeleton: React.FC = () => (
  * Empty state component when no analysis data is available
  */
 const EmptyReportState: React.FC = () => (
-  <div className="text-center py-24">
+  <div className="py-24 text-center">
     <div className="relative mb-8">
-      <div className="absolute inset-0 bg-stone-100 rounded-full opacity-20"></div>
-      <div className="relative p-6 bg-white border border-stone-200 rounded-3xl inline-block">
-        <DocumentTextIcon className="w-16 h-16 text-stone-400 mx-auto" />
+      <div className="absolute inset-0 rounded-full bg-stone-100 opacity-20" />
+      <div className="relative inline-block rounded-3xl border border-stone-200 bg-white p-6">
+        <DocumentTextIcon className="mx-auto h-16 w-16 text-stone-400" />
       </div>
     </div>
-    <h3 className="text-2xl font-bold text-stone-900 mb-3">No Analysis Available</h3>
-    <p className="text-stone-600 max-w-md mx-auto text-lg leading-relaxed">
+    <h3 className="mb-3 font-bold text-2xl text-stone-900">No Analysis Available</h3>
+    <p className="mx-auto max-w-md text-lg text-stone-600 leading-relaxed">
       The resume analysis report is not available. Please try analyzing your resume again.
     </p>
     <div className="mt-8">
-      <button className="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-white font-semibold rounded-xl transition-all duration-300 ">
+      <button className="rounded-xl bg-stone-900 px-6 py-3 font-semibold text-white transition-all duration-300 hover:bg-stone-800 ">
         Start New Analysis
       </button>
     </div>
@@ -216,29 +216,29 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
   if (isLoading) {
     return (
       <div className={`space-y-8 ${className}`}>
-        <div className="text-center mb-12">
+        <div className="mb-12 text-center">
           <div className="relative mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 rounded-full blur-3xl opacity-40 scale-150 animate-pulse"></div>
-            <div className="relative p-8 bg-white border border-stone-200 rounded-3xl inline-block">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+            <div className="absolute inset-0 scale-150 animate-pulse rounded-full bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 opacity-40 blur-3xl" />
+            <div className="relative inline-block rounded-3xl border border-stone-200 bg-white p-8">
+              <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
             </div>
           </div>
-          <h2 className="text-3xl font-bold text-stone-900 mb-4 tracking-tight">
+          <h2 className="mb-4 font-bold text-3xl text-stone-900 tracking-tight">
             Analyzing Your Resume
           </h2>
-          <p className="text-stone-600 text-lg leading-relaxed max-w-md mx-auto">
+          <p className="mx-auto max-w-md text-lg text-stone-600 leading-relaxed">
             Please wait while we generate your comprehensive optimization report...
           </p>
           <div className="mt-6 flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+            <div className="h-2 w-2 animate-bounce rounded-full bg-blue-400" />
             <div
-              className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
+              className="h-2 w-2 animate-bounce rounded-full bg-indigo-400"
               style={{ animationDelay: '0.1s' }}
-            ></div>
+            />
             <div
-              className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
+              className="h-2 w-2 animate-bounce rounded-full bg-purple-400"
               style={{ animationDelay: '0.2s' }}
-            ></div>
+            />
           </div>
         </div>
         <ReportSkeleton />
@@ -314,27 +314,27 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
   return (
     <div className={`space-y-12 ${className}`}>
       {/* Report Header */}
-      <div className="text-center mb-12">
+      <div className="mb-12 text-center">
         <div className="relative mb-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-100 via-yellow-100 to-orange-100 rounded-full blur-3xl opacity-30 scale-150"></div>
-          <div className="relative p-6 bg-white border border-stone-200 rounded-3xl inline-block">
-            <TrophyIcon className="w-12 h-12 text-amber-600 mx-auto" />
+          <div className="absolute inset-0 scale-150 rounded-full bg-gradient-to-r from-amber-100 via-yellow-100 to-orange-100 opacity-30 blur-3xl" />
+          <div className="relative inline-block rounded-3xl border border-stone-200 bg-white p-6">
+            <TrophyIcon className="mx-auto h-12 w-12 text-amber-600" />
           </div>
         </div>
 
-        <h1 className="text-4xl font-bold text-stone-900 mb-4 tracking-tight">
+        <h1 className="mb-4 font-bold text-4xl text-stone-900 tracking-tight">
           Resume Optimization Report
         </h1>
-        <p className="text-xl text-stone-600 mb-8 max-w-2xl mx-auto leading-relaxed">
+        <p className="mx-auto mb-8 max-w-2xl text-stone-600 text-xl leading-relaxed">
           Comprehensive analysis and actionable insights to enhance your resume's impact
         </p>
 
         {metadata && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
+          <div className="mx-auto grid max-w-4xl grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-stone-200 bg-white p-4">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-blue-50 rounded-lg">
-                  <DocumentTextIcon className="w-5 h-5 text-stone-600" />
+                <div className="rounded-lg bg-blue-50 p-2">
+                  <DocumentTextIcon className="h-5 w-5 text-stone-600" />
                 </div>
                 <div className="text-left">
                   <div className="text-sm text-stone-600">Target Role</div>
@@ -344,10 +344,10 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
             </div>
 
             {metadata.targetCompany && (
-              <div className="bg-white border border-stone-200 rounded-xl p-4">
+              <div className="rounded-xl border border-stone-200 bg-white p-4">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-50 rounded-lg">
-                    <SparklesIcon className="w-5 h-5 text-green-600" />
+                  <div className="rounded-lg bg-green-50 p-2">
+                    <SparklesIcon className="h-5 w-5 text-green-600" />
                   </div>
                   <div className="text-left">
                     <div className="text-sm text-stone-600">Company</div>
@@ -357,10 +357,10 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               </div>
             )}
 
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="rounded-xl border border-stone-200 bg-white p-4">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-purple-50 rounded-lg">
-                  <StarIcon className="w-5 h-5 text-purple-600" />
+                <div className="rounded-lg bg-purple-50 p-2">
+                  <StarIcon className="h-5 w-5 text-purple-600" />
                 </div>
                 <div className="text-left">
                   <div className="text-sm text-stone-600">Analyzed</div>
@@ -371,10 +371,10 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               </div>
             </div>
 
-            <div className="bg-white border border-stone-200 rounded-xl p-4">
+            <div className="rounded-xl border border-stone-200 bg-white p-4">
               <div className="flex items-center space-x-3">
-                <div className="p-2 bg-orange-50 rounded-lg">
-                  <AcademicCapIcon className="w-5 h-5 text-orange-600" />
+                <div className="rounded-lg bg-orange-50 p-2">
+                  <AcademicCapIcon className="h-5 w-5 text-orange-600" />
                 </div>
                 <div className="text-left">
                   <div className="text-sm text-stone-600">Word Count</div>
@@ -387,33 +387,33 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
       </div>
 
       {/* Tab Navigation */}
-      <div className="relative bg-white border border-stone-200 rounded-2xl p-2 shadow-sm">
+      <div className="relative rounded-2xl border border-stone-200 bg-white p-2 shadow-sm">
         <div className="flex space-x-1">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`relative flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+            className={`relative flex flex-1 items-center justify-center space-x-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 ${
               activeTab === 'overview'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                ? 'scale-105 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
             }`}
           >
-            <EyeIcon className="w-5 h-5" />
+            <EyeIcon className="h-5 w-5" />
             <span>Overview</span>
           </button>
 
           <button
             onClick={() => setActiveTab('suggestions')}
-            className={`relative flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+            className={`relative flex flex-1 items-center justify-center space-x-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 ${
               activeTab === 'suggestions'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                ? 'scale-105 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
             }`}
           >
-            <LightBulbIcon className="w-5 h-5" />
+            <LightBulbIcon className="h-5 w-5" />
             <span>Suggestions</span>
             {prioritizedSuggestions.length > 0 && (
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+                className={`rounded-full px-2 py-0.5 font-bold text-xs ${
                   activeTab === 'suggestions'
                     ? 'bg-white/20 text-white'
                     : 'bg-blue-100 text-blue-700'
@@ -427,26 +427,26 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           {showEditor && (
             <button
               onClick={() => setActiveTab('editor')}
-              className={`relative flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+              className={`relative flex flex-1 items-center justify-center space-x-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 ${
                 activeTab === 'editor'
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                  : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                  ? 'scale-105 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
               }`}
             >
-              <DocumentTextIcon className="w-5 h-5" />
+              <DocumentTextIcon className="h-5 w-5" />
               <span>Editor</span>
             </button>
           )}
 
           <button
             onClick={() => setActiveTab('details')}
-            className={`relative flex-1 flex items-center justify-center space-x-2 px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
+            className={`relative flex flex-1 items-center justify-center space-x-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 ${
               activeTab === 'details'
-                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-105'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-50'
+                ? 'scale-105 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'
             }`}
           >
-            <DocumentTextIcon className="w-5 h-5" />
+            <DocumentTextIcon className="h-5 w-5" />
             <span>Details</span>
           </button>
         </div>
@@ -456,7 +456,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
       {activeTab === 'overview' && (
         <div className="space-y-8">
           {/* Overall Scores */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             <ScoreDisplay score={overallScore} label="Overall Score" size="lg" showProgress />
             <ScoreDisplay score={atsScore} label="ATS Compatibility" size="lg" showProgress />
             <ScoreDisplay
@@ -468,10 +468,10 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="stat bg-base-100 rounded-xl border border-base-300 shadow-sm">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="stat rounded-xl border border-base-300 bg-base-100 shadow-sm">
               <div className="stat-figure text-primary">
-                <CheckCircleIcon className="w-8 h-8" />
+                <CheckCircleIcon className="h-8 w-8" />
               </div>
               <div className="stat-title text-xs">Matched Keywords</div>
               <div className="stat-value text-2xl text-primary">
@@ -480,18 +480,18 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               <div className="stat-desc">of {keywordAnalysis.totalKeywords} total</div>
             </div>
 
-            <div className="stat bg-base-100 rounded-xl border border-base-300 shadow-sm">
+            <div className="stat rounded-xl border border-base-300 bg-base-100 shadow-sm">
               <div className="stat-figure text-warning">
-                <ExclamationTriangleIcon className="w-8 h-8" />
+                <ExclamationTriangleIcon className="h-8 w-8" />
               </div>
               <div className="stat-title text-xs">Grammar Issues</div>
               <div className="stat-value text-2xl text-warning">{grammarCheck.totalIssues}</div>
               <div className="stat-desc">Score: {grammarCheck.score}/100</div>
             </div>
 
-            <div className="stat bg-base-100 rounded-xl border border-base-300 shadow-sm">
+            <div className="stat rounded-xl border border-base-300 bg-base-100 shadow-sm">
               <div className="stat-figure text-info">
-                <TrophyIcon className="w-8 h-8" />
+                <TrophyIcon className="h-8 w-8" />
               </div>
               <div className="stat-title text-xs">Quantified Achievements</div>
               <div className="stat-value text-2xl text-info">
@@ -500,9 +500,9 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               <div className="stat-desc">of {quantitativeAnalysis.totalAchievements} total</div>
             </div>
 
-            <div className="stat bg-base-100 rounded-xl border border-base-300 shadow-sm">
+            <div className="stat rounded-xl border border-base-300 bg-base-100 shadow-sm">
               <div className="stat-figure text-secondary">
-                <SparklesIcon className="w-8 h-8" />
+                <SparklesIcon className="h-8 w-8" />
               </div>
               <div className="stat-title text-xs">Suggestions</div>
               <div className="stat-value text-2xl text-secondary">{suggestions.length}</div>
@@ -511,20 +511,20 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           </div>
 
           {/* Strengths and Weaknesses */}
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Strengths */}
-            <div className="card bg-success/10 border border-success/20">
+            <div className="card border border-success/20 bg-success/10">
               <div className="card-body">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-success/20 rounded-lg">
-                    <StarIcon className="w-6 h-6 text-success" />
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="rounded-lg bg-success/20 p-2">
+                    <StarIcon className="h-6 w-6 text-success" />
                   </div>
                   <h3 className="card-title text-success">Strengths</h3>
                 </div>
                 <ul className="space-y-2">
                   {strengths.map((strength, index) => (
                     <li key={index} className="flex items-start space-x-2">
-                      <CheckCircleIcon className="w-5 h-5 text-success mt-0.5 flex-shrink-0" />
+                      <CheckCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-success" />
                       <span className="text-base-content">{strength}</span>
                     </li>
                   ))}
@@ -533,18 +533,18 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
             </div>
 
             {/* Areas for Improvement */}
-            <div className="card bg-warning/10 border border-warning/20">
+            <div className="card border border-warning/20 bg-warning/10">
               <div className="card-body">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 bg-warning/20 rounded-lg">
-                    <ExclamationTriangleIcon className="w-6 h-6 text-warning" />
+                <div className="mb-4 flex items-center space-x-3">
+                  <div className="rounded-lg bg-warning/20 p-2">
+                    <ExclamationTriangleIcon className="h-6 w-6 text-warning" />
                   </div>
                   <h3 className="card-title text-warning">Areas for Improvement</h3>
                 </div>
                 <ul className="space-y-2">
                   {weaknesses.map((weakness, index) => (
                     <li key={index} className="flex items-start space-x-2">
-                      <XCircleIcon className="w-5 h-5 text-warning mt-0.5 flex-shrink-0" />
+                      <XCircleIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-warning" />
                       <span className="text-base-content">{weakness}</span>
                     </li>
                   ))}
@@ -559,8 +559,8 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
         <div className="space-y-6">
           {/* Suggestions Header */}
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold text-base-content">Optimization Suggestions</h2>
-            <div className="flex items-center space-x-2 text-sm text-base-content/70">
+            <h2 className="font-bold text-2xl text-base-content">Optimization Suggestions</h2>
+            <div className="flex items-center space-x-2 text-base-content/70 text-sm">
               <span>{adoptedSuggestions.size} adopted</span>
               <span>•</span>
               <span>{ignoredSuggestions.size} ignored</span>
@@ -586,9 +586,9 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               ))}
             </div>
           ) : (
-            <div className="text-center py-12">
-              <CheckCircleIcon className="w-16 h-16 text-success mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-base-content mb-2">All Set!</h3>
+            <div className="py-12 text-center">
+              <CheckCircleIcon className="mx-auto mb-4 h-16 w-16 text-success" />
+              <h3 className="mb-2 font-semibold text-base-content text-xl">All Set!</h3>
               <p className="text-base-content/70">
                 You've addressed all available suggestions. Your resume is looking great!
               </p>
@@ -602,8 +602,8 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           {/* Editor Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold text-base-content">Resume Editor</h2>
-              <p className="text-base-content/70 mt-1">
+              <h2 className="font-bold text-2xl text-base-content">Resume Editor</h2>
+              <p className="mt-1 text-base-content/70">
                 Edit your resume content directly and see changes in real-time
               </p>
             </div>
@@ -619,12 +619,12 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                 >
                   {isReanalyzing ? (
                     <>
-                      <span className="loading loading-spinner loading-xs mr-2"></span>
+                      <span className="loading loading-spinner loading-xs mr-2" />
                       Analyzing...
                     </>
                   ) : (
                     <>
-                      <ArrowPathIcon className="w-4 h-4 mr-2" />
+                      <ArrowPathIcon className="mr-2 h-4 w-4" />
                       Reanalyze
                     </>
                   )}
@@ -633,7 +633,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
               {enableAutoSave && (
                 <div className="badge badge-info badge-outline">
-                  <SparklesIcon className="w-4 h-4 mr-1" />
+                  <SparklesIcon className="mr-1 h-4 w-4" />
                   Auto-save enabled
                 </div>
               )}
@@ -658,59 +658,59 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           />
 
           {/* Editor Tips */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="card bg-info/10 border border-info/20">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="card border border-info/20 bg-info/10">
               <div className="card-body">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="p-2 bg-info/20 rounded-lg">
-                    <LightBulbIcon className="w-5 h-5 text-info" />
+                <div className="mb-3 flex items-center space-x-3">
+                  <div className="rounded-lg bg-info/20 p-2">
+                    <LightBulbIcon className="h-5 w-5 text-info" />
                   </div>
                   <h3 className="card-title text-info">Editing Tips</h3>
                 </div>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-start space-x-2">
-                    <CheckCircleIcon className="w-4 h-4 text-info mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-info" />
                     <span>Use the toolbar to format your text with headers, bold, and lists</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircleIcon className="w-4 h-4 text-info mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-info" />
                     <span>Toggle preview mode to see how your resume will look</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircleIcon className="w-4 h-4 text-info mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-info" />
                     <span>Changes are automatically tracked and can be saved</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <CheckCircleIcon className="w-4 h-4 text-info mt-0.5 flex-shrink-0" />
+                    <CheckCircleIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-info" />
                     <span>Use the reset button to revert to the original content</span>
                   </li>
                 </ul>
               </div>
             </div>
 
-            <div className="card bg-success/10 border border-success/20">
+            <div className="card border border-success/20 bg-success/10">
               <div className="card-body">
-                <div className="flex items-center space-x-3 mb-3">
-                  <div className="p-2 bg-success/20 rounded-lg">
-                    <TrophyIcon className="w-5 h-5 text-success" />
+                <div className="mb-3 flex items-center space-x-3">
+                  <div className="rounded-lg bg-success/20 p-2">
+                    <TrophyIcon className="h-5 w-5 text-success" />
                   </div>
                   <h3 className="card-title text-success">Best Practices</h3>
                 </div>
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-start space-x-2">
-                    <StarIcon className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                    <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
                     <span>Keep your content concise and relevant to the target role</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <StarIcon className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                    <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
                     <span>Use action verbs and quantify your achievements</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <StarIcon className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                    <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
                     <span>Incorporate keywords from the job description</span>
                   </li>
                   <li className="flex items-start space-x-2">
-                    <StarIcon className="w-4 h-4 text-success mt-0.5 flex-shrink-0" />
+                    <StarIcon className="mt-0.5 h-4 w-4 flex-shrink-0 text-success" />
                     <span>Review the suggestions tab for optimization ideas</span>
                   </li>
                 </ul>
@@ -725,7 +725,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           {/* Detailed Analysis Sections */}
           <ReportSection
             title="ATS Friendliness Analysis"
-            icon={<DocumentTextIcon className="w-6 h-6" />}
+            icon={<DocumentTextIcon className="h-6 w-6" />}
             badge={`${atsScore}/100`}
             badgeColor={getScoreBadgeColor(atsScore)}
             defaultOpen
@@ -752,7 +752,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
               <div className="space-y-3">
                 <h4 className="font-semibold text-base-content">Format Analysis</h4>
-                <div className="grid md:grid-cols-2 gap-4">
+                <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <div className="flex justify-between">
                       <span>Format Score</span>
@@ -775,7 +775,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                     <div className="space-y-2">
                       {formatAnalysis.issues.map((issue, index) => (
                         <div key={index} className="alert alert-warning alert-sm">
-                          <ExclamationTriangleIcon className="w-4 h-4" />
+                          <ExclamationTriangleIcon className="h-4 w-4" />
                           <div>
                             <div className="font-medium">{issue.description}</div>
                             <div className="text-sm opacity-80">{issue.recommendation}</div>
@@ -791,7 +791,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
           <ReportSection
             title="Keyword Matching Analysis"
-            icon={<SparklesIcon className="w-6 h-6" />}
+            icon={<SparklesIcon className="h-6 w-6" />}
             badge={`${keywordAnalysis.matchedKeywords.length}/${keywordAnalysis.totalKeywords}`}
             badgeColor={getScoreBadgeColor(keywordAnalysis.score)}
           >
@@ -819,14 +819,14 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               {/* Matched Keywords */}
               {keywordAnalysis.matchedKeywords.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-success mb-3">Matched Keywords</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <h4 className="mb-3 font-semibold text-success">Matched Keywords</h4>
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                     {keywordAnalysis.matchedKeywords.map((keyword, index) => (
                       <div
                         key={index}
-                        className="bg-success/10 border border-success/20 rounded-lg p-3"
+                        className="rounded-lg border border-success/20 bg-success/10 p-3"
                       >
-                        <div className="flex items-center justify-between mb-2">
+                        <div className="mb-2 flex items-center justify-between">
                           <span className="font-medium text-success">{keyword.keyword}</span>
                           <div className="flex items-center space-x-2">
                             <span className="badge badge-success badge-sm">
@@ -838,7 +838,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                           </div>
                         </div>
                         {keyword.context.length > 0 && (
-                          <div className="text-sm text-base-content/70">
+                          <div className="text-base-content/70 text-sm">
                             Context: {keyword.context.slice(0, 2).join(', ')}
                             {keyword.context.length > 2 && '...'}
                           </div>
@@ -852,7 +852,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               {/* Missing Keywords */}
               {keywordAnalysis.missingKeywords.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-warning mb-3">Missing Important Keywords</h4>
+                  <h4 className="mb-3 font-semibold text-warning">Missing Important Keywords</h4>
                   <div className="space-y-3">
                     {keywordAnalysis.missingKeywords
                       .filter((k) => k.importance === 'high')
@@ -860,9 +860,9 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                       .map((keyword, index) => (
                         <div
                           key={index}
-                          className="bg-warning/10 border border-warning/20 rounded-lg p-3"
+                          className="rounded-lg border border-warning/20 bg-warning/10 p-3"
                         >
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="mb-2 flex items-center justify-between">
                             <span className="font-medium text-warning">{keyword.keyword}</span>
                             <span
                               className={`badge badge-sm ${
@@ -876,11 +876,11 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                               {keyword.importance} priority
                             </span>
                           </div>
-                          <div className="text-sm text-base-content/70 mb-2">
+                          <div className="mb-2 text-base-content/70 text-sm">
                             Suggested placement: {keyword.suggestedPlacement.join(', ')}
                           </div>
                           {keyword.relatedTerms.length > 0 && (
-                            <div className="text-sm text-base-content/70">
+                            <div className="text-base-content/70 text-sm">
                               Related terms: {keyword.relatedTerms.join(', ')}
                             </div>
                           )}
@@ -894,7 +894,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
           <ReportSection
             title="Quantitative Achievement Analysis"
-            icon={<TrophyIcon className="w-6 h-6" />}
+            icon={<TrophyIcon className="h-6 w-6" />}
             badge={`${quantitativeAnalysis.achievementsWithNumbers}/${quantitativeAnalysis.totalAchievements}`}
             badgeColor={getScoreBadgeColor(quantitativeAnalysis.score)}
           >
@@ -918,8 +918,8 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                 max={100}
               />
 
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="stat bg-base-200 rounded-lg">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="stat rounded-lg bg-base-200">
                   <div className="stat-title">Quantified Achievements</div>
                   <div className="stat-value text-primary">
                     {quantitativeAnalysis.achievementsWithNumbers}
@@ -929,7 +929,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                   </div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-lg">
+                <div className="stat rounded-lg bg-base-200">
                   <div className="stat-title">Impact Words Used</div>
                   <div className="stat-value text-secondary">
                     {quantitativeAnalysis.impactWords.length}
@@ -940,28 +940,28 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
               {quantitativeAnalysis.suggestions.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-base-content mb-3">
+                  <h4 className="mb-3 font-semibold text-base-content">
                     Quantification Suggestions
                   </h4>
                   <div className="space-y-3">
                     {quantitativeAnalysis.suggestions.slice(0, 3).map((suggestion, index) => (
-                      <div key={index} className="bg-info/10 border border-info/20 rounded-lg p-3">
-                        <div className="font-medium text-info mb-2">
+                      <div key={index} className="rounded-lg border border-info/20 bg-info/10 p-3">
+                        <div className="mb-2 font-medium text-info">
                           Section: {suggestion.section}
                         </div>
-                        <div className="grid md:grid-cols-2 gap-3 text-sm">
+                        <div className="grid gap-3 text-sm md:grid-cols-2">
                           <div>
-                            <div className="font-medium text-error mb-1">Before:</div>
-                            <div className="bg-error/10 p-2 rounded">{suggestion.originalText}</div>
+                            <div className="mb-1 font-medium text-error">Before:</div>
+                            <div className="rounded bg-error/10 p-2">{suggestion.originalText}</div>
                           </div>
                           <div>
-                            <div className="font-medium text-success mb-1">Suggested:</div>
-                            <div className="bg-success/10 p-2 rounded">
+                            <div className="mb-1 font-medium text-success">Suggested:</div>
+                            <div className="rounded bg-success/10 p-2">
                               {suggestion.suggestedText}
                             </div>
                           </div>
                         </div>
-                        <div className="text-sm text-base-content/70 mt-2">
+                        <div className="mt-2 text-base-content/70 text-sm">
                           {suggestion.reasoning}
                         </div>
                       </div>
@@ -974,20 +974,20 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
           <ReportSection
             title="Grammar & Spelling Check"
-            icon={<AcademicCapIcon className="w-6 h-6" />}
+            icon={<AcademicCapIcon className="h-6 w-6" />}
             badge={`${grammarCheck.totalIssues} issues`}
             badgeColor={grammarCheck.totalIssues === 0 ? 'badge-success' : 'badge-warning'}
           >
             <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="stat bg-base-200 rounded-lg">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="stat rounded-lg bg-base-200">
                   <div className="stat-title">Grammar Score</div>
                   <div className={`stat-value ${getScoreColor(grammarCheck.score)}`}>
                     {grammarCheck.score}/100
                   </div>
                 </div>
 
-                <div className="stat bg-base-200 rounded-lg">
+                <div className="stat rounded-lg bg-base-200">
                   <div className="stat-title">Readability</div>
                   <div className={`stat-value ${getScoreColor(grammarCheck.overallReadability)}`}>
                     {grammarCheck.overallReadability}/100
@@ -997,7 +997,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
               {grammarCheck.issues.length > 0 && (
                 <div>
-                  <h4 className="font-semibold text-base-content mb-3">Issues Found</h4>
+                  <h4 className="mb-3 font-semibold text-base-content">Issues Found</h4>
                   <div className="space-y-2">
                     {grammarCheck.issues.slice(0, 5).map((issue, index) => (
                       <div
@@ -1023,7 +1023,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                       </div>
                     ))}
                     {grammarCheck.issues.length > 5 && (
-                      <div className="text-center text-sm text-base-content/70">
+                      <div className="text-center text-base-content/70 text-sm">
                         ... and {grammarCheck.issues.length - 5} more issues
                       </div>
                     )}
@@ -1037,18 +1037,18 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
           {sectionAnalysis && Object.keys(sectionAnalysis).length > 0 && (
             <ReportSection
               title="Section Structure Analysis"
-              icon={<DocumentTextIcon className="w-6 h-6" />}
+              icon={<DocumentTextIcon className="h-6 w-6" />}
             >
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid gap-4 md:grid-cols-2">
                 {Object.entries(sectionAnalysis).map(([sectionName, analysis]) => (
-                  <div key={sectionName} className="bg-base-200 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-2">
+                  <div key={sectionName} className="rounded-lg bg-base-200 p-4">
+                    <div className="mb-2 flex items-center justify-between">
                       <h4 className="font-semibold capitalize">{sectionName}</h4>
                       <div className="flex items-center space-x-2">
                         {analysis.present ? (
-                          <CheckCircleIcon className="w-5 h-5 text-success" />
+                          <CheckCircleIcon className="h-5 w-5 text-success" />
                         ) : (
-                          <XCircleIcon className="w-5 h-5 text-error" />
+                          <XCircleIcon className="h-5 w-5 text-error" />
                         )}
                         <span className={`badge badge-sm ${getScoreBadgeColor(analysis.score)}`}>
                           {analysis.score}/100
@@ -1057,7 +1057,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                     </div>
 
                     {analysis.suggestions.length > 0 && (
-                      <ul className="text-sm text-base-content/70 space-y-1">
+                      <ul className="space-y-1 text-base-content/70 text-sm">
                         {analysis.suggestions.map((suggestion, index) => (
                           <li key={index} className="flex items-start space-x-2">
                             <span className="text-warning">•</span>

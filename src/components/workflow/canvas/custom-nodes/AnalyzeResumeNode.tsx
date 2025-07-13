@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiFileText } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface AnalyzeResumeNodeData {
   analysisFields: string[];
@@ -33,27 +34,27 @@ const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data })
   };
 
   return (
-    <div className="card w-80 bg-base-100 shadow-xl border-2 border-secondary-focus">
+    <div className="card w-80 border-2 border-secondary-focus bg-base-100 shadow-xl">
       <Handle
         type="target"
         position={Position.Left}
         id="input"
-        className="w-4 h-4 !bg-secondary-focus"
+        className="!bg-secondary-focus h-4 w-4"
       />
       <div className="card-body p-4">
         <div
-          className="flex items-center justify-between cursor-pointer"
+          className="flex cursor-pointer items-center justify-between"
           onClick={() => setExpanded(!expanded)}
         >
           <div className="flex items-center space-x-3">
             <div className="avatar placeholder">
-              <div className="bg-secondary text-secondary-content rounded-full w-12 h-12">
+              <div className="h-12 w-12 rounded-full bg-secondary text-secondary-content">
                 <FiFileText className="h-6 w-6" />
               </div>
             </div>
             <div>
-              <h2 className="card-title text-lg font-bold">Analyze Resume</h2>
-              <p className="text-sm text-gray-500">AI-powered resume parsing</p>
+              <h2 className="card-title font-bold text-lg">Analyze Resume</h2>
+              <p className="text-gray-500 text-sm">AI-powered resume parsing</p>
             </div>
           </div>
           {expanded ? <FiChevronUp /> : <FiChevronDown />}
@@ -61,7 +62,7 @@ const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data })
 
         {expanded && (
           <div className="mt-4 space-y-4">
-            <p className="text-sm text-gray-600">
+            <p className="text-gray-600 text-sm">
               Extracts structured data from a resume file. The resume should be provided as input to
               this node.
             </p>
@@ -90,22 +91,22 @@ const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data })
               <textarea
                 className="textarea textarea-bordered"
                 placeholder="e.g., 'Extract the candidate\'s years of experience with Python.'"
-              ></textarea>
+              />
             </div>
 
-            <div className="alert alert-info text-xs mt-2">
+            <div className="alert alert-info mt-2 text-xs">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
-                className="stroke-current shrink-0 w-6 h-6"
+                className="h-6 w-6 shrink-0 stroke-current"
               >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The output will be a JSON object with the extracted fields.</span>
             </div>
@@ -116,7 +117,7 @@ const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data })
         type="source"
         position={Position.Right}
         id="output"
-        className="w-4 h-4 !bg-secondary-focus"
+        className="!bg-secondary-focus h-4 w-4"
       />
     </div>
   );

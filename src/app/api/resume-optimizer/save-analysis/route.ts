@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import type { ApiResponse, ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 
 /**

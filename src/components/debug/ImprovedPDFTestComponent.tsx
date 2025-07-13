@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import type { ParsedFileResult } from '@/services/fileParsingService';
 import { parseFile, validateFile } from '@/services/fileParsingService';
 
@@ -265,11 +266,11 @@ export const ImprovedPDFTestComponent: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-lg">
-      <h2 className="text-2xl font-bold mb-4">Enhanced PDF Parsing Debug Tool</h2>
+    <div className="mx-auto max-w-6xl rounded-lg bg-white p-6 shadow-lg">
+      <h2 className="mb-4 font-bold text-2xl">Enhanced PDF Parsing Debug Tool</h2>
 
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="mb-2 block font-medium text-gray-700 text-sm">
           Select a PDF file to test:
         </label>
         <input
@@ -277,15 +278,15 @@ export const ImprovedPDFTestComponent: React.FC = () => {
           accept=".pdf"
           onChange={handleFileTest}
           disabled={isLoading}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+          className="block w-full text-gray-500 text-sm file:mr-4 file:rounded-full file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 file:text-sm hover:file:bg-blue-100 disabled:opacity-50"
         />
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div className="mb-6 flex gap-2">
         <button
           onClick={clearResults}
           disabled={isLoading}
-          className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 disabled:opacity-50"
+          className="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600 disabled:opacity-50"
         >
           Clear Results
         </button>
@@ -294,21 +295,21 @@ export const ImprovedPDFTestComponent: React.FC = () => {
       {/* Test Steps */}
       {testSteps.length > 0 && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Test Progress:</h3>
+          <h3 className="mb-3 font-semibold text-lg">Test Progress:</h3>
           <div className="space-y-3">
             {testSteps.map((step, index) => (
-              <div key={index} className="border rounded-lg p-4">
-                <div className="flex items-center mb-2">
-                  <span className="text-xl mr-3">{getStatusIcon(step.status)}</span>
+              <div key={index} className="rounded-lg border p-4">
+                <div className="mb-2 flex items-center">
+                  <span className="mr-3 text-xl">{getStatusIcon(step.status)}</span>
                   <h4 className={`font-medium ${getStatusColor(step.status)}`}>{step.name}</h4>
                   {step.status === 'running' && (
-                    <div className="ml-3 animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <div className="ml-3 h-4 w-4 animate-spin rounded-full border-blue-600 border-b-2" />
                   )}
                 </div>
                 <p className={`text-sm ${getStatusColor(step.status)} ml-8`}>{step.message}</p>
                 {step.details && step.details.length > 0 && (
-                  <div className="ml-8 mt-2">
-                    <ul className="text-xs text-gray-600 space-y-1">
+                  <div className="mt-2 ml-8">
+                    <ul className="space-y-1 text-gray-600 text-xs">
                       {step.details.map((detail, detailIndex) => (
                         <li key={detailIndex} className="font-mono">
                           • {detail}
@@ -326,12 +327,12 @@ export const ImprovedPDFTestComponent: React.FC = () => {
       {/* Extracted Text Preview */}
       {extractedText && (
         <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-3">Extracted Text Preview:</h3>
-          <div className="bg-gray-50 border border-gray-200 rounded p-4">
-            <div className="mb-2 text-sm text-gray-600">
+          <h3 className="mb-3 font-semibold text-lg">Extracted Text Preview:</h3>
+          <div className="rounded border border-gray-200 bg-gray-50 p-4">
+            <div className="mb-2 text-gray-600 text-sm">
               First 500 characters of extracted text:
             </div>
-            <pre className="whitespace-pre-wrap text-sm font-mono bg-white p-3 border rounded overflow-auto max-h-64">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded border bg-white p-3 font-mono text-sm">
               {extractedText.substring(0, 500)}
               {extractedText.length > 500 ? '...' : ''}
             </pre>
@@ -340,11 +341,11 @@ export const ImprovedPDFTestComponent: React.FC = () => {
       )}
 
       {/* Troubleshooting Guide */}
-      <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded">
-        <h3 className="text-lg font-semibold text-blue-800 mb-3">Troubleshooting Guide:</h3>
-        <div className="grid md:grid-cols-2 gap-4 text-sm text-blue-700">
+      <div className="mt-6 rounded border border-blue-200 bg-blue-50 p-4">
+        <h3 className="mb-3 font-semibold text-blue-800 text-lg">Troubleshooting Guide:</h3>
+        <div className="grid gap-4 text-blue-700 text-sm md:grid-cols-2">
           <div>
-            <h4 className="font-medium mb-2">Common Issues:</h4>
+            <h4 className="mb-2 font-medium">Common Issues:</h4>
             <ul className="space-y-1">
               <li>• Worker initialization errors</li>
               <li>• Network connectivity problems</li>
@@ -354,7 +355,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
             </ul>
           </div>
           <div>
-            <h4 className="font-medium mb-2">Solutions:</h4>
+            <h4 className="mb-2 font-medium">Solutions:</h4>
             <ul className="space-y-1">
               <li>• Refresh the page and try again</li>
               <li>• Check browser console for errors</li>

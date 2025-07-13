@@ -501,7 +501,7 @@ const SelectStep: React.FC<SelectStepProps> = ({ step, value, onChange, error, i
                   {option.emoji}
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold text-white text-lg leading-tight md:text-xl">
+                  <div className="font-semibold text-lg text-white leading-tight md:text-xl">
                     {option.label}
                   </div>
                 </div>

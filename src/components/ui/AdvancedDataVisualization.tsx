@@ -145,7 +145,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   const handleVisibilityToggle = useCallback(() => {
     setIsVisible(!isVisible);
-  }, [isVisible, title]);
+  }, [isVisible]);
 
   const changeIcon = useMemo(() => {
     if (changeType === 'increase') return TrendingUp;

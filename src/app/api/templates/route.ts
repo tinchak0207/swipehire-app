@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { IWorkflowTemplate } from '@/contracts/IWorkflow';
+import type { IWorkflowTemplate } from '@/contracts/IWorkflow';
 
 // Mock database
 const templates: IWorkflowTemplate[] = [];

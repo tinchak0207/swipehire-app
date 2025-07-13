@@ -3,7 +3,6 @@
  * Demonstrates Task 17: Integrate with Backend API for Analysis Request
  */
 
-import React from 'react';
 import { AnalysisTestComponent } from '@/components/resume-optimizer/AnalysisTestComponent';
 
 export default function ResumeAnalysisTestPage() {

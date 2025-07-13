@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Node } from 'reactflow';
+import type React from 'react';
+import { useState } from 'react';
+import type { Node } from 'reactflow';
 
 interface InvokeAIModalProps {
   node: Node;
@@ -27,7 +28,7 @@ const InvokeAIModal: React.FC<InvokeAIModalProps> = ({ node, onSave, onCancel })
             placeholder="Generate three interview questions for a {position_name} role..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-          ></textarea>
+          />
         </div>
         <div className="modal-action">
           <button className="btn" onClick={onCancel}>

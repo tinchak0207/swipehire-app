@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Code, FileText, Image } from 'lucide-react';
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import type React from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 
@@ -41,55 +41,55 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ form, onSubmit, onPrevious }) =
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4"
+        className="space-y-4 text-center"
       >
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full border border-white/30 mb-4">
-          <CheckCircle className="w-8 h-8 text-green-400" />
+        <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/20 backdrop-blur-sm">
+          <CheckCircle className="h-8 w-8 text-green-400" />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2">Review Your Portfolio</h2>
-        <p className="text-white/80 max-w-2xl mx-auto">
+        <h2 className="mb-2 font-bold text-2xl text-white">Review Your Portfolio</h2>
+        <p className="mx-auto max-w-2xl text-white/80">
           Please review all the information below before submitting your portfolio. Make sure
           everything looks correct.
         </p>
       </motion.div>
 
       {/* Portfolio Details Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
         {/* Left Column */}
         <div className="space-y-6">
           {/* Basic Info */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6"
+            className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm"
           >
-            <div className="flex items-center space-x-3 mb-4">
-              <FileText className="w-5 h-5 text-blue-400" />
-              <h3 className="text-white font-semibold">Basic Information</h3>
+            <div className="mb-4 flex items-center space-x-3">
+              <FileText className="h-5 w-5 text-blue-400" />
+              <h3 className="font-semibold text-white">Basic Information</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <p className="text-white/70 text-sm">Title</p>
-                <p className="text-white font-medium">{formData.title || 'Not provided'}</p>
+                <p className="text-sm text-white/70">Title</p>
+                <p className="font-medium text-white">{formData.title || 'Not provided'}</p>
               </div>
               <div>
-                <p className="text-white/70 text-sm">About You</p>
-                <p className="text-white font-medium">{formData.description || 'Not provided'}</p>
+                <p className="text-sm text-white/70">About You</p>
+                <p className="font-medium text-white">{formData.description || 'Not provided'}</p>
               </div>
               <div>
-                <p className="text-white/70 text-sm">Skills & Interests</p>
-                <div className="flex flex-wrap gap-2 mt-1">
+                <p className="text-sm text-white/70">Skills & Interests</p>
+                <div className="mt-1 flex flex-wrap gap-2">
                   {formData.tags?.length > 0 ? (
                     formData.tags.map((tag: string) => (
                       <span
                         key={tag}
-                        className="px-3 py-1 bg-white/20 text-white text-sm rounded-full"
+                        className="rounded-full bg-white/20 px-3 py-1 text-sm text-white"
                       >
                         {tag}
                       </span>
                     ))
                   ) : (
-                    <p className="text-white/70 text-sm">None selected</p>
+                    <p className="text-sm text-white/70">None selected</p>
                   )}
                 </div>
               </div>
@@ -101,13 +101,13 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ form, onSubmit, onPrevious }) =
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6"
+            className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm"
           >
-            <div className="flex items-center space-x-3 mb-4">
-              <Image className="w-5 h-5 text-purple-400" />
-              <h3 className="text-white font-semibold">Theme</h3>
+            <div className="mb-4 flex items-center space-x-3">
+              <Image className="h-5 w-5 text-purple-400" />
+              <h3 className="font-semibold text-white">Theme</h3>
             </div>
-            <p className="text-white font-medium capitalize">{formData.theme || 'Default'}</p>
+            <p className="font-medium text-white capitalize">{formData.theme || 'Default'}</p>
           </motion.div>
         </div>
 
@@ -117,30 +117,30 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ form, onSubmit, onPrevious }) =
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6"
+            className="rounded-2xl border border-white/20 bg-white/10 p-6 backdrop-blur-sm"
           >
-            <div className="flex items-center space-x-3 mb-4">
-              <Code className="w-5 h-5 text-yellow-400" />
-              <h3 className="text-white font-semibold">
+            <div className="mb-4 flex items-center space-x-3">
+              <Code className="h-5 w-5 text-yellow-400" />
+              <h3 className="font-semibold text-white">
                 Projects ({formData.projects?.length || 0})
               </h3>
             </div>
             <div className="space-y-4">
               {formData.projects?.length > 0 ? (
                 formData.projects.map((project: any, index: number) => (
-                  <div key={index} className="border-b border-white/10 pb-4 last:border-0">
-                    <h4 className="text-white font-medium">
+                  <div key={index} className="border-white/10 border-b pb-4 last:border-0">
+                    <h4 className="font-medium text-white">
                       {project.title || `Project ${index + 1}`}
                     </h4>
-                    <p className="text-white/70 text-sm mt-1">
+                    <p className="mt-1 text-sm text-white/70">
                       {project.description || 'No description'}
                     </p>
                     {project.technologies?.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="mt-2 flex flex-wrap gap-2">
                         {project.technologies.map((tech: string) => (
                           <span
                             key={tech}
-                            className="px-2 py-1 bg-white/10 text-white text-xs rounded-full"
+                            className="rounded-full bg-white/10 px-2 py-1 text-white text-xs"
                           >
                             {tech}
                           </span>
@@ -150,7 +150,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ form, onSubmit, onPrevious }) =
                   </div>
                 ))
               ) : (
-                <p className="text-white/70 text-sm">No projects added</p>
+                <p className="text-sm text-white/70">No projects added</p>
               )}
             </div>
           </motion.div>
@@ -163,7 +163,7 @@ const ReviewStep: React.FC<ReviewStepProps> = ({ form, onSubmit, onPrevious }) =
           type="button"
           variant="outline"
           onClick={onPrevious}
-          className="text-white border-white/30 hover:bg-white/10"
+          className="border-white/30 text-white hover:bg-white/10"
         >
           Back
         </Button>

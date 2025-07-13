@@ -1,5 +1,5 @@
 import useSWR from 'swr';
-import { IWorkflow } from '../contracts/IWorkflow';
+import type { IWorkflow } from '../contracts/IWorkflow';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

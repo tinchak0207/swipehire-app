@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
+import type React from 'react';
 import { reportGenerationService } from '@/services/reportGenerationService';
 import MarketSalaryEnquiryPage from '../page';
 

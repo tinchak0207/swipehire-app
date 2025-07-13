@@ -1,9 +1,7 @@
-import React from 'react';
-
 const DataDashboard = () => {
   return (
     <div>
-      <h3 className="p-4 text-md font-semibold">Data Dashboard</h3>
+      <h3 className="p-4 font-semibold text-md">Data Dashboard</h3>
       {/* Add data visualization components here */}
     </div>
   );

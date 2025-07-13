@@ -55,7 +55,7 @@ function applyKeywordSuggestion(content: string, suggestion: OptimizationSuggest
   }
 
   // If no skills section found, add at the end
-  return content + '\n\n' + suggestion.suggestion;
+  return `${content}\n\n${suggestion.suggestion}`;
 }
 
 /**
@@ -118,7 +118,7 @@ function applyAchievementSuggestion(content: string, suggestion: OptimizationSug
     return lines.join('\n');
   }
 
-  return content + '\n\n' + suggestion.suggestion;
+  return `${content}\n\n${suggestion.suggestion}`;
 }
 
 /**
@@ -136,11 +136,12 @@ function applyStructureSuggestion(content: string, suggestion: OptimizationSugge
   }
 
   if (suggestion.suggestion.includes('contact information')) {
-    const contactText = `[Your Name]\n[Your Email] | [Your Phone] | [Your Location]\n[LinkedIn Profile]\n\n`;
+    const contactText =
+      '[Your Name]\n[Your Email] | [Your Phone] | [Your Location]\n[LinkedIn Profile]\n\n';
     return contactText + content;
   }
 
-  return content + '\n\n' + suggestion.suggestion;
+  return `${content}\n\n${suggestion.suggestion}`;
 }
 
 /**
@@ -171,7 +172,7 @@ function applyGenericSuggestion(content: string, suggestion: OptimizationSuggest
   }
 
   // For generic suggestions, append at the end with context
-  return content + '\n\n[Suggestion Applied]: ' + suggestion.suggestion;
+  return `${content}\n\n[Suggestion Applied]: ${suggestion.suggestion}`;
 }
 
 const sectionPatterns: { [key: string]: RegExp } = {
@@ -200,7 +201,7 @@ export function findInsertionPoint(content: string, section?: string): number {
       for (let i = sectionIndex + 1; i < lines.length; i++) {
         if (
           lines[i] &&
-          Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]!.trim()))
+          Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]?.trim()))
         ) {
           endIndex = i;
           break;

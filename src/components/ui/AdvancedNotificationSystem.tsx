@@ -153,21 +153,21 @@ const NotificationItem: React.FC<{
     if (isUnread) {
       onStatusChange('read');
     }
-  }, [isUnread, onStatusChange, notification.title]);
+  }, [isUnread, onStatusChange]);
 
   const handleArchive = useCallback(() => {
     onStatusChange('archived');
-  }, [onStatusChange, notification.title]);
+  }, [onStatusChange]);
 
   const handleDismiss = useCallback(() => {
     onStatusChange('dismissed');
-  }, [onStatusChange, notification.title]);
+  }, [onStatusChange]);
 
   const handleAction = useCallback(
     (actionId: string) => {
       onAction(actionId);
     },
-    [onAction, notification.title]
+    [onAction]
   );
 
   return (

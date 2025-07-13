@@ -3,8 +3,8 @@ import Link from 'next/link';
 const BillingPage = () => {
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Billing</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <h1 className="mb-4 font-bold text-2xl">Billing</h1>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div className="card bg-base-200 shadow-xl">
           <div className="card-body">
             <h2 className="card-title">Pro Tier</h2>

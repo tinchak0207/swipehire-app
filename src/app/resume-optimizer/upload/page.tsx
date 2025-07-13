@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useRef, useState } from 'react';
 import type {
   FileValidationResult,
@@ -17,6 +18,7 @@ import type {
   ResumeUploadState,
   TargetJobInfo,
 } from '@/lib/resume-types';
+import { type AnalysisLoadingState, analyzeResume } from '@/services/resumeOptimizerService';
 
 interface ExtendedUploadState extends ResumeUploadState {
   progress: number;
@@ -40,6 +42,7 @@ interface ExtendedUploadState extends ResumeUploadState {
  */
 const ResumeUploadPage: NextPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const [uploadState, setUploadState] = useState<ExtendedUploadState>({
     file: null,
@@ -59,6 +62,14 @@ const ResumeUploadPage: NextPage = () => {
   });
 
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Analysis state
+  const [analysisState, setAnalysisState] = useState<AnalysisLoadingState>({
+    isLoading: false,
+    progress: 0,
+    stage: 'parsing',
+    message: '',
+  });
 
   const validateFile = useCallback((file: File): FileValidationResult => {
     const allowedTypes = [
@@ -263,16 +274,46 @@ const ResumeUploadPage: NextPage = () => {
     }
   };
 
-  const handleAnalyze = (): void => {
+  const handleAnalyze = async (): Promise<void> => {
+    console.log('handleAnalyze called with:', {
+      extractedText: uploadState.extractedText ? 'present' : 'missing',
+      targetJobTitle: targetJob.title,
+      targetJobTitleTrimmed: targetJob.title.trim(),
+      fullTargetJob: targetJob,
+    });
+
     if (!uploadState.extractedText || !targetJob.title.trim()) {
+      console.log('Early return due to validation failure');
       return;
     }
 
-    // TODO: Navigate to analysis page with data
-    console.log('Analyzing resume with:', {
-      text: uploadState.extractedText,
-      targetJob,
-    });
+    try {
+      // Call the analysis service with progress tracking
+      const analysisResult = await analyzeResume(
+        {
+          resumeText: uploadState.extractedText,
+          targetJob: targetJob,
+        },
+        (progress) => {
+          setAnalysisState(progress);
+        }
+      );
+
+      // Store the result in sessionStorage so the analyze page can access it
+      sessionStorage.setItem('resumeAnalysisResult', JSON.stringify(analysisResult));
+      sessionStorage.setItem('targetJobInfo', JSON.stringify(targetJob));
+
+      // Navigate to the analysis results page
+      router.push('/resume-optimizer/analyze');
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setAnalysisState({
+        isLoading: false,
+        progress: 0,
+        stage: 'parsing',
+        message: error instanceof Error ? error.message : 'Analysis failed. Please try again.',
+      });
+    }
   };
 
   const getStageMessage = (): string => {
@@ -296,35 +337,35 @@ const ResumeUploadPage: NextPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 p-4">
       <div className="container mx-auto max-w-5xl">
         {/* Header */}
-        <div className="flex items-center mb-8">
+        <div className="mb-8 flex items-center">
           <Link
             href="/resume-optimizer"
             className="btn btn-ghost btn-sm mr-4"
             aria-label="Go back to resume optimizer"
           >
-            <ArrowLeftIcon className="w-4 h-4 mr-2" />
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
             Back
           </Link>
           <div>
-            <h1 className="text-3xl font-bold text-gray-800">Upload Resume</h1>
-            <p className="text-gray-600 mt-1">Upload your resume for AI-powered optimization</p>
+            <h1 className="font-bold text-3xl text-gray-800">Upload Resume</h1>
+            <p className="mt-1 text-gray-600">Upload your resume for AI-powered optimization</p>
           </div>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
+        <div className="grid gap-8 lg:grid-cols-2">
           {/* Upload Section */}
           <div className="card bg-white shadow-lg">
             <div className="card-body">
               <h2 className="card-title mb-4 flex items-center">
-                <DocumentArrowUpIcon className="w-5 h-5 mr-2" />
+                <DocumentArrowUpIcon className="mr-2 h-5 w-5" />
                 Upload Your Resume
               </h2>
 
               {/* Drag & Drop Upload Area */}
               <div
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-all duration-200 mb-6 ${
+                className={`mb-6 rounded-lg border-2 border-dashed p-8 text-center transition-all duration-200 ${
                   uploadState.dragActive
-                    ? 'border-primary bg-primary/5 scale-105'
+                    ? 'scale-105 border-primary bg-primary/5'
                     : uploadState.file
                       ? 'border-success bg-success/5'
                       : 'border-gray-300 hover:border-primary hover:bg-primary/5'
@@ -348,15 +389,14 @@ const ResumeUploadPage: NextPage = () => {
                   accept=".pdf,.docx,.doc"
                   onChange={handleFileChange}
                   className="hidden"
-                  aria-hidden="true"
                 />
 
                 {uploadState.file ? (
                   <div className="space-y-3">
-                    <CheckCircleIcon className="w-12 h-12 text-success mx-auto" />
+                    <CheckCircleIcon className="mx-auto h-12 w-12 text-success" />
                     <div>
                       <p className="font-medium text-gray-800">{uploadState.file.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-gray-500 text-sm">
                         {(uploadState.file.size / 1024 / 1024).toFixed(2)} MB
                       </p>
                     </div>
@@ -368,20 +408,20 @@ const ResumeUploadPage: NextPage = () => {
                       className="btn btn-sm btn-outline btn-error"
                       aria-label="Remove selected file"
                     >
-                      <XMarkIcon className="w-4 h-4 mr-1" />
+                      <XMarkIcon className="mr-1 h-4 w-4" />
                       Remove
                     </button>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <DocumentArrowUpIcon className="w-12 h-12 text-gray-400 mx-auto" />
+                    <DocumentArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
                     <div>
                       <p className="font-medium text-gray-700">
                         {uploadState.dragActive
                           ? 'Drop your file here'
                           : 'Click to upload or drag & drop'}
                       </p>
-                      <p className="text-sm text-gray-500">PDF, DOC, or DOCX (max 10MB)</p>
+                      <p className="text-gray-500 text-sm">PDF, DOC, or DOCX (max 10MB)</p>
                     </div>
                   </div>
                 )}
@@ -390,7 +430,7 @@ const ResumeUploadPage: NextPage = () => {
               {/* Error Display */}
               {uploadState.error && (
                 <div className="alert alert-error mb-4" role="alert">
-                  <ExclamationTriangleIcon className="w-5 h-5" />
+                  <ExclamationTriangleIcon className="h-5 w-5" />
                   <span>{uploadState.error}</span>
                 </div>
               )}
@@ -398,9 +438,9 @@ const ResumeUploadPage: NextPage = () => {
               {/* Progress Display */}
               {uploadState.isUploading && (
                 <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-gray-700">{getStageMessage()}</span>
-                    <span className="text-sm text-gray-500">{uploadState.progress}%</span>
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium text-gray-700 text-sm">{getStageMessage()}</span>
+                    <span className="text-gray-500 text-sm">{uploadState.progress}%</span>
                   </div>
                   <progress
                     className="progress progress-primary w-full"
@@ -423,12 +463,12 @@ const ResumeUploadPage: NextPage = () => {
               </button>
 
               {/* Help Text */}
-              <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+              <div className="mt-4 rounded-lg bg-blue-50 p-3">
                 <div className="flex items-start">
-                  <InformationCircleIcon className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  <div className="text-sm text-blue-800">
-                    <p className="font-medium mb-1">Supported formats:</p>
-                    <ul className="list-disc list-inside space-y-1 text-xs">
+                  <InformationCircleIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-blue-600" />
+                  <div className="text-blue-800 text-sm">
+                    <p className="mb-1 font-medium">Supported formats:</p>
+                    <ul className="list-inside list-disc space-y-1 text-xs">
                       <li>PDF files (.pdf)</li>
                       <li>Microsoft Word documents (.docx, .doc)</li>
                       <li>Maximum file size: 10MB</li>
@@ -485,7 +525,7 @@ const ResumeUploadPage: NextPage = () => {
                   placeholder="e.g., React, Node.js, TypeScript, AWS, Agile, Leadership"
                   value={targetJob.keywords}
                   onChange={(e) => setTargetJob((prev) => ({ ...prev, keywords: e.target.value }))}
-                  className="textarea textarea-bordered w-full h-24 bg-white text-gray-800 placeholder-gray-500"
+                  className="textarea textarea-bordered h-24 w-full bg-white text-gray-800 placeholder-gray-500"
                   aria-describedby="keywords-help"
                 />
                 <label className="label">
@@ -496,13 +536,13 @@ const ResumeUploadPage: NextPage = () => {
               </div>
 
               {/* Advanced Options Toggle */}
-              <div className="collapse collapse-arrow bg-gray-50 mb-6">
+              <div className="collapse-arrow collapse mb-6 bg-gray-50">
                 <input
                   type="checkbox"
                   checked={showAdvanced}
                   onChange={(e) => setShowAdvanced(e.target.checked)}
                 />
-                <div className="collapse-title text-sm font-medium">Advanced Options</div>
+                <div className="collapse-title font-medium text-sm">Advanced Options</div>
                 <div className="collapse-content">
                   <div className="form-control">
                     <label className="label">
@@ -514,7 +554,7 @@ const ResumeUploadPage: NextPage = () => {
                       onChange={(e) =>
                         setTargetJob((prev) => ({ ...prev, description: e.target.value }))
                       }
-                      className="textarea textarea-bordered w-full h-32 bg-white text-gray-800 placeholder-gray-500"
+                      className="textarea textarea-bordered h-32 w-full bg-white text-gray-800 placeholder-gray-500"
                     />
                   </div>
                 </div>
@@ -523,18 +563,57 @@ const ResumeUploadPage: NextPage = () => {
               {/* Analyze Button */}
               <button
                 onClick={handleAnalyze}
-                disabled={!uploadState.extractedText || !targetJob.title.trim()}
+                disabled={
+                  !uploadState.extractedText || !targetJob.title.trim() || analysisState.isLoading
+                }
                 className="btn btn-success w-full"
                 aria-label="Analyze resume against target job"
               >
-                <span className="mr-2">🎯</span>
-                Analyze Resume
+                {analysisState.isLoading ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm" />
+                    <span>{analysisState.message || 'Analyzing...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">🎯</span>
+                    Analyze Resume
+                  </>
+                )}
               </button>
 
+              {/* Analysis Progress */}
+              {analysisState.isLoading && (
+                <div className="mt-4 rounded-lg bg-blue-50 p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="font-medium text-blue-800 text-sm">
+                      {analysisState.message || 'Processing...'}
+                    </span>
+                    <span className="text-blue-600 text-sm">{analysisState.progress || 0}%</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full bg-blue-200">
+                    <div
+                      className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                      style={{ width: `${analysisState.progress || 0}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {!analysisState.isLoading && analysisState.message && (
+                <div className="mt-4 rounded-lg bg-red-50 p-4">
+                  <div className="flex">
+                    <ExclamationTriangleIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-red-400" />
+                    <span className="text-red-800 text-sm">{analysisState.message}</span>
+                  </div>
+                </div>
+              )}
+
               {/* Quick Tips */}
-              <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                <h4 className="font-medium text-green-800 mb-2">💡 Quick Tips</h4>
-                <ul className="text-sm text-green-700 space-y-1">
+              <div className="mt-4 rounded-lg bg-green-50 p-3">
+                <h4 className="mb-2 font-medium text-green-800">💡 Quick Tips</h4>
+                <ul className="space-y-1 text-green-700 text-sm">
                   <li>• Be specific with your job title</li>
                   <li>• Include both hard and soft skills</li>
                   <li>• Add industry-specific terminology</li>
@@ -547,56 +626,56 @@ const ResumeUploadPage: NextPage = () => {
 
         {/* Extracted Text Preview */}
         {uploadState.extractedText && (
-          <div className="card bg-white shadow-lg mt-8">
+          <div className="card mt-8 bg-white shadow-lg">
             <div className="card-body">
-              <div className="flex items-center justify-between mb-4">
+              <div className="mb-4 flex items-center justify-between">
                 <h3 className="card-title">Extracted Text Preview</h3>
                 <div className="badge badge-success">
-                  <CheckCircleIcon className="w-4 h-4 mr-1" />
+                  <CheckCircleIcon className="mr-1 h-4 w-4" />
                   Ready for Analysis
                 </div>
               </div>
 
               {/* File Metadata */}
               {uploadState.metadata && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="mb-4 grid grid-cols-2 gap-4 rounded-lg bg-gray-50 p-4 md:grid-cols-4">
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
+                    <div className="font-bold text-2xl text-gray-800">
                       {uploadState.metadata.wordCount.toLocaleString()}
                     </div>
-                    <div className="text-xs text-gray-600">Words</div>
+                    <div className="text-gray-600 text-xs">Words</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
+                    <div className="font-bold text-2xl text-gray-800">
                       {uploadState.metadata.characterCount.toLocaleString()}
                     </div>
-                    <div className="text-xs text-gray-600">Characters</div>
+                    <div className="text-gray-600 text-xs">Characters</div>
                   </div>
                   {uploadState.metadata.pageCount && (
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-800">
+                      <div className="font-bold text-2xl text-gray-800">
                         {uploadState.metadata.pageCount}
                       </div>
-                      <div className="text-xs text-gray-600">Pages</div>
+                      <div className="text-gray-600 text-xs">Pages</div>
                     </div>
                   )}
                   <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-800">
+                    <div className="font-bold text-2xl text-gray-800">
                       {(uploadState.metadata.extractionTime / 1000).toFixed(1)}s
                     </div>
-                    <div className="text-xs text-gray-600">Processing Time</div>
+                    <div className="text-gray-600 text-xs">Processing Time</div>
                   </div>
                 </div>
               )}
 
-              <div className="bg-gray-50 p-4 rounded-lg max-h-64 overflow-y-auto border">
-                <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
+              <div className="max-h-64 overflow-y-auto rounded-lg border bg-gray-50 p-4">
+                <pre className="whitespace-pre-wrap font-mono text-gray-700 text-sm">
                   {uploadState.extractedText}
                 </pre>
               </div>
-              <div className="flex items-start mt-3 p-3 bg-blue-50 rounded-lg">
-                <InformationCircleIcon className="w-5 h-5 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                <div className="text-sm text-blue-800">
+              <div className="mt-3 flex items-start rounded-lg bg-blue-50 p-3">
+                <InformationCircleIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-blue-600" />
+                <div className="text-blue-800 text-sm">
                   <p className="font-medium">Review the extracted text</p>
                   <p>
                     Make sure all important information was captured correctly. The AI will analyze

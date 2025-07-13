@@ -1,4 +1,3 @@
-import React from 'react';
 import CanvasArea from '../panels/CanvasArea';
 import ConfigurationPanel from '../panels/ConfigurationPanel';
 import NavigationPanel from '../panels/NavigationPanel';

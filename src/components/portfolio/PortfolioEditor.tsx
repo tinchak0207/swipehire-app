@@ -3,9 +3,9 @@
 import {
   closestCenter,
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -20,10 +20,11 @@ import {
 } from '@dnd-kit/sortable';
 import { EyeIcon, PlusIcon, SaveIcon, ShareIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCreatePortfolio, useUpdatePortfolio } from '@/hooks/usePortfolio';
-import { PortfolioDraft, PortfolioLayout, Project } from '@/lib/types/portfolio';
+import type { PortfolioDraft, PortfolioLayout, Project } from '@/lib/types/portfolio';
 import LayoutSelector from './LayoutSelector';
 import PortfolioPreview from './PortfolioPreview';
 import SortableProjectEditor from './SortableProjectEditor';
@@ -284,7 +285,7 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
           });
           setDraft((prev) => ({ ...prev, isDirty: false }));
         }
-      } catch (error) {
+      } catch (_error) {
         toast({
           title: 'Error',
           description: 'Failed to save portfolio. Please try again.',
@@ -326,13 +327,13 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
   }, [draft.isDirty]);
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
       {/* Main Editor Panel */}
-      <div className="lg:col-span-2 space-y-6">
+      <div className="space-y-6 lg:col-span-2">
         {/* Basic Information Card */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <h2 className="card-title text-2xl mb-4">Portfolio Information</h2>
+            <h2 className="card-title mb-4 text-2xl">Portfolio Information</h2>
 
             {/* Title Field */}
             <div className="form-control">
@@ -387,10 +388,10 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
         {/* Projects Section */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <div className="flex justify-between items-center mb-4">
+            <div className="mb-4 flex items-center justify-between">
               <h2 className="card-title text-2xl">Projects</h2>
               <button className="btn btn-accent btn-sm" onClick={handleAddProject}>
-                <PlusIcon className="w-4 h-4 mr-2" />
+                <PlusIcon className="mr-2 h-4 w-4" />
                 Add Project
               </button>
             </div>
@@ -398,9 +399,9 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             {/* Projects List */}
             <div className="space-y-4">
               {draft.projects.length === 0 ? (
-                <div className="text-center py-8 text-base-content/60">
+                <div className="py-8 text-center text-base-content/60">
                   <p>No projects added yet.</p>
-                  <p className="text-sm mt-2">Click "Add Project" to get started.</p>
+                  <p className="mt-2 text-sm">Click "Add Project" to get started.</p>
                 </div>
               ) : (
                 <DndContext
@@ -435,7 +436,7 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
                   {/* Drag Overlay */}
                   <DragOverlay>
                     {activeId ? (
-                      <div className="opacity-90 transform rotate-3 shadow-2xl">
+                      <div className="rotate-3 transform opacity-90 shadow-2xl">
                         {(() => {
                           const draggedProject = draft.projects.find((p) => p.id === activeId);
                           const draggedIndex = draft.projects.findIndex((p) => p.id === activeId);
@@ -466,12 +467,12 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
         {/* Actions Card */}
         <div className="card bg-base-100 shadow-xl">
           <div className="card-body">
-            <h3 className="card-title text-lg mb-4">Actions</h3>
+            <h3 className="card-title mb-4 text-lg">Actions</h3>
 
             <div className="space-y-3">
               {/* Preview Button */}
               <button className="btn btn-outline btn-block" onClick={() => setShowPreview(true)}>
-                <EyeIcon className="w-4 h-4 mr-2" />
+                <EyeIcon className="mr-2 h-4 w-4" />
                 Preview
               </button>
 
@@ -481,7 +482,7 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
                 onClick={() => handleSave(false)}
                 disabled={isSaving || !draft.isDirty}
               >
-                {!isSaving && <SaveIcon className="w-4 h-4 mr-2" />}
+                {!isSaving && <SaveIcon className="mr-2 h-4 w-4" />}
                 {isSaving ? 'Saving...' : 'Save Draft'}
               </button>
 
@@ -491,7 +492,7 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
                 onClick={() => handleSave(true)}
                 disabled={isSaving || !draft.title.trim()}
               >
-                {!isSaving && <ShareIcon className="w-4 h-4 mr-2" />}
+                {!isSaving && <ShareIcon className="mr-2 h-4 w-4" />}
                 {isSaving ? 'Publishing...' : 'Publish'}
               </button>
             </div>
@@ -522,7 +523,7 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
         {mode === 'edit' && (
           <div className="card bg-base-100 shadow-xl">
             <div className="card-body">
-              <h3 className="card-title text-lg mb-4">Portfolio Stats</h3>
+              <h3 className="card-title mb-4 text-lg">Portfolio Stats</h3>
               <div className="stats stats-vertical shadow">
                 <div className="stat">
                   <div className="stat-title">Projects</div>
@@ -547,8 +548,8 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
       {/* Preview Modal */}
       {showPreview && (
         <div className="modal modal-open">
-          <div className="modal-box w-11/12 max-w-7xl h-5/6">
-            <div className="flex justify-between items-center mb-4">
+          <div className="modal-box h-5/6 w-11/12 max-w-7xl">
+            <div className="mb-4 flex items-center justify-between">
               <h3 className="font-bold text-lg">Portfolio Preview</h3>
               <button className="btn btn-sm btn-circle" onClick={() => setShowPreview(false)}>
                 ✕

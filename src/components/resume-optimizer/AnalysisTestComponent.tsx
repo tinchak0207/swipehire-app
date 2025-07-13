@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import type { TargetJobInfo } from '@/lib/types/resume-optimizer';
 import { AnalysisRequestComponent } from './AnalysisRequestComponent';
 
@@ -245,9 +246,9 @@ export const AnalysisTestComponent: React.FC = () => {
   const currentTargetJob = useCustomInput ? customTargetJob : selectedScenario.targetJob;
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Resume Analysis Integration Test</h1>
+    <div className="container mx-auto space-y-6 p-6">
+      <div className="mb-8 text-center">
+        <h1 className="mb-2 font-bold text-3xl">Resume Analysis Integration Test</h1>
         <p className="text-base-content/70">
           Test the backend AI integration with various scenarios and edge cases
         </p>
@@ -277,7 +278,7 @@ export const AnalysisTestComponent: React.FC = () => {
                   key={scenario.id}
                   className={`card cursor-pointer transition-all ${
                     selectedScenario.id === scenario.id
-                      ? 'bg-primary/10 border-primary border-2'
+                      ? 'border-2 border-primary bg-primary/10'
                       : 'bg-base-200 hover:bg-base-300'
                   }`}
                   onClick={() => setSelectedScenario(scenario)}
@@ -285,7 +286,7 @@ export const AnalysisTestComponent: React.FC = () => {
                   <div className="card-body p-4">
                     <h3 className="font-semibold">{scenario.name}</h3>
                     <p className="text-sm opacity-75">{scenario.description}</p>
-                    <p className="text-xs opacity-60 mt-2">Expected: {scenario.expectedBehavior}</p>
+                    <p className="mt-2 text-xs opacity-60">Expected: {scenario.expectedBehavior}</p>
                   </div>
                 </div>
               ))}
@@ -304,7 +305,7 @@ export const AnalysisTestComponent: React.FC = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="form-control">
                   <label className="label">
                     <span className="label-text">Job Title</span>
@@ -373,16 +374,16 @@ export const AnalysisTestComponent: React.FC = () => {
       <div className="card bg-base-100 shadow-lg">
         <div className="card-body">
           <h2 className="card-title">Current Test Data</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div>
-              <h3 className="font-semibold mb-2">Resume Text ({currentResumeText.length} chars)</h3>
-              <div className="bg-base-200 p-3 rounded text-sm max-h-40 overflow-y-auto">
+              <h3 className="mb-2 font-semibold">Resume Text ({currentResumeText.length} chars)</h3>
+              <div className="max-h-40 overflow-y-auto rounded bg-base-200 p-3 text-sm">
                 <pre className="whitespace-pre-wrap">{currentResumeText}</pre>
               </div>
             </div>
             <div>
-              <h3 className="font-semibold mb-2">Target Job</h3>
-              <div className="bg-base-200 p-3 rounded text-sm space-y-2">
+              <h3 className="mb-2 font-semibold">Target Job</h3>
+              <div className="space-y-2 rounded bg-base-200 p-3 text-sm">
                 <div>
                   <strong>Title:</strong> {currentTargetJob.title || 'Not specified'}
                 </div>
@@ -420,7 +421,7 @@ export const AnalysisTestComponent: React.FC = () => {
               {analysisResults.map((result, index) => (
                 <div
                   key={index}
-                  className={`p-2 rounded text-sm ${
+                  className={`rounded p-2 text-sm ${
                     result.startsWith('Error:')
                       ? 'bg-error/10 text-error'
                       : 'bg-success/10 text-success'

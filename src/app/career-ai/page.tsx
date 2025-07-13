@@ -100,7 +100,7 @@ export default function CareerAIPage() {
   const getUserPhotoURL = () => {
     if (fullBackendUser?.profileAvatarUrl) {
       if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
-        return `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL']}${fullBackendUser.profileAvatarUrl}`;
+        return `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
       }
       return fullBackendUser.profileAvatarUrl;
     }
@@ -183,6 +183,7 @@ export default function CareerAIPage() {
                 </p>
                 <div className="card-actions justify-center">
                   <button
+                    type="button"
                     onClick={handleSkipToDashboard}
                     className="btn btn-lg border-white bg-white px-8 py-4 font-bold text-lg text-primary shadow-2xl transition-all duration-300 hover:scale-105 hover:border-white/90 hover:bg-white/90 hover:shadow-3xl"
                   >

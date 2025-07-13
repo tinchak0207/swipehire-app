@@ -1,7 +1,7 @@
 const TeamPage = () => {
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Team Management</h1>
+      <h1 className="mb-4 font-bold text-2xl">Team Management</h1>
       <div className="card bg-base-200 shadow-xl">
         <div className="card-body">
           <h2 className="card-title">Invite a Team Member</h2>

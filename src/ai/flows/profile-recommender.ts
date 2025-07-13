@@ -261,9 +261,8 @@ export async function recommendProfile(
   // Import the new AI service
   const { recommendProfile: mistralRecommendProfile } = await import('@/services/aiService');
 
-  // Use type assertion to bypass exactOptionalPropertyTypes strict checking
   // The aiService handles undefined values properly with defaults
-  return mistralRecommendProfile(input as any);
+  return mistralRecommendProfile(input);
 }
 
 const profileRecommenderPrompt = ai.definePrompt({
@@ -355,10 +354,17 @@ const defaultJobSeekerWeights: JobSeekerPerspectiveWeights = {
   jobConditionFitScore: 15,
 };
 
-const isValidWeights = (weights: any, perspective: 'recruiter' | 'jobSeeker'): boolean => {
+interface ProfileWeights {
+  [key: string]: number | string;
+}
+
+const isValidWeights = (
+  weights: ProfileWeights | null,
+  perspective: 'recruiter' | 'jobSeeker'
+): boolean => {
   if (!weights) return false;
   const sum = Object.values(weights).reduce(
-    (acc: number, weight: any) => acc + (Number(weight) || 0),
+    (acc: number, weight: unknown) => acc + (Number(weight) || 0),
     0
   );
   const numFields = perspective === 'recruiter' ? 4 : 4; // Could make this more dynamic if needed
@@ -373,7 +379,7 @@ export const profileRecommenderFlow = ai.defineFlow(
   },
   async (input: ProfileRecommenderInput): Promise<ProfileRecommenderOutput> => {
     // API Key Check within the flow
-    const apiKeyFlowCheck = process.env['GOOGLE_API_KEY'];
+    const apiKeyFlowCheck = process.env.GOOGLE_API_KEY;
     if (!apiKeyFlowCheck) {
       console.error(
         'CRITICAL ERROR (from profileRecommenderFlow): GOOGLE_API_KEY environment variable is NOT SET or is EMPTY when flow is executed. Genkit Google AI plugin will FAIL.'

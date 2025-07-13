@@ -3,8 +3,8 @@
  * This script tests the key functionality implemented for the resume optimizer
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 // Test results
 const testResults = {

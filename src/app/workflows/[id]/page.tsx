@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { Node, ReactFlowInstance } from 'reactflow';
+import { useEffect, useState } from 'react';
+import type { Node, ReactFlowInstance } from 'reactflow';
 import WorkflowCanvas from '@/components/workflow/canvas/WorkflowCanvas';
 import NodePalette from '@/components/workflow/palette/NodePalette';
-import { IWorkflow } from '@/contracts/IWorkflow';
+import type { IWorkflow } from '@/contracts/IWorkflow';
 import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 
 function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) {
@@ -54,20 +54,20 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
     <div className="drawer lg:drawer-open h-screen">
       <input id="my-drawer-2" type="checkbox" className="drawer-toggle" />
       <div className="drawer-content flex flex-col">
-        <header className="p-4 bg-base-200 border-b border-base-300 flex items-center gap-4">
+        <header className="flex items-center gap-4 border-base-300 border-b bg-base-200 p-4">
           <label htmlFor="my-drawer-2" className="btn btn-square btn-ghost lg:hidden">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
-              className="inline-block w-6 h-6 stroke-current"
+              className="inline-block h-6 w-6 stroke-current"
             >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth="2"
                 d="M4 6h16M4 12h16M4 18h16"
-              ></path>
+              />
             </svg>
           </label>
           <input
@@ -81,13 +81,8 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
             Save
           </button>
           <div className="dropdown dropdown-end">
-            <label tabIndex={0} className="btn btn-secondary">
-              Save as Template
-            </label>
-            <ul
-              tabIndex={0}
-              className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52"
-            >
+            <label className="btn btn-secondary">Save as Template</label>
+            <ul className="dropdown-content menu w-52 rounded-box bg-base-100 p-2 shadow">
               <li>
                 <a onClick={() => handleSave(true, false)}>Save as Private Template</a>
               </li>
@@ -105,7 +100,7 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
         </main>
       </div>
       <div className="drawer-side">
-        <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
+        <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay" />
         <NodePalette />
       </div>
     </div>

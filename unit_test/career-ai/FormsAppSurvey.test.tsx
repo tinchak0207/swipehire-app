@@ -14,7 +14,7 @@ Object.defineProperty(window, 'formsapp', {
 });
 
 // Create a mock component that simulates the actual FormsAppSurvey behavior
-const MockFormsAppSurvey = ({ onComplete }: { onComplete: (data: any) => void }) => {
+const MockFormsAppSurvey = ({ onComplete }: { onComplete: (data: unknown) => void }) => {
   const [isLoading, setIsLoading] = React.useState(true);
   const [surveyStarted, setSurveyStarted] = React.useState(false);
 
@@ -62,7 +62,7 @@ const MockFormsAppSurvey = ({ onComplete }: { onComplete: (data: any) => void })
         <div
           className="h-0 w-full overflow-hidden opacity-0 transition-opacity duration-500"
           data-testid="formsapp-container"
-          {...({ formsappid: '685190dedd9ab40002e7de9a' } as any)}
+          {...({ formsappid: '685190dedd9ab40002e7de9a' } as object)}
           style={{ minHeight: '0' }}
         />
       </div>
@@ -86,16 +86,17 @@ const MockFormsAppSurvey = ({ onComplete }: { onComplete: (data: any) => void })
 
       <div
         data-testid="formsapp-container"
-        {...({ formsappid: '685190dedd9ab40002e7de9a' } as any)}
+        {...({ formsappid: '685190dedd9ab40002e7de9a' } as object)}
         className="w-full opacity-100 transition-opacity duration-500"
         style={{ minHeight: '600px' }}
       >
         <div className="rounded border p-4">
           <h3>Mock Forms.app Survey</h3>
-          <button onClick={handleStartSurvey} className="btn btn-primary mr-2">
+          <button type="button" onClick={handleStartSurvey} className="btn btn-primary mr-2">
             Start Survey
           </button>
           <button
+            type="button"
             onClick={handleTestSubmit}
             className="btn btn-success"
             data-testid="submit-survey"

@@ -91,11 +91,11 @@ const avatarGeneratorFlow = ai.defineFlow(
     outputSchema: AvatarGeneratorOutputSchema,
   },
   async (input: AvatarGeneratorInput) => {
-    let constructedPrompt =
+    let _constructedPrompt =
       'Generate a photorealistic, professional virtual avatar suitable for a resume or online profile. ';
 
     if (input.gender && input.gender !== 'unspecified') {
-      constructedPrompt += `The avatar should appear ${input.gender}. `;
+      _constructedPrompt += `The avatar should appear ${input.gender}. `;
     }
     if (input.ageRange && input.ageRange !== 'unspecified') {
       const ageMapping = {
@@ -103,25 +103,25 @@ const avatarGeneratorFlow = ai.defineFlow(
         adult: 'in their 30s or 40s (adult)',
         middle_aged: 'in their 50s or older (middle-aged)',
       };
-      constructedPrompt += `The avatar's age should be approximately ${ageMapping[input.ageRange as keyof typeof ageMapping] || input.ageRange}. `;
+      _constructedPrompt += `The avatar's age should be approximately ${ageMapping[input.ageRange as keyof typeof ageMapping] || input.ageRange}. `;
     }
     if (input.professionalImageStyle) {
-      constructedPrompt += `Their clothing and overall style should be '${input.professionalImageStyle.replace(/_/g, ' ')}'. `;
+      _constructedPrompt += `Their clothing and overall style should be '${input.professionalImageStyle.replace(/_/g, ' ')}'. `;
     }
     if (input.animationExpression) {
-      constructedPrompt += `Their expression or pose should convey a '${input.animationExpression.replace(/_/g, ' ')}' demeanor. `;
+      _constructedPrompt += `Their expression or pose should convey a '${input.animationExpression.replace(/_/g, ' ')}' demeanor. `;
     }
     if (input.backgroundEnvironment) {
-      constructedPrompt += `The background should be a '${input.backgroundEnvironment.replace(/_/g, ' ')}' setting. `;
+      _constructedPrompt += `The background should be a '${input.backgroundEnvironment.replace(/_/g, ' ')}' setting. `;
     }
 
-    constructedPrompt += `Specific appearance details: "${input.appearanceDetails}". `;
+    _constructedPrompt += `Specific appearance details: "${input.appearanceDetails}". `;
 
     if (input.jobTypeHint) {
       constructedPrompt += `The avatar's overall look should be appropriate for a '${input.jobTypeHint}' role. `;
     }
 
-    constructedPrompt +=
+    _constructedPrompt +=
       "The image should be high-resolution, well-lit, with the subject clearly visible and centered. Avoid overly stylized or cartoonish looks unless explicitly requested by the 'creative_trend' style. Focus on a realistic human representation.";
 
     // Note: Mistral AI doesn't support image generation directly

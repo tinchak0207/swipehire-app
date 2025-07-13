@@ -392,9 +392,9 @@ const ReportDisplayTest: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
       <div className="container mx-auto max-w-7xl">
         {/* Test Controls */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-          <h2 className="text-xl font-bold text-slate-900 mb-4">ReportDisplay Test Component</h2>
-          <p className="text-slate-600 mb-6">
+        <div className="mb-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="mb-4 font-bold text-slate-900 text-xl">ReportDisplay Test Component</h2>
+          <p className="mb-6 text-slate-600">
             This component demonstrates the ReportDisplay functionality with comprehensive mock
             data. Use the controls below to test different states and interactions.
           </p>
@@ -419,7 +419,7 @@ const ReportDisplayTest: React.FC = () => {
               Reset Suggestions
             </button>
 
-            <div className="flex items-center space-x-4 text-sm text-slate-600">
+            <div className="flex items-center space-x-4 text-slate-600 text-sm">
               <span>Adopted: {adoptedSuggestions.size}</span>
               <span>Ignored: {ignoredSuggestions.size}</span>
             </div>

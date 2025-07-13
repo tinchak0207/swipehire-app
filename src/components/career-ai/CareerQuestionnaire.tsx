@@ -40,7 +40,7 @@ export default function CareerQuestionnaire({
             value={formData.education || ''}
             onChange={(e) => handleChange('education', e.target.value)}
             placeholder="Your highest education level"
-            className="w-full rounded border p-2 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
+            className="w-full rounded border bg-white/80 p-2 text-black placeholder-gray-400 backdrop-blur-sm"
             required
           />
         </div>
@@ -53,7 +53,7 @@ export default function CareerQuestionnaire({
             value={formData.experience?.join('\n') || ''}
             onChange={(e) => handleChange('experience', e.target.value.split('\n'))}
             placeholder="List your work experience (one per line)"
-            className="h-32 w-full rounded border p-2 bg-white/80 backdrop-blur-sm text-black placeholder-gray-400"
+            className="h-32 w-full rounded border bg-white/80 p-2 text-black placeholder-gray-400 backdrop-blur-sm"
             required
           />
         </div>

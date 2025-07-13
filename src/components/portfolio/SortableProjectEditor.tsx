@@ -2,8 +2,8 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import React from 'react';
-import { Project } from '@/lib/types/portfolio';
+import type React from 'react';
+import type { Project } from '@/lib/types/portfolio';
 import ProjectEditor from './ProjectEditor';
 
 interface SortableProjectEditorProps {
@@ -54,9 +54,7 @@ const SortableProjectEditor: React.FC<SortableProjectEditorProps> = ({
       ref={setNodeRef}
       style={style}
       className={`
-        ${isSortableDragging ? 'z-50' : ''}
-        ${isDragging ? 'shadow-2xl ring-2 ring-primary ring-opacity-50' : ''}
-      `}
+        ${isSortableDragging ? 'z-50' : ''} ${isDragging ? 'shadow-2xl ring-2 ring-primary ring-opacity-50' : ''} `}
       {...attributes}
     >
       <ProjectEditor
