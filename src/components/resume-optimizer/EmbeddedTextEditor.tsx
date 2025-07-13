@@ -17,9 +17,9 @@ const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => (
     <div className="bg-base-200 rounded-lg p-8 animate-pulse">
-      <div className="h-4 bg-base-300 rounded w-3/4 mb-4" />
-      <div className="h-4 bg-base-300 rounded w-1/2 mb-4" />
-      <div className="h-4 bg-base-300 rounded w-5/6" />
+      <div className="h-4 bg-base-300 rounded w-3/4 mb-4"></div>
+      <div className="h-4 bg-base-300 rounded w-1/2 mb-4"></div>
+      <div className="h-4 bg-base-300 rounded w-5/6"></div>
     </div>
   ),
 });
@@ -407,7 +407,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
           <div className="absolute inset-0 flex items-center justify-center bg-base-100/50">
             <div className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-lg">
               <div className="flex items-center space-x-3">
-                <div className="loading loading-spinner loading-sm text-primary" />
+                <div className="loading loading-spinner loading-sm text-primary"></div>
                 <span className="text-sm font-medium">Saving changes...</span>
               </div>
             </div>

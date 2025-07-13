@@ -176,7 +176,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {isLoading && (
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl" />
+              <span className="text-2xl"></span>
               <div className="flex-1">
                 <div className="mb-1 flex items-center justify-between">
                   <span className="font-semibold">{message}</span>
@@ -185,7 +185,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
                 <progress className={'progress w-full'} value={progress} max="100" />
               </div>
             </div>
-            <p className="text-sm opacity-75 ml-11" />
+            <p className="text-sm opacity-75 ml-11"></p>
 
             {/* Stage-specific information */}
             {stage === 'analyzing' && (

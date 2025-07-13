@@ -16,7 +16,14 @@
       "Bash(echo:*)",
       "Bash(mkdir:*)",
       "Bash(npx biome check:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(sed:*)",
+      "Bash(git checkout:*)",
+      "Bash(cp:*)",
+      "Bash(rm:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }

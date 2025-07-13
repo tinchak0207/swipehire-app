@@ -336,7 +336,7 @@ const ResumeCreatePage: NextPage = () => {
         <div className="animate-fade-in text-center">
           <div className="relative">
             <div className="mx-auto mb-8 h-20 w-20 animate-spin rounded-full border-4 border-white/20 border-t-white" />
-            <SparklesIcon className="absolute top-1/2 left-1/2 h-8 w-8 transform -translate-x-1/2 -translate-y-1/2 text-white" />
+            <SparklesIcon className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-8 w-8 transform text-white" />
           </div>
           <h2 className="mb-2 font-bold text-2xl text-white">Loading Templates</h2>
           <p className="text-white/70">Preparing your resume creation experience...</p>
@@ -349,9 +349,9 @@ const ResumeCreatePage: NextPage = () => {
     <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/3 rounded-full blur-3xl animate-pulse delay-500" />
+        <div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-white/5 blur-3xl" />
+        <div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-white/5 blur-3xl delay-1000" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-96 w-96 transform animate-pulse rounded-full bg-white/3 blur-3xl delay-500" />
       </div>
 
       <div className="relative z-10 min-h-screen">
@@ -368,7 +368,7 @@ const ResumeCreatePage: NextPage = () => {
                   <span className="font-medium">Back</span>
                 </Link>
                 <div className="h-6 w-px bg-white/20" />
-                <h1 className="text-2xl font-bold text-white">Create Your Resume</h1>
+                <h1 className="font-bold text-2xl text-white">Create Your Resume</h1>
               </div>
 
               {/* Progress Indicator */}
@@ -385,7 +385,7 @@ const ResumeCreatePage: NextPage = () => {
                       currentStep === 'template' ? 'bg-white' : 'bg-white/40'
                     }`}
                   />
-                  <span className="text-sm font-medium">Template</span>
+                  <span className="font-medium text-sm">Template</span>
                 </div>
                 <div
                   className={`flex items-center space-x-2 rounded-full px-3 py-1 transition-all duration-300 ${
@@ -399,7 +399,7 @@ const ResumeCreatePage: NextPage = () => {
                       currentStep === 'details' ? 'bg-white' : 'bg-white/40'
                     }`}
                   />
-                  <span className="text-sm font-medium">Details</span>
+                  <span className="font-medium text-sm">Details</span>
                 </div>
               </div>
             </div>
@@ -515,7 +515,7 @@ const ResumeCreatePage: NextPage = () => {
                     </div>
 
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-r from-white/5 to-white/10 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   </div>
                 ))}
               </div>
@@ -637,6 +637,7 @@ const ResumeCreatePage: NextPage = () => {
                   >
                     {isAnalyzing ? (
                       <>
+                        <span className="loading loading-spinner loading-sm mr-2" />
                         <span className="loading loading-spinner loading-sm mr-2" />
                         Creating Your Resume...
                       </>

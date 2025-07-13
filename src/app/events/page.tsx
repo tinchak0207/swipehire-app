@@ -2,7 +2,6 @@
 
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useInView } from 'react-intersection-observer';
 import { TikTokEventScroller } from '@/components/events/TikTokEventScroller';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useInfiniteEvents } from '@/hooks/useEvents';
@@ -89,9 +88,9 @@ const EventsPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100">
-        <div className="text-center space-y-4">
+        <div className="space-y-4 text-center">
           <div className="animate-spin text-6xl">🎪</div>
-          <h2 className="text-xl font-semibold text-gray-800">Loading amazing events...</h2>
+          <h2 className="font-semibold text-gray-800 text-xl">Loading amazing events...</h2>
           <p className="text-gray-600">Get ready for the show!</p>
         </div>
       </div>
@@ -102,15 +101,15 @@ const EventsPage: React.FC = () => {
   if (error) {
     return (
       <div className="flex h-screen items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100">
-        <div className="text-center space-y-4">
+        <div className="space-y-4 text-center">
           <div className="text-6xl">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800">Oops! Something went wrong</h2>
+          <h2 className="font-semibold text-gray-800 text-xl">Oops! Something went wrong</h2>
           <p className="text-gray-600">
             {error instanceof Error ? error.message : 'Failed to load events'}
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-800 transition-colors"
+            className="rounded-lg bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-800"
           >
             Try Again
           </button>

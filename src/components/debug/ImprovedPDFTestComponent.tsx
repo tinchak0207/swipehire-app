@@ -303,11 +303,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
                   <span className="mr-3 text-xl">{getStatusIcon(step.status)}</span>
                   <h4 className={`font-medium ${getStatusColor(step.status)}`}>{step.name}</h4>
                   {step.status === 'running' && (
-<<<<<<< HEAD
-                    <div className="ml-3 h-4 w-4 animate-spin rounded-full border-blue-600 border-b-2" />
-=======
-                    <div className="ml-3 animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
->>>>>>> b5841cab41f8e93526841d798513452ab338b820
+                    <div className="ml-3 h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
                   )}
                 </div>
                 <p className={`text-sm ${getStatusColor(step.status)} ml-8`}>{step.message}</p>
