@@ -1,5 +1,6 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import {
   FiChevronDown,
   FiChevronUp,
@@ -8,7 +9,7 @@ import {
   FiShare2,
   FiTwitter,
 } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface SocialMediaIntegrationNodeData {
   platform: 'linkedin' | 'twitter' | 'facebook';
@@ -110,7 +111,7 @@ const SocialMediaIntegrationNode: React.FC<NodeProps<SocialMediaIntegrationNodeD
                 placeholder="e.g., We are hiring a new {{job.title}}! Check out the details here: {{job.url}}"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="alert alert-info text-xs mt-2">
@@ -125,7 +126,7 @@ const SocialMediaIntegrationNode: React.FC<NodeProps<SocialMediaIntegrationNodeD
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 The output will contain the URL of the post or a confirmation of the message sent.

@@ -12,12 +12,13 @@ import {
   Target,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useToast } from '@/hooks/use-toast';
 import { useCreatePortfolio } from '@/hooks/usePortfolio';
-import { PortfolioDraft } from '@/lib/types/portfolio';
+import type { PortfolioDraft } from '@/lib/types/portfolio';
 import BasicInfoStep from './wizard-steps/BasicInfoStep';
 import ProjectsStep from './wizard-steps/ProjectsStep';
 import ReviewStep from './wizard-steps/ReviewStep';

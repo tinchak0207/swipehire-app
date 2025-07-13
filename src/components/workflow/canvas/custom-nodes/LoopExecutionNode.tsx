@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiRepeat } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface LoopExecutionNodeData {
   loopOver: string;
@@ -64,7 +65,7 @@ const LoopExecutionNode: React.FC<NodeProps<LoopExecutionNodeData>> = ({ data })
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 The 'Loop Body' output will run for each item. The current item is available as

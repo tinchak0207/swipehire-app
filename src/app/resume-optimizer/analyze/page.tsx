@@ -133,7 +133,7 @@ const ResumeAnalyzePage: NextPage = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <span className="loading loading-spinner loading-lg text-primary mb-4"></span>
+              <span className="loading loading-spinner loading-lg text-primary mb-4" />
               <p className="text-lg text-gray-600">Loading analysis data...</p>
             </div>
           </div>
@@ -243,7 +243,7 @@ const ResumeAnalyzePage: NextPage = () => {
               <div className="card bg-blue-50 border border-blue-200">
                 <div className="card-body">
                   <div className="flex items-start">
-                    <div className="loading loading-spinner loading-sm text-blue-600 mr-3 mt-1"></div>
+                    <div className="loading loading-spinner loading-sm text-blue-600 mr-3 mt-1" />
                     <div>
                       <h3 className="font-medium text-blue-800">AI Analysis in Progress</h3>
                       <p className="text-blue-700 text-sm mt-1">

@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCpu, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface CalculationStep {
   outputVariable: string;
@@ -120,7 +121,7 @@ const DataCalculationNode: React.FC<NodeProps<DataCalculationNodeData>> = ({ dat
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The results of these calculations will be added to the data payload.</span>
             </div>

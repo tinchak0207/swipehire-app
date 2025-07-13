@@ -1,8 +1,8 @@
 'use client';
 
 import { GridIcon, ListIcon, SlidersIcon } from 'lucide-react';
-import React from 'react';
-import { PortfolioLayout } from '@/lib/types/portfolio';
+import type React from 'react';
+import type { PortfolioLayout } from '@/lib/types/portfolio';
 
 interface LayoutSelectorProps {
   selectedLayout: PortfolioLayout;
@@ -30,10 +30,10 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       icon: <GridIcon className="w-5 h-5" />,
       preview: (
         <div className="grid grid-cols-2 gap-1 w-12 h-8">
-          <div className="bg-primary/30 rounded-sm"></div>
-          <div className="bg-primary/30 rounded-sm"></div>
-          <div className="bg-primary/30 rounded-sm"></div>
-          <div className="bg-primary/30 rounded-sm"></div>
+          <div className="bg-primary/30 rounded-sm" />
+          <div className="bg-primary/30 rounded-sm" />
+          <div className="bg-primary/30 rounded-sm" />
+          <div className="bg-primary/30 rounded-sm" />
         </div>
       ),
     },
@@ -44,10 +44,10 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       icon: <ListIcon className="w-5 h-5" />,
       preview: (
         <div className="space-y-1 w-12 h-8">
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
-          <div className="bg-primary/30 rounded-sm h-1.5"></div>
+          <div className="bg-primary/30 rounded-sm h-1.5" />
+          <div className="bg-primary/30 rounded-sm h-1.5" />
+          <div className="bg-primary/30 rounded-sm h-1.5" />
+          <div className="bg-primary/30 rounded-sm h-1.5" />
         </div>
       ),
     },
@@ -58,9 +58,9 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       icon: <SlidersIcon className="w-5 h-5" />,
       preview: (
         <div className="flex gap-1 w-12 h-8 overflow-hidden">
-          <div className="bg-primary/50 rounded-sm flex-shrink-0 w-6"></div>
-          <div className="bg-primary/30 rounded-sm flex-shrink-0 w-6"></div>
-          <div className="bg-primary/20 rounded-sm flex-shrink-0 w-6"></div>
+          <div className="bg-primary/50 rounded-sm flex-shrink-0 w-6" />
+          <div className="bg-primary/30 rounded-sm flex-shrink-0 w-6" />
+          <div className="bg-primary/20 rounded-sm flex-shrink-0 w-6" />
         </div>
       ),
     },

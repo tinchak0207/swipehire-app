@@ -1,4 +1,4 @@
-import { IWorkflow } from '../contracts/IWorkflow';
+import type { IWorkflow } from '../contracts/IWorkflow';
 
 export class CollaborationControlsService {
   public acquireLock(workflow: IWorkflow, userId: string): boolean {

@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { CheckCircle, ExternalLink, Rocket } from 'lucide-react';
 import Link from 'next/link';
-import React from 'react';
+import type React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface SuccessStepProps {

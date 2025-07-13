@@ -1,14 +1,14 @@
 'use client';
 
-import React from 'react';
+import type React from 'react';
 import ReactFlow, {
   Background,
   Controls,
-  Edge,
-  Node,
-  OnConnect,
-  OnEdgesChange,
-  OnNodesChange,
+  type Edge,
+  type Node,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';

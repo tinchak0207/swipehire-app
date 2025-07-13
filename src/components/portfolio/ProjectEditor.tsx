@@ -3,16 +3,17 @@
 import {
   ChevronDownIcon,
   ChevronUpIcon,
-  ExternalLinkIcon,
+  ExternalLink as ExternalLinkIcon,
   EyeIcon,
   GithubIcon,
   GripVerticalIcon,
   PlusIcon,
   TrashIcon,
 } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import type React from 'react';
+import { useCallback, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { ExternalLink, Media, Project } from '@/lib/types/portfolio';
+import type { ExternalLink, Media, Project } from '@/lib/types/portfolio';
 import MediaUploader from './MediaUploader';
 import TagSelector from './TagSelector';
 

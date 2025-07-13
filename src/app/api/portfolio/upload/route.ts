@@ -7,10 +7,10 @@
 
 import { existsSync } from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import { z } from 'zod';
-import { Media } from '@/lib/types/portfolio';
+import type { Media } from '@/lib/types/portfolio';
 
 // File validation schema
 const fileValidationSchema = z.object({

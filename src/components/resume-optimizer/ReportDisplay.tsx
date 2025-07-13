@@ -134,11 +134,11 @@ const ReportSkeleton: React.FC = () => (
           key={i}
           className="bg-white border border-stone-200 rounded-2xl p-8 h-40 relative overflow-hidden"
         >
-          <div className="absolute inset-0 bg-stone-200 animate-pulse"></div>
+          <div className="absolute inset-0 bg-stone-200 animate-pulse" />
           <div className="space-y-4">
-            <div className="h-4 bg-stone-200 rounded-full w-3/4"></div>
-            <div className="h-8 bg-stone-200 rounded-full w-1/2"></div>
-            <div className="h-3 bg-stone-200 rounded-full w-2/3"></div>
+            <div className="h-4 bg-stone-200 rounded-full w-3/4" />
+            <div className="h-8 bg-stone-200 rounded-full w-1/2" />
+            <div className="h-3 bg-stone-200 rounded-full w-2/3" />
           </div>
         </div>
       ))}
@@ -150,11 +150,11 @@ const ReportSkeleton: React.FC = () => (
         key={i}
         className="bg-white border border-stone-200 rounded-2xl p-6 h-32 relative overflow-hidden"
       >
-        <div className="absolute inset-0 bg-stone-200 animate-pulse"></div>
+        <div className="absolute inset-0 bg-stone-200 animate-pulse" />
         <div className="space-y-3">
-          <div className="h-5 bg-stone-200 rounded-full w-1/3"></div>
-          <div className="h-4 bg-stone-200 rounded-full w-full"></div>
-          <div className="h-4 bg-stone-200 rounded-full w-4/5"></div>
+          <div className="h-5 bg-stone-200 rounded-full w-1/3" />
+          <div className="h-4 bg-stone-200 rounded-full w-full" />
+          <div className="h-4 bg-stone-200 rounded-full w-4/5" />
         </div>
       </div>
     ))}
@@ -167,7 +167,7 @@ const ReportSkeleton: React.FC = () => (
 const EmptyReportState: React.FC = () => (
   <div className="text-center py-24">
     <div className="relative mb-8">
-      <div className="absolute inset-0 bg-stone-100 rounded-full opacity-20"></div>
+      <div className="absolute inset-0 bg-stone-100 rounded-full opacity-20" />
       <div className="relative p-6 bg-white border border-stone-200 rounded-3xl inline-block">
         <DocumentTextIcon className="w-16 h-16 text-stone-400 mx-auto" />
       </div>
@@ -218,9 +218,9 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
       <div className={`space-y-8 ${className}`}>
         <div className="text-center mb-12">
           <div className="relative mb-8">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 rounded-full blur-3xl opacity-40 scale-150 animate-pulse"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-blue-100 via-indigo-100 to-purple-100 rounded-full blur-3xl opacity-40 scale-150 animate-pulse" />
             <div className="relative p-8 bg-white border border-stone-200 rounded-3xl inline-block">
-              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
+              <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto" />
             </div>
           </div>
           <h2 className="text-3xl font-bold text-stone-900 mb-4 tracking-tight">
@@ -230,15 +230,15 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
             Please wait while we generate your comprehensive optimization report...
           </p>
           <div className="mt-6 flex items-center justify-center space-x-2">
-            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"></div>
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
             <div
               className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce"
               style={{ animationDelay: '0.1s' }}
-            ></div>
+            />
             <div
               className="w-2 h-2 bg-purple-400 rounded-full animate-bounce"
               style={{ animationDelay: '0.2s' }}
-            ></div>
+            />
           </div>
         </div>
         <ReportSkeleton />
@@ -316,7 +316,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
       {/* Report Header */}
       <div className="text-center mb-12">
         <div className="relative mb-8">
-          <div className="absolute inset-0 bg-gradient-to-r from-amber-100 via-yellow-100 to-orange-100 rounded-full blur-3xl opacity-30 scale-150"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-100 via-yellow-100 to-orange-100 rounded-full blur-3xl opacity-30 scale-150" />
           <div className="relative p-6 bg-white border border-stone-200 rounded-3xl inline-block">
             <TrophyIcon className="w-12 h-12 text-amber-600 mx-auto" />
           </div>
@@ -619,7 +619,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                 >
                   {isReanalyzing ? (
                     <>
-                      <span className="loading loading-spinner loading-xs mr-2"></span>
+                      <span className="loading loading-spinner loading-xs mr-2" />
                       Analyzing...
                     </>
                   ) : (

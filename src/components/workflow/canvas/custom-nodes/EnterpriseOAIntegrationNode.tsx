@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiBriefcase, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface EnterpriseOAIntegrationNodeData {
   system: 'workday' | 'sap-successfactors' | 'oracle-hcm';
@@ -82,7 +83,7 @@ const EnterpriseOAIntegrationNode: React.FC<NodeProps<EnterpriseOAIntegrationNod
                 placeholder='{ "employeeId": "{{candidate.id}}", "firstName": "{{candidate.firstName}}" }'
                 value={payload}
                 onChange={(e) => setPayload(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="alert alert-neutral text-xs mt-2">
@@ -97,7 +98,7 @@ const EnterpriseOAIntegrationNode: React.FC<NodeProps<EnterpriseOAIntegrationNod
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The response from the enterprise system will be the output of this node.</span>
             </div>

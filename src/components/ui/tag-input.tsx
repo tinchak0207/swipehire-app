@@ -1,6 +1,7 @@
 'use client';
 
-import React, { KeyboardEvent, useState } from 'react';
+import type React from 'react';
+import { type KeyboardEvent, useState } from 'react';
 
 interface TagInputProps {
   tags: string[];

@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
-import { NodeDefinition } from '@/lib/workflow-node-definitions';
+import { Handle, type NodeProps, Position } from 'reactflow';
+import type { NodeDefinition } from '@/lib/workflow-node-definitions';
 
 const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string]: any }>) => {
   const { definition, ...config } = data;
@@ -71,7 +71,7 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
   };
 
   return (
-    <div className={`card w-96 bg-base-100 shadow-xl border-2 border-gray-300`}>
+    <div className={'card w-96 bg-base-100 shadow-xl border-2 border-gray-300'}>
       {definition.inputs?.map((input, index) => (
         <Handle
           key={`${id}-target-${input.name}`}
@@ -89,9 +89,9 @@ const Node = ({ data, id }: NodeProps<{ definition: NodeDefinition; [key: string
         >
           <div className="flex items-center gap-3">
             {definition.icon && (
-              <div className={`avatar placeholder`}>
-                <div className={`bg-neutral-focus text-neutral-content rounded-full w-10 h-10`}>
-                  <i className={`${definition.icon} text-xl`}></i>
+              <div className={'avatar placeholder'}>
+                <div className={'bg-neutral-focus text-neutral-content rounded-full w-10 h-10'}>
+                  <i className={`${definition.icon} text-xl`} />
                 </div>
               </div>
             )}

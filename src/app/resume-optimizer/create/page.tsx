@@ -335,7 +335,7 @@ const ResumeCreatePage: NextPage = () => {
       <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 flex items-center justify-center">
         <div className="text-center animate-fade-in">
           <div className="relative">
-            <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-8"></div>
+            <div className="w-20 h-20 border-4 border-white/20 border-t-white rounded-full animate-spin mx-auto mb-8" />
             <SparklesIcon className="w-8 h-8 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Loading Templates</h2>
@@ -349,9 +349,9 @@ const ResumeCreatePage: NextPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 relative overflow-hidden">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/3 rounded-full blur-3xl animate-pulse delay-500"></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-white/5 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-white/3 rounded-full blur-3xl animate-pulse delay-500" />
       </div>
 
       <div className="relative z-10 min-h-screen">
@@ -367,7 +367,7 @@ const ResumeCreatePage: NextPage = () => {
                   <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
                   <span className="font-medium">Back</span>
                 </Link>
-                <div className="h-6 w-px bg-white/20"></div>
+                <div className="h-6 w-px bg-white/20" />
                 <h1 className="text-2xl font-bold text-white">Create Your Resume</h1>
               </div>
 
@@ -384,7 +384,7 @@ const ResumeCreatePage: NextPage = () => {
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       currentStep === 'template' ? 'bg-white' : 'bg-white/40'
                     }`}
-                  ></div>
+                  />
                   <span className="text-sm font-medium">Template</span>
                 </div>
                 <div
@@ -398,7 +398,7 @@ const ResumeCreatePage: NextPage = () => {
                     className={`w-2 h-2 rounded-full transition-all duration-300 ${
                       currentStep === 'details' ? 'bg-white' : 'bg-white/40'
                     }`}
-                  ></div>
+                  />
                   <span className="text-sm font-medium">Details</span>
                 </div>
               </div>
@@ -515,7 +515,7 @@ const ResumeCreatePage: NextPage = () => {
                     </div>
 
                     {/* Hover Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
                   </div>
                 ))}
               </div>
@@ -637,7 +637,7 @@ const ResumeCreatePage: NextPage = () => {
                   >
                     {isAnalyzing ? (
                       <>
-                        <span className="loading loading-spinner loading-sm mr-2"></span>
+                        <span className="loading loading-spinner loading-sm mr-2" />
                         Creating Your Resume...
                       </>
                     ) : (

@@ -517,7 +517,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
                 </div>
                 <span className="font-semibold">Back to Optimizer</span>
               </Link>
-              <div className="h-8 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent"></div>
+              <div className="h-8 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
               <div className="flex items-center space-x-3">
                 <div className="p-2 rounded-xl bg-stone-100 border border-stone-200">
                   <DocumentDuplicateIcon className="w-6 h-6 text-stone-600" />
@@ -614,7 +614,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-6 text-sm text-stone-600">
                 <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-stone-400"></div>
+                  <div className="w-2 h-2 rounded-full bg-stone-400" />
                   <span>
                     Analysis completed on{' '}
                     {new Date(state.analysisResult.createdAt).toLocaleDateString()}
@@ -622,7 +622,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
                 </div>
                 {state.analysisResult.metadata?.processingTime && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-1 h-1 rounded-full bg-stone-400"></div>
+                    <div className="w-1 h-1 rounded-full bg-stone-400" />
                     <span>Processed in {state.analysisResult.metadata.processingTime}ms</span>
                   </div>
                 )}

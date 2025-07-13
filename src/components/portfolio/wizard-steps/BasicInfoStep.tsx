@@ -2,8 +2,9 @@
 
 import { motion } from 'framer-motion';
 import { FileText, Sparkles, Tag, User } from 'lucide-react';
-import React, { useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import type React from 'react';
+import { useState } from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 import TagSelector from '../TagSelector';
 
 interface PortfolioBasicInfo {

@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiFileText } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface AnalyzeResumeNodeData {
   analysisFields: string[];
@@ -90,7 +91,7 @@ const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data })
               <textarea
                 className="textarea textarea-bordered"
                 placeholder="e.g., 'Extract the candidate\'s years of experience with Python.'"
-              ></textarea>
+              />
             </div>
 
             <div className="alert alert-info text-xs mt-2">
@@ -105,7 +106,7 @@ const AnalyzeResumeNode: React.FC<NodeProps<AnalyzeResumeNodeData>> = ({ data })
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The output will be a JSON object with the extracted fields.</span>
             </div>

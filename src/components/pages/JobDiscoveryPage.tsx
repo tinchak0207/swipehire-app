@@ -148,8 +148,12 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
     }
 
     if (jobsToSet.length === 0) {
+      console.log('[JobDiscoveryPage] No jobs found, setting fallback card to true');
       setShowFallbackCard(true);
     } else {
+      console.log(
+        `[JobDiscoveryPage] Found ${jobsToSet.length} jobs, setting fallback card to false`
+      );
       setShowFallbackCard(false);
     }
 
@@ -169,6 +173,13 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
   }, [masterJobFeed, passedCompanyProfileIdsFromContext, isInitialLoading]);
 
   const filteredJobFeed = useMemo(() => {
+    console.log('[JobDiscoveryPage] Calculating filteredJobFeed:', {
+      isInitialLoading,
+      masterJobFeedLength: masterJobFeed.length,
+      passedCompanyProfileIdsFromContext: passedCompanyProfileIdsFromContext
+        ? Array.from(passedCompanyProfileIdsFromContext)
+        : null,
+    });
     if (isInitialLoading || !passedCompanyProfileIdsFromContext) return [];
     let companies = [...masterJobFeed];
 
@@ -218,7 +229,14 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
         );
       });
     }
-    return companies.filter((c) => !passedCompanyProfileIdsFromContext.has(c.id));
+    const finalFiltered = companies.filter((c) => !passedCompanyProfileIdsFromContext.has(c.id));
+    console.log('[JobDiscoveryPage] Filtering results:', {
+      totalCompanies: companies.length,
+      passedCompanyIds: Array.from(passedCompanyProfileIdsFromContext || []),
+      finalFilteredCount: finalFiltered.length,
+      companyIds: companies.map((c) => c.id),
+    });
+    return finalFiltered;
   }, [
     masterJobFeed,
     activeFilters,
@@ -228,8 +246,15 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
   ]);
 
   const loadMoreCompaniesFromLocal = useCallback(() => {
+    console.log('[JobDiscoveryPage] loadMoreCompaniesFromLocal called:', {
+      isLoading,
+      hasMore,
+      currentIndex,
+      filteredJobFeedLength: filteredJobFeed.length,
+    });
     if (isLoading || !hasMore || currentIndex >= filteredJobFeed.length) {
       if (currentIndex >= filteredJobFeed.length) setHasMore(false);
+      console.log('[JobDiscoveryPage] Early return from loadMoreCompaniesFromLocal');
       return;
     }
     setIsLoading(true);
@@ -251,18 +276,23 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
     if (isInitialLoading) return; // Don't run if initial data isn't even loaded
     setDisplayedCompanies([]); // Reset displayed when filters or search term change
     setCurrentIndex(0); // Reset index
+    setIsLoading(false); // Reset loading state
     const hasFilteredItems = filteredJobFeed.length > 0;
     setHasMore(hasFilteredItems); // Update hasMore based on the new filtered list
+
     if (hasFilteredItems) {
-      // Load the first batch from the new filtered list
-      loadMoreCompaniesFromLocal();
+      // Load the first batch from the new filtered list with a small delay
+      setTimeout(() => {
+        // Use current values to avoid stale closure
+        setIsLoading(true);
+        const newBatch = filteredJobFeed.slice(0, ITEMS_PER_BATCH);
+        setDisplayedCompanies(newBatch);
+        setCurrentIndex(ITEMS_PER_BATCH);
+        setHasMore(ITEMS_PER_BATCH < filteredJobFeed.length);
+        setIsLoading(false);
+      }, 50);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    filteredJobFeed,
-    isInitialLoading, // Load the first batch from the new filtered list
-    loadMoreCompaniesFromLocal,
-  ]); // Depend on filteredJobFeed and isInitialLoading
+  }, [filteredJobFeed, isInitialLoading]);
 
   useEffect(() => {
     if (observer.current) observer.current.disconnect();
@@ -336,8 +366,8 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
       setLikedCompanyProfileIds((prev) => new Set(prev).add(recruiterOwnerId)); // Track like by recruiter's User ID
       try {
         const response = await recordLike({
-          likingUserId: mongoDbUserId,
-          likedProfileId: recruiterOwnerId,
+          likerId: mongoDbUserId,
+          likedId: recruiterOwnerId,
           likedProfileType: 'company', // Liked profile is the recruiter representing the company/job
           likingUserRole: 'jobseeker',
           likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId,
@@ -500,42 +530,43 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
               {trashBinCompanies.length === 0 ? (
                 <p className="py-4 text-center text-muted-foreground">Your trash bin is empty.</p>
               ) : (
-                trashBinCompanies.map((company) => (
-                  <Card key={company.id} className="flex items-center space-x-3 p-3 shadow-sm">
-                    {company.logoUrl && (
-                      <Image
-                        key={`image-${company.id}`}
-                        src={company.logoUrl}
-                        alt={company.name}
-                        width={48}
-                        height={48}
-                        className="rounded-md object-contain"
-                        data-ai-hint={company.dataAiHint || 'company logo'}
-                      />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-foreground text-sm">
-                        {company.name}
-                      </p>
-                      <p className="truncate text-muted-foreground text-xs">
-                        {company.jobOpenings &&
-                        company.jobOpenings.length > 0 &&
-                        company.jobOpenings[0]
-                          ? company.jobOpenings[0].title
-                          : company.industry}
-                      </p>
-                    </div>
-                    <Button
-                      key={`button-${company.id}`}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRetrieveCompany(company.id)}
-                      className="border-primary/50 text-primary hover:bg-primary/10"
-                    >
-                      <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Retrieve
-                    </Button>
-                  </Card>
-                ))
+                trashBinCompanies.map((company, index) => {
+                  const safeKey = company?.id || `trash-company-${index}`;
+                  return (
+                    <Card key={safeKey} className="flex items-center space-x-3 p-3 shadow-sm">
+                      {company.logoUrl && (
+                        <Image
+                          src={company.logoUrl}
+                          alt={company.name}
+                          width={48}
+                          height={48}
+                          className="rounded-md object-contain"
+                          data-ai-hint={company.dataAiHint || 'company logo'}
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-semibold text-foreground text-sm">
+                          {company.name}
+                        </p>
+                        <p className="truncate text-muted-foreground text-xs">
+                          {company.jobOpenings &&
+                          company.jobOpenings.length > 0 &&
+                          company.jobOpenings[0]
+                            ? company.jobOpenings[0].title
+                            : company.industry}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleRetrieveCompany(company.id)}
+                        className="border-primary/50 text-primary hover:bg-primary/10"
+                      >
+                        <RotateCcw className="mr-1.5 h-3.5 w-3.5" /> Retrieve
+                      </Button>
+                    </Card>
+                  );
+                })
               )}
             </div>
           </ScrollArea>
@@ -551,13 +582,15 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
         className="no-scrollbar w-full flex-grow snap-y snap-mandatory overflow-y-auto scroll-smooth pb-40"
         style={{ height: `calc(100vh - ${fixedElementsHeight})` }}
       >
-        {showFallbackCard ? (
+        {showFallbackCard && (
           <div
-            key={fallbackCompany.id}
+            key="fallback-card"
             className="flex min-h-full snap-start snap-always flex-col items-center justify-center bg-background p-1 sm:p-2"
           >
             <SwipeCard
-              className={`flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl`}
+              className={
+                'flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl'
+              }
             >
               <CompanyCardContent
                 company={fallbackCompany}
@@ -567,30 +600,34 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
               />
             </SwipeCard>
           </div>
-        ) : (
-          displayedCompanies.map((company) => (
-            <div
-              key={company.id}
-              className="flex min-h-full snap-start snap-always flex-col items-center justify-center bg-background p-1 sm:p-2"
-            >
-              <SwipeCard
-                key={`swipe-${company.id}`}
-                className={`flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'shadow-green-500/30 ring-2 ring-green-500' : 'shadow-lg hover:shadow-xl'}`}
-              >
-                {/* Pass the company object which contains jobOpenings to CompanyCardContent */}
-                <CompanyCardContent
-                  key={`content-${company.id}`}
-                  company={company}
-                  onSwipeAction={handleAction}
-                  isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)}
-                  isGuestMode={mongoDbUserId === null}
-                />
-              </SwipeCard>
-            </div>
-          ))
         )}
+        {!showFallbackCard &&
+          displayedCompanies.map((company, index) => {
+            const safeKey = company?.id || `company-${index}`;
+            return (
+              <div
+                key={safeKey}
+                className="flex min-h-full snap-start snap-always flex-col items-center justify-center bg-background p-1 sm:p-2"
+              >
+                <SwipeCard
+                  className={`flex aspect-[10/13] w-full max-w-md flex-col overflow-hidden rounded-2xl bg-card shadow-xl sm:max-w-lg md:max-w-xl ${likedCompanyProfileIds.has(company.recruiterUserId!) ? 'shadow-green-500/30 ring-2 ring-green-500' : 'shadow-lg hover:shadow-xl'}`}
+                >
+                  {/* Pass the company object which contains jobOpenings to CompanyCardContent */}
+                  <CompanyCardContent
+                    company={company}
+                    onSwipeAction={handleAction}
+                    isLiked={likedCompanyProfileIds.has(company.recruiterUserId!)}
+                    isGuestMode={mongoDbUserId === null}
+                  />
+                </SwipeCard>
+              </div>
+            );
+          })}
         {isLoading && !isInitialLoading && (
-          <div className="flex h-full snap-start snap-always items-center justify-center p-4">
+          <div
+            key="loading-spinner"
+            className="flex h-full snap-start snap-always items-center justify-center p-4"
+          >
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
           </div>
         )}
@@ -600,7 +637,7 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
           !isInitialLoading &&
           filteredJobFeed.length > 0 &&
           displayedCompanies.length < filteredJobFeed.length && (
-            <div ref={loadMoreTriggerRef} className="h-1 opacity-0">
+            <div key="load-more-trigger" ref={loadMoreTriggerRef} className="h-1 opacity-0">
               Load More
             </div>
           )}
@@ -608,8 +645,12 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
         {!showFallbackCard &&
           !isLoading &&
           !isInitialLoading &&
-          displayedCompanies.length === 0 && (
-            <div className="flex h-full snap-start snap-always flex-col items-center justify-center bg-background p-6 text-center">
+          displayedCompanies.length === 0 &&
+          masterJobFeed.length > 0 && (
+            <div
+              key="no-jobs-message"
+              className="flex h-full snap-start snap-always flex-col items-center justify-center bg-background p-6 text-center"
+            >
               <SearchX className="mb-6 h-20 w-20 text-muted-foreground" />
               <h2 className="mb-3 font-semibold text-2xl text-foreground">
                 {searchTerm || numActiveFilters > 0 ? 'No Jobs Found' : 'No More Jobs'}

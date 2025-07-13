@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
+import type { IWorkflow, IWorkflowTemplate } from '@/contracts/IWorkflow';
 
 // Mock databases
 const templates: IWorkflowTemplate[] = [];
@@ -21,7 +21,6 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     };
     workflows.push(newWorkflow);
     return NextResponse.json(newWorkflow);
-  } else {
-    return new Response('Template not found', { status: 404 });
   }
+  return new Response('Template not found', { status: 404 });
 }

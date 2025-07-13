@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCloud, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface KeyValuePair {
   key: string;
@@ -140,7 +141,7 @@ const ExternalAPINode: React.FC<NodeProps<ExternalAPINodeData>> = ({ data }) => 
                 <textarea
                   className="textarea textarea-bordered h-24 font-mono text-xs"
                   placeholder='{ "key": "value", "itemId": "{{input.id}}" }'
-                ></textarea>
+                />
               </div>
             )}
 

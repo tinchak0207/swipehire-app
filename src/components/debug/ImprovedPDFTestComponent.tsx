@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import type { ParsedFileResult } from '@/services/fileParsingService';
 import { parseFile, validateFile } from '@/services/fileParsingService';
 
@@ -302,7 +303,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
                   <span className="text-xl mr-3">{getStatusIcon(step.status)}</span>
                   <h4 className={`font-medium ${getStatusColor(step.status)}`}>{step.name}</h4>
                   {step.status === 'running' && (
-                    <div className="ml-3 animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    <div className="ml-3 animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600" />
                   )}
                 </div>
                 <p className={`text-sm ${getStatusColor(step.status)} ml-8`}>{step.message}</p>

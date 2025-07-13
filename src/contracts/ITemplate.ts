@@ -1,4 +1,4 @@
-import { IWorkflow } from './IWorkflow';
+import type { IWorkflow } from './IWorkflow';
 
 export interface ITemplate extends IWorkflow {
   // Templates are essentially workflows with additional metadata

@@ -10,6 +10,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCallback, useRef, useState } from 'react';
 import type {
   FileValidationResult,
@@ -17,6 +18,7 @@ import type {
   ResumeUploadState,
   TargetJobInfo,
 } from '@/lib/resume-types';
+import { type AnalysisLoadingState, analyzeResume } from '@/services/resumeOptimizerService';
 
 interface ExtendedUploadState extends ResumeUploadState {
   progress: number;
@@ -40,6 +42,7 @@ interface ExtendedUploadState extends ResumeUploadState {
  */
 const ResumeUploadPage: NextPage = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
 
   const [uploadState, setUploadState] = useState<ExtendedUploadState>({
     file: null,
@@ -59,6 +62,14 @@ const ResumeUploadPage: NextPage = () => {
   });
 
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // Analysis state
+  const [analysisState, setAnalysisState] = useState<AnalysisLoadingState>({
+    isLoading: false,
+    progress: 0,
+    stage: 'parsing',
+    message: '',
+  });
 
   const validateFile = useCallback((file: File): FileValidationResult => {
     const allowedTypes = [
@@ -263,16 +274,46 @@ const ResumeUploadPage: NextPage = () => {
     }
   };
 
-  const handleAnalyze = (): void => {
+  const handleAnalyze = async (): Promise<void> => {
+    console.log('handleAnalyze called with:', {
+      extractedText: uploadState.extractedText ? 'present' : 'missing',
+      targetJobTitle: targetJob.title,
+      targetJobTitleTrimmed: targetJob.title.trim(),
+      fullTargetJob: targetJob,
+    });
+
     if (!uploadState.extractedText || !targetJob.title.trim()) {
+      console.log('Early return due to validation failure');
       return;
     }
 
-    // TODO: Navigate to analysis page with data
-    console.log('Analyzing resume with:', {
-      text: uploadState.extractedText,
-      targetJob,
-    });
+    try {
+      // Call the analysis service with progress tracking
+      const analysisResult = await analyzeResume(
+        {
+          resumeText: uploadState.extractedText,
+          targetJob: targetJob,
+        },
+        (progress) => {
+          setAnalysisState(progress);
+        }
+      );
+
+      // Store the result in sessionStorage so the analyze page can access it
+      sessionStorage.setItem('resumeAnalysisResult', JSON.stringify(analysisResult));
+      sessionStorage.setItem('targetJobInfo', JSON.stringify(targetJob));
+
+      // Navigate to the analysis results page
+      router.push('/resume-optimizer/analyze');
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setAnalysisState({
+        isLoading: false,
+        progress: 0,
+        stage: 'parsing',
+        message: error instanceof Error ? error.message : 'Analysis failed. Please try again.',
+      });
+    }
   };
 
   const getStageMessage = (): string => {
@@ -523,13 +564,52 @@ const ResumeUploadPage: NextPage = () => {
               {/* Analyze Button */}
               <button
                 onClick={handleAnalyze}
-                disabled={!uploadState.extractedText || !targetJob.title.trim()}
+                disabled={
+                  !uploadState.extractedText || !targetJob.title.trim() || analysisState.isLoading
+                }
                 className="btn btn-success w-full"
                 aria-label="Analyze resume against target job"
               >
-                <span className="mr-2">🎯</span>
-                Analyze Resume
+                {analysisState.isLoading ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm" />
+                    <span>{analysisState.message || 'Analyzing...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="mr-2">🎯</span>
+                    Analyze Resume
+                  </>
+                )}
               </button>
+
+              {/* Analysis Progress */}
+              {analysisState.isLoading && (
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-800">
+                      {analysisState.message || 'Processing...'}
+                    </span>
+                    <span className="text-sm text-blue-600">{analysisState.progress || 0}%</span>
+                  </div>
+                  <div className="w-full bg-blue-200 rounded-full h-2">
+                    <div
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${analysisState.progress || 0}%` }}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Error Display */}
+              {!analysisState.isLoading && analysisState.message && (
+                <div className="mt-4 p-4 bg-red-50 rounded-lg">
+                  <div className="flex">
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-red-800">{analysisState.message}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Quick Tips */}
               <div className="mt-4 p-3 bg-green-50 rounded-lg">

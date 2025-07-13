@@ -2,8 +2,8 @@
 
 import { motion } from 'framer-motion';
 import { CheckCircle, Code, FileText, Image } from 'lucide-react';
-import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import type React from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 

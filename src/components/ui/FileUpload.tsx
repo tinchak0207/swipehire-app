@@ -11,7 +11,8 @@ import {
   InformationCircleIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import React, { useRef } from 'react';
+import type React from 'react';
+import { useRef } from 'react';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import type { ParsedFileResult } from '@/lib/resume-types';
 
@@ -86,7 +87,7 @@ export const FileUpload: React.FC<FileUploadProps> = ({
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+    return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
   };
 
   return (

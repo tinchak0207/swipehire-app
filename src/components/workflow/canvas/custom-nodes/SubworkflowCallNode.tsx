@@ -1,4 +1,5 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiShare2 } from 'react-icons/fi';
 import { Handle, type NodeProps, Position } from 'reactflow';
 
@@ -69,7 +70,7 @@ const SubworkflowCallNode: React.FC<NodeProps<SubworkflowCallNodeData>> = ({ dat
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 The output of this node will be the final data payload from the executed

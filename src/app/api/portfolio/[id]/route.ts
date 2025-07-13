@@ -5,9 +5,9 @@
  * with proper validation, authentication, and error handling.
  */
 
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { Portfolio, Project } from '@/lib/types/portfolio';
+import type { Portfolio, Project } from '@/lib/types/portfolio';
 
 // Validation schema for portfolio updates
 const portfolioUpdateSchema = z.object({
@@ -73,7 +73,7 @@ const portfolioUpdateSchema = z.object({
 
 // Mock database - In production, replace with actual database operations
 // This should be shared with the main route.ts file
-let portfolios: Portfolio[] = [];
+const portfolios: Portfolio[] = [];
 
 /**
  * Authentication middleware - checks for valid user session

@@ -2,10 +2,11 @@
 
 import { CloudUploadIcon, EyeIcon, ImageIcon, MusicIcon, VideoIcon, X } from 'lucide-react';
 import Image from 'next/image';
-import React, { useCallback, useRef, useState } from 'react';
+import type React from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useUploadMedia } from '@/hooks/usePortfolio';
-import { AudioMedia, ImageMedia, Media, VideoMedia } from '@/lib/types/portfolio';
+import type { AudioMedia, ImageMedia, Media, VideoMedia } from '@/lib/types/portfolio';
 
 interface MediaUploaderProps {
   media: Media[];

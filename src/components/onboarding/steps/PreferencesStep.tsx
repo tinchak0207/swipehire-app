@@ -168,7 +168,7 @@ export default function PreferencesStep({
           >
             {isLoading ? (
               <>
-                <span className="loading loading-spinner loading-sm"></span>
+                <span className="loading loading-spinner loading-sm" />
                 Saving...
               </>
             ) : (

@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Sparkles, Star, Trophy, Zap } from 'lucide-react';
-import React from 'react';
+import type React from 'react';
 
 interface WelcomeStepProps {
   onNext: () => void;

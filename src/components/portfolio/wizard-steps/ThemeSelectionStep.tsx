@@ -2,8 +2,9 @@
 
 import { motion } from 'framer-motion';
 import { Check, Eye, Grid3X3, Layers, Layout, List, Palette, Sparkles } from 'lucide-react';
-import React, { useState } from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import type React from 'react';
+import { useState } from 'react';
+import type { UseFormReturn } from 'react-hook-form';
 
 interface ThemeSelectionStepProps {
   form: UseFormReturn<any>;

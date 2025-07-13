@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import {
   useAnalysisErrorHandler,
   useAnalysisLoadingState,
@@ -109,7 +110,7 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
     }
 
     // Exponential backoff delay
-    const delay = Math.pow(2, retryCount) * 1000;
+    const delay = 2 ** retryCount * 1000;
     await new Promise((resolve) => setTimeout(resolve, delay));
 
     setRetryCount((prev) => prev + 1);
@@ -175,16 +176,16 @@ export const AnalysisRequestComponent: React.FC<AnalysisRequestComponentProps> =
         {isLoading && (
           <div className="mb-6">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-2xl"></span>
+              <span className="text-2xl" />
               <div className="flex-1">
                 <div className="flex justify-between items-center mb-1">
                   <span className="font-semibold">{message}</span>
                   <span className="text-sm opacity-75">{progress}%</span>
                 </div>
-                <progress className={`progress w-full`} value={progress} max="100" />
+                <progress className={'progress w-full'} value={progress} max="100" />
               </div>
             </div>
-            <p className="text-sm opacity-75 ml-11"></p>
+            <p className="text-sm opacity-75 ml-11" />
 
             {/* Stage-specific information */}
             {stage === 'analyzing' && (

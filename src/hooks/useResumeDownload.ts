@@ -101,7 +101,7 @@ export function useResumeDownload(options: UseResumeDownloadOptions = {}): UseRe
     async (
       resumeContent: string,
       analysisResult: ResumeAnalysisResponse | null = null,
-      includeAnalysis: boolean = false
+      includeAnalysis = false
     ): Promise<void> => {
       await downloadResume(resumeContent, analysisResult, {
         format: 'pdf',
@@ -116,7 +116,7 @@ export function useResumeDownload(options: UseResumeDownloadOptions = {}): UseRe
     async (
       resumeContent: string,
       analysisResult: ResumeAnalysisResponse | null = null,
-      includeAnalysis: boolean = false
+      includeAnalysis = false
     ): Promise<void> => {
       await downloadResume(resumeContent, analysisResult, {
         format: 'docx',

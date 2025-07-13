@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
-import { Node } from 'reactflow';
+import type { Node } from 'reactflow';
 import WorkflowCanvas from '@/components/workflow/canvas/WorkflowCanvas';
 import ComponentLibrary from '@/components/workflow/panels/ComponentLibrary';
 import PropertiesPanel from '@/components/workflow/panels/PropertiesPanel';

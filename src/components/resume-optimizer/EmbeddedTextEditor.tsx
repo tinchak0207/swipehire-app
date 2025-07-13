@@ -17,9 +17,9 @@ const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => (
     <div className="bg-base-200 rounded-lg p-8 animate-pulse">
-      <div className="h-4 bg-base-300 rounded w-3/4 mb-4"></div>
-      <div className="h-4 bg-base-300 rounded w-1/2 mb-4"></div>
-      <div className="h-4 bg-base-300 rounded w-5/6"></div>
+      <div className="h-4 bg-base-300 rounded w-3/4 mb-4" />
+      <div className="h-4 bg-base-300 rounded w-1/2 mb-4" />
+      <div className="h-4 bg-base-300 rounded w-5/6" />
     </div>
   ),
 });
@@ -317,7 +317,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
                 <div className="flex items-center space-x-2">
                   {isAutoSaving && (
                     <div className="flex items-center space-x-2 text-info">
-                      <div className="loading loading-spinner loading-xs"></div>
+                      <div className="loading loading-spinner loading-xs" />
                       <span className="text-xs">Saving...</span>
                     </div>
                   )}
@@ -406,7 +406,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
           <div className="absolute inset-0 bg-base-100/50 flex items-center justify-center">
             <div className="bg-base-100 rounded-lg p-4 shadow-lg border border-base-300">
               <div className="flex items-center space-x-3">
-                <div className="loading loading-spinner loading-sm text-primary"></div>
+                <div className="loading loading-spinner loading-sm text-primary" />
                 <span className="text-sm font-medium">Saving changes...</span>
               </div>
             </div>

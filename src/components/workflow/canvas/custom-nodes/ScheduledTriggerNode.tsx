@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiClock } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface ScheduledTriggerNodeData {
   cronExpression: string;
@@ -73,7 +74,7 @@ const ScheduledTriggerNode: React.FC<NodeProps<ScheduledTriggerNodeData>> = ({ d
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 Example: `0 9 * * 1-5` means "at 9:00 AM every day from Monday to Friday". The

@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiDatabase, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface TalentPoolManagementNodeData {
   action: 'add' | 'update' | 'search';
@@ -106,7 +107,7 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
                 <textarea
                   className="textarea textarea-bordered h-20"
                   placeholder="e.g., (javascript OR python) AND (react OR vue) AND NOT angular"
-                ></textarea>
+                />
               </div>
             )}
 
@@ -122,7 +123,7 @@ const TalentPoolManagementNode: React.FC<NodeProps<TalentPoolManagementNodeData>
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 For 'Add', output is the candidate record. For 'Search', output is an array of

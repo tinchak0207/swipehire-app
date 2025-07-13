@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCloud, FiDownload, FiUpload } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface CloudStorageIntegrationNodeData {
   provider: 'aws-s3' | 'google-cloud-storage' | 'azure-blob';
@@ -141,7 +142,7 @@ const CloudStorageIntegrationNode: React.FC<NodeProps<CloudStorageIntegrationNod
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 For uploads, the output contains the file URL. For downloads, the file content is

@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiFileText } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface WorkflowLogNodeData {
   message: string;
@@ -80,7 +81,7 @@ const WorkflowLogNode: React.FC<NodeProps<WorkflowLogNodeData>> = ({ data }) => 
                 placeholder="e.g., Candidate {{candidate.name}} passed initial screening."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className={`alert alert-${logLevel} text-xs mt-2`}>
@@ -95,7 +96,7 @@ const WorkflowLogNode: React.FC<NodeProps<WorkflowLogNodeData>> = ({ data }) => 
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The input data is passed through to the next node without modification.</span>
             </div>

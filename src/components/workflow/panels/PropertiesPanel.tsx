@@ -1,6 +1,6 @@
 'use client';
 
-import { Node } from 'reactflow';
+import type { Node } from 'reactflow';
 
 interface PropertiesPanelProps {
   selectedNode: Node | null;

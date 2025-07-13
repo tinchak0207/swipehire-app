@@ -2,7 +2,7 @@
 
 import {
   CalendarIcon,
-  ExternalLinkIcon,
+  ExternalLink as ExternalLinkIcon,
   EyeIcon,
   GithubIcon,
   HeartIcon,
@@ -10,8 +10,8 @@ import {
   TagIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import React from 'react';
-import { Media, PortfolioDraft, Project } from '@/lib/types/portfolio';
+import type React from 'react';
+import { ExternalLink, type Media, type PortfolioDraft, type Project } from '@/lib/types/portfolio';
 
 interface PortfolioPreviewProps {
   portfolio: PortfolioDraft;

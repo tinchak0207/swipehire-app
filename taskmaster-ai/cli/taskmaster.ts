@@ -34,32 +34,37 @@ class TaskmasterCLI {
 
       switch (arg) {
         case '--type':
-        case '-t':
+        case '-t': {
           const typeArg = args[++i];
           if (typeArg && ['page', 'component', 'hook', 'service', 'utility'].includes(typeArg)) {
             this.options.type = typeArg as CLIOptions['type'];
           }
           break;
+        }
         case '--name':
-        case '-n':
+        case '-n': {
           const nameArg = args[++i];
           if (nameArg) this.options.name = nameArg;
           break;
+        }
         case '--description':
-        case '-d':
+        case '-d': {
           const descArg = args[++i];
           if (descArg) this.options.description = descArg;
           break;
+        }
         case '--features':
-        case '-f':
+        case '-f': {
           const featuresArg = args[++i];
           if (featuresArg) this.options.features = featuresArg.split(',').map((f) => f.trim());
           break;
+        }
         case '--output':
-        case '-o':
+        case '-o': {
           const outputArg = args[++i];
           if (outputArg) this.options.output = outputArg;
           break;
+        }
         case '--interactive':
         case '-i':
           this.options.interactive = true;

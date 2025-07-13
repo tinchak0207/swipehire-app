@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiFilePlus } from 'react-icons/fi';
-import { type NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface NewResumeSubmissionTriggerNodeData {
   source: string; // e.g., 'email-inbox', 'api-endpoint', 'careers-page'
@@ -88,7 +89,7 @@ const NewResumeSubmissionTriggerNode: React.FC<NodeProps<NewResumeSubmissionTrig
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 The output will be the submitted candidate data and the resume file object.

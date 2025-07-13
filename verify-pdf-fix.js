@@ -3,8 +3,8 @@
  * This script checks if the installed PDF.js version matches the worker file
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 console.log('🔍 Verifying PDF.js version compatibility...\n');
 
@@ -69,7 +69,7 @@ if (fs.existsSync(serviceFilePath)) {
   const hasOldVersion = serviceContent.includes('3.11.174');
   const hasMjsExtension = serviceContent.includes('.mjs');
 
-  console.log(`\n📝 Service file checks:`);
+  console.log('\n📝 Service file checks:');
   console.log(`   Contains version 5.3.31: ${hasCorrectVersion ? '✅ Yes' : '❌ No'}`);
   console.log(
     `   Contains old version 3.11.174: ${hasOldVersion ? '❌ Yes (should be removed)' : '✅ No'}`

@@ -13,8 +13,9 @@ import {
   Trash2,
   X,
 } from 'lucide-react';
-import React, { useCallback, useEffect, useState } from 'react';
-import { FieldError, UseFormReturn } from 'react-hook-form';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import type { FieldError, UseFormReturn } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 
 /**

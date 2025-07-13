@@ -1,5 +1,5 @@
-import { Edge, Node as WorkflowNode } from 'reactflow';
-import { IWorkflow } from '../contracts/IWorkflow';
+import type { Edge, Node as WorkflowNode } from 'reactflow';
+import type { IWorkflow } from '../contracts/IWorkflow';
 
 // This is a placeholder for the workflow execution engine.
 // A real implementation would use a more robust graph traversal algorithm.

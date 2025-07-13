@@ -1,4 +1,4 @@
-import React from 'react';
+import type React from 'react';
 import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 
 const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string) => {
@@ -18,7 +18,7 @@ const NodeConnections = () => {
             onDragStart={(event) => onDragStart(event, def.type)}
             draggable
           >
-            <i className={`${def.icon} w-8 h-8 mb-2 text-gray-600`}></i>
+            <i className={`${def.icon} w-8 h-8 mb-2 text-gray-600`} />
             <span className="text-sm text-center text-gray-700">{def.label}</span>
           </div>
         ))}

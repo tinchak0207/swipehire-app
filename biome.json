@@ -2,7 +2,7 @@
   "$schema": "https://biomejs.dev/schemas/2.0.6/schema.json",
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
-    "enabled": false,
+    "enabled": true,
     "rules": {
       "recommended": true,
       "complexity": {
@@ -11,7 +11,8 @@
       },
       "correctness": {
         "noUnusedVariables": "error",
-        "useExhaustiveDependencies": "warn"
+        "useExhaustiveDependencies": "warn",
+        "useJsxKeyInIterable": "error"
       },
       "style": {
         "noNonNullAssertion": "warn",

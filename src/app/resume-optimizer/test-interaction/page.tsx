@@ -275,7 +275,7 @@ JavaScript, React, Node.js`);
                 <ArrowLeftIcon className="w-5 h-5 group-hover:-translate-x-1 transition-transform duration-200" />
                 <span className="font-medium">Back to Optimizer</span>
               </Link>
-              <div className="h-6 w-px bg-slate-300"></div>
+              <div className="h-6 w-px bg-slate-300" />
               <h1 className="text-2xl font-bold text-slate-900">Editor Interaction Test</h1>
             </div>
 

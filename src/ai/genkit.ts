@@ -1,4 +1,5 @@
 import { Mistral } from '@mistralai/mistralai';
+import { z } from 'zod';
 
 /**
  * Available Mistral AI models
@@ -316,8 +317,8 @@ export const ai = {
    */
   definePrompt: (options: {
     name: string;
-    input: { schema: any };
-    output: { schema: any };
+    input: { schema: z.ZodTypeAny };
+    output: { schema: z.ZodTypeAny };
     prompt: string;
   }) => {
     return {

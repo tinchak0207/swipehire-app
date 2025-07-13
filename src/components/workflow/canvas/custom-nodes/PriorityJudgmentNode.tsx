@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiAward, FiChevronDown, FiChevronUp, FiPlus, FiTrash2 } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface PriorityRule {
   condition: string; // e.g., 'resume.score > 90'
@@ -133,7 +134,7 @@ const PriorityJudgmentNode: React.FC<NodeProps<PriorityJudgmentNodeData>> = ({ d
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The output data will be enhanced with a `priority` field.</span>
             </div>

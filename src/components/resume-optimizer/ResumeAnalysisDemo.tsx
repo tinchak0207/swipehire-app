@@ -20,7 +20,7 @@ import type {
   ResumeAnalysisResponse,
   TargetJobInfo,
 } from '@/lib/types/resume-optimizer';
-import { ResumeAnalysisError } from '@/services/resumeOptimizerService';
+import type { ResumeAnalysisError } from '@/services/resumeOptimizerService';
 
 // Component Props Interface
 interface ResumeAnalysisDemoProps {

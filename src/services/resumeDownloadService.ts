@@ -48,12 +48,22 @@ export class ResumeDownloadService {
       const finalFileName = fileName || defaultFileName;
 
       if (format === 'pdf') {
-        return await this.generatePDF(resumeContent, analysisResult, options, finalFileName);
-      } else if (format === 'docx') {
-        return await this.generateDOCX(resumeContent, analysisResult, options, finalFileName);
-      } else {
-        throw new Error(`Unsupported format: ${format}`);
+        return await ResumeDownloadService.generatePDF(
+          resumeContent,
+          analysisResult,
+          options,
+          finalFileName
+        );
       }
+      if (format === 'docx') {
+        return await ResumeDownloadService.generateDOCX(
+          resumeContent,
+          analysisResult,
+          options,
+          finalFileName
+        );
+      }
+      throw new Error(`Unsupported format: ${format}`);
     } catch (error) {
       console.error('Resume download error:', error);
       return {
@@ -81,11 +91,7 @@ export class ResumeDownloadService {
       let yPosition = margin;
 
       // Helper function to add text with word wrapping
-      const addWrappedText = (
-        text: string,
-        fontSize: number = 11,
-        isBold: boolean = false
-      ): number => {
+      const addWrappedText = (text: string, fontSize = 11, isBold = false): number => {
         doc.setFontSize(fontSize);
         doc.setFont('helvetica', isBold ? 'bold' : 'normal');
 
@@ -216,7 +222,7 @@ export class ResumeDownloadService {
 
       // Generate and download the PDF
       const pdfBlob = doc.output('blob');
-      this.downloadBlob(pdfBlob, `${fileName}.pdf`);
+      ResumeDownloadService.downloadBlob(pdfBlob, `${fileName}.pdf`);
 
       return {
         success: true,
@@ -506,7 +512,7 @@ export class ResumeDownloadService {
 
       // Generate and download the DOCX
       const docxBlob = await Packer.toBlob(doc);
-      this.downloadBlob(docxBlob, `${fileName}.docx`);
+      ResumeDownloadService.downloadBlob(docxBlob, `${fileName}.docx`);
 
       return {
         success: true,

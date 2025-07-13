@@ -8,9 +8,9 @@ export class ResumeAnalysisService {
     };
   }
 
-  public async analyzeVideo(_video: any) {
+  public async analyzeVideo(_video: File | Blob | ArrayBuffer) {
     // In a real application, this would use video analysis to extract insights.
-    console.log(`Analyzing video`);
+    console.log('Analyzing video');
     return {};
   }
 }

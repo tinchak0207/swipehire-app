@@ -254,7 +254,7 @@ export const ReportDownloadButton: React.FC<ReportDownloadButtonProps> = ({
 
         {/* Feedback Toast */}
         {feedback.type && (
-          <div className={`toast toast-top toast-end z-50`}>
+          <div className={'toast toast-top toast-end z-50'}>
             <div
               className={`alert ${feedback.type === 'success' ? 'alert-success' : 'alert-error'} shadow-lg`}
             >

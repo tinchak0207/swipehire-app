@@ -156,27 +156,27 @@ export default function TargetJobDemoPage() {
 
               <ul className="space-y-2 text-gray-600">
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
                   Real-time validation with error messages
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
                   Keywords parsing with badge display
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
                   Accessibility support with ARIA attributes
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
                   Loading states and disabled inputs
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
                   Form summary with entered information
                 </li>
                 <li className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
                   Responsive design with DaisyUI components
                 </li>
               </ul>

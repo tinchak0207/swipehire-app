@@ -136,7 +136,8 @@ function applyStructureSuggestion(content: string, suggestion: OptimizationSugge
   }
 
   if (suggestion.suggestion.includes('contact information')) {
-    const contactText = `[Your Name]\n[Your Email] | [Your Phone] | [Your Location]\n[LinkedIn Profile]\n\n`;
+    const contactText =
+      '[Your Name]\n[Your Email] | [Your Phone] | [Your Location]\n[LinkedIn Profile]\n\n';
     return contactText + content;
   }
 

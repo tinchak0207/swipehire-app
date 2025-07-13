@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCpu } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface InvokeAINodeData {
   prompt: string;
@@ -55,7 +56,7 @@ const InvokeAINode: React.FC<NodeProps<InvokeAINodeData>> = ({ data }) => {
                 placeholder="e.g., Based on the following resume, please summarize the candidate\'s experience with React: {{resume.text}}"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="form-control w-full">

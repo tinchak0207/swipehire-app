@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiCpu } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface AICapabilityCallNodeData {
   capability: string;
@@ -70,7 +71,7 @@ const AICapabilityCallNode: React.FC<NodeProps<AICapabilityCallNodeData>> = ({ d
                 placeholder="e.g., {{resume.text}}"
                 value={inputData}
                 onChange={(e) => setInputData(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="alert alert-info text-xs mt-2">
@@ -85,7 +86,7 @@ const AICapabilityCallNode: React.FC<NodeProps<AICapabilityCallNodeData>> = ({ d
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>
                 The output will be the result of the AI capability call, added to the data payload.

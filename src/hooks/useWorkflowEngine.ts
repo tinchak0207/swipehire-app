@@ -3,18 +3,18 @@ import {
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
-  Connection,
-  Edge,
-  EdgeChange,
-  Node,
-  NodeChange,
-  NodeRemoveChange,
-  OnConnect,
-  OnEdgesChange,
-  OnNodesChange,
-  ReactFlowInstance,
+  type Connection,
+  type Edge,
+  type EdgeChange,
+  type Node,
+  type NodeChange,
+  type NodeRemoveChange,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  type ReactFlowInstance,
 } from 'reactflow';
-import { IWorkflow } from '../contracts/IWorkflow';
+import type { IWorkflow } from '../contracts/IWorkflow';
 import { WORKFLOW_NODE_DEFINITIONS } from '../lib/workflow-node-definitions';
 
 export function useWorkflowEngine(

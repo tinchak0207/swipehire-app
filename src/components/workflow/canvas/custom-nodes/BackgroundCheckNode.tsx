@@ -1,5 +1,6 @@
-import React, { memo } from 'react';
-import { Handle, NodeProps, Position } from 'reactflow';
+import type React from 'react';
+import { memo } from 'react';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 const BackgroundCheckNode: React.FC<NodeProps> = ({}) => {
   return (

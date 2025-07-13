@@ -108,7 +108,7 @@ export const DownloadButton: React.FC<DownloadButtonProps> = ({
     >
       {isDownloading ? (
         <>
-          <span className="loading loading-spinner loading-sm"></span>
+          <span className="loading loading-spinner loading-sm" />
           Generating...
         </>
       ) : (
@@ -179,7 +179,7 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
       >
         {isDownloading ? (
           <>
-            <span className="loading loading-spinner loading-sm"></span>
+            <span className="loading loading-spinner loading-sm" />
             Generating...
           </>
         ) : (
@@ -217,7 +217,7 @@ export const DownloadDropdown: React.FC<DownloadDropdownProps> = ({
           </li>
           {includeAnalysis && (
             <>
-              <div className="divider my-1"></div>
+              <div className="divider my-1" />
               <li className="menu-title">
                 <span className="text-xs">Includes analysis report</span>
               </li>
@@ -397,7 +397,7 @@ export const DownloadOptionsModal: React.FC<DownloadOptionsModalProps> = ({
           >
             {isDownloading ? (
               <>
-                <span className="loading loading-spinner loading-sm"></span>
+                <span className="loading loading-spinner loading-sm" />
                 Generating...
               </>
             ) : (

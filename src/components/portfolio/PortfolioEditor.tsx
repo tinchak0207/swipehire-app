@@ -3,9 +3,9 @@
 import {
   closestCenter,
   DndContext,
-  DragEndEvent,
+  type DragEndEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
@@ -20,10 +20,11 @@ import {
 } from '@dnd-kit/sortable';
 import { EyeIcon, PlusIcon, SaveIcon, ShareIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useState } from 'react';
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCreatePortfolio, useUpdatePortfolio } from '@/hooks/usePortfolio';
-import { PortfolioDraft, PortfolioLayout, Project } from '@/lib/types/portfolio';
+import type { PortfolioDraft, PortfolioLayout, Project } from '@/lib/types/portfolio';
 import LayoutSelector from './LayoutSelector';
 import PortfolioPreview from './PortfolioPreview';
 import SortableProjectEditor from './SortableProjectEditor';

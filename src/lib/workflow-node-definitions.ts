@@ -13,8 +13,8 @@ export interface NodeVariable {
   description: string;
 }
 
-import { FC } from 'react';
-import { NodeProps } from 'reactflow';
+import type { FC } from 'react';
+import type { NodeProps } from 'reactflow';
 
 export interface NodeDefinition {
   type: string;

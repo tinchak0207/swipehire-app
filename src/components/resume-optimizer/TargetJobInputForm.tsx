@@ -509,7 +509,7 @@ export default function TargetJobInputForm({
             >
               {isLoading ? (
                 <>
-                  <span className="loading loading-spinner loading-sm"></span>
+                  <span className="loading loading-spinner loading-sm" />
                   Processing...
                 </>
               ) : (

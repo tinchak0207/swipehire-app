@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Node } from 'reactflow';
+import type { Node } from 'reactflow';
 
 interface AnalyzeResumeModalProps {
   node: Node;

@@ -91,11 +91,11 @@ const avatarGeneratorFlow = ai.defineFlow(
     outputSchema: AvatarGeneratorOutputSchema,
   },
   async (input: AvatarGeneratorInput) => {
-    let constructedPrompt =
+    let _constructedPrompt =
       'Generate a photorealistic, professional virtual avatar suitable for a resume or online profile. ';
 
     if (input.gender && input.gender !== 'unspecified') {
-      constructedPrompt += `The avatar should appear ${input.gender}. `;
+      _constructedPrompt += `The avatar should appear ${input.gender}. `;
     }
     if (input.ageRange && input.ageRange !== 'unspecified') {
       const ageMapping = {
@@ -103,7 +103,7 @@ const avatarGeneratorFlow = ai.defineFlow(
         adult: 'in their 30s or 40s (adult)',
         middle_aged: 'in their 50s or older (middle-aged)',
       };
-      constructedPrompt += `The avatar's age should be approximately ${ageMapping[input.ageRange as keyof typeof ageMapping] || input.ageRange}. `;
+      _constructedPrompt += `The avatar's age should be approximately ${ageMapping[input.ageRange as keyof typeof ageMapping] || input.ageRange}. `;
     }
     if (input.professionalImageStyle) {
       constructedPrompt += `Their clothing and overall style should be '${input.professionalImageStyle.replace(/_/g, ' ')}'. `;

@@ -1,6 +1,7 @@
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiBriefcase, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface JobPostingNodeData {
   jobTitle: string;
@@ -81,7 +82,7 @@ const JobPostingNode: React.FC<NodeProps<JobPostingNodeData>> = ({ data }) => {
                 placeholder="Enter the job description here..."
                 value={jobDescription}
                 onChange={(e) => setJobDescription(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="form-control">

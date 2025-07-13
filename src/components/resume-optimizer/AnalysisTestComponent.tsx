@@ -6,7 +6,8 @@
 
 'use client';
 
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import type { TargetJobInfo } from '@/lib/types/resume-optimizer';
 import { AnalysisRequestComponent } from './AnalysisRequestComponent';
 

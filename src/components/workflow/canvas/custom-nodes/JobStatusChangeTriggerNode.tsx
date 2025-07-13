@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { FiBriefcase, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { Handle, NodeProps, Position } from 'reactflow';
+import { Handle, type NodeProps, Position } from 'reactflow';
 
 interface JobStatusChangeTriggerNodeData {
   fromStatus: string;
@@ -91,7 +92,7 @@ const JobStatusChangeTriggerNode: React.FC<NodeProps<JobStatusChangeTriggerNodeD
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>The output will be the job data object, including the old and new status.</span>
             </div>

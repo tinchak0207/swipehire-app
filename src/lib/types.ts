@@ -629,6 +629,33 @@ export interface CareerReminder {
   completed: boolean;
 }
 
+export interface FollowupReminder {
+  id: string;
+  matchId: string;
+  reminderType: 'thank_you' | 'status_inquiry' | 'follow_up' | 'custom';
+  scheduledDate: string;
+  status: 'pending' | 'completed' | 'snoozed';
+  customMessage?: string;
+  match: {
+    id: string;
+    companyName: string;
+    jobTitle: string;
+    applicationDate: string;
+    status: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReminderTemplate {
+  id: string;
+  type: string;
+  title: string;
+  description: string;
+  defaultMessage: string;
+  suggestedTiming?: string; // e.g., "24 hours after interview"
+}
+
 export interface SkillAssessment {
   skill: string;
   currentLevel: number; // 1-10
@@ -643,4 +670,683 @@ export interface WorkflowNode {
   type: string;
   data: any;
   position: { x: number; y: number };
+}
+
+// Industry Events Types
+export enum EventType {
+  CONFERENCE = 'conference',
+  WORKSHOP = 'workshop',
+  SEMINAR = 'seminar',
+  NETWORKING = 'networking',
+  JOB_FAIR = 'job_fair',
+  WEBINAR = 'webinar',
+  MEETUP = 'meetup',
+  PANEL_DISCUSSION = 'panel_discussion',
+}
+
+export enum EventFormat {
+  IN_PERSON = 'in_person',
+  VIRTUAL = 'virtual',
+  HYBRID = 'hybrid',
+}
+
+export interface EventLocation {
+  type: EventFormat;
+  city?: string;
+  state?: string;
+  country?: string;
+  venue?: string;
+  address?: string;
+  platform?: string; // For virtual events (Zoom, Teams, etc.)
+  meetingUrl?: string;
+}
+
+export interface EventSpeaker {
+  id: string;
+  name: string;
+  title?: string;
+  company?: string;
+  bio?: string;
+  imageUrl?: string;
+  linkedinUrl?: string;
+}
+
+export interface EventSession {
+  id: string;
+  title: string;
+  description?: string;
+  startTime: string;
+  endTime: string;
+  speakers: EventSpeaker[];
+  track?: string;
+}
+
+export interface IndustryEvent {
+  id: string;
+  title: string;
+  description: string;
+  detailedDescription?: string;
+  eventType: EventType;
+  format?: EventFormat;
+  location: {
+    type: 'online' | 'offline';
+    address?: string;
+    city?: string;
+    country?: string;
+    platform?: string;
+    meetingUrl?: string;
+  };
+  startDateTime: string;
+  endDateTime: string;
+  timezone?: string;
+
+  // Organization details
+  organizer: {
+    name: string;
+    email?: string;
+    website?: string;
+    logoUrl?: string;
+  };
+
+  // Event specifics
+  industry: string;
+  tags: string[];
+  targetAudience: string[];
+  skills: string[];
+
+  // Registration and pricing
+  registrationUrl: string;
+  cost: {
+    type: 'free' | 'paid';
+    amount?: number;
+    currency?: string;
+  };
+  maxAttendees?: number;
+  currentAttendees: number;
+
+  // Content
+  imageUrl?: string;
+  agenda?: {
+    time: string;
+    title: string;
+    speaker?: string;
+  }[];
+  speakers?: {
+    name: string;
+    title?: string;
+    company?: string;
+    bio?: string;
+    photoUrl?: string;
+  }[];
+
+  // Status and metadata
+  status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+
+  // User interaction data (frontend only)
+  isSaved?: boolean;
+  isRegistered?: boolean;
+  recommendationReasons?: string[];
+}
+
+export interface EventFilters {
+  eventTypes: Set<EventType>;
+  formats: Set<EventFormat>;
+  industries: Set<string>;
+  cities: Set<string>;
+  dateRange: {
+    start?: string;
+    end?: string;
+  };
+  priceRange: {
+    min?: number;
+    max?: number;
+  };
+  isFree?: boolean;
+  skillLevels: Set<string>;
+  tags: Set<string>;
+  searchQuery?: string;
+}
+
+export interface EventSearchParams {
+  page?: number;
+  limit?: number;
+  sortBy?: 'date' | 'relevance' | 'popularity' | 'price';
+  sortOrder?: 'asc' | 'desc';
+  filters?: Partial<EventFilters>;
+  userLocation?: {
+    lat: number;
+    lng: number;
+    city?: string;
+  };
+}
+
+export interface EventsResponse {
+  events: IndustryEvent[];
+  totalCount: number;
+  hasMore: boolean;
+  page: number;
+  limit: number;
+}
+
+export interface SavedEvent {
+  id: string;
+  userId: string;
+  eventId: string;
+  savedAt: string;
+  notificationPreferences: {
+    oneDayBefore: boolean;
+    oneHourBefore: boolean;
+    eventStart: boolean;
+  };
+}
+
+export interface EventRegistration {
+  id: string;
+  userId: string;
+  eventId: string;
+  registeredAt: string;
+  status: 'registered' | 'cancelled' | 'attended' | 'no_show';
+  source: 'swipehire' | 'external';
+  externalRegistrationId?: string;
+}
+
+export interface EventFeedback {
+  id: string;
+  userId: string;
+  eventId: string;
+  rating: number; // 1-5
+  feedback?: string;
+  wouldRecommend: boolean;
+  attendanceStatus: 'attended' | 'registered_no_show' | 'cancelled';
+  submittedAt: string;
+}
+
+export interface EventRecommendation {
+  eventId: string;
+  score: number;
+  reasons: string[];
+  basedOn: {
+    userProfile: boolean;
+    userBehavior: boolean;
+    similarUsers: boolean;
+    trending: boolean;
+  };
+}
+
+// Interview Guide Types
+export enum InterviewPhase {
+  PRE_INTERVIEW = 'pre_interview',
+  INTERVIEW = 'interview',
+  POST_INTERVIEW = 'post_interview',
+}
+
+export enum InterviewType {
+  BEHAVIORAL = 'behavioral',
+  TECHNICAL = 'technical',
+  SITUATIONAL = 'situational',
+  CASE_STUDY = 'case_study',
+  SYSTEM_DESIGN = 'system_design',
+}
+
+export enum InterviewDifficulty {
+  EASY = 'easy',
+  MEDIUM = 'medium',
+  HARD = 'hard',
+}
+
+export enum Industry {
+  TECHNOLOGY = 'technology',
+  FINANCE = 'finance',
+  CONSULTING = 'consulting',
+  HEALTHCARE = 'healthcare',
+  MARKETING = 'marketing',
+  SALES = 'sales',
+  GENERAL = 'general',
+}
+
+export enum ResponseFramework {
+  STAR = 'star', // Situation, Task, Action, Result
+  CAR = 'car', // Context, Action, Result
+  SOAR = 'soar', // Situation, Objective, Action, Result
+}
+
+export interface InterviewQuestion {
+  id: string;
+  category: InterviewType;
+  question: string;
+  sampleAnswer?: string;
+  difficulty: InterviewDifficulty;
+  industry?: Industry;
+  tags: string[];
+  framework?: ResponseFramework;
+  timeLimit?: number; // in minutes
+  points?: number;
+  followUpQuestions?: string[];
+  keywords: string[];
+  scoringCriteria?: ScoringCriterion[];
+}
+
+export interface ScoringCriterion {
+  aspect: string;
+  description: string;
+  weight: number; // 0-1
+  maxPoints: number;
+}
+
+export interface CompanyInsight {
+  id: string;
+  companyName: string;
+  industry: string;
+  description: string;
+  recentNews: NewsItem[];
+  keyPeople: KeyPerson[];
+  financialHighlights: FinancialData[];
+  cultureKeywords: string[];
+  interviewTips: string[];
+  commonQuestions: string[];
+  glassdoorRating?: number;
+  linkedinFollowers?: number;
+  website?: string;
+  headquarters?: string;
+  foundedYear?: number;
+  employeeCount?: string;
+  competitors: string[];
+  lastUpdated: string;
+}
+
+export interface NewsItem {
+  title: string;
+  url: string;
+  publishedAt: string;
+  source: string;
+  summary: string;
+}
+
+export interface KeyPerson {
+  name: string;
+  title: string;
+  linkedinUrl?: string;
+  bio?: string;
+  imageUrl?: string;
+}
+
+export interface FinancialData {
+  metric: string;
+  value: string;
+  period: string;
+  change?: string;
+}
+
+export interface JobAnalysis {
+  id: string;
+  jobTitle: string;
+  jobDescription: string;
+  requiredSkills: string[];
+  preferredSkills: string[];
+  experienceLevel: WorkExperienceLevel;
+  salaryRange?: string;
+  keyResponsibilities: string[];
+  qualifications: string[];
+  companyName: string;
+  industry: Industry;
+  location: string;
+  remotePolicy?: string;
+  predictedQuestions: InterviewQuestion[];
+  skillGapAnalysis: SkillGap[];
+  fitScore: number; // 0-100
+  recommendations: string[];
+  analysisDate: string;
+}
+
+export interface SkillGap {
+  skill: string;
+  required: boolean;
+  userLevel: number; // 0-10
+  requiredLevel: number; // 0-10
+  gap: number;
+  improvementResources: string[];
+}
+
+export interface PreparationTip {
+  id: string;
+  category: 'research' | 'questions' | 'attire' | 'logistics' | 'mindset';
+  title: string;
+  description: string;
+  actionItems: string[];
+  timeFrame: string; // e.g., "1 week before", "day of"
+  priority: 'high' | 'medium' | 'low';
+  industry?: Industry;
+  applicableRoles: string[];
+}
+
+export interface MockInterviewSession {
+  id: string;
+  userId: string;
+  sessionType: InterviewType;
+  industry: Industry;
+  difficulty: InterviewDifficulty;
+  questions: InterviewQuestion[];
+  responses: InterviewResponse[];
+  overallScore: number; // 0-100
+  feedback: InterviewFeedback;
+  duration: number; // in minutes
+  completedAt: string;
+  aiAnalysis?: AIAnalysis;
+}
+
+export interface InterviewResponse {
+  questionId: string;
+  response: string;
+  audioUrl?: string;
+  videoUrl?: string;
+  duration: number; // in seconds
+  score: number; // 0-100
+  feedback: string;
+  keywordMatches: string[];
+  frameworkUsed?: ResponseFramework;
+  submittedAt: string;
+}
+
+export interface InterviewFeedback {
+  strengths: string[];
+  improvements: string[];
+  specificTips: string[];
+  frameworkUsage: {
+    framework: ResponseFramework;
+    used: boolean;
+    effectiveness: number; // 0-100
+  }[];
+  communicationScore: number; // 0-100
+  contentScore: number; // 0-100
+  confidenceScore: number; // 0-100
+  clarityScore: number; // 0-100;
+  nextSteps: string[];
+}
+
+export interface AIAnalysis {
+  speechPattern: {
+    pace: number; // words per minute
+    fillerWords: number;
+    pauseCount: number;
+    confidenceLevel: number; // 0-100
+  };
+  emotionDetection: {
+    confidence: number; // 0-100
+    stress: number; // 0-100
+    engagement: number; // 0-100
+  };
+  bodyLanguage?: {
+    eyeContact: number; // 0-100
+    posture: number; // 0-100
+    gestures: number; // 0-100
+  };
+  improvements: string[];
+}
+
+export interface ThankYouTemplate {
+  id: string;
+  title: string;
+  subject: string;
+  body: string;
+  tone: 'professional' | 'friendly' | 'enthusiastic' | 'formal';
+  timing: 'immediate' | '24hours' | '48hours' | 'custom';
+  industry: Industry;
+  interviewType: InterviewType;
+  variables: TemplateVariable[];
+  useCase: string;
+}
+
+export interface TemplateVariable {
+  key: string;
+  label: string;
+  placeholder: string;
+  required: boolean;
+}
+
+export interface FollowUpSchedule {
+  id: string;
+  matchId: string;
+  interviewDate: string;
+  followUpType: 'thank_you' | 'status_inquiry' | 'additional_info' | 'salary_negotiation';
+  scheduledDate: string;
+  status: 'pending' | 'sent' | 'skipped';
+  templateId?: string;
+  customMessage?: string;
+  reminderSet: boolean;
+  actualSentDate?: string;
+}
+
+export interface InterviewProgress {
+  id: string;
+  userId: string;
+  phase: InterviewPhase;
+  currentStep: string;
+  completedSteps: string[];
+  totalSteps: number;
+  progressPercentage: number; // 0-100
+  estimatedTimeRemaining: number; // in minutes
+  lastActivity: string;
+  goals: InterviewGoal[];
+  achievements: Achievement[];
+}
+
+export interface InterviewGoal {
+  id: string;
+  title: string;
+  description: string;
+  targetDate: string;
+  status: 'active' | 'completed' | 'paused';
+  progress: number; // 0-100
+  milestones: Milestone[];
+}
+
+export interface Milestone {
+  id: string;
+  title: string;
+  completed: boolean;
+  completedAt?: string;
+  points: number;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  category: 'preparation' | 'practice' | 'improvement' | 'consistency';
+  earnedAt: string;
+  points: number;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+}
+
+export interface InterviewCalendar {
+  id: string;
+  userId: string;
+  title: string;
+  company: string;
+  position: string;
+  interviewType: InterviewType;
+  date: string;
+  time: string;
+  duration: number; // in minutes
+  location: string;
+  interviewerName?: string;
+  interviewerTitle?: string;
+  interviewerEmail?: string;
+  meetingUrl?: string;
+  notes?: string;
+  preparationChecklist: ChecklistItem[];
+  reminders: InterviewReminder[];
+  status: 'scheduled' | 'completed' | 'cancelled' | 'rescheduled';
+}
+
+export interface ChecklistItem {
+  id: string;
+  task: string;
+  completed: boolean;
+  category: 'research' | 'preparation' | 'logistics' | 'materials';
+  priority: 'high' | 'medium' | 'low';
+  estimatedTime: number; // in minutes
+}
+
+export interface InterviewReminder {
+  id: string;
+  type: 'preparation' | 'interview' | 'follow_up';
+  title: string;
+  message: string;
+  scheduledFor: string;
+  sent: boolean;
+  method: 'email' | 'push' | 'sms';
+}
+
+export interface IndustrySpecific {
+  industry: Industry;
+  commonQuestions: InterviewQuestion[];
+  technicalRequirements: TechnicalRequirement[];
+  caseStudyTemplates: CaseStudyTemplate[];
+  salaryBenchmarks: SalaryBenchmark[];
+  careerPaths: CareerProgression[];
+  networkingTips: string[];
+  industryTrends: string[];
+}
+
+export interface TechnicalRequirement {
+  skill: string;
+  proficiencyLevel: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  assessmentType: 'coding' | 'whiteboard' | 'take_home' | 'system_design';
+  practiceResources: string[];
+  commonPlatforms: string[];
+}
+
+export interface CaseStudyTemplate {
+  id: string;
+  title: string;
+  industry: Industry;
+  description: string;
+  framework: string;
+  timeLimit: number; // in minutes
+  sampleQuestions: string[];
+  evaluationCriteria: string[];
+  sampleSolution?: string;
+  difficulty: InterviewDifficulty;
+}
+
+export interface SalaryBenchmark {
+  role: string;
+  industry: Industry;
+  experienceLevel: WorkExperienceLevel;
+  location: string;
+  baseMin: number;
+  baseMax: number;
+  totalCompMin: number;
+  totalCompMax: number;
+  currency: string;
+  lastUpdated: string;
+  source: string;
+}
+
+export interface CareerProgression {
+  level: string;
+  title: string;
+  experienceRange: string;
+  responsibilities: string[];
+  requiredSkills: string[];
+  typicalSalaryRange: string;
+  nextSteps: string[];
+  timeToPromotion: string;
+}
+
+export interface InterviewMetrics {
+  totalSessions: number;
+  averageScore: number;
+  improvementRate: number; // percentage
+  strongAreas: string[];
+  weakAreas: string[];
+  frameworkUsage: Record<ResponseFramework, number>;
+  timeSpentPracticing: number; // in hours
+  questionsAnswered: number;
+  streakDays: number;
+  lastSessionDate: string;
+}
+
+export interface UserInterviewProfile {
+  userId: string;
+  targetIndustries: Industry[];
+  experienceLevel: WorkExperienceLevel;
+  preferredInterviewTypes: InterviewType[];
+  goals: InterviewGoal[];
+  progress: InterviewProgress;
+  metrics: InterviewMetrics;
+  preferences: InterviewPreferences;
+  savedQuestions: string[]; // question IDs
+  practiceHistory: MockInterviewSession[];
+  upcomingInterviews: InterviewCalendar[];
+  achievements: Achievement[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InterviewPreferences {
+  difficultyLevel: InterviewDifficulty;
+  sessionDuration: number; // in minutes
+  enableAudioRecording: boolean;
+  enableVideoRecording: boolean;
+  enableAIAnalysis: boolean;
+  frameworkPreference: ResponseFramework;
+  reminderTiming: number; // hours before interview
+  autoScheduleFollowUps: boolean;
+  shareProgress: boolean;
+}
+
+// API Request/Response Types
+export interface InterviewGuideRequest {
+  phase?: InterviewPhase;
+  industry?: Industry;
+  interviewType?: InterviewType;
+  difficulty?: InterviewDifficulty;
+  limit?: number;
+  offset?: number;
+}
+
+export interface InterviewGuideResponse {
+  questions: InterviewQuestion[];
+  companyInsights?: CompanyInsight[];
+  preparationTips: PreparationTip[];
+  totalCount: number;
+  hasMore: boolean;
+}
+
+export interface MockInterviewRequest {
+  sessionType: InterviewType;
+  industry: Industry;
+  difficulty: InterviewDifficulty;
+  questionCount: number;
+  timeLimit?: number;
+}
+
+export interface CompanyResearchRequest {
+  companyName: string;
+  includeNews?: boolean;
+  includeFinancials?: boolean;
+  includePeople?: boolean;
+}
+
+export interface JobAnalysisRequest {
+  jobDescription: string;
+  jobTitle: string;
+  companyName: string;
+  userSkills?: string[];
+}
+
+export interface ThankYouGenerationRequest {
+  interviewerName: string;
+  companyName: string;
+  position: string;
+  interviewDate: string;
+  keyTopics: string[];
+  tone: 'professional' | 'friendly' | 'enthusiastic' | 'formal';
+  customPoints?: string[];
 }

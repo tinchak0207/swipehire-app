@@ -1,4 +1,4 @@
-import { IAnalyzeResumeConfig } from '../contracts/IWorkflow';
+import type { IAnalyzeResumeConfig } from '../contracts/IWorkflow';
 
 // This is a placeholder for the actual AI service implementation.
 // In a real application, this would interact with services like Mistral, Google Cloud Vision, etc.

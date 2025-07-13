@@ -183,7 +183,7 @@ const ResumeImportPage: NextPage = () => {
         <div className="container mx-auto max-w-4xl">
           <div className="flex items-center justify-center min-h-[60vh]">
             <div className="text-center">
-              <span className="loading loading-spinner loading-lg text-primary mb-4"></span>
+              <span className="loading loading-spinner loading-lg text-primary mb-4" />
               <p className="text-lg text-gray-600">Loading your profile data...</p>
             </div>
           </div>
@@ -393,7 +393,7 @@ const ResumeImportPage: NextPage = () => {
                 >
                   {isAnalyzing ? (
                     <>
-                      <span className="loading loading-spinner loading-sm mr-2"></span>
+                      <span className="loading loading-spinner loading-sm mr-2" />
                       Preparing Analysis...
                     </>
                   ) : (

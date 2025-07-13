@@ -269,7 +269,7 @@ export class ReportGenerationService {
       const lines: string[] = [];
 
       // Add metadata header
-      lines.push(`# Salary Market Analysis Report`);
+      lines.push('# Salary Market Analysis Report');
       lines.push(`# Generated on: ${formatDate(data.generatedAt)}`);
       lines.push('');
 

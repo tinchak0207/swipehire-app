@@ -1,6 +1,7 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo } from 'react';
-import { NodeProps } from 'reactflow';
+import type React from 'react';
+import { memo } from 'react';
+import type { NodeProps } from 'reactflow';
 
 const InterviewInvitationNode: React.FC<NodeProps> = ({}) => {
   return (

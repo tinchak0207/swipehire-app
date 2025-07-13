@@ -2,10 +2,10 @@
 
 import { EyeIcon, PencilIcon, PlusIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import React from 'react';
+import type React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useDeletePortfolio, usePortfolios } from '@/hooks/usePortfolio';
-import { Portfolio } from '@/lib/types/portfolio';
+import type { Portfolio } from '@/lib/types/portfolio';
 
 interface PortfolioCardProps {
   portfolio: Portfolio;
@@ -170,21 +170,21 @@ const PortfolioDashboard: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <div className="skeleton h-8 w-48"></div>
-          <div className="skeleton h-12 w-40"></div>
+          <div className="skeleton h-8 w-48" />
+          <div className="skeleton h-12 w-40" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <div key={`skeleton-${i}`} className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton h-6 w-3/4 mb-2"></div>
-                <div className="skeleton h-4 w-full mb-1"></div>
-                <div className="skeleton h-4 w-2/3 mb-4"></div>
+                <div className="skeleton h-6 w-3/4 mb-2" />
+                <div className="skeleton h-4 w-full mb-1" />
+                <div className="skeleton h-4 w-2/3 mb-4" />
                 <div className="flex gap-2 mb-4">
-                  <div className="skeleton h-6 w-16"></div>
-                  <div className="skeleton h-6 w-20"></div>
+                  <div className="skeleton h-6 w-16" />
+                  <div className="skeleton h-6 w-20" />
                 </div>
-                <div className="skeleton h-16 w-full"></div>
+                <div className="skeleton h-16 w-full" />
               </div>
             </div>
           ))}

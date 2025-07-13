@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 // Mapping of node types to their React components
 import AICapabilityCallNode from '../canvas/custom-nodes/AICapabilityCallNode';

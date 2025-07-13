@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 import { FiChevronDown, FiChevronUp, FiPlayCircle, FiUpload } from 'react-icons/fi';
 import { Handle, type NodeProps, Position } from 'reactflow';
 
@@ -56,7 +57,7 @@ const ManualTriggerNode: React.FC<NodeProps<ManualTriggerNodeData>> = ({ data, i
                 placeholder='{ "candidateId": "123", "jobId": "456" }'
                 value={jsonInput}
                 onChange={(e) => setJsonInput(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="form-control w-full">

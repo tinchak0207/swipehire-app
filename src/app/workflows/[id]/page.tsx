@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Node, ReactFlowInstance } from 'reactflow';
+import type { Node, ReactFlowInstance } from 'reactflow';
 import WorkflowCanvas from '@/components/workflow/canvas/WorkflowCanvas';
 import NodePalette from '@/components/workflow/palette/NodePalette';
-import { IWorkflow } from '@/contracts/IWorkflow';
+import type { IWorkflow } from '@/contracts/IWorkflow';
 import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 
 function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) {
@@ -67,7 +67,7 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
                 strokeLinejoin="round"
                 strokeWidth="2"
                 d="M4 6h16M4 12h16M4 18h16"
-              ></path>
+              />
             </svg>
           </label>
           <input
@@ -105,7 +105,7 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
         </main>
       </div>
       <div className="drawer-side">
-        <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay"></label>
+        <label htmlFor="my-drawer-2" aria-label="close sidebar" className="drawer-overlay" />
         <NodePalette />
       </div>
     </div>

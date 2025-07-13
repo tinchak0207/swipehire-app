@@ -2,6 +2,7 @@
 // 'use server'; // Removed this directive
 
 import type { Company, CompanyJobOpening } from '../lib/types';
+import { EducationLevel, JobType, LocationPreference, WorkExperienceLevel } from '../lib/types';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
@@ -143,21 +144,50 @@ export async function fetchJobsFromBackend(): Promise<{
     }
 
     const responseData = await response.json();
-    let jobs: Company[] = [];
+    console.log('[Frontend Service] Raw backend response:', responseData);
+    let rawJobs: any[] = [];
 
     // Handle both response formats:
     // 1. Direct array of jobs
     // 2. Object with jobs array property
     if (Array.isArray(responseData)) {
-      jobs = responseData;
+      rawJobs = responseData;
     } else if (responseData && Array.isArray(responseData.jobs)) {
-      jobs = responseData.jobs;
+      rawJobs = responseData.jobs;
     } else {
       console.warn('[Frontend Service] Unexpected jobs response format, defaulting to empty array');
     }
 
-    console.log(`[Frontend Service] Fetched ${jobs.length} jobs from backend.`);
-    return { jobs, hasMore: false };
+    // Transform raw Job objects into Company objects
+    const companies: Company[] = rawJobs.map((job: any) => ({
+      id: `comp-user-${job.userId}-job-${job._id}`,
+      name: job.companyName || 'Company Name Not Available',
+      industry: job.industry || 'Technology',
+      description: job.companyDescription || 'No company description available.',
+      cultureHighlights: [],
+      logoUrl: job.mediaUrl || null,
+      jobOpenings: [
+        {
+          _id: job._id,
+          title: job.title,
+          description: job.description,
+          tags: job.skillsRequired || [],
+          salaryMin: 0,
+          salaryMax: 0,
+          salaryRange: job.salaryRange,
+          jobType: job.jobType || JobType.FULL_TIME,
+          workLocationType: LocationPreference.REMOTE,
+          location: job.location,
+          requiredExperienceLevel: WorkExperienceLevel.MID_LEVEL,
+          requiredEducationLevel: EducationLevel.UNIVERSITY,
+        },
+      ],
+      recruiterUserId: job.userId,
+      dataAiHint: 'company logo',
+    }));
+
+    console.log(`[Frontend Service] Transformed ${companies.length} jobs into company objects.`);
+    return { jobs: companies, hasMore: false };
   } catch (error: any) {
     console.error('[Frontend Service] Error in fetchJobsFromBackend service:', error.message);
     console.error('[Frontend Service] Full error object for fetchJobsFromBackend:', error);

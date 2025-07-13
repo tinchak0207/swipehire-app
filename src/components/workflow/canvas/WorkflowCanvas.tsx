@@ -3,8 +3,8 @@
 import ReactFlow, { Background, Controls, MiniMap } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useState } from 'react';
-import { ReactFlowInstance } from 'reactflow';
-import { IWorkflow } from '@/contracts/IWorkflow';
+import type { ReactFlowInstance } from 'reactflow';
+import type { IWorkflow } from '@/contracts/IWorkflow';
 import { useWorkflowEngine } from '@/hooks/useWorkflowEngine';
 import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 
@@ -12,7 +12,7 @@ const nodeTypes = Object.fromEntries(
   WORKFLOW_NODE_DEFINITIONS.filter((def) => def.component).map((def) => [def.type, def.component])
 );
 
-import { Node, NodeTypes } from 'reactflow';
+import type { Node, NodeTypes } from 'reactflow';
 
 interface WorkflowCanvasProps {
   workflow: IWorkflow;

@@ -1,7 +1,8 @@
 import { Handle, Position } from '@reactflow/core';
-import React, { memo, useState } from 'react';
+import type React from 'react';
+import { memo, useState } from 'react';
 import { FiBell, FiChevronDown, FiChevronUp } from 'react-icons/fi';
-import { NodeProps } from 'reactflow';
+import type { NodeProps } from 'reactflow';
 
 interface NotificationDispatchNodeData {
   recipient: string; // e.g., 'recruiter', 'hiring-manager', 'custom-user'
@@ -84,7 +85,7 @@ const NotificationDispatchNode: React.FC<NodeProps<NotificationDispatchNodeData>
                 placeholder="e.g., New high-priority candidate {{candidate.name}} has applied for {{job.title}}."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-              ></textarea>
+              />
             </div>
 
             <div className="alert alert-pink text-xs mt-2">
@@ -99,7 +100,7 @@ const NotificationDispatchNode: React.FC<NodeProps<NotificationDispatchNodeData>
                   strokeLinejoin="round"
                   strokeWidth="2"
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                ></path>
+                />
               </svg>
               <span>This node does not have an output. It simply fires off the notification.</span>
             </div>

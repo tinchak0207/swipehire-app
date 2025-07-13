@@ -153,25 +153,35 @@ export function DashboardSidebar({
   const { state } = useSidebar();
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
-    new Set(['primary', 'jobManagement', 'tools', 'analytics', 'settings'])
+    new Set(['discovery', 'jobManagement', 'profileAndCareer', 'careerTools', 'automation'])
   );
   const [quickActions, setQuickActions] = useState<NavigationItem[]>([]);
 
   // Memoized navigation groups for performance
   const navigationGroups = useMemo(() => {
-    const primaryItems = tabItems.filter((item) =>
-      ['findJobs', 'findTalent', 'myProfile', 'dashboard'].includes(item.value)
+    const discoveryItems = tabItems.filter((item) =>
+      ['findJobs', 'findTalent', 'myMatches'].includes(item.value)
     );
 
     const jobManagementItems = tabItems.filter((item) =>
       ['postJob', 'manageJobs', 'jobAnalytics'].includes(item.value)
     );
 
-    const toolsItems = tabItems.filter((item) =>
-      ['aiTools', 'myMatches', 'myDiary', 'careerAI', 'salaryEnquiry', 'resumeOptimizer'].includes(
-        item.value
-      )
+    const profileAndCareerItems = tabItems.filter((item) =>
+      ['myProfile', 'myPortfolio', 'myDiary', 'industryEvents'].includes(item.value)
     );
+
+    const careerToolsItems = tabItems.filter((item) =>
+      [
+        'resumeOptimizer',
+        'salaryEnquiry',
+        'aiTools',
+        'interviewGuide',
+        'followupReminders',
+      ].includes(item.value)
+    );
+
+    const automationItems = tabItems.filter((item) => ['workflows'].includes(item.value));
 
     const analyticsItems = tabItems.filter((item) =>
       ['analytics', 'reports', 'insights'].includes(item.value)
@@ -180,9 +190,11 @@ export function DashboardSidebar({
     const settingsItems = tabItems.filter((item) => ['settings'].includes(item.value));
 
     return {
-      primary: primaryItems,
+      discovery: discoveryItems,
       jobManagement: jobManagementItems,
-      tools: toolsItems,
+      profileAndCareer: profileAndCareerItems,
+      careerTools: careerToolsItems,
+      automation: automationItems,
       analytics: analyticsItems,
       settings: settingsItems,
     };
@@ -226,9 +238,9 @@ export function DashboardSidebar({
     const actions: NavigationItem[] = [];
 
     if (currentUserRole === 'recruiter') {
-      actions.push(...tabItems.filter((item) => ['postJob', 'findTalent'].includes(item.value)));
+      actions.push(...tabItems.filter((item) => ['postJob', 'workflows'].includes(item.value)));
     } else {
-      actions.push(...tabItems.filter((item) => ['findJobs', 'aiTools'].includes(item.value)));
+      actions.push(...tabItems.filter((item) => ['findJobs', 'workflows'].includes(item.value)));
     }
 
     setQuickActions(actions.slice(0, 2));
@@ -648,11 +660,11 @@ export function DashboardSidebar({
         ) : (
           // Regular navigation groups
           <>
-            {/* Primary Navigation */}
+            {/* Discovery & Connections */}
             {renderNavigationGroup(
-              navigationGroups.primary,
-              'primary',
-              currentUserRole === 'recruiter' ? 'Talent & Jobs' : 'Discover',
+              navigationGroups.discovery,
+              'discovery',
+              currentUserRole === 'recruiter' ? 'Talent & Connections' : 'Discovery & Matches',
               false
             )}
 
@@ -668,11 +680,31 @@ export function DashboardSidebar({
               </>
             )}
 
-            {/* Tools & Features */}
-            {navigationGroups.tools.length > 0 && (
+            {/* Profile & Career Development */}
+            {navigationGroups.profileAndCareer.length > 0 && (
               <>
                 <SidebarSeparator className="my-1 h-px bg-gray-200/30" />
-                {renderNavigationGroup(navigationGroups.tools, 'tools', 'Tools & Research')}
+                {renderNavigationGroup(
+                  navigationGroups.profileAndCareer,
+                  'profileAndCareer',
+                  'Profile & Career'
+                )}
+              </>
+            )}
+
+            {/* Career Tools & Optimization */}
+            {navigationGroups.careerTools.length > 0 && (
+              <>
+                <SidebarSeparator className="my-1 h-px bg-gray-200/30" />
+                {renderNavigationGroup(navigationGroups.careerTools, 'careerTools', 'Career Tools')}
+              </>
+            )}
+
+            {/* Automation & Workflows */}
+            {navigationGroups.automation.length > 0 && (
+              <>
+                <SidebarSeparator className="my-1 h-px bg-gray-200/30" />
+                {renderNavigationGroup(navigationGroups.automation, 'automation', 'Automation')}
               </>
             )}
 

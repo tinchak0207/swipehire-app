@@ -608,6 +608,12 @@ export const analyzeResume = async (
     });
 
     // Validate input
+    console.log('Service received request:', {
+      resumeTextLength: request.resumeText?.length || 0,
+      targetJob: request.targetJob,
+      targetJobTitle: request.targetJob?.title,
+    });
+
     if (!request.resumeText || request.resumeText.trim().length < 50) {
       throw new ResumeAnalysisError(
         'Resume text is too short. Please provide a more detailed resume.',
@@ -727,15 +733,18 @@ export const analyzeResume = async (
       // Handle specific error cases
       if (response.status === 400) {
         throw new ResumeAnalysisError(errorMessage, 'INVALID_REQUEST', 400, errorDetails);
-      } else if (response.status === 401) {
+      }
+      if (response.status === 401) {
         throw new ResumeAnalysisError('Authentication required.', 'UNAUTHORIZED', 401);
-      } else if (response.status === 429) {
+      }
+      if (response.status === 429) {
         throw new ResumeAnalysisError(
           'Too many requests. Please wait a moment and try again.',
           'RATE_LIMITED',
           429
         );
-      } else if (response.status >= 500) {
+      }
+      if (response.status >= 500) {
         // Server error - fallback to local analysis
         console.warn('Backend server error, falling back to local analysis');
         return await fallbackToLocalAnalysis(request, onProgress);
@@ -1677,7 +1686,7 @@ export const formatFileSize = (bytes: number): string => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+  return `${parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
 };
 
 /**

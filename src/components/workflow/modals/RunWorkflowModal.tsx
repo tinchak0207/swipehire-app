@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import type React from 'react';
+import { useState } from 'react';
 
 interface RunWorkflowModalProps {
   onRun: (payload: any) => void;
@@ -32,7 +33,7 @@ const RunWorkflowModal: React.FC<RunWorkflowModalProps> = ({ onRun, onCancel }) 
             placeholder='{ "key": "value" }'
             value={payload}
             onChange={(e) => setPayload(e.target.value)}
-          ></textarea>
+          />
         </div>
         <div className="modal-action">
           <button className="btn" onClick={onCancel}>
