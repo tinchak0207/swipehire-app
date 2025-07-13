@@ -292,11 +292,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <CardFooter
           className={cn('flex items-center justify-between gap-2', compact ? 'pt-3' : 'pt-4')}
         >
-<<<<<<< HEAD
-          <div className="flex items-center gap-2 text-gray-500 text-xs">
-=======
           <div className="flex items-center gap-2 text-xs text-gray-500">
->>>>>>> b5841cab41f8e93526841d798513452ab338b820
             {event.isRegistered && (
               <Badge variant="default" className="bg-green-600">
                 Registered

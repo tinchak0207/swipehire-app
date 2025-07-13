@@ -741,24 +741,24 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Filter by date range
     if (validatedParams.startDate) {
       filteredEvents = filteredEvents.filter(
-        (event) => new Date(event.startDateTime) >= new Date(validatedParams.startDate!)
+        (event) => new Date(event.startDateTime) >= new Date(validatedParams.startDate)
       );
     }
     if (validatedParams.endDate) {
       filteredEvents = filteredEvents.filter(
-        (event) => new Date(event.startDateTime) <= new Date(validatedParams.endDate!)
+        (event) => new Date(event.startDateTime) <= new Date(validatedParams.endDate)
       );
     }
 
     // Filter by price range
     if (validatedParams.minPrice !== undefined) {
       filteredEvents = filteredEvents.filter(
-        (event) => (event.price || 0) >= validatedParams.minPrice!
+        (event) => (event.price || 0) >= validatedParams.minPrice
       );
     }
     if (validatedParams.maxPrice !== undefined) {
       filteredEvents = filteredEvents.filter(
-        (event) => (event.price || 0) <= validatedParams.maxPrice!
+        (event) => (event.price || 0) <= validatedParams.maxPrice
       );
     }
 

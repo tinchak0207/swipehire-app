@@ -2,8 +2,10 @@
 
 import { useParams } from 'next/navigation';
 import type React from 'react';
+import type React from 'react';
 import PortfolioEditor from '@/components/portfolio/PortfolioEditor';
 import { usePortfolio } from '@/hooks/usePortfolio';
+import type { PortfolioDraft } from '@/lib/types/portfolio';
 import type { PortfolioDraft } from '@/lib/types/portfolio';
 
 /**
@@ -44,7 +46,7 @@ const EditPortfolioPage: React.FC = () => {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <div className="skeleton h-8 w-64 mb-2" />
+          <div className="skeleton mb-2 h-8 w-64" />
           <div className="skeleton h-4 w-96" />
         </div>
 
@@ -52,9 +54,9 @@ const EditPortfolioPage: React.FC = () => {
           <div className="space-y-6">
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton h-6 w-32 mb-4" />
-                <div className="skeleton h-10 w-full mb-4" />
-                <div className="skeleton h-24 w-full mb-4" />
+                <div className="skeleton mb-4 h-6 w-32" />
+                <div className="skeleton mb-4 h-10 w-full" />
+                <div className="skeleton mb-4 h-24 w-full" />
                 <div className="skeleton h-10 w-full" />
               </div>
             </div>
@@ -62,7 +64,7 @@ const EditPortfolioPage: React.FC = () => {
           <div className="space-y-6">
             <div className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton h-6 w-24 mb-4" />
+                <div className="skeleton mb-4 h-6 w-24" />
                 <div className="skeleton h-64 w-full" />
               </div>
             </div>
