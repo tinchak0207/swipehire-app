@@ -10,8 +10,22 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import React, {
+  type ChangeEvent,
+  type DragEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   addEdge,
+  type Edge,
+  type Node,
+  type OnConnect,
+  type OnEdgesChange,
+  type OnNodesChange,
+  type ReactFlowInstance,
   type Edge,
   type Node,
   type OnConnect,
@@ -25,7 +39,15 @@ import WorkflowCanvas from '@/components/WorkflowCanvas';
 import AnalyzeResumeNode from '@/components/workflow/canvas/custom-nodes/AnalyzeResumeNode';
 import BackgroundCheckNode from '@/components/workflow/canvas/custom-nodes/BackgroundCheckNode';
 import CloudStorageIntegrationNode from '@/components/workflow/canvas/custom-nodes/CloudStorageIntegrationNode';
+import BackgroundCheckNode from '@/components/workflow/canvas/custom-nodes/BackgroundCheckNode';
+import CloudStorageIntegrationNode from '@/components/workflow/canvas/custom-nodes/CloudStorageIntegrationNode';
 import ConditionNode from '@/components/workflow/canvas/custom-nodes/ConditionNode';
+import CustomFunctionNode from '@/components/workflow/canvas/custom-nodes/CustomFunctionNode';
+import DataCalculationNode from '@/components/workflow/canvas/custom-nodes/DataCalculationNode';
+import DataExportNode from '@/components/workflow/canvas/custom-nodes/DataExportNode';
+import DataFilterNode from '@/components/workflow/canvas/custom-nodes/DataFilterNode';
+import DataMetricReferenceNode from '@/components/workflow/canvas/custom-nodes/DataMetricReferenceNode';
+import DataMetricTriggerNode from '@/components/workflow/canvas/custom-nodes/DataMetricTriggerNode';
 import CustomFunctionNode from '@/components/workflow/canvas/custom-nodes/CustomFunctionNode';
 import DataCalculationNode from '@/components/workflow/canvas/custom-nodes/DataCalculationNode';
 import DataExportNode from '@/components/workflow/canvas/custom-nodes/DataExportNode';
@@ -38,12 +60,26 @@ import EnterpriseOAIntegrationNode from '@/components/workflow/canvas/custom-nod
 import ExternalAPINode from '@/components/workflow/canvas/custom-nodes/ExternalAPINode';
 import FeedbackCollectionNode from '@/components/workflow/canvas/custom-nodes/FeedbackCollectionNode';
 import InterviewInvitationNode from '@/components/workflow/canvas/custom-nodes/InterviewInvitationNode';
+import DataVisualizationNode from '@/components/workflow/canvas/custom-nodes/DataVisualizationNode';
+import EnterpriseOAIntegrationNode from '@/components/workflow/canvas/custom-nodes/EnterpriseOAIntegrationNode';
+import ExternalAPINode from '@/components/workflow/canvas/custom-nodes/ExternalAPINode';
+import FeedbackCollectionNode from '@/components/workflow/canvas/custom-nodes/FeedbackCollectionNode';
+import InterviewInvitationNode from '@/components/workflow/canvas/custom-nodes/InterviewInvitationNode';
 import InvokeAINode from '@/components/workflow/canvas/custom-nodes/InvokeAINode';
 import JobPostingNode from '@/components/workflow/canvas/custom-nodes/JobPostingNode';
 import JobStatusChangeTriggerNode from '@/components/workflow/canvas/custom-nodes/JobStatusChangeTriggerNode';
 import LoopExecutionNode from '@/components/workflow/canvas/custom-nodes/LoopExecutionNode';
 import ManualTriggerNode from '@/components/workflow/canvas/custom-nodes/ManualTriggerNode';
+import JobPostingNode from '@/components/workflow/canvas/custom-nodes/JobPostingNode';
+import JobStatusChangeTriggerNode from '@/components/workflow/canvas/custom-nodes/JobStatusChangeTriggerNode';
+import LoopExecutionNode from '@/components/workflow/canvas/custom-nodes/LoopExecutionNode';
+import ManualTriggerNode from '@/components/workflow/canvas/custom-nodes/ManualTriggerNode';
 import NewCandidateNode from '@/components/workflow/canvas/custom-nodes/NewCandidateNode';
+import NewResumeSubmissionTriggerNode from '@/components/workflow/canvas/custom-nodes/NewResumeSubmissionTriggerNode';
+import PriorityJudgmentNode from '@/components/workflow/canvas/custom-nodes/PriorityJudgmentNode';
+import ResumeStatusUpdateNode from '@/components/workflow/canvas/custom-nodes/ResumeStatusUpdateNode';
+import SalaryInquiryNode from '@/components/workflow/canvas/custom-nodes/SalaryInquiryNode';
+import ScheduledTriggerNode from '@/components/workflow/canvas/custom-nodes/ScheduledTriggerNode';
 import NewResumeSubmissionTriggerNode from '@/components/workflow/canvas/custom-nodes/NewResumeSubmissionTriggerNode';
 import PriorityJudgmentNode from '@/components/workflow/canvas/custom-nodes/PriorityJudgmentNode';
 import ResumeStatusUpdateNode from '@/components/workflow/canvas/custom-nodes/ResumeStatusUpdateNode';
@@ -57,10 +93,18 @@ import TaskAllocationNode from '@/components/workflow/canvas/custom-nodes/TaskAl
 import TemplateApplicationNode from '@/components/workflow/canvas/custom-nodes/TemplateApplicationNode';
 import VideoInterviewIntegrationNode from '@/components/workflow/canvas/custom-nodes/VideoInterviewIntegrationNode';
 import WorkflowLogNode from '@/components/workflow/canvas/custom-nodes/WorkflowLogNode';
+import SocialMediaIntegrationNode from '@/components/workflow/canvas/custom-nodes/SocialMediaIntegrationNode';
+import SubworkflowCallNode from '@/components/workflow/canvas/custom-nodes/SubworkflowCallNode';
+import TalentPoolManagementNode from '@/components/workflow/canvas/custom-nodes/TalentPoolManagementNode';
+import TaskAllocationNode from '@/components/workflow/canvas/custom-nodes/TaskAllocationNode';
+import TemplateApplicationNode from '@/components/workflow/canvas/custom-nodes/TemplateApplicationNode';
+import VideoInterviewIntegrationNode from '@/components/workflow/canvas/custom-nodes/VideoInterviewIntegrationNode';
+import WorkflowLogNode from '@/components/workflow/canvas/custom-nodes/WorkflowLogNode';
 import AnalyzeResumeModal from '@/components/workflow/modals/AnalyzeResumeModal';
 import InvokeAIModal from '@/components/workflow/modals/InvokeAIModal';
 import RunWorkflowModal from '@/components/workflow/modals/RunWorkflowModal';
 import SendCommunicationModal from '@/components/workflow/modals/SendCommunicationModal';
+import { type SaveWorkflowPayload, useSaveWorkflow } from '@/hooks/useSaveWorkflow';
 import { type SaveWorkflowPayload, useSaveWorkflow } from '@/hooks/useSaveWorkflow';
 
 const queryClient = new QueryClient();
@@ -78,7 +122,22 @@ const nodeTypes = {
   dataMetricTrigger: DataMetricTriggerNode,
   scheduledTrigger: ScheduledTriggerNode,
   manualTrigger: ManualTriggerNode,
+  newResumeSubmissionTrigger: NewResumeSubmissionTriggerNode,
+  jobStatusChangeTrigger: JobStatusChangeTriggerNode,
+  dataMetricTrigger: DataMetricTriggerNode,
+  scheduledTrigger: ScheduledTriggerNode,
+  manualTrigger: ManualTriggerNode,
   // Actions
+  interviewInvitation: InterviewInvitationNode,
+  resumeStatusUpdate: ResumeStatusUpdateNode,
+  jobPosting: JobPostingNode,
+  dataExport: DataExportNode,
+  talentPoolManagement: TalentPoolManagementNode,
+  salaryInquiry: SalaryInquiryNode,
+  feedbackCollection: FeedbackCollectionNode,
+  taskAllocation: TaskAllocationNode,
+  templateApplication: TemplateApplicationNode,
+  workflowLog: WorkflowLogNode,
   interviewInvitation: InterviewInvitationNode,
   resumeStatusUpdate: ResumeStatusUpdateNode,
   jobPosting: JobPostingNode,
@@ -92,7 +151,13 @@ const nodeTypes = {
   // Decisions
   loopExecution: LoopExecutionNode,
   priorityJudgment: PriorityJudgmentNode,
+  loopExecution: LoopExecutionNode,
+  priorityJudgment: PriorityJudgmentNode,
   // Data
+  dataMetricReference: DataMetricReferenceNode,
+  dataVisualization: DataVisualizationNode,
+  dataCalculation: DataCalculationNode,
+  dataFilter: DataFilterNode,
   dataMetricReference: DataMetricReferenceNode,
   dataVisualization: DataVisualizationNode,
   dataCalculation: DataCalculationNode,
@@ -103,7 +168,15 @@ const nodeTypes = {
   enterpriseOaIntegration: EnterpriseOAIntegrationNode,
   socialMediaIntegration: SocialMediaIntegrationNode,
   cloudStorageIntegration: CloudStorageIntegrationNode,
+  videoInterviewIntegration: VideoInterviewIntegrationNode,
+  backgroundCheck: BackgroundCheckNode,
+  enterpriseOaIntegration: EnterpriseOAIntegrationNode,
+  socialMediaIntegration: SocialMediaIntegrationNode,
+  cloudStorageIntegration: CloudStorageIntegrationNode,
   // Extensions
+  customFunction: CustomFunctionNode,
+  subworkflowCall: SubworkflowCallNode,
+  externalApi: ExternalAPINode,
   customFunction: CustomFunctionNode,
   subworkflowCall: SubworkflowCallNode,
   externalApi: ExternalAPINode,

@@ -1,6 +1,10 @@
 'use client';
 
+<<<<<<< HEAD
 import { useEffect, useState } from 'react';
+=======
+import React, { useEffect, useState } from 'react';
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
 import type { Node, ReactFlowInstance } from 'reactflow';
 import WorkflowCanvas from '@/components/workflow/canvas/WorkflowCanvas';
 import NodePalette from '@/components/workflow/palette/NodePalette';

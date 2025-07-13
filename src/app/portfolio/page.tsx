@@ -166,7 +166,7 @@ const PortfolioDashboard: React.FC = () => {
   if (isLoading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="flex justify-between items-center mb-8">
           <div className="skeleton h-8 w-48" />
           <div className="skeleton h-12 w-40" />
         </div>
@@ -174,10 +174,10 @@ const PortfolioDashboard: React.FC = () => {
           {[...Array(6)].map((_, i) => (
             <div key={`skeleton-${i}`} className="card bg-base-100 shadow-xl">
               <div className="card-body">
-                <div className="skeleton mb-2 h-6 w-3/4" />
-                <div className="skeleton mb-1 h-4 w-full" />
-                <div className="skeleton mb-4 h-4 w-2/3" />
-                <div className="mb-4 flex gap-2">
+                <div className="skeleton h-6 w-3/4 mb-2" />
+                <div className="skeleton h-4 w-full mb-1" />
+                <div className="skeleton h-4 w-2/3 mb-4" />
+                <div className="flex gap-2 mb-4">
                   <div className="skeleton h-6 w-16" />
                   <div className="skeleton h-6 w-20" />
                 </div>

@@ -584,16 +584,16 @@ const ResumeUploadPage: NextPage = () => {
 
               {/* Analysis Progress */}
               {analysisState.isLoading && (
-                <div className="mt-4 rounded-lg bg-blue-50 p-4">
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="font-medium text-blue-800 text-sm">
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium text-blue-800">
                       {analysisState.message || 'Processing...'}
                     </span>
-                    <span className="text-blue-600 text-sm">{analysisState.progress || 0}%</span>
+                    <span className="text-sm text-blue-600">{analysisState.progress || 0}%</span>
                   </div>
-                  <div className="h-2 w-full rounded-full bg-blue-200">
+                  <div className="w-full bg-blue-200 rounded-full h-2">
                     <div
-                      className="h-2 rounded-full bg-blue-600 transition-all duration-300"
+                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
                       style={{ width: `${analysisState.progress || 0}%` }}
                     />
                   </div>
@@ -602,10 +602,10 @@ const ResumeUploadPage: NextPage = () => {
 
               {/* Error Display */}
               {!analysisState.isLoading && analysisState.message && (
-                <div className="mt-4 rounded-lg bg-red-50 p-4">
+                <div className="mt-4 p-4 bg-red-50 rounded-lg">
                   <div className="flex">
-                    <ExclamationTriangleIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-red-400" />
-                    <span className="text-red-800 text-sm">{analysisState.message}</span>
+                    <ExclamationTriangleIcon className="h-5 w-5 text-red-400 mr-2 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm text-red-800">{analysisState.message}</span>
                   </div>
                 </div>
               )}

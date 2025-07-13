@@ -90,9 +90,9 @@ const SpeakerCard: React.FC<{ speaker: EventSpeaker }> = ({ speaker }) => (
         )}
         <div className="min-w-0 flex-1">
           <h4 className="font-medium text-gray-900">{speaker.name}</h4>
-          {speaker.title && <p className="text-gray-600 text-sm">{speaker.title}</p>}
-          {speaker.company && <p className="text-gray-500 text-sm">{speaker.company}</p>}
-          {speaker.bio && <p className="mt-2 line-clamp-2 text-gray-600 text-sm">{speaker.bio}</p>}
+          {speaker.title && <p className="text-sm text-gray-600">{speaker.title}</p>}
+          {speaker.company && <p className="text-sm text-gray-500">{speaker.company}</p>}
+          {speaker.bio && <p className="mt-2 text-sm text-gray-600 line-clamp-2">{speaker.bio}</p>}
         </div>
         {speaker.linkedinUrl && (
           <Button variant="ghost" size="sm" asChild>
@@ -155,7 +155,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
           text: event.shortDescription || event.description,
           url: window.location.href,
         });
-      } catch (_error) {
+      } catch (error) {
         // User cancelled or error occurred
       }
     } else {
@@ -166,7 +166,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
           title: 'Link Copied',
           description: 'Event link has been copied to your clipboard.',
         });
-      } catch (_error) {
+      } catch (error) {
         toast({
           title: 'Share Failed',
           description: 'Unable to share this event.',
@@ -183,7 +183,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
     const endDate = new Date(event.endDateTime);
 
     // Format dates for Google Calendar
-    const formatDate = (date: Date) => `${date.toISOString().replace(/[-:]/g, '').split('.')[0]}Z`;
+    const formatDate = (date: Date) => date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 
     const calendarUrl = new URL('https://calendar.google.com/calendar/render');
     calendarUrl.searchParams.set('action', 'TEMPLATE');
@@ -223,7 +223,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h1 className="font-bold text-2xl text-gray-900">Event Not Found</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Event Not Found</h1>
           <p className="mt-2 text-gray-600">
             {error instanceof Error ? error.message : "The event you're looking for doesn't exist."}
           </p>
@@ -278,7 +278,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
             )}
 
             <div
-              className={`p-6 sm:p-8 ${event.bannerUrl ? '-mt-20 relative rounded-t-lg bg-white' : ''}`}
+              className={`p-6 sm:p-8 ${event.bannerUrl ? 'relative -mt-20 bg-white rounded-t-lg' : ''}`}
             >
               {/* Status and badges */}
               <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -295,8 +295,8 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
               {/* Title and actions */}
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
-                  <h1 className="font-bold text-2xl text-gray-900 sm:text-3xl">{event.title}</h1>
-                  <p className="mt-2 text-gray-600 text-lg">Organized by {event.organizer}</p>
+                  <h1 className="text-2xl font-bold text-gray-900 sm:text-3xl">{event.title}</h1>
+                  <p className="mt-2 text-lg text-gray-600">Organized by {event.organizer}</p>
                 </div>
 
                 {/* Action buttons */}
@@ -329,7 +329,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
                   <Button onClick={addToCalendar} variant="outline" size="sm">
                     <CalendarIcon className="h-4 w-4" />
-                    <span className="ml-2 hidden sm:inline">Add to Calendar</span>
+                    <span className="hidden sm:inline ml-2">Add to Calendar</span>
                   </Button>
 
                   <Button
@@ -390,14 +390,14 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                               <div className="min-w-0 flex-1">
                                 <h4 className="font-medium text-gray-900">{session.title}</h4>
                                 {session.description && (
-                                  <p className="text-gray-600 text-sm">{session.description}</p>
+                                  <p className="text-sm text-gray-600">{session.description}</p>
                                 )}
                               </div>
                               <div className="flex-shrink-0 text-right">
-                                <p className="font-medium text-gray-900 text-sm">
+                                <p className="text-sm font-medium text-gray-900">
                                   {format(new Date(session.startTime), 'h:mm a')}
                                 </p>
-                                <p className="text-gray-500 text-xs">
+                                <p className="text-xs text-gray-500">
                                   {format(new Date(session.endTime), 'h:mm a')}
                                 </p>
                               </div>
@@ -453,12 +453,12 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                 <CardContent className="space-y-4">
                   {/* Date and Time */}
                   <div className="flex items-start gap-3">
-                    <CalendarIcon className="mt-0.5 h-5 w-5 text-gray-400" />
+                    <CalendarIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="font-medium text-gray-900">
                         {format(new Date(event.startDateTime), 'EEEE, MMMM d, yyyy')}
                       </p>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-sm text-gray-600">
                         {format(new Date(event.startDateTime), 'h:mm a')} -{' '}
                         {format(new Date(event.endDateTime), 'h:mm a')} ({event.timezone})
                       </p>
@@ -467,14 +467,14 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
                   {/* Location */}
                   <div className="flex items-start gap-3">
-                    <MapPinIcon className="mt-0.5 h-5 w-5 text-gray-400" />
+                    <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="font-medium text-gray-900">
                         {event.format === 'virtual'
                           ? 'Virtual Event'
                           : event.location.venue || 'In Person'}
                       </p>
-                      <p className="text-gray-600 text-sm">
+                      <p className="text-sm text-gray-600">
                         {event.format === 'virtual'
                           ? event.location.platform || 'Online'
                           : event.location.city
@@ -482,14 +482,14 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                             : 'Location TBA'}
                       </p>
                       {event.location.address && event.format !== 'virtual' && (
-                        <p className="mt-1 text-gray-500 text-xs">{event.location.address}</p>
+                        <p className="text-xs text-gray-500 mt-1">{event.location.address}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Price */}
                   <div className="flex items-start gap-3">
-                    <CurrencyDollarIcon className="mt-0.5 h-5 w-5 text-gray-400" />
+                    <CurrencyDollarIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="font-medium text-gray-900">{formatPrice()}</p>
                     </div>
@@ -497,11 +497,11 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
                   {/* Attendance */}
                   <div className="flex items-start gap-3">
-                    <UsersIcon className="mt-0.5 h-5 w-5 text-gray-400" />
+                    <UsersIcon className="h-5 w-5 text-gray-400 mt-0.5" />
                     <div>
                       <p className="font-medium text-gray-900">{event.registeredCount} attendees</p>
                       {event.capacity && (
-                        <p className="text-gray-600 text-sm">
+                        <p className="text-sm text-gray-600">
                           {event.capacity - event.registeredCount} spots remaining
                         </p>
                       )}
@@ -518,7 +518,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                 <CardContent className="space-y-4">
                   {event.industry.length > 0 && (
                     <div>
-                      <h4 className="mb-2 font-medium text-gray-900 text-sm">Industries</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Industries</h4>
                       <div className="flex flex-wrap gap-1">
                         {event.industry.map((industry) => (
                           <Badge key={industry} variant="outline" className="text-xs">
@@ -531,7 +531,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
                   {event.tags.length > 0 && (
                     <div>
-                      <h4 className="mb-2 font-medium text-gray-900 text-sm">Tags</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Tags</h4>
                       <div className="flex flex-wrap gap-1">
                         {event.tags.map((tag) => (
                           <Badge key={tag} variant="secondary" className="text-xs">
@@ -544,7 +544,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
                   {event.targetAudience.length > 0 && (
                     <div>
-                      <h4 className="mb-2 font-medium text-gray-900 text-sm">Target Audience</h4>
+                      <h4 className="text-sm font-medium text-gray-900 mb-2">Target Audience</h4>
                       <div className="flex flex-wrap gap-1">
                         {event.targetAudience.map((audience) => (
                           <Badge key={audience} variant="outline" className="text-xs">
@@ -567,8 +567,8 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                     <div className="space-y-2">
                       {event.recommendationReasons.map((reason, index) => (
                         <div key={index} className="flex items-start gap-2">
-                          <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-600" />
-                          <span className="text-gray-600 text-sm">{reason}</span>
+                          <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-blue-600 flex-shrink-0" />
+                          <span className="text-sm text-gray-600">{reason}</span>
                         </div>
                       ))}
                     </div>

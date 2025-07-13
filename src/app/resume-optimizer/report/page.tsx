@@ -518,6 +518,7 @@ const ResumeOptimizerReportPage: NextPage = () => {
                 <span className="font-semibold">Back to Optimizer</span>
               </Link>
               <div className="h-8 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
+              <div className="h-8 w-px bg-gradient-to-b from-transparent via-stone-300 to-transparent" />
               <div className="flex items-center space-x-3">
                 <div className="rounded-xl border border-stone-200 bg-stone-100 p-2">
                   <DocumentDuplicateIcon className="h-6 w-6 text-stone-600" />

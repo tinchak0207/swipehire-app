@@ -394,6 +394,7 @@ const ResumeImportPage: NextPage = () => {
                   {isAnalyzing ? (
                     <>
                       <span className="loading loading-spinner loading-sm mr-2" />
+                      <span className="loading loading-spinner loading-sm mr-2" />
                       Preparing Analysis...
                     </>
                   ) : (

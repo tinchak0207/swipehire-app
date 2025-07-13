@@ -5,10 +5,20 @@ import {
   Award,
   BookOpen,
   Brain,
+<<<<<<< HEAD
   Building2,
   Calendar,
   CheckCircle2,
   FileText,
+=======
+  Briefcase,
+  Building2,
+  Calendar,
+  CheckCircle2,
+  Clock,
+  FileText,
+  GraduationCap,
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
   Lightbulb,
   Lock,
   MessageSquare,
@@ -16,6 +26,10 @@ import {
   Search,
   Target,
   TrendingUp,
+<<<<<<< HEAD
+=======
+  Users,
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { CompanyResearch } from '@/components/interview/CompanyResearch';
@@ -28,10 +42,21 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import type {
+<<<<<<< HEAD
   InterviewCalendar,
   InterviewPhase,
   InterviewProgress,
   InterviewQuestion,
+=======
+  CompanyInsight,
+  Industry,
+  InterviewCalendar,
+  InterviewDifficulty,
+  InterviewPhase,
+  InterviewProgress,
+  InterviewQuestion,
+  InterviewType,
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
   PreparationTip,
   UserInterviewProfile,
   UserRole,
@@ -74,7 +99,11 @@ interface InterviewFeature {
 export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGuidePageProps) {
   const [activeTab, setActiveTab] = useState<InterviewPhase>('pre_interview');
   const [currentView, setCurrentView] = useState<ViewState>('overview');
+<<<<<<< HEAD
   const [_userProfile, setUserProfile] = useState<UserInterviewProfile | null>(null);
+=======
+  const [userProfile, setUserProfile] = useState<UserInterviewProfile | null>(null);
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
   const [progress, setProgress] = useState<InterviewProgress | null>(null);
   const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
   const [tips, setTips] = useState<PreparationTip[]>([]);
@@ -145,7 +174,11 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
     } else {
       setLoading(false);
     }
+<<<<<<< HEAD
   }, [isGuestMode, loadUserData]);
+=======
+  }, [isGuestMode]);
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
 
   const loadUserData = async () => {
     try {
@@ -386,7 +419,11 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
                       <p className="text-sm text-white/80">{feature.description}</p>
                     </CardContent>
                     {(!isGuestMode || ['research', 'preparation'].includes(feature.key)) && (
+<<<<<<< HEAD
                       <ArrowRight className="absolute right-4 bottom-4 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100" />
+=======
+                      <ArrowRight className="absolute bottom-4 right-4 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100" />
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                     )}
                   </Card>
                 ))}
@@ -426,7 +463,11 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
+<<<<<<< HEAD
                         {questions.slice(0, 3).map((question, _index) => (
+=======
+                        {questions.slice(0, 3).map((question, index) => (
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                           <div key={question.id} className="space-y-2">
                             <p className="font-medium text-sm">{question.question}</p>
                             <div className="flex space-x-2">

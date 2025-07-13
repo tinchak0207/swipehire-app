@@ -19,6 +19,7 @@ import {
   HeartHandshake,
   LayoutGrid,
   Loader2,
+  MessageSquare,
   Settings as SettingsIcon,
   User,
   UserCircle,

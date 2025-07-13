@@ -16,10 +16,10 @@ import type { EditorState } from '@/lib/types/resume-optimizer';
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => (
-    <div className="animate-pulse rounded-lg bg-base-200 p-8">
-      <div className="mb-4 h-4 w-3/4 rounded bg-base-300" />
-      <div className="mb-4 h-4 w-1/2 rounded bg-base-300" />
-      <div className="h-4 w-5/6 rounded bg-base-300" />
+    <div className="bg-base-200 rounded-lg p-8 animate-pulse">
+      <div className="h-4 bg-base-300 rounded w-3/4 mb-4" />
+      <div className="h-4 bg-base-300 rounded w-1/2 mb-4" />
+      <div className="h-4 bg-base-300 rounded w-5/6" />
     </div>
   ),
 });
@@ -408,7 +408,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
             <div className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-lg">
               <div className="flex items-center space-x-3">
                 <div className="loading loading-spinner loading-sm text-primary" />
-                <span className="font-medium text-sm">Saving changes...</span>
+                <span className="text-sm font-medium">Saving changes...</span>
               </div>
             </div>
           </div>

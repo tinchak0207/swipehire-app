@@ -235,9 +235,11 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               className="h-2 w-2 animate-bounce rounded-full bg-indigo-400"
               style={{ animationDelay: '0.1s' }}
             />
+            />
             <div
               className="h-2 w-2 animate-bounce rounded-full bg-purple-400"
               style={{ animationDelay: '0.2s' }}
+            />
             />
           </div>
         </div>
@@ -619,6 +621,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
                 >
                   {isReanalyzing ? (
                     <>
+                      <span className="loading loading-spinner loading-xs mr-2" />
                       <span className="loading loading-spinner loading-xs mr-2" />
                       Analyzing...
                     </>

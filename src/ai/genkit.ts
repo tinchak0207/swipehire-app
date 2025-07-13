@@ -320,6 +320,8 @@ export const ai = {
     name: string;
     input: { schema: z.ZodTypeAny };
     output: { schema: z.ZodTypeAny };
+    input: { schema: z.ZodTypeAny };
+    output: { schema: z.ZodTypeAny };
     prompt: string;
   }) => {
     return {

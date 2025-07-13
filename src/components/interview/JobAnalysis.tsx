@@ -27,8 +27,15 @@ import { useToast } from '@/hooks/use-toast';
 import type {
   Industry,
   InterviewDifficulty,
+<<<<<<< HEAD
   InterviewType,
   JobAnalysis,
+=======
+  InterviewQuestion,
+  InterviewType,
+  JobAnalysis,
+  SkillGap,
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
   WorkExperienceLevel,
 } from '@/lib/types';
 import { analyzeJob } from '@/services/interviewService';
@@ -347,7 +354,11 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
                           ? 'secondary'
                           : 'destructive'
                     }
+<<<<<<< HEAD
                     className="px-3 py-1 text-lg"
+=======
+                    className="text-lg px-3 py-1"
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                   >
                     {analysisResult.fitScore}% Match
                   </Badge>
@@ -358,7 +369,11 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
               <Progress value={analysisResult.fitScore} className="mb-4" />
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
+<<<<<<< HEAD
                   <h4 className="mb-2 font-medium">Required Skills Match</h4>
+=======
+                  <h4 className="font-medium mb-2">Required Skills Match</h4>
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                   <div className="space-y-1">
                     {analysisResult.requiredSkills.slice(0, 5).map((skill, index) => (
                       <div key={index} className="flex items-center justify-between text-sm">
@@ -369,8 +384,13 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
                   </div>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <h4 className="mb-2 font-medium">Experience Level</h4>
                   <p className="text-muted-foreground text-sm">
+=======
+                  <h4 className="font-medium mb-2">Experience Level</h4>
+                  <p className="text-sm text-muted-foreground">
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                     Position requires: {analysisResult.experienceLevel.replace('_', ' ')}
                   </p>
                   <p className="text-sm">✓ Matches your experience level</p>
@@ -395,7 +415,11 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
                   return (
                     <div
                       key={index}
+<<<<<<< HEAD
                       className="flex items-center justify-between rounded-lg border p-3"
+=======
+                      className="flex items-center justify-between p-3 rounded-lg border"
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                     >
                       <div className="flex items-center space-x-3">
                         <Icon className={`h-5 w-5 ${getSkillGapColor(skill.gap)}`} />
@@ -435,9 +459,15 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+<<<<<<< HEAD
                 {analysisResult.predictedQuestions.map((question, _index) => (
                   <div key={question.id} className="rounded-lg border p-4">
                     <div className="mb-2 flex items-start justify-between">
+=======
+                {analysisResult.predictedQuestions.map((question, index) => (
+                  <div key={question.id} className="rounded-lg border p-4">
+                    <div className="flex items-start justify-between mb-2">
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                       <p className="font-medium">{question.question}</p>
                       <div className="flex space-x-2">
                         <Badge variant="outline">{question.category}</Badge>
@@ -495,16 +525,26 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
             <CardContent>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div>
+<<<<<<< HEAD
                   <h4 className="mb-2 font-medium">Key Responsibilities</h4>
                   <ul className="list-inside list-disc space-y-1 text-sm">
+=======
+                  <h4 className="font-medium mb-2">Key Responsibilities</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                     {analysisResult.keyResponsibilities.map((resp, index) => (
                       <li key={index}>{resp}</li>
                     ))}
                   </ul>
                 </div>
                 <div>
+<<<<<<< HEAD
                   <h4 className="mb-2 font-medium">Qualifications</h4>
                   <ul className="list-inside list-disc space-y-1 text-sm">
+=======
+                  <h4 className="font-medium mb-2">Qualifications</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                     {analysisResult.qualifications.map((qual, index) => (
                       <li key={index}>{qual}</li>
                     ))}
@@ -512,7 +552,11 @@ export function JobAnalysisComponent({ onBack, isGuestMode }: JobAnalysisProps) 
                 </div>
               </div>
               {analysisResult.salaryRange && (
+<<<<<<< HEAD
                 <div className="mt-4 rounded-lg bg-muted p-3">
+=======
+                <div className="mt-4 p-3 bg-muted rounded-lg">
+>>>>>>> b5841cab41f8e93526841d798513452ab338b820
                   <p className="text-sm">
                     <strong>Salary Range:</strong> {analysisResult.salaryRange}
                   </p>

@@ -1,4 +1,5 @@
 import type React from 'react';
+import type React from 'react';
 import { WORKFLOW_NODE_DEFINITIONS } from '@/lib/workflow-node-definitions';
 
 const onDragStart = (event: React.DragEvent<HTMLDivElement>, nodeType: string) => {
