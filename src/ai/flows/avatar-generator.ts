@@ -89,43 +89,46 @@ export async function generateAvatar(input: AvatarGeneratorInput): Promise<Avata
     throw new Error('Avatar generation failed');
   }
   return {
-    avatarDataUri: String(result.avatarDataUri)
+    avatarDataUri: String(result.avatarDataUri),
   };
 }
 
-const avatarGeneratorFlow = ai.defineFlow({
-  name: 'avatarGeneratorFlow',
-  inputSchema: AvatarGeneratorInputSchema,
-  outputSchema: AvatarGeneratorOutputSchema,
-}, async (input: z.infer<typeof AvatarGeneratorInputSchema>) => {
+const avatarGeneratorFlow = ai.defineFlow(
+  {
+    name: 'avatarGeneratorFlow',
+    inputSchema: AvatarGeneratorInputSchema,
+    outputSchema: AvatarGeneratorOutputSchema,
+  },
+  async (input) => {
+    const validatedInput = input as AvatarGeneratorInput;
     let _constructedPrompt =
       'Generate a photorealistic, professional virtual avatar suitable for a resume or online profile. ';
 
-    if (input.gender && input.gender !== 'unspecified') {
-      _constructedPrompt += `The avatar should appear ${input.gender}. `;
+    if (validatedInput.gender && validatedInput.gender !== 'unspecified') {
+      _constructedPrompt += `The avatar should appear ${validatedInput.gender}. `;
     }
-    if (input.ageRange && input.ageRange !== 'unspecified') {
+    if (validatedInput.ageRange && validatedInput.ageRange !== 'unspecified') {
       const ageMapping = {
         young_adult: 'in their 20s (young adult)',
         adult: 'in their 30s or 40s (adult)',
         middle_aged: 'in their 50s or older (middle-aged)',
       };
-      _constructedPrompt += `The avatar's age should be approximately ${ageMapping[input.ageRange as keyof typeof ageMapping] || input.ageRange}. `;
+      _constructedPrompt += `The avatar's age should be approximately ${ageMapping[validatedInput.ageRange as keyof typeof ageMapping] || validatedInput.ageRange}. `;
     }
-    if (input.professionalImageStyle) {
-      _constructedPrompt += `Their clothing and overall style should be '${input.professionalImageStyle.replace(/_/g, ' ')}'. `;
+    if (validatedInput.professionalImageStyle) {
+      _constructedPrompt += `Their clothing and overall style should be '${validatedInput.professionalImageStyle.replace(/_/g, ' ')}'. `;
     }
-    if (input.animationExpression) {
-      _constructedPrompt += `Their expression or pose should convey a '${input.animationExpression.replace(/_/g, ' ')}' demeanor. `;
+    if (validatedInput.animationExpression) {
+      _constructedPrompt += `Their expression or pose should convey a '${validatedInput.animationExpression.replace(/_/g, ' ')}' demeanor. `;
     }
-    if (input.backgroundEnvironment) {
-      _constructedPrompt += `The background should be a '${input.backgroundEnvironment.replace(/_/g, ' ')}' setting. `;
+    if (validatedInput.backgroundEnvironment) {
+      _constructedPrompt += `The background should be a '${validatedInput.backgroundEnvironment.replace(/_/g, ' ')}' setting. `;
     }
 
-    _constructedPrompt += `Specific appearance details: "${input.appearanceDetails}". `;
+    _constructedPrompt += `Specific appearance details: "${validatedInput.appearanceDetails}". `;
 
-    if (input.jobTypeHint) {
-      constructedPrompt += `The avatar's overall look should be appropriate for a '${input.jobTypeHint}' role. `;
+    if (validatedInput.jobTypeHint) {
+      _constructedPrompt += `The avatar's overall look should be appropriate for a '${validatedInput.jobTypeHint}' role. `;
     }
 
     _constructedPrompt +=
@@ -149,7 +152,7 @@ const avatarGeneratorFlow = ai.defineFlow({
           Avatar Generated
         </text>
         <text x="100" y="205" text-anchor="middle" font-family="Arial" font-size="8" fill="#999">
-          ${input.jobTypeHint || 'Professional'}
+          ${validatedInput.jobTypeHint || 'Professional'}
         </text>
       </svg>
     `)}`;

@@ -11,7 +11,6 @@ import path from 'node:path';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { Media } from '@/lib/types/portfolio';
-import type { Media } from '@/lib/types/portfolio';
 
 // File validation schema
 const fileValidationSchema = z.object({

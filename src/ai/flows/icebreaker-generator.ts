@@ -77,24 +77,43 @@ The question should help break the ice while also providing insight into the can
 Provide both the question and a brief reasoning for why this question was chosen.`,
 });
 
+function generateFallbackIcebreaker(
+  input: GenerateIcebreakerQuestionInput
+): GenerateIcebreakerQuestionOutput {
+  return {
+    question: `Hi ${input.candidateName}, I noticed your experience with ${input.candidateSkills}. What initially drew you to this field, and how do you see it evolving in the context of ${input.jobDescription}?`,
+    reasoning:
+      'Generated a fallback question based on candidate skills and job description when AI output was unavailable.',
+  };
+}
+
 export const generateIcebreakerQuestionFlow = ai.defineFlow(
   {
     name: 'generateIcebreakerQuestionFlow',
     inputSchema: GenerateIcebreakerQuestionInputSchema,
     outputSchema: GenerateIcebreakerQuestionOutputSchema,
   },
-  async (input) => {
-    const { output } = await prompt.generate(input);
+  async (input: unknown) => {
+    const validatedInput = GenerateIcebreakerQuestionInputSchema.parse(input);
+    const response = (await prompt.generate(validatedInput)) as {
+      output: () => Promise<GenerateIcebreakerQuestionOutput>;
+    };
 
-    if (!output || !output.question || output.question.trim() === '') {
-      console.warn('Icebreaker generator returned empty question for input:', input);
-      return {
-        question: `Hi ${input.candidateName}, I noticed your experience with ${input.candidateSkills}. What initially drew you to this field, and how do you see it evolving in the context of ${input.jobDescription}?`,
-        reasoning:
-          'Generated a fallback question based on candidate skills and job description when AI output was unavailable.',
-      };
+    if (!response || typeof response.output !== 'function') {
+      console.warn('Prompt generation returned invalid response for input:', validatedInput);
+      return generateFallbackIcebreaker(validatedInput);
     }
 
-    return output;
+    const output = await response.output();
+
+    if (!output || !output.question || output.question.trim() === '') {
+      console.warn('Icebreaker generator returned empty question for input:', validatedInput);
+      return generateFallbackIcebreaker(validatedInput);
+    }
+
+    return {
+      question: output.question,
+      reasoning: output.reasoning,
+    };
   }
 );

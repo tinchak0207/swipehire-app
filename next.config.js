@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const path = require('node:path');
+const webpack = require('webpack');
 const nextConfig = {
   transpilePackages: ['@reactflow/core'],
   images: {
@@ -35,11 +36,13 @@ const nextConfig = {
       config.resolve.fallback.fs = false;
     }
 
-    // Add handlebars loader
-    config.module.rules.push({
-      test: /\.handlebars$/,
-      loader: 'handlebars-loader',
-    });
+    // Ignore handlebars require.extensions warnings
+    config.plugins.push(
+      new webpack.IgnorePlugin({
+        resourceRegExp: /^\.\/lib\/handlebars$/,
+        contextRegExp: /handlebars$/
+      })
+    );
 
     // Add path aliases from tsconfig.json
     config.resolve.alias = {

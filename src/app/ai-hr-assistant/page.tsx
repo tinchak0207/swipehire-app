@@ -1,18 +1,18 @@
 'use client';
 
 import AOS from 'aos';
+import 'aos/dist/aos.css';
 import { signOut } from 'firebase/auth';
 import { ArrowRight, Bot, Clock, Loader2, MessageSquare, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import type React from 'react'; // Added useState
-import { useEffect, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { AppHeader } from '../../components/AppHeader';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
 import { useUserPreferences } from '../../contexts/UserPreferencesContext';
 import { auth } from '../../lib/firebase';
-import 'aos/dist/aos.css';
 
 export default function AiHrAssistantPage() {
   const { fullBackendUser, mongoDbUserId, preferences } = useUserPreferences();
@@ -30,20 +30,23 @@ export default function AiHrAssistantPage() {
   const fullAiReply =
     "Hello Applicant! Thank you for your interest. Based on your skills, we think you're a good fit. Would you be available for an interview next Tuesday or Wednesday?";
 
-  const typeMessage = async (
-    message: string,
-    setTextState: React.Dispatch<React.SetStateAction<string>>,
-    setIsTypingState: React.Dispatch<React.SetStateAction<boolean>>,
-    speed = 30 // Adjusted speed
-  ) => {
-    setIsTypingState(true);
-    setTextState('');
-    for (let i = 0; i < message.length; i++) {
-      setTextState((prev) => prev + message.charAt(i));
-      await new Promise((resolve) => setTimeout(resolve, speed));
-    }
-    setIsTypingState(false);
-  };
+  const typeMessage = useCallback(
+    async (
+      message: string,
+      setTextState: Dispatch<SetStateAction<string>>,
+      setIsTypingState: Dispatch<SetStateAction<boolean>>,
+      speed = 30, // Adjusted speed
+    ): Promise<void> => {
+      setIsTypingState(true);
+      setTextState('');
+      for (let i = 0; i < message.length; i++) {
+        setTextState((prev) => prev + message.charAt(i));
+        await new Promise((resolve) => setTimeout(resolve, speed));
+      }
+      setIsTypingState(false);
+    },
+    [],
+  );
 
   useEffect(() => {
     AOS.init({
@@ -79,7 +82,7 @@ export default function AiHrAssistantPage() {
     // For now, relying on AOS reveal and a slight delay.
     const cardElement = document.querySelector('[data-aos="fade-left"]');
     if (cardElement) {
-      // Simple check if AOS might have made it visible, then animate.
+      // Simple check if AOS might have it visible, then animate.
       // This is a basic way to sequence after AOS.
       setTimeout(
         () => {
@@ -88,7 +91,7 @@ export default function AiHrAssistantPage() {
             animateChat();
           }
         },
-        Number.parseFloat((cardElement as HTMLElement).dataset.aosDelay || '0') + 200
+        Number.parseFloat((cardElement as HTMLElement).dataset.aosDelay || '0') + 200,
       ); // Delay by AOS delay + buffer
     } else {
       // Fallback if AOS selector fails, run after a fixed delay
@@ -96,9 +99,7 @@ export default function AiHrAssistantPage() {
         if (typeof window !== 'undefined') animateChat();
       }, 500);
     }
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [typeMessage]); // Empty dependency array: runs once on mount after initial render.
+  }, [typeMessage]); // Added typeMessage as dependency since it's used inside
 
   if (preferences.isLoading && !currentUser && !mongoDbUserId) {
     return (
