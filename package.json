@@ -122,7 +122,8 @@
     "postcss": "^8.4.35",
     "uuid": "^11.1.0",
     "zod": "^3.24.2",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "typescript": "^5.8.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.0.4",
@@ -158,7 +159,6 @@
     "sharp": "^0.34.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
     "whatwg-fetch": "^3.6.20"
   },
   "description": "This is a NextJS starter in Firebase Studio.",
