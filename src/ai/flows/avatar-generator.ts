@@ -81,16 +81,23 @@ const AvatarGeneratorOutputSchema = z.object({
 export type AvatarGeneratorOutput = z.infer<typeof AvatarGeneratorOutputSchema>;
 
 export async function generateAvatar(input: AvatarGeneratorInput): Promise<AvatarGeneratorOutput> {
-  return avatarGeneratorFlow(input);
+  const result = await avatarGeneratorFlow(input);
+  if (!result) {
+    throw new Error('Avatar generation failed');
+  }
+  if (typeof result !== 'object' || result === null || !('avatarDataUri' in result)) {
+    throw new Error('Avatar generation failed');
+  }
+  return {
+    avatarDataUri: String(result.avatarDataUri)
+  };
 }
 
-const avatarGeneratorFlow = ai.defineFlow(
-  {
-    name: 'avatarGeneratorFlow',
-    inputSchema: AvatarGeneratorInputSchema,
-    outputSchema: AvatarGeneratorOutputSchema,
-  },
-  async (input: AvatarGeneratorInput) => {
+const avatarGeneratorFlow = ai.defineFlow({
+  name: 'avatarGeneratorFlow',
+  inputSchema: AvatarGeneratorInputSchema,
+  outputSchema: AvatarGeneratorOutputSchema,
+}, async (input: z.infer<typeof AvatarGeneratorInputSchema>) => {
     let _constructedPrompt =
       'Generate a photorealistic, professional virtual avatar suitable for a resume or online profile. ';
 
