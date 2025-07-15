@@ -5,11 +5,8 @@ import {
   BookmarkIcon,
   BuildingOfficeIcon,
   CalendarIcon,
-  ClockIcon,
   CurrencyDollarIcon,
   MapPinIcon,
-  TagIcon,
-  UsersIcon,
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon, HeartIcon } from '@heroicons/react/24/solid';
 import { format, formatDistanceToNow, isAfter, isBefore } from 'date-fns';
@@ -18,7 +15,7 @@ import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useRegisterEvent, useSaveEvent } from '@/hooks/useEvents';
-import type { EventFormat, IndustryEvent } from '@/lib/types';
+import { EventFormat, type IndustryEvent } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface TikTokEventCardProps {
@@ -148,7 +145,7 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                 <div className="space-y-2">
                   <Badge
                     className={cn(
-                      'text-xs font-semibold text-white bg-blue-500/80 backdrop-blur-sm'
+                      'bg-blue-500/80 font-semibold text-white text-xs backdrop-blur-sm'
                     )}
                   >
                     {statusInfo.label}
@@ -157,7 +154,7 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                     variant="outline"
                     className="border-gray-300/50 bg-white/30 text-gray-700 backdrop-blur-sm"
                   >
-                    {getFormatIcon(event.format)} {formatEventType(event.eventType)}
+                    {getFormatIcon(event.format!)} {formatEventType(event.eventType)}
                   </Badge>
                 </div>
 
@@ -173,11 +170,11 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
               <div className="flex-1 space-y-4">
                 {/* Event Title and Description */}
                 <div className="space-y-2">
-                  <h1 className="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">
+                  <h1 className="font-bold text-gray-900 text-xl leading-tight sm:text-2xl">
                     {event.title}
                   </h1>
-                  <p className="text-sm text-gray-600 line-clamp-3">
-                    {event.shortDescription || event.description}
+                  <p className="line-clamp-3 text-gray-600 text-sm">
+                    {event.description}
                   </p>
                 </div>
 
@@ -191,7 +188,7 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                         <div className="font-medium text-gray-900">
                           {format(new Date(event.startDateTime), 'MMM dd, yyyy')}
                         </div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-gray-600 text-xs">
                           {format(new Date(event.startDateTime), 'h:mm a')}
                         </div>
                       </div>
@@ -202,11 +199,11 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                       <MapPinIcon className="h-4 w-4 text-blue-600" />
                       <div>
                         <div className="font-medium text-gray-900">
-                          {event.location.type === 'virtual'
+                          {event.location.type === EventFormat.VIRTUAL
                             ? 'Virtual Event'
                             : event.location.city || 'Location TBD'}
                         </div>
-                        <div className="text-xs text-gray-600">
+                        <div className="text-gray-600 text-xs">
                           {event.location.venue || event.location.platform || ''}
                         </div>
                       </div>
@@ -222,7 +219,7 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                       </div>
                       <div className="flex items-center space-x-2">
                         <BuildingOfficeIcon className="h-4 w-4 text-gray-600" />
-                        <span className="text-xs text-gray-600">{event.organizer}</span>
+                        <span className="text-gray-600 text-xs">{event.organizer.name}</span>
                       </div>
                     </div>
                   </div>
@@ -252,24 +249,24 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                 )}
 
                 {/* Speakers Preview */}
-                {event.speakers.length > 0 && (
+                {event.speakers && event.speakers.length > 0 && (
                   <div className="space-y-2">
-                    <div className="text-sm font-medium text-gray-800">Featured Speakers</div>
+                    <div className="font-medium text-gray-800 text-sm">Featured Speakers</div>
                     <div className="flex space-x-2">
                       {event.speakers.slice(0, 2).map((speaker, index) => (
                         <div
                           key={index}
                           className="flex items-center space-x-2 rounded-full bg-white/40 px-3 py-1 backdrop-blur-sm"
                         >
-                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 text-xs font-medium text-blue-600">
+                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-100 font-medium text-blue-600 text-xs">
                             {speaker.name.charAt(0)}
                           </div>
-                          <span className="text-xs font-medium text-gray-700">{speaker.name}</span>
+                          <span className="font-medium text-gray-700 text-xs">{speaker.name}</span>
                         </div>
                       ))}
                       {event.speakers.length > 2 && (
                         <div className="flex items-center justify-center rounded-full bg-white/40 px-2 py-1 backdrop-blur-sm">
-                          <span className="text-xs text-gray-600">
+                          <span className="text-gray-600 text-xs">
                             +{event.speakers.length - 2}
                           </span>
                         </div>
@@ -292,10 +289,10 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                       <HeartIcon
                         className={cn(
                           'h-6 w-6 transition-colors',
-                          liked ? 'text-red-500 fill-red-500' : 'text-gray-600'
+                          liked ? 'fill-red-500 text-red-500' : 'text-gray-600'
                         )}
                       />
-                      <span className="text-xs text-gray-600">{liked ? '1.2k' : '1.1k'}</span>
+                      <span className="text-gray-600 text-xs">{liked ? '1.2k' : '1.1k'}</span>
                     </button>
 
                     {/* Bookmark Button */}
@@ -310,14 +307,14 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                         ) : (
                           <BookmarkIcon className="h-6 w-6 text-gray-600" />
                         )}
-                        <span className="text-xs text-gray-600">Save</span>
+                        <span className="text-gray-600 text-xs">Save</span>
                       </button>
                     )}
 
                     {/* Share Button */}
                     <button className="flex flex-col items-center space-y-1 transition-transform hover:scale-110">
                       <ArrowTopRightOnSquareIcon className="h-6 w-6 text-gray-600" />
-                      <span className="text-xs text-gray-600">Share</span>
+                      <span className="text-gray-600 text-xs">Share</span>
                     </button>
                   </div>
 
@@ -328,7 +325,7 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                       disabled={isRegistering}
                       size="lg"
                       className={cn(
-                        'font-semibold transition-all duration-200 hover:scale-105 backdrop-blur-sm',
+                        'font-semibold backdrop-blur-sm transition-all duration-200 hover:scale-105',
                         event.isRegistered
                           ? 'bg-green-500/80 text-white hover:bg-green-600/80'
                           : 'bg-blue-500/80 text-white hover:bg-blue-600/80'
@@ -345,11 +342,10 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
 
                     {statusInfo.status !== 'ended' && (
                       <div className="text-center">
-                        <div className="text-xs text-gray-600">{statusInfo.timeText}</div>
-                        {event.waitlistAvailable &&
-                          event.capacity &&
+                        <div className="text-gray-600 text-xs">{statusInfo.timeText}</div>
+                        {event.capacity &&
                           event.registeredCount >= event.capacity && (
-                            <div className="text-xs text-amber-600">Join Waitlist</div>
+                            <div className="text-amber-600 text-xs">Join Waitlist</div>
                           )}
                       </div>
                     )}

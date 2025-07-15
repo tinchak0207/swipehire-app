@@ -109,7 +109,7 @@ const FilterCheckbox: React.FC<FilterCheckboxProps> = ({ value, label, checked, 
     <Checkbox id={value} checked={checked} onCheckedChange={onChange} />
     <label
       htmlFor={value}
-      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+      className="font-medium text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
     >
       {label}
     </label>
@@ -143,7 +143,7 @@ export const EventFilterPanel: React.FC<EventFilterPanelProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between px-1 py-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">Active Filters</span>
+          <span className="font-medium text-sm">Active Filters</span>
           {getActiveFilterCount() > 0 && (
             <Badge variant="secondary" className="text-xs">
               {getActiveFilterCount()}
@@ -210,7 +210,7 @@ export const EventFilterPanel: React.FC<EventFilterPanelProps> = ({
               ))}
               {industryOptions.length > 8 && (
                 <details className="group">
-                  <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-700">
+                  <summary className="cursor-pointer text-blue-600 text-sm hover:text-blue-700">
                     Show more industries
                   </summary>
                   <div className="mt-2 space-y-2">
@@ -245,7 +245,7 @@ export const EventFilterPanel: React.FC<EventFilterPanelProps> = ({
               ))}
               {cityOptions.length > 6 && (
                 <details className="group">
-                  <summary className="cursor-pointer text-sm text-blue-600 hover:text-blue-700">
+                  <summary className="cursor-pointer text-blue-600 text-sm hover:text-blue-700">
                     Show more cities
                   </summary>
                   <div className="mt-2 space-y-2">
@@ -308,7 +308,7 @@ export const EventFilterPanel: React.FC<EventFilterPanelProps> = ({
       </ScrollArea>
 
       {/* Footer */}
-      <div className="border-t border-gray-200 p-4">
+      <div className="border-gray-200 border-t p-4">
         <div className="flex gap-3">
           <Button
             variant="outline"

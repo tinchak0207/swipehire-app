@@ -6,9 +6,6 @@ import {
   Building2,
   Calendar,
   CheckCircle2,
-  DollarSign,
-  ExternalLink,
-  Globe,
   Loader2,
   MapPin,
   Search,
@@ -23,9 +20,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import type { CompanyInsight, FinancialData, KeyPerson, NewsItem } from '@/lib/types';
+import type { CompanyInsight } from '@/lib/types';
 import { researchCompany } from '@/services/interviewService';
 
 interface CompanyResearchProps {
@@ -319,10 +315,10 @@ export function CompanyResearch({ onBack, isGuestMode }: CompanyResearchProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               {companyData.recentNews.map((news, index) => (
-                <div key={index} className="border-l-4 border-blue-500 pl-4">
+                <div key={index} className="border-blue-500 border-l-4 pl-4">
                   <h4 className="font-medium">{news.title}</h4>
                   <p className="text-muted-foreground text-sm">{news.summary}</p>
-                  <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="mt-2 flex items-center justify-between text-muted-foreground text-xs">
                     <span>{news.source}</span>
                     <span>{new Date(news.publishedAt).toLocaleDateString()}</span>
                   </div>

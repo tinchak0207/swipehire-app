@@ -276,7 +276,7 @@ JavaScript, React, Node.js`);
                 <span className="font-medium">Back to Optimizer</span>
               </Link>
               <div className="h-6 w-px bg-slate-300" />
-              <h1 className="text-2xl font-bold text-slate-900">Editor Interaction Test</h1>
+              <h1 className="font-bold text-2xl text-slate-900">Editor Interaction Test</h1>
             </div>
 
             <div className="badge badge-info">Test Environment</div>

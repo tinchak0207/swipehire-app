@@ -27,7 +27,7 @@ import type { Candidate, ChatMessage, Company, Match } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { fetchMessages, sendMessage } from '@/services/chatService';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 let socket: Socket | null = null;
 
 const isMongoObjectId = (id: string): boolean => {

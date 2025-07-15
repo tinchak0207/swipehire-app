@@ -27,7 +27,7 @@ interface TestResult {
   candidateId?: string;
   matchScore?: number;
   reasoning?: string;
-  weightedScores?: any;
+  weightedScores?: Record<string, number>;
 }
 
 function parseAIResponseTest<T>(response: string, fallback: T): T {

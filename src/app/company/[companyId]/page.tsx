@@ -21,7 +21,7 @@ interface ReviewSummary {
 
 export default function CompanyProfilePage() {
   const params = useParams();
-  const companyId = params?.companyId as string; // This is the mock ID like 'comp1' or slug from URL
+  const companyId = params?.['companyId'] as string; // This is the mock ID like 'comp1' or slug from URL
   const [companyData, setCompanyData] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [_reviews, _setReviews] = useState<CompanyReview[]>([]);
@@ -149,7 +149,9 @@ export default function CompanyProfilePage() {
                     controls
                     className="h-full w-full object-cover"
                     data-ai-hint="company intro video"
-                  />
+                  >
+                    <track kind="captions" />
+                  </video>
                 </div>
               </section>
             )}

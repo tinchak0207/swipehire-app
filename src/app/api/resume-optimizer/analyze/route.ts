@@ -1,407 +1,253 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type {
-  ApiResponse,
   MatchedKeyword,
   ResumeAnalysisRequest,
   ResumeAnalysisResponse,
+  OptimizationSuggestion,
 } from '@/lib/types/resume-optimizer';
 
-/**
- * POST /api/resume-optimizer/analyze
- * Analyzes a resume using AI and provides optimization suggestions
- */
-export async function POST(request: NextRequest): Promise<NextResponse> {
-  try {
-    const body: ResumeAnalysisRequest = await request.json();
-    const { resumeText, targetJob, templateId } = body;
+// --- Helper Functions for Analysis ---
 
-    // Validate required fields
-    if (!resumeText || !targetJob) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Resume text and target job information are required',
-          timestamp: new Date().toISOString(),
-        } as ApiResponse<never>,
-        { status: 400 }
-      );
-    }
-
-    if (!targetJob.title) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Target job title is required',
-          timestamp: new Date().toISOString(),
-        } as ApiResponse<never>,
-        { status: 400 }
-      );
-    }
-
-    // Simulate AI analysis (replace with actual AI service call)
-    const analysisResult = await performResumeAnalysis(resumeText, targetJob, templateId);
-
-    const response: ApiResponse<ResumeAnalysisResponse> = {
-      success: true,
-      data: analysisResult,
-      timestamp: new Date().toISOString(),
-    };
-
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error('Resume analysis error:', error);
-
-    const errorResponse: ApiResponse<never> = {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to analyze resume',
-      timestamp: new Date().toISOString(),
-    };
-
-    return NextResponse.json(errorResponse, { status: 500 });
-  }
+function checkContent(resumeText: string) {
+  return {
+    hasContactInfo: /email|phone|linkedin/i.test(resumeText),
+    hasExperience: /experience|work|job|position/i.test(resumeText),
+    hasEducation: /education|degree|university|college/i.test(resumeText),
+    hasSkills: /skills|technologies|tools/i.test(resumeText),
+    wordCount: resumeText.split(/\s+/).length,
+  };
 }
 
-/**
- * Performs the actual resume analysis
- * This is a mock implementation - replace with actual AI service integration
- */
-async function performResumeAnalysis(
-  resumeText: string,
-  targetJob: ResumeAnalysisRequest['targetJob'],
-  templateId?: string
-): Promise<ResumeAnalysisResponse> {
-  // Simulate processing time
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+function calculateKeywordMatch(resumeText: string, targetJob: ResumeAnalysisRequest['targetJob']) {
+  const targetKeywords = targetJob.keywords?.split(',').map((k) => k.trim().toLowerCase()) || [];
+  if (targetKeywords.length === 0) {
+    return { matchedKeywords: [], keywordMatchScore: 75, missingKeywords: [] };
+  }
 
-  // Mock analysis logic - replace with actual AI analysis
-  const wordCount = resumeText.split(/\s+/).length;
-  const hasContactInfo = /email|phone|linkedin/i.test(resumeText);
-  const hasExperience = /experience|work|job|position/i.test(resumeText);
-  const hasEducation = /education|degree|university|college/i.test(resumeText);
-  const hasSkills = /skills|technologies|tools/i.test(resumeText);
-
-  // Calculate keyword match score
-  const targetKeywords = targetJob.keywords
-    ? targetJob.keywords.split(',').map((k) => k.trim().toLowerCase())
-    : [];
   const resumeWords = resumeText.toLowerCase().split(/\s+/);
   const matchedKeywords: MatchedKeyword[] = targetKeywords
-    .filter((keyword) =>
-      resumeWords.some((word) => word.includes(keyword) || keyword.includes(word))
-    )
+    .filter((keyword) => resumeWords.some((word) => word.includes(keyword)))
     .map((keyword) => ({
       keyword,
       frequency: resumeWords.filter((word) => word.includes(keyword)).length,
       relevanceScore: 1.0,
       context: [],
     }));
-  const keywordMatchScore =
-    targetKeywords.length > 0 ? (matchedKeywords.length / targetKeywords.length) * 100 : 75;
 
-  // Calculate overall score
-  let overallScore = 0;
+  const missingKeywords = targetKeywords
+    .filter((keyword) => !matchedKeywords.some((mk) => mk.keyword === keyword))
+    .map((keyword) => ({
+      keyword,
+      importance: 'high' as const,
+      suggestedPlacement: ['summary', 'skills'],
+      relatedTerms: [],
+    }));
+
+  const keywordMatchScore = (matchedKeywords.length / targetKeywords.length) * 100;
+  return { matchedKeywords, keywordMatchScore, missingKeywords };
+}
+
+function calculateOverallScore(
+  contentCheck: ReturnType<typeof checkContent>,
+  keywordMatchScore: number
+) {
   const scoringFactors = [
-    { condition: hasContactInfo, weight: 15, name: 'Contact Information' },
-    { condition: hasExperience, weight: 25, name: 'Professional Experience' },
-    { condition: hasEducation, weight: 15, name: 'Education' },
-    { condition: hasSkills, weight: 20, name: 'Skills Section' },
-    { condition: wordCount >= 200 && wordCount <= 800, weight: 10, name: 'Appropriate Length' },
-    { condition: keywordMatchScore >= 50, weight: 15, name: 'Keyword Optimization' },
+    { condition: contentCheck.hasContactInfo, weight: 15 },
+    { condition: contentCheck.hasExperience, weight: 25 },
+    { condition: contentCheck.hasEducation, weight: 15 },
+    { condition: contentCheck.hasSkills, weight: 20 },
+    { condition: contentCheck.wordCount >= 200 && contentCheck.wordCount <= 800, weight: 10 },
+    { condition: keywordMatchScore >= 50, weight: 15 },
   ];
+  return scoringFactors.reduce(
+    (score, factor) => score + (factor.condition ? factor.weight : 0),
+    0
+  );
+}
 
-  scoringFactors.forEach((factor) => {
-    if (factor.condition) {
-      overallScore += factor.weight;
-    }
-  });
-
-  // Generate suggestions based on analysis
-  const suggestions = [];
-
-  if (!hasContactInfo) {
+function generateSuggestions(
+  contentCheck: ReturnType<typeof checkContent>,
+  keywordMatchScore: number
+): OptimizationSuggestion[] {
+  const suggestions: OptimizationSuggestion[] = [];
+  if (!contentCheck.hasContactInfo) {
     suggestions.push({
-      id: `suggestion_${Date.now()}_1`,
-      type: 'format' as const,
+      id: 's1',
+      type: 'format',
       title: 'Add Contact Information',
-      description:
-        'Include your email, phone number, and LinkedIn profile at the top of your resume.',
-      impact: 'high' as const,
-      suggestion: 'Add a contact section with your email, phone, and LinkedIn URL',
+      description: 'Include your email, phone, and LinkedIn.',
+      impact: 'high',
+      suggestion: 'Add a contact information section at the top of your resume with your email, phone number, and LinkedIn profile URL.',
       priority: 1,
       estimatedScoreImprovement: 15,
     });
   }
-
-  if (!hasExperience) {
+  if (!contentCheck.hasExperience) {
     suggestions.push({
-      id: `suggestion_${Date.now()}_2`,
-      type: 'structure' as const,
+      id: 's2',
+      type: 'structure',
       title: 'Add Professional Experience',
-      description: 'Include your work history with specific achievements and quantifiable results.',
-      impact: 'high' as const,
-      suggestion: 'Add a professional experience section with 3-5 bullet points per job',
+      description: 'Include your work history.',
+      impact: 'high',
+      suggestion: 'Add a professional experience section with your previous job titles, companies, dates, and key achievements.',
       priority: 1,
       estimatedScoreImprovement: 25,
     });
   }
-
   if (keywordMatchScore < 50) {
     suggestions.push({
-      id: `suggestion_${Date.now()}_3`,
-      type: 'keyword' as const,
+      id: 's3',
+      type: 'keyword',
       title: 'Improve Keyword Optimization',
-      description: `Your resume matches ${Math.round(keywordMatchScore)}% of target keywords. Consider incorporating more relevant terms from the job description.`,
-      impact: 'high' as const,
-      suggestion: 'Add relevant keywords from the job description naturally throughout your resume',
+      description: `Match is ${Math.round(keywordMatchScore)}%. Add more relevant terms.`,
+      impact: 'high',
+      suggestion: 'Include more keywords from the job description in your resume to improve ATS matching.',
       priority: 2,
       estimatedScoreImprovement: 20,
     });
   }
-
-  if (wordCount < 200) {
+  if (contentCheck.wordCount < 200) {
     suggestions.push({
-      id: `suggestion_${Date.now()}_4`,
-      type: 'structure' as const,
+      id: 's4',
+      type: 'structure',
       title: 'Expand Resume Content',
-      description:
-        'Your resume is quite short. Add more details about your achievements and responsibilities.',
-      impact: 'medium' as const,
-      suggestion: 'Expand each job description with more details and quantifiable achievements',
+      description: 'Resume is too short. Add more detail.',
+      impact: 'medium',
+      suggestion: 'Add more detail to your experience descriptions, including specific achievements and quantifiable results.',
       priority: 3,
       estimatedScoreImprovement: 10,
     });
   }
-
-  if (wordCount > 800) {
+  if (contentCheck.wordCount > 800) {
     suggestions.push({
-      id: `suggestion_${Date.now()}_5`,
-      type: 'format' as const,
+      id: 's5',
+      type: 'format',
       title: 'Reduce Resume Length',
-      description: 'Your resume is quite long. Consider condensing information to 1-2 pages.',
-      impact: 'medium' as const,
-      suggestion: 'Remove less relevant experience and condense bullet points',
+      description: 'Resume is too long. Condense to 1-2 pages.',
+      impact: 'medium',
+      suggestion: 'Condense your resume to 1-2 pages by removing less relevant information and focusing on your most impactful achievements.',
       priority: 3,
       estimatedScoreImprovement: 5,
     });
   }
-
-  if (!hasSkills) {
+  if (!contentCheck.hasSkills) {
     suggestions.push({
-      id: `suggestion_${Date.now()}_6`,
-      type: 'structure' as const,
+      id: 's6',
+      type: 'structure',
       title: 'Add Skills Section',
-      description:
-        'Include a dedicated skills section highlighting your technical and professional competencies.',
-      impact: 'medium' as const,
-      suggestion: 'Add a skills section grouped by category (Technical, Soft Skills, etc.)',
+      description: 'Include a dedicated skills section.',
+      impact: 'medium',
+      suggestion: 'Add a skills section highlighting your technical and soft skills relevant to the position.',
       priority: 2,
       estimatedScoreImprovement: 10,
     });
   }
-
-  // Add some general suggestions
   suggestions.push({
-    id: `suggestion_${Date.now()}_7`,
-    type: 'achievement' as const,
+    id: 's7',
+    type: 'achievement',
     title: 'Use Action Verbs',
-    description:
-      'Start bullet points with strong action verbs like "Led," "Developed," "Implemented," etc.',
-    impact: 'medium' as const,
-    suggestion: 'Rewrite bullet points to start with action verbs',
+    description: 'Start bullet points with strong action verbs.',
+    impact: 'medium',
+    suggestion: 'Begin each bullet point with strong action verbs like "Led", "Developed", "Implemented", "Improved", etc.',
     priority: 3,
     estimatedScoreImprovement: 5,
   });
-
   suggestions.push({
-    id: `suggestion_${Date.now()}_8`,
-    type: 'achievement' as const,
+    id: 's8',
+    type: 'achievement',
     title: 'Quantify Achievements',
-    description: 'Include specific numbers, percentages, and metrics to demonstrate your impact.',
-    impact: 'high' as const,
-    suggestion: 'Add quantifiable metrics to your achievements (e.g. "Increased sales by 20%")',
+    description: 'Include numbers and metrics.',
+    impact: 'high',
+    suggestion: 'Add specific numbers, percentages, and metrics to demonstrate the impact of your work.',
     priority: 2,
     estimatedScoreImprovement: 15,
   });
+  return suggestions;
+}
 
-  // Calculate ATS compatibility score
+/**
+ * POST /api/resume-optimizer/analyze
+ */
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const body: ResumeAnalysisRequest = await request.json();
+    if (!body.resumeText || !body.targetJob?.title) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const analysisResult = await performResumeAnalysis(
+      body.resumeText,
+      body.targetJob,
+      body.templateId
+    );
+    return NextResponse.json({ success: true, data: analysisResult });
+  } catch (error) {
+    console.error('Resume analysis error:', error);
+    const message = error instanceof Error ? error.message : 'Failed to analyze resume';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
+}
+
+/**
+ * Performs the actual resume analysis (mock implementation)
+ */
+async function performResumeAnalysis(
+  resumeText: string,
+  targetJob: ResumeAnalysisRequest['targetJob'],
+  templateId?: string
+): Promise<ResumeAnalysisResponse> {
+  await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate processing
+
+  const contentCheck = checkContent(resumeText);
+  const { matchedKeywords, keywordMatchScore, missingKeywords } = calculateKeywordMatch(
+    resumeText,
+    targetJob
+  );
+  const overallScore = calculateOverallScore(contentCheck, keywordMatchScore);
+  const suggestions = generateSuggestions(contentCheck, keywordMatchScore);
   const atsScore = Math.min(
     100,
-    overallScore + (hasContactInfo ? 10 : 0) + keywordMatchScore * 0.3
+    overallScore + (contentCheck.hasContactInfo ? 10 : 0) + keywordMatchScore * 0.3
   );
 
-  const analysisResult: ResumeAnalysisResponse = {
+  const response: ResumeAnalysisResponse = {
     id: `analysis_${Date.now()}`,
     overallScore: Math.round(overallScore),
     atsScore: Math.round(atsScore),
     suggestions,
-    grammarCheck: {
-      score: 85,
-      totalIssues: 2,
-      issues: [],
-      overallReadability: 80,
+    keywordAnalysis: {
+      score: Math.round(keywordMatchScore),
+      totalKeywords: targetJob.keywords?.split(',').length || 0,
+      matchedKeywords,
+      missingKeywords,
+      recommendations: keywordMatchScore < 50 ? ['Add more keywords'] : [],
+      keywordDensity: {},
     },
-    formatAnalysis: {
-      score: 80,
-      atsCompatibility: 75,
-      issues: [],
-      recommendations: ['Use consistent formatting', 'Ensure proper section headers'],
-      sectionStructure: [
-        {
-          name: 'Contact Information',
-          present: true,
-          order: 1,
-          recommended: true,
-        },
-        {
-          name: 'Professional Summary',
-          present: false,
-          order: 2,
-          recommended: true,
-        },
-      ],
-    },
+    strengths: ['Well-structured professional experience'],
+    weaknesses: ['Lacks a dedicated skills section'],
+    optimizedContent: '[Optimized version of the resume based on suggestions...]',
+    grammarCheck: { score: 0, totalIssues: 0, issues: [], overallReadability: 85 },
+    formatAnalysis: { score: 0, atsCompatibility: 80, issues: [], recommendations: [], sectionStructure: [] },
     quantitativeAnalysis: {
-      score: 60,
-      achievementsWithNumbers: 1,
-      totalAchievements: 5,
+      score: 0,
+      achievementsWithNumbers: 0,
+      totalAchievements: 0,
       suggestions: [],
       impactWords: [],
     },
     createdAt: new Date().toISOString(),
-    processingTime: 2000,
-    strengths: [
-      ...(hasContactInfo ? ['Clear contact information'] : []),
-      ...(hasExperience ? ['Professional experience included'] : []),
-      ...(hasEducation ? ['Education background provided'] : []),
-      ...(hasSkills ? ['Skills section present'] : []),
-      ...(wordCount >= 200 && wordCount <= 800 ? ['Appropriate resume length'] : []),
-      ...(keywordMatchScore >= 70 ? ['Good keyword optimization'] : []),
-    ],
-    weaknesses: [
-      ...(!hasContactInfo ? ['Missing contact information'] : []),
-      ...(!hasExperience ? ['Lacks professional experience details'] : []),
-      ...(!hasEducation ? ['No education information'] : []),
-      ...(!hasSkills ? ['Missing skills section'] : []),
-      ...(wordCount < 200 ? ['Resume too short'] : []),
-      ...(wordCount > 800 ? ['Resume too long'] : []),
-      ...(keywordMatchScore < 50 ? ['Poor keyword optimization'] : []),
-    ],
-    keywordAnalysis: {
-      score: Math.round(keywordMatchScore),
-      totalKeywords: targetKeywords.length,
-      matchedKeywords,
-      missingKeywords: targetKeywords
-        .filter((keyword) => !matchedKeywords.some((mk) => mk.keyword === keyword))
-        .map((keyword) => ({
-          keyword,
-          importance: 'high' as const,
-          suggestedPlacement: ['summary', 'skills'],
-          relatedTerms: [],
-        })),
-      keywordDensity: matchedKeywords.reduce(
-        (acc, curr) => {
-          acc[curr.keyword] = curr.frequency / resumeWords.length;
-          return acc;
-        },
-        {} as Record<string, number>
-      ),
-      recommendations:
-        matchedKeywords.length < targetKeywords.length / 2
-          ? ['Add more keywords from job description']
-          : ['Consider reordering keywords to appear earlier in resume'],
-    },
-    sectionAnalysis: {
-      contact: {
-        present: hasContactInfo,
-        score: hasContactInfo ? 90 : 0,
-        suggestions: hasContactInfo ? [] : ['Add email, phone, and LinkedIn profile'],
-      },
-      summary: {
-        present: /summary|objective|profile/i.test(resumeText),
-        score: /summary|objective|profile/i.test(resumeText) ? 80 : 40,
-        suggestions: /summary|objective|profile/i.test(resumeText)
-          ? ['Consider tailoring summary to target role']
-          : ['Add a professional summary section'],
-      },
-      experience: {
-        present: hasExperience,
-        score: hasExperience ? 85 : 0,
-        suggestions: hasExperience
-          ? ['Use more action verbs', 'Quantify achievements']
-          : ['Add professional experience section'],
-      },
-      education: {
-        present: hasEducation,
-        score: hasEducation ? 80 : 60,
-        suggestions: hasEducation
-          ? ['Include graduation year if recent']
-          : ['Add education background'],
-      },
-      skills: {
-        present: hasSkills,
-        score: hasSkills ? 85 : 30,
-        suggestions: hasSkills
-          ? ['Organize skills by category', 'Include proficiency levels']
-          : ['Add technical and soft skills section'],
-      },
-    },
-    optimizedContent: generateOptimizedContent(resumeText, targetJob, suggestions),
+    processingTime: 1500,
     metadata: {
       analysisDate: new Date().toISOString(),
       targetJobTitle: targetJob.title,
       ...(targetJob.company && { targetCompany: targetJob.company }),
       ...(templateId && { templateUsed: templateId }),
-      wordCount,
-      processingTime: 2000,
+      wordCount: contentCheck.wordCount,
+      processingTime: 1500,
     },
   };
-
-  return analysisResult;
-}
-
-/**
- * Generates optimized content suggestions
- */
-function generateOptimizedContent(
-  originalText: string,
-  targetJob: ResumeAnalysisRequest['targetJob'],
-  suggestions: ResumeAnalysisResponse['suggestions']
-): string {
-  // This is a simplified version - in a real implementation,
-  // you would use AI to generate actual optimized content
-
-  let optimizedText = originalText;
-
-  // Add missing sections based on suggestions
-  const highImpactSuggestions = suggestions.filter((s) => s.impact === 'high');
-
-  if (highImpactSuggestions.some((s) => s.category === 'contact')) {
-    optimizedText = `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile]
-
-${optimizedText}`;
-  }
-
-  if (
-    highImpactSuggestions.some((s) => s.category === 'content' && s.title.includes('Experience'))
-  ) {
-    optimizedText += `
-
-PROFESSIONAL EXPERIENCE
-
-[Job Title] | [Company Name] | [Start Date] - [End Date]
-• [Achievement with quantifiable result]
-• [Achievement with quantifiable result]
-• [Achievement with quantifiable result]`;
-  }
-
-  // Add keyword optimization note
-  if (targetJob.keywords) {
-    optimizedText += `
-
-[Note: Consider incorporating these keywords naturally throughout your resume: ${targetJob.keywords}]`;
-  }
-
-  return optimizedText;
+  return response;
 }

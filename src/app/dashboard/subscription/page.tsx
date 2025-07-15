@@ -15,8 +15,8 @@ const SubscriptionPage = async () => {
           <h2 className="card-title">Current Tier: {subscription.tier}</h2>
           <p>Manage your subscription and billing details.</p>
           <div className="card-actions justify-end">
-            <Link href="/dashboard/billing">
-              <a className="btn btn-primary">Upgrade or Modify</a>
+            <Link href="/dashboard/billing" className="btn btn-primary">
+              Upgrade or Modify
             </Link>
           </div>
         </div>

@@ -554,6 +554,20 @@ export interface RecruiterOnboardingData {
 
 export type CareerStage = 'exploration' | 'early' | 'mid' | 'late' | 'transition';
 
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  nodes: WorkflowNode[];
+  edges: any[]; // Consider defining a proper edge type
+  creatorId: string;
+  createdAt: string;
+  updatedAt: string;
+  isPublished: boolean;
+  runCount: number;
+  tags: string[];
+}
+
 export interface CareerPath {
   title: string;
   description: string;
@@ -707,8 +721,9 @@ export interface EventSpeaker {
   title?: string;
   company?: string;
   bio?: string;
-  imageUrl?: string;
+  photoUrl?: string;
   linkedinUrl?: string;
+  twitterUrl?: string;
 }
 
 export interface EventSession {
@@ -725,70 +740,43 @@ export interface IndustryEvent {
   id: string;
   title: string;
   description: string;
+  shortDescription?: string; // Keep for now, migrate to description
   detailedDescription?: string;
   eventType: EventType;
-  format?: EventFormat;
-  location: {
-    type: 'online' | 'offline';
-    address?: string;
-    city?: string;
-    country?: string;
-    platform?: string;
-    meetingUrl?: string;
-  };
+  format: EventFormat;
+  location: EventLocation;
   startDateTime: string;
   endDateTime: string;
   timezone?: string;
-
-  // Organization details
   organizer: {
     name: string;
     email?: string;
     website?: string;
     logoUrl?: string;
   };
-
-  // Event specifics
-  industry: string;
+  industry: string[];
   tags: string[];
   targetAudience: string[];
   skills: string[];
-
-  // Registration and pricing
   registrationUrl: string;
-  cost: {
-    type: 'free' | 'paid';
-    amount?: number;
-    currency?: string;
-  };
-  maxAttendees?: number;
-  currentAttendees: number;
-
-  // Content
-  imageUrl?: string;
-  agenda?: {
-    time: string;
-    title: string;
-    speaker?: string;
-  }[];
-  speakers?: {
-    name: string;
-    title?: string;
-    company?: string;
-    bio?: string;
-    photoUrl?: string;
-  }[];
-
-  // Status and metadata
+  isFree: boolean;
+  price?: number;
+  currency?: string;
+  capacity?: number;
+  registeredCount: number;
+  bannerUrl?: string;
+  agenda: EventSession[];
+  speakers: EventSpeaker[];
   status: 'upcoming' | 'ongoing' | 'completed' | 'cancelled';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
-
-  // User interaction data (frontend only)
+  featured?: boolean;
+  recommendationScore?: number;
+  recommendationReasons?: string[];
   isSaved?: boolean;
   isRegistered?: boolean;
-  recommendationReasons?: string[];
+  isAttended?: boolean;
 }
 
 export interface EventFilters {

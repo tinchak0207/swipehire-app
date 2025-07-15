@@ -45,7 +45,7 @@ const ResumeProcessorOutputSchema = z.object({
 });
 export type ResumeProcessorOutput = z.infer<typeof ResumeProcessorOutputSchema>;
 
-type ResumeAnalysisResult = {
+type ResumeAnalysis_Result = {
   suggestedSkills: string[];
   experienceSummaryForScript: string;
 };
@@ -53,7 +53,7 @@ type ResumeAnalysisResult = {
 export async function processResumeAndGenerateScript(
   input: ResumeProcessorInput
 ): Promise<ResumeProcessorOutput> {
-  return resumeProcessorFlow(input);
+  return (await resumeProcessorFlow(input)) as ResumeProcessorOutput;
 }
 
 // Simple helper function to analyze resume text
@@ -70,16 +70,17 @@ const resumeProcessorFlow = ai.defineFlow(
     inputSchema: ResumeProcessorInputSchema,
     outputSchema: ResumeProcessorOutputSchema,
   },
-  async (input: ResumeProcessorInput) => {
-    let analysisOutput: ResumeAnalysisResult;
+  async (input: unknown) => {
+    const parsedInput = ResumeProcessorInputSchema.parse(input);
+    let analysisOutput: ResumeAnalysis_Result;
     try {
       console.log(
         'resumeProcessorFlow: Calling resumeAnalysisPrompt with resumeText length:',
-        input.resumeText.length,
+        parsedInput.resumeText.length,
         'and work style:',
-        input.desiredWorkStyle
+        parsedInput.desiredWorkStyle
       );
-      const output = await analyzeResumeText(input.resumeText, input.desiredWorkStyle);
+      const output = await analyzeResumeText(parsedInput.resumeText, parsedInput.desiredWorkStyle);
       if (!output || !output.suggestedSkills || !output.experienceSummaryForScript) {
         console.warn(
           'resumeProcessorFlow: AI analysis of resume text returned incomplete data. Using fallback.',
@@ -99,8 +100,9 @@ const resumeProcessorFlow = ai.defineFlow(
       analysisOutput = {
         suggestedSkills: ['Communication', 'Teamwork', 'Problem Solving', 'Adaptability'], // Generic fallback
         experienceSummaryForScript:
-          input.resumeText.length > 20
-            ? input.resumeText.substring(0, 200) + (input.resumeText.length > 200 ? '...' : '')
+          parsedInput.resumeText.length > 20
+            ? parsedInput.resumeText.substring(0, 200) +
+              (parsedInput.resumeText.length > 200 ? '...' : '')
             : 'Experienced professional seeking new opportunities.', // Simple truncation or generic summary
       };
       console.log('resumeProcessorFlow: Using fallback analysisOutput.');
@@ -108,9 +110,9 @@ const resumeProcessorFlow = ai.defineFlow(
 
     const videoScriptInput: GenerateVideoScriptInput = {
       experience: analysisOutput.experienceSummaryForScript,
-      desiredWorkStyle: input.desiredWorkStyle,
-      toneAndStyle: input.toneAndStyle,
-      industryTemplate: input.industryTemplate,
+      desiredWorkStyle: parsedInput.desiredWorkStyle,
+      toneAndStyle: parsedInput.toneAndStyle,
+      industryTemplate: parsedInput.industryTemplate,
     };
 
     console.log(

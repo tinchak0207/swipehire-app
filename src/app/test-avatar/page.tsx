@@ -45,7 +45,7 @@ export default function TestAvatarPage() {
           <h2 className="mb-4 font-semibold text-2xl">Radix UI Avatar Implementation</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {testCases.map((testCase, index) => (
-              <div key={index} className="rounded-lg border p-4">
+              <div key={`radix-${index}-${testCase.name}`} className="rounded-lg border p-4">
                 <h3 className="mb-2 font-medium">{testCase.name}</h3>
                 <div className="mb-2 flex items-center gap-4">
                   <UserAvatar
@@ -83,7 +83,7 @@ export default function TestAvatarPage() {
           <h2 className="mb-4 font-semibold text-2xl">Next.js Image Implementation</h2>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {testCases.map((testCase, index) => (
-              <div key={index} className="rounded-lg border p-4">
+              <div key={`nextjs-${index}-${testCase.name}`} className="rounded-lg border p-4">
                 <h3 className="mb-2 font-medium">{testCase.name}</h3>
                 <div className="mb-2 flex items-center gap-4">
                   <UserAvatarWithNextImage

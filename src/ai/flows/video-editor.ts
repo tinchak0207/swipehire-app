@@ -35,7 +35,7 @@ const EditVideoOutputSchema = z.object({
 export type EditVideoOutput = z.infer<typeof EditVideoOutputSchema>;
 
 export async function editVideo(input: EditVideoInput): Promise<EditVideoOutput> {
-  return editVideoFlow(input);
+  return (await editVideoFlow(input)) as EditVideoOutput;
 }
 
 const prompt = ai.definePrompt({
@@ -97,20 +97,22 @@ const editVideoFlow = ai.defineFlow(
     inputSchema: EditVideoInputSchema,
     outputSchema: EditVideoOutputSchema,
   },
-  async (input: EditVideoInput) => {
-    const { output } = await prompt.generate(input);
+  async (input: unknown) => {
+    const parsedInput = EditVideoInputSchema.parse(input);
+    const result = await prompt.generate(parsedInput);
+    const output = (result as { output: EditVideoOutput }).output;
 
     // Ensure the output structure always includes editedVideoDataUri using the input videoDataUri
     // and provides a fallback for analysis if the AI output is problematic.
     if (output?.analysis) {
       return {
-        editedVideoDataUri: input.videoDataUri, // Always return the original video URI as per prompt instructions
+        editedVideoDataUri: parsedInput.videoDataUri, // Always return the original video URI as per prompt instructions
         analysis: output.analysis,
       };
     }
     // Handle cases where the AI output might be missing the analysis or the entire output object
     return {
-      editedVideoDataUri: input.videoDataUri,
+      editedVideoDataUri: parsedInput.videoDataUri,
       analysis:
         output?.analysis ||
         'The AI analysis could not be generated or was incomplete. Please try again.',

@@ -3,12 +3,8 @@
 /**
  * @fileOverview Profile recommendation flow
  */
- 
 import { z } from 'genkit';
-import type {
-  PersonalityTraitAssessment,
-  UserAIWeights
-} from '@/lib/types';
+import type { PersonalityTraitAssessment, UserAIWeights } from '@/lib/types';
 import {
   Availability,
   EducationLevel,
@@ -30,106 +26,81 @@ const CandidateProfileSchema = z.object({
   experienceSummary: z.string().describe("Candidate's work experience"),
   skills: z.array(z.string()).describe("Candidate's skills"),
   location: z.string().describe("Candidate's location"),
-  desiredWorkStyle: z.string().describe("Preferred work style"),
-  pastProjects: z.string().describe("Past projects"),
-  workExperienceLevel: ZodWorkExperienceLevel.describe("Experience level"),
-  educationLevel: ZodEducationLevel.describe("Education level"),  
-  locationPreference: ZodLocationPreference.describe("Location preference"),
-  languages: z.array(z.string()).describe("Languages spoken"),
-  salaryExpectationMin: z.number().describe("Min salary expectation"),
-  salaryExpectationMax: z.number().describe("Max salary expectation"),
-  availability: ZodAvailability.describe("Availability"),
-  jobTypePreference: z.array(ZodJobType).describe("Job type preferences"),
-  personalityAssessment: z.array(
-    z.object({
-      trait: z.string(),
-      fit: z.enum(['positive', 'neutral', 'negative']),
-      reason: z.string().optional(),
-    })
-  ).default([]).describe("Personality assessment")
+  desiredWorkStyle: z.string().describe('Preferred work style'),
+  pastProjects: z.string().describe('Past projects'),
+  workExperienceLevel: ZodWorkExperienceLevel.describe('Experience level'),
+  educationLevel: ZodEducationLevel.describe('Education level'),
+  locationPreference: ZodLocationPreference.describe('Location preference'),
+  languages: z.array(z.string()).describe('Languages spoken'),
+  salaryExpectationMin: z.number().describe('Min salary expectation'),
+  salaryExpectationMax: z.number().describe('Max salary expectation'),
+  availability: ZodAvailability.describe('Availability'),
+  jobTypePreference: z.array(ZodJobType).describe('Job type preferences'),
+  personalityAssessment: z
+    .array(
+      z.object({
+        trait: z.string(),
+        fit: z.enum(['positive', 'neutral', 'negative']),
+        reason: z.string().optional(),
+      })
+    )
+    .default([])
+    .describe('Personality assessment'),
 });
 
 const JobCriteriaSchema = z.object({
-  title: z.string().describe("Job title"),
-  description: z.string().describe("Job description"),
-  requiredSkills: z.array(z.string()).optional().describe("Required skills"),
-  requiredExperienceLevel: ZodWorkExperienceLevel.optional().describe("Required experience level"),
-  requiredEducationLevel: ZodEducationLevel.optional().describe("Required education level"),
-  workLocationType: ZodLocationPreference.optional().describe("Work location type"),
-  jobLocation: z.string().optional().describe("Job location"),
-  requiredLanguages: z.array(z.string()).optional().describe("Required languages"),
-  salaryMin: z.number().optional().describe("Min salary"),
-  salaryMax: z.number().optional().describe("Max salary"),
-  jobType: ZodJobType.optional().describe("Job type"),
-  companyCultureKeywords: z.array(z.string()).optional().describe("Company culture keywords"),
-  companyIndustry: z.string().optional().describe("Company industry")
+  title: z.string().describe('Job title'),
+  description: z.string().describe('Job description'),
+  requiredSkills: z.array(z.string()).optional().describe('Required skills'),
+  requiredExperienceLevel: ZodWorkExperienceLevel.optional().describe('Required experience level'),
+  requiredEducationLevel: ZodEducationLevel.optional().describe('Required education level'),
+  workLocationType: ZodLocationPreference.optional().describe('Work location type'),
+  jobLocation: z.string().optional().describe('Job location'),
+  requiredLanguages: z.array(z.string()).optional().describe('Required languages'),
+  salaryMin: z.number().optional().describe('Min salary'),
+  salaryMax: z.number().optional().describe('Max salary'),
+  jobType: ZodJobType.optional().describe('Job type'),
+  companyCultureKeywords: z.array(z.string()).optional().describe('Company culture keywords'),
+  companyIndustry: z.string().optional().describe('Company industry'),
 });
 
-// Weights schemas (same as before)
-const RecruiterWeightsSchema = z.object({
-  skillsMatchScore: z.number().min(0).max(100),
-  experienceRelevanceScore: z.number().min(0).max(100),
-  cultureFitScore: z.number().min(0).max(100),
-  growthPotentialScore: z.number().min(0).max(100),
-}).refine(data => {
-  const sum = data.skillsMatchScore + data.experienceRelevanceScore + 
-             data.cultureFitScore + data.growthPotentialScore;
-  return Math.abs(sum - 100) < 0.01;
-}, {message: 'Recruiter weights must sum to 100'});
-
-const JobSeekerWeightsSchema = z.object({
-  cultureFitScore: z.number().min(0).max(100),
-  jobRelevanceScore: z.number().min(0).max(100), 
-  growthOpportunityScore: z.number().min(0).max(100),
-  jobConditionFitScore: z.number().min(0).max(100),
-}).refine(data => {
-  const sum = data.cultureFitScore + data.jobRelevanceScore +
-             data.growthOpportunityScore + data.jobConditionFitScore;
-  return Math.abs(sum - 100) < 0.01;             
-}, {message: 'Job seeker weights must sum to 100'});
-
-// Internal schemas used only for type inference
-// biome-ignore lint/suspicious/noExplicitAny: Safe cast for type inference  
-const UserAIWeightsSchema = z.object({
-  recruiterPerspective: RecruiterWeightsSchema.optional(),
-  jobSeekerPerspective: JobSeekerWeightsSchema.optional()  
-}).optional().describe("User-defined AI weights") as any;
-
 export type ProfileRecommenderInput = {
-  candidateProfile: z.infer<typeof CandidateProfileSchema>,
-  jobCriteria: z.infer<typeof JobCriteriaSchema>,
-  userAIWeights?: UserAIWeights
+  candidateProfile: z.infer<typeof CandidateProfileSchema>;
+  jobCriteria: z.infer<typeof JobCriteriaSchema>;
+  userAIWeights?: UserAIWeights;
 };
 
 export type ProfileRecommenderOutput = {
-  candidateId: string,
-  matchScore: number,
-  reasoning: string,
+  candidateId: string;
+  matchScore: number;
+  reasoning: string;
   weightedScores: {
-    skillsMatchScore: number,
-    experienceRelevanceScore: number,
-    cultureFitScore: number,
-    growthPotentialScore: number  
-  },
-  isUnderestimatedTalent: boolean,
-  underestimatedReasoning?: string,
-  personalityAssessment?: PersonalityTraitAssessment[],
-  optimalWorkStyles?: string[],
+    skillsMatchScore: number;
+    experienceRelevanceScore: number;
+    cultureFitScore: number;
+    growthPotentialScore: number;
+  };
+  isUnderestimatedTalent: boolean;
+  underestimatedReasoning?: string;
+  personalityAssessment?: PersonalityTraitAssessment[];
+  optimalWorkStyles?: string[];
   candidateJobFitAnalysis?: {
-    matchScoreForCandidate: number,
-    reasoningForCandidate: string,
+    matchScoreForCandidate: number;
+    reasoningForCandidate: string;
     weightedScoresForCandidate: {
-      cultureFitScore: number,
-      jobRelevanceScore: number,
-      growthOpportunityScore: number,
-      jobConditionFitScore: number
-    }
-  }
+      cultureFitScore: number;
+      jobRelevanceScore: number;
+      growthOpportunityScore: number;
+      jobConditionFitScore: number;
+    };
+  };
 };
 
-export async function recommendProfile(input: ProfileRecommenderInput): Promise<ProfileRecommenderOutput> {
+export async function recommendProfile(
+  input: ProfileRecommenderInput
+): Promise<ProfileRecommenderOutput> {
   const { recommendProfile: mistralRecommendProfile } = await import('@/services/aiService');
-  
+
   // Ensure personalityAssessment matches expected type
   // Ensure proper initialization of required fields
   // Initialize all optional fields with defaults
@@ -138,17 +109,19 @@ export async function recommendProfile(input: ProfileRecommenderInput): Promise<
     ...input,
     candidateProfile: {
       ...input.candidateProfile,
-      personalityAssessment: input.candidateProfile.personalityAssessment.map(assessment => ({
+      personalityAssessment: input.candidateProfile.personalityAssessment.map((assessment) => ({
         trait: assessment.trait,
         fit: assessment.fit,
-        reason: assessment.reason ?? ''
-      })) as PersonalityTraitAssessment[]
+        reason: assessment.reason ?? '',
+      })) as PersonalityTraitAssessment[],
     },
     jobCriteria: {
       ...input.jobCriteria,
       requiredSkills: input.jobCriteria.requiredSkills ?? [],
-      requiredExperienceLevel: input.jobCriteria.requiredExperienceLevel ?? WorkExperienceLevel.UNSPECIFIED,
-      requiredEducationLevel: input.jobCriteria.requiredEducationLevel ?? EducationLevel.UNSPECIFIED,
+      requiredExperienceLevel:
+        input.jobCriteria.requiredExperienceLevel ?? WorkExperienceLevel.UNSPECIFIED,
+      requiredEducationLevel:
+        input.jobCriteria.requiredEducationLevel ?? EducationLevel.UNSPECIFIED,
       workLocationType: input.jobCriteria.workLocationType ?? LocationPreference.UNSPECIFIED,
       jobLocation: input.jobCriteria.jobLocation ?? '',
       requiredLanguages: input.jobCriteria.requiredLanguages ?? [],
@@ -156,9 +129,9 @@ export async function recommendProfile(input: ProfileRecommenderInput): Promise<
       salaryMax: input.jobCriteria.salaryMax ?? 0,
       jobType: input.jobCriteria.jobType ?? JobType.UNSPECIFIED,
       companyCultureKeywords: input.jobCriteria.companyCultureKeywords ?? [],
-      companyIndustry: input.jobCriteria.companyIndustry ?? ''
-    }
+      companyIndustry: input.jobCriteria.companyIndustry ?? '',
+    },
   } satisfies ProfileRecommenderInput;
-  
+
   return mistralRecommendProfile(normalizedInput);
 }

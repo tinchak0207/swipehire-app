@@ -6,8 +6,8 @@ const SuccessPage = () => {
       <h1 className="mb-4 font-bold text-2xl">Success!</h1>
       <p>You have successfully subscribed to the Pro Tier.</p>
       <div className="mt-4">
-        <Link href="/dashboard">
-          <a className="btn btn-primary">Go to Dashboard</a>
+        <Link href="/dashboard" className="btn btn-primary">
+          Go to Dashboard
         </Link>
       </div>
     </div>

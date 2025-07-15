@@ -147,32 +147,6 @@ const PortfolioCreationWizard: React.FC = () => {
   });
 
   // Navigation handlers
-  const goToNextStep = useCallback(async () => {
-    if (currentStep.key === 'welcome') {
-      setCurrentStepIndex((prev) => prev + 1);
-      return;
-    }
-
-    const isValid = await form.trigger();
-    if (!isValid) return;
-
-    const stepData = form.getValues();
-    setPortfolioData((prev) => ({ ...prev, ...stepData }));
-
-    if (isLastStep) {
-      await handleSubmit();
-    } else {
-      setCurrentStepIndex((prev) => prev + 1);
-    }
-  }, [currentStep.key, form, isLastStep, handleSubmit]);
-
-  const goToPreviousStep = useCallback(() => {
-    if (!isFirstStep) {
-      setCurrentStepIndex((prev) => prev - 1);
-    }
-  }, [isFirstStep]);
-
-  // Handle final submission
   const handleSubmit = useCallback(async () => {
     setIsSubmitting(true);
 
@@ -210,6 +184,32 @@ const PortfolioCreationWizard: React.FC = () => {
     }
   }, [portfolioData, form, createPortfolioMutation, router, toast]);
 
+  const goToNextStep = useCallback(async () => {
+    if (currentStep.key === 'welcome') {
+      setCurrentStepIndex((prev) => prev + 1);
+      return;
+    }
+
+    const isValid = await form.trigger();
+    if (!isValid) return;
+
+    const stepData = form.getValues();
+    setPortfolioData((prev) => ({ ...prev, ...stepData }));
+
+    if (isLastStep) {
+      await handleSubmit();
+    } else {
+      setCurrentStepIndex((prev) => prev + 1);
+    }
+  }, [currentStep.key, form, isLastStep, handleSubmit]);
+
+  const goToPreviousStep = useCallback(() => {
+    if (!isFirstStep) {
+      setCurrentStepIndex((prev) => prev - 1);
+    }
+  }, [isFirstStep]);
+
+  
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

@@ -10,15 +10,14 @@ import { useWorkflow } from '@/hooks/useWorkflow';
 
 export default function WorkflowEditorPage() {
   const params = useParams();
-  const id = params ? (params.id as string) : null;
+  const id = params ? (params['id'] as string) : null;
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
-  // Early return if no ID is available
+  const { workflow, isLoading, isError } = useWorkflow(id || '');
+
   if (!id) {
     return <div>Invalid workflow ID.</div>;
   }
-
-  const { workflow, isLoading, isError } = useWorkflow(id);
 
   if (isLoading) return <div>Loading...</div>;
   if (isError || !workflow) return <div>Error loading workflow.</div>;

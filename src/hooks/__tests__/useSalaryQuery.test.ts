@@ -8,7 +8,7 @@ import type {
   SalaryQueryResponse,
   SalaryStatistics,
 } from '../../services/salaryDataService';
-import * as salaryDataService from '../../services/salaryDataService';
+import { salaryDataService } from '../../services/salaryDataService';
 import {
   useSalaryComparison,
   useSalaryContribution,
@@ -18,19 +18,15 @@ import {
 } from '../useSalaryQuery';
 
 // Mock the salary data service
-jest.mock('@/services/salaryDataService', () => {
-  const actual = jest.requireActual('@/services/salaryDataService');
-  return {
-    ...actual,
-    salaryDataService: {
-      querySalaryData: jest.fn(),
-      getSalaryStatistics: jest.fn(),
-      contributeSalaryData: jest.fn(),
-      getTrendingSalaries: jest.fn(),
-      compareSalaries: jest.fn(),
-    },
-  };
-});
+jest.mock('@/services/salaryDataService', () => ({
+  salaryDataService: {
+    querySalaryData: jest.fn(),
+    getSalaryStatistics: jest.fn(),
+    contributeSalaryData: jest.fn(),
+    getTrendingSalaries: jest.fn(),
+    compareSalaries: jest.fn(),
+  },
+}));
 
 // Mock data
 const mockSalaryData: SalaryDataPoint[] = [
@@ -134,9 +130,7 @@ describe('useSalaryQuery', () => {
         data: filteredData,
         statistics: { ...mockStatistics, count: filteredData.length },
       };
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
-        mockResponse
-      );
+      (salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(mockResponse);
 
       const { result } = renderHook(() => useSalaryQuery(criteria), { wrapper });
 
@@ -158,9 +152,7 @@ describe('useSalaryQuery', () => {
     it('should handle empty criteria', async () => {
       const wrapper = createWrapper();
 
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
-        mockQueryResponse
-      );
+      (salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(mockQueryResponse);
 
       const { result } = renderHook(() => useSalaryQuery({}), { wrapper });
 
@@ -181,7 +173,7 @@ describe('useSalaryQuery', () => {
         ...mockQueryResponse,
         metadata: { ...mockQueryResponse.metadata, page: 2, pageSize: 5 },
       };
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
+      (salaryDataService.querySalaryData as jest.Mock).mockResolvedValue(
         mockResponseWithPagination
       );
 
@@ -200,7 +192,7 @@ describe('useSalaryQuery', () => {
       const wrapper = createWrapper();
       const criteria: SalaryQueryCriteria = { jobTitle: 'error' };
 
-      (salaryDataService.salaryDataService.querySalaryData as jest.Mock).mockRejectedValue(
+      (salaryDataService.querySalaryData as jest.Mock).mockRejectedValue(
         new Error('Network Error: Internal server error')
       );
 

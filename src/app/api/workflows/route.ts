@@ -2,7 +2,7 @@ import { MongoClient, ObjectId } from 'mongodb';
 import { NextResponse } from 'next/server';
 
 // Replace with your MongoDB connection string
-const uri = process.env.MONGODB_URI;
+const uri = process.env['MONGODB_URI'];
 if (!uri) {
   throw new Error('MONGODB_URI is not defined');
 }
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       .collection('workflows')
       .countDocuments({ userId: userObjectId, isTemplate: false });
 
-    if (user?.tier === 'free' && workflowCount >= 3) {
+    if (user?.['tier'] === 'free' && workflowCount >= 3) {
       return NextResponse.json(
         { error: 'Free tier limit reached. Upgrade to create more workflows.' },
         { status: 403 }

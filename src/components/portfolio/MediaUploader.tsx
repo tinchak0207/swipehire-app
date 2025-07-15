@@ -40,34 +40,9 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [previewMedia, setPreviewMedia] = useState<Media | null>(null);
 
   const uploadMediaMutation = useUploadMedia();
-
+ 
   /**
    * Handle file selection
-   */
-  const handleFileSelect = useCallback(
-    async (files: FileList | File[]) => {
-      const fileArray = Array.from(files);
-
-      // Check file limit
-      if (media.length + fileArray.length > maxFiles) {
-        toast({
-          title: 'Too Many Files',
-          description: `Maximum ${maxFiles} files allowed. You can upload ${maxFiles - media.length} more files.`,
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Validate and upload files
-      for (const file of fileArray) {
-        await uploadFile(file);
-      }
-    },
-    [media.length, maxFiles, toast, uploadFile]
-  );
-
-  /**
-   * Upload individual file
    */
   const uploadFile = useCallback(
     async (file: File) => {
@@ -173,6 +148,32 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     [acceptedTypes, media, onMediaUpdate, uploadMediaMutation, toast]
   );
 
+  /**
+   * Handle file selection
+   */
+  const handleFileSelect = useCallback(
+    async (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+
+      // Check file limit
+      if (media.length + fileArray.length > maxFiles) {
+        toast({
+          title: 'Too Many Files',
+          description: `Maximum ${maxFiles} files allowed. You can upload ${maxFiles - media.length} more files.`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Validate and upload files
+      for (const file of fileArray) {
+        await uploadFile(file);
+      }
+    },
+    [media.length, maxFiles, toast, uploadFile]
+  );
+
+  
   /**
    * Handle drag events
    */

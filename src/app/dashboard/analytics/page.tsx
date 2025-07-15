@@ -50,7 +50,7 @@ const AnalyticsPage = () => {
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-bold text-2xl">Analytics</h1>
-        <button className="btn btn-primary" onClick={exportPdf}>
+        <button type="button" className="btn btn-primary" onClick={exportPdf}>
           Export to PDF
         </button>
       </div>

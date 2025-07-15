@@ -133,7 +133,7 @@ export const PDFTestComponent: React.FC = () => {
       {isLoading && (
         <div className="mb-4 rounded border border-blue-200 bg-blue-50 p-3">
           <div className="flex items-center">
-            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-blue-600" />
+            <div className="mr-2 h-4 w-4 animate-spin rounded-full border-blue-600 border-b-2" />
             <span className="text-blue-800">Processing file...</span>
           </div>
         </div>

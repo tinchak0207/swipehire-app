@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { format, formatDistanceToNow, isAfter, isBefore } from 'date-fns';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
@@ -23,7 +24,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 import { useEvent, useRegisterEvent, useSaveEvent } from '@/hooks/useEvents';
-import type { EventFormat, EventSpeaker, IndustryEvent } from '@/lib/types';
+import { EventFormat, type EventSpeaker, type IndustryEvent } from '@/lib/types';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -81,11 +82,13 @@ const SpeakerCard: React.FC<{ speaker: EventSpeaker }> = ({ speaker }) => (
   <Card className="overflow-hidden">
     <CardContent className="p-4">
       <div className="flex items-start gap-3">
-        {speaker.imageUrl && (
-          <img
-            src={speaker.imageUrl}
+        {speaker.photoUrl && (
+          <Image
+            src={speaker.photoUrl}
             alt={speaker.name}
             className="h-12 w-12 rounded-full object-cover"
+            width={48}
+            height={48}
           />
         )}
         <div className="min-w-0 flex-1">
@@ -152,7 +155,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
       try {
         await navigator.share({
           title: event.title,
-          text: event.shortDescription || event.description,
+          text: event.description,
           url: window.location.href,
         });
       } catch (_error) {
@@ -191,7 +194,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
     calendarUrl.searchParams.set('dates', `${formatDate(startDate)}/${formatDate(endDate)}`);
     calendarUrl.searchParams.set('details', event.description);
 
-    if (event.location.type === 'virtual' && event.location.meetingUrl) {
+    if (event.location.type === EventFormat.VIRTUAL && event.location.meetingUrl) {
       calendarUrl.searchParams.set('location', event.location.meetingUrl);
     } else if (event.location.address) {
       calendarUrl.searchParams.set('location', event.location.address);
@@ -268,10 +271,12 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
           <div className="relative overflow-hidden rounded-lg bg-white shadow-sm">
             {event.bannerUrl && (
               <div className="relative h-64 w-full sm:h-80">
-                <img
+                <Image
                   src={event.bannerUrl}
                   alt={event.title}
                   className="h-full w-full object-cover"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
               </div>
@@ -283,7 +288,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
               {/* Status and badges */}
               <div className="mb-4 flex flex-wrap items-center gap-2">
                 <Badge className={statusInfo.className}>
-                  {getFormatIcon(event.format)} {statusInfo.text}
+                  {getFormatIcon(event.format!)} {statusInfo.text}
                 </Badge>
                 <Badge variant="secondary">{formatEventType(event.eventType)}</Badge>
                 {event.featured && <Badge className="bg-yellow-500 text-white">Featured</Badge>}
@@ -296,7 +301,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
                   <h1 className="font-bold text-2xl text-gray-900 sm:text-3xl">{event.title}</h1>
-                  <p className="mt-2 text-gray-600 text-lg">Organized by {event.organizer}</p>
+                  <p className="mt-2 text-gray-600 text-lg">Organized by {event.organizer.name}</p>
                 </div>
 
                 {/* Action buttons */}
@@ -366,7 +371,10 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                 <CardContent>
                   <div className="prose prose-sm max-w-none text-gray-700">
                     {event.description.split('\n').map((paragraph, index) => (
-                      <p key={index} className="mb-4 last:mb-0">
+                      <p
+                        key={`paragraph-${index}-${paragraph.slice(0, 20)}`}
+                        className="mb-4 last:mb-0"
+                      >
                         {paragraph}
                       </p>
                     ))}
@@ -403,7 +411,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                               </div>
                             </div>
 
-                            {session.speakers.length > 0 && (
+                            {session.speakers && session.speakers.length > 0 && (
                               <div className="flex flex-wrap gap-2">
                                 {session.speakers.map((speaker) => (
                                   <Badge key={speaker.id} variant="outline" className="text-xs">
@@ -427,7 +435,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
               )}
 
               {/* Speakers */}
-              {event.speakers.length > 0 && (
+              {event.speakers && event.speakers.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Speakers</CardTitle>
@@ -470,18 +478,18 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                     <MapPinIcon className="mt-0.5 h-5 w-5 text-gray-400" />
                     <div>
                       <p className="font-medium text-gray-900">
-                        {event.format === 'virtual'
+                        {event.format === EventFormat.VIRTUAL
                           ? 'Virtual Event'
                           : event.location.venue || 'In Person'}
                       </p>
                       <p className="text-gray-600 text-sm">
-                        {event.format === 'virtual'
+                        {event.format === EventFormat.VIRTUAL
                           ? event.location.platform || 'Online'
                           : event.location.city
                             ? `${event.location.city}${event.location.state ? `, ${event.location.state}` : ''}`
                             : 'Location TBA'}
                       </p>
-                      {event.location.address && event.format !== 'virtual' && (
+                      {event.location.address && event.format !== EventFormat.VIRTUAL && (
                         <p className="mt-1 text-gray-500 text-xs">{event.location.address}</p>
                       )}
                     </div>
@@ -558,7 +566,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
               </Card>
 
               {/* Recommendation Reasons */}
-              {event.recommendationReasons.length > 0 && (
+              {event.recommendationReasons && event.recommendationReasons.length > 0 && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Why this event?</CardTitle>
@@ -566,7 +574,10 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
                   <CardContent>
                     <div className="space-y-2">
                       {event.recommendationReasons.map((reason, index) => (
-                        <div key={index} className="flex items-start gap-2">
+                        <div
+                          key={`reason-${index}-${reason.slice(0, 20)}`}
+                          className="flex items-start gap-2"
+                        >
                           <span className="mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-blue-600" />
                           <span className="text-gray-600 text-sm">{reason}</span>
                         </div>

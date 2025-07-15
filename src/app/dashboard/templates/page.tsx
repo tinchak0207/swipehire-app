@@ -32,8 +32,11 @@ const TemplatesPage = () => {
               <h2 className="card-title">{template.name}</h2>
               <p>{template.description}</p>
               <div className="card-actions justify-end">
-                <Link href={`/dashboard/workflows?template=${template.id}`}>
-                  <a className="btn btn-primary">Use Template</a>
+                <Link
+                  href={`/dashboard/workflows?template=${template.id}`}
+                  className="btn btn-primary"
+                >
+                  Use Template
                 </Link>
               </div>
             </div>

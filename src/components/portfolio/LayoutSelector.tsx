@@ -29,11 +29,11 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       description: 'Display projects in a responsive grid',
       icon: <GridIcon className="h-5 w-5" />,
       preview: (
-        <div className="grid grid-cols-2 gap-1 w-12 h-8">
-          <div className="bg-primary/30 rounded-sm" />
-          <div className="bg-primary/30 rounded-sm" />
-          <div className="bg-primary/30 rounded-sm" />
-          <div className="bg-primary/30 rounded-sm" />
+        <div className="grid h-8 w-12 grid-cols-2 gap-1">
+          <div className="rounded-sm bg-primary/30" />
+          <div className="rounded-sm bg-primary/30" />
+          <div className="rounded-sm bg-primary/30" />
+          <div className="rounded-sm bg-primary/30" />
         </div>
       ),
     },
@@ -43,11 +43,11 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       description: 'Display projects in a vertical list',
       icon: <ListIcon className="h-5 w-5" />,
       preview: (
-        <div className="space-y-1 w-12 h-8">
-          <div className="bg-primary/30 rounded-sm h-1.5" />
-          <div className="bg-primary/30 rounded-sm h-1.5" />
-          <div className="bg-primary/30 rounded-sm h-1.5" />
-          <div className="bg-primary/30 rounded-sm h-1.5" />
+        <div className="h-8 w-12 space-y-1">
+          <div className="h-1.5 rounded-sm bg-primary/30" />
+          <div className="h-1.5 rounded-sm bg-primary/30" />
+          <div className="h-1.5 rounded-sm bg-primary/30" />
+          <div className="h-1.5 rounded-sm bg-primary/30" />
         </div>
       ),
     },
@@ -57,10 +57,10 @@ const LayoutSelector: React.FC<LayoutSelectorProps> = ({ selectedLayout, onLayou
       description: 'Display projects in a sliding carousel',
       icon: <SlidersIcon className="h-5 w-5" />,
       preview: (
-        <div className="flex gap-1 w-12 h-8 overflow-hidden">
-          <div className="bg-primary/50 rounded-sm flex-shrink-0 w-6" />
-          <div className="bg-primary/30 rounded-sm flex-shrink-0 w-6" />
-          <div className="bg-primary/20 rounded-sm flex-shrink-0 w-6" />
+        <div className="flex h-8 w-12 gap-1 overflow-hidden">
+          <div className="w-6 flex-shrink-0 rounded-sm bg-primary/50" />
+          <div className="w-6 flex-shrink-0 rounded-sm bg-primary/30" />
+          <div className="w-6 flex-shrink-0 rounded-sm bg-primary/20" />
         </div>
       ),
     },

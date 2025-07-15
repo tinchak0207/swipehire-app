@@ -9,7 +9,6 @@ import type { EventFilters, EventFormat, EventType } from '@/lib/types';
 
 const EventsPage: React.FC = () => {
   const { mongoDbUserId } = useUserPreferences();
-  const isGuestMode = !mongoDbUserId;
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState<EventFilters>({
     eventTypes: new Set<EventType>(),
@@ -108,6 +107,7 @@ const EventsPage: React.FC = () => {
             {error instanceof Error ? error.message : 'Failed to load events'}
           </p>
           <button
+            type="button"
             onClick={() => window.location.reload()}
             className="rounded-lg bg-gray-700 px-4 py-2 text-white transition-colors hover:bg-gray-800"
           >
@@ -122,12 +122,21 @@ const EventsPage: React.FC = () => {
     <div className="h-screen overflow-hidden">
       <TikTokEventScroller
         events={events}
-        userId={isGuestMode ? undefined : mongoDbUserId}
+        userId={mongoDbUserId || undefined}
         onLoadMore={handleLoadMore}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         activeFilters={activeFilters}
-        onFilterChange={handleFilterChange}
+        onFilterChange={(filterType, value, isChecked) => {
+          const newFilters = { ...activeFilters };
+          const filterSet = newFilters[filterType] as Set<string>;
+          if (isChecked) {
+            filterSet.add(value as string);
+          } else {
+            filterSet.delete(value as string);
+          }
+          handleFilterChange(newFilters);
+        }}
         onClearFilters={handleClearFilters}
         searchQuery={searchQuery}
         onSearchChange={handleSearchChange}

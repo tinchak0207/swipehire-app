@@ -10,8 +10,8 @@ const BillingPage = () => {
             <h2 className="card-title">Pro Tier</h2>
             <p>$20/month</p>
             <div className="card-actions justify-end">
-              <Link href="/dashboard/billing/success">
-                <a className="btn btn-primary">Subscribe</a>
+              <Link href="/dashboard/billing/success" className="btn btn-primary">
+                Subscribe
               </Link>
             </div>
           </div>

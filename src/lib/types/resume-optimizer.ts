@@ -170,6 +170,9 @@ export interface OptimizationSuggestion {
   category?: 'contact' | 'content' | 'formatting';
 }
 
+// Export alias for OptimizationSuggestion as Suggestion for backward compatibility
+export type Suggestion = OptimizationSuggestion;
+
 export interface GrammarCheckResult {
   score: number;
   totalIssues: number;

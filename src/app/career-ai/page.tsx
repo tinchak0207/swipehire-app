@@ -100,7 +100,7 @@ export default function CareerAIPage() {
   const getUserPhotoURL = () => {
     if (fullBackendUser?.profileAvatarUrl) {
       if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
-        return `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
+        return `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL']}${fullBackendUser.profileAvatarUrl}`;
       }
       return fullBackendUser.profileAvatarUrl;
     }
@@ -132,6 +132,7 @@ export default function CareerAIPage() {
                     stroke="currentColor"
                     viewBox="0 0 24 24"
                   >
+                    <title>Career Planning AI Icon</title>
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -165,6 +166,7 @@ export default function CareerAIPage() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
+                      <title>Quick Access Icon</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -193,6 +195,7 @@ export default function CareerAIPage() {
                       stroke="currentColor"
                       viewBox="0 0 24 24"
                     >
+                      <title>Dashboard Icon</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -218,6 +221,7 @@ export default function CareerAIPage() {
         ) : (
           <div className="alert alert-error">
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <title>Error Icon</title>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"

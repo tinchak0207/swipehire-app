@@ -55,7 +55,8 @@ interface ReminderTemplate {
 
 // Follow-up Reminders Service
 class FollowupRemindersService {
-  private static baseUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+  private static baseUrl =
+    process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
   static async getUserReminders(userId: string, status?: string): Promise<FollowupReminder[]> {
     const params = new URLSearchParams();
@@ -353,10 +354,17 @@ function ReminderCard({ reminder, onComplete, onSnooze, isUpdating }: ReminderCa
 }
 
 // Create Reminder Dialog
+interface CreateReminderData {
+  matchId: string;
+  reminderType: 'thank_you' | 'status_inquiry' | 'follow_up' | 'custom';
+  scheduledDate: string;
+  customMessage?: string;
+}
+
 interface CreateReminderDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (reminder: any) => void;
+  onCreate: (reminder: CreateReminderData) => void;
   isCreating: boolean;
 }
 
@@ -382,7 +390,7 @@ function CreateReminderDialog({
 
   const handleSubmit = () => {
     if (formData.matchId && formData.reminderType && formData.scheduledDate) {
-      onCreate(formData);
+      onCreate(formData as CreateReminderData);
       setFormData({
         matchId: '',
         reminderType: '',
@@ -502,7 +510,7 @@ export default function FollowupRemindersPage() {
 
   // Mutations
   const createReminderMutation = useMutation({
-    mutationFn: (reminderData: any) =>
+    mutationFn: (reminderData: CreateReminderData) =>
       FollowupRemindersService.createReminder(userId, reminderData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['followup-reminders'] });
@@ -561,7 +569,7 @@ export default function FollowupRemindersPage() {
 
   // Handlers
   const handleCreateReminder = useCallback(
-    (reminderData: any) => {
+    (reminderData: CreateReminderData) => {
       // Validate the data before sending
       if (!reminderData.matchId || !reminderData.reminderType || !reminderData.scheduledDate) {
         toast({

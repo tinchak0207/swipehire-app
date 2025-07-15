@@ -5,13 +5,10 @@ import {
   Award,
   BookOpen,
   Brain,
-  Briefcase,
   Building2,
   Calendar,
   CheckCircle2,
-  Clock,
   FileText,
-  GraduationCap,
   Lightbulb,
   Lock,
   MessageSquare,
@@ -19,9 +16,8 @@ import {
   Search,
   Target,
   TrendingUp,
-  Users,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { CompanyResearch } from '@/components/interview/CompanyResearch';
 import { JobAnalysisComponent } from '@/components/interview/JobAnalysis';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -31,27 +27,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import type {
-  CompanyInsight,
-  Industry,
-  InterviewCalendar,
-  InterviewDifficulty,
-  InterviewPhase,
-  InterviewProgress,
-  InterviewQuestion,
-  InterviewType,
-  PreparationTip,
-  UserInterviewProfile,
-  UserRole,
-} from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
-  fetchInterviewQuestions,
-  getInterviewCalendar,
-  getInterviewProgress,
-  getPreparationTips,
-  getUserInterviewProfile,
-} from '@/services/interviewService';
+  InterviewPhase,
+} from '@/lib/types';
+import type {
+  InterviewCalendar,
+  InterviewProgress,
+  InterviewQuestion,
+  PreparationTip,
+  UserRole,
+} from '@/lib/types';
 
 interface InterviewGuidePageProps {
   isGuestMode?: boolean;
@@ -79,15 +65,13 @@ interface InterviewFeature {
   onClick?: () => void;
 }
 
-export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGuidePageProps) {
-  const [activeTab, setActiveTab] = useState<InterviewPhase>('pre_interview');
+export function InterviewGuidePage({ isGuestMode }: InterviewGuidePageProps) {
+  const [activeTab, setActiveTab] = useState<InterviewPhase>(InterviewPhase.PRE_INTERVIEW);
   const [currentView, setCurrentView] = useState<ViewState>('overview');
-  const [userProfile, setUserProfile] = useState<UserInterviewProfile | null>(null);
-  const [progress, setProgress] = useState<InterviewProgress | null>(null);
-  const [questions, setQuestions] = useState<InterviewQuestion[]>([]);
-  const [tips, setTips] = useState<PreparationTip[]>([]);
-  const [calendar, setCalendar] = useState<InterviewCalendar[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [progress] = useState<InterviewProgress | null>(null);
+  const [questions] = useState<InterviewQuestion[]>([]);
+  const [tips] = useState<PreparationTip[]>([]);
+  const [calendar] = useState<InterviewCalendar[]>([]);
   const { toast } = useToast();
 
   const interviewFeatures: InterviewFeature[] = [
@@ -97,7 +81,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
       Icon: Building2,
       bgClass: 'bg-gradient-to-br from-blue-500 to-blue-700',
       description: 'Deep dive into company insights, culture, and recent news.',
-      phase: 'pre_interview',
+      phase: InterviewPhase.PRE_INTERVIEW,
       onClick: () => setCurrentView('research'),
     },
     {
@@ -106,7 +90,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
       Icon: FileText,
       bgClass: 'bg-gradient-to-br from-green-500 to-green-700',
       description: 'Analyze job descriptions and predict likely questions.',
-      phase: 'pre_interview',
+      phase: InterviewPhase.PRE_INTERVIEW,
       onClick: () => setCurrentView('jobAnalysis'),
     },
     {
@@ -115,7 +99,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
       Icon: MessageSquare,
       bgClass: 'bg-gradient-to-br from-purple-500 to-purple-700',
       description: 'Practice with AI-powered behavioral and technical questions.',
-      phase: 'interview',
+      phase: InterviewPhase.INTERVIEW,
       onClick: () => handleFeatureClick('practice'),
     },
     {
@@ -124,7 +108,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
       Icon: Calendar,
       bgClass: 'bg-gradient-to-br from-orange-500 to-orange-700',
       description: 'Schedule and track your upcoming interviews.',
-      phase: 'interview',
+      phase: InterviewPhase.INTERVIEW,
       onClick: () => handleFeatureClick('calendar'),
     },
     {
@@ -133,7 +117,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
       Icon: MessageSquare,
       bgClass: 'bg-gradient-to-br from-teal-500 to-teal-700',
       description: 'Generate personalized thank you messages and follow-ups.',
-      phase: 'post_interview',
+      phase: InterviewPhase.POST_INTERVIEW,
       onClick: () => handleFeatureClick('followup'),
     },
     {
@@ -142,49 +126,10 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
       Icon: TrendingUp,
       bgClass: 'bg-gradient-to-br from-pink-500 to-pink-700',
       description: 'Track your progress and identify improvement areas.',
-      phase: 'post_interview',
+      phase: InterviewPhase.POST_INTERVIEW,
       onClick: () => handleFeatureClick('analytics'),
     },
   ];
-
-  useEffect(() => {
-    if (!isGuestMode) {
-      loadUserData();
-    } else {
-      setLoading(false);
-    }
-  }, [isGuestMode]);
-
-  const loadUserData = async () => {
-    try {
-      setLoading(true);
-      // In a real implementation, we'd get the actual user ID
-      const userId = 'current-user-id';
-
-      const [profileData, progressData, questionsData, tipsData, calendarData] = await Promise.all([
-        getUserInterviewProfile(userId),
-        getInterviewProgress(userId),
-        fetchInterviewQuestions({ limit: 10 }),
-        getPreparationTips(),
-        getInterviewCalendar(userId),
-      ]);
-
-      setUserProfile(profileData);
-      setProgress(progressData);
-      setQuestions(questionsData.questions);
-      setTips(tipsData);
-      setCalendar(calendarData);
-    } catch (error) {
-      console.error('Error loading user data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load interview data. Using offline mode.',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleFeatureClick = (featureKey: FeatureKey) => {
     if (isGuestMode && !['research', 'preparation'].includes(featureKey)) {
@@ -249,14 +194,14 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
 
   // Render specific feature views
   if (currentView === 'research') {
-    return <CompanyResearch onBack={handleBackToOverview} isGuestMode={isGuestMode} />;
+    return <CompanyResearch onBack={handleBackToOverview} isGuestMode={!!isGuestMode} />;
   }
 
   if (currentView === 'jobAnalysis') {
-    return <JobAnalysisComponent onBack={handleBackToOverview} isGuestMode={isGuestMode} />;
+    return <JobAnalysisComponent onBack={handleBackToOverview} isGuestMode={!!isGuestMode} />;
   }
 
-  if (loading) {
+  if (currentView === 'overview') {
     return (
       <div className="flex min-h-[calc(100vh-200px)] items-center justify-center">
         <div className="text-center">
@@ -394,7 +339,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
                       <p className="text-sm text-white/80">{feature.description}</p>
                     </CardContent>
                     {(!isGuestMode || ['research', 'preparation'].includes(feature.key)) && (
-                      <ArrowRight className="absolute bottom-4 right-4 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100" />
+                      <ArrowRight className="absolute right-4 bottom-4 h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100" />
                     )}
                   </Card>
                 ))}
@@ -434,7 +379,7 @@ export function InterviewGuidePage({ isGuestMode, currentUserRole }: InterviewGu
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        {questions.slice(0, 3).map((question, index) => (
+                        {questions.slice(0, 3).map((question, _index) => (
                           <div key={question.id} className="space-y-2">
                             <p className="font-medium text-sm">{question.question}</p>
                             <div className="flex space-x-2">

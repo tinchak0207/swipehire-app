@@ -40,11 +40,11 @@ export async function POST(request: NextRequest) {
   } catch (error: unknown) {
     console.error('[API Route /api/ai/generate-icebreaker] Error:', error);
     let errorMessage = 'Failed to generate icebreaker question.';
-    if (error.message) {
+    if (error instanceof Error) {
       errorMessage = error.message;
     }
     // Consider more specific error handling based on error types if needed
-    return NextResponse.json({ error: errorMessage, details: error.toString() }, { status: 500 });
+    return NextResponse.json({ error: errorMessage, details: String(error) }, { status: 500 });
   }
 }
 

@@ -36,11 +36,15 @@ const nextConfig = {
       config.resolve.fallback.fs = false;
     }
 
-    // Ignore handlebars require.extensions warnings
+    // Configure handlebars loader and ignore require.extensions warnings
+    config.module.rules.push({
+      test: /\.hbs$/,
+      use: 'handlebars-loader',
+    });
     config.plugins.push(
       new webpack.IgnorePlugin({
         resourceRegExp: /^\.\/lib\/handlebars$/,
-        contextRegExp: /handlebars$/
+        contextRegExp: /handlebars$/,
       })
     );
 

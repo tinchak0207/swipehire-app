@@ -114,7 +114,7 @@ import { NotificationItemType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { deleteUserAccount, requestDataExport } from '@/services/userService';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface SettingsPageProps {
   currentUserRole: UserRole | null;
@@ -739,7 +739,9 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
             className="space-y-2"
           >
             <div className="flex items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-              <RadioGroupItem value="recruiter" disabled={!!isGuestMode} />
+              <RadioGroupItem value="recruiter" disabled={!!isGuestMode}>
+                <span>Recruiter</span>
+              </RadioGroupItem>
               <Label
                 htmlFor="role-recruiter"
                 className="flex cursor-pointer items-center text-base"
@@ -749,7 +751,9 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
               </Label>
             </div>
             <div className="flex items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-              <RadioGroupItem value="jobseeker" disabled={!!isGuestMode} />
+              <RadioGroupItem value="jobseeker" disabled={!!isGuestMode}>
+                <span>Job Seeker</span>
+              </RadioGroupItem>
               <Label
                 htmlFor="role-jobseeker"
                 className="flex cursor-pointer items-center text-base"
@@ -1053,19 +1057,25 @@ export function SettingsPage({ currentUserRole, isGuestMode }: SettingsPageProps
               className="flex flex-col gap-2 sm:flex-row"
             >
               <div className="flex flex-1 items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-                <RadioGroupItem value="light" disabled={!!isGuestMode} />
+                <RadioGroupItem value="light" disabled={!!isGuestMode}>
+                  <span>Light</span>
+                </RadioGroupItem>
                 <Label htmlFor="theme-light" className="flex cursor-pointer items-center">
                   <Sun className="mr-2 h-4 w-4 text-yellow-500" /> Light
                 </Label>
               </div>
               <div className="flex flex-1 items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-                <RadioGroupItem value="dark" disabled={!!isGuestMode} />
+                <RadioGroupItem value="dark" disabled={!!isGuestMode}>
+                  <span>Dark</span>
+                </RadioGroupItem>
                 <Label htmlFor="theme-dark" className="flex cursor-pointer items-center">
                   <Moon className="mr-2 h-4 w-4 text-blue-400" /> Dark
                 </Label>
               </div>
               <div className="flex flex-1 items-center space-x-2 rounded-md border p-3 transition-colors hover:bg-muted/50">
-                <RadioGroupItem value="system" disabled={!!isGuestMode} />
+                <RadioGroupItem value="system" disabled={!!isGuestMode}>
+                  <span>System</span>
+                </RadioGroupItem>
                 <Label htmlFor="theme-system" className="flex cursor-pointer items-center">
                   <Laptop className="mr-2 h-4 w-4 text-gray-500" /> System
                 </Label>

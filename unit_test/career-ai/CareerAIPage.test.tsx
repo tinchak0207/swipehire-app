@@ -18,7 +18,14 @@ const MockCareerAIPage = () => {
   } | null>(null);
   const [showDashboard, setShowDashboard] = React.useState(false);
 
-  const handleSurveyComplete = (data: any) => {
+  const handleSurveyComplete = (data: {
+    education: string;
+    experience: string[];
+    skills: string[];
+    interests: string[];
+    values: string[];
+    careerExpectations: string;
+  }) => {
     setUserData(data);
     setCompletedQuestionnaire(true);
     setShowDashboard(true);
@@ -47,7 +54,11 @@ const MockCareerAIPage = () => {
     return (
       <div data-testid="career-dashboard">
         <div>User Data: {JSON.stringify(userData)}</div>
-        <button onClick={handleBackToQuestionnaire} data-testid="back-to-questionnaire">
+        <button
+          type="button"
+          onClick={handleBackToQuestionnaire}
+          data-testid="back-to-questionnaire"
+        >
           Back to Questionnaire
         </button>
       </div>
@@ -66,6 +77,7 @@ const MockCareerAIPage = () => {
 
           <div data-testid="forms-app-survey">
             <button
+              type="button"
               onClick={() =>
                 handleSurveyComplete({
                   education: 'Bachelor',
@@ -88,7 +100,7 @@ const MockCareerAIPage = () => {
               <h3 className="mb-3 font-semibold text-gray-800 text-xl">
                 Quick Access to Career Dashboard
               </h3>
-              <button onClick={handleQuickAccess} className="btn btn-primary">
+              <button type="button" onClick={handleQuickAccess} className="btn btn-primary">
                 Go to Career Dashboard
               </button>
             </div>

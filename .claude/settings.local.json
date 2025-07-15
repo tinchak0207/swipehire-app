@@ -23,7 +23,8 @@
       "Bash(rm:*)",
       "Bash(git commit:*)",
       "Bash(git config:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(npx biome format:*)"
     ],
     "deny": []
   }

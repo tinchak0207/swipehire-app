@@ -67,7 +67,7 @@ import {
   WorkExperienceLevel,
 } from '@/lib/types';
 
-const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
+const envBackendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
 const CUSTOM_BACKEND_URL =
   envBackendUrl && envBackendUrl.trim() !== '' ? envBackendUrl : 'http://localhost:5000';
 
@@ -540,27 +540,27 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
 
   if (isGuestMode) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6 relative overflow-hidden">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
         {/* Animated background elements */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse delay-1000" />
+          <div className="absolute top-1/4 left-1/4 h-96 w-96 animate-pulse rounded-full bg-white blur-3xl" />
+          <div className="absolute right-1/4 bottom-1/4 h-96 w-96 animate-pulse rounded-full bg-white blur-3xl delay-1000" />
         </div>
 
-        <div className="max-w-lg w-full relative z-10">
-          <div className="backdrop-blur-xl bg-white/10 border border-white/20 rounded-3xl p-10 shadow-2xl text-center animate-fade-in">
-            <div className="w-24 h-24 mx-auto mb-8 rounded-full bg-gradient-to-br from-white/20 to-white/10 flex items-center justify-center backdrop-blur-sm">
+        <div className="relative z-10 w-full max-w-lg">
+          <div className="animate-fade-in rounded-3xl border border-white/20 bg-white/10 p-10 text-center shadow-2xl backdrop-blur-xl">
+            <div className="mx-auto mb-8 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-white/20 to-white/10 backdrop-blur-sm">
               <Lock className="h-12 w-12 text-white" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-6 tracking-tight">Access Restricted</h2>
-            <p className="text-white/80 leading-relaxed mb-8 text-lg">
+            <h2 className="mb-6 font-bold text-3xl text-white tracking-tight">Access Restricted</h2>
+            <p className="mb-8 text-lg text-white/80 leading-relaxed">
               Managing your profile is a feature for registered users. Please sign in using the
               Login button in the header to create or edit your profile.
             </p>
-            <div className="w-full h-1 bg-gradient-to-r from-white/20 via-white/40 to-white/20 rounded-full" />
+            <div className="h-1 w-full rounded-full bg-gradient-to-r from-white/20 via-white/40 to-white/20" />
           </div>
           <div className="mt-12 flex justify-center">
-            <div className="w-24 h-1 bg-gradient-to-r from-white/20 via-white/60 to-white/20 rounded-full" />
+            <div className="h-1 w-24 rounded-full bg-gradient-to-r from-white/20 via-white/60 to-white/20" />
           </div>
         </div>
       </div>
@@ -718,7 +718,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                       <UserCircle className="h-12 w-12 text-gray-600" />
                     </div>
                   )}
-                  <div className="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 shadow-lg">
+                  <div className="-bottom-2 -right-2 absolute flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-600 to-gray-700 shadow-lg">
                     <ImageIcon className="h-4 w-4 text-white" />
                   </div>
                 </div>
@@ -795,13 +795,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               </Label>
 
               {skillList.length > 0 && (
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50">
+                <div className="rounded-xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-4">
                   <div className="flex flex-wrap gap-2">
                     {skillList.map((skill, index) => (
                       <Badge
                         key={index}
                         variant="secondary"
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 hover:border-gray-300 transition-colors"
+                        className="flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-sm transition-colors hover:border-gray-300"
                       >
                         <Sparkles className="h-3 w-3 text-gray-600" />
                         {skill}
@@ -809,7 +809,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-4 w-4 p-0 text-gray-400 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors"
+                          className="h-4 w-4 rounded-full p-0 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600"
                           onClick={() => handleRemoveSkill(skill)}
                           aria-label={`Remove skill ${skill}`}
                         >
@@ -841,7 +841,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                   Add Skill
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-gray-500 text-sm">
                 Add your key technical and soft skills. Press Enter or click "Add Skill" to include
                 each one.
               </p>
@@ -853,9 +853,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="workExperienceLevel"
-                  className="flex items-center text-lg font-semibold text-white bg-black px-4 py-2 rounded-lg"
+                  className="flex items-center rounded-lg bg-black px-4 py-2 font-semibold text-lg text-white"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-3">
+                  <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                     <Clock className="h-4 w-4 text-gray-700" />
                   </div>
                   Experience Level
@@ -866,7 +866,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 >
                   <SelectTrigger
                     id="workExperienceLevel"
-                    className="h-12 text-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 rounded-xl"
+                    className="h-12 rounded-xl border-gray-300 text-lg focus:border-gray-500 focus:ring-gray-500"
                   >
                     <SelectValue placeholder="Select experience level" />
                   </SelectTrigger>
@@ -884,9 +884,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="educationLevel"
-                  className="flex items-center text-lg font-semibold text-white bg-black px-4 py-2 rounded-lg"
+                  className="flex items-center rounded-lg bg-black px-4 py-2 font-semibold text-lg text-white"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-3">
+                  <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                     <UserCircle className="h-4 w-4 text-gray-700" />
                   </div>
                   Education Level
@@ -897,7 +897,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 >
                   <SelectTrigger
                     id="educationLevel"
-                    className="h-12 text-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 rounded-xl"
+                    className="h-12 rounded-xl border-gray-300 text-lg focus:border-gray-500 focus:ring-gray-500"
                   >
                     <SelectValue placeholder="Select education level" />
                   </SelectTrigger>
@@ -918,9 +918,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="desiredWorkStyle"
-                  className="flex items-center text-lg font-semibold text-white bg-black px-4 py-2 rounded-lg"
+                  className="flex items-center rounded-lg bg-black px-4 py-2 font-semibold text-lg text-white"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-3">
+                  <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                     <Briefcase className="h-4 w-4 text-gray-700" />
                   </div>
                   Work Style
@@ -930,7 +930,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                   placeholder="e.g., Fully Remote, Hybrid, Collaborative team"
                   value={desiredWorkStyle}
                   onChange={(e) => setDesiredWorkStyle(e.target.value)}
-                  className="h-12 text-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 rounded-xl"
+                  className="h-12 rounded-xl border-gray-300 text-lg focus:border-gray-500 focus:ring-gray-500"
                 />
               </div>
 
@@ -938,9 +938,9 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               <div className="space-y-3">
                 <Label
                   htmlFor="locationPreference"
-                  className="flex items-center text-lg font-semibold text-white bg-black px-4 py-2 rounded-lg"
+                  className="flex items-center rounded-lg bg-black px-4 py-2 font-semibold text-lg text-white"
                 >
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-3">
+                  <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                     <MapPin className="h-4 w-4 text-gray-700" />
                   </div>
                   Location Preference
@@ -951,7 +951,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 >
                   <SelectTrigger
                     id="locationPreference"
-                    className="h-12 text-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 rounded-xl"
+                    className="h-12 rounded-xl border-gray-300 text-lg focus:border-gray-500 focus:ring-gray-500"
                   >
                     <SelectValue placeholder="Select location preference" />
                   </SelectTrigger>
@@ -979,13 +979,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               </Label>
 
               {languageList.length > 0 && (
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50">
+                <div className="rounded-xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-4">
                   <div className="flex flex-wrap gap-2">
                     {languageList.map((lang, index) => (
                       <Badge
                         key={index}
                         variant="secondary"
-                        className="flex items-center gap-2 px-3 py-2 text-sm bg-white border border-gray-200 hover:border-gray-300 transition-colors"
+                        className="flex items-center gap-2 border border-gray-200 bg-white px-3 py-2 text-sm transition-colors hover:border-gray-300"
                       >
                         <Globe className="h-3 w-3 text-gray-600" />
                         {lang}
@@ -993,7 +993,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                           type="button"
                           variant="ghost"
                           size="icon"
-                          className="h-4 w-4 p-0 text-gray-400 hover:bg-red-100 hover:text-red-600 rounded-full transition-colors"
+                          className="h-4 w-4 rounded-full p-0 text-gray-400 transition-colors hover:bg-red-100 hover:text-red-600"
                           onClick={() => handleRemoveLanguage(lang)}
                           aria-label={`Remove language ${lang}`}
                         >
@@ -1025,61 +1025,61 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                   Add Language
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-gray-500 text-sm">
                 Add languages you speak fluently. This helps with international opportunities.
               </p>
             </div>
 
             {/* Salary Expectations */}
             <div className="space-y-4">
-              <Label className="flex items-center text-lg font-semibold text-white bg-black px-4 py-2 rounded-lg">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-3">
+              <Label className="flex items-center rounded-lg bg-black px-4 py-2 font-semibold text-lg text-white">
+                <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                   <DollarSign className="h-4 w-4 text-gray-700" />
                 </div>
                 Salary Expectations (Annual)
               </Label>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label
                     htmlFor="salaryExpectationMin"
-                    className="text-sm font-medium text-gray-700"
+                    className="font-medium text-gray-700 text-sm"
                   >
                     Minimum Expected
                   </Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <DollarSign className="-translate-y-1/2 absolute top-1/2 left-3 h-5 w-5 transform text-gray-400" />
                     <Input
                       id="salaryExpectationMin"
                       type="number"
                       placeholder="80,000"
                       value={salaryExpectationMin}
                       onChange={(e) => setSalaryExpectationMin(e.target.value)}
-                      className="pl-10 h-12 text-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 rounded-xl"
+                      className="h-12 rounded-xl border-gray-300 pl-10 text-lg focus:border-gray-500 focus:ring-gray-500"
                     />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label
                     htmlFor="salaryExpectationMax"
-                    className="text-sm font-medium text-gray-700"
+                    className="font-medium text-gray-700 text-sm"
                   >
                     Maximum Expected
                   </Label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <DollarSign className="-translate-y-1/2 absolute top-1/2 left-3 h-5 w-5 transform text-gray-400" />
                     <Input
                       id="salaryExpectationMax"
                       type="number"
                       placeholder="120,000"
                       value={salaryExpectationMax}
                       onChange={(e) => setSalaryExpectationMax(e.target.value)}
-                      className="pl-10 h-12 text-lg border-gray-300 focus:border-gray-500 focus:ring-gray-500 rounded-xl"
+                      className="h-12 rounded-xl border-gray-300 pl-10 text-lg focus:border-gray-500 focus:ring-gray-500"
                     />
                   </div>
                 </div>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-gray-500 text-sm">
                 Provide your expected salary range to help recruiters match you with appropriate
                 opportunities.
               </p>
@@ -1087,7 +1087,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="space-y-1">
               <Label
                 htmlFor="availability"
-                className="flex items-center text-base text-white bg-black px-4 py-2 rounded-lg"
+                className="flex items-center rounded-lg bg-black px-4 py-2 text-base text-white"
               >
                 <CalendarDays className="mr-2 h-4 w-4 text-white" /> My Availability
               </Label>
@@ -1109,7 +1109,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             </div>
 
             <div className="space-y-2">
-              <Label className="flex items-center text-base text-white bg-black px-4 py-2 rounded-lg">
+              <Label className="flex items-center rounded-lg bg-black px-4 py-2 text-base text-white">
                 <Type className="mr-2 h-4 w-4 text-white" /> Preferred Job Types
               </Label>
               <div className="mb-2 flex flex-wrap gap-2">
@@ -1173,7 +1173,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="space-y-1">
               <Label
                 htmlFor="pastProjects"
-                className="flex items-center text-base text-white bg-black px-4 py-2 rounded-lg"
+                className="flex items-center rounded-lg bg-black px-4 py-2 text-base text-white"
               >
                 <Edit3 className="mr-2 h-4 w-4 text-white" /> My Key Past Projects/Achievements
               </Label>
@@ -1188,7 +1188,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="space-y-1">
               <Label
                 htmlFor="videoPortfolioLink"
-                className="flex items-center text-base text-white bg-black px-4 py-2 rounded-lg"
+                className="flex items-center rounded-lg bg-black px-4 py-2 text-base text-white"
               >
                 <LinkIcon className="mr-2 h-4 w-4 text-white" /> Link to My Video Resume/Portfolio
               </Label>
@@ -1204,7 +1204,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="space-y-1 border-t pt-4">
               <Label
                 htmlFor="selectedCardTheme"
-                className="flex items-center text-base text-white bg-black px-4 py-2 rounded-lg"
+                className="flex items-center rounded-lg bg-black px-4 py-2 text-base text-white"
               >
                 <PaletteIcon className="mr-2 h-4 w-4 text-white" /> Profile Card Theme
               </Label>
@@ -1232,7 +1232,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             <div className="space-y-1 border-t pt-4">
               <Label
                 htmlFor="profileVisibility"
-                className="flex items-center text-base text-white bg-black px-4 py-2 rounded-lg"
+                className="flex items-center rounded-lg bg-black px-4 py-2 text-base text-white"
               >
                 <ShieldCheck className="mr-2 h-4 w-4 text-white" /> Profile Visibility
               </Label>
@@ -1256,13 +1256,13 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               </p>
             </div>
           </CardContent>
-          <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200/50 p-8">
-            <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6">
+          <CardFooter className="border-gray-200/50 border-t bg-gradient-to-r from-gray-50 to-gray-100 p-8">
+            <div className="flex w-full flex-col items-center justify-between gap-6 lg:flex-row">
               <div className="flex flex-wrap gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setIsPreviewModalOpen(true)}
-                  className="h-12 px-6 border-gray-300 hover:border-gray-500 hover:bg-white rounded-xl transition-all duration-200 shadow-sm hover:shadow-md"
+                  className="h-12 rounded-xl border-gray-300 px-6 shadow-sm transition-all duration-200 hover:border-gray-500 hover:bg-white hover:shadow-md"
                 >
                   <Eye className="mr-2 h-5 w-5" />
                   Preview Card
@@ -1271,7 +1271,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                   variant="outline"
                   onClick={() => setIsShareProfileModalOpen(true)}
                   disabled={!mongoDbUserId || isGuestMode}
-                  className="h-12 px-6 border-gray-300 hover:border-gray-500 hover:bg-white rounded-xl transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
+                  className="h-12 rounded-xl border-gray-300 px-6 shadow-sm transition-all duration-200 hover:border-gray-500 hover:bg-white hover:shadow-md disabled:opacity-50"
                 >
                   <Share2 className="mr-2 h-5 w-5" />
                   Share Profile
@@ -1281,7 +1281,7 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                 onClick={handleSaveProfile}
                 size="lg"
                 disabled={isLoading || !mongoDbUserId}
-                className="h-14 px-8 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50 text-lg font-semibold"
+                className="h-14 rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 px-8 font-semibold text-lg text-white shadow-lg transition-all duration-200 hover:from-gray-900 hover:to-black hover:shadow-xl disabled:opacity-50"
               >
                 {isLoading ? (
                   <>
@@ -1300,10 +1300,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         </Card>
 
         {/* Resume Optimization Card */}
-        <Card className="backdrop-blur-sm bg-white/80 border border-gray-200/50 shadow-2xl rounded-3xl overflow-hidden animate-fade-in">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200/50">
-            <CardTitle className="flex items-center text-2xl font-bold text-gray-900">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-4">
+        <Card className="animate-fade-in overflow-hidden rounded-3xl border border-gray-200/50 bg-white/80 shadow-2xl backdrop-blur-sm">
+          <CardHeader className="border-gray-200/50 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+            <CardTitle className="flex items-center font-bold text-2xl text-gray-900">
+              <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                 <FileText className="h-5 w-5 text-gray-700" />
               </div>
               Resume Optimization Tools
@@ -1314,18 +1314,18 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-8">
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200/50">
+            <div className="rounded-2xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-6">
               <div className="flex items-start space-x-6">
                 <div className="flex-shrink-0">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-gray-600 to-gray-700 flex items-center justify-center shadow-lg">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-gray-600 to-gray-700 shadow-lg">
                     <FileText className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                <div className="min-w-0 flex-1">
+                  <h3 className="mb-3 font-bold text-gray-900 text-xl">
                     AI-Powered Resume Analysis
                   </h3>
-                  <p className="text-gray-600 leading-relaxed mb-4">
+                  <p className="mb-4 text-gray-600 leading-relaxed">
                     Get detailed feedback on your resume including ATS compatibility, keyword
                     optimization, and personalized suggestions to improve your job application
                     success rate.
@@ -1333,25 +1333,25 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
                   <div className="flex flex-wrap gap-2">
                     <Badge
                       variant="secondary"
-                      className="px-3 py-1 bg-white border border-gray-200 text-gray-700"
+                      className="border border-gray-200 bg-white px-3 py-1 text-gray-700"
                     >
                       ATS Optimization
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="px-3 py-1 bg-white border border-gray-200 text-gray-700"
+                      className="border border-gray-200 bg-white px-3 py-1 text-gray-700"
                     >
                       Keyword Analysis
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="px-3 py-1 bg-white border border-gray-200 text-gray-700"
+                      className="border border-gray-200 bg-white px-3 py-1 text-gray-700"
                     >
                       Grammar Check
                     </Badge>
                     <Badge
                       variant="secondary"
-                      className="px-3 py-1 bg-white border border-gray-200 text-gray-700"
+                      className="border border-gray-200 bg-white px-3 py-1 text-gray-700"
                     >
                       Format Suggestions
                     </Badge>
@@ -1360,10 +1360,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200/50 p-8">
+          <CardFooter className="border-gray-200/50 border-t bg-gradient-to-r from-gray-50 to-gray-100 p-8">
             <Button
               onClick={() => router.push('/resume-optimizer')}
-              className="w-full h-12 bg-gradient-to-r from-gray-800 to-gray-900 hover:from-gray-900 hover:to-black text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl text-lg font-semibold"
+              className="h-12 w-full rounded-xl bg-gradient-to-r from-gray-800 to-gray-900 font-semibold text-lg text-white shadow-lg transition-all duration-200 hover:from-gray-900 hover:to-black hover:shadow-xl"
               disabled={isGuestMode}
             >
               {isGuestMode ? (
@@ -1382,10 +1382,10 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
         </Card>
 
         {/* Profile Analytics Card */}
-        <Card className="backdrop-blur-sm bg-white/80 border border-gray-200/50 shadow-2xl rounded-3xl overflow-hidden animate-fade-in">
-          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200/50">
-            <CardTitle className="flex items-center text-2xl font-bold text-gray-900">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center mr-4">
+        <Card className="animate-fade-in overflow-hidden rounded-3xl border border-gray-200/50 bg-white/80 shadow-2xl backdrop-blur-sm">
+          <CardHeader className="border-gray-200/50 border-b bg-gradient-to-r from-gray-50 to-gray-100">
+            <CardTitle className="flex items-center font-bold text-2xl text-gray-900">
+              <div className="mr-4 flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-gray-200 to-gray-300">
                 <BarChart3 className="h-5 w-5 text-gray-700" />
               </div>
               Profile Analytics
@@ -1396,36 +1396,36 @@ export function MyProfilePage({ isGuestMode }: MyProfilePageProps) {
           </CardHeader>
           <CardContent className="p-8">
             <div className="grid grid-cols-2 gap-6">
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50 text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">{profileViews}</div>
-                <div className="text-sm font-medium text-gray-600">Profile Views</div>
+              <div className="rounded-xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-4 text-center">
+                <div className="mb-1 font-bold text-3xl text-gray-900">{profileViews}</div>
+                <div className="font-medium text-gray-600 text-sm">Profile Views</div>
               </div>
-              <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50 text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-1">{profileShares}</div>
-                <div className="text-sm font-medium text-gray-600">Profile Shares</div>
+              <div className="rounded-xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-4 text-center">
+                <div className="mb-1 font-bold text-3xl text-gray-900">{profileShares}</div>
+                <div className="font-medium text-gray-600 text-sm">Profile Shares</div>
               </div>
               {videoPortfolioLink && (
                 <>
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50 text-center">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">{videoPlays}</div>
-                    <div className="text-sm font-medium text-gray-600">Video Plays</div>
+                  <div className="rounded-xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-4 text-center">
+                    <div className="mb-1 font-bold text-3xl text-gray-900">{videoPlays}</div>
+                    <div className="font-medium text-gray-600 text-sm">Video Plays</div>
                   </div>
-                  <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200/50 text-center">
-                    <div className="text-3xl font-bold text-gray-900 mb-1">
+                  <div className="rounded-xl border border-gray-200/50 bg-gradient-to-r from-gray-50 to-gray-100 p-4 text-center">
+                    <div className="mb-1 font-bold text-3xl text-gray-900">
                       {videoCompletionRate}%
                     </div>
-                    <div className="text-sm font-medium text-gray-600">Completion Rate</div>
+                    <div className="font-medium text-gray-600 text-sm">Completion Rate</div>
                   </div>
                 </>
               )}
             </div>
           </CardContent>
-          <CardFooter className="bg-gradient-to-r from-gray-50 to-gray-100 border-t border-gray-200/50 p-8">
+          <CardFooter className="border-gray-200/50 border-t bg-gradient-to-r from-gray-50 to-gray-100 p-8">
             <Button
               variant="outline"
               onClick={handleSimulateProfileActivity}
               disabled={isGuestMode}
-              className="w-full h-12 border-gray-300 hover:border-gray-500 hover:bg-white rounded-xl transition-all duration-200 shadow-sm hover:shadow-md text-lg font-semibold"
+              className="h-12 w-full rounded-xl border-gray-300 font-semibold text-lg shadow-sm transition-all duration-200 hover:border-gray-500 hover:bg-white hover:shadow-md"
             >
               <Activity className="mr-3 h-5 w-5" />
               Simulate Activity

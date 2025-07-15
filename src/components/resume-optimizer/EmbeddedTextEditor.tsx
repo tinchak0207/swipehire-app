@@ -16,10 +16,10 @@ import type { EditorState } from '@/lib/types/resume-optimizer';
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
   loading: () => (
-    <div className="bg-base-200 rounded-lg p-8 animate-pulse">
-      <div className="h-4 bg-base-300 rounded w-3/4 mb-4"></div>
-      <div className="h-4 bg-base-300 rounded w-1/2 mb-4"></div>
-      <div className="h-4 bg-base-300 rounded w-5/6"></div>
+    <div className="animate-pulse rounded-lg bg-base-200 p-8">
+      <div className="mb-4 h-4 w-3/4 rounded bg-base-300" />
+      <div className="mb-4 h-4 w-1/2 rounded bg-base-300" />
+      <div className="h-4 w-5/6 rounded bg-base-300" />
     </div>
   ),
 });
@@ -161,6 +161,36 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
     }, []);
 
     // Handle content changes
+    const handleAutoSave = useCallback(
+      async (contentToSave: string) => {
+        if (!onAutoSave) return;
+
+        setIsAutoSaving(true);
+        setAutoSaveError(null);
+
+        try {
+          await onAutoSave(contentToSave);
+          const now = new Date().toLocaleTimeString();
+          setEditorState((prev) => ({
+            ...prev,
+            lastSaved: now,
+            isDirty: false,
+          }));
+          setControls((prev) => ({
+            ...prev,
+            isDirty: false,
+            lastSaved: now,
+          }));
+        } catch (error) {
+          setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
+        } finally {
+          setIsAutoSaving(false);
+        }
+      },
+      [onAutoSave]
+    );
+
+    // Handle content changes
     const handleContentChange = useCallback(
       (value: string, delta?: unknown, source?: string) => {
         setContent(value);
@@ -212,36 +242,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
       ]
     );
 
-    // Handle auto-save
-    const handleAutoSave = useCallback(
-      async (contentToSave: string) => {
-        if (!onAutoSave) return;
-
-        setIsAutoSaving(true);
-        setAutoSaveError(null);
-
-        try {
-          await onAutoSave(contentToSave);
-          const now = new Date().toLocaleTimeString();
-          setEditorState((prev) => ({
-            ...prev,
-            lastSaved: now,
-            isDirty: false,
-          }));
-          setControls((prev) => ({
-            ...prev,
-            isDirty: false,
-            lastSaved: now,
-          }));
-        } catch (error) {
-          setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
-        } finally {
-          setIsAutoSaving(false);
-        }
-      },
-      [onAutoSave]
-    );
-
+    
     // Manual save function
     const handleManualSave = useCallback(() => {
       if (onAutoSave && editorState.isDirty) {
@@ -407,8 +408,8 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
           <div className="absolute inset-0 flex items-center justify-center bg-base-100/50">
             <div className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-lg">
               <div className="flex items-center space-x-3">
-                <div className="loading loading-spinner loading-sm text-primary"></div>
-                <span className="text-sm font-medium">Saving changes...</span>
+                <div className="loading loading-spinner loading-sm text-primary" />
+                <span className="font-medium text-sm">Saving changes...</span>
               </div>
             </div>
           </div>

@@ -120,6 +120,7 @@ export default function CareerDashboardDemo() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
+                <title>Choose a Career Profile</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -132,7 +133,7 @@ export default function CareerDashboardDemo() {
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {Object.entries(profileLabels).map(([key, label]) => (
-                <div
+                <button
                   key={key}
                   className={`card cursor-pointer border transition-all duration-300 hover:shadow-lg ${
                     selectedProfile === key
@@ -140,6 +141,12 @@ export default function CareerDashboardDemo() {
                       : 'border-base-300 bg-base-100 text-base-content hover:border-primary/50 hover:bg-base-300'
                   } `}
                   onClick={() => handleProfileChange(key as keyof typeof sampleUserProfiles)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      handleProfileChange(key as keyof typeof sampleUserProfiles);
+                    }
+                  }}
+                  type="button"
                 >
                   <div className="card-body p-4 text-center">
                     <h3
@@ -157,7 +164,7 @@ export default function CareerDashboardDemo() {
                       {profileDescriptions[key as keyof typeof profileDescriptions]}
                     </p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
 
@@ -226,6 +233,7 @@ export default function CareerDashboardDemo() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
+                  <title>AI-Powered Paths</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -250,6 +258,7 @@ export default function CareerDashboardDemo() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
+                  <title>Goal Tracking</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -275,6 +284,7 @@ export default function CareerDashboardDemo() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
+                  <title>Progress Analytics</title>
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -303,6 +313,7 @@ export default function CareerDashboardDemo() {
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
+                <title>Technical Implementation</title>
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -345,7 +356,10 @@ export default function CareerDashboardDemo() {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-label="Check mark"
                     >
+                      <title>Check mark</title>
+                      <title>Checkmark</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -361,7 +375,10 @@ export default function CareerDashboardDemo() {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-label="Check mark"
                     >
+                      <title>Check mark</title>
+                      <title>Checkmark</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -377,7 +394,10 @@ export default function CareerDashboardDemo() {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-label="Check mark"
                     >
+                      <title>Check mark</title>
+                      <title>Checkmark</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -393,7 +413,9 @@ export default function CareerDashboardDemo() {
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-label="Check mark"
                     >
+                      <title>Check mark</title>
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"

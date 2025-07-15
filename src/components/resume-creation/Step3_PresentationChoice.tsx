@@ -119,7 +119,9 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
           htmlFor="method-video"
           className="flex cursor-pointer items-start space-x-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
         >
-          <RadioGroupItem value="video" className="mt-1" />
+          <RadioGroupItem value="video" className="mt-1">
+            <span>Video</span>
+          </RadioGroupItem>
           <div className="flex-grow">
             <span className="flex items-center font-semibold text-md">
               <Video className="mr-2 h-5 w-5 text-primary" /> Record Your Own Video
@@ -133,7 +135,9 @@ export function Step3_PresentationChoice({ finalScript, onSubmit }: Step3Props) 
           htmlFor="method-avatar"
           className="flex cursor-pointer items-start space-x-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/10"
         >
-          <RadioGroupItem value="avatar" className="mt-1" />
+          <RadioGroupItem value="avatar" className="mt-1">
+            <span>Avatar</span>
+          </RadioGroupItem>
           <div className="flex-grow">
             <span className="flex items-center font-semibold text-md">
               <UserSquare2 className="mr-2 h-5 w-5 text-primary" /> Use a Virtual Avatar

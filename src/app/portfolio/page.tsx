@@ -3,10 +3,8 @@
 import { EyeIcon, PencilIcon, PlusIcon, ShareIcon, TrashIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import type React from 'react';
-import type React from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useDeletePortfolio, usePortfolios } from '@/hooks/usePortfolio';
-import type { Portfolio } from '@/lib/types/portfolio';
 import type { Portfolio } from '@/lib/types/portfolio';
 
 interface PortfolioCardProps {

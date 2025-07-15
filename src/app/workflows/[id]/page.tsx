@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Node, ReactFlowInstance } from 'reactflow';
 import WorkflowCanvas from '@/components/workflow/canvas/WorkflowCanvas';
 import NodePalette from '@/components/workflow/palette/NodePalette';
@@ -61,7 +61,9 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
               fill="none"
               viewBox="0 0 24 24"
               className="inline-block h-6 w-6 stroke-current"
+              aria-label="Menu"
             >
+              <title>Menu</title>
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -77,21 +79,21 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
             value={workflow.name}
             onChange={(e) => setWorkflow({ ...workflow, name: e.target.value })}
           />
-          <button className="btn btn-primary" onClick={() => handleSave()}>
+          <button type="button" className="btn btn-primary" onClick={() => handleSave()}>
             Save
           </button>
           <div className="dropdown dropdown-end">
-            <label className="btn btn-secondary">Save as Template</label>
+            <button type="button" className="btn btn-secondary">Save as Template</button>
             <ul className="dropdown-content menu w-52 rounded-box bg-base-100 p-2 shadow">
               <li>
-                <a onClick={() => handleSave(true, false)}>Save as Private Template</a>
+                <button type="button" onClick={() => handleSave(true, false)}>Save as Private Template</button>
               </li>
               <li>
-                <a onClick={() => handleSave(true, true)}>Save as Public Template</a>
+                <button type="button" onClick={() => handleSave(true, true)}>Save as Public Template</button>
               </li>
             </ul>
           </div>
-          <button className="btn btn-accent" onClick={handleRun}>
+          <button type="button" className="btn btn-accent" onClick={handleRun}>
             Run
           </button>
         </header>

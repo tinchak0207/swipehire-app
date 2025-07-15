@@ -90,7 +90,7 @@ const SWIPE_THRESHOLD = 75;
 const MAX_ROTATION = 10;
 
 type CandidateJobFitAnalysis = ProfileRecommenderOutput['candidateJobFitAnalysis'];
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 const incrementAnalytic = (key: string) => {
   if (typeof window !== 'undefined') {
@@ -262,7 +262,7 @@ export function CompanyCardContent({
               .filter((s: string) => s)
           : ['React', 'Node.js'],
         desiredWorkStyle: userData.profileDesiredWorkStyle || 'Remote, Collaborative',
-        pastProjects: userData.profilePastProjects || undefined,
+        pastProjects: userData.profilePastProjects || [],
         workExperienceLevel: userData.profileWorkExperienceLevel || WorkExperienceLevel.MID_LEVEL,
         educationLevel: userData.profileEducationLevel || EducationLevel.UNIVERSITY,
         locationPreference: userData.profileLocationPreference || LocationPreference.REMOTE,
@@ -369,9 +369,28 @@ export function CompanyCardContent({
           }
         }
         const result = await recommendProfile({
-          candidateProfile: candidateForAI,
+          candidateProfile: {
+            ...candidateForAI,
+            role: candidateForAI.role || '',
+            skills: candidateForAI.skills || [],
+            location: candidateForAI.location || '',
+            experienceSummary: candidateForAI.experienceSummary || '',
+            desiredWorkStyle: candidateForAI.desiredWorkStyle || '',
+            pastProjects: candidateForAI.pastProjects || '',
+            workExperienceLevel:
+              candidateForAI.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
+            educationLevel: candidateForAI.educationLevel || EducationLevel.UNSPECIFIED,
+            locationPreference:
+              candidateForAI.locationPreference || LocationPreference.UNSPECIFIED,
+            languages: candidateForAI.languages || [],
+            salaryExpectationMin: candidateForAI.salaryExpectationMin || 0,
+            salaryExpectationMax: candidateForAI.salaryExpectationMax || 0,
+            availability: candidateForAI.availability || Availability.UNSPECIFIED,
+            jobTypePreference: candidateForAI.jobTypePreference || [],
+            personalityAssessment: candidateForAI.personalityAssessment || [],
+          },
           jobCriteria: jobCriteria,
-          userAIWeights: userAIWeights,
+          ...(userAIWeights && { userAIWeights }),
         });
 
         const currentSimulatedProgress = simulatedProgress;

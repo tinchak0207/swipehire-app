@@ -366,8 +366,8 @@ export function JobDiscoveryPage({ searchTerm = '' }: JobDiscoveryPageProps) {
       setLikedCompanyProfileIds((prev) => new Set(prev).add(recruiterOwnerId)); // Track like by recruiter's User ID
       try {
         const response = await recordLike({
-          likerId: mongoDbUserId,
-          likedId: recruiterOwnerId,
+          likingUserId: mongoDbUserId,
+          likedProfileId: recruiterOwnerId,
           likedProfileType: 'company', // Liked profile is the recruiter representing the company/job
           likingUserRole: 'jobseeker',
           likingUserRepresentsCandidateId: jobSeekerRepresentedCandidateId,

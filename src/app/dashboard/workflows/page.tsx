@@ -180,7 +180,7 @@ const WorkflowDashboardPage = () => {
     event.dataTransfer.effectAllowed = 'move';
   };
 
-  const onSaveModal = (nodeId: string, data: any) => {
+  const onSaveModal = (nodeId: string, data: Record<string, unknown>) => {
     setNodes((nds) =>
       nds.map((node) => {
         if (node.id === nodeId) {
@@ -197,7 +197,7 @@ const WorkflowDashboardPage = () => {
     saveWorkflowMutation.mutate(payload);
   };
 
-  const onRunWorkflow = async (payload: any) => {
+  const onRunWorkflow = async (payload: Record<string, unknown>) => {
     await fetch(`/api/workflows/${workflowId}/run`, {
       method: 'POST',
       headers: {
@@ -232,13 +232,19 @@ const WorkflowDashboardPage = () => {
               {saveWorkflowMutation.isPending ? 'Saving...' : 'Save'}
             </button>
             <div className="dropdown dropdown-end">
-              <label className="btn btn-secondary">Save as Template</label>
+              <button type="button" className="btn btn-secondary">
+                Save as Template
+              </button>
               <ul className="dropdown-content menu w-52 rounded-box bg-base-100 p-2 shadow">
                 <li>
-                  <a onClick={() => onSaveWorkflow(true, false)}>Save as Private Template</a>
+                  <button type="button" onClick={() => onSaveWorkflow(true, false)}>
+                    Save as Private Template
+                  </button>
                 </li>
                 <li>
-                  <a onClick={() => onSaveWorkflow(true, true)}>Save as Public Template</a>
+                  <button type="button" onClick={() => onSaveWorkflow(true, true)}>
+                    Save as Public Template
+                  </button>
                 </li>
               </ul>
             </div>
@@ -273,28 +279,28 @@ const WorkflowDashboardPage = () => {
               onDragStart={(event: DragEvent) => onDragStart(event, 'newResumeSubmissionTrigger')}
               draggable
             >
-              <a>New Resume Submission</a>
+              <span>New Resume Submission</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'jobStatusChangeTrigger')}
               draggable
             >
-              <a>Job Status Change</a>
+              <span>Job Status Change</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'dataMetricTrigger')}
               draggable
             >
-              <a>Data Metric Trigger</a>
+              <span>Data Metric Trigger</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'scheduledTrigger')}
               draggable
             >
-              <a>Scheduled Trigger</a>
+              <span>Scheduled Trigger</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'manualTrigger')} draggable>
-              <a>Manual Trigger</a>
+              <span>Manual Trigger</span>
             </li>
 
             {/* Action Cards */}
@@ -302,58 +308,58 @@ const WorkflowDashboardPage = () => {
               <span>Action Cards</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'analyzeResume')} draggable>
-              <a>Resume Analysis</a>
+              <span>Resume Analysis</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'interviewInvitation')}
               draggable
             >
-              <a>Interview Invitation</a>
+              <span>Interview Invitation</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'resumeStatusUpdate')}
               draggable
             >
-              <a>Resume Status Update</a>
+              <span>Resume Status Update</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'jobPosting')} draggable>
-              <a>Job Posting</a>
+              <span>Job Posting</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'dataExport')} draggable>
-              <a>Data Export</a>
+              <span>Data Export</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'talentPoolManagement')}
               draggable
             >
-              <a>Talent Pool Management</a>
+              <span>Talent Pool Management</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'salaryInquiry')} draggable>
-              <a>Salary Inquiry</a>
+              <span>Salary Inquiry</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'feedbackCollection')}
               draggable
             >
-              <a>Feedback Collection</a>
+              <span>Feedback Collection</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'taskAllocation')} draggable>
-              <a>Task Allocation</a>
+              <span>Task Allocation</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'templateApplication')}
               draggable
             >
-              <a>Template Application</a>
+              <span>Template Application</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'sendCommunication')}
               draggable
             >
-              <a>Notification Dispatch</a>
+              <span>Notification Dispatch</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'workflowLog')} draggable>
-              <a>Workflow Log</a>
+              <span>Workflow Log</span>
             </li>
 
             {/* Decision Cards */}
@@ -361,16 +367,16 @@ const WorkflowDashboardPage = () => {
               <span>Decision Cards</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'condition')} draggable>
-              <a>Conditional Branch</a>
+              <span>Conditional Branch</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'loopExecution')} draggable>
-              <a>Loop Execution</a>
+              <span>Loop Execution</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'priorityJudgment')}
               draggable
             >
-              <a>Priority Judgment</a>
+              <span>Priority Judgment</span>
             </li>
 
             {/* Data Cards */}
@@ -381,19 +387,19 @@ const WorkflowDashboardPage = () => {
               onDragStart={(event: DragEvent) => onDragStart(event, 'dataMetricReference')}
               draggable
             >
-              <a>Data Metric Reference</a>
+              <span>Data Metric Reference</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'dataVisualization')}
               draggable
             >
-              <a>Data Visualization</a>
+              <span>Data Visualization</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'dataCalculation')} draggable>
-              <a>Data Calculation</a>
+              <span>Data Calculation</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'dataFilter')} draggable>
-              <a>Data Filter</a>
+              <span>Data Filter</span>
             </li>
 
             {/* Integration Cards */}
@@ -401,34 +407,34 @@ const WorkflowDashboardPage = () => {
               <span>Integration Cards</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'invokeAI')} draggable>
-              <a>AI Capability Call</a>
+              <span>AI Capability Call</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'videoInterviewIntegration')}
               draggable
             >
-              <a>Video Interview Integration</a>
+              <span>Video Interview Integration</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'backgroundCheck')} draggable>
-              <a>Background Check</a>
+              <span>Background Check</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'enterpriseOaIntegration')}
               draggable
             >
-              <a>Enterprise OA Integration</a>
+              <span>Enterprise OA Integration</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'socialMediaIntegration')}
               draggable
             >
-              <a>Social Media Integration</a>
+              <span>Social Media Integration</span>
             </li>
             <li
               onDragStart={(event: DragEvent) => onDragStart(event, 'cloudStorageIntegration')}
               draggable
             >
-              <a>Cloud Storage Integration</a>
+              <span>Cloud Storage Integration</span>
             </li>
 
             {/* Extension Cards */}
@@ -436,13 +442,13 @@ const WorkflowDashboardPage = () => {
               <span>Extension Cards</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'customFunction')} draggable>
-              <a>Custom Function</a>
+              <span>Custom Function</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'subworkflowCall')} draggable>
-              <a>Subworkflow Call</a>
+              <span>Subworkflow Call</span>
             </li>
             <li onDragStart={(event: DragEvent) => onDragStart(event, 'externalApi')} draggable>
-              <a>External API</a>
+              <span>External API</span>
             </li>
           </ul>
         </div>

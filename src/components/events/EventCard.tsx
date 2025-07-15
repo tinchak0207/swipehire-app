@@ -122,7 +122,7 @@ export const EventCard: React.FC<EventCardProps> = ({
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden transition-all duration-200 hover:shadow-lg hover:-translate-y-1',
+        'group hover:-translate-y-1 relative overflow-hidden transition-all duration-200 hover:shadow-lg',
         'border border-gray-200 bg-white',
         compact ? 'h-auto' : 'h-full',
         className
@@ -163,10 +163,10 @@ export const EventCard: React.FC<EventCardProps> = ({
 
       <Link href={`/events/${event.id}`} className="block h-full">
         {/* Event image */}
-        {event.imageUrl && !compact && (
+        {event.bannerUrl && !compact && (
           <div className="relative h-48 w-full overflow-hidden">
             <img
-              src={event.imageUrl}
+              src={event.bannerUrl}
               alt={event.title}
               className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-105"
             />
@@ -188,7 +188,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           {/* Title */}
           <h3
             className={cn(
-              'font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors',
+              'line-clamp-2 font-semibold text-gray-900 transition-colors group-hover:text-blue-600',
               compact ? 'text-base' : 'text-lg'
             )}
           >
@@ -196,14 +196,14 @@ export const EventCard: React.FC<EventCardProps> = ({
           </h3>
 
           {/* Description */}
-          {showDescription && !compact && event.shortDescription && (
-            <p className="text-sm text-gray-600 line-clamp-2">{event.shortDescription}</p>
+          {showDescription && !compact && event.description && (
+            <p className="line-clamp-2 text-gray-600 text-sm">{event.description}</p>
           )}
         </CardHeader>
 
         <CardContent className={cn('space-y-3', compact ? 'pt-0' : 'pt-0')}>
           {/* Date and time */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
             <CalendarIcon className="h-4 w-4 flex-shrink-0" />
             <span>
               {format(new Date(event.startDateTime), 'MMM d, yyyy')}
@@ -217,7 +217,7 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
 
           {/* Location */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
             <MapPinIcon className="h-4 w-4 flex-shrink-0" />
             <span className="truncate">
               {event.format === 'virtual'
@@ -229,9 +229,9 @@ export const EventCard: React.FC<EventCardProps> = ({
           </div>
 
           {/* Organizer */}
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-gray-600 text-sm">
             <UsersIcon className="h-4 w-4 flex-shrink-0" />
-            <span className="truncate">{event.organizer}</span>
+            <span className="truncate">{event.organizer.name}</span>
           </div>
 
           {/* Price and attendance */}
@@ -239,7 +239,7 @@ export const EventCard: React.FC<EventCardProps> = ({
             <div className="flex items-center justify-between gap-2 text-sm">
               <div className="flex items-center gap-1 text-gray-600">
                 <CurrencyDollarIcon className="h-4 w-4" />
-                <span className={cn(event.isFree ? 'text-green-600 font-medium' : 'text-gray-900')}>
+                <span className={cn(event.isFree ? 'font-medium text-green-600' : 'text-gray-900')}>
                   {formatPrice()}
                 </span>
               </div>
@@ -258,9 +258,9 @@ export const EventCard: React.FC<EventCardProps> = ({
           {!compact && (
             <div className="space-y-2">
               {/* Industry tags */}
-              {event.industry.length > 0 && (
+              {event.industry && event.industry.length > 0 && (
                 <div className="flex flex-wrap gap-1">
-                  {event.industry.slice(0, 2).map((industry) => (
+                  {event.industry.slice(0, 2).map((industry: string) => (
                     <Badge key={industry} variant="outline" className="text-xs">
                       {industry}
                     </Badge>
@@ -274,10 +274,10 @@ export const EventCard: React.FC<EventCardProps> = ({
               )}
 
               {/* Recommendation reasons */}
-              {event.recommendationReasons.length > 0 && (
+              {event.recommendationReasons && event.recommendationReasons.length > 0 && (
                 <div className="space-y-1">
                   {event.recommendationReasons.slice(0, 1).map((reason, index) => (
-                    <div key={index} className="flex items-center gap-1 text-xs text-blue-600">
+                    <div key={index} className="flex items-center gap-1 text-blue-600 text-xs">
                       <span className="h-1 w-1 rounded-full bg-blue-600" />
                       <span>{reason}</span>
                     </div>
@@ -292,7 +292,7 @@ export const EventCard: React.FC<EventCardProps> = ({
         <CardFooter
           className={cn('flex items-center justify-between gap-2', compact ? 'pt-3' : 'pt-4')}
         >
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-gray-500 text-xs">
             {event.isRegistered && (
               <Badge variant="default" className="bg-green-600">
                 Registered

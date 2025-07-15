@@ -201,7 +201,7 @@ export function findInsertionPoint(content: string, section?: string): number {
       for (let i = sectionIndex + 1; i < lines.length; i++) {
         if (
           lines[i] &&
-          Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]?.trim()))
+          Object.values(sectionPatterns).some((p) => (p as RegExp).test(lines[i]?.trim() || ''))
         ) {
           endIndex = i;
           break;
