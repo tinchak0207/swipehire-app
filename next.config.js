@@ -24,7 +24,7 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-        protocol: 'https',
+         protocol: 'https',
         hostname: 'startupfa.me',
         port: '',
         pathname: '/**',
@@ -39,7 +39,7 @@ const nextConfig = {
     // Configure handlebars loader and ignore require.extensions warnings
     config.module.rules.push({
       test: /\.hbs$/,
-      use: 'handlebars-loader',
+      use: 'handlebars-loader'
     });
     config.plugins.push(
       new webpack.IgnorePlugin({

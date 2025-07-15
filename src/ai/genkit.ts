@@ -1,3 +1,4 @@
+
 import { Mistral } from '@mistralai/mistralai';
 import type { z } from 'zod';
 
@@ -172,9 +173,53 @@ export const ai = {
         topP: params.topP ?? 1.0,
       });
 
-      return handleMistralResponse(response, model);
+      if (!response.choices || response.choices.length === 0) {
+        throw new AIError('No response generated', 'NO_RESPONSE');
+      }
+
+      const choice = response.choices?.[0];
+      if (!choice?.message?.content) {
+        throw new AIError('Empty response content', 'EMPTY_RESPONSE');
+      }
+
+      // Handle case where content might be ContentChunk[]
+      const content =
+        typeof choice.message.content === 'string'
+          ? choice.message.content
+          : choice.message.content.join('');
+
+      const result: AIGenerateResponse = {
+        text: content,
+        model,
+      };
+
+      if (response.usage) {
+        result.usage = {
+          promptTokens: response.usage.promptTokens || 0,
+          completionTokens: response.usage.completionTokens || 0,
+          totalTokens: response.usage.totalTokens || 0,
+        };
+      }
+
+      return result;
     } catch (error) {
-      handleMistralError(error);
+      if (error instanceof AIError) {
+        throw error;
+      }
+
+      // Handle Mistral API errors
+      if (error && typeof error === 'object' && 'status' in error) {
+        const statusCode = error instanceof Error && 'status' in error ? error.status : 500;
+        const message =
+          error instanceof Error ? error.message || 'Mistral API error' : 'Mistral API error';
+        throw new AIError(message, 'API_ERROR', statusCode);
+      }
+
+      // Handle network and other errors
+      throw new AIError(
+        error instanceof Error ? error.message : 'Unknown error occurred',
+        'UNKNOWN_ERROR'
+      );
     }
   },
 
@@ -274,6 +319,8 @@ export const ai = {
    */
   definePrompt: (options: {
     name: string;
+    input: { schema: z.ZodTypeAny };
+    output: { schema: z.ZodTypeAny };
     input: { schema: z.ZodTypeAny };
     output: { schema: z.ZodTypeAny };
     prompt: string;
@@ -392,62 +439,6 @@ Write a professional cover letter that:
   },
 };
 
-function handleMistralResponse(
-  response: {
-    choices: { message: { content?: string | null | undefined | any[] } }[];
-    usage?: { promptTokens?: number; completionTokens?: number; totalTokens?: number };
-  },
-  model: MistralModel
-): AIGenerateResponse {
-  if (!response.choices || response.choices.length === 0) {
-    throw new AIError('No response generated', 'NO_RESPONSE');
-  }
-
-  const choice = response.choices?.[0];
-  if (!choice?.message?.content) {
-    throw new AIError('Empty response content', 'EMPTY_RESPONSE');
-  }
-
-  const content =
-    typeof choice.message.content === 'string'
-      ? choice.message.content
-      : Array.isArray(choice.message.content)
-        ? choice.message.content.join('')
-        : String(choice.message.content);
-
-  const result: AIGenerateResponse = {
-    text: content,
-    model,
-  };
-
-  if (response.usage) {
-    result.usage = {
-      promptTokens: response.usage.promptTokens || 0,
-      completionTokens: response.usage.completionTokens || 0,
-      totalTokens: response.usage.totalTokens || 0,
-    };
-  }
-
-  return result;
-}
-
-function handleMistralError(error: unknown): never {
-  if (error instanceof AIError) {
-    throw error;
-  }
-
-  if (error && typeof error === 'object' && 'status' in error) {
-    const statusCode = (error as { status: number }).status || 500;
-    const message =
-      error instanceof Error ? error.message || 'Mistral API error' : 'Mistral API error';
-    throw new AIError(message, 'API_ERROR', statusCode);
-  }
-
-  throw new AIError(
-    error instanceof Error ? error.message : 'Unknown error occurred',
-    'UNKNOWN_ERROR'
-  );
-}
 // Legacy exports for backward compatibility
 export const { definePrompt, defineFlow } = ai;
 
