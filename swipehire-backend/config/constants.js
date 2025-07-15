@@ -18,25 +18,5 @@ module.exports = {
     'http://swipehire.top',
     'https://www.swipehire.top',
     'http://www.swipehire.top'
-  ].filter(Boolean),
-
-  corsOptions: {
-    origin: function (origin, callback) {
-      if (process.env.NODE_ENV !== 'production') {
-        console.log(`[CORS Check] Request origin: ${origin}`);
-      }
-      const isAllowed = !origin || module.exports.allowedOrigins.includes(origin) || 
-                       (process.env.NODE_ENV !== 'production' && origin && origin.startsWith('http://localhost:'));
-      
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        console.warn(`[CORS Blocked] Origin: ${origin}. Allowed origins: ${module.exports.allowedOrigins ? module.exports.allowedOrigins.join(', ') : 'none configured'}`);
-        callback(new Error('Not allowed by CORS'));
-      }
-    },
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-HTTP-Method-Override', 'X-Firebase-AppCheck', 'X-Firebase-Auth'],
-    credentials: true
-  }
+  ].filter(Boolean)
 };

@@ -1,5 +1,4 @@
 const Job = require('../../models/Job');
-const { uploadJobMediaToMemory } = require('../../config/middleware');
 
 exports.createJob = async (req, res) => {
     try {
