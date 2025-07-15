@@ -209,7 +209,7 @@ export const ai = {
 
       // Handle Mistral API errors
       if (error && typeof error === 'object' && 'status' in error) {
-        const statusCode = error instanceof Error && 'status' in error ? error.status : 500;
+        const statusCode = typeof (error as any).status === 'number' ? (error as any).status : 500;
         const message =
           error instanceof Error ? error.message || 'Mistral API error' : 'Mistral API error';
         throw new AIError(message, 'API_ERROR', statusCode);
@@ -319,8 +319,6 @@ export const ai = {
    */
   definePrompt: (options: {
     name: string;
-    input: { schema: z.ZodTypeAny };
-    output: { schema: z.ZodTypeAny };
     input: { schema: z.ZodTypeAny };
     output: { schema: z.ZodTypeAny };
     prompt: string;
