@@ -32,7 +32,10 @@
       "Bash(. \"$NVM_DIR/nvm.sh\")",
       "Bash(nvm install:*)",
       "Bash(nvm use:*)",
-      "Bash(npx wrangler deploy:*)"
+      "Bash(npx wrangler deploy:*)",
+      "Bash(curl:*)",
+      "Bash(timeout:*)",
+      "Bash(wrangler tail:*)"
     ],
     "deny": []
   }

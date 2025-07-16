@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const matchSchema = new mongoose.Schema({
     userA_Id: {
@@ -46,4 +46,4 @@ matchSchema.pre('save', function(next) {
     next();
 });
 
-module.exports = mongoose.model('Match', matchSchema);
+export default mongoose.model('Match', matchSchema);

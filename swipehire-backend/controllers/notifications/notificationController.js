@@ -1,5 +1,5 @@
-const Notification = require('../../models/Notification');
-const notificationService = require('../../services/notificationService');
+import Notification from '../../models/Notification.js';
+import notificationService from '../../services/notificationService.js';
 
 const notificationController = {
   /**
@@ -67,4 +67,4 @@ const notificationController = {
   }
 };
 
-module.exports = notificationController;
+export default notificationController;

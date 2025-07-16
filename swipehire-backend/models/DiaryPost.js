@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const diaryPostSchema = new mongoose.Schema({
     title: { 
@@ -67,4 +67,4 @@ const diaryPostSchema = new mongoose.Schema({
     timestamps: true
 });
 
-module.exports = mongoose.model('DiaryPost', diaryPostSchema);
+export default mongoose.model('DiaryPost', diaryPostSchema);

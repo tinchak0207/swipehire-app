@@ -1,6 +1,6 @@
-const DiaryPost = require('../../models/DiaryPost');
+import DiaryPost from '../../models/DiaryPost.js';
 
-exports.uploadImage = async (req, res) => {
+export const uploadImage = async (req, res) => {
     try {
         const imageUrl = req.file.path;
         res.status(200).json({ imageUrl });
@@ -9,7 +9,7 @@ exports.uploadImage = async (req, res) => {
     }
 };
 
-exports.createPost = async (req, res) => {
+export const createPost = async (req, res) => {
     try {
         const { userId, content, imageUrl } = req.body;
         const newPost = await DiaryPost.create({
@@ -25,7 +25,7 @@ exports.createPost = async (req, res) => {
     }
 };
 
-exports.getPosts = async (req, res) => {
+export const getPosts = async (req, res) => {
     try {
         const posts = await DiaryPost.find()
             .sort({ createdAt: -1 })
@@ -36,7 +36,7 @@ exports.getPosts = async (req, res) => {
     }
 };
 
-exports.likePost = async (req, res) => {
+export const likePost = async (req, res) => {
     try {
         const { postId } = req.params;
         const { userId } = req.body;

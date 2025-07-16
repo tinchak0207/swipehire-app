@@ -3,6 +3,8 @@ import handleApiRequest from './routes/api-workers-full.mjs';
 import handleWebhookRequest from './routes/webhooks-workers-simple.mjs';
 import handleAdminRequest from './routes/admin-workers-simple.mjs';
 import mongoose from 'mongoose';
+import { allowedOrigins } from './config/constants.mjs';
+import { getCorsHeaders, handleCorsPreflight, addCorsHeaders } from './lib/cors.mjs';
 
 // Database connection state
 let isConnected = false;
@@ -36,20 +38,18 @@ async function connectToDatabase(env) {
 }
 
 export default {
-  async fetch(request, env) {
+async fetch(request, env) {
     // Initialize database connection
     await connectToDatabase(env);
-    // Setup CORS headers
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': 'https://www.swipehire.top',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    };
-
-    // Handle preflight request
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+    
+    // Handle CORS preflight requests
+    const preflightResponse = handleCorsPreflight(request);
+    if (preflightResponse) {
+      return preflightResponse;
     }
+
+    // Get dynamic CORS headers based on request origin
+    const corsHeaders = getCorsHeaders(request);
 
     const url = new URL(request.url);
     let response;
@@ -67,9 +67,7 @@ export default {
       }
 
       // Add CORS headers to response
-      for (const [key, value] of Object.entries(corsHeaders)) {
-        response.headers.set(key, value);
-      }
+      response = addCorsHeaders(response, request);
 
       return response;
 

@@ -1,16 +1,15 @@
+const { getCorsHeaders, handleCorsPreflight, addCorsHeaders } = require('./lib/cors');
+
 module.exports = {
   async fetch(request, env) {
-    // Setup CORS headers
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': 'https://www.swipehire.top',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    };
-
-    // Handle preflight request
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+    // Handle CORS preflight requests
+    const preflightResponse = handleCorsPreflight(request);
+    if (preflightResponse) {
+      return preflightResponse;
     }
+
+    // Get dynamic CORS headers based on request origin
+    const corsHeaders = getCorsHeaders(request);
 
     const url = new URL(request.url);
     let response;
@@ -31,9 +30,7 @@ module.exports = {
       }
 
       // Add CORS headers to response
-      for (const [key, value] of Object.entries(corsHeaders)) {
-        response.headers.set(key, value);
-      }
+      response = addCorsHeaders(response, request);
 
       return response;
 

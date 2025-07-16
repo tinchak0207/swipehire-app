@@ -2,54 +2,127 @@
 import handleApiRequest from './routes/api-workers-full.mjs';
 import handleWebhookRequest from './routes/webhooks-workers-simple.mjs';
 import handleAdminRequest from './routes/admin-workers-simple.mjs';
-import mongoose from 'mongoose';
+import { MongoClient } from 'mongodb';
+import { allowedOrigins } from './config/constants.mjs';
+import { getCorsHeaders, handleCorsPreflight, addCorsHeaders } from './lib/cors.mjs';
 
 // Database connection state
-let isConnected = false;
+let mongoClient = null;
+let database = null;
+let isConnecting = false;
 
 // Initialize database connection
 async function connectToDatabase(env) {
-    if (isConnected) {
-        return;
+    // If already connected and healthy, return immediately
+    if (mongoClient && database) {
+        try {
+            // Quick ping to verify connection is alive
+            await database.admin().ping();
+            return database;
+        } catch (pingError) {
+            console.log('Connection not healthy, reconnecting:', pingError.message);
+            // Reset connection state to force reconnect
+            mongoClient = null;
+            database = null;
+        }
     }
+    
+    // If already connecting, wait for it to finish
+    if (isConnecting) {
+        // Wait up to 3 seconds for connection to complete
+        for (let i = 0; i < 30; i++) {
+            if (database) return database;
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return database;
+    }
+    
+    isConnecting = true;
     
     try {
         const mongoUri = env.MONGODB_URI || process.env.MONGODB_URI;
         if (!mongoUri) {
-            console.warn('MongoDB URI not found in environment variables');
-            return;
+            console.warn('MongoDB URI not found in environment variables - database features will be limited');
+            isConnecting = false;
+            return null;
         }
         
-        await mongoose.connect(mongoUri, {
-            bufferCommands: false,
-            maxPoolSize: 10,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
+        console.log('Connecting to MongoDB...');
+        
+        mongoClient = new MongoClient(mongoUri, {
+            maxPoolSize: 1, // Single connection for Workers
+            serverSelectionTimeoutMS: 5000, // Faster server selection
+            socketTimeoutMS: 10000, // Shorter socket timeout
+            connectTimeoutMS: 5000, // Faster connection timeout
+            maxIdleTimeMS: 30000, // Shorter idle time
+            minPoolSize: 0, // No minimum connections
+            retryWrites: true,
+            retryReads: true
         });
         
-        isConnected = true;
-        console.log('Connected to MongoDB');
+        await mongoClient.connect();
+        database = mongoClient.db(); // Use default database from URI
+        
+        // Verify connection works with a quick ping
+        await database.admin().ping();
+        
+        console.log('Connected to MongoDB successfully');
+        isConnecting = false;
+        return database;
     } catch (error) {
         console.error('MongoDB connection error:', error);
-        isConnected = false;
+        mongoClient = null;
+        database = null;
+        isConnecting = false;
+        throw error; // Propagate error to caller
+    }
+}
+
+// Export database getter
+export function getDatabase() {
+    return database;
+}
+
+// Close database connection (for cleanup)
+export async function closeDatabase() {
+    if (mongoClient) {
+        await mongoClient.close();
+        mongoClient = null;
+        database = null;
     }
 }
 
 export default {
   async fetch(request, env) {
-    // Initialize database connection
-    await connectToDatabase(env);
-    // Setup CORS headers
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': 'https://www.swipehire.top',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-    };
-
-    // Handle preflight request
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
+    // Initialize database connection with error handling
+    try {
+      await connectToDatabase(env);
+    } catch (dbError) {
+      console.error('Failed to connect to database:', dbError);
+      
+      // Get CORS headers for error response
+      const corsHeaders = getCorsHeaders(request);
+      
+      return new Response(JSON.stringify({
+        error: 'Database connection failed',
+        details: dbError.message
+      }), {
+        status: 503,
+        headers: {
+          'Content-Type': 'application/json',
+          ...corsHeaders
+        }
+      });
     }
+
+    // Handle CORS preflight requests
+    const preflightResponse = handleCorsPreflight(request);
+    if (preflightResponse) {
+      return preflightResponse;
+    }
+
+    // Get dynamic CORS headers based on request origin
+    const corsHeaders = getCorsHeaders(request);
 
     const url = new URL(request.url);
     let response;
@@ -67,9 +140,7 @@ export default {
       }
 
       // Add CORS headers to response
-      for (const [key, value] of Object.entries(corsHeaders)) {
-        response.headers.set(key, value);
-      }
+      response = addCorsHeaders(response, request);
 
       return response;
 

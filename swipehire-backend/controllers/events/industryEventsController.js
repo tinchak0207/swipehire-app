@@ -1,4 +1,4 @@
-const industryEventsService = require('../../services/industryEventsService');
+import industryEventsService from '../../services/industryEventsService.js';
 
 const industryEventsController = {
   // Get recommended events for user
@@ -397,4 +397,4 @@ const industryEventsController = {
   }
 };
 
-module.exports = industryEventsController;
+export default industryEventsController;

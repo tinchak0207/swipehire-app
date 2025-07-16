@@ -1,5 +1,5 @@
-import mongoose from 'mongoose';
-import User from '../../models/User.mjs';
+import { ObjectId } from 'mongodb';
+import { getDatabase } from '../../index.mjs';
 
 // Helper function to select specific fields from a user object
 const selectUserFields = (userObject) => {
@@ -64,6 +64,11 @@ const selectUserFields = (userObject) => {
 // Controller methods
 export const createUser = async (req, res) => {
     try {
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
         const { name, email, preferences, firebaseUid, selectedRole, representedCandidateProfileId, representedCompanyProfileId } = req.body;
 
         if (process.env.NODE_ENV !== 'production') {
@@ -87,24 +92,43 @@ export const createUser = async (req, res) => {
             return res.status(400).json({ message: 'Invalid role provided. Must be jobseeker or recruiter.' });
         }
 
-        const existingUser = await User.findOne({ $or: [{ email }, { firebaseUid }] });
+        // Check for existing user with timeout
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database query timeout')), 5000);
+        });
+        
+        const queryPromise = db.collection('users').findOne(
+            { $or: [{ email }, { firebaseUid }] },
+            { maxTimeMS: 4000 }
+        );
+        
+        const existingUser = await Promise.race([queryPromise, timeoutPromise]);
         if (existingUser) {
             return res.status(200).json({ message: 'User already exists', user: existingUser });
         }
 
-        const newUser = new User({
+        const newUser = {
             name,
             email,
-            preferences,
+            preferences: preferences || {},
             firebaseUid,
             selectedRole,
             representedCandidateProfileId,
-            representedCompanyProfileId
+            representedCompanyProfileId,
+            createdAt: new Date(),
+            updatedAt: new Date()
+        };
+        
+        const insertTimeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database insert timeout')), 5000);
         });
         
-        await newUser.save();
+        const insertPromise = db.collection('users').insertOne(newUser);
+        const result = await Promise.race([insertPromise, insertTimeoutPromise]);
+        const createdUser = { ...newUser, _id: result.insertedId };
+        
         console.log("[API /api/users Create] User created successfully");
-        return res.status(201).json({ message: 'User created!', user: newUser });
+        return res.status(201).json({ message: 'User created!', user: createdUser });
     } catch (error) {
         console.error("[API /api/users Create] Server error:", error);
         return res.status(500).json({ message: 'Server error', error: error.message });
@@ -115,6 +139,16 @@ export const getUser = async (req, res) => {
     try {
         const { identifier } = req.params;
         
+        console.log('getUser called with identifier:', identifier);
+        
+        const db = getDatabase();
+        if (!db) {
+            console.error('Database not available');
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
+        console.log('Database available, searching for user');
+        
         // Find user by ID (if valid ObjectId), email, or firebaseUid
         const searchConditions = [
             { email: identifier },
@@ -122,16 +156,39 @@ export const getUser = async (req, res) => {
         ];
         
         // Only add _id condition if identifier is a valid ObjectId
-        if (mongoose.Types.ObjectId.isValid(identifier)) {
-            searchConditions.push({ _id: identifier });
+        if (ObjectId.isValid(identifier)) {
+            searchConditions.push({ _id: new ObjectId(identifier) });
         }
         
-        const user = await User.findOne({ $or: searchConditions });
+        console.log('Search conditions:', searchConditions);
+        
+        // Use shorter timeout for Workers (5 seconds)
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database query timeout')), 5000);
+        });
+        
+        console.log('Starting database query...');
+        const startTime = Date.now();
+        
+        const queryPromise = db.collection('users').findOne(
+            { $or: searchConditions },
+            { 
+                maxTimeMS: 4000, // MongoDB server-side timeout
+                readPreference: 'primary' // Ensure we read from primary
+            }
+        );
+        
+        const user = await Promise.race([queryPromise, timeoutPromise]);
+        
+        const endTime = Date.now();
+        console.log(`Database query completed in ${endTime - startTime}ms`);
         
         if (!user) {
+            console.log('User not found in database');
             return res.status(404).json({ message: 'User not found' });
         }
         
+        console.log('User found, preparing response');
         const selectedUser = selectUserFields(user);
         return res.status(200).json({ user: selectedUser });
     } catch (error) {
@@ -142,12 +199,54 @@ export const getUser = async (req, res) => {
 
 export const getJobseekerProfiles = async (req, res) => {
     try {
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
         console.log("[API /api/users/profiles/jobseekers] Request received");
         
-        const jobseekers = await User.find({
-            selectedRole: 'jobseeker',
-            profileVisibility: { $ne: 'private' }
-        }).select('_id name email profileAvatarUrl profileHeadline profileExperienceSummary profileSkills country address profileDesiredWorkStyle profilePastProjects profileWorkExperienceLevel profileEducationLevel profileLocationPreference profileLanguages profileAvailability profileJobTypePreference profileSalaryExpectationMin profileSalaryExpectationMax videoResumeUrl profileVisibility profileCardTheme createdAt updatedAt');
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database query timeout')), 5000);
+        });
+        
+        const queryPromise = db.collection('users').find(
+            {
+                selectedRole: 'jobseeker',
+                profileVisibility: { $ne: 'private' }
+            },
+            {
+                projection: {
+                    _id: 1,
+                    name: 1,
+                    email: 1,
+                    profileAvatarUrl: 1,
+                    profileHeadline: 1,
+                    profileExperienceSummary: 1,
+                    profileSkills: 1,
+                    country: 1,
+                    address: 1,
+                    profileDesiredWorkStyle: 1,
+                    profilePastProjects: 1,
+                    profileWorkExperienceLevel: 1,
+                    profileEducationLevel: 1,
+                    profileLocationPreference: 1,
+                    profileLanguages: 1,
+                    profileAvailability: 1,
+                    profileJobTypePreference: 1,
+                    profileSalaryExpectationMin: 1,
+                    profileSalaryExpectationMax: 1,
+                    videoResumeUrl: 1,
+                    profileVisibility: 1,
+                    profileCardTheme: 1,
+                    createdAt: 1,
+                    updatedAt: 1
+                },
+                maxTimeMS: 4000
+            }
+        ).toArray();
+        
+        const jobseekers = await Promise.race([queryPromise, timeoutPromise]);
         
         return res.status(200).json({ jobseekers });
     } catch (error) {
@@ -210,6 +309,11 @@ export const updateProfile = async (req, res) => {
         const { identifier } = req.params;
         const updates = req.body;
         
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
         // Remove sensitive fields that shouldn't be updated via this endpoint
         delete updates._id;
         delete updates.firebaseUid;
@@ -217,19 +321,41 @@ export const updateProfile = async (req, res) => {
         delete updates.createdAt;
         delete updates.updatedAt;
         
-        const updatedUser = await User.findOneAndUpdate(
-            { $or: [{ _id: identifier }, { email: identifier }, { firebaseUid: identifier }] },
-            updates,
-            { new: true, runValidators: true }
+        // Add updated timestamp
+        updates.updatedAt = new Date();
+        
+        // Build search conditions
+        const searchConditions = [
+            { email: identifier },
+            { firebaseUid: identifier }
+        ];
+        
+        if (ObjectId.isValid(identifier)) {
+            searchConditions.push({ _id: new ObjectId(identifier) });
+        }
+        
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database update timeout')), 5000);
+        });
+        
+        const updatePromise = db.collection('users').findOneAndUpdate(
+            { $or: searchConditions },
+            { $set: updates },
+            {
+                returnDocument: 'after',
+                maxTimeMS: 4000
+            }
         );
         
-        if (!updatedUser) {
+        const result = await Promise.race([updatePromise, timeoutPromise]);
+        
+        if (!result.value) {
             return res.status(404).json({ message: 'User not found' });
         }
         
         return res.status(200).json({
             message: 'Profile updated successfully',
-            user: selectUserFields(updatedUser)
+            user: selectUserFields(result.value)
         });
     } catch (error) {
         console.error('Profile update error:', error);
@@ -242,23 +368,46 @@ export const updateProfileVisibility = async (req, res) => {
         const { userId } = req.params;
         const { profileVisibility } = req.body;
         
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
         if (!['public', 'private', 'recruiters_only'].includes(profileVisibility)) {
             return res.status(400).json({ message: 'Invalid visibility option' });
         }
         
-        const updatedUser = await User.findByIdAndUpdate(
-            userId,
-            { profileVisibility },
-            { new: true }
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+        
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database update timeout')), 5000);
+        });
+        
+        const updatePromise = db.collection('users').findOneAndUpdate(
+            { _id: new ObjectId(userId) },
+            { 
+                $set: { 
+                    profileVisibility,
+                    updatedAt: new Date()
+                }
+            },
+            {
+                returnDocument: 'after',
+                maxTimeMS: 4000
+            }
         );
         
-        if (!updatedUser) {
+        const result = await Promise.race([updatePromise, timeoutPromise]);
+        
+        if (!result.value) {
             return res.status(404).json({ message: 'User not found' });
         }
         
         return res.status(200).json({
             message: 'Profile visibility updated successfully',
-            user: selectUserFields(updatedUser)
+            user: selectUserFields(result.value)
         });
     } catch (error) {
         console.error('Profile visibility update error:', error);
@@ -271,25 +420,52 @@ export const updateUser = async (req, res) => {
         const { identifier } = req.params;
         const updates = req.body;
         
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
         // Remove sensitive fields
         delete updates._id;
         delete updates.firebaseUid;
         delete updates.createdAt;
         delete updates.updatedAt;
         
-        const updatedUser = await User.findOneAndUpdate(
-            { $or: [{ _id: identifier }, { email: identifier }, { firebaseUid: identifier }] },
-            updates,
-            { new: true, runValidators: true }
+        // Add updated timestamp
+        updates.updatedAt = new Date();
+        
+        // Build search conditions
+        const searchConditions = [
+            { email: identifier },
+            { firebaseUid: identifier }
+        ];
+        
+        if (ObjectId.isValid(identifier)) {
+            searchConditions.push({ _id: new ObjectId(identifier) });
+        }
+        
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database update timeout')), 5000);
+        });
+        
+        const updatePromise = db.collection('users').findOneAndUpdate(
+            { $or: searchConditions },
+            { $set: updates },
+            {
+                returnDocument: 'after',
+                maxTimeMS: 4000
+            }
         );
         
-        if (!updatedUser) {
+        const result = await Promise.race([updatePromise, timeoutPromise]);
+        
+        if (!result.value) {
             return res.status(404).json({ message: 'User not found' });
         }
         
         return res.status(200).json({
             message: 'User updated successfully',
-            user: selectUserFields(updatedUser)
+            user: selectUserFields(result.value)
         });
     } catch (error) {
         console.error('User update error:', error);
@@ -301,9 +477,27 @@ export const deleteAccount = async (req, res) => {
     try {
         const { userId } = req.params;
         
-        const deletedUser = await User.findByIdAndDelete(userId);
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
         
-        if (!deletedUser) {
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+        
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database delete timeout')), 5000);
+        });
+        
+        const deletePromise = db.collection('users').findOneAndDelete(
+            { _id: new ObjectId(userId) },
+            { maxTimeMS: 4000 }
+        );
+        
+        const result = await Promise.race([deletePromise, timeoutPromise]);
+        
+        if (!result.value) {
             return res.status(404).json({ message: 'User not found' });
         }
         
@@ -320,7 +514,25 @@ export const requestDataExport = async (req, res) => {
     try {
         const { userId } = req.params;
         
-        const user = await User.findById(userId);
+        const db = getDatabase();
+        if (!db) {
+            return res.status(503).json({ message: 'Database service unavailable' });
+        }
+        
+        if (!ObjectId.isValid(userId)) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+        
+        const timeoutPromise = new Promise((_, reject) => {
+            setTimeout(() => reject(new Error('Database query timeout')), 5000);
+        });
+        
+        const queryPromise = db.collection('users').findOne(
+            { _id: new ObjectId(userId) },
+            { maxTimeMS: 4000 }
+        );
+        
+        const user = await Promise.race([queryPromise, timeoutPromise]);
         
         if (!user) {
             return res.status(404).json({ message: 'User not found' });

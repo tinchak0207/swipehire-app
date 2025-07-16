@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const JobSchema = new mongoose.Schema({
     userId: {
@@ -33,4 +33,8 @@ const JobSchema = new mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Job', JobSchema);
+// Simple model creation for Workers environment
+const Job = mongoose.model('Job', JobSchema);
+
+export { Job };
+export default Job;
