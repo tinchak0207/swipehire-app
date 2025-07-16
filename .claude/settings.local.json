@@ -24,7 +24,15 @@
       "Bash(git commit:*)",
       "Bash(git config:*)",
       "Bash(git push:*)",
-      "Bash(npx biome format:*)"
+      "Bash(npx biome format:*)",
+      "Bash(touch:*)",
+      "Bash(wrangler deploy:*)",
+      "Bash(export NVM_DIR=\"$HOME/.nvm\")",
+      "Bash([ -s \"$NVM_DIR/nvm.sh\" ])",
+      "Bash(. \"$NVM_DIR/nvm.sh\")",
+      "Bash(nvm install:*)",
+      "Bash(nvm use:*)",
+      "Bash(npx wrangler deploy:*)"
     ],
     "deny": []
   }

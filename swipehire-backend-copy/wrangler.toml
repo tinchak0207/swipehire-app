@@ -14,9 +14,9 @@ ENVIRONMENT = "workers"
 # wrangler secret put FORMSAPP_WEBHOOK_SECRET
 
 # Route configuration
-# routes = [
-#   "swipehire-backend.swipehire.workers.dev/*"
-# ]
+routes = [
+  "swipehire-backend.swipehire.workers.dev/*"
+]
 
 # Note: CPU limits removed for free plan compatibility
 # Note: Using .mjs extension for ES modules
