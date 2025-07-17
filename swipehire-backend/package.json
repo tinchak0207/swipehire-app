@@ -3,34 +3,32 @@
   "version": "1.0.0",
   "description": "Custom backend server for SwipeHire application",
   "type": "module",
-  "main": "index.mjs",
+  "main": "index.js",
   "scripts": {
-    "start:dev": "nodemon index.mjs",
-    "start": "node railway-server.js",
-    "start:prod": "NODE_ENV=production node railway-server.js",
-    "railway:dev": "railway run nodemon index.mjs",
-    "railway:prod": "railway run NODE_ENV=production node index.mjs",
+    "start:dev": "nodemon index.js",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "build": "echo 'No build step required'",
+    "railway": "railway run node index.js",
     "deploy": "railway up",
-    "deploy:dev": "railway up --environment development",
-    "logs": "railway logs",
-    "stop": "pm2 stop swipehire-backend",
-    "restart": "pm2 restart swipehire-backend",
-    "delete": "pm2 delete swipehire-backend",
-    "prod": "NODE_ENV=production pm2 start index.mjs --name swipehire-backend-prod -i max",
-    "wrangler:deploy": "wrangler deploy",
-    "wrangler:deploy:dev": "wrangler deploy --env development"
+    "deploy:dev": "railway deploy --env development"
   },
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.5.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "compression": "^1.7.5",
     "mongodb": "^6.10.0",
-    "node-fetch": "^2.7.0",
-    "express": "^4.19.2",
-    "cors": "^2.8.5"
+    "mongoose": "^8.9.5",
+    "node-fetch": "^2.7.0"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "wrangler": "^4.24.3",
-    "@railway/cli": "^3.19.4"
+    "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "author": "",
   "license": "ISC"
