@@ -161,6 +161,15 @@ const createPlaceholderController = (routeName) => {
 
 // Route definitions with full Workers handling
 const routes = [
+    // Health check endpoint for Railway
+    { method: 'GET', pattern: '/health', handler: async (req, res) => {
+        return res.json({
+            status: 'healthy',
+            timestamp: new Date().toISOString(),
+            environment: process.env.NODE_ENV || 'development'
+        });
+    }},
+    
     // User routes (fully functional)
     { method: 'POST', pattern: '/api/users', handler: userController.createUser },
     { method: 'GET', pattern: '/api/users/:identifier', handler: userController.getUser },

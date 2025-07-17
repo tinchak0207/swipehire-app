@@ -6,23 +6,31 @@
   "main": "index.mjs",
   "scripts": {
     "start:dev": "nodemon index.mjs",
-    "start": "pm2 start index.mjs --name swipehire-backend",
+    "start": "node railway-server.js",
+    "start:prod": "NODE_ENV=production node railway-server.js",
+    "railway:dev": "railway run nodemon index.mjs",
+    "railway:prod": "railway run NODE_ENV=production node index.mjs",
+    "deploy": "railway up",
+    "deploy:dev": "railway up --environment development",
+    "logs": "railway logs",
     "stop": "pm2 stop swipehire-backend",
     "restart": "pm2 restart swipehire-backend",
-    "logs": "pm2 logs swipehire-backend",
     "delete": "pm2 delete swipehire-backend",
     "prod": "NODE_ENV=production pm2 start index.mjs --name swipehire-backend-prod -i max",
-    "deploy": "wrangler deploy",
-    "deploy:dev": "wrangler deploy --env development"
+    "wrangler:deploy": "wrangler deploy",
+    "wrangler:deploy:dev": "wrangler deploy --env development"
   },
   "dependencies": {
     "dotenv": "^16.5.0",
     "mongodb": "^6.10.0",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "express": "^4.19.2",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.0",
-    "wrangler": "^4.24.3"
+    "wrangler": "^4.24.3",
+    "@railway/cli": "^3.19.4"
   },
   "author": "",
   "license": "ISC"

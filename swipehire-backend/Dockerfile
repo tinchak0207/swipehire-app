@@ -20,11 +20,6 @@ COPY --from=builder /usr/src/app/ .
 # Set production environment variables
 ENV NODE_ENV=production
 ENV PORT=8080
-ENV NEXT_PUBLIC_BASE_URL=https://swipehire.top
-ENV NEXT_PUBLIC_DOMAIN=swipehire.top
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV TURBO=1
-ENV DB_SSL=true
 
 # Sensitive variables should be injected at runtime
 # via Cloud Run/App Engine environment variables or Secret Manager
@@ -41,4 +36,4 @@ ARG SMTP_PASSWORD
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:${PORT}/health || exit 1
 
-CMD ["node", "index.js"]
+CMD ["node", "railway-server.js"]

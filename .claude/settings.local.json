@@ -39,7 +39,9 @@
       "Bash(npx:*)",
       "Bash(chmod:*)",
       "Bash(git cherry-pick:*)",
-      "Bash(gh auth:*)"
+      "Bash(gh auth:*)",
+      "Bash(pkill:*)",
+      "Bash(railway:*)"
     ],
     "deny": []
   }

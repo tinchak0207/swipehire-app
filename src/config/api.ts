@@ -11,7 +11,7 @@ interface ApiConfig {
 }
 
 const API_CONFIG: ApiConfig = {
-  baseUrl: 'https://swipehire-backend.swipehire.workers.dev',
+  baseUrl: process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'https://swipehire.railway.app',
 
   endpoints: {
     user: '/api/users',
