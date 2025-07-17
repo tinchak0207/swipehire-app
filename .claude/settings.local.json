@@ -38,7 +38,8 @@
       "Bash(wrangler tail:*)",
       "Bash(npx:*)",
       "Bash(chmod:*)",
-      "Bash(git cherry-pick:*)"
+      "Bash(git cherry-pick:*)",
+      "Bash(gh auth:*)"
     ],
     "deny": []
   }
