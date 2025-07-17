@@ -18,11 +18,8 @@ interface ApiConfig {
   getUrl: (endpoint: keyof ApiConfig['endpoints'], path?: string) => string;
 }
 
-// Railway backend URL - update this after deployment
-const RAILWAY_URL = process.env.NEXT_PUBLIC_RAILWAY_URL || 'https://swipehire-backend-production.up.railway.app';
-
 const API_CONFIG: ApiConfig = {
-  baseUrl: process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'https://swipehire.railway.app',
+  baseUrl: process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || process.env['NEXT_PUBLIC_RAILWAY_URL'] || 'https://swipehire.railway.app',
 
   endpoints: {
     user: '/api/users',
