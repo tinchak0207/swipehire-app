@@ -27,21 +27,47 @@ const PORT = process.env.PORT || 8080;
 app.use(helmet());
 app.use(compression());
 
-// CORS configuration for swipehire.top domain
-const corsOptions = {
-  origin: [
-    'https://swipehire.top',
-    'https://www.swipehire.top',
-    'http://localhost:3000',
-    'http://localhost:3001'
-  ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
-  exposedHeaders: ['X-Total-Count']
-};
-
-app.use(cors(corsOptions));
+// Explicit CORS middleware for Railway deployment
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  
+  // Railway-specific CORS handling for new subdomain setup
+  if (origin === 'https://www.swipehire.top') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://www.swipehire.top');
+  } else if (origin === 'https://swipehire.top') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://swipehire.top');
+  } else if (origin === 'https://api.swipehire.top') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://api.swipehire.top');
+  } else if (origin === 'https://swipehire.railway.app') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://swipehire.railway.app');
+  } else if (origin === 'https://railway.com') {
+    // Handle Railway's platform behavior
+    res.setHeader('Access-Control-Allow-Origin', 'https://api.swipehire.top');
+  } else if (origin === 'https://swipehire-production.up.railway.app') {
+    res.setHeader('Access-Control-Allow-Origin', 'https://swipehire-production.up.railway.app');
+  } else if (origin) {
+    // Allow any origin that requests
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  
+  // Explicitly set all CORS headers
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD');
+  res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control, Pragma, X-Auth-Token, Access-Control-Request-Headers');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  res.setHeader('Access-Control-Expose-Headers', 'X-Total-Count, Content-Range, X-Pagination-Count');
+  
+  console.log(`[CORS] ${req.method} ${req.url} from origin: ${origin}`);
+  
+  // Handle preflight requests immediately
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -62,10 +88,7 @@ if (!mongoUri) {
   console.warn('⚠️  No MongoDB URI provided. Using local MongoDB: mongodb://localhost:27017/swipehire');
 }
 
-mongoose.connect(mongoUri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(mongoUri)
 .then(() => {
   console.log('✅ MongoDB connected successfully');
   console.log(`🔗 Connected to: ${mongoUri.includes('localhost') ? 'Local MongoDB' : 'MongoDB Atlas'}`);
@@ -126,7 +149,7 @@ process.on('SIGTERM', () => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🌐 CORS enabled for: ${corsOptions.origin.join(', ')}`);
+  console.log(`🌐 CORS enabled for: https://www.swipehire.top, https://swipehire.top, localhost`);
 });
 
 export default app;

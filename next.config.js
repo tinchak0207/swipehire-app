@@ -28,6 +28,18 @@ const nextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn-b.saashub.com',
         port: '',
         pathname: '/**',

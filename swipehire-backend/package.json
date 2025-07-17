@@ -11,7 +11,8 @@
     "build": "echo 'No build step required'",
     "railway": "railway run node index.js",
     "deploy": "railway up",
-    "deploy:dev": "railway deploy --env development"
+    "deploy:dev": "railway deploy --env development",
+    "seed": "node seedDatabase.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

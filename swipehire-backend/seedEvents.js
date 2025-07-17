@@ -141,10 +141,7 @@ const mockEvents = [
 async function seedEvents() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/swipehire', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/swipehire');
 
     console.log('Connected to MongoDB');
 

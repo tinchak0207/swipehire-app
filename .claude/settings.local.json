@@ -42,7 +42,8 @@
       "Bash(gh auth:*)",
       "Bash(pkill:*)",
       "Bash(railway:*)",
-      "Bash(gh:*)"
+      "Bash(gh:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
