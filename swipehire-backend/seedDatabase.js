@@ -119,7 +119,7 @@ const sampleJobs = [
     salaryRange: '$130,000 - $200,000',
     jobType: 'Full-time',
     skillsRequired: ['Python', 'TensorFlow', 'PyTorch', 'Machine Learning', 'NLP'],
-    mediaUrl: 'https://placehold.co/400x200/8B5CF6/FFFFFF?text=AI/ML+Engineer',
+    mediaUrl: 'https://placehold.co/400x200/8B5CF6/FFFFFF?text=AI-ML-Engineer',
     isPublic: true
   },
   {
@@ -130,7 +130,7 @@ const sampleJobs = [
     salaryRange: '$90,000 - $140,000',
     jobType: 'Full-time',
     skillsRequired: ['Figma', 'Adobe Creative Suite', 'User Research', 'Prototyping', 'Design Systems'],
-    mediaUrl: 'https://placehold.co/400x200/EC4899/FFFFFF?text=UX/UI+Designer',
+    mediaUrl: 'https://placehold.co/400x200/EC4899/FFFFFF?text=UX-UI-Designer',
     isPublic: true
   },
   {
@@ -141,7 +141,7 @@ const sampleJobs = [
     salaryRange: '$110,000 - $160,000',
     jobType: 'Full-time',
     skillsRequired: ['AWS', 'Docker', 'Kubernetes', 'Jenkins', 'Terraform'],
-    mediaUrl: 'https://placehold.co/400x200/06B6D4/FFFFFF?text=DevOps+Engineer',
+    mediaUrl: 'https://placehold.co/400x200/06B6D4/FFFFFF?text=DevOps-Engineer',
     isPublic: true
   },
   {
@@ -152,7 +152,7 @@ const sampleJobs = [
     salaryRange: '$120,000 - $180,000',
     jobType: 'Full-time',
     skillsRequired: ['Python', 'R', 'SQL', 'Statistics', 'Machine Learning', 'Data Visualization'],
-    mediaUrl: 'https://placehold.co/400x200/84CC16/FFFFFF?text=Data+Scientist',
+    mediaUrl: 'https://placehold.co/400x200/84CC16/FFFFFF?text=Data-Scientist',
     isPublic: true
   },
   {
@@ -163,7 +163,7 @@ const sampleJobs = [
     salaryRange: '$100,000 - $150,000',
     jobType: 'Full-time',
     skillsRequired: ['React Native', 'Flutter', 'iOS', 'Android', 'Firebase'],
-    mediaUrl: 'https://placehold.co/400x200/F59E0B/FFFFFF?text=Mobile+Developer',
+    mediaUrl: 'https://placehold.co/400x200/F59E0B/FFFFFF?text=Mobile-Developer',
     isPublic: true
   }
 ];
