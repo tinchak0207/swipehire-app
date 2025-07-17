@@ -48,7 +48,12 @@ class WorkersUtils {
     static createJsonResponse(data, status = 200) {
         return new Response(JSON.stringify(data), {
             status,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'https://www.swipehire.top',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
         });
     }
     
@@ -129,6 +134,18 @@ export default async function handleAdminRequest(request, env) {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const method = request.method;
+    
+    // Handle preflight OPTIONS requests
+    if (method === 'OPTIONS') {
+        return new Response(null, {
+            status: 200,
+            headers: {
+                'Access-Control-Allow-Origin': 'https://www.swipehire.top',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
+        });
+    }
     
     // Find matching route
     for (const route of adminRoutes) {

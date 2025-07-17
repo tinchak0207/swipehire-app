@@ -1,10 +1,10 @@
-const mongoose = require('mongoose');
-const User = require('../../models/User');
-const Video = require('../../models/Video');
-const { GCS_BUCKET_NAME } = require('../../config/constants');
-const { Storage } = require('@google-cloud/storage');
-const path = require('path');
-const fs = require('fs');
+import mongoose from 'mongoose';
+import User from '../../models/User.mjs';
+import Video from '../../models/Video.mjs';
+import { GCS_BUCKET_NAME } from '../../config/constants.mjs';
+import { Storage } from '@google-cloud/storage';
+import path from 'path';
+import fs from 'fs';
 
 const storageGCS = new Storage();
 
@@ -69,7 +69,7 @@ const selectUserFields = (userObject) => {
 };
 
 // Controller methods
-exports.createUser = async (req, res) => {
+export const createUser = async (req, res) => {
     try {
         const { name, email, preferences, firebaseUid, selectedRole, representedCandidateProfileId, representedCompanyProfileId } = req.body;
 
@@ -101,24 +101,31 @@ exports.createUser = async (req, res) => {
     }
 };
 
-exports.getUser = async (req, res) => {
+export const getUser = async (req, res) => {
     try {
         const { identifier } = req.params;
         
-        // Find user by ID (if valid ObjectId), email, or firebaseUid
-        const searchConditions = [
-            { email: identifier },
-            { firebaseUid: identifier }
-        ];
+        // Build search query based on identifier format
+        let searchQuery = {};
         
-        // Only add _id condition if identifier is a valid ObjectId
+        // Check if identifier is a valid ObjectId first
         if (mongoose.Types.ObjectId.isValid(identifier)) {
-            searchConditions.push({ _id: identifier });
+            searchQuery = { _id: identifier };
+        }
+        // Check if identifier looks like a Firebase UID (long alphanumeric string)
+        else if (identifier && identifier.length > 20 && /^[A-Za-z0-9]+$/.test(identifier)) {
+            searchQuery = { firebaseUid: identifier };
+        }
+        // Otherwise treat as email
+        else if (identifier && identifier.includes('@')) {
+            searchQuery = { email: identifier };
+        }
+        // Fallback: search firebaseUid only for safety
+        else {
+            searchQuery = { firebaseUid: identifier };
         }
 
-        const user = await User.findOne({
-            $or: searchConditions
-        });
+        const user = await User.findOne(searchQuery);
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -137,7 +144,7 @@ exports.getUser = async (req, res) => {
     }
 };
 
-exports.updateProfile = async (req, res) => {
+export const updateProfile = async (req, res) => {
     try {
         const { identifier } = req.params;
         const updates = req.body;
@@ -220,7 +227,7 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-exports.updateProfileVisibility = async (req, res) => {
+export const updateProfileVisibility = async (req, res) => {
     try {
         const { userId } = req.params;
         const { visibility } = req.body;
@@ -247,7 +254,7 @@ exports.updateProfileVisibility = async (req, res) => {
     }
 };
 
-exports.uploadAvatar = async (req, res) => {
+export const uploadAvatar = async (req, res) => {
     try {
         const { identifier } = req.params;
         const avatarUrl = req.file.path;
@@ -279,7 +286,7 @@ exports.uploadAvatar = async (req, res) => {
     }
 };
 
-exports.uploadVideoResume = async (req, res) => {
+export const uploadVideoResume = async (req, res) => {
     try {
         const { identifier } = req.params;
         const videoUrl = req.file.path;
@@ -311,7 +318,7 @@ exports.uploadVideoResume = async (req, res) => {
     }
 };
 
-exports.updateUser = async (req, res) => {
+export const updateUser = async (req, res) => {
     try {
         const { identifier } = req.params;
         const updates = req.body;
@@ -343,7 +350,7 @@ exports.updateUser = async (req, res) => {
     }
 };
 
-exports.deleteAccount = async (req, res) => {
+export const deleteAccount = async (req, res) => {
     try {
         const { userId } = req.params;
         await User.findByIdAndDelete(userId);
@@ -356,7 +363,7 @@ exports.deleteAccount = async (req, res) => {
     }
 };
 
-exports.requestDataExport = async (req, res) => {
+export const requestDataExport = async (req, res) => {
     try {
         const { userId } = req.params;
         // Implementation for data export request
@@ -372,7 +379,7 @@ exports.requestDataExport = async (req, res) => {
     }
 };
 
-exports.getJobseekerProfiles = async (req, res) => {
+export const getJobseekerProfiles = async (req, res) => {
     try {
         console.log("[API /api/users/profiles/jobseekers] Request received");
         
@@ -435,4 +442,16 @@ exports.getJobseekerProfiles = async (req, res) => {
     }
 };
 
-module.exports = exports;
+// Default export with all methods
+export default {
+    createUser,
+    getUser,
+    getJobseekerProfiles,
+    uploadAvatar,
+    uploadVideoResume,
+    updateProfile,
+    updateProfileVisibility,
+    updateUser,
+    deleteAccount,
+    requestDataExport
+};

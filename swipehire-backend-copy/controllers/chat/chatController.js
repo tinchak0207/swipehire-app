@@ -1,6 +1,6 @@
-const ChatMessage = require('../../models/ChatMessage');
+import ChatMessage from '../../models/ChatMessage.js';
 
-exports.createMessage = async (req, res) => {
+export const createMessage = async (req, res) => {
     try {
         const { matchId } = req.params;
         const { senderId, content } = req.body;
@@ -18,7 +18,7 @@ exports.createMessage = async (req, res) => {
     }
 };
 
-exports.getMessages = async (req, res) => {
+export const getMessages = async (req, res) => {
     try {
         const { matchId } = req.params;
         const messages = await ChatMessage.find({ matchId })

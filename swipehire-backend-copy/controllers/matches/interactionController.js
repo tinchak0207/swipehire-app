@@ -1,7 +1,7 @@
-const Match = require('../../models/Match');
-const User = require('../../models/User');
-const Notification = require('../../models/Notification');
-const Like = require('../../models/Like');
+import Match from '../../models/Match.js';
+import User from '../../models/User.js';
+import Notification from '../../models/Notification.js';
+import Like from '../../models/Like.js';
 
 const interactionController = {
   /**
@@ -238,4 +238,4 @@ const interactionController = {
   }
 };
 
-module.exports = interactionController;
+export default interactionController;

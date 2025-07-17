@@ -1,7 +1,6 @@
 // Import all controllers (ES modules)
 import userController from '../controllers/users/userController-workers.mjs';
-// Note: Other controllers will need to be converted to ES modules as well
-// For now, I'll create a hybrid approach where we gradually convert them
+import jobController from '../controllers/jobs/jobController.mjs';
 
 // Native Workers utility functions
 class WorkersUtils {
@@ -80,7 +79,12 @@ class WorkersUtils {
     static createJsonResponse(data, status = 200) {
         return new Response(JSON.stringify(data), {
             status,
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': 'https://www.swipehire.top',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
         });
     }
     
@@ -169,12 +173,12 @@ const routes = [
     { method: 'DELETE', pattern: '/api/users/:userId/account', handler: userController.deleteAccount },
     { method: 'POST', pattern: '/api/users/:userId/request-data-export', handler: userController.requestDataExport },
 
-    // Job routes (placeholder - need conversion)
-    { method: 'POST', pattern: '/api/users/:userId/jobs', handler: createPlaceholderController('Create Job') },
-    { method: 'GET', pattern: '/api/users/:userId/jobs', handler: createPlaceholderController('Get User Jobs') },
-    { method: 'POST', pattern: '/api/users/:userId/jobs/:jobId/update', handler: createPlaceholderController('Update Job') },
-    { method: 'DELETE', pattern: '/api/users/:userId/jobs/:jobId', handler: createPlaceholderController('Delete Job') },
-    { method: 'GET', pattern: '/api/jobs', handler: createPlaceholderController('Get Public Jobs') },
+    // Job routes (fully functional)
+    { method: 'POST', pattern: '/api/users/:userId/jobs', handler: jobController.createJob },
+    { method: 'GET', pattern: '/api/users/:userId/jobs', handler: jobController.getUserJobs },
+    { method: 'POST', pattern: '/api/users/:userId/jobs/:jobId/update', handler: jobController.updateJob },
+    { method: 'DELETE', pattern: '/api/users/:userId/jobs/:jobId', handler: jobController.deleteJob },
+    { method: 'GET', pattern: '/api/jobs', handler: jobController.getPublicJobs },
 
     // Match routes (placeholder - need conversion)
     { method: 'GET', pattern: '/api/matches/:userId', handler: createPlaceholderController('Get User Matches') },
@@ -247,6 +251,18 @@ export default async function handleApiRequest(request, env) {
     const url = new URL(request.url);
     const pathname = url.pathname;
     const method = request.method;
+    
+    // Handle preflight OPTIONS requests immediately
+    if (method === 'OPTIONS') {
+        return new Response(null, {
+            status: 200,
+            headers: {
+                'Access-Control-Allow-Origin': 'https://www.swipehire.top',
+                'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            }
+        });
+    }
     
     // Find matching route
     for (const route of routes) {

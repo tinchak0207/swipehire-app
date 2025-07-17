@@ -11,7 +11,7 @@ let mongoClient = null;
 let database = null;
 let isConnecting = false;
 
-// Initialize database connection
+// Initialize database connection with Workers-optimized settings
 async function connectToDatabase(env) {
     // If already connected and healthy, return immediately
     if (mongoClient && database) {
@@ -27,50 +27,69 @@ async function connectToDatabase(env) {
         }
     }
     
-    // If already connecting, wait for it to finish
+    // If already connecting, wait for it to finish with timeout
     if (isConnecting) {
         // Wait up to 3 seconds for connection to complete
-        for (let i = 0; i < 30; i++) {
+        const startTime = Date.now();
+        while (Date.now() - startTime < 3000) {
             if (database) return database;
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 50));
         }
-        return database;
+        throw new Error('Database connection timeout - already connecting');
     }
     
     isConnecting = true;
     
     try {
-        const mongoUri = env.MONGODB_URI || process.env.MONGODB_URI;
+        const mongoUri = env.MONGODB_URI;
         if (!mongoUri) {
-            console.warn('MongoDB URI not found in environment variables - database features will be limited');
+            console.warn('MongoDB URI not found in environment variables');
             isConnecting = false;
-            return null;
+            throw new Error('MongoDB URI not configured');
         }
         
         console.log('Connecting to MongoDB...');
         
         mongoClient = new MongoClient(mongoUri, {
             maxPoolSize: 1, // Single connection for Workers
-            serverSelectionTimeoutMS: 5000, // Faster server selection
-            socketTimeoutMS: 10000, // Shorter socket timeout
-            connectTimeoutMS: 5000, // Faster connection timeout
-            maxIdleTimeMS: 30000, // Shorter idle time
+            serverSelectionTimeoutMS: 3000, // Faster server selection
+            socketTimeoutMS: 5000, // Shorter socket timeout
+            connectTimeoutMS: 3000, // Faster connection timeout
+            maxIdleTimeMS: 10000, // Shorter idle time
             minPoolSize: 0, // No minimum connections
             retryWrites: true,
-            retryReads: true
+            retryReads: true,
+            waitQueueTimeoutMS: 3000 // Don't wait long for connections
         });
         
-        await mongoClient.connect();
-        database = mongoClient.db(); // Use default database from URI
+        // Connect with timeout
+        const connectPromise = mongoClient.connect();
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('MongoDB connection timeout')), 4000)
+        );
         
-        // Verify connection works with a quick ping
+        await Promise.race([connectPromise, timeoutPromise]);
+        
+        database = mongoClient.db();
+        
+        // Quick verification
         await database.admin().ping();
         
         console.log('Connected to MongoDB successfully');
         isConnecting = false;
         return database;
     } catch (error) {
-        console.error('MongoDB connection error:', error);
+        console.error('MongoDB connection error:', error.message);
+        
+        // Clean up on error
+        if (mongoClient) {
+            try {
+                await mongoClient.close();
+            } catch (closeError) {
+                console.error('Error closing MongoDB client:', closeError.message);
+            }
+        }
+        
         mongoClient = null;
         database = null;
         isConnecting = false;
@@ -94,14 +113,26 @@ export async function closeDatabase() {
 
 export default {
   async fetch(request, env) {
-    // Initialize database connection with error handling
+    // Handle CORS preflight requests immediately (no DB connection needed)
+    const preflightResponse = handleCorsPreflight(request);
+    if (preflightResponse) {
+      return preflightResponse;
+    }
+
+    // Get dynamic CORS headers based on request origin
+    const corsHeaders = getCorsHeaders(request);
+
+    // Initialize database connection with timeout and error handling
     try {
-      await connectToDatabase(env);
-    } catch (dbError) {
-      console.error('Failed to connect to database:', dbError);
+      // Add timeout to prevent hanging
+      const dbPromise = connectToDatabase(env);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Database connection timeout')), 5000)
+      );
       
-      // Get CORS headers for error response
-      const corsHeaders = getCorsHeaders(request);
+      await Promise.race([dbPromise, timeoutPromise]);
+    } catch (dbError) {
+      console.error('Database connection error:', dbError.message);
       
       return new Response(JSON.stringify({
         error: 'Database connection failed',
@@ -115,14 +146,6 @@ export default {
       });
     }
 
-    // Handle CORS preflight requests
-    const preflightResponse = handleCorsPreflight(request);
-    if (preflightResponse) {
-      return preflightResponse;
-    }
-
-    // Get dynamic CORS headers based on request origin
-    const corsHeaders = getCorsHeaders(request);
 
     const url = new URL(request.url);
     let response;

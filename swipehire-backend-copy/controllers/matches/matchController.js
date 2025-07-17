@@ -1,6 +1,6 @@
-const Match = require('../../models/Match');
+import Match from '../../models/Match.js';
 
-exports.getUserMatches = async (req, res) => {
+export const getUserMatches = async (req, res) => {
     try {
         const { userId } = req.params;
         const matches = await Match.find({ 
@@ -15,7 +15,7 @@ exports.getUserMatches = async (req, res) => {
     }
 };
 
-exports.archiveMatch = async (req, res) => {
+export const archiveMatch = async (req, res) => {
     try {
         const { matchId } = req.params;
         const updatedMatch = await Match.findByIdAndUpdate(

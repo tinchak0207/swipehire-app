@@ -149,18 +149,27 @@ export const getUser = async (req, res) => {
         
         console.log('Database available, searching for user');
         
-        // Find user by ID (if valid ObjectId), email, or firebaseUid
-        const searchConditions = [
-            { email: identifier },
-            { firebaseUid: identifier }
-        ];
+        // Build search query based on identifier format
+        let searchQuery = {};
         
-        // Only add _id condition if identifier is a valid ObjectId
+        // Check if identifier is a valid ObjectId first
         if (ObjectId.isValid(identifier)) {
-            searchConditions.push({ _id: new ObjectId(identifier) });
+            searchQuery = { _id: new ObjectId(identifier) };
+        }
+        // Check if identifier looks like a Firebase UID (long alphanumeric string)
+        else if (identifier && identifier.length > 20 && /^[A-Za-z0-9]+$/.test(identifier)) {
+            searchQuery = { firebaseUid: identifier };
+        }
+        // Otherwise treat as email
+        else if (identifier && identifier.includes('@')) {
+            searchQuery = { email: identifier };
+        }
+        // Fallback: search firebaseUid only for safety
+        else {
+            searchQuery = { firebaseUid: identifier };
         }
         
-        console.log('Search conditions:', searchConditions);
+        console.log('Search query:', searchQuery);
         
         // Use shorter timeout for Workers (5 seconds)
         const timeoutPromise = new Promise((_, reject) => {
@@ -171,7 +180,7 @@ export const getUser = async (req, res) => {
         const startTime = Date.now();
         
         const queryPromise = db.collection('users').findOne(
-            { $or: searchConditions },
+            searchQuery,
             { 
                 maxTimeMS: 4000, // MongoDB server-side timeout
                 readPreference: 'primary' // Ensure we read from primary

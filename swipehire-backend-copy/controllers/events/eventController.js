@@ -1,10 +1,10 @@
-const Event = require('../../models/Event');
-const SavedEvent = require('../../models/SavedEvent');
-const EventRegistration = require('../../models/EventRegistration');
-const EventFeedback = require('../../models/EventFeedback');
+import Event from '../../models/Event.js';
+import SavedEvent from '../../models/SavedEvent.js';
+import EventRegistration from '../../models/EventRegistration.js';
+import EventFeedback from '../../models/EventFeedback.js';
 
 // Get events with filtering, search, and pagination
-exports.getEvents = async (req, res) => {
+export const getEvents = async (req, res) => {
     try {
         const {
             page = 1,
@@ -153,7 +153,7 @@ exports.getEvents = async (req, res) => {
 };
 
 // Get single event by ID
-exports.getEvent = async (req, res) => {
+export const getEvent = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user?.id; // From auth middleware
@@ -187,7 +187,7 @@ exports.getEvent = async (req, res) => {
 };
 
 // Save/unsave event for user
-exports.toggleSaveEvent = async (req, res) => {
+export const toggleSaveEvent = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id; // From auth middleware
@@ -225,7 +225,7 @@ exports.toggleSaveEvent = async (req, res) => {
 };
 
 // Register for event
-exports.registerForEvent = async (req, res) => {
+export const registerForEvent = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
@@ -282,7 +282,7 @@ exports.registerForEvent = async (req, res) => {
 };
 
 // Get user's saved events
-exports.getUserSavedEvents = async (req, res) => {
+export const getUserSavedEvents = async (req, res) => {
     try {
         const userId = req.user.id;
         const { page = 1, limit = 10 } = req.query;
@@ -319,7 +319,7 @@ exports.getUserSavedEvents = async (req, res) => {
 };
 
 // Get recommended events for user
-exports.getRecommendedEvents = async (req, res) => {
+export const getRecommendedEvents = async (req, res) => {
     try {
         const userId = req.user?.id;
         const { limit = 10 } = req.query;
@@ -363,7 +363,7 @@ exports.getRecommendedEvents = async (req, res) => {
 };
 
 // Submit event feedback
-exports.submitEventFeedback = async (req, res) => {
+export const submitEventFeedback = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
@@ -444,7 +444,7 @@ exports.submitEventFeedback = async (req, res) => {
 };
 
 // Get event feedback
-exports.getEventFeedback = async (req, res) => {
+export const getEventFeedback = async (req, res) => {
     try {
         const { id } = req.params;
         const { page = 1, limit = 10, minRating } = req.query;
@@ -484,4 +484,14 @@ exports.getEventFeedback = async (req, res) => {
     }
 };
 
-module.exports = exports;
+// Default export with all methods
+export default {
+    getEvents,
+    getEvent,
+    toggleSaveEvent,
+    registerForEvent,
+    getUserSavedEvents,
+    getRecommendedEvents,
+    submitEventFeedback,
+    getEventFeedback
+};

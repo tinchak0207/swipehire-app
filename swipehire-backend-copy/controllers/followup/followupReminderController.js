@@ -1,4 +1,4 @@
-const followupReminderService = require('../../services/followupReminderService');
+import followupReminderService from '../../services/followupReminderService.js';
 
 const followupReminderController = {
   // Create a new follow-up reminder
@@ -236,4 +236,4 @@ const followupReminderController = {
   }
 };
 
-module.exports = followupReminderController;
+export default followupReminderController;

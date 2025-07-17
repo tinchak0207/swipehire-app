@@ -1,5 +1,5 @@
 name = "swipehire-backend"
-main = "index.mjs"
+main = "index-optimized.mjs"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
@@ -7,6 +7,8 @@ compatibility_flags = ["nodejs_compat"]
 [vars]
 NODE_ENV = "production"
 ENVIRONMENT = "workers"
+FRONTEND_URL_PRIMARY = "https://swipehire.top"
+FRONTEND_URL_SECONDARY = "https://www.swipehire.top"
 
 # Secrets (set via wrangler secret put)
 # Run these commands to set secrets:

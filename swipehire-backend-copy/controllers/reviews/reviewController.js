@@ -1,6 +1,6 @@
-const CompanyReview = require('../../models/CompanyReview');
+import CompanyReview from '../../models/CompanyReview.js';
 
-exports.createCompanyReview = async (req, res) => {
+export const createCompanyReview = async (req, res) => {
     try {
         const { companyUserId, reviewerId, rating, comment } = req.body;
         const newReview = await CompanyReview.create({
@@ -16,7 +16,7 @@ exports.createCompanyReview = async (req, res) => {
     }
 };
 
-exports.getCompanyReviews = async (req, res) => {
+export const getCompanyReviews = async (req, res) => {
     try {
         const { companyUserId } = req.params;
         const reviews = await CompanyReview.find({ companyUserId })
@@ -27,7 +27,7 @@ exports.getCompanyReviews = async (req, res) => {
     }
 };
 
-exports.getCompanyReviewSummary = async (req, res) => {
+export const getCompanyReviewSummary = async (req, res) => {
     try {
         const { companyUserId } = req.params;
         const reviews = await CompanyReview.find({ companyUserId });

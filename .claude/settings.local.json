@@ -35,7 +35,9 @@
       "Bash(npx wrangler deploy:*)",
       "Bash(curl:*)",
       "Bash(timeout:*)",
-      "Bash(wrangler tail:*)"
+      "Bash(wrangler tail:*)",
+      "Bash(npx:*)",
+      "Bash(chmod:*)"
     ],
     "deny": []
   }

@@ -1,6 +1,6 @@
-const Job = require('../../models/Job');
+import Job from '../../models/Job.js';
 
-exports.createJob = async (req, res) => {
+export const createJob = async (req, res) => {
     try {
         const { userId } = req.params;
         const jobData = req.body;
@@ -20,7 +20,7 @@ exports.createJob = async (req, res) => {
     }
 };
 
-exports.getUserJobs = async (req, res) => {
+export const getUserJobs = async (req, res) => {
     try {
         const { userId } = req.params;
         const jobs = await Job.find({ userId });
@@ -30,7 +30,7 @@ exports.getUserJobs = async (req, res) => {
     }
 };
 
-exports.updateJob = async (req, res) => {
+export const updateJob = async (req, res) => {
     try {
         const { userId, jobId } = req.params;
         const updates = req.body;
@@ -51,7 +51,7 @@ exports.updateJob = async (req, res) => {
     }
 };
 
-exports.deleteJob = async (req, res) => {
+export const deleteJob = async (req, res) => {
     try {
         const { userId, jobId } = req.params;
         await Job.findOneAndDelete({ _id: jobId, userId });
@@ -61,7 +61,7 @@ exports.deleteJob = async (req, res) => {
     }
 };
 
-exports.getPublicJobs = async (req, res) => {
+export const getPublicJobs = async (req, res) => {
     try {
         const jobs = await Job.find({ isPublic: true });
         res.status(200).json(jobs);

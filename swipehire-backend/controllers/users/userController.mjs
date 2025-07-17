@@ -120,18 +120,27 @@ export const getUser = async (req, res) => {
     try {
         const { identifier } = req.params;
         
-        // Find user by ID (if valid ObjectId), email, or firebaseUid
-        const searchConditions = [
-            { email: identifier },
-            { firebaseUid: identifier }
-        ];
+        // Build search query based on identifier format
+        let searchQuery = {};
         
-        // Only add _id condition if identifier is a valid ObjectId
+        // Check if identifier is a valid ObjectId first
         if (mongoose.Types.ObjectId.isValid(identifier)) {
-            searchConditions.push({ _id: identifier });
+            searchQuery = { _id: identifier };
+        }
+        // Check if identifier looks like a Firebase UID (long alphanumeric string)
+        else if (identifier && identifier.length > 20 && /^[A-Za-z0-9]+$/.test(identifier)) {
+            searchQuery = { firebaseUid: identifier };
+        }
+        // Otherwise treat as email
+        else if (identifier && identifier.includes('@')) {
+            searchQuery = { email: identifier };
+        }
+        // Fallback: search firebaseUid only for safety
+        else {
+            searchQuery = { firebaseUid: identifier };
         }
         
-        const user = await User.findOne({ $or: searchConditions });
+        const user = await User.findOne(searchQuery);
         
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
