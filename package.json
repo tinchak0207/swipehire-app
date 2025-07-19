@@ -103,6 +103,7 @@
     "postcss": "^8.4.35",
     "qrcode.react": "^3.1.0",
     "quill": "^2.0.3",
+    "railway": "^2.0.17",
     "react": "^18.3.1",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
