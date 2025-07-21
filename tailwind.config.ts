@@ -182,7 +182,12 @@ export default {
       },
     },
   },
-  plugins: [require('tailwindcss-animate'), require('@tailwindcss/typography'), require('daisyui')],
+  plugins: [
+    require('tailwindcss-animate'),
+    require('@tailwindcss/typography'),
+    require('daisyui'),
+    require('tailwind-scrollbar-hide'),
+  ],
   daisyui: {
     themes: [
       'light',

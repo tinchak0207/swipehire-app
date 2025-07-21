@@ -28,6 +28,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import 'aos/dist/aos.css';
 import { ScrollProgressBar } from '@/components/common/ScrollProgressBar';
 import { ScrollToTopButton } from '@/components/common/ScrollToTopButton';
+import JobAgentPanel from '@/components/pages/JobAgentPanel';
 
 interface WelcomePageProps {
   onStartExploring: () => void;
@@ -244,74 +245,54 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
       <main className="flex-grow">
         <section
           id="hero"
-          className="parallax-hero relative py-24 text-white md:py-36"
-          style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
+          className="relative flex min-h-screen items-center bg-gray-900 text-white"
           data-aos="fade-in"
         >
-          <div className="absolute inset-0 z-0 bg-gradient-to-t from-black/70 via-black/50 to-transparent" />
-          <div className="absolute inset-0 z-0 bg-gradient-to-r from-purple-900/50 via-indigo-800/30 to-transparent opacity-70" />
+          <div
+            className="absolute inset-0 z-0 h-full w-full bg-cover bg-center"
+            style={{ backgroundImage: "url('/heroimage/office.jpg')" }}
+          />
+          <div className="absolute inset-0 z-10 bg-gradient-to-br from-gray-900/80 via-gray-900/70 to-black/60" />
 
-          <div className="container relative z-10 mx-auto px-4 text-center sm:px-6 lg:px-8">
-            <h1
-              className="mb-6 font-extrabold font-heading text-4xl leading-tight tracking-tight sm:text-5xl md:text-6xl"
-              data-aos="fade-up"
-            >
-              Unlock Your Career <br />
-              Potential <span className="text-accent">✨</span> <br />
-              Discover Top Talent.
-            </h1>
-            <p
-              className="mx-auto mb-10 max-w-3xl text-base text-slate-200 leading-relaxed sm:text-lg md:text-xl"
-              data-aos="fade-up"
-              data-aos-delay="100"
-            >
-              SwipeHire revolutionizes recruitment with AI-powered video resumes and intelligent
-              talent matching. Create your AI resume, find remote job opportunities, or connect with
-              efficient recruitment software.
-            </p>
+          <div className="container relative z-20 mx-auto grid grid-cols-1 items-center gap-12 px-4 md:grid-cols-2 lg:gap-20">
+            {/* Left Column */}
+            <div className="text-center md:text-left" data-aos="fade-right">
+              <h1 className="mb-6 font-extrabold font-heading text-4xl leading-tight tracking-tight sm:text-5xl md:text-6xl">
+                Unlock Your Career
+                <br />
+                Potential <span className="text-accent">✨</span>
+              </h1>
+              <p className="mx-auto mb-10 max-w-xl text-base text-slate-200 leading-relaxed sm:text-lg md:mx-0 md:text-xl">
+                SwipeHire revolutionizes recruitment with AI-powered video resumes and intelligent
+                talent matching. Create your AI resume, find remote job opportunities, or connect
+                with efficient recruitment software.
+              </p>
+              <div className="flex flex-col items-center justify-center gap-4 sm:flex-row md:justify-start">
+                <Button
+                  onClick={onStartExploring}
+                  size="lg"
+                  className="subtle-button-hover w-full bg-white px-8 py-3 font-semibold text-lg text-primary shadow-lg hover:bg-slate-100 hover:shadow-xl sm:w-auto"
+                >
+                  <Rocket className="mr-2 h-5 w-5" /> Get Started Free
+                </Button>
+                <Button
+                  onClick={onGuestMode}
+                  variant="secondary"
+                  size="lg"
+                  className="subtle-button-hover w-full border-slate-600 bg-slate-700/80 px-8 py-3 text-lg text-white shadow-md hover:bg-slate-600/90 hover:shadow-lg sm:w-auto"
+                >
+                  <User className="mr-2 h-5 w-5" /> Continue as Guest
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Column - Manus-like Agent */}
             <div
-              className="mb-8 flex flex-col items-center justify-center gap-4 sm:flex-row"
-              data-aos="fade-up"
+              className="relative mx-auto w-full max-w-md"
+              data-aos="fade-left"
               data-aos-delay="200"
             >
-              <Button
-                onClick={onStartExploring}
-                size="lg"
-                className="subtle-button-hover w-full bg-white px-8 py-3 font-semibold text-lg text-primary shadow-lg hover:bg-slate-100 hover:shadow-xl sm:w-auto"
-              >
-                <Rocket className="mr-2 h-5 w-5" /> Get Started Free
-              </Button>
-              <Button
-                onClick={onGuestMode}
-                variant="secondary"
-                size="lg"
-                className="subtle-button-hover w-full border-slate-600 bg-slate-700/80 px-8 py-3 text-lg text-white shadow-md hover:bg-slate-600/90 hover:shadow-lg sm:w-auto"
-              >
-                <User className="mr-2 h-5 w-5" /> Continue as Guest
-              </Button>
-            </div>
-            <div className="mt-6 flex justify-center" data-aos="fade-up" data-aos-delay="300">
-              <a
-                href="https://fazier.com/launches/swipehire"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Image
-                  src="https://fazier.com/api/v1/public/badges/embed_image.svg?launch_id=4627&badge_type=daily&theme=light"
-                  width={270}
-                  height={54}
-                  alt="Fazier badge"
-                  className="rounded shadow-md transition-opacity hover:opacity-90"
-                />
-              </a>
-            </div>
-            <div
-              className="-translate-x-1/2 absolute bottom-10 left-1/2 animate-bounce cursor-pointer opacity-70"
-              onClick={() =>
-                document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })
-              }
-            >
-              <ChevronDown className="h-8 w-8" />
+              <JobAgentPanel onGetJobClick={onStartExploring} />
             </div>
           </div>
         </section>
@@ -483,9 +464,9 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
               <h2 className="flex items-center justify-center font-bold font-heading text-3xl text-foreground md:text-4xl">
                 <Gift className="mr-3 h-10 w-10 text-green-500" />
                 SwipeHire is Now{' '}
-                <span className="ml-2 text-green-500 underline decoration-green-500/70 decoration-wavy underline-offset-4">
+                <span className="mx-2 text-green-500 underline decoration-green-500/70 decoration-wavy underline-offset-4">
                   completely free
-                </span>{' '}
+                </span>
                 for job seekers!
               </h2>
               <p className="mx-auto mt-6 max-w-3xl text-lg text-muted-foreground leading-relaxed">

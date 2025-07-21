@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppHeader } from '@/components/AppHeader';
 import { OnboardingStepsModal } from '@/components/common/OnboardingStepsModal';
 import { DashboardSidebar } from '@/components/navigation/DashboardSidebar';
@@ -222,7 +222,12 @@ function AppContent() {
     } else {
       setBannerNotification(null);
     }
-  }, [preferences.notificationChannels, preferences.isLoading, fullBackendUser, hasMounted]);
+  }, [
+    JSON.stringify(preferences.notificationChannels),
+    preferences.isLoading,
+    JSON.stringify(fullBackendUser),
+    hasMounted,
+  ]);
 
   const handleDismissBanner = (notificationId: string) => {
     setBannerNotification(null);
@@ -611,9 +616,9 @@ function AppContent() {
     // Return undefined explicitly for cases where no cleanup is needed
     return undefined;
   }, [
-    currentUser,
+    JSON.stringify(currentUser),
     mongoDbUserId,
-    fullBackendUser,
+    JSON.stringify(fullBackendUser),
     preferences.isLoading,
     isGuestModeActive,
     hasMounted,
@@ -685,8 +690,8 @@ function AppContent() {
   }, [
     isAppLoading,
     pathname,
-    currentUser,
-    fullBackendUser,
+    JSON.stringify(currentUser),
+    JSON.stringify(fullBackendUser),
     preferences.isLoading,
     router,
     isGuestModeActive,
@@ -918,188 +923,205 @@ function AppContent() {
     setIsAppLoading(true);
   };
 
-  const baseTabItems = [
-    {
-      value: 'salaryEnquiry',
-      label: 'Market Salary Inquiry',
-      icon: DollarSign,
-      component: <MarketSalaryTypeformPage />,
-      description: 'Research market salary data and compensation trends',
-      isNew: true,
-      shortcut: '⌘S',
-    },
-    {
-      value: 'resumeOptimizer',
-      label: 'Resume Optimization tools',
-      icon: FileText,
-      component: <ResumeOptimizerPage />,
-      description:
-        'AI-powered resume analysis, ATS optimization, and personalized suggestions to boost your job prospects',
-      isNew: true,
-      shortcut: '⌘R',
-    },
-    {
-      value: 'aiTools',
-      label: 'AI Tools',
-      icon: Wand2,
-      component: (
-        <AiToolsPage
-          isGuestMode={isGuestModeActive}
-          currentUserRole={fullBackendUser?.selectedRole || null}
-        />
-      ),
-      description: 'AI-powered career and recruitment tools',
-      isNew: true,
-      shortcut: '⌘T',
-    },
-    {
-      value: 'interviewGuide',
-      label: 'Interview Guide',
-      icon: Brain,
-      component: (
-        <InterviewGuidePage
-          isGuestMode={isGuestModeActive}
-          currentUserRole={fullBackendUser?.selectedRole || null}
-        />
-      ),
-      description: 'Comprehensive interview preparation and skills training',
-      isNew: true,
-      shortcut: '⌘I',
-    },
-    {
-      value: 'workflows',
-      label: 'Build Workflow',
-      icon: GitBranch,
-      component: <WorkflowDashboardPage />,
-      description: 'Create and manage automated workflows for recruitment and career processes',
-      isNew: true,
-      shortcut: '⌘W',
-    },
-    {
-      value: 'myPortfolio',
-      label: 'My Portfolio',
-      icon: User,
-      component: <PortfolioPage />,
-      description: 'Showcase your work, projects, and professional achievements',
-      isNew: true,
-      shortcut: '⌘O',
-    },
-    {
-      value: 'industryEvents',
-      label: 'Industry Events',
-      icon: Calendar,
-      component: <EventsPage />,
-      description: 'Discover networking events, conferences, and workshops in your industry',
-      isNew: true,
-      shortcut: '⌘E',
-    },
-    {
-      value: 'followupReminders',
-      label: 'Follow-up Reminders',
-      icon: Bell,
-      component: <FollowupRemindersPage />,
-      description: 'Manage and track follow-ups for your job applications',
-      isNew: true,
-      shortcut: '⌘F',
-    },
-    {
-      value: 'myMatches',
-      label: 'My Matches',
-      icon: HeartHandshake,
-      component: <MatchesPage isGuestMode={isGuestModeActive} />,
-      description: 'View and manage your job matches',
-      badge:
-        mockNotifications.filter((n) => n.type === 'new_message' && !n.read).length > 0
-          ? mockNotifications.filter((n) => n.type === 'new_message' && !n.read).length
-          : undefined,
-    },
-    {
-      value: 'settings',
-      label: 'Settings',
-      icon: UserCog,
-      component: (
-        <SettingsPage
-          isGuestMode={isGuestModeActive}
-          currentUserRole={fullBackendUser?.selectedRole || null}
-        />
-      ),
-      description: 'Account settings and preferences',
-      shortcut: '⌘,',
-    },
-  ];
-  const recruiterTabItems = [
-    {
-      value: 'findTalent',
-      label: 'Find Talent',
-      icon: Users,
-      component: (
-        <CandidateDiscoveryPage
-          searchTerm={searchTerm}
-          key={`cand-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`}
-          isGuestMode={isGuestModeActive}
-        />
-      ),
-      description: 'Discover and connect with top talent',
-      shortcut: '⌘F',
-    },
-    {
-      value: 'postJob',
-      label: 'Post a Job',
-      icon: FilePlus2,
-      component: <CreateJobPostingPage isGuestMode={isGuestModeActive} />,
-      description: 'Create and publish job openings',
-      shortcut: '⌘N',
-    },
-    {
-      value: 'manageJobs',
-      label: 'Manage Jobs',
-      icon: SettingsIcon,
-      component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
-      description: 'Track and manage your job postings',
-      shortcut: '⌘M',
-    },
-    ...baseTabItems,
-  ];
+  const baseTabItems = useMemo(
+    () => [
+      {
+        value: 'salaryEnquiry',
+        label: 'Market Salary Inquiry',
+        icon: DollarSign,
+        component: <MarketSalaryTypeformPage />,
+        description: 'Research market salary data and compensation trends',
+        isNew: true,
+        shortcut: '⌘S',
+      },
+      {
+        value: 'resumeOptimizer',
+        label: 'Resume Optimization tools',
+        icon: FileText,
+        component: <ResumeOptimizerPage />,
+        description:
+          'AI-powered resume analysis, ATS optimization, and personalized suggestions to boost your job prospects',
+        isNew: true,
+        shortcut: '⌘R',
+      },
+      {
+        value: 'aiTools',
+        label: 'AI Tools',
+        icon: Wand2,
+        component: (
+          <AiToolsPage
+            isGuestMode={isGuestModeActive}
+            currentUserRole={fullBackendUser?.selectedRole || null}
+          />
+        ),
+        description: 'AI-powered career and recruitment tools',
+        isNew: true,
+        shortcut: '⌘T',
+      },
+      {
+        value: 'interviewGuide',
+        label: 'Interview Guide',
+        icon: Brain,
+        component: (
+          <InterviewGuidePage
+            isGuestMode={isGuestModeActive}
+            currentUserRole={fullBackendUser?.selectedRole || null}
+          />
+        ),
+        description: 'Comprehensive interview preparation and skills training',
+        isNew: true,
+        shortcut: '⌘I',
+      },
+      {
+        value: 'workflows',
+        label: 'Build Workflow',
+        icon: GitBranch,
+        component: <WorkflowDashboardPage />,
+        description: 'Create and manage automated workflows for recruitment and career processes',
+        isNew: true,
+        shortcut: '⌘W',
+      },
+      {
+        value: 'myPortfolio',
+        label: 'My Portfolio',
+        icon: User,
+        component: <PortfolioPage />,
+        description: 'Showcase your work, projects, and professional achievements',
+        isNew: true,
+        shortcut: '⌘O',
+      },
+      {
+        value: 'industryEvents',
+        label: 'Industry Events',
+        icon: Calendar,
+        component: <EventsPage />,
+        description: 'Discover networking events, conferences, and workshops in your industry',
+        isNew: true,
+        shortcut: '⌘E',
+      },
+      {
+        value: 'followupReminders',
+        label: 'Follow-up Reminders',
+        icon: Bell,
+        component: <FollowupRemindersPage />,
+        description: 'Manage and track follow-ups for your job applications',
+        isNew: true,
+        shortcut: '⌘F',
+      },
+      {
+        value: 'myMatches',
+        label: 'My Matches',
+        icon: HeartHandshake,
+        component: <MatchesPage isGuestMode={isGuestModeActive} />,
+        description: 'View and manage your job matches',
+        badge:
+          mockNotifications.filter((n) => n.type === 'new_message' && !n.read).length > 0
+            ? mockNotifications.filter((n) => n.type === 'new_message' && !n.read).length
+            : undefined,
+      },
+      {
+        value: 'settings',
+        label: 'Settings',
+        icon: UserCog,
+        component: (
+          <SettingsPage
+            isGuestMode={isGuestModeActive}
+            currentUserRole={fullBackendUser?.selectedRole || null}
+          />
+        ),
+        description: 'Account settings and preferences',
+        shortcut: '⌘,',
+      },
+    ],
+    [isGuestModeActive, fullBackendUser?.selectedRole]
+  );
+  const recruiterTabItems = useMemo(
+    () => [
+      {
+        value: 'findTalent',
+        label: 'Find Talent',
+        icon: Users,
+        component: (
+          <CandidateDiscoveryPage
+            searchTerm={searchTerm}
+            key={`cand-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`}
+            isGuestMode={isGuestModeActive}
+          />
+        ),
+        description: 'Discover and connect with top talent',
+        shortcut: '⌘F',
+      },
+      {
+        value: 'postJob',
+        label: 'Post a Job',
+        icon: FilePlus2,
+        component: <CreateJobPostingPage isGuestMode={isGuestModeActive} />,
+        description: 'Create and publish job openings',
+        shortcut: '⌘N',
+      },
+      {
+        value: 'manageJobs',
+        label: 'Manage Jobs',
+        icon: SettingsIcon,
+        component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
+        description: 'Track and manage your job postings',
+        shortcut: '⌘M',
+      },
+      ...baseTabItems,
+    ],
+    [baseTabItems, searchTerm, fullBackendUser?.selectedRole, mongoDbUserId, isGuestModeActive]
+  );
 
-  const jobseekerTabItems = [
-    {
-      value: 'findJobs',
-      label: 'Find Jobs',
-      icon: Briefcase,
-      component: (
-        <JobDiscoveryPage
-          searchTerm={searchTerm}
-          key={`job-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`}
-        />
-      ),
-      description: 'Discover exciting job opportunities',
-      shortcut: '⌘J',
-    },
-    {
-      value: 'myProfile',
-      label: 'My Profile',
-      icon: UserCircle,
-      component: <MyProfilePage isGuestMode={isGuestModeActive} />,
-      description: 'Manage your professional profile',
-      shortcut: '⌘P',
-    },
-    {
-      value: 'myDiary',
-      label: 'My Diary',
-      icon: BookOpenText,
-      component: (
-        <StaffDiaryPage
-          isGuestMode={isGuestModeActive}
-          currentUserName={userName}
-          currentUserMongoId={mongoDbUserId}
-          currentUserAvatarUrl={userPhotoURL}
-        />
-      ),
-      description: 'Share your professional journey',
-      shortcut: '⌘D',
-    },
-    ...baseTabItems,
-  ];
+  const jobseekerTabItems = useMemo(
+    () => [
+      {
+        value: 'findJobs',
+        label: 'Find Jobs',
+        icon: Briefcase,
+        component: (
+          <JobDiscoveryPage
+            searchTerm={searchTerm}
+            key={`job-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`}
+          />
+        ),
+        description: 'Discover exciting job opportunities',
+        shortcut: '⌘J',
+      },
+      {
+        value: 'myProfile',
+        label: 'My Profile',
+        icon: UserCircle,
+        component: <MyProfilePage isGuestMode={isGuestModeActive} />,
+        description: 'Manage your professional profile',
+        shortcut: '⌘P',
+      },
+      {
+        value: 'myDiary',
+        label: 'My Diary',
+        icon: BookOpenText,
+        component: (
+          <StaffDiaryPage
+            isGuestMode={isGuestModeActive}
+            currentUserName={userName}
+            currentUserMongoId={mongoDbUserId}
+            currentUserAvatarUrl={userPhotoURL}
+          />
+        ),
+        description: 'Share your professional journey',
+        shortcut: '⌘D',
+      },
+      ...baseTabItems,
+    ],
+    [
+      baseTabItems,
+      searchTerm,
+      fullBackendUser?.selectedRole,
+      mongoDbUserId,
+      isGuestModeActive,
+      userName,
+      userPhotoURL,
+    ]
+  );
 
   const currentRoleForTabs = fullBackendUser?.selectedRole;
   let currentTabItems = jobseekerTabItems;
@@ -1118,8 +1140,8 @@ function AppContent() {
     const itemsForCurrentContext = isGuestModeActive
       ? jobseekerTabItems
       : currentUser && currentRoleForTabs === 'recruiter'
-        ? recruiterTabItems
-        : jobseekerTabItems;
+      ? recruiterTabItems
+      : jobseekerTabItems;
     const validTabValues = itemsForCurrentContext.map((item) => item.value);
 
     let defaultTabForCurrentContext = 'findJobs';
