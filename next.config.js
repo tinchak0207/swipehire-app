@@ -6,13 +6,15 @@ const nextConfig = {
     // Fix Handlebars require.extensions warning
     config.module.rules.push({
       test: /\.hbs$/,
-      use: 'raw-loader' 
+      use: 'raw-loader',
     });
-    
+
     return config;
   },
   transpilePackages: ['@reactflow/core'],
   images: {
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: 'https',
@@ -33,7 +35,7 @@ const nextConfig = {
         pathname: '/**',
       },
       {
-         protocol: 'https',
+        protocol: 'https',
         hostname: 'startupfa.me',
         port: '',
         pathname: '/**',
@@ -48,7 +50,7 @@ const nextConfig = {
     // Configure handlebars loader and ignore require.extensions warnings
     config.module.rules.push({
       test: /\.hbs$/,
-      use: 'handlebars-loader'
+      use: 'handlebars-loader',
     });
     config.plugins.push(
       new webpack.IgnorePlugin({
