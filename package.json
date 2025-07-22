@@ -170,6 +170,14 @@
     "tsx": "^4.20.3",
     "whatwg-fetch": "^3.6.20"
   },
+  "overrides": {
+    "ink": "^4.4.1",
+    "react-reconciler": "^0.29.2",
+    "inflight": "@isaacs/inflight@^1.0.4",
+    "rimraf": "^6.0.1",
+    "glob": "^11.0.0",
+    "quill": "^2.0.3"
+  },
   "description": "This is a NextJS starter in Firebase Studio.",
   "main": "index.js",
   "directories": {

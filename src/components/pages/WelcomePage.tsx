@@ -6,7 +6,6 @@ import {
   Brain,
   Briefcase,
   CheckCircle,
-  ChevronDown,
   FileVideo2,
   Gift,
   HeartHandshake,

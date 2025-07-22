@@ -147,7 +147,10 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
       let currentStep = 0;
       const interval = setInterval(() => {
         if (currentStep < steps.length) {
-          setAgentSteps((prev) => [...prev, steps[currentStep]]);
+          setAgentSteps((prev) => {
+            const newStep = steps[currentStep];
+            return newStep ? [...prev, newStep] : prev;
+          });
           currentStep++;
         } else {
           clearInterval(interval);
@@ -163,6 +166,8 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
 
       return () => clearInterval(interval);
     }
+    
+    return undefined;
   }, [isThinking, conversationStage]);
 
   const handleSendMessage = (text: string) => {
