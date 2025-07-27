@@ -24,7 +24,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
     jest.clearAllMocks();
     // Reset environment variables
     process.env = { ...originalEnv };
-    process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] = 'http://localhost:5000';
+    process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL = 'http://localhost:5000';
 
     // Reset the global fetch mock
     mockFetch.mockClear();
@@ -556,7 +556,7 @@ describe('Resume Optimizer Service - Backend API Integration', () => {
 describe('Resume Optimizer Service - Performance Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] = 'http://localhost:5000';
+    process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL = 'http://localhost:5000';
 
     // Reset the global fetch mock
     mockFetch.mockClear();

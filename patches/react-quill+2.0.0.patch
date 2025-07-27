@@ -1,0 +1,41 @@
+diff --git a/node_modules/react-quill/lib/index.js b/node_modules/react-quill/lib/index.js
+index 1234567..abcdefg 100644
+--- a/node_modules/react-quill/lib/index.js
++++ b/node_modules/react-quill/lib/index.js
+@@ -436,7 +436,15 @@ var ReactQuill = /*#__PURE__*/function (_Component) {
+   }, {
+     key: "getEditingArea",
+     value: function getEditingArea() {
+-      return ReactDOM.findDOMNode(this.editingArea);
++      // Fix for React 18 compatibility - avoid using deprecated findDOMNode
++      if (this.editingArea && this.editingArea.current) {
++        return this.editingArea.current;
++      }
++      // Fallback to querySelector if ref is not available
++      if (this.editor && this.editor.container) {
++        return this.editor.container.querySelector('.ql-editor');
++      }
++      return null;
+     }
+   }, {
+     key: "renderEditingArea",
+@@ -444,7 +452,7 @@ var ReactQuill = /*#__PURE__*/function (_Component) {
+       var _this3 = this;
+       var children = this.props.children;
+       var preserveWhitespace = this.props.preserveWhitespace;
+-      var properties = {
++      var properties = {
+         key: this.state.generation,
+         ref: function ref(element) {
+           _this3.editingArea = element;
+@@ -452,6 +460,11 @@ var ReactQuill = /*#__PURE__*/function (_Component) {
+       };
+       var customProps = this.props.children ? {} : {
+         dangerouslySetInnerHTML: {
++          // Create a ref for the editing area to avoid findDOMNode
++          ref: function ref(element) {
++            _this3.editingArea = {current: element};
++          },
+           __html: this.getEditorContents()
+         }
+       };

@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import type {
   MatchedKeyword,
+  OptimizationSuggestion,
   ResumeAnalysisRequest,
   ResumeAnalysisResponse,
-  OptimizationSuggestion,
 } from '@/lib/types/resume-optimizer';
 
 // --- Helper Functions for Re-analysis ---
@@ -81,7 +81,8 @@ function generateSuggestions(
       title: 'Add Contact Information',
       description: 'Include email, phone, and LinkedIn.',
       impact: 'high',
-      suggestion: 'Add a contact information section at the top of your resume with your email, phone number, and LinkedIn profile URL.',
+      suggestion:
+        'Add a contact information section at the top of your resume with your email, phone number, and LinkedIn profile URL.',
       priority: 1,
       estimatedScoreImprovement: 15,
     });
@@ -93,7 +94,8 @@ function generateSuggestions(
       title: 'Add Professional Summary',
       description: 'Add a compelling summary.',
       impact: 'high',
-      suggestion: 'Add a professional summary section at the top of your resume that highlights your key qualifications and career objectives.',
+      suggestion:
+        'Add a professional summary section at the top of your resume that highlights your key qualifications and career objectives.',
       priority: 2,
       estimatedScoreImprovement: 10,
     });
@@ -116,7 +118,8 @@ function generateSuggestions(
     title: 'Optimize for ATS',
     description: 'Use standard headings and formatting.',
     impact: 'medium',
-    suggestion: 'Use standard section headings like "Experience", "Education", "Skills" and avoid complex formatting that ATS systems might not parse correctly.',
+    suggestion:
+      'Use standard section headings like "Experience", "Education", "Skills" and avoid complex formatting that ATS systems might not parse correctly.',
     priority: 4,
     estimatedScoreImprovement: 5,
   });
@@ -125,7 +128,8 @@ function generateSuggestions(
     type: 'achievement',
     title: 'Tailor to Role',
     description: 'Emphasize relevant experience.',
-    suggestion: 'Tailor your resume to the specific role by emphasizing the most relevant experience and skills for this position.',
+    suggestion:
+      'Tailor your resume to the specific role by emphasizing the most relevant experience and skills for this position.',
     impact: 'high',
     priority: 5,
     estimatedScoreImprovement: 10,
@@ -202,7 +206,13 @@ async function performResumeReanalysis(
     weaknesses: ['Needs better keyword optimization'],
     optimizedContent: '[Optimized version based on re-analysis...]',
     grammarCheck: { score: 0, totalIssues: 0, issues: [], overallReadability: 85 },
-    formatAnalysis: { score: 0, atsCompatibility: 80, issues: [], recommendations: [], sectionStructure: [] },
+    formatAnalysis: {
+      score: 0,
+      atsCompatibility: 80,
+      issues: [],
+      recommendations: [],
+      sectionStructure: [],
+    },
     quantitativeAnalysis: {
       score: 0,
       achievementsWithNumbers: 0,

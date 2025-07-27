@@ -38,7 +38,9 @@ export async function generateVideoScript(
   input: GenerateVideoScriptInput
 ): Promise<GenerateVideoScriptOutput> {
   // Import the new AI service
-  const { generateVideoScript: mistralGenerateVideoScript } = await import('@/services/aiService');
+  const { generateVideoScript: mistralGenerateVideoScript } = await import(
+    '@/services/enhancedAIService'
+  );
 
   // Convert the input format to match the new service
   const candidateProfile = `Experience: ${input.experience}\nDesired Work Style: ${input.desiredWorkStyle}`;

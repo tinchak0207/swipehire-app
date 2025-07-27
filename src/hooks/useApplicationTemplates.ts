@@ -268,9 +268,7 @@ const filterTemplates = (
     }
 
     if (tags.length > 0) {
-      filtered = filtered.filter((template) =>
-        tags.some((tag) => template.tags.includes(tag))
-      );
+      filtered = filtered.filter((template) => tags.some((tag) => template.tags.includes(tag)));
     }
 
     if (search) {
@@ -307,7 +305,8 @@ const filterTemplates = (
         comparison = a.rating - b.rating;
         break;
       case 'recent':
-        comparison = new Date(a.metadata.updatedAt).getTime() - new Date(b.metadata.updatedAt).getTime();
+        comparison =
+          new Date(a.metadata.updatedAt).getTime() - new Date(b.metadata.updatedAt).getTime();
         break;
       case 'alphabetical':
         comparison = a.title.localeCompare(b.title);
@@ -378,7 +377,20 @@ export function useApplicationTemplates(
         pagination,
         filters: {
           availableTags,
-          categories: ['all', 'tech', 'design', 'marketing', 'sales', 'finance', 'healthcare', 'education', 'legal', 'consulting', 'startup', 'remote'],
+          categories: [
+            'all',
+            'tech',
+            'design',
+            'marketing',
+            'sales',
+            'finance',
+            'healthcare',
+            'education',
+            'legal',
+            'consulting',
+            'startup',
+            'remote',
+          ],
         },
       };
 

@@ -61,7 +61,7 @@ import { Availability, EducationLevel, LocationPreference, WorkExperienceLevel }
 import { cn } from '@/lib/utils';
 import { CardDescription, CardFooter, CardTitle } from '../ui/card';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface CandidateCardContentProps {
   candidate: Candidate;
@@ -578,7 +578,9 @@ export function CandidateCardContent({
         skills: candidate.skills,
         location: candidate.location || '',
         desiredWorkStyle: candidate.desiredWorkStyle || '',
-        pastProjects: Array.isArray(candidate.pastProjects) ? candidate.pastProjects.join(', ') : candidate.pastProjects || '',
+        pastProjects: Array.isArray(candidate.pastProjects)
+          ? candidate.pastProjects.join(', ')
+          : candidate.pastProjects || '',
         educationLevel: candidate.educationLevel || EducationLevel.UNSPECIFIED,
         locationPreference: candidate.locationPreference || LocationPreference.UNSPECIFIED,
         languages: candidate.languages || [],
@@ -629,8 +631,7 @@ export function CandidateCardContent({
           workExperienceLevel:
             candidateForAI.workExperienceLevel || WorkExperienceLevel.UNSPECIFIED,
           educationLevel: candidateForAI.educationLevel || EducationLevel.UNSPECIFIED,
-          locationPreference:
-            candidateForAI.locationPreference || LocationPreference.UNSPECIFIED,
+          locationPreference: candidateForAI.locationPreference || LocationPreference.UNSPECIFIED,
           languages: candidateForAI.languages || [],
           salaryExpectationMin: candidateForAI.salaryExpectationMin || 0,
           salaryExpectationMax: candidateForAI.salaryExpectationMax || 0,

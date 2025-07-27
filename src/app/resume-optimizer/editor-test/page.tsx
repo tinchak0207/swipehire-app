@@ -55,12 +55,10 @@ University of Technology (2015-2019)</p>
 
   const handleContentChange = (newContent: string) => {
     setContent(newContent);
-    console.log('Content changed:', newContent.length, 'characters');
   };
 
   const handleEditorStateChange = (newState: EditorState) => {
     setEditorState(newState);
-    console.log('Editor state changed:', newState);
   };
 
   const handleAutoSave = async (contentToSave: string): Promise<void> => {

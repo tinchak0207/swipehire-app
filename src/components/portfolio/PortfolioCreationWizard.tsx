@@ -209,7 +209,6 @@ const PortfolioCreationWizard: React.FC = () => {
     }
   }, [isFirstStep]);
 
-  
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

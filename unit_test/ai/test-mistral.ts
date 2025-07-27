@@ -4,7 +4,7 @@
  */
 
 import { ai } from '../../src/ai/genkit';
-import aiService from '../../src/services/aiService';
+import aiService from '../../src/services/enhancedAIService';
 
 async function testMistralConnection() {
   console.log('🧪 Testing Mistral AI Connection...');

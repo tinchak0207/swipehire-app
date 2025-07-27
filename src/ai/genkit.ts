@@ -1,4 +1,3 @@
-
 import { Mistral } from '@mistralai/mistralai';
 import type { z } from 'zod';
 
@@ -85,11 +84,10 @@ export class AIError extends Error {
  * Initialize Mistral AI client
  */
 function createMistralClient(): Mistral {
-  const apiKey = process.env['MISTRAL_API_KEY'] || process.env['NEXT_PUBLIC_MISTRAL_API_KEY'];
+  const apiKey = process.env.MISTRAL_API_KEY || process.env.NEXT_PUBLIC_MISTRAL_API_KEY;
 
   if (!apiKey) {
-    console.error('MISTRAL_API_KEY environment variable is required');
-    throw new AIError('MISTRAL_API_KEY is not set', 'MISSING_API_KEY');
+    throw new Error('Mistral API key not found in environment variables');
   }
 
   return new Mistral({ apiKey });
@@ -283,7 +281,7 @@ export const ai = {
    */
   isAvailable: (): boolean => {
     try {
-      const apiKey = process.env['MISTRAL_API_KEY'] || process.env['NEXT_PUBLIC_MISTRAL_API_KEY'];
+      const apiKey = process.env.MISTRAL_API_KEY || process.env.NEXT_PUBLIC_MISTRAL_API_KEY;
       return !!apiKey;
     } catch {
       return false;

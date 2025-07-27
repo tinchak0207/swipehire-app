@@ -1,341 +1,357 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import type { ApiResponse, ResumeTemplate } from '@/lib/types/resume-optimizer';
+import type {
+  ExperienceLevel,
+  IndustryTemplate,
+  IndustryType,
+  TemplateAPIResponse,
+  TemplateSearchResult,
+  UserProfile,
+} from '@/lib/types/templates';
+import { aiTemplateService } from '@/services/aiTemplateService';
 
-/**
- * Default resume templates
- */
-const DEFAULT_TEMPLATES: ResumeTemplate[] = [
+// Mock template data - in production, this would come from a database
+const mockTemplates: IndustryTemplate[] = [
   {
-    id: 'software-engineer',
-    name: 'Software Engineer',
-    description: 'Perfect for developers and technical roles',
-    category: 'tech',
-    content: `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile] | [GitHub Profile]
-
-PROFESSIONAL SUMMARY
-Experienced software engineer with [X] years of experience in developing scalable web applications and systems. Proficient in modern programming languages and frameworks with a strong focus on clean code and best practices.
-
-TECHNICAL SKILLS
-• Programming Languages: JavaScript, TypeScript, Python, Java, C++
-• Frontend: React, Vue.js, Angular, HTML5, CSS3, Tailwind CSS
-• Backend: Node.js, Express, Django, Spring Boot, FastAPI
-• Databases: PostgreSQL, MongoDB, MySQL, Redis
-• Cloud & DevOps: AWS, Docker, Kubernetes, CI/CD, Jenkins
-• Tools: Git, Jest, Webpack, VS Code, Postman
-
-PROFESSIONAL EXPERIENCE
-
-Senior Software Engineer | [Company Name] | [Start Date] - Present
-• Developed and maintained web applications serving [X] users
-• Led technical architecture decisions for [specific project]
-• Improved application performance by [X]% through optimization
-• Mentored junior developers and conducted code reviews
-• Collaborated with cross-functional teams to deliver features on time
-
-Software Engineer | [Previous Company] | [Start Date] - [End Date]
-• Built responsive web interfaces using React and modern JavaScript
-• Implemented RESTful APIs and microservices architecture
-• Wrote comprehensive unit and integration tests
-• Participated in agile development processes and sprint planning
-
-EDUCATION
-Bachelor of Science in Computer Science | [University Name] | [Year]
-
-PROJECTS
-[Project Name] | [Technologies Used]
-• Brief description of the project and your role
-• Key achievements and impact
-
-CERTIFICATIONS
-• [Relevant certification name] | [Year]`,
-    tags: ['React', 'Node.js', 'JavaScript', 'Full Stack', 'API Development'],
+    id: 'tech-swe-modern',
+    name: 'Modern Software Engineer',
+    industry: 'technology',
+    category: 'engineering',
+    experienceLevel: ['mid', 'senior'],
+    description:
+      'Clean, technical resume optimized for software engineering roles at top tech companies',
+    features: [
+      'ATS-optimized',
+      'Technical skills showcase',
+      'Project highlights',
+      'GitHub integration',
+    ],
+    atsScore: 95,
+    popularity: 4.8,
+    usageCount: 15420,
+    previewUrl: '/templates/previews/tech-swe-modern.png',
+    tags: ['react', 'python', 'aws', 'agile', 'microservices'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'projects', 'skills', 'education'],
+    layout: 'modern',
+    colorScheme: 'blue',
+    typography: 'clean',
   },
   {
-    id: 'product-manager',
-    name: 'Product Manager',
-    description: 'Ideal for product management and strategy roles',
-    category: 'business',
-    content: `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile]
-
-PROFESSIONAL SUMMARY
-Results-driven product manager with [X] years of experience leading cross-functional teams to deliver innovative products. Proven track record of driving user growth, increasing revenue, and improving customer satisfaction through data-driven decision making.
-
-CORE COMPETENCIES
-• Product Strategy & Roadmap Planning
-• User Research & Market Analysis
-• Agile/Scrum Methodologies
-• Data Analysis & A/B Testing
-• Stakeholder Management
-• Go-to-Market Strategy
-• UX/UI Collaboration
-• Technical Product Management
-
-PROFESSIONAL EXPERIENCE
-
-Senior Product Manager | [Company Name] | [Start Date] - Present
-• Led product strategy for [product/feature] serving [X] users
-• Increased user engagement by [X]% through feature optimization
-• Managed product roadmap and prioritized features based on user feedback
-• Collaborated with engineering, design, and marketing teams
-• Conducted user research and analyzed product metrics
-
-Product Manager | [Previous Company] | [Start Date] - [End Date]
-• Launched [X] new features resulting in [X]% increase in user adoption
-• Defined product requirements and user stories for development team
-• Performed competitive analysis and market research
-• Managed product backlog and sprint planning sessions
-
-EDUCATION
-Master of Business Administration (MBA) | [University Name] | [Year]
-Bachelor of Science in [Field] | [University Name] | [Year]
-
-KEY ACHIEVEMENTS
-• Launched [product/feature] that generated $[X] in revenue
-• Improved customer satisfaction score from [X] to [X]
-• Led successful product pivot that increased market share by [X]%
-
-CERTIFICATIONS
-• Certified Scrum Product Owner (CSPO) | [Year]
-• Google Analytics Certified | [Year]`,
-    tags: ['Product Strategy', 'Agile', 'User Research', 'Analytics', 'Roadmapping'],
+    id: 'healthcare-nurse-professional',
+    name: 'Professional Healthcare',
+    industry: 'healthcare',
+    category: 'clinical',
+    experienceLevel: ['entry', 'mid', 'senior'],
+    description:
+      'Professional template for healthcare professionals emphasizing certifications and patient care',
+    features: [
+      'Certification highlights',
+      'Clinical experience focus',
+      'Patient care metrics',
+      'Compliance ready',
+    ],
+    atsScore: 92,
+    popularity: 4.7,
+    usageCount: 8930,
+    previewUrl: '/templates/previews/healthcare-nurse-professional.png',
+    tags: ['nursing', 'patient-care', 'certifications', 'clinical-skills'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'certifications', 'education', 'skills'],
+    layout: 'professional',
+    colorScheme: 'green',
+    typography: 'traditional',
   },
   {
-    id: 'marketing-specialist',
-    name: 'Marketing Specialist',
-    description: 'Great for marketing and communications roles',
-    category: 'business',
-    content: `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile] | [Portfolio Website]
-
-PROFESSIONAL SUMMARY
-Creative and analytical marketing professional with [X] years of experience developing and executing successful marketing campaigns. Expertise in digital marketing, content creation, and brand management with a proven track record of driving engagement and conversions.
-
-MARKETING SKILLS
-• Digital Marketing Strategy
-• Content Marketing & SEO
-• Social Media Management
-• Email Marketing Campaigns
-• Google Ads & Facebook Ads
-• Marketing Analytics & Reporting
-• Brand Management
-• Event Planning & Execution
-
-PROFESSIONAL EXPERIENCE
-
-Marketing Specialist | [Company Name] | [Start Date] - Present
-• Developed and executed marketing campaigns that increased brand awareness by [X]%
-• Managed social media accounts with [X] followers across platforms
-• Created content that generated [X] leads per month
-• Analyzed campaign performance and optimized for better ROI
-• Collaborated with sales team to align marketing and sales strategies
-
-Marketing Coordinator | [Previous Company] | [Start Date] - [End Date]
-• Assisted in planning and executing marketing events and trade shows
-• Created marketing materials including brochures, presentations, and web content
-• Managed email marketing campaigns with [X]% open rate
-• Conducted market research and competitor analysis
-
-EDUCATION
-Bachelor of Arts in Marketing | [University Name] | [Year]
-
-ACHIEVEMENTS
-• Increased website traffic by [X]% through SEO optimization
-• Generated [X] qualified leads through content marketing
-• Improved email campaign performance by [X]%
-
-TOOLS & PLATFORMS
-• Google Analytics, Google Ads, Facebook Business Manager
-• HubSpot, Mailchimp, Hootsuite
-• Adobe Creative Suite, Canva
-• WordPress, HTML/CSS basics`,
-    tags: ['Digital Marketing', 'SEO', 'Social Media', 'Content Marketing', 'Analytics'],
+    id: 'finance-analyst-executive',
+    name: 'Executive Finance',
+    industry: 'finance',
+    category: 'analysis',
+    experienceLevel: ['senior', 'executive'],
+    description: 'Sophisticated template for finance executives and senior analysts',
+    features: [
+      'Financial metrics focus',
+      'Leadership highlights',
+      'ROI achievements',
+      'Executive summary',
+    ],
+    atsScore: 94,
+    popularity: 4.9,
+    usageCount: 6750,
+    previewUrl: '/templates/previews/finance-analyst-executive.png',
+    tags: ['financial-analysis', 'leadership', 'roi', 'strategic-planning'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'executive-summary', 'experience', 'achievements', 'education', 'skills'],
+    layout: 'executive',
+    colorScheme: 'navy',
+    typography: 'elegant',
   },
   {
-    id: 'data-scientist',
-    name: 'Data Scientist',
-    description: 'Specialized for data science and analytics roles',
-    category: 'tech',
-    content: `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile] | [GitHub Profile]
-
-PROFESSIONAL SUMMARY
-Data scientist with [X] years of experience in machine learning, statistical analysis, and data visualization. Proven ability to extract actionable insights from complex datasets and drive business decisions through data-driven solutions.
-
-TECHNICAL SKILLS
-• Programming: Python, R, SQL, Scala, Java
-• Machine Learning: Scikit-learn, TensorFlow, PyTorch, Keras
-• Data Analysis: Pandas, NumPy, SciPy, Matplotlib, Seaborn
-• Big Data: Spark, Hadoop, Kafka, Airflow
-• Databases: PostgreSQL, MongoDB, Cassandra, Snowflake
-• Cloud Platforms: AWS, GCP, Azure
-• Visualization: Tableau, Power BI, Plotly, D3.js
-
-PROFESSIONAL EXPERIENCE
-
-Senior Data Scientist | [Company Name] | [Start Date] - Present
-• Developed machine learning models that improved [metric] by [X]%
-• Built predictive analytics solutions for [business area]
-• Collaborated with product and engineering teams to implement ML solutions
-• Mentored junior data scientists and established best practices
-
-Data Scientist | [Previous Company] | [Start Date] - [End Date]
-• Analyzed large datasets to identify trends and business opportunities
-• Created automated reporting dashboards for stakeholders
-• Implemented A/B testing frameworks for product optimization
-• Presented findings to executive leadership and cross-functional teams
-
-EDUCATION
-Master of Science in Data Science | [University Name] | [Year]
-Bachelor of Science in [Field] | [University Name] | [Year]
-
-KEY PROJECTS
-[Project Name] | [Technologies Used]
-• Description of the project and business impact
-• Quantifiable results and achievements
-
-CERTIFICATIONS
-• AWS Certified Machine Learning - Specialty | [Year]
-• Google Cloud Professional Data Engineer | [Year]`,
-    tags: ['Python', 'Machine Learning', 'SQL', 'Statistics', 'Big Data'],
-  },
-  {
-    id: 'ux-designer',
-    name: 'UX/UI Designer',
-    description: 'Perfect for user experience and interface design roles',
+    id: 'marketing-creative-modern',
+    name: 'Creative Marketing',
+    industry: 'marketing',
     category: 'creative',
-    content: `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile] | [Portfolio Website]
-
-PROFESSIONAL SUMMARY
-Creative UX/UI designer with [X] years of experience creating user-centered digital experiences. Passionate about solving complex problems through intuitive design and improving user satisfaction through research-driven design decisions.
-
-DESIGN SKILLS
-• User Experience (UX) Design
-• User Interface (UI) Design
-�� User Research & Testing
-• Information Architecture
-• Interaction Design
-• Prototyping & Wireframing
-• Design Systems
-• Accessibility Design
-
-TOOLS & SOFTWARE
-• Design: Figma, Sketch, Adobe XD, Adobe Creative Suite
-• Prototyping: InVision, Principle, Framer
-• Research: Miro, Optimal Workshop, UserTesting
-• Development: HTML, CSS, JavaScript (basic)
-
-PROFESSIONAL EXPERIENCE
-
-Senior UX/UI Designer | [Company Name] | [Start Date] - Present
-• Led design for [product/feature] used by [X] users
-• Conducted user research and usability testing to inform design decisions
-• Created and maintained design system for consistent user experience
-• Collaborated with product managers and developers to implement designs
-• Improved user satisfaction scores by [X]% through design optimization
-
-UX/UI Designer | [Previous Company] | [Start Date] - [End Date]
-• Designed mobile and web interfaces for [type of application]
-• Created wireframes, prototypes, and high-fidelity mockups
-• Conducted user interviews and analyzed user behavior data
-• Participated in design sprints and cross-functional collaboration
-
-EDUCATION
-Bachelor of Fine Arts in Graphic Design | [University Name] | [Year]
-
-KEY PROJECTS
-[Project Name] | [Platform/Type]
-• Brief description of the project and your role
-• Impact on user experience and business metrics
-
-CERTIFICATIONS
-• Google UX Design Certificate | [Year]
-• Nielsen Norman Group UX Certification | [Year]`,
-    tags: ['Figma', 'User Research', 'Prototyping', 'Design Systems', 'Usability Testing'],
+    experienceLevel: ['entry', 'mid'],
+    description: 'Eye-catching template for marketing professionals with creative flair',
+    features: [
+      'Campaign showcases',
+      'Creative portfolio',
+      'Metrics dashboard',
+      'Brand storytelling',
+    ],
+    atsScore: 88,
+    popularity: 4.6,
+    usageCount: 12340,
+    previewUrl: '/templates/previews/marketing-creative-modern.png',
+    tags: ['digital-marketing', 'campaigns', 'analytics', 'creative'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'campaigns', 'skills', 'portfolio'],
+    layout: 'creative',
+    colorScheme: 'purple',
+    typography: 'modern',
   },
   {
-    id: 'general-professional',
-    name: 'General Professional',
-    description: 'Versatile template for various professional roles',
-    category: 'general',
-    content: `[Your Name]
-[Your Email] | [Your Phone] | [Your Location]
-[LinkedIn Profile]
-
-PROFESSIONAL SUMMARY
-Dedicated professional with [X] years of experience in [your field/industry]. Strong background in [key skills/areas] with a proven ability to [key achievement/strength]. Seeking to leverage expertise in [relevant area] to contribute to [type of organization/role].
-
-CORE SKILLS
-• [Skill 1]
-• [Skill 2]
-• [Skill 3]
-• [Skill 4]
-• [Skill 5]
-• [Skill 6]
-
-PROFESSIONAL EXPERIENCE
-
-[Job Title] | [Company Name] | [Start Date] - Present
-• [Achievement or responsibility with quantifiable result]
-• [Achievement or responsibility with quantifiable result]
-• [Achievement or responsibility with quantifiable result]
-• [Achievement or responsibility with quantifiable result]
-
-[Previous Job Title] | [Previous Company] | [Start Date] - [End Date]
-• [Achievement or responsibility with quantifiable result]
-• [Achievement or responsibility with quantifiable result]
-• [Achievement or responsibility with quantifiable result]
-
-EDUCATION
-[Degree] in [Field of Study] | [University Name] | [Year]
-
-ADDITIONAL QUALIFICATIONS
-• [Certification or additional qualification]
-• [Language proficiency]
-• [Volunteer experience or relevant activity]
-
-ACHIEVEMENTS
-• [Specific achievement with measurable impact]
-• [Recognition or award received]
-• [Process improvement or cost savings implemented]`,
-    tags: ['Professional', 'Versatile', 'Adaptable', 'General Purpose'],
+    id: 'consulting-strategy-premium',
+    name: 'Strategy Consultant',
+    industry: 'consulting',
+    category: 'strategy',
+    experienceLevel: ['mid', 'senior', 'executive'],
+    description: 'Premium template for management consultants and strategy professionals',
+    features: [
+      'Case study highlights',
+      'Client impact metrics',
+      'Problem-solving focus',
+      'Global experience',
+    ],
+    atsScore: 96,
+    popularity: 4.9,
+    usageCount: 4560,
+    previewUrl: '/templates/previews/consulting-strategy-premium.png',
+    tags: ['strategy', 'consulting', 'case-studies', 'client-impact'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'case-studies', 'education', 'skills'],
+    layout: 'premium',
+    colorScheme: 'gold',
+    typography: 'elegant',
+  },
+  {
+    id: 'design-ux-creative',
+    name: 'UX Designer Portfolio',
+    industry: 'design',
+    category: 'creative',
+    experienceLevel: ['entry', 'mid', 'senior'],
+    description: 'Creative template showcasing design thinking and user experience expertise',
+    features: [
+      'Portfolio integration',
+      'Design process showcase',
+      'User research highlights',
+      'Visual storytelling',
+    ],
+    atsScore: 85,
+    popularity: 4.5,
+    usageCount: 9870,
+    previewUrl: '/templates/previews/design-ux-creative.png',
+    tags: ['ux-design', 'portfolio', 'user-research', 'prototyping', 'figma'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'portfolio', 'skills', 'education'],
+    layout: 'creative',
+    colorScheme: 'purple',
+    typography: 'modern',
+  },
+  {
+    id: 'sales-executive-results',
+    name: 'Results-Driven Sales',
+    industry: 'sales',
+    category: 'business',
+    experienceLevel: ['mid', 'senior', 'executive'],
+    description:
+      'High-impact template for sales professionals emphasizing achievements and metrics',
+    features: [
+      'Revenue highlights',
+      'Achievement metrics',
+      'Client testimonials',
+      'Territory management',
+    ],
+    atsScore: 91,
+    popularity: 4.7,
+    usageCount: 7650,
+    previewUrl: '/templates/previews/sales-executive-results.png',
+    tags: ['sales', 'revenue', 'b2b', 'client-management', 'territory'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'achievements', 'skills', 'education'],
+    layout: 'professional',
+    colorScheme: 'green',
+    typography: 'bold',
+  },
+  {
+    id: 'education-teacher-academic',
+    name: 'Academic Educator',
+    industry: 'education',
+    category: 'academic',
+    experienceLevel: ['entry', 'mid', 'senior'],
+    description:
+      'Professional template for educators highlighting teaching philosophy and student outcomes',
+    features: [
+      'Teaching philosophy',
+      'Student outcomes',
+      'Curriculum development',
+      'Research highlights',
+    ],
+    atsScore: 89,
+    popularity: 4.4,
+    usageCount: 5430,
+    previewUrl: '/templates/previews/education-teacher-academic.png',
+    tags: ['teaching', 'curriculum', 'student-outcomes', 'research', 'education'],
+    aiOptimized: true,
+    customizable: true,
+    sections: ['contact', 'summary', 'experience', 'education', 'research', 'skills'],
+    layout: 'academic',
+    colorScheme: 'blue',
+    typography: 'traditional',
   },
 ];
 
 /**
  * GET /api/resume-optimizer/templates
- * Returns available resume templates
+ * Returns available resume templates with optional filtering and AI recommendations
  */
-export async function GET(): Promise<NextResponse> {
+export async function GET(
+  request: NextRequest
+): Promise<NextResponse<TemplateAPIResponse<TemplateSearchResult>>> {
   try {
-    // In a real application, you might fetch templates from a database
-    // For now, we'll return the default templates
-    const response: ApiResponse<ResumeTemplate[]> = {
+    const { searchParams } = new URL(request.url);
+
+    // Parse query parameters
+    const search = searchParams.get('search') || '';
+    const industry = searchParams.get('industry') as IndustryType | null;
+    const experienceLevel = searchParams.get('experienceLevel') as ExperienceLevel | null;
+    const category = searchParams.get('category') || '';
+    const minAtsScore = parseInt(searchParams.get('minAtsScore') || '0');
+    const aiOptimized = searchParams.get('aiOptimized') === 'true';
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const includeRecommendations = searchParams.get('includeRecommendations') === 'true';
+
+    // User profile for AI recommendations (would come from auth in production)
+    const userProfileParam = searchParams.get('userProfile');
+    let userProfile: UserProfile | null = null;
+    if (userProfileParam) {
+      try {
+        userProfile = JSON.parse(decodeURIComponent(userProfileParam));
+      } catch (error) {
+        console.warn('Invalid user profile parameter:', error);
+      }
+    }
+
+    // Filter templates
+    let filteredTemplates = mockTemplates;
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredTemplates = filteredTemplates.filter(
+        (template) =>
+          template.name.toLowerCase().includes(searchLower) ||
+          template.description.toLowerCase().includes(searchLower) ||
+          template.industry.toLowerCase().includes(searchLower) ||
+          template.tags.some((tag) => tag.toLowerCase().includes(searchLower))
+      );
+    }
+
+    if (industry) {
+      filteredTemplates = filteredTemplates.filter((t) => t.industry === industry);
+    }
+
+    if (experienceLevel) {
+      filteredTemplates = filteredTemplates.filter((t) =>
+        t.experienceLevel.includes(experienceLevel)
+      );
+    }
+
+    if (category) {
+      filteredTemplates = filteredTemplates.filter((t) => t.category === category);
+    }
+
+    if (minAtsScore > 0) {
+      filteredTemplates = filteredTemplates.filter((t) => t.atsScore >= minAtsScore);
+    }
+
+    if (aiOptimized) {
+      filteredTemplates = filteredTemplates.filter((t) => t.aiOptimized);
+    }
+
+    // Sort by popularity and ATS score
+    filteredTemplates.sort((a, b) => {
+      const scoreA = a.popularity * 0.6 + a.atsScore * 0.004;
+      const scoreB = b.popularity * 0.6 + b.atsScore * 0.004;
+      return scoreB - scoreA;
+    });
+
+    // Pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedTemplates = filteredTemplates.slice(startIndex, endIndex);
+
+    // Generate facets for filtering
+    const facets = {
+      industries: generateFacets(mockTemplates, 'industry'),
+      experienceLevel: generateFacets(mockTemplates, 'experienceLevel', true),
+      features: generateFacets(mockTemplates, 'features', true),
+      layouts: generateFacets(mockTemplates, 'layout'),
+    };
+
+    const result: TemplateSearchResult = {
+      templates: paginatedTemplates,
+      totalCount: filteredTemplates.length,
+      facets,
+      suggestions: generateSearchSuggestions(search, mockTemplates),
+    };
+
+    // Generate AI recommendations if requested and user profile is provided
+    if (includeRecommendations && userProfile && industry && experienceLevel) {
+      try {
+        const targetRole = searchParams.get('targetRole') || 'Professional';
+        const recommendations = await aiTemplateService.generateRecommendations(
+          userProfile,
+          targetRole,
+          industry,
+          experienceLevel,
+          mockTemplates
+        );
+
+        // Add AI recommendations to the response
+        (result as any).aiRecommendations = recommendations;
+      } catch (error) {
+        console.error('Failed to generate AI recommendations:', error);
+        // Continue without recommendations
+      }
+    }
+
+    return NextResponse.json({
       success: true,
-      data: DEFAULT_TEMPLATES,
-      message: 'Templates retrieved successfully',
-      timestamp: new Date().toISOString(),
-    };
-
-    return NextResponse.json(response, { status: 200 });
+      data: result,
+      metadata: {
+        total: filteredTemplates.length,
+        page,
+        limit,
+        hasMore: endIndex < filteredTemplates.length,
+      },
+    });
   } catch (error) {
-    console.error('Error fetching resume templates:', error);
-
-    const errorResponse: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: 'Failed to fetch resume templates',
-      timestamp: new Date().toISOString(),
-    };
-
-    return NextResponse.json(errorResponse, { status: 500 });
+    console.error('Template search error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to search templates',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -343,53 +359,120 @@ export async function GET(): Promise<NextResponse> {
  * POST /api/resume-optimizer/templates
  * Creates a new resume template (admin functionality)
  */
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<TemplateAPIResponse<IndustryTemplate>>> {
   try {
-    const body = await request.json();
+    const templateData: Partial<IndustryTemplate> = await request.json();
 
     // Validate required fields
-    const { name, description, category, content } = body;
-
-    if (!name || !description || !category || !content) {
-      const errorResponse: ApiResponse<null> = {
-        success: false,
-        data: null,
-        error: 'Missing required fields: name, description, category, content',
-        timestamp: new Date().toISOString(),
-      };
-
-      return NextResponse.json(errorResponse, { status: 400 });
+    if (!templateData.name || !templateData.industry || !templateData.category) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Missing required fields: name, industry, category',
+        },
+        { status: 400 }
+      );
     }
 
-    // In a real application, you would save this to a database
-    // For now, we'll just return a success response
-    const newTemplate: ResumeTemplate = {
-      id: `custom-${Date.now()}`,
-      name,
-      description,
-      category,
-      content,
-      tags: body.tags || [],
+    // Generate new template
+    const newTemplate: IndustryTemplate = {
+      id: `template_${Date.now()}`,
+      name: templateData.name,
+      industry: templateData.industry,
+      category: templateData.category,
+      experienceLevel: templateData.experienceLevel || ['entry', 'mid'],
+      description: templateData.description || '',
+      features: templateData.features || [],
+      atsScore: templateData.atsScore || 85,
+      popularity: 0,
+      usageCount: 0,
+      previewUrl: templateData.previewUrl || '/templates/previews/default.png',
+      tags: templateData.tags || [],
+      aiOptimized: templateData.aiOptimized || false,
+      customizable: templateData.customizable || true,
+      sections: templateData.sections || [
+        'contact',
+        'summary',
+        'experience',
+        'education',
+        'skills',
+      ],
+      layout: templateData.layout || 'standard',
+      colorScheme: templateData.colorScheme || 'blue',
+      typography: templateData.typography || 'modern',
     };
 
-    const response: ApiResponse<ResumeTemplate> = {
+    // In production, save to database
+    mockTemplates.push(newTemplate);
+
+    return NextResponse.json({
       success: true,
       data: newTemplate,
       message: 'Template created successfully',
-      timestamp: new Date().toISOString(),
-    };
-
-    return NextResponse.json(response, { status: 201 });
+    });
   } catch (error) {
-    console.error('Error creating resume template:', error);
-
-    const errorResponse: ApiResponse<null> = {
-      success: false,
-      data: null,
-      error: 'Failed to create resume template',
-      timestamp: new Date().toISOString(),
-    };
-
-    return NextResponse.json(errorResponse, { status: 500 });
+    console.error('Template creation error:', error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to create template',
+        message: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
   }
+}
+
+// Helper functions
+function generateFacets(
+  templates: IndustryTemplate[],
+  field: keyof IndustryTemplate,
+  isArray = false
+): any[] {
+  const counts = new Map<string, number>();
+
+  templates.forEach((template) => {
+    const value = template[field];
+    if (isArray && Array.isArray(value)) {
+      value.forEach((item) => {
+        counts.set(item, (counts.get(item) || 0) + 1);
+      });
+    } else if (typeof value === 'string') {
+      counts.set(value, (counts.get(value) || 0) + 1);
+    }
+  });
+
+  return Array.from(counts.entries())
+    .map(([value, count]) => ({ value, count, selected: false }))
+    .sort((a, b) => b.count - a.count);
+}
+
+function generateSearchSuggestions(query: string, templates: IndustryTemplate[]): string[] {
+  if (!query || query.length < 2) return [];
+
+  const suggestions = new Set<string>();
+  const queryLower = query.toLowerCase();
+
+  templates.forEach((template) => {
+    // Add industry suggestions
+    if (template.industry.toLowerCase().includes(queryLower)) {
+      suggestions.add(template.industry);
+    }
+
+    // Add tag suggestions
+    template.tags.forEach((tag) => {
+      if (tag.toLowerCase().includes(queryLower)) {
+        suggestions.add(tag);
+      }
+    });
+
+    // Add name suggestions
+    if (template.name.toLowerCase().includes(queryLower)) {
+      suggestions.add(template.name);
+    }
+  });
+
+  return Array.from(suggestions).slice(0, 5);
 }

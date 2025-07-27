@@ -25,11 +25,11 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import {
-  Industry,
-  InterviewType,
-  JobAnalysis,
-  WorkExperienceLevel,
+  type Industry,
   InterviewDifficulty,
+  type InterviewType,
+  type JobAnalysis,
+  type WorkExperienceLevel,
 } from '@/lib/types';
 import { analyzeJob } from '@/services/interviewService';
 

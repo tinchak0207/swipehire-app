@@ -1,11 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import {
-  EventFormat,
-  EventType,
-  type EventsResponse,
-  type IndustryEvent,
-} from '@/lib/types';
+import { EventFormat, type EventsResponse, EventType, type IndustryEvent } from '@/lib/types';
 
 // Mock data for events (in production, this would come from database)
 const mockEvents: IndustryEvent[] = [
@@ -783,8 +778,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
       switch (validatedParams.sortBy) {
         case 'date':
-          comparison =
-            new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime();
+          comparison = new Date(a.startDateTime).getTime() - new Date(b.startDateTime).getTime();
           break;
         case 'relevance':
           comparison = (b.recommendationScore || 0) - (a.recommendationScore || 0);

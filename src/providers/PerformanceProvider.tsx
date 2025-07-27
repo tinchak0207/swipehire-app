@@ -78,8 +78,8 @@ export function PerformanceProvider({
       }
 
       // Report to custom analytics endpoint
-      if (process.env['NEXT_PUBLIC_ANALYTICS_ENDPOINT']) {
-        fetch(process.env['NEXT_PUBLIC_ANALYTICS_ENDPOINT'], {
+      if (process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT) {
+        fetch(process.env.NEXT_PUBLIC_ANALYTICS_ENDPOINT, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -8,24 +8,11 @@ import {
   EyeSlashIcon,
   XMarkIcon,
 } from '@heroicons/react/24/outline';
-import dynamic from 'next/dynamic';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import type { EditorState } from '@/lib/types/resume-optimizer';
 
-// Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import('react-quill'), {
-  ssr: false,
-  loading: () => (
-    <div className="animate-pulse rounded-lg bg-base-200 p-8">
-      <div className="mb-4 h-4 w-3/4 rounded bg-base-300" />
-      <div className="mb-4 h-4 w-1/2 rounded bg-base-300" />
-      <div className="h-4 w-5/6 rounded bg-base-300" />
-    </div>
-  ),
-});
-
-// Import Quill styles
-import 'react-quill/dist/quill.snow.css';
+// Import our custom ReactQuill wrapper that fixes React 18 compatibility
+import ReactQuillWrapper from './ReactQuillWrapper';
 
 interface EmbeddedTextEditorProps {
   /** Initial content to load in the editor */
@@ -107,6 +94,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
     });
     const [isAutoSaving, setIsAutoSaving] = useState(false);
     const [autoSaveError, setAutoSaveError] = useState<string | null>(null);
+    const [showSaveSuccess, setShowSaveSuccess] = useState(false);
 
     // Refs
     const quillRef = useRef<any>(ref);
@@ -146,7 +134,6 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
       'underline',
       'strike',
       'list',
-      'bullet',
       'indent',
       'link',
       'align',
@@ -167,6 +154,7 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
 
         setIsAutoSaving(true);
         setAutoSaveError(null);
+        setShowSaveSuccess(false);
 
         try {
           await onAutoSave(contentToSave);
@@ -181,6 +169,10 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
             isDirty: false,
             lastSaved: now,
           }));
+
+          // Show success notification briefly
+          setShowSaveSuccess(true);
+          setTimeout(() => setShowSaveSuccess(false), 2000);
         } catch (error) {
           setAutoSaveError(error instanceof Error ? error.message : 'Auto-save failed');
         } finally {
@@ -242,7 +234,6 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
       ]
     );
 
-    
     // Manual save function
     const handleManualSave = useCallback(() => {
       if (onAutoSave && editorState.isDirty) {
@@ -272,6 +263,25 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
         ...counts,
       }));
     }, [initialContent, calculateCounts]);
+
+    // Handle preview mode toggle - ensure editor refreshes when switching back to edit mode
+    useEffect(() => {
+      if (!controls.isPreviewMode && quillRef.current) {
+        // Small delay to ensure the editor is visible before refreshing
+        const timer = setTimeout(() => {
+          const editor = quillRef.current?.getEditor();
+          if (editor) {
+            // Force a refresh of the editor to ensure it displays correctly
+            editor.update();
+            // Optionally focus the editor when switching back to edit mode
+            editor.focus();
+          }
+        }, 50);
+
+        return () => clearTimeout(timer);
+      }
+      return () => {};
+    }, [controls.isPreviewMode]);
 
     // Cleanup auto-save timeout
     useEffect(() => {
@@ -374,42 +384,68 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
 
         {/* Editor Content */}
         <div className="relative">
-          {controls.isPreviewMode ? (
-            /* Preview Mode */
-            <div
-              className="prose prose-sm max-w-none p-6"
-              style={{ minHeight: height }}
-              dangerouslySetInnerHTML={{ __html: content }}
-              role="document"
-              aria-label="Resume content preview"
+          {/* Preview Mode */}
+          <div
+            className={`prose prose-sm max-w-none p-6 ${controls.isPreviewMode ? 'block' : 'hidden'}`}
+            style={{ minHeight: height }}
+            dangerouslySetInnerHTML={{ __html: content }}
+            role="document"
+            aria-label="Resume content preview"
+          />
+
+          {/* Edit Mode */}
+          <div
+            className={`quill-editor-container ${controls.isPreviewMode ? 'hidden' : 'block'}`}
+            aria-label="Resume content editor"
+          >
+            <ReactQuillWrapper
+              ref={quillRef}
+              theme="snow"
+              value={content}
+              onChange={handleContentChange}
+              readOnly={readOnly}
+              placeholder={placeholder}
+              modules={quillModules}
+              formats={quillFormats}
+              style={{
+                height: height,
+                backgroundColor: 'transparent',
+              }}
+              className="border-0"
             />
-          ) : (
-            /* Edit Mode */
-            <div className="quill-editor-container" aria-label="Resume content editor">
-              <ReactQuill
-                theme="snow"
-                value={content}
-                onChange={handleContentChange}
-                readOnly={readOnly}
-                placeholder={placeholder}
-                modules={quillModules}
-                formats={quillFormats}
-                style={{
-                  height: height,
-                  backgroundColor: 'transparent',
-                }}
-                className="border-0"
-              />
-            </div>
-          )}
+          </div>
         </div>
-        {/* Loading overlay */}
+        {/* Auto-save notifications - positioned in bottom right */}
         {isAutoSaving && (
-          <div className="absolute inset-0 flex items-center justify-center bg-base-100/50">
-            <div className="rounded-lg border border-base-300 bg-base-100 p-4 shadow-lg">
-              <div className="flex items-center space-x-3">
-                <div className="loading loading-spinner loading-sm text-primary" />
-                <span className="font-medium text-sm">Saving changes...</span>
+          <div className="fixed right-4 bottom-4 z-50">
+            <div className="slide-in-from-right-2 fade-in-0 animate-in rounded-lg border border-base-300 bg-base-100 p-3 shadow-lg duration-300">
+              <div className="flex items-center space-x-2">
+                <div className="loading loading-spinner loading-xs text-primary" />
+                <span className="font-medium text-xs">Saving...</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success notification */}
+        {showSaveSuccess && (
+          <div className="fixed right-4 bottom-4 z-50">
+            <div className="slide-in-from-right-2 fade-in-0 animate-in rounded-lg border border-success bg-success/10 p-3 shadow-lg duration-300">
+              <div className="flex items-center space-x-2">
+                <CheckIcon className="h-4 w-4 text-success" />
+                <span className="font-medium text-success text-xs">Saved!</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error notification */}
+        {autoSaveError && (
+          <div className="fixed right-4 bottom-4 z-50">
+            <div className="slide-in-from-right-2 fade-in-0 animate-in rounded-lg border border-error bg-error/10 p-3 shadow-lg duration-300">
+              <div className="flex items-center space-x-2">
+                <XMarkIcon className="h-4 w-4 text-error" />
+                <span className="font-medium text-error text-xs">Save failed</span>
               </div>
             </div>
           </div>
@@ -420,13 +456,6 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
             <div className="text-base-content/60 text-xs">
               {readOnly ? 'Read-only mode' : 'Click to edit • Auto-formatting enabled'}
             </div>
-
-            {autoSaveError && (
-              <div className="alert alert-error alert-sm max-w-xs">
-                <XMarkIcon className="h-4 w-4" />
-                <span className="text-xs">{autoSaveError}</span>
-              </div>
-            )}
           </div>
         )}
 
@@ -462,28 +491,59 @@ const EmbeddedTextEditor = React.forwardRef<any, EmbeddedTextEditorProps>(
           outline: none;
         }
         
+        /* Ensure toolbar buttons are always black for visibility */
         .quill-editor-container .ql-toolbar .ql-stroke {
-          stroke: hsl(var(--bc) / 0.7);
+          stroke: #000000 !important;
         }
         
         .quill-editor-container .ql-toolbar .ql-fill {
-          fill: hsl(var(--bc) / 0.7);
+          fill: #000000 !important;
+        }
+        
+        .quill-editor-container .ql-toolbar button {
+          color: #000000 !important;
         }
         
         .quill-editor-container .ql-toolbar button:hover .ql-stroke {
-          stroke: hsl(var(--p));
+          stroke: #0066cc !important;
         }
         
         .quill-editor-container .ql-toolbar button:hover .ql-fill {
-          fill: hsl(var(--p));
+          fill: #0066cc !important;
+        }
+        
+        .quill-editor-container .ql-toolbar button:hover {
+          color: #0066cc !important;
         }
         
         .quill-editor-container .ql-toolbar button.ql-active .ql-stroke {
-          stroke: hsl(var(--p));
+          stroke: #0066cc !important;
         }
         
         .quill-editor-container .ql-toolbar button.ql-active .ql-fill {
-          fill: hsl(var(--p));
+          fill: #0066cc !important;
+        }
+        
+        .quill-editor-container .ql-toolbar button.ql-active {
+          color: #0066cc !important;
+        }
+        
+        /* Ensure dropdown arrows and other elements are also black */
+        .quill-editor-container .ql-toolbar .ql-picker-label {
+          color: #000000 !important;
+        }
+        
+        .quill-editor-container .ql-toolbar .ql-picker-label:before {
+          color: #000000 !important;
+        }
+        
+        .quill-editor-container .ql-toolbar .ql-picker-options {
+          color: #000000 !important;
+        }
+        
+        /* Ensure text in dropdowns is black */
+        .quill-editor-container .ql-toolbar .ql-picker-item {
+          color: #000000 !important;
         }
       `}</style>
       </div>

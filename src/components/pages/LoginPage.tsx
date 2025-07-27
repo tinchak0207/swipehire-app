@@ -123,8 +123,8 @@ export function LoginPage({ onLoginBypass, onGuestMode }: LoginPageProps) {
         >
           <CardHeader className="space-y-2 pt-8 text-center">
             <Sparkles className="mx-auto h-12 w-12 text-yellow-300" />
-            <CardTitle className="font-bold text-3xl text-white">
-              <h1>Welcome to SwipeHire</h1>
+            <CardTitle as="h1" className="font-bold text-3xl text-white">
+              Welcome to SwipeHire
             </CardTitle>
             <CardDescription className="pt-1 text-md text-slate-300">
               Sign in to leverage AI recruitment software, create video resumes, or swipe to find

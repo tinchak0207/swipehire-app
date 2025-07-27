@@ -35,7 +35,7 @@ export async function generateIcebreakerQuestion(
 ): Promise<GenerateIcebreakerQuestionOutput> {
   // Import the new AI service
   const { generateIcebreakerQuestion: mistralGenerateIcebreaker } = await import(
-    '@/services/aiService'
+    '@/services/enhancedAIService'
   );
 
   const result = await mistralGenerateIcebreaker({

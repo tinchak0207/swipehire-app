@@ -173,9 +173,7 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                   <h1 className="font-bold text-gray-900 text-xl leading-tight sm:text-2xl">
                     {event.title}
                   </h1>
-                  <p className="line-clamp-3 text-gray-600 text-sm">
-                    {event.description}
-                  </p>
+                  <p className="line-clamp-3 text-gray-600 text-sm">{event.description}</p>
                 </div>
 
                 {/* Event Details in glassmorphism container */}
@@ -343,10 +341,9 @@ export const TikTokEventCard: React.FC<TikTokEventCardProps> = ({
                     {statusInfo.status !== 'ended' && (
                       <div className="text-center">
                         <div className="text-gray-600 text-xs">{statusInfo.timeText}</div>
-                        {event.capacity &&
-                          event.registeredCount >= event.capacity && (
-                            <div className="text-amber-600 text-xs">Join Waitlist</div>
-                          )}
+                        {event.capacity && event.registeredCount >= event.capacity && (
+                          <div className="text-amber-600 text-xs">Join Waitlist</div>
+                        )}
                       </div>
                     )}
                   </div>

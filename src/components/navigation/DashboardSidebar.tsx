@@ -14,10 +14,9 @@ import {
   Sparkles,
   Star,
   Target,
-  Zap,
 } from 'lucide-react';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -59,7 +58,6 @@ interface NavigationItem {
   isNew?: boolean;
   isPro?: boolean;
   description?: string;
-  shortcut?: string | undefined;
   subItems?: NavigationSubItem[];
 }
 
@@ -155,7 +153,6 @@ export function DashboardSidebar({
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(
     new Set(['discovery', 'jobManagement', 'profileAndCareer', 'careerTools', 'automation'])
   );
-  const [quickActions, setQuickActions] = useState<NavigationItem[]>([]);
 
   // Memoized navigation groups for performance
   const navigationGroups = useMemo(() => {
@@ -232,19 +229,6 @@ export function DashboardSidebar({
       return newSet;
     });
   }, []);
-
-  // Set up quick actions based on user role
-  useEffect(() => {
-    const actions: NavigationItem[] = [];
-
-    if (currentUserRole === 'recruiter') {
-      actions.push(...tabItems.filter((item) => ['postJob', 'workflows'].includes(item.value)));
-    } else {
-      actions.push(...tabItems.filter((item) => ['findJobs', 'workflows'].includes(item.value)));
-    }
-
-    setQuickActions(actions.slice(0, 2));
-  }, [currentUserRole, tabItems]);
 
   // Render individual menu item
   const renderMenuItem = useCallback(
@@ -379,13 +363,6 @@ export function DashboardSidebar({
                     )}
                   </div>
                 </div>
-
-                {/* Keyboard shortcut indicator */}
-                {item.shortcut && state === 'expanded' && (
-                  <kbd className="ml-2 hidden h-5 select-none items-center gap-1 rounded border bg-gray-100 px-1.5 font-medium font-mono text-[10px] text-gray-600 group-hover:inline-flex">
-                    {item.shortcut}
-                  </kbd>
-                )}
               </SidebarMenuButton>
             </TooltipTrigger>
             <TooltipContent
@@ -396,12 +373,6 @@ export function DashboardSidebar({
                 <p className="font-semibold text-gray-800">{item.label}</p>
                 {item.description && (
                   <p className="mt-1 text-gray-600 text-xs">{item.description}</p>
-                )}
-                {item.shortcut && (
-                  <p className="mt-1 text-gray-500 text-xs">
-                    Shortcut:{' '}
-                    <kbd className="rounded bg-gray-100 px-1 text-gray-700">{item.shortcut}</kbd>
-                  </p>
                 )}
               </div>
             </TooltipContent>
@@ -444,7 +415,7 @@ export function DashboardSidebar({
         </SidebarMenuItem>
       );
     },
-    [activeTab, setActiveTabAction, state]
+    [activeTab, setActiveTabAction]
   );
 
   // Render navigation group
@@ -615,35 +586,6 @@ export function DashboardSidebar({
 
       {/* Navigation Content */}
       <SidebarContent className="space-y-3 px-3 py-4">
-        {/* Quick Actions */}
-        {state === 'expanded' && quickActions.length > 0 && (
-          <div className="px-2">
-            <h3 className="mb-4 flex items-center gap-2 font-bold text-gray-700 text-xs uppercase tracking-wider">
-              <Zap className="h-4 w-4 text-yellow-500" />
-              Quick Actions
-            </h3>
-            <div className="grid grid-cols-2 gap-3">
-              {quickActions.map((action) => (
-                <Button
-                  key={action.value}
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setActiveTabAction(action.value)}
-                  className={cn(
-                    'flex h-auto flex-col items-center gap-2 px-3 py-3 text-xs transition-all duration-200',
-                    'border-gray-200 bg-white/80 backdrop-blur-sm hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:shadow-md',
-                    activeTab === action.value &&
-                      'border-blue-500 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
-                  )}
-                >
-                  <action.icon className="h-5 w-5" />
-                  <span className="truncate font-medium">{action.label}</span>
-                </Button>
-              ))}
-            </div>
-          </div>
-        )}
-
         {/* Main Navigation Groups */}
         {searchQuery ? (
           // Filtered search results

@@ -31,6 +31,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppHeader } from '@/components/AppHeader';
 import { OnboardingStepsModal } from '@/components/common/OnboardingStepsModal';
+import { MobileLayoutWrapper } from '@/components/mobile/MobileLayoutWrapper';
 import { DashboardSidebar } from '@/components/navigation/DashboardSidebar';
 import { TopNotificationBanner } from '@/components/notifications/TopNotificationBanner';
 import { Button } from '@/components/ui/button';
@@ -45,14 +46,14 @@ import {
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
+import { useMobileOptimizations } from '@/hooks/use-mobile-optimizations';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { mockNotifications } from '@/lib/mockData';
 import type { BackendUser, NotificationItem, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const CUSTOM_BACKEND_URL =
-  process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 const loadingComponent = () => (
   <div className="flex min-h-[calc(100vh-250px)] items-center justify-center">
     <Loader2 className="h-12 w-12 animate-spin text-primary" />
@@ -187,6 +188,9 @@ function AppContent() {
   const [hasSeenWelcome, setHasSeenWelcome] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
+  // Mobile optimizations hook
+  const { isMobile: isMobileOptimized } = useMobileOptimizations();
+
   useEffect(() => {
     setHasMounted(true);
   }, []);
@@ -223,10 +227,10 @@ function AppContent() {
       setBannerNotification(null);
     }
   }, [
-    JSON.stringify(preferences.notificationChannels),
     preferences.isLoading,
-    JSON.stringify(fullBackendUser),
     hasMounted,
+    fullBackendUser?.selectedRole,
+    preferences.notificationChannels?.inAppBanner,
   ]);
 
   const handleDismissBanner = (notificationId: string) => {
@@ -616,13 +620,13 @@ function AppContent() {
     // Return undefined explicitly for cases where no cleanup is needed
     return undefined;
   }, [
-    JSON.stringify(currentUser),
     mongoDbUserId,
-    JSON.stringify(fullBackendUser),
     preferences.isLoading,
     isGuestModeActive,
     hasMounted,
     showOnboardingModal,
+    currentUser,
+    fullBackendUser,
   ]);
 
   useEffect(() => {
@@ -690,12 +694,12 @@ function AppContent() {
   }, [
     isAppLoading,
     pathname,
-    JSON.stringify(currentUser),
-    JSON.stringify(fullBackendUser),
     preferences.isLoading,
     router,
     isGuestModeActive,
     showOnboardingModal,
+    currentUser,
+    fullBackendUser,
   ]);
 
   useEffect(() => {
@@ -932,7 +936,7 @@ function AppContent() {
         component: <MarketSalaryTypeformPage />,
         description: 'Research market salary data and compensation trends',
         isNew: true,
-        shortcut: '⌘S',
+        shortcut: '?�S',
       },
       {
         value: 'resumeOptimizer',
@@ -942,7 +946,7 @@ function AppContent() {
         description:
           'AI-powered resume analysis, ATS optimization, and personalized suggestions to boost your job prospects',
         isNew: true,
-        shortcut: '⌘R',
+        shortcut: '?�R',
       },
       {
         value: 'aiTools',
@@ -956,7 +960,7 @@ function AppContent() {
         ),
         description: 'AI-powered career and recruitment tools',
         isNew: true,
-        shortcut: '⌘T',
+        shortcut: '?�T',
       },
       {
         value: 'interviewGuide',
@@ -970,7 +974,7 @@ function AppContent() {
         ),
         description: 'Comprehensive interview preparation and skills training',
         isNew: true,
-        shortcut: '⌘I',
+        shortcut: '?�I',
       },
       {
         value: 'workflows',
@@ -979,7 +983,7 @@ function AppContent() {
         component: <WorkflowDashboardPage />,
         description: 'Create and manage automated workflows for recruitment and career processes',
         isNew: true,
-        shortcut: '⌘W',
+        shortcut: '?�W',
       },
       {
         value: 'myPortfolio',
@@ -988,7 +992,7 @@ function AppContent() {
         component: <PortfolioPage />,
         description: 'Showcase your work, projects, and professional achievements',
         isNew: true,
-        shortcut: '⌘O',
+        shortcut: '?�O',
       },
       {
         value: 'industryEvents',
@@ -997,7 +1001,7 @@ function AppContent() {
         component: <EventsPage />,
         description: 'Discover networking events, conferences, and workshops in your industry',
         isNew: true,
-        shortcut: '⌘E',
+        shortcut: '?�E',
       },
       {
         value: 'followupReminders',
@@ -1006,7 +1010,7 @@ function AppContent() {
         component: <FollowupRemindersPage />,
         description: 'Manage and track follow-ups for your job applications',
         isNew: true,
-        shortcut: '⌘F',
+        shortcut: '?�F',
       },
       {
         value: 'myMatches',
@@ -1030,7 +1034,7 @@ function AppContent() {
           />
         ),
         description: 'Account settings and preferences',
-        shortcut: '⌘,',
+        shortcut: '??',
       },
     ],
     [isGuestModeActive, fullBackendUser?.selectedRole]
@@ -1049,7 +1053,7 @@ function AppContent() {
           />
         ),
         description: 'Discover and connect with top talent',
-        shortcut: '⌘F',
+        shortcut: '?�F',
       },
       {
         value: 'postJob',
@@ -1057,7 +1061,7 @@ function AppContent() {
         icon: FilePlus2,
         component: <CreateJobPostingPage isGuestMode={isGuestModeActive} />,
         description: 'Create and publish job openings',
-        shortcut: '⌘N',
+        shortcut: '?�N',
       },
       {
         value: 'manageJobs',
@@ -1065,7 +1069,7 @@ function AppContent() {
         icon: SettingsIcon,
         component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
         description: 'Track and manage your job postings',
-        shortcut: '⌘M',
+        shortcut: '?�M',
       },
       ...baseTabItems,
     ],
@@ -1085,7 +1089,7 @@ function AppContent() {
           />
         ),
         description: 'Discover exciting job opportunities',
-        shortcut: '⌘J',
+        shortcut: '?�J',
       },
       {
         value: 'myProfile',
@@ -1093,7 +1097,7 @@ function AppContent() {
         icon: UserCircle,
         component: <MyProfilePage isGuestMode={isGuestModeActive} />,
         description: 'Manage your professional profile',
-        shortcut: '⌘P',
+        shortcut: '?�P',
       },
       {
         value: 'myDiary',
@@ -1108,7 +1112,7 @@ function AppContent() {
           />
         ),
         description: 'Share your professional journey',
-        shortcut: '⌘D',
+        shortcut: '?�D',
       },
       ...baseTabItems,
     ],
@@ -1140,8 +1144,8 @@ function AppContent() {
     const itemsForCurrentContext = isGuestModeActive
       ? jobseekerTabItems
       : currentUser && currentRoleForTabs === 'recruiter'
-      ? recruiterTabItems
-      : jobseekerTabItems;
+        ? recruiterTabItems
+        : jobseekerTabItems;
     const validTabValues = itemsForCurrentContext.map((item) => item.value);
 
     let defaultTabForCurrentContext = 'findJobs';
@@ -1238,6 +1242,144 @@ function AppContent() {
       );
     }
 
+    // Helper function to get page title
+    const getPageTitle = (tab: string) => {
+      const item = currentTabItems.find((item) => item.value === tab);
+      return item?.label || 'SwipeHire';
+    };
+
+    // Use MobileLayoutWrapper for mobile-optimized experience
+    if (isMobileOptimized) {
+      return (
+        <MobileLayoutWrapper
+          title={getPageTitle(activeTab)}
+          showSearch={true}
+          searchQuery={searchTerm}
+          onSearchChange={setSearchTerm}
+          navigation={{
+            activeTab,
+            setActiveTab,
+            tabItems: currentTabItems,
+            currentUserRole: fullBackendUser?.selectedRole || null,
+            isGuestMode: isGuestModeActive,
+            userName,
+            userPhotoURL,
+            onLogout: handleLogout,
+            onProfileClick: () => setActiveTab('myProfile'),
+            notificationCount: mockNotifications.filter((n) => !n.read).length,
+            profileCompletion: fullBackendUser?.profileCompletion || 0,
+          }}
+        >
+          {/* Banner notification for mobile */}
+          {bannerNotification && (
+            <TopNotificationBanner
+              notification={bannerNotification}
+              onDismiss={handleDismissBanner}
+            />
+          )}
+
+          {/* Tab Content for Mobile */}
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex w-full flex-grow flex-col"
+          >
+            {currentTabItems.map((item) => (
+              <TabsContent
+                key={item.value}
+                value={item.value}
+                className="mt-0 flex flex-grow flex-col p-4"
+              >
+                {React.cloneElement(item.component, {
+                  ...((item.value === 'findTalent' || item.value === 'findJobs') && {
+                    searchTerm,
+                  }),
+                  isGuestMode: isGuestModeActive,
+                  ...(item.value === 'settings' && {
+                    currentUserRole: fullBackendUser?.selectedRole || null,
+                  }),
+                  ...(item.value === 'aiTools' && {
+                    currentUserRole: fullBackendUser?.selectedRole || null,
+                  }),
+                  ...(item.value === 'salaryEnquiry' && {
+                    currentUserRole: fullBackendUser?.selectedRole || null,
+                  }),
+                  ...(item.value === 'myDiary' && {
+                    currentUserName: userName,
+                    currentUserMongoId: mongoDbUserId,
+                    currentUserAvatarUrl: userPhotoURL,
+                  }),
+                })}
+              </TabsContent>
+            ))}
+          </Tabs>
+
+          {/* Profile Setup Modal for Mobile */}
+          <Dialog
+            open={isProfileSetupModalOpen}
+            onOpenChange={(open) => {
+              if (!open && profileSetupStep === 'role') {
+                hasScrolledAndModalTriggeredRef.current = false;
+              }
+              setIsProfileSetupModalOpen(open);
+            }}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{profileSetupStep === 'role' && 'Choose Your Path'}</DialogTitle>
+                <DialogDescription>
+                  {profileSetupStep === 'role' &&
+                    "To tailor your experience, please tell us if you're primarily here to hire or to find a job."}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                {profileSetupStep === 'role' && (
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <Button
+                      variant="outline"
+                      className="group flex h-auto flex-col items-start py-4 text-left hover:bg-primary/5"
+                      onClick={() => {
+                        handleRoleSelect('recruiter', mongoDbUserId);
+                      }}
+                    >
+                      <Users className="mb-2 h-6 w-6 text-orange-500 group-hover:text-orange-600" />
+                      <span className="font-semibold text-foreground">I'm Hiring (Recruiter)</span>
+                      <span className="text-muted-foreground text-xs">
+                        Post jobs and find top talent.
+                      </span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="group flex h-auto flex-col items-start py-4 text-left hover:bg-primary/5"
+                      onClick={() => {
+                        handleRoleSelect('jobseeker', mongoDbUserId);
+                      }}
+                    >
+                      <Briefcase className="mb-2 h-6 w-6 text-blue-500 group-hover:text-blue-600" />
+                      <span className="font-semibold text-foreground">I'm Job Hunting</span>
+                      <span className="text-muted-foreground text-xs">
+                        Discover opportunities and showcase your skills.
+                      </span>
+                    </Button>
+                  </div>
+                )}
+              </div>
+              <DialogFooter className="sm:justify-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsProfileSetupModalOpen(false)}
+                >
+                  Maybe Later
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </MobileLayoutWrapper>
+      );
+    }
+
+    // Desktop layout (existing implementation)
     const mainAppContainerClasses = cn(
       'flex min-h-screen w-full bg-background',
       bannerNotification ? 'pt-16 sm:pt-[72px]' : ''

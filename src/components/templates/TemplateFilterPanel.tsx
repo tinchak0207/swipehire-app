@@ -56,7 +56,7 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
     const newTags = filters.tags.includes(tag)
       ? filters.tags.filter((t) => t !== tag)
       : [...filters.tags, tag];
-    
+
     onFilterChange({ tags: newTags });
   };
 
@@ -95,21 +95,14 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
     });
   };
 
-  const hasActiveFilters = 
-    filters.tags.length > 0 || 
-    filters.difficulty !== undefined || 
-    filters.minRating !== undefined;
+  const hasActiveFilters =
+    filters.tags.length > 0 || filters.difficulty !== undefined || filters.minRating !== undefined;
 
   return (
     <Card className={`mb-6 ${className}`}>
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <CardTitle className="text-lg">Filters</CardTitle>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={onClose}
-          className="h-8 w-8 p-0"
-        >
+        <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
           <XMarkIcon className="h-4 w-4" />
         </Button>
       </CardHeader>
@@ -117,7 +110,7 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
       <CardContent className="space-y-6">
         {/* Tags Filter */}
         <div>
-          <Label className="text-sm font-medium mb-3 block">Tags</Label>
+          <Label className="mb-3 block font-medium text-sm">Tags</Label>
           <div className="flex flex-wrap gap-2">
             {AVAILABLE_TAGS.map((tag) => (
               <Badge
@@ -134,7 +127,7 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
 
         {/* Difficulty Filter */}
         <div>
-          <Label className="text-sm font-medium mb-3 block">Difficulty Level</Label>
+          <Label className="mb-3 block font-medium text-sm">Difficulty Level</Label>
           <div className="flex gap-2">
             {DIFFICULTY_OPTIONS.map((option) => (
               <div key={option.value} className="flex items-center space-x-2">
@@ -145,7 +138,7 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
                 />
                 <Label
                   htmlFor={`difficulty-${option.value}`}
-                  className="text-sm font-normal cursor-pointer"
+                  className="cursor-pointer font-normal text-sm"
                 >
                   {option.label}
                 </Label>
@@ -156,7 +149,7 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
 
         {/* Rating Filter */}
         <div>
-          <Label className="text-sm font-medium mb-3 block">
+          <Label className="mb-3 block font-medium text-sm">
             Minimum Rating: {filters.minRating ? `${filters.minRating.toFixed(1)} stars` : 'Any'}
           </Label>
           <Slider
@@ -167,7 +160,7 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
             step={0.1}
             className="w-full"
           />
-          <div className="flex justify-between text-xs text-gray-500 mt-1">
+          <div className="mt-1 flex justify-between text-gray-500 text-xs">
             <span>0 stars</span>
             <span>5 stars</span>
           </div>
@@ -175,13 +168,8 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
 
         {/* Clear Filters */}
         {hasActiveFilters && (
-          <div className="pt-4 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearAllFilters}
-              className="w-full"
-            >
+          <div className="border-t pt-4">
+            <Button variant="outline" size="sm" onClick={clearAllFilters} className="w-full">
               Clear All Filters
             </Button>
           </div>
@@ -190,15 +178,12 @@ const TemplateFilterPanel: React.FC<TemplateFilterPanelProps> = ({
         {/* Active Filters Summary */}
         {hasActiveFilters && (
           <div className="pt-2">
-            <Label className="text-sm font-medium mb-2 block">Active Filters:</Label>
+            <Label className="mb-2 block font-medium text-sm">Active Filters:</Label>
             <div className="flex flex-wrap gap-1">
               {filters.tags.map((tag) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   {tag}
-                  <button
-                    onClick={() => handleTagToggle(tag)}
-                    className="ml-1 hover:text-red-500"
-                  >
+                  <button onClick={() => handleTagToggle(tag)} className="ml-1 hover:text-red-500">
                     ×
                   </button>
                 </Badge>

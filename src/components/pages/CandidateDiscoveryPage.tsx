@@ -64,7 +64,7 @@ import { passCandidate, retrieveCandidate } from '@/services/interactionService'
 import { recordLike } from '@/services/matchService';
 
 const ITEMS_PER_BATCH = 3;
-const envBackendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
+const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL =
   envBackendUrl && envBackendUrl.trim() !== '' ? envBackendUrl : 'http://localhost:5000';
 const MAX_SUMMARY_LENGTH_MODAL_INITIAL = 200;

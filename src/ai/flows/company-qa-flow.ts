@@ -13,7 +13,7 @@ import type { CompanyQAInput, CompanyQAOutput } from '@/lib/types'; // Using typ
 export async function answerCompanyQuestion(input: CompanyQAInput): Promise<CompanyQAOutput> {
   // Import the new AI service
   const { answerCompanyQuestion: mistralAnswerCompanyQuestion } = await import(
-    '@/services/aiService'
+    '@/services/enhancedAIService'
   );
 
   // Convert the input format to match the new service

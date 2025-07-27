@@ -83,13 +83,19 @@ function WorkflowEditor({ workflow: initialWorkflow }: { workflow: IWorkflow }) 
             Save
           </button>
           <div className="dropdown dropdown-end">
-            <button type="button" className="btn btn-secondary">Save as Template</button>
+            <button type="button" className="btn btn-secondary">
+              Save as Template
+            </button>
             <ul className="dropdown-content menu w-52 rounded-box bg-base-100 p-2 shadow">
               <li>
-                <button type="button" onClick={() => handleSave(true, false)}>Save as Private Template</button>
+                <button type="button" onClick={() => handleSave(true, false)}>
+                  Save as Private Template
+                </button>
               </li>
               <li>
-                <button type="button" onClick={() => handleSave(true, true)}>Save as Public Template</button>
+                <button type="button" onClick={() => handleSave(true, true)}>
+                  Save as Public Template
+                </button>
               </li>
             </ul>
           </div>

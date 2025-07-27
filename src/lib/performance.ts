@@ -61,8 +61,8 @@ export function createLazyImageObserver(
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           const img = entry.target as HTMLImageElement;
-          const src = img.dataset['src'];
-          const srcset = img.dataset['srcset'];
+          const src = img.dataset.src;
+          const srcset = img.dataset.srcset;
 
           if (src) {
             img.src = src;

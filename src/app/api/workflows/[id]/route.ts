@@ -14,7 +14,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Workflow not found' }, { status: 404 });
     }
 
-    if (workflow['editing_user_id'] && workflow['editing_user_id'] !== userId) {
+    if (workflow.editing_user_id && workflow.editing_user_id !== userId) {
       return NextResponse.json(
         { error: 'This workflow is currently being edited by another user.' },
         { status: 409 }

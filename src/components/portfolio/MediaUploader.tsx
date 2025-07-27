@@ -40,7 +40,7 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
   const [previewMedia, setPreviewMedia] = useState<Media | null>(null);
 
   const uploadMediaMutation = useUploadMedia();
- 
+
   /**
    * Handle file selection
    */
@@ -173,7 +173,6 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({
     [media.length, maxFiles, toast, uploadFile]
   );
 
-  
   /**
    * Handle drag events
    */

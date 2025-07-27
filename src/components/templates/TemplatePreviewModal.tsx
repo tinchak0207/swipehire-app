@@ -1,6 +1,6 @@
 'use client';
 
-import { XMarkIcon, PlusIcon, EyeIcon, StarIcon } from '@heroicons/react/24/outline';
+import { EyeIcon, PlusIcon, StarIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid';
 import Image from 'next/image';
 import type React from 'react';
@@ -31,22 +31,18 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.push(
-          <StarIconSolid key={i} className="h-4 w-4 text-yellow-400" />
-        );
+        stars.push(<StarIconSolid key={i} className="h-4 w-4 text-yellow-400" />);
       } else if (i === fullStars && hasHalfStar) {
         stars.push(
           <div key={i} className="relative h-4 w-4">
             <StarIcon className="absolute h-4 w-4 text-gray-300" />
-            <div className="absolute overflow-hidden w-1/2">
+            <div className="absolute w-1/2 overflow-hidden">
               <StarIconSolid className="h-4 w-4 text-yellow-400" />
             </div>
           </div>
         );
       } else {
-        stars.push(
-          <StarIcon key={i} className="h-4 w-4 text-gray-300" />
-        );
+        stars.push(<StarIcon key={i} className="h-4 w-4 text-gray-300" />);
       }
     }
 
@@ -85,53 +81,44 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-h-[90vh] max-w-4xl p-0">
         <DialogHeader className="p-6 pb-0">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <DialogTitle className="text-2xl font-bold mb-2">
-                {template.title}
-              </DialogTitle>
-              <p className="text-gray-600 mb-4">{template.description}</p>
-              
-              <div className="flex items-center gap-4 mb-4">
+              <DialogTitle className="mb-2 font-bold text-2xl">{template.title}</DialogTitle>
+              <p className="mb-4 text-gray-600">{template.description}</p>
+
+              <div className="mb-4 flex items-center gap-4">
                 <div className="flex items-center gap-2">
-                  <Badge className={getCategoryColor(template.category)}>
-                    {template.category}
-                  </Badge>
+                  <Badge className={getCategoryColor(template.category)}>{template.category}</Badge>
                   <Badge className={getDifficultyColor(template.difficulty)}>
                     {template.difficulty}
                   </Badge>
                 </div>
-                
+
                 <div className="flex items-center gap-1">
                   {renderStars(template.rating)}
-                  <span className="text-sm text-gray-600 ml-1">
+                  <span className="ml-1 text-gray-600 text-sm">
                     {template.rating} ({template.reviewCount} reviews)
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-6 text-sm text-gray-500">
+              <div className="flex items-center gap-6 text-gray-500 text-sm">
                 <span>⏱️ {template.estimatedTime}</span>
                 <span>🔥 {template.popularity}% popular</span>
                 <span>📅 Updated {new Date(template.metadata.updatedAt).toLocaleDateString()}</span>
               </div>
             </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0"
-            >
+
+            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
               <XMarkIcon className="h-4 w-4" />
             </Button>
           </div>
         </DialogHeader>
 
         <ScrollArea className="flex-1 px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-6">
+          <div className="grid grid-cols-1 gap-6 pb-6 lg:grid-cols-2">
             {/* Preview Image */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">Preview</h3>
@@ -153,7 +140,7 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
             <div className="space-y-6">
               {/* Tags */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Tags</h3>
+                <h3 className="mb-3 font-semibold text-lg">Tags</h3>
                 <div className="flex flex-wrap gap-2">
                   {template.tags.map((tag) => (
                     <Badge key={tag} variant="secondary">
@@ -167,11 +154,11 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
 
               {/* Template Sections */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Template Sections</h3>
+                <h3 className="mb-3 font-semibold text-lg">Template Sections</h3>
                 <div className="space-y-3">
                   {template.content.sections.map((section) => (
-                    <div key={section.id} className="border rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={section.id} className="rounded-lg border p-3">
+                      <div className="mb-2 flex items-center justify-between">
                         <h4 className="font-medium">{section.title}</h4>
                         <div className="flex gap-2">
                           {section.required && (
@@ -186,7 +173,7 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
                           )}
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600">{section.content}</p>
+                      <p className="text-gray-600 text-sm">{section.content}</p>
                     </div>
                   ))}
                 </div>
@@ -196,7 +183,7 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
 
               {/* Styling Options */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Styling</h3>
+                <h3 className="mb-3 font-semibold text-lg">Styling</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <span className="font-medium">Layout:</span>
@@ -221,7 +208,7 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
 
               {/* Metadata */}
               <div>
-                <h3 className="font-semibold text-lg mb-3">Details</h3>
+                <h3 className="mb-3 font-semibold text-lg">Details</h3>
                 <div className="space-y-2 text-sm">
                   <div>
                     <span className="font-medium">Author:</span>
@@ -250,7 +237,7 @@ const TemplatePreviewModal: React.FC<TemplatePreviewModalProps> = ({
         </ScrollArea>
 
         {/* Footer Actions */}
-        <div className="flex justify-between items-center p-6 border-t bg-gray-50">
+        <div className="flex items-center justify-between border-t bg-gray-50 p-6">
           <Button variant="outline" onClick={onClose}>
             <EyeIcon className="mr-2 h-4 w-4" />
             Close Preview

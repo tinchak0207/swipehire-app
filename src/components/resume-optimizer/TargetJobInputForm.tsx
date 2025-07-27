@@ -61,28 +61,28 @@ const validateFormData = (data: TargetJobFormData): ValidationResult => {
 
   // Validate job title
   if (!data.title.trim()) {
-    errors['title'] = 'Job title is required';
+    errors.title = 'Job title is required';
   } else if (data.title.trim().length < 2) {
-    errors['title'] = 'Job title must be at least 2 characters long';
+    errors.title = 'Job title must be at least 2 characters long';
   } else if (data.title.trim().length > 100) {
-    errors['title'] = 'Job title must be less than 100 characters';
+    errors.title = 'Job title must be less than 100 characters';
   }
 
   // Validate keywords (optional but if provided, should be meaningful)
   if (data.keywords.trim() && data.keywords.trim().length < 3) {
-    errors['keywords'] = 'Keywords must be at least 3 characters long';
+    errors.keywords = 'Keywords must be at least 3 characters long';
   } else if (data.keywords.length > 500) {
-    errors['keywords'] = 'Keywords must be less than 500 characters';
+    errors.keywords = 'Keywords must be less than 500 characters';
   }
 
   // Validate company (optional)
   if (data.company && data.company.trim().length > 100) {
-    errors['company'] = 'Company name must be less than 100 characters';
+    errors.company = 'Company name must be less than 100 characters';
   }
 
   // Validate description (optional)
   if (data.description && data.description.trim().length > 1000) {
-    errors['description'] = 'Description must be less than 1000 characters';
+    errors.description = 'Description must be less than 1000 characters';
   }
 
   return {
@@ -235,7 +235,7 @@ export default function TargetJobInputForm({
               onFocus={() => handleFocus('title')}
               onBlur={handleBlur}
               className={`input input-bordered w-full pr-10 transition-all duration-200 ${
-                validation.errors['title']
+                validation.errors.title
                   ? 'input-error border-error focus:border-error'
                   : focusedField === 'title'
                     ? 'input-primary border-primary'
@@ -244,11 +244,11 @@ export default function TargetJobInputForm({
               disabled={isLoading}
               required
               maxLength={100}
-              aria-describedby={validation.errors['title'] ? 'title-error' : undefined}
+              aria-describedby={validation.errors.title ? 'title-error' : undefined}
             />
             {/* Status Icon */}
             <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              {validation.errors['title'] ? (
+              {validation.errors.title ? (
                 <ExclamationCircleIcon className="h-5 w-5 text-error" />
               ) : formData.title.trim() ? (
                 <CheckCircleIcon className="h-5 w-5 text-success" />
@@ -256,16 +256,16 @@ export default function TargetJobInputForm({
             </div>
           </div>
           {/* Error Message */}
-          {validation.errors['title'] && (
+          {validation.errors.title && (
             <div className="label">
               <span id="title-error" className="label-text-alt flex items-center gap-1 text-error">
                 <ExclamationCircleIcon className="h-4 w-4" />
-                {validation.errors['title']}
+                {validation.errors.title}
               </span>
             </div>
           )}
           {/* Help Text */}
-          {!validation.errors['title'] && focusedField === 'title' && (
+          {!validation.errors.title && focusedField === 'title' && (
             <div className="label">
               <span className="label-text-alt flex items-center gap-1 text-base-content/60">
                 <InformationCircleIcon className="h-4 w-4" />
@@ -292,7 +292,7 @@ export default function TargetJobInputForm({
               onFocus={() => handleFocus('keywords')}
               onBlur={handleBlur}
               className={`textarea textarea-bordered h-24 w-full resize-none transition-all duration-200 ${
-                validation.errors['keywords']
+                validation.errors.keywords
                   ? 'textarea-error border-error focus:border-error'
                   : focusedField === 'keywords'
                     ? 'textarea-secondary border-secondary'
@@ -300,7 +300,7 @@ export default function TargetJobInputForm({
               }`}
               disabled={isLoading}
               maxLength={500}
-              aria-describedby={validation.errors['keywords'] ? 'keywords-error' : undefined}
+              aria-describedby={validation.errors.keywords ? 'keywords-error' : undefined}
             />
           </div>
 
@@ -323,20 +323,20 @@ export default function TargetJobInputForm({
           )}
 
           {/* Error Message */}
-          {validation.errors['keywords'] && (
+          {validation.errors.keywords && (
             <div className="label">
               <span
                 id="keywords-error"
                 className="label-text-alt flex items-center gap-1 text-error"
               >
                 <ExclamationCircleIcon className="h-4 w-4" />
-                {validation.errors['keywords']}
+                {validation.errors.keywords}
               </span>
             </div>
           )}
 
           {/* Help Text */}
-          {!validation.errors['keywords'] && (
+          {!validation.errors.keywords && (
             <div className="label">
               <span className="label-text-alt flex items-center gap-1 text-base-content/60">
                 <InformationCircleIcon className="h-4 w-4" />
@@ -365,7 +365,7 @@ export default function TargetJobInputForm({
               onFocus={() => handleFocus('company')}
               onBlur={handleBlur}
               className={`input input-bordered w-full pr-10 transition-all duration-200 ${
-                validation.errors['company']
+                validation.errors.company
                   ? 'input-error border-error focus:border-error'
                   : focusedField === 'company'
                     ? 'input-accent border-accent'
@@ -373,7 +373,7 @@ export default function TargetJobInputForm({
               }`}
               disabled={isLoading}
               maxLength={100}
-              aria-describedby={validation.errors['company'] ? 'company-error' : undefined}
+              aria-describedby={validation.errors.company ? 'company-error' : undefined}
             />
             {/* Status Icon */}
             {formData.company?.trim() && (
@@ -384,20 +384,20 @@ export default function TargetJobInputForm({
           </div>
 
           {/* Error Message */}
-          {validation.errors['company'] && (
+          {validation.errors.company && (
             <div className="label">
               <span
                 id="company-error"
                 className="label-text-alt flex items-center gap-1 text-error"
               >
                 <ExclamationCircleIcon className="h-4 w-4" />
-                {validation.errors['company']}
+                {validation.errors.company}
               </span>
             </div>
           )}
 
           {/* Help Text */}
-          {!validation.errors['company'] && focusedField === 'company' && (
+          {!validation.errors.company && focusedField === 'company' && (
             <div className="label">
               <span className="label-text-alt flex items-center gap-1 text-base-content/60">
                 <InformationCircleIcon className="h-4 w-4" />
@@ -425,7 +425,7 @@ export default function TargetJobInputForm({
               onFocus={() => handleFocus('description')}
               onBlur={handleBlur}
               className={`textarea textarea-bordered h-32 w-full resize-none transition-all duration-200 ${
-                validation.errors['description']
+                validation.errors.description
                   ? 'textarea-error border-error focus:border-error'
                   : focusedField === 'description'
                     ? 'textarea-info border-info'
@@ -433,7 +433,7 @@ export default function TargetJobInputForm({
               }`}
               disabled={isLoading}
               maxLength={1000}
-              aria-describedby={validation.errors['description'] ? 'description-error' : undefined}
+              aria-describedby={validation.errors.description ? 'description-error' : undefined}
             />
           </div>
 
@@ -447,20 +447,20 @@ export default function TargetJobInputForm({
           )}
 
           {/* Error Message */}
-          {validation.errors['description'] && (
+          {validation.errors.description && (
             <div className="label">
               <span
                 id="description-error"
                 className="label-text-alt flex items-center gap-1 text-error"
               >
                 <ExclamationCircleIcon className="h-4 w-4" />
-                {validation.errors['description']}
+                {validation.errors.description}
               </span>
             </div>
           )}
 
           {/* Help Text */}
-          {!validation.errors['description'] && focusedField === 'description' && (
+          {!validation.errors.description && focusedField === 'description' && (
             <div className="label">
               <span className="label-text-alt flex items-center gap-1 text-base-content/60">
                 <InformationCircleIcon className="h-4 w-4" />

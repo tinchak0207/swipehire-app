@@ -2,15 +2,6 @@
 const path = require('node:path');
 const webpack = require('webpack');
 const nextConfig = {
-  webpack: (config) => {
-    // Fix Handlebars require.extensions warning
-    config.module.rules.push({
-      test: /\.hbs$/,
-      use: 'raw-loader',
-    });
-
-    return config;
-  },
   transpilePackages: ['@reactflow/core'],
   images: {
     dangerouslyAllowSVG: true,

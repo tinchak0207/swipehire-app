@@ -1,6 +1,14 @@
 'use client';
 
-import { BotMessageSquare, Briefcase, ClipboardList, Cog, Search, SendHorizontal, ChevronDown } from 'lucide-react';
+import {
+  BotMessageSquare,
+  Briefcase,
+  ChevronDown,
+  ClipboardList,
+  Cog,
+  Search,
+  SendHorizontal,
+} from 'lucide-react';
 import Image from 'next/image';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
@@ -55,14 +63,8 @@ const mockJobs = [
 const presetOptions = ['Frontend Developer', 'Full-Stack Engineer'];
 
 // JobCard Component
-const JobCard = ({
-  job,
-  onGetJob,
-}: {
-  job: (typeof mockJobs)[0];
-  onGetJob: () => void;
-}) => (
-  <div className="flex h-full w-full flex-shrink-0 transform-gpu flex-col rounded-xl bg-slate-700/50 p-4 backdrop-blur-sm transition-all duration-300 snap-center">
+const JobCard = ({ job, onGetJob }: { job: (typeof mockJobs)[0]; onGetJob: () => void }) => (
+  <div className="flex h-full w-full flex-shrink-0 transform-gpu snap-center flex-col rounded-xl bg-slate-700/50 p-4 backdrop-blur-sm transition-all duration-300">
     <div className="flex-grow">
       <div className="mb-3 flex items-center">
         <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white p-1.5">
@@ -72,19 +74,19 @@ const JobCard = ({
           <p className="font-semibold text-white">{job.company}</p>
         </div>
       </div>
-      <h4 className="mb-1 font-semibold text-slate-100 text-md">{job.title}</h4>
-      <p className="text-slate-400 text-xs mb-2">{job.location}</p>
-      <p className="text-slate-300 text-sm font-semibold mb-3">{job.salary}</p>
+      <h4 className="mb-1 font-semibold text-md text-slate-100">{job.title}</h4>
+      <p className="mb-2 text-slate-400 text-xs">{job.location}</p>
+      <p className="mb-3 font-semibold text-slate-300 text-sm">{job.salary}</p>
       <div className="flex flex-wrap gap-2">
         {job.tags.map((tag) => (
-          <span key={tag} className="px-2 py-1 text-xs rounded-full bg-slate-600/80 text-slate-200">
+          <span key={tag} className="rounded-full bg-slate-600/80 px-2 py-1 text-slate-200 text-xs">
             {tag}
           </span>
         ))}
       </div>
     </div>
-    <div className="flex flex-col items-center justify-center text-white/50 mt-2">
-      <span className="text-xs mb-1">Scroll for more</span>
+    <div className="mt-2 flex flex-col items-center justify-center text-white/50">
+      <span className="mb-1 text-xs">Scroll for more</span>
       <ChevronDown className="h-6 w-6 animate-bounce" />
     </div>
     <Button
@@ -99,13 +101,13 @@ const JobCard = ({
 
 // PresetOptions Component
 const PresetOptions = ({ onSelect }: { onSelect: (option: string) => void }) => (
-  <div className="animate-fadeIn mb-2 flex flex-wrap justify-center gap-2">
+  <div className="mb-2 flex animate-fadeIn flex-wrap justify-center gap-2">
     {presetOptions.map((option) => (
       <Button
         key={option}
         variant="outline"
         onClick={() => onSelect(option)}
-        className="h-auto rounded-full border-slate-600 bg-slate-700/50 px-3 py-1 text-xs text-slate-200 hover:bg-slate-700/80"
+        className="h-auto rounded-full border-slate-600 bg-slate-700/50 px-3 py-1 text-slate-200 text-xs hover:bg-slate-700/80"
       >
         {option}
       </Button>
@@ -123,7 +125,9 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
-  const [agentSteps, setAgentSteps] = useState<Array<{ icon: React.ElementType; text: string }>>([]);
+  const [agentSteps, setAgentSteps] = useState<Array<{ icon: React.ElementType; text: string }>>(
+    []
+  );
   const [showJobResults, setShowJobResults] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -133,7 +137,7 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, agentSteps]);
+  }, [scrollToBottom]);
 
   useEffect(() => {
     if (isThinking && conversationStage === 'details') {
@@ -166,7 +170,7 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
 
       return () => clearInterval(interval);
     }
-    
+
     return undefined;
   }, [isThinking, conversationStage]);
 
@@ -181,7 +185,10 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
         setTimeout(() => {
           setMessages((prev) => [
             ...prev,
-            { sender: 'agent', text: 'Great! Could you tell me more about your desired location and experience level?' },
+            {
+              sender: 'agent',
+              text: 'Great! Could you tell me more about your desired location and experience level?',
+            },
           ]);
           setConversationStage('details');
           setIsThinking(false);
@@ -196,19 +203,37 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
   };
 
   return (
-    <div className="relative w-full max-w-sm mx-auto" style={{ aspectRatio: '9 / 16' }}>
-    <Card className="h-full w-full transform-gpu rounded-2xl bg-slate-800/60 p-4 shadow-2xl backdrop-blur-lg transition-all hover:scale-[1.02] hover:bg-slate-800/80 flex flex-col">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 text-white flex-shrink-0">
-        <CardTitle className="font-heading text-xl">Your AI Job Agent</CardTitle>
-        <BotMessageSquare className="h-8 w-8 text-accent" />
-      </CardHeader>
-      <CardContent className="flex flex-col flex-grow overflow-hidden">
-        <div className="flex-grow space-y-4 overflow-y-auto pr-2 scrollbar-hide">
-          {messages.map((msg, index) => (
-            <div
-              key={`msg-${index}`}
-              className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}>
-              {msg.sender === 'agent' && (
+    <div className="relative mx-auto w-full max-w-sm" style={{ aspectRatio: '9 / 16' }}>
+      <Card className="flex h-full w-full transform-gpu flex-col rounded-2xl bg-slate-800/60 p-4 shadow-2xl backdrop-blur-lg transition-all hover:scale-[1.02] hover:bg-slate-800/80">
+        <CardHeader className="flex flex-shrink-0 flex-row items-center justify-between pb-2 text-white">
+          <CardTitle className="font-heading text-xl">Your AI Job Agent</CardTitle>
+          <BotMessageSquare className="h-8 w-8 text-accent" />
+        </CardHeader>
+        <CardContent className="flex flex-grow flex-col overflow-hidden">
+          <div className="scrollbar-hide flex-grow space-y-4 overflow-y-auto pr-2">
+            {messages.map((msg, index) => (
+              <div
+                key={`msg-${index}`}
+                className={`flex items-end gap-3 ${msg.sender === 'user' ? 'justify-end' : ''}`}
+              >
+                {msg.sender === 'agent' && (
+                  <Image
+                    src="/ai-avatar.png"
+                    alt="AI Agent"
+                    width={40}
+                    height={40}
+                    className="rounded-full border-2 border-accent/80 bg-slate-600"
+                  />
+                )}
+                <div
+                  className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${msg.sender === 'user' ? 'rounded-br-none bg-primary text-primary-foreground' : 'rounded-bl-none bg-slate-700/80 text-slate-200'}`}
+                >
+                  {msg.text}
+                </div>
+              </div>
+            ))}
+            {isThinking && conversationStage === 'details' && (
+              <div className="flex items-end gap-3">
                 <Image
                   src="/ai-avatar.png"
                   alt="AI Agent"
@@ -216,71 +241,66 @@ const JobAgentPanel: React.FC<{ onGetJobClick: () => void }> = ({ onGetJobClick 
                   height={40}
                   className="rounded-full border-2 border-accent/80 bg-slate-600"
                 />
+                <div className="w-full max-w-[80%] space-y-2 rounded-xl rounded-bl-none bg-slate-700/80 p-3 text-slate-200">
+                  {agentSteps.map(
+                    (step, index) =>
+                      step && (
+                        <div
+                          key={`step-${index}`}
+                          className="flex animate-fadeIn items-center text-xs"
+                        >
+                          <step.icon className="mr-2 h-4 w-4 shrink-0 text-accent" />
+                          <span>{step.text}</span>
+                        </div>
+                      )
+                  )}
+                </div>
+              </div>
+            )}
+            {showJobResults && (
+              <div className="relative h-full animate-fadeIn">
+                <div className="scrollbar-hide flex h-full snap-y snap-mandatory flex-col overflow-y-auto">
+                  {mockJobs.map((job) => (
+                    <JobCard key={job.title} job={job} onGetJob={onGetJobClick} />
+                  ))}
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+          {conversationStage !== 'results' && (
+            <>
+              {conversationStage === 'initial' && !isThinking && (
+                <PresetOptions onSelect={(option) => handleSendMessage(option)} />
               )}
-              <div
-                className={`max-w-[80%] rounded-xl px-4 py-3 text-sm ${msg.sender === 'user' ? 'rounded-br-none bg-primary text-primary-foreground' : 'rounded-bl-none bg-slate-700/80 text-slate-200'}`}>
-                {msg.text}
+              <div className="mt-auto flex flex-shrink-0 items-center gap-2 pt-4">
+                <Input
+                  type="text"
+                  placeholder={
+                    conversationStage === 'initial'
+                      ? 'Or type your own...'
+                      : "e.g., 'Remote, 5+ years'"
+                  }
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
+                  disabled={isThinking}
+                  className="flex-grow rounded-full bg-slate-700/80 text-white placeholder-slate-400 disabled:opacity-50"
+                />
+                <Button
+                  type="submit"
+                  size="icon"
+                  onClick={() => handleSendMessage(inputValue)}
+                  disabled={isThinking}
+                  className="rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-110 disabled:scale-100 disabled:opacity-50"
+                >
+                  <SendHorizontal className="h-5 w-5" />
+                </Button>
               </div>
-            </div>
-          ))}
-          {isThinking && conversationStage === 'details' && (
-            <div className="flex items-end gap-3">
-              <Image
-                src="/ai-avatar.png"
-                alt="AI Agent"
-                width={40}
-                height={40}
-                className="rounded-full border-2 border-accent/80 bg-slate-600"
-              />
-              <div className="w-full max-w-[80%] space-y-2 rounded-xl rounded-bl-none bg-slate-700/80 p-3 text-slate-200">
-                {agentSteps.map((step, index) => (
-                  step && (
-                    <div key={`step-${index}`} className="flex animate-fadeIn items-center text-xs">
-                      <step.icon className="mr-2 h-4 w-4 shrink-0 text-accent" />
-                      <span>{step.text}</span>
-                    </div>
-                  )
-                ))}
-              </div>
-            </div>
+            </>
           )}
-          {showJobResults && (
-            <div className="animate-fadeIn h-full relative">
-              <div className="flex h-full flex-col snap-y snap-mandatory overflow-y-auto scrollbar-hide">
-                {mockJobs.map((job) => (
-                  <JobCard key={job.title} job={job} onGetJob={onGetJobClick} />
-                ))}
-              </div>
-              </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-        {conversationStage !== 'results' && (
-          <>
-            {conversationStage === 'initial' && !isThinking && <PresetOptions onSelect={(option) => handleSendMessage(option)} />}
-            <div className="mt-auto flex items-center gap-2 pt-4 flex-shrink-0">
-              <Input
-                type="text"
-                placeholder={conversationStage === 'initial' ? "Or type your own..." : "e.g., 'Remote, 5+ years'"}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSendMessage(inputValue)}
-                disabled={isThinking}
-                className="flex-grow rounded-full bg-slate-700/80 text-white placeholder-slate-400 disabled:opacity-50"
-              />
-              <Button
-                type="submit"
-                size="icon"
-                onClick={() => handleSendMessage(inputValue)}
-                disabled={isThinking}
-                className="rounded-full bg-primary text-white shadow-lg transition-transform hover:scale-110 disabled:scale-100 disabled:opacity-50">
-                <SendHorizontal className="h-5 w-5" />
-              </Button>
-            </div>
-          </>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
     </div>
   );
 };

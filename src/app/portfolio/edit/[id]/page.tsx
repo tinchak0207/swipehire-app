@@ -14,7 +14,7 @@ import type { PortfolioDraft } from '@/lib/types/portfolio';
  */
 const EditPortfolioPage: React.FC = () => {
   const params = useParams();
-  if (!params || !params['id']) {
+  if (!params || !params.id) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="alert alert-error">
@@ -36,7 +36,7 @@ const EditPortfolioPage: React.FC = () => {
       </div>
     );
   }
-  const portfolioId = params['id'] as string;
+  const portfolioId = params.id as string;
 
   const { data: portfolio, isLoading, error } = usePortfolio(portfolioId);
 
@@ -120,7 +120,7 @@ const EditPortfolioPage: React.FC = () => {
 
   // Convert portfolio to draft format
   const portfolioDraft: PortfolioDraft = {
-    id: portfolio['id'],
+    id: portfolio.id,
     title: portfolio.title,
     description: portfolio.description,
     projects: portfolio.projects,

@@ -5,7 +5,7 @@
 
 import { type NextRequest, NextResponse } from 'next/server';
 import { ai } from '@/ai/genkit';
-import aiService from '@/services/aiService';
+import aiService from '@/services/enhancedAIService';
 
 export async function GET(_request: NextRequest) {
   try {

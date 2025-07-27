@@ -99,7 +99,9 @@ export type ProfileRecommenderOutput = {
 export async function recommendProfile(
   input: ProfileRecommenderInput
 ): Promise<ProfileRecommenderOutput> {
-  const { recommendProfile: mistralRecommendProfile } = await import('@/services/aiService');
+  const { recommendProfile: mistralRecommendProfile } = await import(
+    '@/services/enhancedAIService'
+  );
 
   // Ensure personalityAssessment matches expected type
   // Ensure proper initialization of required fields

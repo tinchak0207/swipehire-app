@@ -44,12 +44,12 @@ function expect(actual) {
       if (!actual) {
         throw new Error(`Expected truthy value, got ${actual}`);
       }
-    }
+    },
   };
 }
 
 // Mock fetch for testing
-const mockFetch = (url, options) => {
+const mockFetch = (url, _options) => {
   const mockResponse = {
     ok: true,
     json: async () => {
@@ -57,11 +57,9 @@ const mockFetch = (url, options) => {
         return {
           name: 'Test Workflow',
           definition: {
-            nodes: [
-              { id: '1', type: 'newCandidate', position: { x: 0, y: 0 } }
-            ],
-            edges: []
-          }
+            nodes: [{ id: '1', type: 'newCandidate', position: { x: 0, y: 0 } }],
+            edges: [],
+          },
         };
       }
       if (url.includes('/api/workflows/template-123')) {
@@ -70,10 +68,10 @@ const mockFetch = (url, options) => {
           definition: {
             nodes: [
               { id: '1', type: 'newResumeSubmissionTrigger', position: { x: 0, y: 0 } },
-              { id: '2', type: 'analyzeResume', position: { x: 200, y: 0 } }
+              { id: '2', type: 'analyzeResume', position: { x: 200, y: 0 } },
             ],
-            edges: [{ id: 'e1-2', source: '1', target: '2' }]
-          }
+            edges: [{ id: 'e1-2', source: '1', target: '2' }],
+          },
         };
       }
       if (url === '/api/workflows') {
@@ -83,7 +81,7 @@ const mockFetch = (url, options) => {
         return { success: true, executionId: 'exec-456' };
       }
       return { success: false };
-    }
+    },
   };
   return Promise.resolve(mockResponse);
 };
@@ -115,18 +113,16 @@ test('should load workflow template successfully', async () => {
 test('should save workflow successfully', async () => {
   const savePayload = {
     name: 'My Test Workflow',
-    nodes: [
-      { id: '1', type: 'analyzeResume', position: { x: 100, y: 100 } }
-    ],
+    nodes: [{ id: '1', type: 'analyzeResume', position: { x: 100, y: 100 } }],
     edges: [],
     isTemplate: false,
-    isPublic: false
+    isPublic: false,
   };
 
   const response = await mockFetch('/api/workflows', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(savePayload)
+    body: JSON.stringify(savePayload),
   });
 
   const result = await response.json();
@@ -138,13 +134,13 @@ test('should save workflow successfully', async () => {
 test('should execute workflow successfully', async () => {
   const runPayload = {
     variables: { jobId: 'test-job-123' },
-    context: { source: 'manual' }
+    context: { source: 'manual' },
   };
 
   const response = await mockFetch('/api/workflows/test-workflow/run', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(runPayload)
+    body: JSON.stringify(runPayload),
   });
 
   const result = await response.json();
@@ -159,12 +155,10 @@ test('should validate workflow structure', () => {
     definition: {
       nodes: [
         { id: '1', type: 'newCandidate', position: { x: 0, y: 0 } },
-        { id: '2', type: 'analyzeResume', position: { x: 200, y: 0 } }
+        { id: '2', type: 'analyzeResume', position: { x: 200, y: 0 } },
       ],
-      edges: [
-        { id: 'e1-2', source: '1', target: '2' }
-      ]
-    }
+      edges: [{ id: 'e1-2', source: '1', target: '2' }],
+    },
   };
 
   expect(workflow).toHaveProperty('name');
@@ -174,7 +168,9 @@ test('should validate workflow structure', () => {
   expect(Array.isArray(workflow.definition.nodes)).toBe(true);
   expect(Array.isArray(workflow.definition.edges)).toBe(true);
   if (workflow.definition.nodes.length <= 0) {
-    throw new Error(`Expected nodes array to have length > 0, got ${workflow.definition.nodes.length}`);
+    throw new Error(
+      `Expected nodes array to have length > 0, got ${workflow.definition.nodes.length}`
+    );
   }
 });
 
@@ -190,7 +186,7 @@ test('should validate node types', () => {
     'jobStatusChangeTrigger',
     'dataMetricTrigger',
     'scheduledTrigger',
-    'manualTrigger'
+    'manualTrigger',
   ];
 
   const testNode = { type: 'analyzeResume' };
@@ -220,8 +216,8 @@ test('should handle empty workflow', () => {
     name: 'Empty Workflow',
     definition: {
       nodes: [],
-      edges: []
-    }
+      edges: [],
+    },
   };
 
   expect(emptyWorkflow.definition.nodes).toHaveLength(0);
@@ -237,14 +233,14 @@ test('should validate complex workflow', () => {
         { id: '1', type: 'newResumeSubmissionTrigger', position: { x: 0, y: 0 } },
         { id: '2', type: 'analyzeResume', position: { x: 200, y: 0 } },
         { id: '3', type: 'condition', position: { x: 400, y: 0 } },
-        { id: '4', type: 'interviewInvitation', position: { x: 600, y: 0 } }
+        { id: '4', type: 'interviewInvitation', position: { x: 600, y: 0 } },
       ],
       edges: [
         { id: 'e1-2', source: '1', target: '2' },
         { id: 'e2-3', source: '2', target: '3' },
-        { id: 'e3-4', source: '3', target: '4' }
-      ]
-    }
+        { id: 'e3-4', source: '3', target: '4' },
+      ],
+    },
   };
 
   expect(complexWorkflow.definition.nodes).toHaveLength(4);
@@ -253,7 +249,7 @@ test('should validate complex workflow', () => {
 });
 
 // Test summary
-console.log(`\nTest Results:`);
+console.log('\nTest Results:');
 console.log(`✓ ${passedTests}/${totalTests} tests passed`);
 
 if (passedTests === totalTests) {

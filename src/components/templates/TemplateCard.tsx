@@ -29,22 +29,18 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
-        stars.push(
-          <StarIconSolid key={i} className="h-4 w-4 text-yellow-400" />
-        );
+        stars.push(<StarIconSolid key={i} className="h-4 w-4 text-yellow-400" />);
       } else if (i === fullStars && hasHalfStar) {
         stars.push(
           <div key={i} className="relative h-4 w-4">
             <StarIcon className="absolute h-4 w-4 text-gray-300" />
-            <div className="absolute overflow-hidden w-1/2">
+            <div className="absolute w-1/2 overflow-hidden">
               <StarIconSolid className="h-4 w-4 text-yellow-400" />
             </div>
           </div>
         );
       } else {
-        stars.push(
-          <StarIcon key={i} className="h-4 w-4 text-gray-300" />
-        );
+        stars.push(<StarIcon key={i} className="h-4 w-4 text-gray-300" />);
       }
     }
 
@@ -82,7 +78,9 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
   };
 
   return (
-    <Card className={`group h-full transition-all duration-300 hover:shadow-lg hover:-translate-y-1 ${className}`}>
+    <Card
+      className={`group hover:-translate-y-1 h-full transition-all duration-300 hover:shadow-lg ${className}`}
+    >
       <CardHeader className="p-0">
         <div className="relative aspect-video w-full overflow-hidden rounded-t-lg bg-gray-100">
           <Image
@@ -98,34 +96,26 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
           <div className="absolute top-2 left-2">
-            <Badge className={getCategoryColor(template.category)}>
-              {template.category}
-            </Badge>
+            <Badge className={getCategoryColor(template.category)}>{template.category}</Badge>
           </div>
           <div className="absolute top-2 right-2">
-            <Badge className={getDifficultyColor(template.difficulty)}>
-              {template.difficulty}
-            </Badge>
+            <Badge className={getDifficultyColor(template.difficulty)}>{template.difficulty}</Badge>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="flex-grow p-4">
         <div className="mb-2 flex items-start justify-between">
-          <h3 className="font-semibold text-lg leading-tight text-gray-900 line-clamp-2">
+          <h3 className="line-clamp-2 font-semibold text-gray-900 text-lg leading-tight">
             {template.title}
           </h3>
         </div>
 
-        <p className="mb-3 text-sm text-gray-600 line-clamp-2">
-          {template.description}
-        </p>
+        <p className="mb-3 line-clamp-2 text-gray-600 text-sm">{template.description}</p>
 
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex items-center">
-            {renderStars(template.rating)}
-          </div>
-          <span className="text-sm text-gray-600">
+          <div className="flex items-center">{renderStars(template.rating)}</div>
+          <span className="text-gray-600 text-sm">
             {template.rating} ({template.reviewCount})
           </span>
         </div>
@@ -143,27 +133,18 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-gray-500 text-sm">
           <span>⏱️ {template.estimatedTime}</span>
           <span>🔥 {template.popularity}% popular</span>
         </div>
       </CardContent>
 
       <CardFooter className="flex gap-2 p-4 pt-0">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPreview}
-          className="flex-1"
-        >
+        <Button variant="outline" size="sm" onClick={onPreview} className="flex-1">
           <EyeIcon className="mr-2 h-4 w-4" />
           Preview
         </Button>
-        <Button
-          size="sm"
-          onClick={onCreate}
-          className="flex-1"
-        >
+        <Button size="sm" onClick={onCreate} className="flex-1">
           <PlusIcon className="mr-2 h-4 w-4" />
           Use Template
         </Button>

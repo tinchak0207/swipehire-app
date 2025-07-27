@@ -54,7 +54,7 @@ const Toast: React.FC<ToastProps> = ({
       return () => clearTimeout(timer);
     }
     return undefined;
-  }, [duration]);
+  }, [duration, handleClose]);
 
   const getIcon = () => {
     switch (type) {

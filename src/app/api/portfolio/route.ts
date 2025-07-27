@@ -64,7 +64,7 @@ function applyPortfolioFilters(
     );
   }
   if (filters.tags?.length) {
-    filtered = filtered.filter((p) => filters.tags!.every((tag) => p.tags.includes(tag)));
+    filtered = filtered.filter((p) => filters.tags?.every((tag) => p.tags.includes(tag)));
   }
   return filtered;
 }

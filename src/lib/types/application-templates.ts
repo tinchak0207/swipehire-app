@@ -1,4 +1,4 @@
-export type TemplateCategory = 
+export type TemplateCategory =
   | 'all'
   | 'tech'
   | 'design'

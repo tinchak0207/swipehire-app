@@ -12,6 +12,7 @@ import {
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import InteractiveWizard from '@/components/resume-optimizer/wizard/interactive-wizard';
 
 interface QuickStat {
   label: string;
@@ -40,6 +41,7 @@ const ResumeOptimizerPage: NextPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
+      <InteractiveWizard />
       {/* Hero Section */}
       <div className="container mx-auto max-w-6xl px-4 py-8">
         {/* Header Section */}

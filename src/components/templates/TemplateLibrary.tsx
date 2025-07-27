@@ -1,4 +1,4 @@
- 'use client';
+'use client';
 
 import {
   DocumentTextIcon,
@@ -59,7 +59,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
     data: templateData,
     isLoading,
     error,
-    refetch: searchTemplates
+    refetch: searchTemplates,
   } = useApplicationTemplates({
     page,
     limit: 12,
@@ -73,30 +73,39 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
   const { data: popularTemplateData } = useApplicationTemplates({
     page: 1,
     limit: 6,
-    sortBy: 'popularity'
+    sortBy: 'popularity',
   });
 
   const templates = templateData?.templates || [];
   const pagination = templateData?.pagination || { page: 1, limit: 12, total: 0, pages: 1 };
   const popularTemplates = popularTemplateData?.templates || [];
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    setPage(1);
-    searchTemplates();
-  }, [searchTemplates]);
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      setPage(1);
+      searchTemplates();
+    },
+    [searchTemplates]
+  );
 
-  const handleFilterChange = useCallback((newFilters: Partial<TemplateFilters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
-    setPage(1);
-    searchTemplates();
-  }, [searchTemplates]);
+  const handleFilterChange = useCallback(
+    (newFilters: Partial<TemplateFilters>) => {
+      setFilters((prev) => ({ ...prev, ...newFilters }));
+      setPage(1);
+      searchTemplates();
+    },
+    [searchTemplates]
+  );
 
-  const handleCategoryChange = useCallback((category: TemplateCategory) => {
-    setFilters(prev => ({ ...prev, category }));
-    setPage(1);
-    searchTemplates();
-  }, [searchTemplates]);
+  const handleCategoryChange = useCallback(
+    (category: TemplateCategory) => {
+      setFilters((prev) => ({ ...prev, category }));
+      setPage(1);
+      searchTemplates();
+    },
+    [searchTemplates]
+  );
 
   const handleClearFilters = useCallback(() => {
     setFilters({ tags: [], search: '' });
@@ -105,23 +114,32 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
     searchTemplates();
   }, [searchTemplates]);
 
-  const handleTemplateClick = useCallback((template: ApplicationTemplate) => {
-    if (onTemplateSelect) {
-      onTemplateSelect(template);
-    } else {
-      setSelectedTemplate(template);
-      setShowPreview(true);
-    }
-  }, [onTemplateSelect]);
+  const handleTemplateClick = useCallback(
+    (template: ApplicationTemplate) => {
+      if (onTemplateSelect) {
+        onTemplateSelect(template);
+      } else {
+        setSelectedTemplate(template);
+        setShowPreview(true);
+      }
+    },
+    [onTemplateSelect]
+  );
 
-  const handleCreateFromTemplate = useCallback((template: ApplicationTemplate) => {
-    router.push(`/applications/new?template=${template.id}`);
-  }, [router]);
+  const handleCreateFromTemplate = useCallback(
+    (template: ApplicationTemplate) => {
+      router.push(`/applications/new?template=${template.id}`);
+    },
+    [router]
+  );
 
-  const handlePageChange = useCallback((newPage: number) => {
-    setPage(newPage);
-    searchTemplates();
-  }, [searchTemplates]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
+      searchTemplates();
+    },
+    [searchTemplates]
+  );
 
   const renderSkeleton = () => (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -132,10 +150,10 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
   );
 
   const renderEmptyState = () => (
-    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 p-12 text-center">
+    <div className="flex flex-col items-center justify-center rounded-lg border-2 border-gray-300 border-dashed p-12 text-center">
       <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-      <h3 className="mt-2 text-sm font-medium text-gray-900">No templates found</h3>
-      <p className="mt-1 text-sm text-gray-500">
+      <h3 className="mt-2 font-medium text-gray-900 text-sm">No templates found</h3>
+      <p className="mt-1 text-gray-500 text-sm">
         Try adjusting your search or filters to find what you're looking for.
       </p>
       <div className="mt-6">
@@ -148,7 +166,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
   );
 
   const memoizedTemplateList = useMemo(() => {
-    return templates.map(template => (
+    return templates.map((template) => (
       <TemplateCard
         key={template.id}
         template={template}
@@ -158,24 +176,24 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
     ));
   }, [templates, handleTemplateClick, handleCreateFromTemplate]);
 
-
   return (
     <div className={`container mx-auto px-4 py-8 ${className}`}>
       <header className="mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Template Library</h1>
-        <p className="mt-2 text-lg text-gray-600">
-          Browse our collection of professionally designed application templates to kickstart your job search.
+        <h1 className="font-bold text-4xl text-gray-900 tracking-tight">Template Library</h1>
+        <p className="mt-2 text-gray-600 text-lg">
+          Browse our collection of professionally designed application templates to kickstart your
+          job search.
         </p>
       </header>
 
       <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center">
         <div className="relative flex-grow">
-          <MagnifyingGlassIcon className="pointer-events-none absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <MagnifyingGlassIcon className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 h-5 w-5 text-gray-400" />
           <Input
             type="search"
             placeholder="Search templates..."
             value={searchQuery}
-            onChange={e => handleSearch(e.target.value)}
+            onChange={(e) => handleSearch(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -191,9 +209,13 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
         </div>
       </div>
 
-      <Tabs value={filters.category || 'all'} onValueChange={handleCategoryChange as (value: string) => void} className="mb-8">
+      <Tabs
+        value={filters.category || 'all'}
+        onValueChange={handleCategoryChange as (value: string) => void}
+        className="mb-8"
+      >
         <TabsList>
-          {TEMPLATE_CATEGORIES.map(category => (
+          {TEMPLATE_CATEGORIES.map((category) => (
             <TabsTrigger key={category} value={category}>
               {CATEGORY_LABELS[category]}
             </TabsTrigger>
@@ -210,9 +232,9 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
       )}
 
       <div className="mb-8">
-        <h2 className="text-2xl font-semibold">Popular Templates</h2>
+        <h2 className="font-semibold text-2xl">Popular Templates</h2>
         <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {popularTemplates.map(template => (
+          {popularTemplates.map((template) => (
             <TemplateCard
               key={template.id}
               template={template}
@@ -224,7 +246,7 @@ const TemplateLibrary: React.FC<TemplateLibraryProps> = ({
       </div>
 
       <main>
-        <h2 className="mb-4 text-2xl font-semibold">All Templates</h2>
+        <h2 className="mb-4 font-semibold text-2xl">All Templates</h2>
         {isLoading ? (
           renderSkeleton()
         ) : error ? (

@@ -27,10 +27,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import {
-  InterviewPhase,
-} from '@/lib/types';
 import type {
   InterviewCalendar,
   InterviewProgress,
@@ -38,6 +34,8 @@ import type {
   PreparationTip,
   UserRole,
 } from '@/lib/types';
+import { InterviewPhase } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 interface InterviewGuidePageProps {
   isGuestMode?: boolean;

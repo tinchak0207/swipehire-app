@@ -67,7 +67,7 @@ import {
   WorkExperienceLevel,
 } from '@/lib/types';
 
-const envBackendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
+const envBackendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL =
   envBackendUrl && envBackendUrl.trim() !== '' ? envBackendUrl : 'http://localhost:5000';
 

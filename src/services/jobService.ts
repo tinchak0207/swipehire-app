@@ -4,7 +4,7 @@
 import type { Company, CompanyJobOpening } from '../lib/types';
 import { EducationLevel, JobType, LocationPreference, WorkExperienceLevel } from '../lib/types';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface JobOpeningPayload
   extends Omit<

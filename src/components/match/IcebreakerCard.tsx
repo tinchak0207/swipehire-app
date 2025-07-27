@@ -65,7 +65,7 @@ import { fetchMessages, sendMessage } from '@/services/chatService'; // Correcte
 import { archiveMatch } from '@/services/matchService';
 import { ApplicationStatusTimeline } from './ApplicationStatusTimeline';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 let socket: Socket | null = null;
 
 const isMongoObjectId = (id: string): boolean => {
