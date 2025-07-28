@@ -94,7 +94,7 @@ class AIVideoGenerationService {
     await new Promise((resolve) => setTimeout(resolve, 4000));
 
     const videoId = `vid_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const baseUrl = process.env['NEXT_PUBLIC_BASE_URL'] || 'http://localhost:3000';
 
     return {
       success: true,
@@ -225,7 +225,7 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         error: videoError.message,
-        details: process.env.NODE_ENV === 'development' ? error : undefined,
+        details: process.env['NODE_ENV'] === 'development' ? error : undefined,
       },
       { status: 500 }
     );

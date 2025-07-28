@@ -28,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.MISTRAL_API_KEY}`,
+        Authorization: `Bearer ${process.env['MISTRAL_API_KEY']}`,
       },
       body: JSON.stringify({
         model: 'mistral-tiny',

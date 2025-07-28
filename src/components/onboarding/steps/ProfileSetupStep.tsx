@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import CareerQuestionnaire from '@/components/career-ai/CareerQuestionnaire';
 import {
   Availability,
@@ -7,10 +6,11 @@ import {
   LocationPreference,
   WorkExperienceLevel,
 } from '@/lib/types';
-import type { WizardData } from '../WizardContainer';
+import { WizardData } from '../WizardContainer';
+import { useState } from 'react';
 
 interface ProfileSetupStepProps {
-  data: WizardData;
+  data: Partial<WizardData>;
   onUpdate: (data: Partial<WizardData>) => void;
   onNext: () => void;
   onBack: () => void;
@@ -25,12 +25,9 @@ export default function ProfileSetupStep({
   isLoading,
 }: ProfileSetupStepProps) {
   const [showQuestionnaire, setShowQuestionnaire] = useState(false);
-  const [formData, setFormData] = useState(data.profileData);
 
-  const handleInputChange = (field: string, value: any) => {
-    const updatedData = { ...formData, [field]: value };
-    setFormData(updatedData);
-    onUpdate({ profileData: updatedData });
+  const handleInputChange = (field: keyof WizardData, value: any) => {
+    onUpdate({ [field]: value });
   };
 
   const handleSkillsChange = (value: string) => {
@@ -38,7 +35,7 @@ export default function ProfileSetupStep({
       .split(',')
       .map((skill) => skill.trim())
       .filter((skill) => skill.length > 0);
-    handleInputChange('skills', skills);
+    onUpdate({ skills });
   };
 
   const handleCultureHighlightsChange = (value: string) => {
@@ -46,24 +43,22 @@ export default function ProfileSetupStep({
       .split(',')
       .map((highlight) => highlight.trim())
       .filter((highlight) => highlight.length > 0);
-    handleInputChange('companyCultureHighlights', highlights);
+    onUpdate({ companyCultureHighlights: highlights });
   };
 
   const handleQuestionnaireSubmit = (questionnaireData: any) => {
     // Map questionnaire data to profile data
-    const mappedData = {
-      ...formData,
-      experienceSummary: questionnaireData.experience?.join('\n') || formData.experienceSummary,
-      skills: questionnaireData.skills || formData.skills,
+    const mappedData: Partial<WizardData> = {
+      experienceSummary: questionnaireData.experience?.join('\n') || data.experienceSummary,
+      skills: questionnaireData.skills || data.skills,
       // Add other mappings as needed
     };
-    setFormData(mappedData);
-    onUpdate({ profileData: mappedData });
+    onUpdate(mappedData);
     setShowQuestionnaire(false);
   };
 
-  const isJobSeeker = data.userType === 'jobseeker';
-  const isRecruiter = data.userType === 'recruiter';
+  const isJobSeeker = data.role === 'jobseeker';
+  const isRecruiter = data.role === 'recruiter';
 
   // Validation
   /*const canProceed = isJobSeeker
@@ -166,7 +161,7 @@ export default function ProfileSetupStep({
                     type="text"
                     placeholder="e.g., Senior Software Engineer | Full-Stack Developer"
                     className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                    value={formData.headline || ''}
+                    value={data.headline || ''}
                     onChange={(e) => handleInputChange('headline', e.target.value)}
                   />
                 </div>
@@ -180,7 +175,7 @@ export default function ProfileSetupStep({
                   <textarea
                     placeholder="Describe your professional background, key achievements, and what makes you unique..."
                     className="h-32 w-full resize-none rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                    value={formData.experienceSummary || ''}
+                    value={data.experienceSummary || ''}
                     onChange={(e) => handleInputChange('experienceSummary', e.target.value)}
                   />
                 </div>
@@ -193,7 +188,7 @@ export default function ProfileSetupStep({
                     type="text"
                     placeholder="JavaScript, React, Node.js, Python, etc. (comma-separated)"
                     className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                    value={formData.skills?.join(', ') || ''}
+                    value={data.skills?.join(', ') || ''}
                     onChange={(e) => handleSkillsChange(e.target.value)}
                   />
                   <p className="mt-2 text-gray-500 text-sm">Separate skills with commas</p>
@@ -206,7 +201,7 @@ export default function ProfileSetupStep({
                     </label>
                     <select
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                      value={formData.workExperienceLevel || ''}
+                      value={data.workExperienceLevel || ''}
                       onChange={(e) => handleInputChange('workExperienceLevel', e.target.value)}
                     >
                       <option value="">Select level</option>
@@ -224,7 +219,7 @@ export default function ProfileSetupStep({
                     </label>
                     <select
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                      value={formData.educationLevel || ''}
+                      value={data.educationLevel || ''}
                       onChange={(e) => handleInputChange('educationLevel', e.target.value)}
                     >
                       <option value="">Select education</option>
@@ -244,7 +239,7 @@ export default function ProfileSetupStep({
                     </label>
                     <select
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                      value={formData.locationPreference || ''}
+                      value={data.locationPreference || ''}
                       onChange={(e) => handleInputChange('locationPreference', e.target.value)}
                     >
                       <option value="">Select preference</option>
@@ -262,7 +257,7 @@ export default function ProfileSetupStep({
                     </label>
                     <select
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                      value={formData.availability || ''}
+                      value={data.availability || ''}
                       onChange={(e) => handleInputChange('availability', e.target.value)}
                     >
                       <option value="">Select availability</option>
@@ -282,7 +277,7 @@ export default function ProfileSetupStep({
                   <textarea
                     placeholder="Describe your ideal work environment, team dynamics, and work-life balance preferences..."
                     className="h-24 w-full resize-none rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                    value={formData.desiredWorkStyle || ''}
+                    value={data.desiredWorkStyle || ''}
                     onChange={(e) => handleInputChange('desiredWorkStyle', e.target.value)}
                   />
                 </div>
@@ -298,7 +293,7 @@ export default function ProfileSetupStep({
                       type="number"
                       placeholder="50000"
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                      value={formData.salaryExpectationMin || ''}
+                      value={data.salaryExpectationMin || ''}
                       onChange={(e) =>
                         handleInputChange(
                           'salaryExpectationMin',
@@ -318,7 +313,7 @@ export default function ProfileSetupStep({
                       type="number"
                       placeholder="80000"
                       className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                      value={formData.salaryExpectationMax || ''}
+                      value={data.salaryExpectationMax || ''}
                       onChange={(e) =>
                         handleInputChange(
                           'salaryExpectationMax',
@@ -342,7 +337,7 @@ export default function ProfileSetupStep({
                   type="text"
                   placeholder="Your company name"
                   className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                  value={formData.companyName || ''}
+                  value={data.companyName || ''}
                   onChange={(e) => handleInputChange('companyName', e.target.value)}
                 />
               </div>
@@ -356,7 +351,7 @@ export default function ProfileSetupStep({
                     type="text"
                     placeholder="e.g., Technology, Healthcare, Finance"
                     className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                    value={formData.companyIndustry || ''}
+                    value={data.companyIndustry || ''}
                     onChange={(e) => handleInputChange('companyIndustry', e.target.value)}
                   />
                 </div>
@@ -367,7 +362,7 @@ export default function ProfileSetupStep({
                   </label>
                   <select
                     className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                    value={formData.companyScale || ''}
+                    value={data.companyScale || ''}
                     onChange={(e) => handleInputChange('companyScale', e.target.value)}
                   >
                     <option value="">Select size</option>
@@ -387,7 +382,7 @@ export default function ProfileSetupStep({
                 <textarea
                   placeholder="Describe your company's mission, values, and what makes it a great place to work..."
                   className="h-32 w-full resize-none rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                  value={formData.companyDescription || ''}
+                  value={data.companyDescription || ''}
                   onChange={(e) => handleInputChange('companyDescription', e.target.value)}
                 />
               </div>
@@ -400,7 +395,7 @@ export default function ProfileSetupStep({
                   type="text"
                   placeholder="Innovation, Work-life balance, Remote-friendly, etc. (comma-separated)"
                   className="w-full rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                  value={formData.companyCultureHighlights?.join(', ') || ''}
+                  value={data.companyCultureHighlights?.join(', ') || ''}
                   onChange={(e) => handleCultureHighlightsChange(e.target.value)}
                 />
                 <p className="mt-2 text-gray-500 text-sm">Separate highlights with commas</p>
@@ -413,7 +408,7 @@ export default function ProfileSetupStep({
                 <textarea
                   placeholder="Describe the types of roles you're looking to fill and key requirements..."
                   className="h-24 w-full resize-none rounded-xl border-2 border-gray-200 bg-white/80 px-4 py-4 text-black placeholder-gray-400 backdrop-blur-sm transition-all duration-300 focus:border-green-400 focus:ring-4 focus:ring-green-100"
-                  value={formData.companyNeeds || ''}
+                  value={data.companyNeeds || ''}
                   onChange={(e) => handleInputChange('companyNeeds', e.target.value)}
                 />
               </div>

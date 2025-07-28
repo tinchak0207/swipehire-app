@@ -1,111 +1,106 @@
 'use client';
 
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
-import type { BackendUser, UserRole } from '@/lib/types';
-import ProgressIndicator from './ProgressIndicator';
+import { useToast } from '@/hooks/use-toast';
+import type {
+  Availability,
+  BackendUser,
+  CompanyScale,
+  EducationLevel,
+  LocationPreference,
+  UserRole,
+  WorkExperienceLevel,
+} from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { z } from 'zod';
 import CompletionStep from './steps/CompletionStep';
 import GoalSettingStep from './steps/GoalSettingStep';
 import PreferencesStep from './steps/PreferencesStep';
 import ProfileSetupStep from './steps/ProfileSetupStep';
 import WelcomeStep from './steps/WelcomeStep';
 
-export interface WizardData {
-  userType: UserRole | null;
-  profileData: {
-    // Candidate fields
-    headline: string;
-    experienceSummary: string;
-    skills: string[];
-    desiredWorkStyle: string;
-    workExperienceLevel: string;
-    educationLevel: string;
-    locationPreference: string;
-    availability: string;
-    jobTypePreference: string;
-    salaryExpectationMin: number;
-    salaryExpectationMax: number;
+const steps = [
+  { id: 'welcome', title: 'Welcome' },
+  { id: 'profile', title: 'Profile Setup' },
+  { id: 'goals', title: 'Set Goals' },
+  { id: 'preferences', title: 'Preferences' },
+  { id: 'completion', title: 'All Set!' },
+];
 
-    // Company fields
-    companyName: string;
-    companyIndustry: string;
-    companyScale: string;
-    companyDescription: string;
-    companyCultureHighlights: string[];
-    companyNeeds: string;
-  };
-  preferences: {
-    theme: 'light' | 'dark' | 'system';
-    notificationChannels: {
-      email: boolean;
-      sms: boolean;
-      inAppToast: boolean;
-      inAppBanner: boolean;
-    };
-    notificationSubscriptions: {
-      companyReplies: boolean;
-      matchUpdates: boolean;
-      applicationStatusChanges: boolean;
-      platformAnnouncements: boolean;
-      welcomeAndOnboardingEmails: boolean;
-      contentAndBlogUpdates: boolean;
-      featureAndPromotionUpdates: boolean;
-    };
-  };
-  goals: {
-    shortTerm: string[];
-    midTerm: string[];
-    longTerm: string[];
-    skillDevelopment: string[];
-  };
-}
-
-const initialWizardData: WizardData = {
-  userType: null,
-  profileData: {
-    headline: '',
-    experienceSummary: '',
-    skills: [],
-    desiredWorkStyle: '',
-    workExperienceLevel: '',
-    educationLevel: '',
-    locationPreference: '',
-    availability: '',
-    jobTypePreference: '',
-    salaryExpectationMin: 0,
-    salaryExpectationMax: 0,
-    companyName: '',
-    companyIndustry: '',
-    companyScale: '',
-    companyDescription: '',
-    companyCultureHighlights: [],
-    companyNeeds: '',
-  },
-  preferences: {
-    theme: 'system',
-    notificationChannels: {
-      email: true,
-      sms: false,
-      inAppToast: true,
-      inAppBanner: true,
-    },
-    notificationSubscriptions: {
-      companyReplies: true,
-      matchUpdates: true,
-      applicationStatusChanges: true,
-      platformAnnouncements: true,
-      welcomeAndOnboardingEmails: true,
-      contentAndBlogUpdates: false,
-      featureAndPromotionUpdates: false,
-    },
-  },
-  goals: {
-    shortTerm: [],
-    midTerm: [],
-    longTerm: [],
-    skillDevelopment: [],
-  },
+const formVariant: any = {
+  hidden: { opacity: 0, x: 50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: 'ease-in' } },
+  exit: { opacity: 0, x: -50, transition: { duration: 0.4, ease: 'ease-out' } },
 };
+
+export const personalInfoSchema = z.object({
+  name: z.string().min(2, 'Name is required'),
+  location: z.string().optional(),
+  title: z.string().optional(),
+  bio: z.string().optional(),
+});
+
+export const experienceSchema = z.object({
+  experiences: z.array(z.object({
+    title: z.string(),
+    company: z.string(),
+    startDate: z.string(),
+    endDate: z.string().optional(),
+    description: z.string().optional(),
+  })),
+});
+
+export const educationSchema = z.object({
+  educations: z.array(z.object({
+    school: z.string(),
+    degree: z.string(),
+    fieldOfStudy: z.string(),
+    graduationYear: z.string().optional(),
+  })),
+});
+
+export const skillsSchema = z.object({
+  skills: z.array(z.string()),
+  interests: z.array(z.string()),
+});
+
+export type WizardData = z.infer<typeof personalInfoSchema> &
+  z.infer<typeof experienceSchema> &
+  z.infer<typeof educationSchema> &
+  z.infer<typeof skillsSchema> & {
+    role?: UserRole | null;
+    headline?: string;
+    experienceSummary?: string;
+    workExperienceLevel?: WorkExperienceLevel;
+    educationLevel?: EducationLevel;
+    locationPreference?: LocationPreference;
+    availability?: Availability;
+    desiredWorkStyle?: string;
+    salaryExpectationMin?: number;
+    salaryExpectationMax?: number;
+    companyName?: string;
+    companyIndustry?: string;
+    companyScale?: CompanyScale;
+    companyDescription?: string;
+    companyCultureHighlights?: string[];
+    companyNeeds?: string;
+    goals?: {
+      jobSearchStatus?: string;
+      targetRoles?: string[];
+      workModels?: string[];
+    };
+    preferences?: {
+      theme?: 'light' | 'dark' | 'system';
+      notificationChannels?: Record<string, boolean>;
+      notificationSubscriptions?: Record<string, boolean>;
+    };
+  };
 
 interface WizardContainerProps {
   onCompleteAction: () => void;
@@ -113,334 +108,181 @@ interface WizardContainerProps {
   returnTo?: string | null;
 }
 
-export default function WizardContainer({
-  onCompleteAction = () => console.log('Wizard complete!'),
-  onSkipAction,
-  returnTo,
-}: WizardContainerProps) {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [wizardData, setWizardData] = useState<WizardData>(initialWizardData);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
+export function WizardContainer({ onCompleteAction, onSkipAction }: WizardContainerProps) {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [formData, setFormData] = useState<Partial<WizardData>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
+  const { mongoDbUserId, fullBackendUser, updateFullBackendUserFields } = useUserPreferences();
 
-  const { fullBackendUser, updateFullBackendUserFields, setPreferences, mongoDbUserId } =
-    useUserPreferences();
+  const methods = useForm();
 
-  const totalSteps = 5;
+  const { trigger, getValues, reset } = methods;
 
-  // Load existing data if user has partial progress
   useEffect(() => {
     if (fullBackendUser) {
-      setWizardData((prev) => ({
-        ...prev,
-        userType: fullBackendUser.selectedRole,
-        profileData: {
-          // Candidate fields
-          headline: fullBackendUser.profileHeadline || '',
-          experienceSummary: fullBackendUser.profileExperienceSummary || '',
-          skills: fullBackendUser.profileSkills?.split(',').map((s) => s.trim()) || [],
-          desiredWorkStyle: fullBackendUser.profileDesiredWorkStyle || '',
-          workExperienceLevel: fullBackendUser.profileWorkExperienceLevel || '',
-          educationLevel: fullBackendUser.profileEducationLevel || '',
-          locationPreference: fullBackendUser.profileLocationPreference || '',
-          availability: fullBackendUser.profileAvailability || '',
-          jobTypePreference: fullBackendUser.profileJobTypePreference || '',
-          salaryExpectationMin: fullBackendUser.profileSalaryExpectationMin || 0,
-          salaryExpectationMax: fullBackendUser.profileSalaryExpectationMax || 0,
-
-          // Company fields
-          companyName: fullBackendUser.companyName || '',
-          companyIndustry: fullBackendUser.companyIndustry || '',
-          companyScale: fullBackendUser.companyScale || '',
-          companyDescription: fullBackendUser.companyDescription || '',
-          companyCultureHighlights: fullBackendUser.companyCultureHighlights || [],
-          companyNeeds: fullBackendUser.companyNeeds || '',
-        },
-        preferences: {
-          theme: fullBackendUser.preferences?.theme || 'system',
-          notificationChannels:
-            fullBackendUser.preferences?.notificationChannels ||
-            initialWizardData.preferences.notificationChannels,
-          notificationSubscriptions:
-            fullBackendUser.preferences?.notificationSubscriptions ||
-            initialWizardData.preferences.notificationSubscriptions,
-        },
-      }));
-    }
-  }, [fullBackendUser]);
-
-  const updateWizardData = (stepData: Partial<WizardData>) => {
-    setWizardData((prev) => ({
-      ...prev,
-      ...stepData,
-      profileData: { ...prev.profileData, ...stepData.profileData },
-      preferences: { ...prev.preferences, ...stepData.preferences },
-      goals: { ...prev.goals, ...stepData.goals },
-    }));
-  };
-
-  const saveProgress = async () => {
-    if (!mongoDbUserId) return;
-
-    try {
-      setIsLoading(true);
-
-      // Prepare backend user updates
-      const userUpdates: Partial<BackendUser> = {
-        selectedRole: wizardData.userType,
-        preferences: {
-          ...wizardData.preferences,
-          isLoading: false,
-          notificationChannels: {
-            ...wizardData.preferences.notificationChannels,
-          },
-          notificationSubscriptions: {
-            companyReplies: wizardData.preferences.notificationSubscriptions.companyReplies,
-            matchUpdates: wizardData.preferences.notificationSubscriptions.matchUpdates,
-            applicationStatusChanges:
-              wizardData.preferences.notificationSubscriptions.applicationStatusChanges,
-            platformAnnouncements:
-              wizardData.preferences.notificationSubscriptions.platformAnnouncements,
-            welcomeAndOnboardingEmails:
-              wizardData.preferences.notificationSubscriptions.welcomeAndOnboardingEmails,
-            contentAndBlogUpdates:
-              wizardData.preferences.notificationSubscriptions.contentAndBlogUpdates,
-            featureAndPromotionUpdates:
-              wizardData.preferences.notificationSubscriptions.featureAndPromotionUpdates,
-          },
-        },
+      const initialData: Partial<WizardData> = {
+        role: fullBackendUser.selectedRole,
+        name: fullBackendUser.name,
+        // Map other fields as necessary
       };
-
-      // Add profile data based on user type
-      if (wizardData.userType === 'jobseeker') {
-        Object.assign(userUpdates, {
-          profileHeadline: wizardData.profileData.headline,
-          profileExperienceSummary: wizardData.profileData.experienceSummary,
-          profileSkills: wizardData.profileData.skills?.join(', '),
-          profileDesiredWorkStyle: wizardData.profileData.desiredWorkStyle,
-          profileWorkExperienceLevel: wizardData.profileData.workExperienceLevel,
-          profileEducationLevel: wizardData.profileData.educationLevel,
-          profileLocationPreference: wizardData.profileData.locationPreference,
-          profileAvailability: wizardData.profileData.availability,
-          profileJobTypePreference: wizardData.profileData.jobTypePreference,
-          profileSalaryExpectationMin: wizardData.profileData.salaryExpectationMin,
-          profileSalaryExpectationMax: wizardData.profileData.salaryExpectationMax,
-        });
-      } else if (wizardData.userType === 'recruiter') {
-        Object.assign(userUpdates, {
-          companyName: wizardData.profileData.companyName,
-          companyIndustry: wizardData.profileData.companyIndustry,
-          companyScale: wizardData.profileData.companyScale,
-          companyDescription: wizardData.profileData.companyDescription,
-          companyCultureHighlights: wizardData.profileData.companyCultureHighlights,
-          companyNeeds: wizardData.profileData.companyNeeds,
-          companyProfileComplete: true,
-        });
-      }
-
-      // Save to backend
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(userUpdates),
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to save user data');
-      }
-
-      // Update local context
-      updateFullBackendUserFields(userUpdates);
-      setPreferences(wizardData.preferences);
-    } catch (error) {
-      console.error('Error saving wizard progress:', error);
-      throw error;
-    } finally {
-      setIsLoading(false);
+      reset(initialData); // Reset form with user data
+      setFormData(initialData);
     }
-  };
+  }, [fullBackendUser, reset]);
 
-  const handleNext = async () => {
-    // Save progress on each step
-    await saveProgress();
+  const nextStep = async () => {
+    const isValid = await trigger();
+    if (isValid) {
+      const values = getValues();
+      const newFormData = { ...formData, ...values };
+      setFormData(newFormData);
 
-    if (currentStep < totalSteps) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      // Mark wizard as completed
-      if (mongoDbUserId) {
-        try {
-          await fetch(
-            `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                wizardCompleted: true,
-                onboardingCompletedAt: new Date().toISOString(),
-              }),
-            }
-          );
-
-          updateFullBackendUserFields({
-            wizardCompleted: true,
-            onboardingCompletedAt: new Date().toISOString(),
-          });
-        } catch (error) {
-          console.error('Error marking wizard as completed:', error);
-        }
-      }
-
-      setShowConfetti(true);
-      console.log('Calling onCompleteAction...');
-      try {
-        onCompleteAction();
-        console.log('onCompleteAction completed successfully');
-      } catch (error) {
-        console.error('Error during completion:', error);
-        // Fallback redirect if the action fails
-        console.log('Falling back to window.location redirect');
-        window.location.href =
-          returnTo === 'resume-optimizer-import'
-            ? '/resume-optimizer/import?onboarding=completed'
-            : '/';
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
       }
     }
   };
 
-  const handleBack = () => {
-    if (currentStep > 1) {
+  const prevStep = () => {
+    if (currentStep > 0) {
       setCurrentStep(currentStep - 1);
     }
   };
 
-  const handleSkip = async () => {
-    if (mongoDbUserId) {
-      try {
-        await fetch(
-          `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              wizardSkipped: true,
-              wizardSkippedAt: new Date().toISOString(),
-            }),
-          }
-        );
+  const handleFinalSubmit = async () => {
+    setIsSubmitting(true);
+    toast({ title: 'Saving Profile', description: 'Please wait while we update your profile.' });
 
-        updateFullBackendUserFields({
-          wizardSkipped: true,
-          wizardSkippedAt: new Date().toISOString(),
-        });
-      } catch (error) {
-        console.error('Error marking wizard as skipped:', error);
-      }
+    if (!mongoDbUserId) {
+      toast({
+        title: 'Error',
+        description: 'User not authenticated. Cannot save profile.',
+        variant: 'destructive',
+      });
+      setIsSubmitting(false);
+      return;
     }
-    onSkipAction();
+
+    try {
+      const response = await fetch(
+        `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save profile.');
+      }
+
+      const updatedUser: BackendUser = await response.json();
+      updateFullBackendUserFields(updatedUser);
+
+      toast({
+        title: 'Profile Saved!',
+        description: 'Your onboarding is complete and your profile has been updated.',
+      });
+      setCurrentStep(steps.length - 1); // Move to the final confirmation screen
+    } catch (error: any) {
+      toast({
+        title: 'Submission Error',
+        description: error.message || 'An unexpected error occurred.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const renderCurrentStep = () => {
+  
+  const progress = ((currentStep + 1) / steps.length) * 100;
+
+  const renderStep = () => {
+    const stepProps: any = {
+      data: formData,
+      onUpdate: setFormData,
+      onNext: nextStep,
+      onBack: prevStep,
+      isLoading: isSubmitting,
+    };
+
     switch (currentStep) {
+      case 0:
+        return <WelcomeStep {...stepProps} onSkip={onSkipAction} />;
       case 1:
-        return (
-          <WelcomeStep
-            data={wizardData}
-            onUpdate={updateWizardData}
-            onNext={handleNext}
-            onSkip={handleSkip}
-            isLoading={isLoading}
-          />
-        );
+        return <ProfileSetupStep {...stepProps} />;
       case 2:
-        return (
-          <ProfileSetupStep
-            data={wizardData}
-            onUpdate={updateWizardData}
-            onNext={handleNext}
-            onBack={handleBack}
-            isLoading={isLoading}
-          />
-        );
+        return <GoalSettingStep {...stepProps} />;
       case 3:
-        return (
-          <PreferencesStep
-            data={wizardData}
-            onUpdate={updateWizardData}
-            onNext={handleNext}
-            onBack={handleBack}
-            isLoading={isLoading}
-          />
-        );
+        return <PreferencesStep {...stepProps} />;
       case 4:
-        return (
-          <GoalSettingStep
-            data={wizardData}
-            onUpdate={updateWizardData}
-            onNext={handleNext}
-            onBack={handleBack}
-            isLoading={isLoading}
-          />
-        );
-      case 5:
-        return (
-          <CompletionStep
-            data={wizardData}
-            onComplete={handleNext}
-            showConfetti={showConfetti}
-            isLoading={isLoading}
-          />
-        );
+        return <CompletionStep {...stepProps} onComplete={onCompleteAction} showConfetti />;
       default:
         return null;
     }
   };
 
-  // Step-specific gradient backgrounds
-  const getStepGradient = () => {
-    switch (currentStep) {
-      case 1:
-        return 'from-blue-50 via-white to-blue-100';
-      case 2:
-        return 'from-green-50 via-white to-green-100';
-      case 3:
-        return 'from-purple-50 via-white to-purple-100';
-      case 4:
-        return 'from-gray-50 via-white to-gray-100';
-      case 5:
-        return 'from-pink-50 via-white to-pink-100';
-      default:
-        return 'from-gray-50 via-white to-gray-100';
-    }
-  };
-
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-br transition-all duration-700 ease-in-out ${getStepGradient()} text-gray-800`}
-    >
-      <div className="container mx-auto max-w-5xl px-4 py-8">
-        <ProgressIndicator
-          currentStep={currentStep}
-          totalSteps={totalSteps}
-          stepTitles={['Welcome', 'Profile Setup', 'Preferences', 'Goal Setting', 'Complete']}
-        />
-
-        <div className="mt-8 animate-fade-in">
-          {/* Glassmorphism container for onboarding steps */}
-          <div className="rounded-2xl border border-white/30 bg-white/30 p-1 shadow-2xl backdrop-blur-xl">
-            <div className="rounded-xl bg-white/80 p-5 backdrop-blur-sm">{renderCurrentStep()}</div>
-          </div>
+    <div className="mx-auto w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl md:p-8">
+      <div className="mb-6">
+        <div className="flex items-center justify-between">
+          <h2 className="font-bold text-2xl text-gray-800">Profile Setup</h2>
+          <span className="font-medium text-sm text-gray-500">
+            Step {currentStep + 1} of {steps.length}
+          </span>
         </div>
+        <p className="mt-1 text-gray-600">{(steps[currentStep] as any).title}</p>
+        <Progress value={progress} className="mt-3 h-2" />
       </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div key={currentStep} variants={formVariant} initial="hidden" animate="visible" exit="exit">
+          {renderStep()}
+        </motion.div>
+      </AnimatePresence>
+
+      {currentStep < steps.length - 1 && (
+        <div
+          className={cn(
+            'mt-8 flex',
+            currentStep === 0 ? 'justify-end' : 'justify-between'
+          )}
+        >
+          {currentStep > 0 && (
+            <Button variant="outline" onClick={prevStep} disabled={isSubmitting}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Previous
+            </Button>
+          )}
+          {currentStep < steps.length - 2 ? (
+            <Button onClick={nextStep} disabled={isSubmitting}>
+              Next <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          ) : (
+            <Button onClick={handleFinalSubmit} disabled={isSubmitting}>
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Sparkles className="mr-2 h-4 w-4" />
+              )}
+              Finish & Save Profile
+            </Button>
+          )}
+        </div>
+      )}
+
+      {currentStep === steps.length - 1 && (
+        <div className="mt-8 text-center">
+          <Button size="lg" onClick={onCompleteAction}>
+            <Check className="mr-2 h-5 w-5" /> Go to Dashboard
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
+
+export default WizardContainer;

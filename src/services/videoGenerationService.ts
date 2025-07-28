@@ -20,7 +20,7 @@ class VideoGenerationService implements AIVideoService {
   private apiKey: string | null;
 
   constructor() {
-    this.apiKey = process.env.VIDEO_API_KEY || null;
+    this.apiKey = process.env['VIDEO_API_KEY'] || null;
   }
 
   /**

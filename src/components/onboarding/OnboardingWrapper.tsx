@@ -28,7 +28,11 @@ export default function OnboardingWrapper({ children }: OnboardingWrapperProps) 
   if (shouldShowWizard) {
     return (
       <div className="min-h-screen bg-base-100">
-        <WizardContainer onCompleteAction={markWizardCompleted} onSkipAction={markWizardSkipped} />
+        <WizardContainer
+          onCompleteAction={markWizardCompleted}
+          onSkipAction={markWizardSkipped}
+          returnTo={null}
+        />
       </div>
     );
   }

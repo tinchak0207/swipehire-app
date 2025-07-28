@@ -1,11 +1,9 @@
 'use client';
 
 import type { UserRole } from '@/lib/types';
-import type { WizardData } from '../WizardContainer';
-
 interface WelcomeStepProps {
-  data: WizardData;
-  onUpdate: (data: Partial<WizardData>) => void;
+  data: Record<string, any>;
+  onUpdate: (data: Partial<Record<string, any>>) => void;
   onNext: () => void;
   onSkip: () => void;
   isLoading: boolean;
@@ -22,7 +20,7 @@ export default function WelcomeStep({
     onUpdate({ userType: role });
   };
 
-  const canProceed = data.userType !== null;
+  const canProceed = data['userType'] !== null;
 
   return (
     <div className="mx-auto max-w-4xl animate-fade-in">
@@ -136,7 +134,7 @@ export default function WelcomeStep({
           {/* Job Seeker Option */}
           <div
             className={`group cursor-pointer rounded-2xl p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl ${
-              data.userType === 'jobseeker'
+              data['userType'] === 'jobseeker'
                 ? 'scale-105 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-2xl ring-4 ring-blue-200'
                 : 'bg-white/80 shadow-lg hover:scale-102 hover:bg-white'
             } `}
@@ -145,14 +143,14 @@ export default function WelcomeStep({
             <div className="text-center">
               <div
                 className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
-                  data.userType === 'jobseeker'
+                  data['userType'] === 'jobseeker'
                     ? 'bg-white/20 shadow-lg'
                     : 'bg-gradient-to-br from-blue-400 to-blue-600 group-hover:scale-110 group-hover:shadow-xl'
                 } `}
               >
                 <svg
                   className={`h-10 w-10 transition-colors duration-300 ${
-                    data.userType === 'jobseeker' ? 'text-white' : 'text-white'
+                    data['userType'] === 'jobseeker' ? 'text-white' : 'text-white'
                   } `}
                   fill="none"
                   stroke="currentColor"
@@ -168,21 +166,21 @@ export default function WelcomeStep({
               </div>
               <h3
                 className={`mb-4 font-bold text-2xl ${
-                  data.userType === 'jobseeker' ? 'text-white' : 'text-gray-800'
+                  data['userType'] === 'jobseeker' ? 'text-white' : 'text-gray-800'
                 }`}
               >
                 I'm Looking for Jobs
               </h3>
               <p
                 className={`mb-6 text-base leading-relaxed ${
-                  data.userType === 'jobseeker' ? 'text-white/90' : 'text-gray-600'
+                  data['userType'] === 'jobseeker' ? 'text-white/90' : 'text-gray-600'
                 }`}
               >
                 Find your next career opportunity with AI-powered matching and career guidance
               </p>
               <ul
                 className={`space-y-2 text-left text-sm ${
-                  data.userType === 'jobseeker' ? 'text-white/80' : 'text-gray-500'
+                  data['userType'] === 'jobseeker' ? 'text-white/80' : 'text-gray-500'
                 }`}
               >
                 <li className="flex items-center">
@@ -208,7 +206,7 @@ export default function WelcomeStep({
           {/* Recruiter Option */}
           <div
             className={`group cursor-pointer rounded-2xl p-8 backdrop-blur-sm transition-all duration-500 hover:shadow-2xl ${
-              data.userType === 'recruiter'
+              data['userType'] === 'recruiter'
                 ? 'scale-105 bg-gradient-to-br from-green-500 to-green-600 text-white shadow-2xl ring-4 ring-green-200'
                 : 'bg-white/80 shadow-lg hover:scale-102 hover:bg-white'
             } `}
@@ -217,14 +215,14 @@ export default function WelcomeStep({
             <div className="text-center">
               <div
                 className={`mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl transition-all duration-300 ${
-                  data.userType === 'recruiter'
+                  data['userType'] === 'recruiter'
                     ? 'bg-white/20 shadow-lg'
                     : 'bg-gradient-to-br from-green-400 to-green-600 group-hover:scale-110 group-hover:shadow-xl'
                 } `}
               >
                 <svg
                   className={`h-10 w-10 transition-colors duration-300 ${
-                    data.userType === 'recruiter' ? 'text-white' : 'text-white'
+                    data['userType'] === 'recruiter' ? 'text-white' : 'text-white'
                   } `}
                   fill="none"
                   stroke="currentColor"
@@ -240,21 +238,21 @@ export default function WelcomeStep({
               </div>
               <h3
                 className={`mb-4 font-bold text-2xl ${
-                  data.userType === 'recruiter' ? 'text-white' : 'text-gray-800'
+                  data['userType'] === 'recruiter' ? 'text-white' : 'text-gray-800'
                 }`}
               >
                 I'm Hiring Talent
               </h3>
               <p
                 className={`mb-6 text-base leading-relaxed ${
-                  data.userType === 'recruiter' ? 'text-white/90' : 'text-gray-600'
+                  data['userType'] === 'recruiter' ? 'text-white/90' : 'text-gray-600'
                 }`}
               >
                 Discover exceptional candidates with intelligent screening and matching tools
               </p>
               <ul
                 className={`space-y-2 text-left text-sm ${
-                  data.userType === 'recruiter' ? 'text-white/80' : 'text-gray-500'
+                  data['userType'] === 'recruiter' ? 'text-white/80' : 'text-gray-500'
                 }`}
               >
                 <li className="flex items-center">

@@ -3,7 +3,6 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
 import type { Candidate, Company, Match } from '@/lib/types';
 import { ApplicantCard } from './ApplicantCard';
 
@@ -24,7 +23,6 @@ export function TikTokApplicantScroller({
 }: TikTokApplicantScrollerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { toast } = useToast();
   const cardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
 
   // Handle scroll events to detect which card is active
@@ -77,15 +75,7 @@ export function TikTokApplicantScroller({
     scrollToApplicant(prevIndex);
   };
 
-  // Handle applicant card actions
-  const _handleApplicantCardClick = (match: Match & { candidate: Candidate; company: Company }) => {
-    toast({
-      title: 'View Resume',
-      description: `Conceptual: Navigating to ${match.candidate.name}'s full profile.`,
-      duration: 3000,
-    });
-  };
-
+  
   // Set card ref
   const setCardRef = useCallback((matchId: string, element: HTMLDivElement | null) => {
     if (element) {

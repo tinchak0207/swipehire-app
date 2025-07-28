@@ -28,7 +28,7 @@ import {
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface VideoRecorderUIProps {
   onRecordingComplete?: (videoDataUrl: string) => void;

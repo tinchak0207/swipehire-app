@@ -194,11 +194,11 @@ export const CustomValidation: Story = {
       const errors: Record<string, string> = {};
 
       if (data.title && !data.title.toLowerCase().includes('senior')) {
-        errors.title = 'Title must include "Senior" for this example';
+        errors['title'] = 'Title must include "Senior" for this example';
       }
 
       if (data.keywords && data.keywords.split(',').length < 3) {
-        errors.keywords = 'Please provide at least 3 keywords';
+        errors['keywords'] = 'Please provide at least 3 keywords';
       }
 
       return {

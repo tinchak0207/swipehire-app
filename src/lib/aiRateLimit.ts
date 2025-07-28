@@ -132,7 +132,7 @@ class AIRateLimiter {
     }
 
     const now = Date.now();
-    const rules = this.config.rules[userType] || this.config.rules.free;
+    const rules = this.config.rules[userType] || this.config.rules['free'];
 
     // Check emergency brake first
     const emergencyCheck = this.checkEmergencyBrake(estimatedTokens);
@@ -261,7 +261,7 @@ class AIRateLimiter {
     // If system is under high load, apply stricter limits
     if (systemLoad > 0.8) {
       const throttleMultiplier = userType === 'premium' ? 0.7 : userType === 'free' ? 0.5 : 0.3;
-      const rules = this.config.rules[userType] || this.config.rules.free;
+      const rules = this.config.rules[userType] || this.config.rules['free'];
 
       for (const rule of rules || []) {
         const adjustedLimit = Math.floor(rule.maxRequests * throttleMultiplier);
@@ -339,7 +339,7 @@ class AIRateLimiter {
    * Get remaining requests for user
    */
   private getRemainingRequests(userId: string, userType: string): number {
-    const rules = this.config.rules[userType] || this.config.rules.free;
+    const rules = this.config.rules[userType] || this.config.rules['free'];
     const now = Date.now();
 
     let minRemaining = Infinity;

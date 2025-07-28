@@ -55,7 +55,7 @@ interface ReminderTemplate {
 
 // Follow-up Reminders Service
 class FollowupRemindersService {
-  private static baseUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+  private static baseUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
   static async getUserReminders(userId: string, status?: string): Promise<FollowupReminder[]> {
     const params = new URLSearchParams();

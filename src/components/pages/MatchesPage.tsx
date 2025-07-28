@@ -11,7 +11,7 @@ import {
   Sparkles,
   Users,
 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AiHumanResourcesTab } from '@/components/ai/AiHumanResourcesTab';
 import { FocusedChatPanel } from '@/components/match/FocusedChatPanel';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
@@ -42,8 +42,6 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   const [focusedMatch, setFocusedMatch] = useState<
     (Match & { candidate: Candidate; company: Company }) | null
   >(null);
-  const _applicantListRef = useRef<HTMLDivElement>(null);
-  const _applicantCardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const [activeTab, setActiveTab] = useState('applicants');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -225,10 +223,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     return matches.filter((match) => match.candidate && match.company && match.status === 'active');
   }, [matches, fullBackendUser?.selectedRole]);
 
-  const _handleApplicantCardClick = (match: Match & { candidate: Candidate; company: Company }) => {
-    setFocusedMatch(match);
-  };
-  const handleInviteToInterview = (match: Match) => {
+    const handleInviteToInterview = (match: Match) => {
     toast({
       title: 'Action: Invite to Interview',
       description: `Sending interview invitation to ${match.candidate.name}.`,
@@ -241,13 +236,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     });
   };
 
-  // Function to handle scroll-based focus change
-  const _handleScrollFocusChange = (match: Match & { candidate: Candidate; company: Company }) => {
-    if (focusedMatch?._id !== match._id) {
-      setFocusedMatch(match);
-    }
-  };
-
+  
   // Remove the previous scroll handling useEffect as we'll handle it in the TikTokApplicantScroller
 
   if (isGuestMode) {

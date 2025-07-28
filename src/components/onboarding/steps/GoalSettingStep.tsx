@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { WizardData } from '../WizardContainer';
+import { WizardData } from '../WizardContainer';
 
 interface GoalSettingStepProps {
-  data: WizardData;
+  data: Partial<WizardData>;
   onUpdate: (data: Partial<WizardData>) => void;
   onNext: () => void;
   onBack: () => void;
@@ -16,10 +16,10 @@ export default function GoalSettingStep({
   onBack: onBackAction,
   isLoading,
 }: GoalSettingStepProps) {
-  const [goals, setGoals] = useState(data.goals);
+  const [goals, setGoals] = useState(data.goals || {});
   const [newGoal, setNewGoal] = useState({ type: 'short', text: '' });
 
-  const isJobSeeker = data.userType === 'jobseeker';
+  const isJobSeeker = data.role === 'jobseeker';
 
   const goalTypes = [
     {
@@ -88,7 +88,9 @@ export default function GoalSettingStep({
   const removeGoal = (type: string, index: number) => {
     const updatedGoals = {
       ...goals,
-      [type]: (goals[type as keyof typeof goals] || []).filter((_, i) => i !== index),
+      [type]: Array.isArray(goals[type as keyof typeof goals])
+        ? (goals[type as keyof typeof goals] as string[]).filter((_: any, i: number) => i !== index)
+        : [],
     };
 
     setGoals(updatedGoals);
@@ -145,10 +147,11 @@ export default function GoalSettingStep({
                 {currentGoals.length > 0 && (
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
-                      {currentGoals.map((goal, index) => (
-                        <div
-                          key={index}
-                          className={
+                      {Array.isArray(currentGoals) &&
+                        currentGoals.map((goal: any, index: any) => (
+                          <div
+                            key={index}
+                            className={
                             'badge badge-lg gap-2 border border-gray-300 bg-white px-3 py-2 text-gray-700'
                           }
                         >
@@ -172,7 +175,7 @@ export default function GoalSettingStep({
                             </svg>
                           </button>
                         </div>
-                      ))}
+                        ))}
                     </div>
                   </div>
                 )}

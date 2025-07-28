@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { WizardData } from '../WizardContainer';
-
 interface CompletionStepProps {
-  data: WizardData;
+  data: Record<string, any>;
   onComplete: () => void;
   showConfetti: boolean;
   isLoading: boolean;
@@ -26,7 +24,7 @@ export default function CompletionStep({
     }>
   >([]);
 
-  const isJobSeeker = data.userType === 'jobseeker';
+  const isJobSeeker = data['userType'] === 'jobseeker';
 
   // Generate confetti pieces
   useEffect(() => {
@@ -45,15 +43,15 @@ export default function CompletionStep({
     }
   }, [showConfetti]);
 
-  const totalGoals = Object.values(data.goals).flat().length;
+  const totalGoals = Object.values(data['goals']).flat().length;
   const profileCompleteness = isJobSeeker
-    ? (data.profileData.headline ? 25 : 0) +
-      (data.profileData.experienceSummary ? 25 : 0) +
-      (data.profileData.skills?.length ? 25 : 0) +
-      (data.profileData.desiredWorkStyle ? 25 : 0)
-    : (data.profileData.companyName ? 33 : 0) +
-      (data.profileData.companyIndustry ? 33 : 0) +
-      (data.profileData.companyDescription ? 34 : 0);
+    ? (data['profileData']['headline'] ? 25 : 0) +
+      (data['profileData']['experienceSummary'] ? 25 : 0) +
+      (data['profileData']['skills']?.length ? 25 : 0) +
+      (data['profileData']['desiredWorkStyle'] ? 25 : 0)
+    : (data['profileData']['companyName'] ? 33 : 0) +
+      (data['profileData']['companyIndustry'] ? 33 : 0) +
+      (data['profileData']['companyDescription'] ? 34 : 0);
 
   return (
     <div className="relative mx-auto max-w-2xl">
@@ -151,19 +149,19 @@ export default function CompletionStep({
                 {isJobSeeker ? (
                   <>
                     <div className="mb-1 flex items-center gap-1">
-                      <span className={data.userType ? 'text-gray-700' : 'text-gray-400'}>
-                        ✓ Role: {data.userType || 'Not set'}
+                      <span className={data['userType'] ? 'text-gray-700' : 'text-gray-400'}>
+                        ✓ Role: {data['userType'] || 'Not set'}
                       </span>
                     </div>
-                    {data.profileData.headline && (
+                    {data['profileData']['headline'] && (
                       <div className="mb-1 flex items-center gap-1">
                         <span className="text-gray-700">✓ Professional headline set</span>
                       </div>
                     )}
-                    {data.profileData.skills?.length && (
+                    {data['profileData']['skills']?.length && (
                       <div className="flex items-center gap-1">
                         <span className="text-gray-700">
-                          ✓ {data.profileData.skills.length} skills added
+                          ✓ {data['profileData']['skills'].length} skills added
                         </span>
                       </div>
                     )}
@@ -171,21 +169,21 @@ export default function CompletionStep({
                 ) : (
                   <>
                     <div className="mb-1 flex items-center gap-1">
-                      <span className={data.userType ? 'text-gray-700' : 'text-gray-400'}>
-                        ✓ Role: {data.userType || 'Not set'}
+                      <span className={data['userType'] ? 'text-gray-700' : 'text-gray-400'}>
+                        ✓ Role: {data['userType'] || 'Not set'}
                       </span>
                     </div>
-                    {data.profileData.companyName && (
+                    {data['profileData']['companyName'] && (
                       <div className="mb-1 flex items-center gap-1">
                         <span className="text-gray-700">
-                          ✓ Company: {data.profileData.companyName}
+                          ✓ Company: {data['profileData']['companyName']}
                         </span>
                       </div>
                     )}
-                    {data.profileData.companyIndustry && (
+                    {data['profileData']['companyIndustry'] && (
                       <div className="flex items-center gap-1">
                         <span className="text-gray-700">
-                          ✓ Industry: {data.profileData.companyIndustry}
+                          ✓ Industry: {data['profileData']['companyIndustry']}
                         </span>
                       </div>
                     )}
@@ -222,39 +220,39 @@ export default function CompletionStep({
               </div>
               {totalGoals > 0 ? (
                 <div className="space-y-2 text-gray-600 text-sm">
-                  {data.goals.shortTerm.length > 0 && (
+                  {data['goals']['shortTerm'].length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🎯</span>
                       <span>
-                        {data.goals.shortTerm.length} short-term goal
-                        {data.goals.shortTerm.length !== 1 ? 's' : ''}
+                        {data['goals']['shortTerm'].length} short-term goal
+                        {data['goals']['shortTerm'].length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   )}
-                  {data.goals.midTerm.length > 0 && (
+                  {data['goals']['midTerm'].length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-lg">📈</span>
                       <span>
-                        {data.goals.midTerm.length} mid-term goal
-                        {data.goals.midTerm.length !== 1 ? 's' : ''}
+                        {data['goals']['midTerm'].length} mid-term goal
+                        {data['goals']['midTerm'].length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   )}
-                  {data.goals.longTerm.length > 0 && (
+                  {data['goals']['longTerm'].length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🚀</span>
                       <span>
-                        {data.goals.longTerm.length} long-term goal
-                        {data.goals.longTerm.length !== 1 ? 's' : ''}
+                        {data['goals']['longTerm'].length} long-term goal
+                        {data['goals']['longTerm'].length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   )}
-                  {data.goals.skillDevelopment.length > 0 && (
+                  {data['goals']['skillDevelopment'].length > 0 && (
                     <div className="flex items-center gap-2">
                       <span className="text-lg">🧠</span>
                       <span>
-                        {data.goals.skillDevelopment.length} skill development goal
-                        {data.goals.skillDevelopment.length !== 1 ? 's' : ''}
+                        {data['goals']['skillDevelopment'].length} skill development goal
+                        {data['goals']['skillDevelopment'].length !== 1 ? 's' : ''}
                       </span>
                     </div>
                   )}

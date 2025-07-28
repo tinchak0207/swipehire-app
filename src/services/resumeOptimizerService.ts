@@ -25,8 +25,8 @@ const getCookie = (name: string): string | undefined => {
   return undefined;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
-const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || '/api';
+const BACKEND_BASE_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 /**
  * Validates uploaded file for resume processing

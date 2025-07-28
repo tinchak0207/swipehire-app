@@ -86,7 +86,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
   targetRole: string;
   targetIndustry: string;
   experienceLevel: string;
-}> = ({ resumeContent, targetRole, targetIndustry, experienceLevel }) => {
+}> = ({ targetRole, targetIndustry }) => {
   const [analyticsData, setAnalyticsData] = useState<PredictiveAnalyticsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 

@@ -50,7 +50,6 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
   targetRole,
   targetIndustry,
   experienceLevel,
-  currentSkills,
   onTemplateSelect,
 }) => {
   const [templates, setTemplates] = useState<Template[]>([]);

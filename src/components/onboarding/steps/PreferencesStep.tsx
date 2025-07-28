@@ -1,8 +1,7 @@
-// import { useState } from 'react';
-import type { WizardData } from '../WizardContainer';
+import { WizardData } from '../WizardContainer';
 
 interface PreferencesStepProps {
-  data: WizardData;
+  data: Partial<WizardData>;
   onUpdate: (data: Partial<WizardData>) => void;
   onNext: () => void;
   onBack: () => void;
@@ -22,13 +21,13 @@ export default function PreferencesStep({
   };
 
   const handleNotificationChannelChange = (
-    channel: keyof typeof data.preferences.notificationChannels,
+    channel: keyof NonNullable<WizardData['preferences']>['notificationChannels'],
     value: boolean
   ) => {
     const updatedPrefs = {
       ...data.preferences,
       notificationChannels: {
-        ...data.preferences.notificationChannels,
+        ...data.preferences?.notificationChannels,
         [channel]: value,
       },
     };
@@ -36,13 +35,13 @@ export default function PreferencesStep({
   };
 
   const handleNotificationSubscriptionChange = (
-    subscription: keyof typeof data.preferences.notificationSubscriptions,
+    subscription: keyof NonNullable<WizardData['preferences']>['notificationSubscriptions'],
     value: boolean
   ) => {
     const updatedPrefs = {
       ...data.preferences,
       notificationSubscriptions: {
-        ...data.preferences.notificationSubscriptions,
+        ...data.preferences?.notificationSubscriptions,
         [subscription]: value,
       },
     };
@@ -78,7 +77,7 @@ export default function PreferencesStep({
                       type="button"
                       onClick={() => handleThemeChange(theme)}
                       className={`btn btn-sm min-w-[100px] flex-1 transform transition-all duration-200 hover:scale-105 ${
-                        data.preferences.theme === theme
+                        data.preferences?.theme === theme
                           ? 'btn-primary shadow-md'
                           : 'btn-outline border-2'
                       }`}
@@ -99,7 +98,7 @@ export default function PreferencesStep({
               <span className="mr-2">🔔</span> Notification Channels
             </h3>
             <div className="space-y-2">
-              {Object.entries(data.preferences.notificationChannels).map(([key, value]) => (
+              {Object.entries(data.preferences?.notificationChannels || {}).map(([key, value]) => (
                 <div
                   key={key}
                   className={`form-control rounded-lg p-3 transition-all duration-200 ${
@@ -113,10 +112,10 @@ export default function PreferencesStep({
                     <input
                       type="checkbox"
                       className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-all duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                      checked={value}
+                      checked={!!value}
                       onChange={(e) =>
                         handleNotificationChannelChange(
-                          key as keyof typeof data.preferences.notificationChannels,
+                          key as keyof NonNullable<WizardData['preferences']>['notificationChannels'],
                           e.target.checked
                         )
                       }
@@ -135,7 +134,7 @@ export default function PreferencesStep({
               <span className="mr-2">📧</span> Email Subscriptions
             </h3>
             <div className="space-y-2">
-              {Object.entries(data.preferences.notificationSubscriptions).map(([key, value]) => (
+              {Object.entries(data.preferences?.notificationSubscriptions || {}).map(([key, value]) => (
                 <div
                   key={key}
                   className={`form-control rounded-lg p-3 transition-all duration-200 ${
@@ -149,10 +148,10 @@ export default function PreferencesStep({
                     <input
                       type="checkbox"
                       className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-all duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                      checked={value}
+                      checked={!!value}
                       onChange={(e) =>
                         handleNotificationSubscriptionChange(
-                          key as keyof typeof data.preferences.notificationSubscriptions,
+                          key as keyof NonNullable<WizardData['preferences']>['notificationSubscriptions'],
                           e.target.checked
                         )
                       }
