@@ -30,9 +30,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { rows: runRows } =
       await sql`SELECT COUNT(*) as count FROM workflow_runs WHERE user_id = ${userId} AND created_at > NOW() - INTERVAL '1 month'`;
-    const runCount = parseInt(runRows[0]?.['count'] ?? '0', 10);
+    const runCount = parseInt(runRows[0]?.count ?? '0', 10);
 
-    if (user?.['tier'] === 'free' && runCount >= 50) {
+    if (user?.tier === 'free' && runCount >= 50) {
       return NextResponse.json(
         { error: 'Free tier run limit reached. Upgrade for more runs.' },
         { status: 403 }

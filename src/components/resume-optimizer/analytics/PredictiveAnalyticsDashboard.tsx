@@ -166,12 +166,12 @@ const PredictiveAnalyticsDashboard: React.FC<{
     };
 
     fetchAnalyticsData();
-  }, [resumeContent, targetRole, targetIndustry, experienceLevel]);
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-blue-500 border-t-2 border-b-2" />
         <span className="ml-3">Analyzing your resume with AI...</span>
       </div>
     );
@@ -179,7 +179,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
 
   if (!analyticsData) {
     return (
-      <div className="text-center py-8">
+      <div className="py-8 text-center">
         <p>Unable to generate predictive analytics at this time.</p>
       </div>
     );
@@ -193,7 +193,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
       className="space-y-6"
     >
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Success Probability</CardDescription>
@@ -201,7 +201,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
           </CardHeader>
           <CardContent>
             <Progress value={analyticsData.successProbability} className="w-full" />
-            <p className="text-xs text-muted-foreground mt-2">Likelihood of landing interviews</p>
+            <p className="mt-2 text-muted-foreground text-xs">Likelihood of landing interviews</p>
           </CardContent>
         </Card>
 
@@ -212,7 +212,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
           </CardHeader>
           <CardContent>
             <Progress value={analyticsData.applicationSuccessRate} className="w-full" />
-            <p className="text-xs text-muted-foreground mt-2">Based on your target {targetRole}</p>
+            <p className="mt-2 text-muted-foreground text-xs">Based on your target {targetRole}</p>
           </CardContent>
         </Card>
 
@@ -223,7 +223,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
           </CardHeader>
           <CardContent>
             <Progress value={analyticsData.interviewLikelihood} className="w-full" />
-            <p className="text-xs text-muted-foreground mt-2">Compared to similar candidates</p>
+            <p className="mt-2 text-muted-foreground text-xs">Compared to similar candidates</p>
           </CardContent>
         </Card>
 
@@ -234,13 +234,13 @@ const PredictiveAnalyticsDashboard: React.FC<{
           </CardHeader>
           <CardContent>
             <Progress value={analyticsData.marketDemand} className="w-full" />
-            <p className="text-xs text-muted-foreground mt-2">For {targetIndustry} industry</p>
+            <p className="mt-2 text-muted-foreground text-xs">For {targetIndustry} industry</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Detailed Analysis Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Score Comparison Chart */}
         <Card>
           <CardHeader>
@@ -350,21 +350,21 @@ const PredictiveAnalyticsDashboard: React.FC<{
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
-                className="border rounded-lg p-4 hover:shadow-md transition-shadow"
+                className="rounded-lg border p-4 transition-shadow hover:shadow-md"
               >
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div>
                     <h4 className="font-semibold">{rec.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1">{rec.description}</p>
+                    <p className="mt-1 text-muted-foreground text-sm">{rec.description}</p>
                   </div>
                   <Badge variant={rec.priority === 'high' ? 'destructive' : 'secondary'}>
                     {rec.priority} priority
                   </Badge>
                 </div>
                 <div className="mt-2 flex items-center">
-                  <span className="text-sm text-muted-foreground mr-2">Impact:</span>
+                  <span className="mr-2 text-muted-foreground text-sm">Impact:</span>
                   <Progress value={rec.impact} className="w-32" />
-                  <span className="text-sm ml-2">{rec.impact}%</span>
+                  <span className="ml-2 text-sm">{rec.impact}%</span>
                 </div>
               </motion.div>
             ))}

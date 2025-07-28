@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import { ChevronUp, ChevronDown } from 'lucide-react';
-import type { Match, Candidate, Company } from '@/lib/types';
-import { ApplicantCard } from './ApplicantCard';
+import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import type { Candidate, Company, Match } from '@/lib/types';
+import { ApplicantCard } from './ApplicantCard';
 
 interface TikTokApplicantScrollerProps {
   applicants: (Match & { candidate: Candidate; company: Company })[];
@@ -36,7 +36,7 @@ export function TikTokApplicantScroller({
       const scrollPosition = container.scrollTop;
       const cardHeight = window.innerHeight * 0.9; // 90% of viewport height
       const newIndex = Math.round(scrollPosition / cardHeight);
-      
+
       if (newIndex >= 0 && newIndex < applicants.length) {
         setCurrentIndex(newIndex);
         // Notify parent about focused match change
@@ -49,20 +49,20 @@ export function TikTokApplicantScroller({
     container.addEventListener('scroll', handleScroll);
     // Trigger initial check
     handleScroll();
-    
+
     return () => container.removeEventListener('scroll', handleScroll);
   }, [applicants, onFocusedMatchChange]);
 
   // Scroll to a specific applicant card
   const scrollToApplicant = useCallback((index: number) => {
     if (!containerRef.current) return;
-    
+
     const cardHeight = window.innerHeight * 0.9;
     const targetPosition = index * cardHeight;
-    
+
     containerRef.current.scrollTo({
       top: targetPosition,
-      behavior: 'smooth'
+      behavior: 'smooth',
     });
   }, []);
 
@@ -78,7 +78,7 @@ export function TikTokApplicantScroller({
   };
 
   // Handle applicant card actions
-  const handleApplicantCardClick = (match: Match & { candidate: Candidate; company: Company }) => {
+  const _handleApplicantCardClick = (match: Match & { candidate: Candidate; company: Company }) => {
     toast({
       title: 'View Resume',
       description: `Conceptual: Navigating to ${match.candidate.name}'s full profile.`,
@@ -98,9 +98,9 @@ export function TikTokApplicantScroller({
   return (
     <div className="relative h-[75vh] w-full overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Main scroller container */}
-      <div 
+      <div
         ref={containerRef}
-        className="h-full overflow-y-auto snap-y snap-mandatory scroll-smooth"
+        className="h-full snap-y snap-mandatory overflow-y-auto scroll-smooth"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <style jsx>{`
@@ -108,14 +108,16 @@ export function TikTokApplicantScroller({
             display: none;
           }
         `}</style>
-        
+
         {applicants.map((applicant, index) => (
-          <div 
+          <div
             key={applicant._id}
             ref={(el) => setCardRef(applicant._id, el)}
-            className="snap-start flex h-[67.5vh] w-full items-center justify-center p-4"
+            className="flex h-[67.5vh] w-full snap-start items-center justify-center p-4"
           >
-            <div className="h-full w-[50.625vh] max-w-full"> {/* 3:4 aspect ratio (3:4 width:height) - height changed from 90vh to 67.5vh */}
+            <div className="h-full w-[50.625vh] max-w-full">
+              {' '}
+              {/* 3:4 aspect ratio (3:4 width:height) - height changed from 90vh to 67.5vh */}
               <ApplicantCard
                 match={applicant}
                 onInviteToInterview={onInviteToInterview}
@@ -129,7 +131,7 @@ export function TikTokApplicantScroller({
       </div>
 
       {/* Navigation controls */}
-      <div className="absolute right-4 top-1/2 flex -translate-y-1/2 transform flex-col gap-2">
+      <div className="-translate-y-1/2 absolute top-1/2 right-4 flex transform flex-col gap-2">
         <Button
           size="icon"
           className="h-10 w-10 rounded-full shadow-lg"
@@ -149,7 +151,7 @@ export function TikTokApplicantScroller({
       </div>
 
       {/* Current position indicator */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
+      <div className="-translate-x-1/2 absolute bottom-4 left-1/2 transform">
         <div className="flex space-x-1 rounded-full bg-black/20 px-3 py-2">
           {applicants.map((_, index) => (
             <div

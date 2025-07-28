@@ -130,13 +130,13 @@ export default function GoalSettingStep({
           return (
             <div
               key={goalType.key}
-              className={`rounded-xl border-2 ${goalType.borderColor} ${goalType.bgColor} shadow-sm overflow-hidden`}
+              className={`rounded-xl border-2 ${goalType.borderColor} ${goalType.bgColor} overflow-hidden shadow-sm`}
             >
               <div className="p-6">
                 <div className="mb-4 flex items-center space-x-3">
                   <span className="text-3xl">{goalType.icon}</span>
                   <div>
-                    <h3 className="font-semibold text-xl text-gray-900">{goalType.label}</h3>
+                    <h3 className="font-semibold text-gray-900 text-xl">{goalType.label}</h3>
                     <p className="text-gray-600 text-sm">{goalType.description}</p>
                   </div>
                 </div>
@@ -149,13 +149,13 @@ export default function GoalSettingStep({
                         <div
                           key={index}
                           className={
-                            'badge badge-lg gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-300'
+                            'badge badge-lg gap-2 border border-gray-300 bg-white px-3 py-2 text-gray-700'
                           }
                         >
                           {goal}
                           <button
                             onClick={() => removeGoal(goalType.key, index)}
-                            className="btn btn-ghost btn-xs h-4 min-h-0 w-4 p-0 hover:bg-gray-200 rounded-full"
+                            className="btn btn-ghost btn-xs h-4 min-h-0 w-4 rounded-full p-0 hover:bg-gray-200"
                           >
                             <svg
                               className="h-3 w-3"
@@ -178,11 +178,11 @@ export default function GoalSettingStep({
                 )}
 
                 {/* Add New Goal */}
-                <div className="mb-4 flex gap-2 flex-col sm:flex-row">
+                <div className="mb-4 flex flex-col gap-2 sm:flex-row">
                   <input
                     type="text"
                     placeholder={`Add a ${goalType.label.toLowerCase().slice(0, -1)}...`}
-                    className="input input-lg flex-1 border-2 border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg"
+                    className="input input-lg flex-1 rounded-lg border-2 border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     value={newGoal.type === goalType.key ? newGoal.text : ''}
                     onChange={(e) => setNewGoal({ type: goalType.key, text: e.target.value })}
                     onKeyPress={(e) => {
@@ -194,11 +194,11 @@ export default function GoalSettingStep({
                   <button
                     onClick={() => addGoal(goalType.key)}
                     disabled={!newGoal.text.trim() || newGoal.type !== goalType.key}
-                    className={`btn btn-lg rounded-lg min-h-0 h-12 ${
+                    className={`btn btn-lg h-12 min-h-0 rounded-lg ${
                       !newGoal.text.trim() || newGoal.type !== goalType.key
                         ? 'cursor-not-allowed opacity-50'
-                        : 'bg-blue-600 hover:bg-blue-700 text-white'
-                    } transition-all shadow-sm hover:shadow`}
+                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                    } shadow-sm transition-all hover:shadow`}
                   >
                     Add Goal
                   </button>
@@ -206,7 +206,7 @@ export default function GoalSettingStep({
 
                 {/* Example Goals */}
                 <div>
-                  <p className="mb-2 text-gray-600 text-sm font-medium">Quick add examples:</p>
+                  <p className="mb-2 font-medium text-gray-600 text-sm">Quick add examples:</p>
                   <div className="flex flex-wrap gap-2">
                     {goalType.examples.map((example, index) => (
                       <button
@@ -216,7 +216,7 @@ export default function GoalSettingStep({
                         className={`btn btn-sm rounded-full ${
                           currentGoals.includes(example)
                             ? 'btn-disabled opacity-50'
-                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                            : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-100'
                         } transition-all`}
                       >
                         + {example}

@@ -143,7 +143,7 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
     if (targetJobTitle) {
       handleFindMentors();
     }
-  }, [targetJobTitle]);
+  }, [targetJobTitle, handleFindMentors]);
 
   return (
     <div className="rounded-lg border border-gray-200 p-4">
@@ -151,7 +151,7 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+          <div className="h-8 w-8 animate-spin rounded-full border-blue-500 border-b-2" />
           <span className="ml-2">Finding mentors for {targetJobTitle}...</span>
         </div>
       ) : mentors.length > 0 ? (
@@ -165,7 +165,7 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
             {mentors.map((mentor) => (
               <div
                 key={mentor.id}
-                className={`rounded-lg border p-3 transition-all cursor-pointer ${
+                className={`cursor-pointer rounded-lg border p-3 transition-all ${
                   selectedMentor?.id === mentor.id
                     ? 'border-blue-500 bg-blue-50'
                     : 'border-gray-200 hover:border-gray-300'
@@ -177,10 +177,10 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
                     <img
                       src={mentor.image}
                       alt={mentor.name}
-                      className="rounded-full h-12 w-12 object-cover mr-3"
+                      className="mr-3 h-12 w-12 rounded-full object-cover"
                     />
                   ) : (
-                    <div className="bg-gray-200 rounded-full h-12 w-12 flex items-center justify-center mr-3">
+                    <div className="mr-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-200">
                       <span className="font-bold text-gray-700">
                         {mentor.name
                           .split(' ')
@@ -198,8 +198,8 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
                           {mentor.title} at {mentor.company}
                         </p>
                       </div>
-                      <div className="flex items-center bg-yellow-100 px-2 py-1 rounded">
-                        <span className="text-yellow-800 font-medium text-sm">
+                      <div className="flex items-center rounded bg-yellow-100 px-2 py-1">
+                        <span className="font-medium text-sm text-yellow-800">
                           ★ {mentor.rating}
                         </span>
                       </div>
@@ -209,7 +209,7 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
                       {mentor.expertise.slice(0, 3).map((skill, index) => (
                         <span
                           key={index}
-                          className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                          className="rounded bg-blue-100 px-2 py-1 text-blue-800 text-xs"
                         >
                           {skill}
                         </span>
@@ -237,7 +237,7 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
           </div>
 
           {selectedMentor && (
-            <div className="mt-4 p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3">
               <p className="text-green-800">
                 <span className="font-semibold">Selected mentor:</span> {selectedMentor.name}
                 {selectedMentor.available
@@ -245,7 +245,7 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
                   : ' will be notified of your request'}
               </p>
               <button
-                className="mt-2 btn btn-primary btn-sm"
+                className="btn btn-primary btn-sm mt-2"
                 onClick={() => {
                   // In a real implementation, this would initiate a chat or scheduling session
                   alert(`Connecting you with ${selectedMentor.name}...`);
@@ -257,17 +257,17 @@ const MentorMatching: React.FC<MentorMatchingProps> = ({ targetJobTitle, onMento
           )}
         </div>
       ) : targetJobTitle ? (
-        <div className="text-center py-4">
+        <div className="py-4 text-center">
           <p className="text-gray-500">
             No mentors currently available for "{targetJobTitle}" roles. Try adjusting your job
             title or check back later.
           </p>
-          <button className="mt-2 btn btn-outline" onClick={handleFindMentors}>
+          <button className="btn btn-outline mt-2" onClick={handleFindMentors}>
             Try Again
           </button>
         </div>
       ) : (
-        <p className="text-gray-500 text-center py-4">
+        <p className="py-4 text-center text-gray-500">
           Enter a target job title to find relevant mentors.
         </p>
       )}

@@ -93,7 +93,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
         title: 'LinkedIn Sync Successful',
         description: 'Your LinkedIn profile has been successfully synced with your resume.',
       });
-    } catch (error) {
+    } catch (_error) {
       setSyncStatus('error');
       toast({
         title: 'Sync Failed',
@@ -125,14 +125,14 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+        <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-100 p-3 rounded-full">
+            <div className="rounded-full bg-blue-100 p-3">
               <Linkedin className="h-6 w-6 text-blue-600" />
             </div>
             <div>
               <h3 className="font-semibold">LinkedIn Profile Sync</h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {syncStatus === 'completed'
                   ? 'Profile synced successfully'
                   : 'Connect your LinkedIn profile'}
@@ -142,12 +142,12 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
 
           {syncStatus === 'completed' ? (
             <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-              <CheckCircle className="h-3 w-3 mr-1" />
+              <CheckCircle className="mr-1 h-3 w-3" />
               Synced
             </Badge>
           ) : syncStatus === 'error' ? (
             <Badge variant="destructive" className="flex items-center">
-              <AlertCircle className="h-3 w-3 mr-1" />
+              <AlertCircle className="mr-1 h-3 w-3" />
               Error
             </Badge>
           ) : (
@@ -176,11 +176,11 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
         {syncStatus === 'completed' && linkedInData && (
           <div className="space-y-4">
             <div className="rounded-lg border p-4">
-              <h4 className="font-medium flex items-center gap-2 mb-3">
+              <h4 className="mb-3 flex items-center gap-2 font-medium">
                 <User className="h-4 w-4" />
                 Profile Information
               </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+              <div className="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
                 <div>
                   <p className="text-muted-foreground">Name</p>
                   <p>{linkedInData.profile.name}</p>
@@ -200,9 +200,9 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="rounded-lg border p-4">
-                <h4 className="font-medium flex items-center gap-2 mb-3">
+                <h4 className="mb-3 flex items-center gap-2 font-medium">
                   <Building className="h-4 w-4" />
                   Experience
                 </h4>
@@ -211,7 +211,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
                     <li key={exp.id} className="text-sm">
                       <p className="font-medium">{exp.title}</p>
                       <p className="text-muted-foreground">{exp.company}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {exp.startDate ? new Date(exp.startDate).getFullYear() : ''} -
                         {exp.isCurrent
                           ? 'Present'
@@ -225,7 +225,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
               </div>
 
               <div className="rounded-lg border p-4">
-                <h4 className="font-medium flex items-center gap-2 mb-3">
+                <h4 className="mb-3 flex items-center gap-2 font-medium">
                   <GraduationCap className="h-4 w-4" />
                   Education
                 </h4>
@@ -236,7 +236,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
                       <p className="text-muted-foreground">
                         {edu.degree}, {edu.fieldOfStudy}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {edu.startDate ? new Date(edu.startDate).getFullYear() : ''} -
                         {edu.endDate ? new Date(edu.endDate).getFullYear() : ''}
                       </p>
@@ -247,7 +247,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
             </div>
 
             <div className="rounded-lg border p-4">
-              <h4 className="font-medium flex items-center gap-2 mb-3">
+              <h4 className="mb-3 flex items-center gap-2 font-medium">
                 <Award className="h-4 w-4" />
                 Top Skills
               </h4>
@@ -262,7 +262,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row gap-3 pt-2">
+        <div className="flex flex-col gap-3 pt-2 sm:flex-row">
           <Button
             onClick={handleLinkedInSync}
             disabled={isSyncing}
@@ -282,12 +282,12 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncC
           </Button>
         </div>
 
-        <div className="text-xs text-muted-foreground pt-2">
+        <div className="pt-2 text-muted-foreground text-xs">
           <p className="flex items-center gap-1">
             <Shield className="h-3 w-3" />
             We only access publicly available information from your LinkedIn profile.
           </p>
-          <p className="flex items-center gap-1 mt-1">
+          <p className="mt-1 flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             Last sync: {syncStatus === 'completed' ? new Date().toLocaleString() : 'Never'}
           </p>

@@ -240,7 +240,7 @@ export default function WizardContainer({
 
       // Save to backend
       const response = await fetch(
-        `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+        `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
         {
           method: 'POST',
           headers: {
@@ -276,7 +276,7 @@ export default function WizardContainer({
       if (mongoDbUserId) {
         try {
           await fetch(
-            `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+            `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
             {
               method: 'POST',
               headers: {
@@ -325,7 +325,7 @@ export default function WizardContainer({
     if (mongoDbUserId) {
       try {
         await fetch(
-          `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+          `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
           {
             method: 'POST',
             headers: {
@@ -425,7 +425,7 @@ export default function WizardContainer({
 
   return (
     <div
-      className={`min-h-screen transition-all duration-700 ease-in-out bg-gradient-to-br ${getStepGradient()} text-gray-800`}
+      className={`min-h-screen bg-gradient-to-br transition-all duration-700 ease-in-out ${getStepGradient()} text-gray-800`}
     >
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <ProgressIndicator

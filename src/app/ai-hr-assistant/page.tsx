@@ -217,11 +217,11 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
     if (cardElement) {
       setTimeout(
         () => {
-          if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset['aosId']) {
+          if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset.aosId) {
             animateChat();
           }
         },
-        Number.parseFloat((cardElement as HTMLElement).dataset['aosDelay'] || '0') + 200
+        Number.parseFloat((cardElement as HTMLElement).dataset.aosDelay || '0') + 200
       );
     } else {
       setTimeout(() => {
@@ -265,7 +265,7 @@ export default function AiHrAssistantPage() {
   if (fullBackendUser?.profileAvatarUrl) {
     if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
       const CUSTOM_BACKEND_URL =
-        process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+        process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
       userPhotoURL = `${CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
     } else {
       userPhotoURL = fullBackendUser.profileAvatarUrl;

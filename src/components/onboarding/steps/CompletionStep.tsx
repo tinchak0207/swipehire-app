@@ -150,13 +150,13 @@ export default function CompletionStep({
               <div className="text-gray-600 text-sm">
                 {isJobSeeker ? (
                   <>
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="mb-1 flex items-center gap-1">
                       <span className={data.userType ? 'text-gray-700' : 'text-gray-400'}>
                         ✓ Role: {data.userType || 'Not set'}
                       </span>
                     </div>
                     {data.profileData.headline && (
-                      <div className="flex items-center gap-1 mb-1">
+                      <div className="mb-1 flex items-center gap-1">
                         <span className="text-gray-700">✓ Professional headline set</span>
                       </div>
                     )}
@@ -170,13 +170,13 @@ export default function CompletionStep({
                   </>
                 ) : (
                   <>
-                    <div className="flex items-center gap-1 mb-1">
+                    <div className="mb-1 flex items-center gap-1">
                       <span className={data.userType ? 'text-gray-700' : 'text-gray-400'}>
                         ✓ Role: {data.userType || 'Not set'}
                       </span>
                     </div>
                     {data.profileData.companyName && (
-                      <div className="flex items-center gap-1 mb-1">
+                      <div className="mb-1 flex items-center gap-1">
                         <span className="text-gray-700">
                           ✓ Company: {data.profileData.companyName}
                         </span>

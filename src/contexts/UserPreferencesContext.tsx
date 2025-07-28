@@ -12,7 +12,7 @@ import {
 } from 'react';
 import type { BackendUser, UserPreferences } from '@/lib/types';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 const initialDefaultPreferences: UserPreferences = {
   theme: 'light',

@@ -132,10 +132,10 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEven
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <div className="space-y-4">
             <div className="rounded-lg border p-4">
-              <h3 className="font-medium mb-3">Select Date</h3>
+              <h3 className="mb-3 font-medium">Select Date</h3>
               <Calendar
                 mode="single"
                 selected={date}
@@ -144,7 +144,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEven
               />
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex flex-col gap-2 sm:flex-row">
               <Button onClick={() => setIsAddingEvent(true)} className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 Add Event
@@ -163,30 +163,30 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEven
 
           <div className="space-y-4">
             <div>
-              <h3 className="font-medium mb-3">Upcoming Events</h3>
+              <h3 className="mb-3 font-medium">Upcoming Events</h3>
               {events.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <CalendarIcon className="h-8 w-8 mx-auto mb-2" />
+                <div className="py-8 text-center text-muted-foreground">
+                  <CalendarIcon className="mx-auto mb-2 h-8 w-8" />
                   <p>No events scheduled</p>
                   <p className="text-sm">Add events to get started</p>
                 </div>
               ) : (
-                <div className="space-y-3 max-h-80 overflow-y-auto">
+                <div className="max-h-80 space-y-3 overflow-y-auto">
                   {events.map((event) => {
                     const IconComponent = getEventTypeIcon(event.type);
                     return (
-                      <div key={event.id} className="border rounded-lg p-3">
+                      <div key={event.id} className="rounded-lg border p-3">
                         <div className="flex justify-between">
                           <div className="flex items-start gap-2">
-                            <IconComponent className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                            <IconComponent className="mt-0.5 h-4 w-4 flex-shrink-0" />
                             <div>
                               <h4 className="font-medium text-sm">{event.title}</h4>
-                              <p className="text-xs text-muted-foreground">
+                              <p className="text-muted-foreground text-xs">
                                 {format(event.date, 'MMM d, yyyy')} at {event.time}
                                 {event.duration && ` (${event.duration} min)`}
                               </p>
                               {event.location && (
-                                <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                                <p className="mt-1 flex items-center gap-1 text-muted-foreground text-xs">
                                   <MapPin className="h-3 w-3" />
                                   {event.location}
                                 </p>
@@ -220,7 +220,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEven
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="time">Time</Label>
                   <Input
@@ -248,7 +248,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEven
 
               <div className="space-y-2">
                 <Label htmlFor="type">Event Type</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
                   {(['interview', 'follow-up', 'networking', 'other'] as const).map((type) => (
                     <Button
                       key={type}
@@ -294,7 +294,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEven
           </Card>
         )}
 
-        <div className="text-xs text-muted-foreground pt-2">
+        <div className="pt-2 text-muted-foreground text-xs">
           <p>
             Schedule important career events like interviews, follow-ups, and networking meetings.
           </p>

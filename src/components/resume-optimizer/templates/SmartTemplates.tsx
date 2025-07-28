@@ -171,7 +171,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
     };
 
     fetchTemplates();
-  }, [targetRole, targetIndustry, experienceLevel, currentSkills]);
+  }, []);
 
   const handleTemplateSelect = (templateId: string) => {
     setSelectedTemplate(templateId);
@@ -180,8 +180,8 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-blue-500 border-t-2 border-b-2" />
         <span className="ml-3">Finding the perfect templates for you...</span>
       </div>
     );
@@ -193,12 +193,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white"
+        className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 p-6 text-white"
       >
         <div className="flex items-start">
-          <Sparkles className="h-6 w-6 mr-2 mt-1 flex-shrink-0" />
+          <Sparkles className="mt-1 mr-2 h-6 w-6 flex-shrink-0" />
           <div>
-            <h3 className="text-xl font-bold">AI-Powered Template Recommendations</h3>
+            <h3 className="font-bold text-xl">AI-Powered Template Recommendations</h3>
             <p className="mt-1 opacity-90">
               Based on your profile as a {experienceLevel}-level {targetRole} in {targetIndustry},
               we've identified the templates that will maximize your impact.
@@ -209,15 +209,15 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
 
       {/* Recommended Templates */}
       <section>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Recommended For You</h2>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="font-bold text-xl">Recommended For You</h2>
           <Badge variant="secondary" className="flex items-center">
-            <TrendingUp className="w-3 h-3 mr-1" />
+            <TrendingUp className="mr-1 h-3 w-3" />
             AI-Powered
           </Badge>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <AnimatePresence>
             {recommendedTemplates.map((template) => (
               <motion.div
@@ -229,12 +229,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
               >
                 <Card
                   className={`h-full cursor-pointer transition-all hover:shadow-lg ${
-                    selectedTemplate === template.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
+                    selectedTemplate === template.id ? 'border-blue-500 ring-2 ring-blue-500' : ''
                   }`}
                   onClick={() => handleTemplateSelect(template.id)}
                 >
                   <CardHeader>
-                    <div className="flex justify-between items-start">
+                    <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="flex items-center">
                           {template.name}
@@ -249,21 +249,21 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 flex items-center justify-center">
+                      <div className="flex h-32 w-full items-center justify-center rounded-xl border-2 border-dashed bg-gray-200">
                         <span className="text-gray-500">Template Preview</span>
                       </div>
 
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Match Score</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">Match Score</span>
                         <Badge variant="default">{template.matchScore}%</Badge>
                       </div>
 
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm">Key Features:</h4>
-                        <ul className="text-xs space-y-1">
+                        <ul className="space-y-1 text-xs">
                           {template.features.slice(0, 3).map((feature, idx) => (
                             <li key={idx} className="flex items-center">
-                              <Check className="w-3 h-3 mr-1 text-green-500" />
+                              <Check className="mr-1 h-3 w-3 text-green-500" />
                               {feature}
                             </li>
                           ))}
@@ -290,7 +290,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
 
       {/* All Templates */}
       <section>
-        <h2 className="text-xl font-bold mb-4">All Templates</h2>
+        <h2 className="mb-4 font-bold text-xl">All Templates</h2>
 
         <Tabs defaultValue="all">
           <TabsList>
@@ -301,17 +301,17 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           </TabsList>
 
           <TabsContent value="all" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {templates.map((template) => (
                 <Card
                   key={template.id}
                   className={`h-full cursor-pointer transition-all hover:shadow-lg ${
-                    selectedTemplate === template.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
+                    selectedTemplate === template.id ? 'border-blue-500 ring-2 ring-blue-500' : ''
                   }`}
                   onClick={() => handleTemplateSelect(template.id)}
                 >
                   <CardHeader>
-                    <div className="flex justify-between items-start">
+                    <div className="flex items-start justify-between">
                       <div>
                         <CardTitle className="flex items-center">
                           {template.name}
@@ -326,12 +326,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 flex items-center justify-center">
+                      <div className="flex h-32 w-full items-center justify-center rounded-xl border-2 border-dashed bg-gray-200">
                         <span className="text-gray-500">Template Preview</span>
                       </div>
 
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">Match Score</span>
+                      <div className="flex items-center justify-between">
+                        <span className="font-medium text-sm">Match Score</span>
                         <Badge variant="default">{template.matchScore}%</Badge>
                       </div>
 
@@ -363,19 +363,19 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           </TabsContent>
 
           <TabsContent value="professional" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {templates
                 .filter((t) => t.category === 'Professional')
                 .map((template) => (
                   <Card
                     key={template.id}
                     className={`h-full cursor-pointer transition-all hover:shadow-lg ${
-                      selectedTemplate === template.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
+                      selectedTemplate === template.id ? 'border-blue-500 ring-2 ring-blue-500' : ''
                     }`}
                     onClick={() => handleTemplateSelect(template.id)}
                   >
                     <CardHeader>
-                      <div className="flex justify-between items-start">
+                      <div className="flex items-start justify-between">
                         <div>
                           <CardTitle className="flex items-center">
                             {template.name}
@@ -390,12 +390,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3">
-                        <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 flex items-center justify-center">
+                        <div className="flex h-32 w-full items-center justify-center rounded-xl border-2 border-dashed bg-gray-200">
                           <span className="text-gray-500">Template Preview</span>
                         </div>
 
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm font-medium">Match Score</span>
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-sm">Match Score</span>
                           <Badge variant="default">{template.matchScore}%</Badge>
                         </div>
 

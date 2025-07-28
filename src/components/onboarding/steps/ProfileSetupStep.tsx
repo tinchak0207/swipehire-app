@@ -118,7 +118,7 @@ export default function ProfileSetupStep({
               {/* Info box for job seekers */}
               <div className="mb-8 rounded-2xl border border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 p-6">
                 <div className="flex flex-col items-center text-center md:flex-row md:items-start md:text-left">
-                  <div className="mb-4 mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
+                  <div className="mr-4 mb-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
                     <svg
                       className="h-6 w-6 text-gray-600"
                       fill="none"

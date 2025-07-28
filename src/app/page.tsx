@@ -53,7 +53,7 @@ import { mockNotifications } from '@/lib/mockData';
 import type { BackendUser, NotificationItem, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 const loadingComponent = () => (
   <div className="flex min-h-[calc(100vh-250px)] items-center justify-center">
     <Loader2 className="h-12 w-12 animate-spin text-primary" />

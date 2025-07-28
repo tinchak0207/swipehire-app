@@ -278,7 +278,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
       {/* Suggestion Content */}
       {!isEditing && (
-        <div className="rounded-lg bg-gray-50 p-3 mb-3">
+        <div className="mb-3 rounded-lg bg-gray-50 p-3">
           <p className="font-medium text-gray-800 text-sm">{suggestion.suggestion}</p>
         </div>
       )}
@@ -305,7 +305,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     <div className="font-medium text-red-700 text-xs">Before:</div>
                     <span className="badge badge-xs badge-error">ORIGINAL</span>
                   </div>
-                  <div className="text-red-800 text-sm whitespace-pre-wrap">
+                  <div className="whitespace-pre-wrap text-red-800 text-sm">
                     {suggestion.beforeText}
                   </div>
                 </div>
@@ -314,7 +314,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                     <div className="font-medium text-green-700 text-xs">After:</div>
                     <span className="badge badge-xs badge-success">IMPROVED</span>
                   </div>
-                  <div className="text-green-800 text-sm whitespace-pre-wrap">
+                  <div className="whitespace-pre-wrap text-green-800 text-sm">
                     {suggestion.afterText}
                   </div>
                 </div>

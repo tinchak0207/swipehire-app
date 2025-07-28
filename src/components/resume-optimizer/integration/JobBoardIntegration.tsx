@@ -210,11 +210,11 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Search and Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <div className="space-y-2">
             <Label htmlFor="job-search">Job Title or Keyword</Label>
             <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="job-search"
                 placeholder="Search jobs..."
@@ -228,7 +228,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <MapPin className="absolute top-3 left-3 h-4 w-4 text-muted-foreground" />
               <Input
                 id="location"
                 placeholder="City, state, or remote"
@@ -249,7 +249,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
 
         {/* Job Results */}
         <div className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between">
             <h3 className="font-semibold">
               {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Found
             </h3>
@@ -262,7 +262,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
             {filteredJobs.map((job) => (
               <Card
                 key={job.id}
-                className={`hover:shadow-md transition-shadow cursor-pointer ${selectedJob?.id === job.id ? 'ring-2 ring-primary' : ''}`}
+                className={`cursor-pointer transition-shadow hover:shadow-md ${selectedJob?.id === job.id ? 'ring-2 ring-primary' : ''}`}
                 onClick={() => handleViewJob(job)}
               >
                 <CardContent className="p-4">
@@ -272,10 +272,10 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                         <h4 className="font-semibold">{job.title}</h4>
                         {job.isApplied && <Badge variant="secondary">Applied</Badge>}
                       </div>
-                      <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                      <div className="mt-1 flex items-center gap-2 text-muted-foreground text-sm">
                         <Building className="h-4 w-4" />
                         <span>{job.company}</span>
-                        <MapPin className="h-4 w-4 ml-2" />
+                        <MapPin className="ml-2 h-4 w-4" />
                         <span>{job.location}</span>
                       </div>
                     </div>
@@ -292,24 +292,24 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                     </Button>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     <Badge variant="outline">
-                      <Clock className="h-3 w-3 mr-1" />
+                      <Clock className="mr-1 h-3 w-3" />
                       {job.type}
                     </Badge>
                     {job.salary && (
                       <Badge variant="outline">
-                        <DollarSign className="h-3 w-3 mr-1" />
+                        <DollarSign className="mr-1 h-3 w-3" />
                         {job.salary}
                       </Badge>
                     )}
                     <Badge variant="outline">
-                      <Calendar className="h-3 w-3 mr-1" />
+                      <Calendar className="mr-1 h-3 w-3" />
                       {job.posted}
                     </Badge>
                   </div>
 
-                  <p className="mt-3 text-sm line-clamp-2 text-muted-foreground">
+                  <p className="mt-3 line-clamp-2 text-muted-foreground text-sm">
                     {job.description}
                   </p>
 
@@ -334,7 +334,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
             ))}
 
             {filteredJobs.length === 0 && !loading && (
-              <div className="text-center py-8 text-muted-foreground">
+              <div className="py-8 text-center text-muted-foreground">
                 <Briefcase className="mx-auto h-12 w-12" />
                 <h3 className="mt-4 font-medium">No jobs found</h3>
                 <p className="mt-1">Try adjusting your search or filter criteria</p>
@@ -347,13 +347,13 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
         {selectedJob && (
           <Card className="mt-6">
             <CardContent className="p-6">
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 <div>
-                  <h3 className="text-xl font-bold">{selectedJob.title}</h3>
-                  <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                  <h3 className="font-bold text-xl">{selectedJob.title}</h3>
+                  <div className="mt-1 flex items-center gap-2 text-muted-foreground">
                     <Building className="h-4 w-4" />
                     <span>{selectedJob.company}</span>
-                    <MapPin className="h-4 w-4 ml-2" />
+                    <MapPin className="ml-2 h-4 w-4" />
                     <span>{selectedJob.location}</span>
                   </div>
                 </div>
@@ -372,31 +372,31 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                 </Button>
               </div>
 
-              <div className="flex flex-wrap gap-2 my-4">
+              <div className="my-4 flex flex-wrap gap-2">
                 <Badge variant="outline">
-                  <Clock className="h-3 w-3 mr-1" />
+                  <Clock className="mr-1 h-3 w-3" />
                   {selectedJob.type}
                 </Badge>
                 {selectedJob.salary && (
                   <Badge variant="outline">
-                    <DollarSign className="h-3 w-3 mr-1" />
+                    <DollarSign className="mr-1 h-3 w-3" />
                     {selectedJob.salary}
                   </Badge>
                 )}
                 <Badge variant="outline">
-                  <Calendar className="h-3 w-3 mr-1" />
+                  <Calendar className="mr-1 h-3 w-3" />
                   {selectedJob.posted}
                 </Badge>
               </div>
 
               <div className="mt-4">
-                <h4 className="font-semibold mb-2">Job Description</h4>
+                <h4 className="mb-2 font-semibold">Job Description</h4>
                 <p className="text-muted-foreground">{selectedJob.description}</p>
               </div>
 
               <div className="mt-4">
-                <h4 className="font-semibold mb-2">Requirements</h4>
-                <ul className="list-disc pl-5 space-y-1">
+                <h4 className="mb-2 font-semibold">Requirements</h4>
+                <ul className="list-disc space-y-1 pl-5">
                   {selectedJob.requirements.map((req, index) => (
                     <li key={index} className="text-muted-foreground">
                       {req}

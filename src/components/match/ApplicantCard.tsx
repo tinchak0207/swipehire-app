@@ -98,7 +98,7 @@ export function ApplicantCard({
   return (
     <Card
       className={cn(
-        'h-full w-full rounded-xl border bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md flex flex-col',
+        'flex h-full w-full flex-col rounded-xl border bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md',
         isFocused
           ? 'border-blue-500 ring-2 ring-blue-100'
           : 'border-slate-200 hover:border-slate-300'
@@ -129,7 +129,7 @@ export function ApplicantCard({
                   {candidate.name}
                 </CardTitle>
                 <CardDescription
-                  className="truncate text-blue-600 text-xs leading-tight mt-1"
+                  className="mt-1 truncate text-blue-600 text-xs leading-tight"
                   title={candidate.role}
                 >
                   {candidate.role}
@@ -138,7 +138,7 @@ export function ApplicantCard({
               <Badge
                 variant="outline"
                 className={cn(
-                  'flex h-6 shrink-0 items-center px-2 py-0.5 font-medium text-xs rounded-full',
+                  'flex h-6 shrink-0 items-center rounded-full px-2 py-0.5 font-medium text-xs',
                   timeRemainingDetails.colorClasses
                 )}
               >
@@ -179,7 +179,7 @@ export function ApplicantCard({
                 <Badge
                   key={skill}
                   variant="secondary"
-                  className="bg-slate-100 px-2 py-1 font-normal text-slate-700 text-xs rounded-md"
+                  className="rounded-md bg-slate-100 px-2 py-1 font-normal text-slate-700 text-xs"
                 >
                   {skill}
                 </Badge>
@@ -187,7 +187,7 @@ export function ApplicantCard({
               {candidate.skills.length > 3 && (
                 <Badge
                   variant="outline"
-                  className="border-slate-300 px-2 py-1 font-normal text-slate-500 text-xs rounded-md"
+                  className="rounded-md border-slate-300 px-2 py-1 font-normal text-slate-500 text-xs"
                 >
                   +{candidate.skills.length - 3}
                 </Badge>
@@ -202,12 +202,12 @@ export function ApplicantCard({
           </p>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-4 gap-2 border-t bg-slate-50 p-3 rounded-b-xl">
+      <CardFooter className="grid grid-cols-4 gap-2 rounded-b-xl border-t bg-slate-50 p-3">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onRejectApplicant(match)}
-          className="h-8 border-red-200 py-1 font-medium text-red-600 text-xs hover:border-red-300 hover:bg-red-50 rounded-md"
+          className="h-8 rounded-md border-red-200 py-1 font-medium text-red-600 text-xs hover:border-red-300 hover:bg-red-50"
         >
           <UserX className="mr-1 h-3 w-3" /> Reject
         </Button>
@@ -215,14 +215,14 @@ export function ApplicantCard({
           variant="outline"
           size="sm"
           onClick={handleViewProfile}
-          className="h-8 border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 rounded-md"
+          className="h-8 rounded-md border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100"
         >
           <Eye className="mr-1 h-3 w-3" /> View
         </Button>
         <Button
           onClick={() => onInviteToInterview(match)}
           size="sm"
-          className="h-8 bg-blue-600 py-1 font-medium text-white text-xs hover:bg-blue-700 rounded-md"
+          className="h-8 rounded-md bg-blue-600 py-1 font-medium text-white text-xs hover:bg-blue-700"
         >
           <CheckCircle className="mr-1 h-3 w-3" /> Invite
         </Button>
@@ -230,7 +230,7 @@ export function ApplicantCard({
           variant="outline"
           size="sm"
           onClick={() => onArchiveMatch(match._id)}
-          className="h-8 border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 rounded-md"
+          className="h-8 rounded-md border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100"
         >
           <Archive className="mr-1 h-3 w-3" /> Archive
         </Button>

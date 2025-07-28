@@ -83,7 +83,7 @@ const PeerReview: React.FC<PeerReviewProps> = ({
         difficulty: 'medium',
         requiresManualReview: true,
       },
-      beforePreview: resumeContent.substring(0, 100) + '...',
+      beforePreview: `${resumeContent.substring(0, 100)}...`,
       afterPreview: comment,
       isApplied: false,
       canAutoApply: false,
@@ -118,21 +118,21 @@ const PeerReview: React.FC<PeerReviewProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-bold mb-4">Peer Review</h2>
+    <div className="rounded-lg bg-white p-6 shadow-md">
+      <h2 className="mb-4 font-bold text-xl">Peer Review</h2>
 
       <div className="mb-6">
-        <h3 className="font-semibold mb-2">Rate this resume</h3>
+        <h3 className="mb-2 font-semibold">Rate this resume</h3>
         {renderStars()}
       </div>
 
       <div className="mb-6">
-        <label htmlFor="review-comment" className="block font-medium mb-2">
+        <label htmlFor="review-comment" className="mb-2 block font-medium">
           Your feedback
         </label>
         <textarea
           id="review-comment"
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full rounded-md border border-gray-300 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           rows={4}
           placeholder="Share your detailed feedback on the resume's content, structure, and presentation..."
           value={comment}
@@ -142,9 +142,9 @@ const PeerReview: React.FC<PeerReviewProps> = ({
       </div>
 
       <button
-        className={`px-4 py-2 rounded-md font-medium ${
+        className={`rounded-md px-4 py-2 font-medium ${
           rating === 0 || !comment.trim() || isSubmitting
-            ? 'bg-gray-300 cursor-not-allowed'
+            ? 'cursor-not-allowed bg-gray-300'
             : 'bg-blue-600 text-white hover:bg-blue-700'
         }`}
         onClick={handleSubmitReview}
@@ -155,13 +155,13 @@ const PeerReview: React.FC<PeerReviewProps> = ({
 
       {reviews.length > 0 && (
         <div className="mt-8">
-          <h3 className="font-semibold mb-4">Peer Reviews ({reviews.length})</h3>
+          <h3 className="mb-4 font-semibold">Peer Reviews ({reviews.length})</h3>
           <div className="space-y-4">
             {reviews.map((review) => (
-              <div key={review.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
+              <div key={review.id} className="rounded-lg border border-gray-200 p-4">
+                <div className="mb-2 flex items-center justify-between">
                   <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-2">
+                    <div className="mr-2 flex h-8 w-8 items-center justify-center rounded-full bg-blue-500 font-bold text-white">
                       {review.reviewer.name.charAt(0)}
                     </div>
                     <span className="font-medium">{review.reviewer.name}</span>
@@ -177,8 +177,8 @@ const PeerReview: React.FC<PeerReviewProps> = ({
                     ))}
                   </div>
                 </div>
-                <p className="text-gray-700 mb-2">{review.comment}</p>
-                <p className="text-sm text-gray-500">{review.timestamp.toLocaleDateString()}</p>
+                <p className="mb-2 text-gray-700">{review.comment}</p>
+                <p className="text-gray-500 text-sm">{review.timestamp.toLocaleDateString()}</p>
               </div>
             ))}
           </div>

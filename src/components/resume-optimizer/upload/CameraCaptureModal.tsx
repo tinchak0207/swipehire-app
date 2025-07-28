@@ -325,7 +325,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
         clearTimeout(detectionTimeout);
       }
     };
-  }, [state.isStreaming, state.autoDetectEnabled, videoRef, startDocumentDetection]);
+  }, [state.isStreaming, state.autoDetectEnabled, startDocumentDetection]);
 
   // Process and use captured images
   const processCaptures = useCallback(async () => {

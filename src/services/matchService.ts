@@ -1,7 +1,7 @@
 // src/services/matchService.ts
 import type { Match, RecordLikePayload, RecordLikeResponse } from '../lib/types';
 
-const CUSTOM_BACKEND_URL_FROM_ENV = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
+const CUSTOM_BACKEND_URL_FROM_ENV = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
 const CUSTOM_BACKEND_URL = CUSTOM_BACKEND_URL_FROM_ENV || 'http://localhost:5000';
 
 export async function recordLike(payload: RecordLikePayload): Promise<RecordLikeResponse> {

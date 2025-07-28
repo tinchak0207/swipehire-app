@@ -228,8 +228,8 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange })
               onUpdate={(updatedProject) => updateProject(index, updatedProject)}
               onRemove={() => removeProject(index)}
               errors={
-                errors['projects'] && Array.isArray(errors['projects']) && errors['projects'][index]
-                  ? errors['projects'][index]
+                errors.projects && Array.isArray(errors.projects) && errors.projects[index]
+                  ? errors.projects[index]
                   : undefined
               }
             />
@@ -260,14 +260,14 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange })
         </motion.button>
 
         {/* Validation Error */}
-        {errors['projects'] && typeof errors['projects'].message === 'string' && (
+        {errors.projects && typeof errors.projects.message === 'string' && (
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center space-x-2 rounded-lg border border-red-400/30 bg-red-500/10 p-4 text-red-300 backdrop-blur-sm"
           >
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <span>{errors['projects'].message}</span>
+            <span>{errors.projects.message}</span>
           </motion.div>
         )}
 

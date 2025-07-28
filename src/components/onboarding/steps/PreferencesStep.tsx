@@ -63,7 +63,7 @@ export default function PreferencesStep({
         {/* Theme Selection */}
         <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl">
           <div className="card-body">
-            <h3 className="card-title mb-4 text-xl flex items-center">
+            <h3 className="card-title mb-4 flex items-center text-xl">
               <span className="mr-2">🎨</span> Appearance Settings
             </h3>
             <div className="space-y-1">
@@ -77,7 +77,7 @@ export default function PreferencesStep({
                       key={theme}
                       type="button"
                       onClick={() => handleThemeChange(theme)}
-                      className={`btn btn-sm flex-1 min-w-[100px] transition-all duration-200 transform hover:scale-105 ${
+                      className={`btn btn-sm min-w-[100px] flex-1 transform transition-all duration-200 hover:scale-105 ${
                         data.preferences.theme === theme
                           ? 'btn-primary shadow-md'
                           : 'btn-outline border-2'
@@ -95,14 +95,14 @@ export default function PreferencesStep({
         {/* Notification Channels */}
         <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl">
           <div className="card-body">
-            <h3 className="card-title mb-4 text-xl flex items-center">
+            <h3 className="card-title mb-4 flex items-center text-xl">
               <span className="mr-2">🔔</span> Notification Channels
             </h3>
             <div className="space-y-2">
               {Object.entries(data.preferences.notificationChannels).map(([key, value]) => (
                 <div
                   key={key}
-                  className={`form-control p-3 rounded-lg transition-all duration-200 ${
+                  className={`form-control rounded-lg p-3 transition-all duration-200 ${
                     value ? 'bg-primary/10' : 'hover:bg-primary/5'
                   }`}
                 >
@@ -131,14 +131,14 @@ export default function PreferencesStep({
         {/* Notification Subscriptions */}
         <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl">
           <div className="card-body">
-            <h3 className="card-title mb-4 text-xl flex items-center">
+            <h3 className="card-title mb-4 flex items-center text-xl">
               <span className="mr-2">📧</span> Email Subscriptions
             </h3>
             <div className="space-y-2">
               {Object.entries(data.preferences.notificationSubscriptions).map(([key, value]) => (
                 <div
                   key={key}
-                  className={`form-control p-3 rounded-lg transition-all duration-200 ${
+                  className={`form-control rounded-lg p-3 transition-all duration-200 ${
                     value ? 'bg-primary/10' : 'hover:bg-primary/5'
                   }`}
                 >

@@ -85,7 +85,7 @@ import { type JobType, WorkExperienceLevel } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { deleteRecruiterJob, fetchRecruiterJobs, updateRecruiterJob } from '@/services/jobService';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 const JobStatusEnum = z.enum(['draft', 'active', 'paused', 'expired', 'filled', 'closed']);
 

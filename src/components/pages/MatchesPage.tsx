@@ -13,10 +13,9 @@ import {
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AiHumanResourcesTab } from '@/components/ai/AiHumanResourcesTab';
-import { ApplicantCard } from '@/components/match/ApplicantCard';
-import { TikTokApplicantScroller } from '@/components/match/TikTokApplicantScroller';
 import { FocusedChatPanel } from '@/components/match/FocusedChatPanel';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
+import { TikTokApplicantScroller } from '@/components/match/TikTokApplicantScroller';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -43,8 +42,8 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   const [focusedMatch, setFocusedMatch] = useState<
     (Match & { candidate: Candidate; company: Company }) | null
   >(null);
-  const applicantListRef = useRef<HTMLDivElement>(null);
-  const applicantCardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
+  const _applicantListRef = useRef<HTMLDivElement>(null);
+  const _applicantCardRefs = useRef<Map<string, HTMLDivElement | null>>(new Map());
   const [activeTab, setActiveTab] = useState('applicants');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -226,7 +225,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     return matches.filter((match) => match.candidate && match.company && match.status === 'active');
   }, [matches, fullBackendUser?.selectedRole]);
 
-  const handleApplicantCardClick = (match: Match & { candidate: Candidate; company: Company }) => {
+  const _handleApplicantCardClick = (match: Match & { candidate: Candidate; company: Company }) => {
     setFocusedMatch(match);
   };
   const handleInviteToInterview = (match: Match) => {
@@ -243,7 +242,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   };
 
   // Function to handle scroll-based focus change
-  const handleScrollFocusChange = (match: Match & { candidate: Candidate; company: Company }) => {
+  const _handleScrollFocusChange = (match: Match & { candidate: Candidate; company: Company }) => {
     if (focusedMatch?._id !== match._id) {
       setFocusedMatch(match);
     }
@@ -275,7 +274,6 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   if (fullBackendUser?.selectedRole === 'recruiter') {
     return (
       <div className="flex flex-grow flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
-        
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -309,7 +307,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                     placeholder="Search applicants by name or role..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-10 border-slate-300 bg-slate-50 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500 rounded-lg"
+                    className="h-10 rounded-lg border-slate-300 bg-slate-50 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                   <Search className="absolute top-1/2 left-7 h-4 w-4 text-slate-400" />
                 </div>
@@ -323,21 +321,24 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                   />
                 </div>
               </div>
-              <div className="flex flex-1 items-center justify-center overflow-hidden rounded-lg border bg-white shadow-sm md:h-full" style={{ aspectRatio: '16/9' }}>
+              <div
+                className="flex flex-1 items-center justify-center overflow-hidden rounded-lg border bg-white shadow-sm md:h-full"
+                style={{ aspectRatio: '16/9' }}
+              >
                 {focusedMatch && mongoDbUserId ? (
                   <div className="h-full w-full">
                     <FocusedChatPanel
                       key={focusedMatch._id}
                       match={focusedMatch}
                       mongoDbUserId={mongoDbUserId}
-                      />
+                    />
                   </div>
                 ) : (
                   <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center">
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
                       <MessageSquare className="h-8 w-8 text-blue-600" />
                     </div>
-                    <h3 className="font-semibold text-xl text-slate-700">
+                    <h3 className="font-semibold text-slate-700 text-xl">
                       {pendingApplicants.length > 0
                         ? 'Select an applicant to view chat'
                         : 'No applicants to chat with'}
@@ -358,8 +359,8 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
               <AlertTriangle className="!text-red-600 h-5 w-5" />
               <AlertTitle className="font-semibold text-red-800">Important Reminder</AlertTitle>
               <AlertDescription className="text-red-700/90">
-                Failure to reply within 72 hours will deduct from your company's reputation score. It is
-                recommended to use the AI Human Resources function to ensure timely replies.
+                Failure to reply within 72 hours will deduct from your company's reputation score.
+                It is recommended to use the AI Human Resources function to ensure timely replies.
               </AlertDescription>
             </Alert>
           </TabsContent>

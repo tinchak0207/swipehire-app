@@ -86,7 +86,7 @@ export default function ProgressIndicator({
               <span
                 className={`text-center font-medium text-xs transition-colors duration-300 ${
                   isCurrent
-                    ? 'text-gray-800 font-bold'
+                    ? 'font-bold text-gray-800'
                     : isCompleted
                       ? 'text-gray-700'
                       : 'text-gray-600'

@@ -61,7 +61,7 @@ import { Availability, EducationLevel, LocationPreference, WorkExperienceLevel }
 import { cn } from '@/lib/utils';
 import { CardDescription, CardFooter, CardTitle } from '../ui/card';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
 
 interface CandidateCardContentProps {
   candidate: Candidate;

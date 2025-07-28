@@ -10,7 +10,7 @@ interface BackendUser {
 }
 
 async function validateRequest(request: Request) {
-  const backendUrl = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'];
+  const backendUrl = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL;
   if (!backendUrl) {
     throw new Error('Server configuration error');
   }
