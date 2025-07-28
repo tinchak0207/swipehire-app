@@ -147,16 +147,16 @@ export const CloudStorageModal: React.FC<CloudStorageModalProps> = ({
 
   const handleProviderConnect = useCallback(async (provider: CloudStorageProvider) => {
     setState((prev) => ({ ...prev, isConnecting: true }));
-    
+
     try {
       // Simulate connection process
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       // In a real implementation, this would:
       // - Redirect to OAuth flow
       // - Handle authentication callbacks
       // - Store access tokens securely
-      
+
       setState((prev) => ({
         ...prev,
         isConnecting: false,

@@ -1,19 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { 
-  TrophyIcon, 
-  FireIcon, 
-  ChartBarIcon, 
+import {
   AcademicCapIcon,
   ArrowTrendingUpIcon,
+  ChartBarIcon,
   ClockIcon,
+  FireIcon,
   LightBulbIcon,
-  StarIcon
+  StarIcon,
+  TrophyIcon,
 } from '@heroicons/react/24/outline';
-import { AdvancedAnalyticsDashboard } from '../analytics/AdvancedAnalyticsDashboard';
-import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 import { CheckCircleIcon } from '@heroicons/react/24/solid';
+import { useEffect, useState } from 'react';
+import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
+import { AdvancedAnalyticsDashboard } from '../analytics/AdvancedAnalyticsDashboard';
 
 interface GamifiedAnalyticsDashboardProps {
   userId?: string;
@@ -72,8 +72,12 @@ export function GamifiedAnalyticsDashboard({
       // In a real implementation, this would come from an API or local storage
       const mockData: GamificationMetrics = {
         points: analysisData ? Math.min(1000, Math.floor(analysisData.overallScore * 10)) : 0,
-        level: analysisData ? Math.floor(Math.min(1000, Math.floor(analysisData.overallScore * 10)) / 100) + 1 : 1,
-        nextLevelPoints: analysisData ? 100 - (Math.min(1000, Math.floor(analysisData.overallScore * 10)) % 100) : 100,
+        level: analysisData
+          ? Math.floor(Math.min(1000, Math.floor(analysisData.overallScore * 10)) / 100) + 1
+          : 1,
+        nextLevelPoints: analysisData
+          ? 100 - (Math.min(1000, Math.floor(analysisData.overallScore * 10)) % 100)
+          : 100,
         streak: {
           current: 3,
           best: 7,
@@ -124,7 +128,7 @@ export function GamifiedAnalyticsDashboard({
           },
         ],
       };
-      
+
       setGamificationData(mockData);
       setIsLoading(false);
     };
@@ -135,27 +139,36 @@ export function GamifiedAnalyticsDashboard({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500" />
       </div>
     );
   }
 
   const getLevelProgress = () => {
     if (!gamificationData) return 0;
-    return (gamificationData.points % 100);
+    return gamificationData.points % 100;
   };
 
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
-      case 'trophy': return <TrophyIcon className="h-6 w-6" />;
-      case 'fire': return <FireIcon className="h-6 w-6" />;
-      case 'chart-bar': return <ChartBarIcon className="h-6 w-6" />;
-      case 'academic-cap': return <AcademicCapIcon className="h-6 w-6" />;
-      case 'arrow-trending-up': return <ArrowTrendingUpIcon className="h-6 w-6" />;
-      case 'clock': return <ClockIcon className="h-6 w-6" />;
-      case 'light-bulb': return <LightBulbIcon className="h-6 w-6" />;
-      case 'star': return <StarIcon className="h-6 w-6" />;
-      default: return <StarIcon className="h-6 w-6" />;
+      case 'trophy':
+        return <TrophyIcon className="h-6 w-6" />;
+      case 'fire':
+        return <FireIcon className="h-6 w-6" />;
+      case 'chart-bar':
+        return <ChartBarIcon className="h-6 w-6" />;
+      case 'academic-cap':
+        return <AcademicCapIcon className="h-6 w-6" />;
+      case 'arrow-trending-up':
+        return <ArrowTrendingUpIcon className="h-6 w-6" />;
+      case 'clock':
+        return <ClockIcon className="h-6 w-6" />;
+      case 'light-bulb':
+        return <LightBulbIcon className="h-6 w-6" />;
+      case 'star':
+        return <StarIcon className="h-6 w-6" />;
+      default:
+        return <StarIcon className="h-6 w-6" />;
     }
   };
 
@@ -186,14 +199,14 @@ export function GamifiedAnalyticsDashboard({
             </div>
             <AcademicCapIcon className="h-10 w-10 text-purple-200" />
           </div>
-          
+
           {/* Level Progress Bar */}
           <div className="mt-4">
             <div className="w-full bg-purple-300 rounded-full h-2">
-              <div 
-                className="bg-white h-2 rounded-full" 
+              <div
+                className="bg-white h-2 rounded-full"
                 style={{ width: `${getLevelProgress()}%` }}
-              ></div>
+              />
             </div>
           </div>
         </div>
@@ -229,49 +242,54 @@ export function GamifiedAnalyticsDashboard({
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-gray-900">Achievements</h2>
           <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-            {gamificationData?.achievements.filter(a => a.earned).length || 0} of {gamificationData?.achievements.length || 0} earned
+            {gamificationData?.achievements.filter((a) => a.earned).length || 0} of{' '}
+            {gamificationData?.achievements.length || 0} earned
           </span>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {gamificationData?.achievements.map((achievement) => (
-            <div 
+            <div
               key={achievement.id}
               className={`border rounded-xl p-4 transition-all duration-200 ${
-                achievement.earned 
-                  ? 'border-green-200 bg-green-50 hover:bg-green-100' 
+                achievement.earned
+                  ? 'border-green-200 bg-green-50 hover:bg-green-100'
                   : 'border-gray-200 bg-gray-50 opacity-75'
               }`}
             >
               <div className="flex items-start space-x-3">
-                <div className={`p-2 rounded-lg ${
-                  achievement.earned 
-                    ? 'bg-green-100 text-green-600' 
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
+                <div
+                  className={`p-2 rounded-lg ${
+                    achievement.earned ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'
+                  }`}
+                >
                   {getIconComponent(achievement.icon)}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-gray-900">{achievement.title}</h3>
                   <p className="text-sm text-gray-600 mt-1">{achievement.description}</p>
-                  
+
                   {achievement.progress !== undefined && achievement.target && (
                     <div className="mt-3">
                       <div className="flex justify-between text-xs text-gray-500 mb-1">
                         <span>Progress</span>
-                        <span>{achievement.progress} / {achievement.target}</span>
+                        <span>
+                          {achievement.progress} / {achievement.target}
+                        </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className={`h-2 rounded-full ${
                             achievement.earned ? 'bg-green-500' : 'bg-blue-500'
                           }`}
-                          style={{ width: `${Math.min(100, (achievement.progress / achievement.target) * 100)}%` }}
-                        ></div>
+                          style={{
+                            width: `${Math.min(100, (achievement.progress / achievement.target) * 100)}%`,
+                          }}
+                        />
                       </div>
                     </div>
                   )}
-                  
+
                   {achievement.earned && (
                     <div className="mt-2 flex items-center text-green-600 text-sm">
                       <CheckCircleIcon className="h-4 w-4 mr-1" />

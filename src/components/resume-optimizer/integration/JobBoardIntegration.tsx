@@ -1,21 +1,22 @@
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { 
-  Search, 
-  MapPin, 
-  Building, 
-  Clock, 
-  DollarSign, 
+import {
+  Briefcase,
+  Building,
+  Calendar,
+  CheckCircle,
+  Clock,
+  DollarSign,
   ExternalLink,
   Filter,
-  Briefcase,
-  Calendar,
-  CheckCircle
+  MapPin,
+  Search,
 } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from '@/hooks/use-toast';
 
 interface Job {
@@ -40,9 +41,9 @@ interface JobBoardIntegrationProps {
   onJobApply?: (jobId: string) => void;
 }
 
-export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({ 
+export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
   userProfile,
-  onJobApply 
+  onJobApply,
 }) => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [filteredJobs, setFilteredJobs] = useState<Job[]>([]);
@@ -62,8 +63,13 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
         salary: '$120,000 - $150,000',
         type: 'Full-time',
         posted: '2 days ago',
-        description: 'We are looking for a Senior Frontend Developer to join our team. You will be responsible for building user-facing features using React, TypeScript, and modern web technologies.',
-        requirements: ['5+ years React experience', 'TypeScript proficiency', 'State management (Redux/Zustand)']
+        description:
+          'We are looking for a Senior Frontend Developer to join our team. You will be responsible for building user-facing features using React, TypeScript, and modern web technologies.',
+        requirements: [
+          '5+ years React experience',
+          'TypeScript proficiency',
+          'State management (Redux/Zustand)',
+        ],
       },
       {
         id: '2',
@@ -73,8 +79,13 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
         salary: '$110,000 - $140,000',
         type: 'Full-time',
         posted: '1 week ago',
-        description: 'Join our product team to drive the development of our flagship SaaS platform. You will work closely with engineering, design, and customer success teams.',
-        requirements: ['3+ years product management experience', 'SaaS experience', 'Agile methodology']
+        description:
+          'Join our product team to drive the development of our flagship SaaS platform. You will work closely with engineering, design, and customer success teams.',
+        requirements: [
+          '3+ years product management experience',
+          'SaaS experience',
+          'Agile methodology',
+        ],
       },
       {
         id: '3',
@@ -84,8 +95,9 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
         salary: '$90,000 - $120,000',
         type: 'Full-time',
         posted: '3 days ago',
-        description: 'Design beautiful and intuitive user experiences for our enterprise software platform. Collaborate with product managers and developers to bring ideas to life.',
-        requirements: ['Figma proficiency', 'User research experience', 'Prototyping skills']
+        description:
+          'Design beautiful and intuitive user experiences for our enterprise software platform. Collaborate with product managers and developers to bring ideas to life.',
+        requirements: ['Figma proficiency', 'User research experience', 'Prototyping skills'],
       },
       {
         id: '4',
@@ -95,8 +107,9 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
         salary: '$130,000 - $160,000',
         type: 'Full-time',
         posted: '5 days ago',
-        description: 'Build scalable backend services and APIs using Node.js and Python. Work with large datasets and implement efficient algorithms.',
-        requirements: ['Node.js/Python experience', 'Database design', 'Cloud platforms (AWS/GCP)']
+        description:
+          'Build scalable backend services and APIs using Node.js and Python. Work with large datasets and implement efficient algorithms.',
+        requirements: ['Node.js/Python experience', 'Database design', 'Cloud platforms (AWS/GCP)'],
       },
       {
         id: '5',
@@ -105,11 +118,12 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
         location: 'Remote',
         type: 'Contract',
         posted: '1 day ago',
-        description: 'Help us build and maintain our CI/CD pipelines and cloud infrastructure. Work with Kubernetes, Docker, and Terraform.',
-        requirements: ['Kubernetes experience', 'Terraform', 'CI/CD pipelines']
-      }
+        description:
+          'Help us build and maintain our CI/CD pipelines and cloud infrastructure. Work with Kubernetes, Docker, and Terraform.',
+        requirements: ['Kubernetes experience', 'Terraform', 'CI/CD pipelines'],
+      },
     ];
-    
+
     setJobs(mockJobs);
     setFilteredJobs(mockJobs);
   }, []);
@@ -117,37 +131,38 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
   // Filter jobs based on search criteria
   useEffect(() => {
     let result = jobs;
-    
+
     if (searchTerm) {
-      result = result.filter(job => 
-        job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        job.description.toLowerCase().includes(searchTerm.toLowerCase())
+      result = result.filter(
+        (job) =>
+          job.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          job.description.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-    
+
     if (locationFilter) {
-      result = result.filter(job => 
+      result = result.filter((job) =>
         job.location.toLowerCase().includes(locationFilter.toLowerCase())
       );
     }
-    
+
     // Filter based on user skills if available
     if (userProfile.skills && userProfile.skills.length > 0) {
-      result = result.map(job => {
-        const matchCount = job.requirements.filter(req => 
-          userProfile.skills.some(skill => 
-            req.toLowerCase().includes(skill.toLowerCase())
-          )
-        ).length;
-        
-        return {
-          ...job,
-          matchScore: matchCount / job.requirements.length
-        };
-      }).sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0)) as unknown as Job[];
+      result = result
+        .map((job) => {
+          const matchCount = job.requirements.filter((req) =>
+            userProfile.skills.some((skill) => req.toLowerCase().includes(skill.toLowerCase()))
+          ).length;
+
+          return {
+            ...job,
+            matchScore: matchCount / job.requirements.length,
+          };
+        })
+        .sort((a: any, b: any) => (b.matchScore || 0) - (a.matchScore || 0)) as unknown as Job[];
     }
-    
+
     setFilteredJobs(result);
   }, [searchTerm, locationFilter, jobs, userProfile.skills]);
 
@@ -157,7 +172,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
     setTimeout(() => {
       setLoading(false);
       toast({
-        title: "Jobs Updated",
+        title: 'Jobs Updated',
         description: `Found ${filteredJobs.length} jobs matching your criteria.`,
       });
     }, 800);
@@ -165,14 +180,14 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
 
   const handleApply = (jobId: string) => {
     // In a real implementation, this would call an API to apply to the job
-    const job = jobs.find(j => j.id === jobId);
+    const job = jobs.find((j) => j.id === jobId);
     if (job) {
-      setSelectedJob({...job, isApplied: true});
-      setJobs(jobs.map(j => j.id === jobId ? {...j, isApplied: true} : j));
+      setSelectedJob({ ...job, isApplied: true });
+      setJobs(jobs.map((j) => (j.id === jobId ? { ...j, isApplied: true } : j)));
       onJobApply?.(jobId);
-      
+
       toast({
-        title: "Application Submitted",
+        title: 'Application Submitted',
         description: `Your application for ${job.title} at ${job.company} has been submitted successfully!`,
       });
     }
@@ -209,7 +224,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="location">Location</Label>
             <div className="relative">
@@ -223,19 +238,15 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
               />
             </div>
           </div>
-          
+
           <div className="flex items-end">
-            <Button 
-              onClick={handleSearch} 
-              className="w-full"
-              disabled={loading}
-            >
+            <Button onClick={handleSearch} className="w-full" disabled={loading}>
               <Filter className="mr-2 h-4 w-4" />
               {loading ? 'Searching...' : 'Filter Jobs'}
             </Button>
           </div>
         </div>
-        
+
         {/* Job Results */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
@@ -243,16 +254,14 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
               {filteredJobs.length} {filteredJobs.length === 1 ? 'Job' : 'Jobs'} Found
             </h3>
             {userProfile.targetJob && (
-              <Badge variant="secondary">
-                Target: {userProfile.targetJob}
-              </Badge>
+              <Badge variant="secondary">Target: {userProfile.targetJob}</Badge>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 gap-4">
             {filteredJobs.map((job) => (
-              <Card 
-                key={job.id} 
+              <Card
+                key={job.id}
                 className={`hover:shadow-md transition-shadow cursor-pointer ${selectedJob?.id === job.id ? 'ring-2 ring-primary' : ''}`}
                 onClick={() => handleViewJob(job)}
               >
@@ -261,9 +270,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                     <div>
                       <div className="flex items-start gap-2">
                         <h4 className="font-semibold">{job.title}</h4>
-                        {job.isApplied && (
-                          <Badge variant="secondary">Applied</Badge>
-                        )}
+                        {job.isApplied && <Badge variant="secondary">Applied</Badge>}
                       </div>
                       <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
                         <Building className="h-4 w-4" />
@@ -272,8 +279,8 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                         <span>{job.location}</span>
                       </div>
                     </div>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -284,7 +291,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                       {job.isApplied ? 'Applied' : 'Apply Now'}
                     </Button>
                   </div>
-                  
+
                   <div className="flex flex-wrap gap-2 mt-3">
                     <Badge variant="outline">
                       <Clock className="h-3 w-3 mr-1" />
@@ -301,11 +308,11 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                       {job.posted}
                     </Badge>
                   </div>
-                  
+
                   <p className="mt-3 text-sm line-clamp-2 text-muted-foreground">
                     {job.description}
                   </p>
-                  
+
                   {job.requirements.length > 0 && (
                     <div className="mt-3">
                       <div className="flex flex-wrap gap-1">
@@ -325,7 +332,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                 </CardContent>
               </Card>
             ))}
-            
+
             {filteredJobs.length === 0 && !loading && (
               <div className="text-center py-8 text-muted-foreground">
                 <Briefcase className="mx-auto h-12 w-12" />
@@ -335,7 +342,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
             )}
           </div>
         </div>
-        
+
         {/* Job Detail View */}
         {selectedJob && (
           <Card className="mt-6">
@@ -350,7 +357,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                     <span>{selectedJob.location}</span>
                   </div>
                 </div>
-                <Button 
+                <Button
                   onClick={() => handleApply(selectedJob.id)}
                   disabled={selectedJob.isApplied}
                 >
@@ -364,7 +371,7 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                   )}
                 </Button>
               </div>
-              
+
               <div className="flex flex-wrap gap-2 my-4">
                 <Badge variant="outline">
                   <Clock className="h-3 w-3 mr-1" />
@@ -381,21 +388,23 @@ export const JobBoardIntegration: React.FC<JobBoardIntegrationProps> = ({
                   {selectedJob.posted}
                 </Badge>
               </div>
-              
+
               <div className="mt-4">
                 <h4 className="font-semibold mb-2">Job Description</h4>
                 <p className="text-muted-foreground">{selectedJob.description}</p>
               </div>
-              
+
               <div className="mt-4">
                 <h4 className="font-semibold mb-2">Requirements</h4>
                 <ul className="list-disc pl-5 space-y-1">
                   {selectedJob.requirements.map((req, index) => (
-                    <li key={index} className="text-muted-foreground">{req}</li>
+                    <li key={index} className="text-muted-foreground">
+                      {req}
+                    </li>
                   ))}
                 </ul>
               </div>
-              
+
               <div className="mt-6">
                 <Button variant="outline" className="w-full">
                   <ExternalLink className="mr-2 h-4 w-4" />

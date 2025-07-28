@@ -1,8 +1,15 @@
 'use client';
 
-import { CheckIcon, DocumentTextIcon, PencilIcon, XMarkIcon, ArrowPathIcon, EyeIcon } from '@heroicons/react/24/outline';
-import { useState, useCallback, useMemo } from 'react';
+import {
+  ArrowPathIcon,
+  CheckIcon,
+  DocumentTextIcon,
+  EyeIcon,
+  PencilIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useCallback, useMemo, useState } from 'react';
 import type { SuggestionCardProps } from '@/lib/types/resume-optimizer';
 
 /**
@@ -106,7 +113,7 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
   const handleApply = useCallback(async (): Promise<void> => {
     if (!onApplyToEditor) return;
-    
+
     setIsApplying(true);
     try {
       await onApplyToEditor(suggestion.id, suggestion);
@@ -278,48 +285,55 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
       {/* Before/After Preview */}
       <AnimatePresence>
-        {(showPreview || isExpanded) && suggestion.beforeText && suggestion.afterText && !isEditing && (
-          <motion.div
-            className="mt-3 space-y-2"
-            variants={animationVariants.expandedContent}
-            initial="hidden"
-            animate="visible"
-            exit="hidden"
-          >
-            <div className="font-medium text-gray-500 text-xs uppercase tracking-wide">
-              Before & After
-            </div>
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded border border-red-200 bg-red-50 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="font-medium text-red-700 text-xs">Before:</div>
-                  <span className="badge badge-xs badge-error">ORIGINAL</span>
+        {(showPreview || isExpanded) &&
+          suggestion.beforeText &&
+          suggestion.afterText &&
+          !isEditing && (
+            <motion.div
+              className="mt-3 space-y-2"
+              variants={animationVariants.expandedContent}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
+            >
+              <div className="font-medium text-gray-500 text-xs uppercase tracking-wide">
+                Before & After
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="rounded border border-red-200 bg-red-50 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="font-medium text-red-700 text-xs">Before:</div>
+                    <span className="badge badge-xs badge-error">ORIGINAL</span>
+                  </div>
+                  <div className="text-red-800 text-sm whitespace-pre-wrap">
+                    {suggestion.beforeText}
+                  </div>
                 </div>
-                <div className="text-red-800 text-sm whitespace-pre-wrap">{suggestion.beforeText}</div>
-              </div>
-              <div className="rounded border border-green-200 bg-green-50 p-3">
-                <div className="mb-2 flex items-center justify-between">
-                  <div className="font-medium text-green-700 text-xs">After:</div>
-                  <span className="badge badge-xs badge-success">IMPROVED</span>
+                <div className="rounded border border-green-200 bg-green-50 p-3">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div className="font-medium text-green-700 text-xs">After:</div>
+                    <span className="badge badge-xs badge-success">IMPROVED</span>
+                  </div>
+                  <div className="text-green-800 text-sm whitespace-pre-wrap">
+                    {suggestion.afterText}
+                  </div>
                 </div>
-                <div className="text-green-800 text-sm whitespace-pre-wrap">{suggestion.afterText}</div>
               </div>
-            </div>
-            {onApplyToEditor && (
-              <div className="mt-3 flex justify-center">
-                <button
-                  onClick={handleApply}
-                  className={`btn btn-primary btn-sm ${isApplying ? 'loading' : ''}`}
-                  title="Apply this change to your resume"
-                  disabled={isApplying}
-                >
-                  {!isApplying && <ArrowPathIcon className="h-4 w-4" />}
-                  {isApplying ? 'Applying...' : 'One-Click Apply Change'}
-                </button>
-              </div>
-            )}
-          </motion.div>
-        )}
+              {onApplyToEditor && (
+                <div className="mt-3 flex justify-center">
+                  <button
+                    onClick={handleApply}
+                    className={`btn btn-primary btn-sm ${isApplying ? 'loading' : ''}`}
+                    title="Apply this change to your resume"
+                    disabled={isApplying}
+                  >
+                    {!isApplying && <ArrowPathIcon className="h-4 w-4" />}
+                    {isApplying ? 'Applying...' : 'One-Click Apply Change'}
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          )}
       </AnimatePresence>
 
       {/* Extended Information for Expanded View */}

@@ -822,6 +822,6 @@ export const IndustryTemplateSystem: React.FC<IndustryTemplateSystemProps> = ({
       )}
     </div>
   );
-}
+};
 
 export default IndustryTemplateSystem;

@@ -33,13 +33,10 @@ const CollaborationPanel: React.FC<CollaborationPanelProps> = ({
   return (
     <div className="h-full overflow-y-auto rounded-lg bg-base-200 p-4">
       <h3 className="mb-4 font-bold text-lg">Collaboration</h3>
-      
+
       {/* Mentor Matching Section */}
-      <MentorMatching 
-        targetJobTitle={targetJobTitle}
-        onMentorSelect={handleMentorSelect}
-      />
-      
+      <MentorMatching targetJobTitle={targetJobTitle} onMentorSelect={handleMentorSelect} />
+
       <div className="mt-6">
         <Comments
           comments={comments}

@@ -1,13 +1,13 @@
 /**
  * PredictiveAnalyticsDashboard Component
- * 
+ *
  * Provides AI-powered predictive analytics for resume optimization including:
  * - Success probability predictions
  * - Market demand insights
  * - Personalized recommendations
  * - Industry benchmarking
  * - Skill gap analysis
- * 
+ *
  * Features:
  * - Data visualization with Recharts
  * - Real-time predictive modeling
@@ -18,12 +18,29 @@
 
 'use client';
 
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LineChart, Line, Legend } from 'recharts';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { motion } from 'framer-motion';
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Legend,
+  Line,
+  LineChart,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  Radar,
+  RadarChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 
 interface PredictiveScore {
   name: string;
@@ -64,9 +81,9 @@ interface PredictiveAnalyticsData {
   industryBenchmark: number;
 }
 
-const PredictiveAnalyticsDashboard: React.FC<{ 
-  resumeContent: string; 
-  targetRole: string; 
+const PredictiveAnalyticsDashboard: React.FC<{
+  resumeContent: string;
+  targetRole: string;
   targetIndustry: string;
   experienceLevel: string;
 }> = ({ resumeContent, targetRole, targetIndustry, experienceLevel }) => {
@@ -77,7 +94,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
   useEffect(() => {
     const fetchAnalyticsData = async () => {
       setLoading(true);
-      
+
       // In a real implementation, this would call an AI service
       // For now, we'll simulate the data
       const mockData: PredictiveAnalyticsData = {
@@ -110,37 +127,40 @@ const PredictiveAnalyticsDashboard: React.FC<{
           {
             id: '1',
             title: 'Add Cloud Experience',
-            description: 'Highlight your AWS experience in your work experience section to match 85% of job postings',
+            description:
+              'Highlight your AWS experience in your work experience section to match 85% of job postings',
             priority: 'high',
-            impact: 92
+            impact: 92,
           },
           {
             id: '2',
             title: 'Quantify Achievements',
-            description: 'Include metrics for your accomplishments to increase interview likelihood by 35%',
+            description:
+              'Include metrics for your accomplishments to increase interview likelihood by 35%',
             priority: 'high',
-            impact: 88
+            impact: 88,
           },
           {
             id: '3',
             title: 'Optimize Keywords',
-            description: 'Add "microservices" and "CI/CD" to your skills section to match industry requirements',
+            description:
+              'Add "microservices" and "CI/CD" to your skills section to match industry requirements',
             priority: 'medium',
-            impact: 75
+            impact: 75,
           },
           {
             id: '4',
             title: 'Certification Recommendation',
             description: 'Consider AWS certification to boost your marketability by 25%',
             priority: 'medium',
-            impact: 70
-          }
-        ]
+            impact: 70,
+          },
+        ],
       };
 
       // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setAnalyticsData(mockData);
       setLoading(false);
     };
@@ -151,7 +171,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
         <span className="ml-3">Analyzing your resume with AI...</span>
       </div>
     );
@@ -166,7 +186,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -184,7 +204,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
             <p className="text-xs text-muted-foreground mt-2">Likelihood of landing interviews</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Application Success</CardDescription>
@@ -195,7 +215,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
             <p className="text-xs text-muted-foreground mt-2">Based on your target {targetRole}</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Interview Likelihood</CardDescription>
@@ -206,7 +226,7 @@ const PredictiveAnalyticsDashboard: React.FC<{
             <p className="text-xs text-muted-foreground mt-2">Compared to similar candidates</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Market Demand</CardDescription>
@@ -257,19 +277,19 @@ const PredictiveAnalyticsDashboard: React.FC<{
                 <PolarGrid />
                 <PolarAngleAxis dataKey="skill" />
                 <PolarRadiusAxis angle={30} domain={[0, 10]} />
-                <Radar 
-                  name="Current Level" 
-                  dataKey="current" 
-                  stroke="#3b82f6" 
-                  fill="#3b82f6" 
-                  fillOpacity={0.6} 
+                <Radar
+                  name="Current Level"
+                  dataKey="current"
+                  stroke="#3b82f6"
+                  fill="#3b82f6"
+                  fillOpacity={0.6}
                 />
-                <Radar 
-                  name="Required Level" 
-                  dataKey="required" 
-                  stroke="#ef4444" 
-                  fill="#ef4444" 
-                  fillOpacity={0.3} 
+                <Radar
+                  name="Required Level"
+                  dataKey="required"
+                  stroke="#ef4444"
+                  fill="#ef4444"
+                  fillOpacity={0.3}
                 />
                 <Tooltip />
                 <Legend />
@@ -296,20 +316,20 @@ const PredictiveAnalyticsDashboard: React.FC<{
               <YAxis domain={[0, 100]} />
               <Tooltip />
               <Legend />
-              <Line 
-                type="monotone" 
-                dataKey="demand" 
-                name="Current Demand" 
-                stroke="#3b82f6" 
-                strokeWidth={2} 
-                activeDot={{ r: 8 }} 
+              <Line
+                type="monotone"
+                dataKey="demand"
+                name="Current Demand"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                activeDot={{ r: 8 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="growth" 
-                name="Growth Trend" 
-                stroke="#10b981" 
-                strokeWidth={2} 
+              <Line
+                type="monotone"
+                dataKey="growth"
+                name="Growth Trend"
+                stroke="#10b981"
+                strokeWidth={2}
               />
             </LineChart>
           </ResponsiveContainer>

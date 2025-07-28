@@ -19,6 +19,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import SuggestionCard from '../SuggestionCard';
 import type {
   EnhancedAnalysisResult,
   OptimizationGoals,
@@ -26,7 +27,6 @@ import type {
   SuggestionType,
   UserProfile,
 } from '../types';
-import SuggestionCard from '../SuggestionCard';
 
 // Smart Suggestions Types
 export interface SmartSuggestionsProps {
@@ -280,7 +280,6 @@ const suggestionAnimations = {
     },
   },
 };
-
 
 // Adapter component for SmartSuggestion format
 const SmartSuggestionCardAdapter: React.FC<{

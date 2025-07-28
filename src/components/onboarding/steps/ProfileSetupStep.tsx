@@ -436,7 +436,11 @@ export default function ProfileSetupStep({
           Back
         </button>
 
-        <button onClick={onNext} disabled={isLoading} className="btn btn-primary btn-lg gap-2 rounded-lg">
+        <button
+          onClick={onNext}
+          disabled={isLoading}
+          className="btn btn-primary btn-lg gap-2 rounded-lg"
+        >
           {isLoading ? (
             <>
               <span className="loading loading-spinner loading-sm" />

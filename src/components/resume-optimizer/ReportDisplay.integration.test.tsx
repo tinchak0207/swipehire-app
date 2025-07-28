@@ -99,7 +99,7 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         originalText: 'Led team',
         suggestedText: 'Led team of 5 developers',
         reasoning: 'Quantify team size',
-        description: 'Quantify team size'
+        description: 'Quantify team size',
       },
     ],
     impactWords: ['Led', 'Developed'],

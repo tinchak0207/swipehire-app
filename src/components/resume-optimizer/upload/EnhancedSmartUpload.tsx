@@ -416,58 +416,55 @@ export const EnhancedSmartUpload: React.FC<SmartUploadProps> = ({
   );
 
   // Enhanced upload simulation with detailed progress
-  const simulateEnhancedUpload = useCallback(
-    async (fileId: string) => {
-      const steps = [
-        { name: 'uploading' as const, duration: 2000, description: 'Uploading file...' },
-        { name: 'processing' as const, duration: 3000, description: 'Processing content...' },
-        { name: 'analyzing' as const, duration: 2000, description: 'Analyzing structure...' },
-      ] as const;
+  const simulateEnhancedUpload = useCallback(async (fileId: string) => {
+    const steps = [
+      { name: 'uploading' as const, duration: 2000, description: 'Uploading file...' },
+      { name: 'processing' as const, duration: 3000, description: 'Processing content...' },
+      { name: 'analyzing' as const, duration: 2000, description: 'Analyzing structure...' },
+    ] as const;
 
-      for (let i = 0; i < steps.length; i++) {
-        const step = steps[i];
-        if (!step) continue;
-        const baseProgress = (i / steps.length) * 100;
+    for (let i = 0; i < steps.length; i++) {
+      const step = steps[i];
+      if (!step) continue;
+      const baseProgress = (i / steps.length) * 100;
 
-        // Simulate progress within each step
-        for (let progress = 0; progress <= 100; progress += 5) {
-          const totalProgress = baseProgress + progress / steps.length;
-          const remainingSteps = steps.length - i - 1;
-          const remainingTime =
-            remainingSteps * 2000 + ((100 - progress) * (step.duration || 0)) / 100;
+      // Simulate progress within each step
+      for (let progress = 0; progress <= 100; progress += 5) {
+        const totalProgress = baseProgress + progress / steps.length;
+        const remainingSteps = steps.length - i - 1;
+        const remainingTime =
+          remainingSteps * 2000 + ((100 - progress) * (step.duration || 0)) / 100;
 
-          setState((prev) => {
-            const newUploadProgress = { ...prev.uploadProgress };
-            newUploadProgress[fileId] = {
-              ...newUploadProgress[fileId],
-              fileId,
-              fileName: newUploadProgress[fileId]?.fileName || '',
-              progress: totalProgress,
-              estimatedTimeRemaining: remainingTime,
-              status: step.name,
-            };
-            return { ...prev, uploadProgress: newUploadProgress };
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, (step.duration || 0) / 20));
-        }
-
-        // Update status when step is complete
         setState((prev) => {
           const newUploadProgress = { ...prev.uploadProgress };
           newUploadProgress[fileId] = {
             ...newUploadProgress[fileId],
             fileId,
             fileName: newUploadProgress[fileId]?.fileName || '',
+            progress: totalProgress,
+            estimatedTimeRemaining: remainingTime,
             status: step.name,
-            progress: 100,
           };
           return { ...prev, uploadProgress: newUploadProgress };
         });
+
+        await new Promise((resolve) => setTimeout(resolve, (step.duration || 0) / 20));
       }
-    },
-    []
-  );
+
+      // Update status when step is complete
+      setState((prev) => {
+        const newUploadProgress = { ...prev.uploadProgress };
+        newUploadProgress[fileId] = {
+          ...newUploadProgress[fileId],
+          fileId,
+          fileName: newUploadProgress[fileId]?.fileName || '',
+          status: step.name,
+          progress: 100,
+        };
+        return { ...prev, uploadProgress: newUploadProgress };
+      });
+    }
+  }, []);
 
   // Traditional content analysis for backward compatibility
   const processFileContent = useCallback(async (file: File): Promise<ContentAnalysis> => {

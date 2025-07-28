@@ -124,10 +124,10 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
 
       // Get image data for edge detection
       const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      
+
       // Perform edge detection
       const isDocument = performEdgeDetection(imageData);
-      
+
       if (isDocument && !documentDetected) {
         setDocumentDetected(true);
       } else if (!isDocument && documentDetected) {
@@ -313,7 +313,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   // Effects
   useEffect(() => {
     let detectionTimeout: NodeJS.Timeout | null = null;
-    
+
     if (state.isStreaming && state.autoDetectEnabled) {
       detectionTimeout = setTimeout(() => {
         startDocumentDetection();
@@ -325,12 +325,7 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
         clearTimeout(detectionTimeout);
       }
     };
-  }, [
-    state.isStreaming,
-    state.autoDetectEnabled,
-    videoRef,
-    startDocumentDetection,
-  ]);
+  }, [state.isStreaming, state.autoDetectEnabled, videoRef, startDocumentDetection]);
 
   // Process and use captured images
   const processCaptures = useCallback(async () => {

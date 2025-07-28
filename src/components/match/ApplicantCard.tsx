@@ -98,13 +98,13 @@ export function ApplicantCard({
   return (
     <Card
       className={cn(
-        'w-full rounded-xl border bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md',
+        'h-full w-full rounded-xl border bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md flex flex-col',
         isFocused
           ? 'border-blue-500 ring-2 ring-blue-100'
           : 'border-slate-200 hover:border-slate-300'
       )}
     >
-      <CardContent className="space-y-4 p-4">
+      <CardContent className="flex-grow space-y-4 p-4">
         <div className="flex items-start space-x-3">
           <div className="relative shrink-0">
             <Avatar className="h-12 w-12 rounded-lg">

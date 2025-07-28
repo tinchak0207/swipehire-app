@@ -181,7 +181,8 @@ export function ResumeCreationFlowPage({ isGuestMode }: ResumeCreationFlowPagePr
 
     // Add resume text and other relevant fields to be saved on the user's profile
     if (resumeData.resumeText) payload['profileResumeText'] = resumeData.resumeText;
-    if (resumeData.desiredWorkStyle) payload['profileDesiredWorkStyle'] = resumeData.desiredWorkStyle;
+    if (resumeData.desiredWorkStyle)
+      payload['profileDesiredWorkStyle'] = resumeData.desiredWorkStyle;
     if (resumeData.suggestedSkills && resumeData.suggestedSkills.length > 0)
       payload['profileSkills'] = resumeData.suggestedSkills.join(',');
 

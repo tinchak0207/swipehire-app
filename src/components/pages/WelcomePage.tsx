@@ -454,7 +454,6 @@ export function WelcomePage({ onStartExploring, onGuestMode }: WelcomePageProps)
                 data-aos-delay="200"
               />
             </div>
-
           </div>
         </section>
 

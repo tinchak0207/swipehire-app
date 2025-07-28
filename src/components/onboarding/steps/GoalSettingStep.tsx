@@ -114,9 +114,7 @@ export default function GoalSettingStep({
     <div className="mx-auto max-w-3xl animate-fade-in rounded-2xl bg-gradient-to-br from-blue-50 to-white p-8 backdrop-blur-sm">
       {/* Header */}
       <div className="mb-12 text-center">
-        <h2 className="mb-3 font-bold text-4xl text-gray-900">
-          Set Your Goals
-        </h2>
+        <h2 className="mb-3 font-bold text-4xl text-gray-900">Set Your Goals</h2>
         <p className="mx-auto max-w-lg text-gray-600 text-lg">
           {isJobSeeker
             ? 'Define your career aspirations and skill development targets'
@@ -148,9 +146,11 @@ export default function GoalSettingStep({
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {currentGoals.map((goal, index) => (
-                        <div 
-                          key={index} 
-                          className={`badge badge-lg gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-300`}
+                        <div
+                          key={index}
+                          className={
+                            'badge badge-lg gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-300'
+                          }
                         >
                           {goal}
                           <button
@@ -233,7 +233,12 @@ export default function GoalSettingStep({
       {/* Goal Summary */}
       {totalGoals > 0 && (
         <div className="alert mt-8 rounded-lg border border-blue-200 bg-blue-50 shadow-sm">
-          <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="h-6 w-6 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -298,8 +303,8 @@ export default function GoalSettingStep({
 
       {/* Action Buttons */}
       <div className="mt-10 flex items-center justify-between">
-        <button 
-          onClick={onBackAction} 
+        <button
+          onClick={onBackAction}
           className="flex items-center font-medium text-gray-600 transition-colors duration-200 hover:text-gray-800"
           disabled={isLoading}
         >

@@ -1,13 +1,15 @@
-
-import React, { useState, useEffect } from 'react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
 import type { Socket } from 'socket.io-client';
-import type { UserProfile, CollaborativeSuggestion } from '../types';
+import type { CollaborativeSuggestion, UserProfile } from '../types';
 
 interface PeerReviewProps {
   socket: Socket | null;
   currentUser: UserProfile;
   resumeContent: string;
-  onReviewSubmit: (review: Omit<CollaborativeSuggestion, 'id' | 'author' | 'votes' | 'comments'>) => void;
+  onReviewSubmit: (
+    review: Omit<CollaborativeSuggestion, 'id' | 'author' | 'votes' | 'comments'>
+  ) => void;
 }
 
 interface Review {
@@ -18,11 +20,11 @@ interface Review {
   timestamp: Date;
 }
 
-const PeerReview: React.FC<PeerReviewProps> = ({ 
-  socket, 
+const PeerReview: React.FC<PeerReviewProps> = ({
+  socket,
   currentUser,
   resumeContent,
-  onReviewSubmit
+  onReviewSubmit,
 }) => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [rating, setRating] = useState<number>(0);
@@ -34,7 +36,7 @@ const PeerReview: React.FC<PeerReviewProps> = ({
     if (!socket) return;
 
     const handleNewReview = (review: Review) => {
-      setReviews(prev => [...prev, review]);
+      setReviews((prev) => [...prev, review]);
     };
 
     socket.on('new-review', handleNewReview);
@@ -48,18 +50,18 @@ const PeerReview: React.FC<PeerReviewProps> = ({
     if (rating === 0 || !comment.trim() || !socket || isSubmitting) return;
 
     setIsSubmitting(true);
-    
+
     const newReview: Review = {
       id: Date.now().toString(),
       reviewer: currentUser,
       rating,
       comment,
-      timestamp: new Date()
+      timestamp: new Date(),
     };
 
     // Add locally first for immediate feedback
-    setReviews(prev => [...prev, newReview]);
-    
+    setReviews((prev) => [...prev, newReview]);
+
     // Emit to other users
     socket.emit('new-review', newReview);
 
@@ -74,17 +76,17 @@ const PeerReview: React.FC<PeerReviewProps> = ({
         scoreIncrease: rating,
         atsCompatibility: rating,
         readabilityImprovement: rating,
-        keywordDensity: rating
+        keywordDensity: rating,
       },
       effort: {
         timeMinutes: 10,
         difficulty: 'medium',
-        requiresManualReview: true
+        requiresManualReview: true,
       },
       beforePreview: resumeContent.substring(0, 100) + '...',
       afterPreview: comment,
       isApplied: false,
-      canAutoApply: false
+      canAutoApply: false,
     };
 
     onReviewSubmit(suggestion);
@@ -118,7 +120,7 @@ const PeerReview: React.FC<PeerReviewProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h2 className="text-xl font-bold mb-4">Peer Review</h2>
-      
+
       <div className="mb-6">
         <h3 className="font-semibold mb-2">Rate this resume</h3>
         {renderStars()}
@@ -166,8 +168,8 @@ const PeerReview: React.FC<PeerReviewProps> = ({
                   </div>
                   <div className="flex">
                     {[...Array(5)].map((_, i) => (
-                      <span 
-                        key={i} 
+                      <span
+                        key={i}
                         className={`text-lg ${i < review.rating ? 'text-yellow-400' : 'text-gray-300'}`}
                       >
                         ★
@@ -176,9 +178,7 @@ const PeerReview: React.FC<PeerReviewProps> = ({
                   </div>
                 </div>
                 <p className="text-gray-700 mb-2">{review.comment}</p>
-                <p className="text-sm text-gray-500">
-                  {review.timestamp.toLocaleDateString()}
-                </p>
+                <p className="text-sm text-gray-500">{review.timestamp.toLocaleDateString()}</p>
               </div>
             ))}
           </div>

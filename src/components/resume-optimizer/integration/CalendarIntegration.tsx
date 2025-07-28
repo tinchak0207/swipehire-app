@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { format } from 'date-fns';
+import { Calendar as CalendarIcon, Clock, ExternalLink, MapPin, Plus, User } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Calendar as CalendarIcon, Clock, MapPin, User, Plus, ExternalLink } from 'lucide-react';
-import { Calendar } from '@/components/ui/calendar';
 import { toast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
 
 interface CalendarEvent {
   id: string;
@@ -32,9 +33,7 @@ interface CalendarIntegrationProps {
   onEventSchedule?: (event: CalendarEvent) => void;
 }
 
-export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ 
-  onEventSchedule 
-}) => {
+export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({ onEventSchedule }) => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [isAddingEvent, setIsAddingEvent] = useState(false);
@@ -42,15 +41,15 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
     title: '',
     time: '09:00',
     duration: 60,
-    type: 'other'
+    type: 'other',
   });
 
   const handleAddEvent = () => {
     if (!date || !newEvent.title) {
       toast({
-        title: "Missing Information",
-        description: "Please provide a title and select a date for your event.",
-        variant: "destructive"
+        title: 'Missing Information',
+        description: 'Please provide a title and select a date for your event.',
+        variant: 'destructive',
       });
       return;
     }
@@ -63,18 +62,18 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
 
     setEvents([...events, event]);
     onEventSchedule?.(event);
-    
+
     // Reset form
     setNewEvent({
       title: '',
       time: '09:00',
       duration: 60,
-      type: 'other'
+      type: 'other',
     });
     setIsAddingEvent(false);
-    
+
     toast({
-      title: "Event Added",
+      title: 'Event Added',
       description: `Your event "${event.title}" has been added to your calendar.`,
     });
   };
@@ -82,34 +81,42 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
   const handleExportToCalendar = () => {
     if (events.length === 0) {
       toast({
-        title: "No Events",
-        description: "Add some events before exporting to your calendar.",
-        variant: "destructive"
+        title: 'No Events',
+        description: 'Add some events before exporting to your calendar.',
+        variant: 'destructive',
       });
       return;
     }
 
     toast({
-      title: "Export Successful",
+      title: 'Export Successful',
       description: `${events.length} event${events.length !== 1 ? 's' : ''} exported to your calendar.`,
     });
   };
 
   const getEventTypeColor = (type: CalendarEvent['type']) => {
     switch (type) {
-      case 'interview': return 'bg-blue-100 text-blue-800';
-      case 'follow-up': return 'bg-green-100 text-green-800';
-      case 'networking': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'interview':
+        return 'bg-blue-100 text-blue-800';
+      case 'follow-up':
+        return 'bg-green-100 text-green-800';
+      case 'networking':
+        return 'bg-purple-100 text-purple-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getEventTypeIcon = (type: CalendarEvent['type']) => {
     switch (type) {
-      case 'interview': return User;
-      case 'follow-up': return Clock;
-      case 'networking': return User;
-      default: return CalendarIcon;
+      case 'interview':
+        return User;
+      case 'follow-up':
+        return Clock;
+      case 'networking':
+        return User;
+      default:
+        return CalendarIcon;
     }
   };
 
@@ -136,18 +143,15 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                 className="rounded-md border"
               />
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-2">
-              <Button 
-                onClick={() => setIsAddingEvent(true)}
-                className="flex items-center gap-2"
-              >
+              <Button onClick={() => setIsAddingEvent(true)} className="flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 Add Event
               </Button>
-              
-              <Button 
-                variant="outline" 
+
+              <Button
+                variant="outline"
                 onClick={handleExportToCalendar}
                 className="flex items-center gap-2"
               >
@@ -156,7 +160,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
               </Button>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <div>
               <h3 className="font-medium mb-3">Upcoming Events</h3>
@@ -178,7 +182,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                             <div>
                               <h4 className="font-medium text-sm">{event.title}</h4>
                               <p className="text-xs text-muted-foreground">
-                                {format(event.date, 'MMM d, yyyy')} at {event.time} 
+                                {format(event.date, 'MMM d, yyyy')} at {event.time}
                                 {event.duration && ` (${event.duration} min)`}
                               </p>
                               {event.location && (
@@ -189,9 +193,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                               )}
                             </div>
                           </div>
-                          <Badge className={getEventTypeColor(event.type)}>
-                            {event.type}
-                          </Badge>
+                          <Badge className={getEventTypeColor(event.type)}>{event.type}</Badge>
                         </div>
                       </div>
                     );
@@ -201,7 +203,7 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
             </div>
           </div>
         </div>
-        
+
         {isAddingEvent && (
           <Card className="border-primary">
             <CardHeader>
@@ -213,11 +215,11 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                 <Input
                   id="title"
                   value={newEvent.title}
-                  onChange={(e) => setNewEvent({...newEvent, title: e.target.value})}
+                  onChange={(e) => setNewEvent({ ...newEvent, title: e.target.value })}
                   placeholder="Interview, Follow-up, Meeting..."
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="time">Time</Label>
@@ -225,10 +227,10 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                     id="time"
                     type="time"
                     value={newEvent.time}
-                    onChange={(e) => setNewEvent({...newEvent, time: e.target.value})}
+                    onChange={(e) => setNewEvent({ ...newEvent, time: e.target.value })}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="duration">Duration (minutes)</Label>
                   <Input
@@ -237,11 +239,13 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                     min="15"
                     step="15"
                     value={newEvent.duration}
-                    onChange={(e) => setNewEvent({...newEvent, duration: parseInt(e.target.value) || 60})}
+                    onChange={(e) =>
+                      setNewEvent({ ...newEvent, duration: parseInt(e.target.value) || 60 })
+                    }
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="type">Event Type</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -249,9 +253,9 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                     <Button
                       key={type}
                       type="button"
-                      variant={newEvent.type === type ? "default" : "outline"}
+                      variant={newEvent.type === type ? 'default' : 'outline'}
                       size="sm"
-                      onClick={() => setNewEvent({...newEvent, type})}
+                      onClick={() => setNewEvent({ ...newEvent, type })}
                       className="capitalize"
                     >
                       {type}
@@ -259,42 +263,44 @@ export const CalendarIntegration: React.FC<CalendarIntegrationProps> = ({
                   ))}
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="location">Location (optional)</Label>
                 <Input
                   id="location"
                   value={newEvent.location || ''}
-                  onChange={(e) => setNewEvent({...newEvent, location: e.target.value})}
+                  onChange={(e) => setNewEvent({ ...newEvent, location: e.target.value })}
                   placeholder="Address or meeting link"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="description">Description (optional)</Label>
                 <Textarea
                   id="description"
                   value={newEvent.description || ''}
-                  onChange={(e) => setNewEvent({...newEvent, description: e.target.value})}
+                  onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })}
                   placeholder="Add details about the event..."
                 />
               </div>
-              
+
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={() => setIsAddingEvent(false)}>
                   Cancel
                 </Button>
-                <Button onClick={handleAddEvent}>
-                  Add Event
-                </Button>
+                <Button onClick={handleAddEvent}>Add Event</Button>
               </div>
             </CardContent>
           </Card>
         )}
-        
+
         <div className="text-xs text-muted-foreground pt-2">
-          <p>Schedule important career events like interviews, follow-ups, and networking meetings.</p>
-          <p className="mt-1">Export your events to Google Calendar, Outlook, or other calendar apps.</p>
+          <p>
+            Schedule important career events like interviews, follow-ups, and networking meetings.
+          </p>
+          <p className="mt-1">
+            Export your events to Google Calendar, Outlook, or other calendar apps.
+          </p>
         </div>
       </CardContent>
     </Card>

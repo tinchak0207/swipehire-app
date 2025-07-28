@@ -1,3 +1,3 @@
-export * from './LinkedInSync';
-export * from './JobBoardIntegration';
 export * from './CalendarIntegration';
+export * from './JobBoardIntegration';
+export * from './LinkedInSync';

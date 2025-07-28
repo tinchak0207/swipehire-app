@@ -1,12 +1,12 @@
 /**
  * SmartTemplates Component
- * 
+ *
  * Provides AI-powered template suggestions based on:
  * - Target role and industry
  * - Experience level
  * - Skills and qualifications
  * - Current market trends
- * 
+ *
  * Features:
  * - Personalized template recommendations
  * - Real-time preview
@@ -17,13 +17,14 @@
 
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AnimatePresence, motion } from 'framer-motion';
 import { Check, Sparkles, TrendingUp } from 'lucide-react';
+import type React from 'react';
+import { useEffect, useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Template {
   id: string;
@@ -50,7 +51,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
   targetIndustry,
   experienceLevel,
   currentSkills,
-  onTemplateSelect
+  onTemplateSelect,
 }) => {
   const [templates, setTemplates] = useState<Template[]>([]);
   const [recommendedTemplates, setRecommendedTemplates] = useState<Template[]>([]);
@@ -61,7 +62,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
   useEffect(() => {
     const fetchTemplates = async () => {
       setLoading(true);
-      
+
       // Mock template data
       const mockTemplates: Template[] = [
         {
@@ -73,7 +74,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           popularity: 92,
           matchScore: 95,
           previewImage: '/templates/executive.png',
-          features: ['Single column', 'Minimal design', 'ATS optimized', 'Executive summary section']
+          features: [
+            'Single column',
+            'Minimal design',
+            'ATS optimized',
+            'Executive summary section',
+          ],
         },
         {
           id: '2',
@@ -84,7 +90,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           popularity: 87,
           matchScore: 82,
           previewImage: '/templates/creative.png',
-          features: ['Two columns', 'Visual elements', 'Portfolio section', 'Color accents']
+          features: ['Two columns', 'Visual elements', 'Portfolio section', 'Color accents'],
         },
         {
           id: '3',
@@ -95,7 +101,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           popularity: 95,
           matchScore: 98,
           previewImage: '/templates/tech.png',
-          features: ['Skills matrix', 'Project showcase', 'GitHub integration', 'Technical summary']
+          features: [
+            'Skills matrix',
+            'Project showcase',
+            'GitHub integration',
+            'Technical summary',
+          ],
         },
         {
           id: '4',
@@ -106,7 +117,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           popularity: 76,
           matchScore: 75,
           previewImage: '/templates/academic.png',
-          features: ['Publication list', 'Research highlights', 'Grant funding', 'Conference presentations']
+          features: [
+            'Publication list',
+            'Research highlights',
+            'Grant funding',
+            'Conference presentations',
+          ],
         },
         {
           id: '5',
@@ -117,7 +133,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           popularity: 88,
           matchScore: 85,
           previewImage: '/templates/minimalist.png',
-          features: ['ATS optimized', 'Clean design', 'Easy to customize', 'Universal appeal']
+          features: ['ATS optimized', 'Clean design', 'Easy to customize', 'Universal appeal'],
         },
         {
           id: '6',
@@ -128,8 +144,13 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           popularity: 90,
           matchScore: 89,
           previewImage: '/templates/business.png',
-          features: ['Quantified achievements', 'Leadership section', 'Business metrics', 'Professional summary']
-        }
+          features: [
+            'Quantified achievements',
+            'Leadership section',
+            'Business metrics',
+            'Professional summary',
+          ],
+        },
       ];
 
       // Simulate AI recommendation logic
@@ -160,7 +181,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
         <span className="ml-3">Finding the perfect templates for you...</span>
       </div>
     );
@@ -179,7 +200,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
           <div>
             <h3 className="text-xl font-bold">AI-Powered Template Recommendations</h3>
             <p className="mt-1 opacity-90">
-              Based on your profile as a {experienceLevel}-level {targetRole} in {targetIndustry}, 
+              Based on your profile as a {experienceLevel}-level {targetRole} in {targetIndustry},
               we've identified the templates that will maximize your impact.
             </p>
           </div>
@@ -195,7 +216,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
             AI-Powered
           </Badge>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <AnimatePresence>
             {recommendedTemplates.map((template) => (
@@ -206,11 +227,9 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.3 }}
               >
-                <Card 
+                <Card
                   className={`h-full cursor-pointer transition-all hover:shadow-lg ${
-                    selectedTemplate === template.id 
-                      ? 'ring-2 ring-blue-500 border-blue-500' 
-                      : ''
+                    selectedTemplate === template.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
                   }`}
                   onClick={() => handleTemplateSelect(template.id)}
                 >
@@ -223,9 +242,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                             <Check className="ml-2 h-4 w-4 text-green-500" />
                           )}
                         </CardTitle>
-                        <CardDescription className="mt-1">
-                          {template.description}
-                        </CardDescription>
+                        <CardDescription className="mt-1">{template.description}</CardDescription>
                       </div>
                       <Badge variant="outline">{template.category}</Badge>
                     </div>
@@ -235,12 +252,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 flex items-center justify-center">
                         <span className="text-gray-500">Template Preview</span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Match Score</span>
                         <Badge variant="default">{template.matchScore}%</Badge>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm">Key Features:</h4>
                         <ul className="text-xs space-y-1">
@@ -252,8 +269,8 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                           ))}
                         </ul>
                       </div>
-                      
-                      <Button 
+
+                      <Button
                         className="w-full"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -274,7 +291,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
       {/* All Templates */}
       <section>
         <h2 className="text-xl font-bold mb-4">All Templates</h2>
-        
+
         <Tabs defaultValue="all">
           <TabsList>
             <TabsTrigger value="all">All Templates</TabsTrigger>
@@ -282,16 +299,14 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
             <TabsTrigger value="creative">Creative</TabsTrigger>
             <TabsTrigger value="technical">Technical</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="all" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {templates.map((template) => (
-                <Card 
+                <Card
                   key={template.id}
                   className={`h-full cursor-pointer transition-all hover:shadow-lg ${
-                    selectedTemplate === template.id 
-                      ? 'ring-2 ring-blue-500 border-blue-500' 
-                      : ''
+                    selectedTemplate === template.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
                   }`}
                   onClick={() => handleTemplateSelect(template.id)}
                 >
@@ -304,9 +319,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                             <Check className="ml-2 h-4 w-4 text-green-500" />
                           )}
                         </CardTitle>
-                        <CardDescription className="mt-1">
-                          {template.description}
-                        </CardDescription>
+                        <CardDescription className="mt-1">{template.description}</CardDescription>
                       </div>
                       <Badge variant="outline">{template.category}</Badge>
                     </div>
@@ -316,12 +329,12 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                       <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 flex items-center justify-center">
                         <span className="text-gray-500">Template Preview</span>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-sm font-medium">Match Score</span>
                         <Badge variant="default">{template.matchScore}%</Badge>
                       </div>
-                      
+
                       <div className="space-y-2">
                         <h4 className="font-medium text-sm">Best For:</h4>
                         <div className="flex flex-wrap gap-1">
@@ -332,8 +345,8 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                           ))}
                         </div>
                       </div>
-                      
-                      <Button 
+
+                      <Button
                         className="w-full"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -348,18 +361,16 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
               ))}
             </div>
           </TabsContent>
-          
+
           <TabsContent value="professional" className="mt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {templates
-                .filter(t => t.category === 'Professional')
+                .filter((t) => t.category === 'Professional')
                 .map((template) => (
-                  <Card 
+                  <Card
                     key={template.id}
                     className={`h-full cursor-pointer transition-all hover:shadow-lg ${
-                      selectedTemplate === template.id 
-                        ? 'ring-2 ring-blue-500 border-blue-500' 
-                        : ''
+                      selectedTemplate === template.id ? 'ring-2 ring-blue-500 border-blue-500' : ''
                     }`}
                     onClick={() => handleTemplateSelect(template.id)}
                   >
@@ -372,9 +383,7 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                               <Check className="ml-2 h-4 w-4 text-green-500" />
                             )}
                           </CardTitle>
-                          <CardDescription className="mt-1">
-                            {template.description}
-                          </CardDescription>
+                          <CardDescription className="mt-1">{template.description}</CardDescription>
                         </div>
                         <Badge variant="outline">{template.category}</Badge>
                       </div>
@@ -384,13 +393,13 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                         <div className="bg-gray-200 border-2 border-dashed rounded-xl w-full h-32 flex items-center justify-center">
                           <span className="text-gray-500">Template Preview</span>
                         </div>
-                        
+
                         <div className="flex justify-between items-center">
                           <span className="text-sm font-medium">Match Score</span>
                           <Badge variant="default">{template.matchScore}%</Badge>
                         </div>
-                        
-                        <Button 
+
+                        <Button
                           className="w-full"
                           onClick={(e) => {
                             e.stopPropagation();
@@ -402,11 +411,10 @@ const SmartTemplates: React.FC<SmartTemplatesProps> = ({
                       </div>
                     </CardContent>
                   </Card>
-                ))
-              }
+                ))}
             </div>
           </TabsContent>
-          
+
           {/* Other tabs would follow the same pattern */}
         </Tabs>
       </section>

@@ -909,12 +909,12 @@ function transformBackendResponse(
       score: backendData.quantitativeAnalysis.score,
       achievementsWithNumbers: backendData.quantitativeAnalysis.achievementsWithNumbers,
       totalAchievements: backendData.quantitativeAnalysis.totalAchievements,
-      suggestions: backendData.quantitativeAnalysis.suggestions.map(suggestion => ({
+      suggestions: backendData.quantitativeAnalysis.suggestions.map((suggestion) => ({
         section: suggestion.section,
         originalText: suggestion.originalText,
         suggestedText: suggestion.suggestedText,
         reasoning: suggestion.reasoning,
-        description: '' // Adding the missing required description field
+        description: '', // Adding the missing required description field
       })),
       impactWords: backendData.quantitativeAnalysis.impactWords,
     },

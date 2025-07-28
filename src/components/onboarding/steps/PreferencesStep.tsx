@@ -78,8 +78,8 @@ export default function PreferencesStep({
                       type="button"
                       onClick={() => handleThemeChange(theme)}
                       className={`btn btn-sm flex-1 min-w-[100px] transition-all duration-200 transform hover:scale-105 ${
-                        data.preferences.theme === theme 
-                          ? 'btn-primary shadow-md' 
+                        data.preferences.theme === theme
+                          ? 'btn-primary shadow-md'
                           : 'btn-outline border-2'
                       }`}
                     >
@@ -100,8 +100,8 @@ export default function PreferencesStep({
             </h3>
             <div className="space-y-2">
               {Object.entries(data.preferences.notificationChannels).map(([key, value]) => (
-                <div 
-                  key={key} 
+                <div
+                  key={key}
                   className={`form-control p-3 rounded-lg transition-all duration-200 ${
                     value ? 'bg-primary/10' : 'hover:bg-primary/5'
                   }`}
@@ -136,8 +136,8 @@ export default function PreferencesStep({
             </h3>
             <div className="space-y-2">
               {Object.entries(data.preferences.notificationSubscriptions).map(([key, value]) => (
-                <div 
-                  key={key} 
+                <div
+                  key={key}
                   className={`form-control p-3 rounded-lg transition-all duration-200 ${
                     value ? 'bg-primary/10' : 'hover:bg-primary/5'
                   }`}

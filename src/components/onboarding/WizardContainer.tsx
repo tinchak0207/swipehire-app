@@ -424,7 +424,9 @@ export default function WizardContainer({
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-700 ease-in-out bg-gradient-to-br ${getStepGradient()} text-gray-800`}>
+    <div
+      className={`min-h-screen transition-all duration-700 ease-in-out bg-gradient-to-br ${getStepGradient()} text-gray-800`}
+    >
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <ProgressIndicator
           currentStep={currentStep}
@@ -435,9 +437,7 @@ export default function WizardContainer({
         <div className="mt-8 animate-fade-in">
           {/* Glassmorphism container for onboarding steps */}
           <div className="rounded-2xl border border-white/30 bg-white/30 p-1 shadow-2xl backdrop-blur-xl">
-            <div className="rounded-xl bg-white/80 p-5 backdrop-blur-sm">
-              {renderCurrentStep()}
-            </div>
+            <div className="rounded-xl bg-white/80 p-5 backdrop-blur-sm">{renderCurrentStep()}</div>
           </div>
         </div>
       </div>

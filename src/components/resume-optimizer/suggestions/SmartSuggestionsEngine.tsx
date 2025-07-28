@@ -428,21 +428,29 @@ const SmartSuggestionAdapter: React.FC<{
   onDismiss: () => void;
 }> = ({ suggestion, onApply, onDismiss }) => {
   // Convert SmartSuggestion format to shared SuggestionCard format
-  const convertedSuggestion = useMemo(() => ({
-    id: suggestion.id,
-    type: suggestion.type as any,
-    title: suggestion.title,
-    description: suggestion.description,
-    impact: suggestion.priority as any,
-    suggestion: suggestion.reason,
-    beforeText: suggestion.originalText,
-    afterText: suggestion.suggestedText,
-    section: suggestion.context?.currentSection || suggestion.type,
-    priority: suggestion.priority === 'critical' ? 4 : 
-             suggestion.priority === 'high' ? 3 : 
-             suggestion.priority === 'medium' ? 2 : 1,
-    estimatedScoreImprovement: suggestion.impact.scoreIncrease,
-  }), [suggestion]);
+  const convertedSuggestion = useMemo(
+    () => ({
+      id: suggestion.id,
+      type: suggestion.type as any,
+      title: suggestion.title,
+      description: suggestion.description,
+      impact: suggestion.priority as any,
+      suggestion: suggestion.reason,
+      beforeText: suggestion.originalText,
+      afterText: suggestion.suggestedText,
+      section: suggestion.context?.currentSection || suggestion.type,
+      priority:
+        suggestion.priority === 'critical'
+          ? 4
+          : suggestion.priority === 'high'
+            ? 3
+            : suggestion.priority === 'medium'
+              ? 2
+              : 1,
+      estimatedScoreImprovement: suggestion.impact.scoreIncrease,
+    }),
+    [suggestion]
+  );
 
   return (
     <motion.div
@@ -457,7 +465,9 @@ const SmartSuggestionAdapter: React.FC<{
         isIgnored={false}
         onAdopt={() => onApply(suggestion.id)}
         onIgnore={onDismiss}
-        onApplyToEditor={suggestion.canAutoApply ? (suggestionId, _suggestion) => onApply(suggestionId) : undefined}
+        onApplyToEditor={
+          suggestion.canAutoApply ? (suggestionId, _suggestion) => onApply(suggestionId) : undefined
+        }
       />
     </motion.div>
   );

@@ -1,21 +1,22 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
-import { 
-  Linkedin, 
-  RefreshCw, 
-  CheckCircle, 
-  AlertCircle, 
+import {
+  AlertCircle,
+  Award,
+  Building,
+  Calendar,
+  CheckCircle,
   ExternalLink,
+  GraduationCap,
+  Linkedin,
+  RefreshCw,
   Shield,
   User,
-  Building,
-  GraduationCap,
-  Award,
-  Calendar
 } from 'lucide-react';
+import type React from 'react';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 
 interface LinkedInSyncProps {
@@ -30,10 +31,7 @@ interface LinkedInSyncProps {
   onSyncComplete?: (data: any) => void;
 }
 
-export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ 
-  userProfile,
-  onSyncComplete 
-}) => {
+export const LinkedInSync: React.FC<LinkedInSyncProps> = ({ userProfile, onSyncComplete }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncProgress, setSyncProgress] = useState(0);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'completed' | 'error'>('idle');
@@ -43,64 +41,64 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
     setIsSyncing(true);
     setSyncStatus('syncing');
     setSyncProgress(0);
-    
+
     try {
       // Simulate API calls to LinkedIn
       for (let i = 0; i <= 100; i += 10) {
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
         setSyncProgress(i);
       }
-      
+
       // Mock LinkedIn data
       const mockLinkedInData = {
         profile: {
           name: userProfile.name,
-          headline: userProfile.currentRole || "Professional",
-          location: "San Francisco, CA",
+          headline: userProfile.currentRole || 'Professional',
+          location: 'San Francisco, CA',
           connections: 542,
-          profilePicture: null
+          profilePicture: null,
         },
         experience: userProfile.experience || [
           {
             id: 1,
-            title: "Senior Software Engineer",
-            company: "Tech Corp",
-            location: "San Francisco, CA",
-            startDate: "2020-01-01",
+            title: 'Senior Software Engineer',
+            company: 'Tech Corp',
+            location: 'San Francisco, CA',
+            startDate: '2020-01-01',
             endDate: null,
             isCurrent: true,
-            description: "Leading development of cloud-based solutions"
-          }
+            description: 'Leading development of cloud-based solutions',
+          },
         ],
         education: userProfile.education || [
           {
             id: 1,
-            school: "Stanford University",
-            degree: "Master of Science",
-            fieldOfStudy: "Computer Science",
-            startDate: "2016-09-01",
-            endDate: "2018-06-01"
-          }
+            school: 'Stanford University',
+            degree: 'Master of Science',
+            fieldOfStudy: 'Computer Science',
+            startDate: '2016-09-01',
+            endDate: '2018-06-01',
+          },
         ],
-        skills: userProfile.skills || ["JavaScript", "React", "Node.js", "Cloud Computing"]
+        skills: userProfile.skills || ['JavaScript', 'React', 'Node.js', 'Cloud Computing'],
       };
-      
+
       setLinkedInData(mockLinkedInData);
       setSyncStatus('completed');
-      
+
       // Notify parent component
       onSyncComplete?.(mockLinkedInData);
-      
+
       toast({
-        title: "LinkedIn Sync Successful",
-        description: "Your LinkedIn profile has been successfully synced with your resume.",
+        title: 'LinkedIn Sync Successful',
+        description: 'Your LinkedIn profile has been successfully synced with your resume.',
       });
     } catch (error) {
       setSyncStatus('error');
       toast({
-        title: "Sync Failed",
-        description: "Failed to sync with LinkedIn. Please try again.",
-        variant: "destructive"
+        title: 'Sync Failed',
+        description: 'Failed to sync with LinkedIn. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSyncing(false);
@@ -110,8 +108,8 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
   const handleManualConnect = () => {
     // In a real implementation, this would redirect to LinkedIn OAuth
     toast({
-      title: "Connect to LinkedIn",
-      description: "You will be redirected to LinkedIn to authorize access.",
+      title: 'Connect to LinkedIn',
+      description: 'You will be redirected to LinkedIn to authorize access.',
     });
   };
 
@@ -135,13 +133,13 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
             <div>
               <h3 className="font-semibold">LinkedIn Profile Sync</h3>
               <p className="text-sm text-muted-foreground">
-                {syncStatus === 'completed' 
-                  ? "Profile synced successfully" 
-                  : "Connect your LinkedIn profile"}
+                {syncStatus === 'completed'
+                  ? 'Profile synced successfully'
+                  : 'Connect your LinkedIn profile'}
               </p>
             </div>
           </div>
-          
+
           {syncStatus === 'completed' ? (
             <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
               <CheckCircle className="h-3 w-3 mr-1" />
@@ -153,7 +151,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
               Error
             </Badge>
           ) : (
-            <Button 
+            <Button
               onClick={handleManualConnect}
               disabled={isSyncing}
               variant="outline"
@@ -214,8 +212,12 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
                       <p className="font-medium">{exp.title}</p>
                       <p className="text-muted-foreground">{exp.company}</p>
                       <p className="text-xs text-muted-foreground">
-                        {exp.startDate ? new Date(exp.startDate).getFullYear() : ''} - 
-                        {exp.isCurrent ? 'Present' : exp.endDate ? new Date(exp.endDate).getFullYear() : ''}
+                        {exp.startDate ? new Date(exp.startDate).getFullYear() : ''} -
+                        {exp.isCurrent
+                          ? 'Present'
+                          : exp.endDate
+                            ? new Date(exp.endDate).getFullYear()
+                            : ''}
                       </p>
                     </li>
                   ))}
@@ -231,9 +233,11 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
                   {linkedInData.education.slice(0, 2).map((edu: any) => (
                     <li key={edu.id} className="text-sm">
                       <p className="font-medium">{edu.school}</p>
-                      <p className="text-muted-foreground">{edu.degree}, {edu.fieldOfStudy}</p>
+                      <p className="text-muted-foreground">
+                        {edu.degree}, {edu.fieldOfStudy}
+                      </p>
                       <p className="text-xs text-muted-foreground">
-                        {edu.startDate ? new Date(edu.startDate).getFullYear() : ''} - 
+                        {edu.startDate ? new Date(edu.startDate).getFullYear() : ''} -
                         {edu.endDate ? new Date(edu.endDate).getFullYear() : ''}
                       </p>
                     </li>
@@ -259,7 +263,7 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
         )}
 
         <div className="flex flex-col sm:flex-row gap-3 pt-2">
-          <Button 
+          <Button
             onClick={handleLinkedInSync}
             disabled={isSyncing}
             className="flex items-center gap-2"
@@ -269,9 +273,9 @@ export const LinkedInSync: React.FC<LinkedInSyncProps> = ({
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            {isSyncing ? "Syncing..." : "Sync Now"}
+            {isSyncing ? 'Syncing...' : 'Sync Now'}
           </Button>
-          
+
           <Button variant="outline" className="flex items-center gap-2">
             <Shield className="h-4 w-4" />
             Privacy Policy

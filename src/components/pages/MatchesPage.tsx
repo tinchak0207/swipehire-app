@@ -14,6 +14,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AiHumanResourcesTab } from '@/components/ai/AiHumanResourcesTab';
 import { ApplicantCard } from '@/components/match/ApplicantCard';
+import { TikTokApplicantScroller } from '@/components/match/TikTokApplicantScroller';
 import { FocusedChatPanel } from '@/components/match/FocusedChatPanel';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -241,41 +242,14 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     });
   };
 
-  useEffect(() => {
-    if (
-      fullBackendUser?.selectedRole !== 'recruiter' ||
-      !applicantListRef.current ||
-      pendingApplicants.length === 0
-    )
-      return;
-    const observerOptions = {
-      root: applicantListRef.current,
-      rootMargin: '-40% 0px -40% 0px',
-      threshold: 0.5,
-    };
-    const callback = (entries: IntersectionObserverEntry[]) => {
-      const intersectingEntry = entries.find((entry) => entry.isIntersecting);
-      if (intersectingEntry) {
-        const matchId = intersectingEntry.target.getAttribute('data-match-id');
-        if (matchId) {
-          const newFocusedMatch = pendingApplicants.find((m) => m._id === matchId);
-          if (newFocusedMatch && focusedMatch?._id !== newFocusedMatch._id)
-            setFocusedMatch(newFocusedMatch);
-        }
-      }
-    };
-    const observer = new IntersectionObserver(callback, observerOptions);
-    const currentCardRefs = applicantCardRefs.current;
-    currentCardRefs.forEach((cardEl) => {
-      if (cardEl) observer.observe(cardEl);
-    });
-    return () => {
-      currentCardRefs.forEach((cardEl) => {
-        if (cardEl) observer.unobserve(cardEl);
-      });
-      observer.disconnect();
-    };
-  }, [pendingApplicants, focusedMatch?._id, fullBackendUser?.selectedRole]);
+  // Function to handle scroll-based focus change
+  const handleScrollFocusChange = (match: Match & { candidate: Candidate; company: Company }) => {
+    if (focusedMatch?._id !== match._id) {
+      setFocusedMatch(match);
+    }
+  };
+
+  // Remove the previous scroll handling useEffect as we'll handle it in the TikTokApplicantScroller
 
   if (isGuestMode) {
     return (
@@ -301,12 +275,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   if (fullBackendUser?.selectedRole === 'recruiter') {
     return (
       <div className="flex flex-grow flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
-        <div className="mb-6 shrink-0">
-          <h1 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
-            Recruiter Dashboard
-          </h1>
-          <p className="text-slate-600 text-sm">Manage your applicants and AI HR tools.</p>
-        </div>
+        
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
@@ -333,21 +302,8 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
             className="mt-0 flex min-h-0 flex-grow flex-col overflow-hidden"
           >
             <div className="flex min-h-0 flex-grow flex-col gap-6 overflow-hidden rounded-xl md:flex-row">
-              <div className="flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm md:h-full md:w-1/3 lg:w-2/5 xl:w-1/3">
-                <div className="mb-4 flex shrink-0 items-center justify-between border-b p-4">
-                  <div>
-                    <h2 className="font-semibold text-lg text-slate-800">
-                      Applicants Awaiting Response
-                    </h2>
-                    <p className="text-slate-500 text-sm">
-                      Total {pendingApplicants.length} Applicants
-                    </p>
-                  </div>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                    <Users className="h-5 w-5 text-blue-600" />
-                  </div>
-                </div>
-                <div className="relative mb-3 w-full shrink-0 px-4">
+              <div className="flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm md:h-[75vh] md:w-1/3 lg:w-2/5 xl:w-1/3">
+                <div className="relative mb-3 w-full shrink-0 px-4 pt-4">
                   <Input
                     type="text"
                     placeholder="Search applicants by name or role..."
@@ -355,55 +311,29 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="h-10 border-slate-300 bg-slate-50 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                   />
-                  <Search className="absolute top-1/2 left-7 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                  <Search className="absolute top-1/2 left-7 h-4 w-4 text-slate-400" />
                 </div>
-                <ScrollArea ref={applicantListRef} className="-mr-2 mt-0 flex-grow p-0.5 pr-2 pb-4">
-                  <div className="space-y-3 px-4">
-                    {pendingApplicants.length === 0 ? (
-                      <div className="py-12 text-center">
-                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
-                          <Users className="h-6 w-6 text-slate-400" />
-                        </div>
-                        <h3 className="font-medium text-slate-700 text-lg">No applicants found</h3>
-                        <p className="text-slate-500 text-sm">
-                          {searchTerm
-                            ? 'No applicants match your search.'
-                            : 'No pending applicants.'}
-                        </p>
-                      </div>
-                    ) : (
-                      pendingApplicants.map((match) => (
-                        <div
-                          key={match._id}
-                          ref={(el) => {
-                            if (match._id) applicantCardRefs.current.set(match._id, el);
-                          }}
-                          data-match-id={match._id}
-                          onClick={() => handleApplicantCardClick(match)}
-                          className="cursor-pointer"
-                        >
-                          <ApplicantCard
-                            match={match}
-                            onInviteToInterview={handleInviteToInterview}
-                            onRejectApplicant={handleRejectApplicant}
-                            onArchiveMatch={handleArchiveMatch}
-                            isFocused={focusedMatch?._id === match._id}
-                          />
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </ScrollArea>
-              </div>
-              <div className="flex flex-1 flex-col overflow-hidden rounded-lg border bg-white shadow-sm md:h-full">
-                {focusedMatch && mongoDbUserId ? (
-                  <FocusedChatPanel
-                    key={focusedMatch._id}
-                    match={focusedMatch}
-                    mongoDbUserId={mongoDbUserId}
+                <div className="flex-grow overflow-hidden">
+                  <TikTokApplicantScroller
+                    applicants={pendingApplicants}
+                    onInviteToInterview={handleInviteToInterview}
+                    onRejectApplicant={handleRejectApplicant}
+                    onArchiveMatch={handleArchiveMatch}
+                    onFocusedMatchChange={setFocusedMatch}
                   />
+                </div>
+              </div>
+              <div className="flex flex-1 items-center justify-center overflow-hidden rounded-lg border bg-white shadow-sm md:h-full" style={{ aspectRatio: '16/9' }}>
+                {focusedMatch && mongoDbUserId ? (
+                  <div className="h-full w-full">
+                    <FocusedChatPanel
+                      key={focusedMatch._id}
+                      match={focusedMatch}
+                      mongoDbUserId={mongoDbUserId}
+                      />
+                  </div>
                 ) : (
-                  <div className="flex flex-grow flex-col items-center justify-center p-8 text-center">
+                  <div className="flex h-full w-full flex-col items-center justify-center p-8 text-center">
                     <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
                       <MessageSquare className="h-8 w-8 text-blue-600" />
                     </div>
@@ -421,22 +351,22 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                 )}
               </div>
             </div>
+            <Alert
+              variant="destructive"
+              className="mx-0 mt-6 shrink-0 rounded-lg border-red-200 bg-red-50 text-red-700 text-sm"
+            >
+              <AlertTriangle className="!text-red-600 h-5 w-5" />
+              <AlertTitle className="font-semibold text-red-800">Important Reminder</AlertTitle>
+              <AlertDescription className="text-red-700/90">
+                Failure to reply within 72 hours will deduct from your company's reputation score. It is
+                recommended to use the AI Human Resources function to ensure timely replies.
+              </AlertDescription>
+            </Alert>
           </TabsContent>
           <TabsContent value="ai_hr_tool" className="mt-0 min-h-0 flex-grow overflow-y-auto p-1">
             <AiHumanResourcesTab />
           </TabsContent>
         </Tabs>
-        <Alert
-          variant="destructive"
-          className="mx-0 mt-6 shrink-0 rounded-lg border-red-200 bg-red-50 text-red-700 text-sm"
-        >
-          <AlertTriangle className="!text-red-600 h-5 w-5" />
-          <AlertTitle className="font-semibold text-red-800">Important Reminder</AlertTitle>
-          <AlertDescription className="text-red-700/90">
-            Failure to reply within 72 hours will deduct from your company's reputation score. It is
-            recommended to use the AI Human Resources function to ensure timely replies.
-          </AlertDescription>
-        </Alert>
       </div>
     );
   }

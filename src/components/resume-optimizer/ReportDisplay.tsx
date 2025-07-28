@@ -17,9 +17,9 @@ import {
 import { useState } from 'react';
 import type { EditorState, ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
 import EmbeddedTextEditor from './EmbeddedTextEditor';
+import { GamifiedAnalyticsDashboard } from './gamification/GamifiedAnalyticsDashboard';
 import ScoreDisplay from './ScoreDisplay';
 import SuggestionCard from './SuggestionCard';
-import { GamifiedAnalyticsDashboard } from './gamification/GamifiedAnalyticsDashboard';
 
 interface ReportDisplayProps {
   analysisResult: ResumeAnalysisResponse | null;
@@ -520,10 +520,7 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
 
           {/* Gamified Analytics Dashboard */}
           <div className="mt-8">
-            <GamifiedAnalyticsDashboard 
-              analysisData={analysisResult} 
-              userId="current-user" 
-            />
+            <GamifiedAnalyticsDashboard analysisData={analysisResult} userId="current-user" />
           </div>
 
           {/* Strengths and Weaknesses */}

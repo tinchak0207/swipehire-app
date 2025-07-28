@@ -105,9 +105,7 @@ export default function CompletionStep({
               </svg>
             </div>
           </div>
-          <h1 className="mb-4 font-bold text-4xl text-gray-900">
-            🎉 Welcome to SwipeHire!
-          </h1>
+          <h1 className="mb-4 font-bold text-4xl text-gray-900">🎉 Welcome to SwipeHire!</h1>
           <p className="mx-auto max-w-lg text-gray-600 text-lg">
             Your profile is set up and you're ready to{' '}
             <span className="font-semibold text-blue-600">
@@ -123,7 +121,12 @@ export default function CompletionStep({
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="space-y-4">
             <h3 className="flex items-center gap-2 font-semibold text-gray-900 text-lg">
-              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -142,7 +145,7 @@ export default function CompletionStep({
                 <div
                   className="h-2.5 rounded-full bg-blue-600"
                   style={{ width: `${profileCompleteness}%` }}
-                ></div>
+                />
               </div>
               <div className="text-gray-600 text-sm">
                 {isJobSeeker ? (
@@ -154,9 +157,7 @@ export default function CompletionStep({
                     </div>
                     {data.profileData.headline && (
                       <div className="flex items-center gap-1 mb-1">
-                        <span className="text-gray-700">
-                          ✓ Professional headline set
-                        </span>
+                        <span className="text-gray-700">✓ Professional headline set</span>
                       </div>
                     )}
                     {data.profileData.skills?.length && (
@@ -199,7 +200,12 @@ export default function CompletionStep({
         <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
           <div className="space-y-4">
             <h3 className="flex items-center gap-2 font-semibold text-gray-900 text-lg">
-              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="h-6 w-6 text-blue-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -266,7 +272,12 @@ export default function CompletionStep({
       {/* Next Steps */}
       <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <h3 className="mb-6 flex items-center gap-2 font-semibold text-gray-900 text-lg">
-          <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="h-6 w-6 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -356,7 +367,12 @@ export default function CompletionStep({
       {/* Tips */}
       <div className="mb-8 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
         <div className="flex items-start gap-3">
-          <svg className="h-6 w-6 flex-shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg
+            className="h-6 w-6 flex-shrink-0 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -377,9 +393,9 @@ export default function CompletionStep({
 
       {/* Action Button */}
       <div className="text-center">
-        <button 
-          onClick={onComplete} 
-          disabled={isLoading} 
+        <button
+          onClick={onComplete}
+          disabled={isLoading}
           className={`rounded-xl px-8 py-4 font-bold text-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
             !isLoading
               ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:scale-105 hover:from-blue-600 hover:to-blue-700'

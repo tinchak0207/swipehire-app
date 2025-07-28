@@ -5,15 +5,14 @@
  * for the Resume Optimizer's real-time collaboration system.
  */
 
-export * from './CollaborationPanel';
-export * from './Comments';
-export * from './LivePreviewIntegration';
-export * from './MentorMatching';
-export * from './VersionHistory';
-export * from './PeerReview';
-
 // Selective exports to avoid type conflicts
 export { AIWritingAssistant } from './AIWritingAssistant';
-export { SmartSuggestionsEngine } from './SmartSuggestionsEngine';
+export * from './CollaborationPanel';
+export * from './Comments';
 export { EnhancedLivePreviewSystem } from './EnhancedLivePreviewSystem';
+export * from './LivePreviewIntegration';
 export { LivePreviewSystem } from './LivePreviewSystem';
+export * from './MentorMatching';
+export * from './PeerReview';
+export { SmartSuggestionsEngine } from './SmartSuggestionsEngine';
+export * from './VersionHistory';

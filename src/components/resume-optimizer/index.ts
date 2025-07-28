@@ -10,6 +10,8 @@ export type {
   TemplateCardProps,
 } from '@/lib/types/resume-optimizer';
 export { AnalysisDashboard } from './analysis/AnalysisDashboard';
+// Predictive Analytics - AI-powered resume performance insights
+export * from './analytics';
 export { EnhancedEditor, EnhancedEditorIntegration } from './editor';
 // Gamification
 export * from './gamification';
@@ -27,6 +29,8 @@ export { default as SuggestionCard } from './SuggestionCard';
 // Smart Suggestions Engine - Context-aware recommendations
 export * from './suggestions';
 export { default as TemplateCard } from './TemplateCard';
+// Smart Templates - AI-powered template recommendations
+export * from './templates';
 // Enhanced types
 export type {
   Achievement,
@@ -46,12 +50,5 @@ export type {
 } from './types';
 // Enhanced upload module - Multi-modal input system with advanced features
 export * from './upload';
-
 // AI-Powered Video Generation - Next-generation resume video creation
 export * from './video';
-
-// Predictive Analytics - AI-powered resume performance insights
-export * from './analytics';
-
-// Smart Templates - AI-powered template recommendations
-export * from './templates';
