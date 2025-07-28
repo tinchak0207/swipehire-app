@@ -29,7 +29,6 @@ export interface VersionHistoryProps {
   readonly enableBranching: boolean;
   readonly enableAutoSave: boolean;
   readonly autoSaveInterval: number;
-  readonly maxVersions: number;
   readonly onVersionRestore: (versionId: string) => void;
   readonly onVersionCompare: (versionA: string, versionB: string) => void;
   readonly onVersionDelete: (versionId: string) => void;
@@ -53,6 +52,11 @@ export interface VersionEntry {
   readonly isMilestone: boolean;
   readonly size: number;
   readonly checksum: string;
+  readonly metadata?: {
+    readonly wordCount: number;
+    readonly characterCount: number;
+    readonly paragraphCount: number;
+  };
 }
 
 export interface ChangeDetail {
@@ -757,7 +761,6 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({
   enableBranching,
   enableAutoSave,
   autoSaveInterval,
-  maxVersions,
   onVersionRestore,
   onVersionCompare,
   onVersionDelete,
@@ -880,6 +883,31 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({
     setBranches(mockBranches);
   }, [mockBranches, mockVersions]);
 
+  // Create auto-save version
+  const createAutoSaveVersion = useCallback(() => {
+    const newVersion: VersionEntry = {
+      id: `version-${Date.now()}`,
+      content: currentContent,
+      title: 'Auto-save',
+      timestamp: new Date(),
+      author: currentUser,
+      changes: [],
+      tags: [],
+      branch: currentBranch,
+      isAutoSave: true,
+      isMilestone: false,
+      size: new Blob([currentContent]).size,
+      checksum: btoa(currentContent).slice(0, 8),
+      metadata: {
+        wordCount: currentContent.split(/\s+/).length,
+        characterCount: currentContent.length,
+        paragraphCount: currentContent.split('\n\n').length,
+      },
+    };
+
+    setVersions((prev) => [newVersion, ...prev]);
+  }, [currentContent, currentUser, currentBranch]);
+
   // Auto-save functionality
   useEffect(() => {
     if (!enableAutoSave) return;
@@ -898,26 +926,6 @@ export const VersionHistory: React.FC<VersionHistoryProps> = ({
       }
     };
   }, [enableAutoSave, autoSaveInterval, createAutoSaveVersion]);
-
-  // Create auto-save version
-  const createAutoSaveVersion = useCallback(() => {
-    const newVersion: VersionEntry = {
-      id: `version-${Date.now()}`,
-      content: currentContent,
-      title: 'Auto-save',
-      timestamp: new Date(),
-      author: currentUser,
-      changes: [],
-      tags: [],
-      branch: currentBranch,
-      isAutoSave: true,
-      isMilestone: false,
-      size: new Blob([currentContent]).size,
-      checksum: btoa(currentContent).slice(0, 8),
-    };
-
-    setVersions((prev) => [newVersion, ...prev.slice(0, maxVersions - 1)]);
-  }, [currentContent, currentUser, currentBranch, maxVersions]);
 
   // Handle version selection
   const handleVersionSelect = useCallback((versionId: string) => {

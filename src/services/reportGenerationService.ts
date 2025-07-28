@@ -377,8 +377,8 @@ export class ReportGenerationService {
     searchCriteria: Record<string, string | undefined> = {}
   ): string {
     const timestamp = new Date().toISOString().slice(0, 19).replace(/[:.]/g, '-');
-    const jobTitle = searchCriteria.jobTitle?.replace(/[^a-zA-Z0-9]/g, '_') || 'salary';
-    const region = searchCriteria.region?.replace(/[^a-zA-Z0-9]/g, '_') || 'market';
+    const jobTitle = searchCriteria['jobTitle']?.replace(/[^a-zA-Z0-9]/g, '_') || 'salary';
+    const region = searchCriteria['region']?.replace(/[^a-zA-Z0-9]/g, '_') || 'market';
 
     return `${jobTitle}_${region}_salary_report_${timestamp}.${type}`;
   }

@@ -210,9 +210,15 @@ export const LivePreviewIntegration: React.FC<LivePreviewIntegrationProps> = ({
   // Handle collaboration events
   const handleCollaborationEvent = useCallback(
     (event: EnhancedCollaborationEvent) => {
+      // Handle content change events
+      if (event.type === 'content-change') {
+        const newContent = event.data['content'] as string;
+        onContentChange(newContent);
+      }
+
       // Handle real-time collaboration events
       if (event.type === 'content-change' && event.userId !== userProfile.id) {
-        const newContent = event.data.content as string;
+        const newContent = event.data['content'] as string;
         if (newContent) {
           setContent(newContent);
           setOptimizedContent(`${newContent} [AI Optimized]`);

@@ -8,6 +8,7 @@ import {
   Lock,
   MessageSquare,
   Search,
+  Sparkles,
   Users,
 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -16,6 +17,7 @@ import { ApplicantCard } from '@/components/match/ApplicantCard';
 import { FocusedChatPanel } from '@/components/match/FocusedChatPanel';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -299,7 +301,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   if (fullBackendUser?.selectedRole === 'recruiter') {
     return (
       <div className="flex flex-grow flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
-        <div className="mb-4 shrink-0 text-center sm:text-left">
+        <div className="mb-6 shrink-0">
           <h1 className="font-bold text-2xl text-slate-900 tracking-tight md:text-3xl">
             Recruiter Dashboard
           </h1>
@@ -310,17 +312,19 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
           onValueChange={setActiveTab}
           className="flex min-h-0 flex-grow flex-col"
         >
-          <TabsList className="mb-4 grid w-full max-w-md shrink-0 grid-cols-2 rounded-lg border bg-white shadow-sm">
+          <TabsList className="mb-6 grid w-full max-w-md shrink-0 grid-cols-2 rounded-xl border bg-white p-1 shadow-sm">
             <TabsTrigger
               value="applicants"
-              className="rounded-md data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
+              <Users className="mr-2 h-4 w-4" />
               All Incoming
             </TabsTrigger>
             <TabsTrigger
               value="ai_hr_tool"
-              className="rounded-md data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
             >
+              <Sparkles className="mr-2 h-4 w-4" />
               AI HR Tool
             </TabsTrigger>
           </TabsList>
@@ -328,32 +332,40 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
             value="applicants"
             className="mt-0 flex min-h-0 flex-grow flex-col overflow-hidden"
           >
-            <div className="flex min-h-0 flex-grow flex-col gap-4 overflow-hidden md:flex-row md:gap-6">
-              <div className="flex flex-col overflow-hidden rounded-lg border bg-white p-4 shadow-sm md:h-full md:w-1/3 lg:w-2/5 xl:w-1/3">
-                <div className="mb-3 flex shrink-0 items-center justify-between">
-                  <h2 className="font-semibold text-lg text-slate-700">
-                    Applicants Awaiting Response
-                  </h2>
-                  <span className="text-slate-500 text-sm">
-                    Total {pendingApplicants.length} Applicants
-                  </span>
+            <div className="flex min-h-0 flex-grow flex-col gap-6 overflow-hidden rounded-xl md:flex-row">
+              <div className="flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm md:h-full md:w-1/3 lg:w-2/5 xl:w-1/3">
+                <div className="mb-4 flex shrink-0 items-center justify-between border-b p-4">
+                  <div>
+                    <h2 className="font-semibold text-lg text-slate-800">
+                      Applicants Awaiting Response
+                    </h2>
+                    <p className="text-slate-500 text-sm">
+                      Total {pendingApplicants.length} Applicants
+                    </p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                    <Users className="h-5 w-5 text-blue-600" />
+                  </div>
                 </div>
-                <div className="relative mb-3 w-full shrink-0">
+                <div className="relative mb-3 w-full shrink-0 px-4">
                   <Input
                     type="text"
                     placeholder="Search applicants by name or role..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="h-9 border-slate-300 bg-slate-50 pl-8 text-sm focus:border-blue-500 focus:ring-blue-500"
+                    className="h-10 border-slate-300 bg-slate-50 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500 rounded-lg"
                   />
-                  <Search className="-translate-y-1/2 absolute top-1/2 left-2.5 h-4 w-4 text-slate-400" />
+                  <Search className="absolute top-1/2 left-7 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 </div>
-                <ScrollArea ref={applicantListRef} className="-mr-2 mt-0 flex-grow p-0.5 pr-2">
-                  <div className="space-y-3">
+                <ScrollArea ref={applicantListRef} className="-mr-2 mt-0 flex-grow p-0.5 pr-2 pb-4">
+                  <div className="space-y-3 px-4">
                     {pendingApplicants.length === 0 ? (
-                      <div className="py-10 text-center">
-                        <Users className="mx-auto mb-3 h-12 w-12 text-slate-400" />
-                        <p className="text-slate-500">
+                      <div className="py-12 text-center">
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100">
+                          <Users className="h-6 w-6 text-slate-400" />
+                        </div>
+                        <h3 className="font-medium text-slate-700 text-lg">No applicants found</h3>
+                        <p className="text-slate-500 text-sm">
                           {searchTerm
                             ? 'No applicants match your search.'
                             : 'No pending applicants.'}
@@ -391,15 +403,17 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                     mongoDbUserId={mongoDbUserId}
                   />
                 ) : (
-                  <div className="flex flex-grow flex-col items-center justify-center p-6 text-center">
-                    <MessageSquare className="mb-4 h-16 w-16 text-slate-400" />
-                    <p className="font-semibold text-lg text-slate-500">
+                  <div className="flex flex-grow flex-col items-center justify-center p-8 text-center">
+                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+                      <MessageSquare className="h-8 w-8 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-xl text-slate-700">
                       {pendingApplicants.length > 0
                         ? 'Select an applicant to view chat'
                         : 'No applicants to chat with'}
-                    </p>
+                    </h3>
                     {pendingApplicants.length > 0 && (
-                      <p className="text-slate-400 text-sm">
+                      <p className="mt-2 text-slate-500 text-sm">
                         Click on an applicant card on the left to start.
                       </p>
                     )}
@@ -414,9 +428,9 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
         </Tabs>
         <Alert
           variant="destructive"
-          className="mx-0 mt-4 shrink-0 border-red-200 bg-red-50 text-red-700 text-sm"
+          className="mx-0 mt-6 shrink-0 rounded-lg border-red-200 bg-red-50 text-red-700 text-sm"
         >
-          <AlertTriangle className="!text-red-600 h-4 w-4" />
+          <AlertTriangle className="!text-red-600 h-5 w-5" />
           <AlertTitle className="font-semibold text-red-800">Important Reminder</AlertTitle>
           <AlertDescription className="text-red-700/90">
             Failure to reply within 72 hours will deduct from your company's reputation score. It is
@@ -430,7 +444,9 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
   return (
     <div className="flex flex-grow flex-col bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
       <div className="mb-8 shrink-0 text-center">
-        <HeartHandshake className="mx-auto mb-3 h-12 w-12 text-primary" />
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">
+          <HeartHandshake className="h-8 w-8 text-blue-600" />
+        </div>
         <h1 className="font-bold text-3xl text-slate-900 tracking-tight md:text-4xl">
           Your Mutual Matches
         </h1>
@@ -439,13 +455,18 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
         </p>
       </div>
       {generalMatchesForJobseeker.length === 0 ? (
-        <div className="flex flex-grow flex-col items-center justify-center rounded-lg bg-white py-10 text-center shadow-md">
-          <Briefcase className="mx-auto mb-4 h-16 w-16 text-slate-400" />
+        <div className="flex flex-grow flex-col items-center justify-center rounded-xl bg-white py-16 text-center shadow-sm">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+            <Briefcase className="h-8 w-8 text-slate-400" />
+          </div>
           <h2 className="font-semibold text-2xl text-slate-700">No Mutual Matches Yet</h2>
           <p className="mt-2 text-slate-500">Keep exploring to find your perfect connection!</p>
+          <Button className="mt-6 rounded-lg bg-blue-600 px-6 text-white hover:bg-blue-700">
+            Discover Opportunities
+          </Button>
         </div>
       ) : (
-        <ScrollArea className="min-h-0 flex-grow">
+        <ScrollArea className="min-h-0 flex-grow rounded-xl">
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {generalMatchesForJobseeker.map((match) => (
               <IcebreakerCard key={match._id} match={match} onMatchArchived={handleArchiveMatch} />

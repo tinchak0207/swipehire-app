@@ -14,3 +14,4 @@ export type {
   StreakData,
 } from '../types';
 export { default as AchievementSystem } from './AchievementSystem';
+export { GamifiedAnalyticsDashboard } from './GamifiedAnalyticsDashboard';

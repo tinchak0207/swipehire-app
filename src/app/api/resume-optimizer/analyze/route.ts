@@ -178,8 +178,11 @@ async function performBasicAnalysis(
       impactWords: ['improved', 'increased', 'developed'],
       suggestions: [
         {
+          section: 'Experience',
+          originalText: '',
+          suggestedText: 'Add specific metrics to your achievements',
+          reasoning: 'Quantifiable metrics make achievements more impactful',
           description: 'Add quantifiable metrics to your achievements',
-          example: 'Increased sales by 25% over 6 months',
         },
       ],
     },

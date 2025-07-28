@@ -11,8 +11,10 @@ export type {
 } from '@/lib/types/resume-optimizer';
 export { AnalysisDashboard } from './analysis/AnalysisDashboard';
 export { EnhancedEditor, EnhancedEditorIntegration } from './editor';
-// Gamification and engagement components
+// Gamification
 export * from './gamification';
+// Integration components
+export * from './integration';
 // Mobile-first responsive design components
 export * from './mobile';
 export { EnhancedOnboarding } from './onboarding/EnhancedOnboarding';
@@ -47,3 +49,9 @@ export * from './upload';
 
 // AI-Powered Video Generation - Next-generation resume video creation
 export * from './video';
+
+// Predictive Analytics - AI-powered resume performance insights
+export * from './analytics';
+
+// Smart Templates - AI-powered template recommendations
+export * from './templates';

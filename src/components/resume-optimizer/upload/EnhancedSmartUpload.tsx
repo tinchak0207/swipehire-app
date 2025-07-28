@@ -179,259 +179,79 @@ export const EnhancedSmartUpload: React.FC<SmartUploadProps> = ({
     [acceptedFormats, maxFileSize]
   );
 
-  // Enhanced file handling with batch processing
-  const handleFiles = useCallback(
-    async (files: FileList | File[]) => {
-      const fileArray = Array.from(files);
-      const validFiles: File[] = [];
-      const errors: UploadError[] = [];
+  // Utility functions for preview generation
+  const extractTextPreview = useCallback(async (_file: File): Promise<string> => {
+    // Simulate text extraction
+    return 'John Doe - Software Engineer\nExperienced developer with expertise in...';
+  }, []);
 
-      // Validate each file
-      fileArray.forEach((file) => {
-        const error = validateFile(file);
-        if (error) {
-          errors.push(error);
-        } else {
-          validFiles.push(file);
-        }
+  const detectSectionsPreview = useCallback(async (_file: File) => {
+    // Simulate section detection
+    return [
+      {
+        id: 'contact',
+        type: 'contact' as const,
+        title: 'Contact',
+        content: 'Contact info...',
+        confidence: 0.95,
+        suggestions: [],
+        isComplete: true,
+      },
+      {
+        id: 'summary',
+        type: 'summary' as const,
+        title: 'Summary',
+        content: 'Professional summary...',
+        confidence: 0.88,
+        suggestions: [],
+        isComplete: false,
+      },
+    ];
+  }, []);
+
+  // Utility functions
+  const estimateProcessingTime = useCallback((file: File): number => {
+    // Estimate based on file size and type
+    const baseTime = 5000; // 5 seconds base
+    const sizeMultiplier = file.size / (1024 * 1024); // MB
+    return Math.floor(baseTime + sizeMultiplier * 2000);
+  }, []);
+
+  const generateRecoverySuggestions = useCallback((error: UploadError): string[] => {
+    switch (error.code) {
+      case 'FILE_TOO_LARGE':
+        return ['Compress your file', 'Use PDF format', 'Remove images if possible'];
+      case 'INVALID_FILE_TYPE':
+        return ['Convert to PDF or DOCX', 'Use camera capture', 'Try cloud import'];
+      case 'EMPTY_FILE':
+        return ['Check file content', 'Re-save the document', 'Try a different file'];
+      default:
+        return ['Try again', 'Check internet connection', 'Contact support'];
+    }
+  }, []);
+
+  // Get AI-powered suggestions
+  const getAISuggestions = async (file: File): Promise<any[]> => {
+    const resumeText = await file.text();
+    try {
+      const response = await fetch('/api/resume-suggestions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ resumeText }),
       });
 
-      // Check multiple files limit
-      if (!enableMultipleFiles && validFiles.length > 1) {
-        errors.push({
-          code: 'MULTIPLE_FILES_NOT_ALLOWED',
-          message: 'Only one file can be uploaded at a time. Please select a single file.',
-          details: { fileCount: validFiles.length },
-        });
-        return;
+      if (!response.ok) {
+        throw new Error(`API error: ${response.statusText}`);
       }
 
-      // Update state with new files
-      setState((prev) => ({
-        ...prev,
-        files: enableMultipleFiles ? [...prev.files, ...validFiles] : validFiles,
-        errors: [...prev.errors, ...errors],
-      }));
-
-      // Start enhanced upload process for valid files
-      if (validFiles.length > 0) {
-        await startEnhancedUpload(validFiles);
-      }
-
-      // Report errors with recovery suggestions
-      errors.forEach((error) => {
-        onError({
-          ...error,
-          details: {
-            ...error.details,
-            recoverySuggestions: generateRecoverySuggestions(error),
-          },
-        });
-      });
-    },
-    [validateFile, enableMultipleFiles, onError, generateRecoverySuggestions, startEnhancedUpload]
-  );
-
-  // Enhanced upload process with real-time features
-  const startEnhancedUpload = useCallback(
-    async (files: File[]) => {
-      setState((prev) => ({ ...prev, isProcessing: true }));
-
-      for (const file of files) {
-        const fileId = generateFileId(file);
-
-        try {
-          // Initialize progress with ETA calculation
-          const initialProgress: UploadProgress = {
-            fileId,
-            fileName: file.name,
-            progress: 0,
-            status: 'pending',
-            estimatedTimeRemaining: estimateProcessingTime(file),
-          };
-
-          setState((prev) => ({
-            ...prev,
-            uploadProgress: {
-              ...prev.uploadProgress,
-              [fileId]: initialProgress,
-            },
-          }));
-
-          onUploadProgress(initialProgress);
-
-          // Start live preview generation
-          await generateLivePreview(file);
-
-          // Enhanced upload simulation with real-time feedback
-          await simulateEnhancedUpload(fileId, file);
-
-          // Smart content extraction and analysis
-          const extractedContent = await extractSmartContent(file);
-          setState((prev) => ({ ...prev, extractedContent }));
-          onContentExtracted(extractedContent);
-
-          // Traditional content analysis for backward compatibility
-          const analysis = await processFileContent(file);
-          onContentAnalysis(analysis);
-
-          // Generate enhanced analysis result
-          const enhancedAnalysis = await generateEnhancedAnalysis(file, extractedContent);
-          onAnalysisReady(enhancedAnalysis);
-
-          // Complete upload with results
-          const result: UploadResult = {
-            fileId,
-            analysisId: generateAnalysisId(),
-            initialScore: enhancedAnalysis.overallScore,
-            processingTime: Date.now(),
-          };
-
-          onUploadComplete(result);
-
-          // Update final progress
-          const finalProgress: UploadProgress = {
-            fileId,
-            fileName: file.name,
-            progress: 100,
-            status: 'complete',
-          };
-
-          setState((prev) => ({
-            ...prev,
-            uploadProgress: {
-              ...prev.uploadProgress,
-              [fileId]: finalProgress,
-            },
-          }));
-
-          onUploadProgress(finalProgress);
-        } catch (error) {
-          const uploadError: UploadError = {
-            code: 'UPLOAD_FAILED',
-            message: error instanceof Error ? error.message : 'Upload failed',
-            details: {
-              fileName: file.name,
-              errorType: error instanceof Error ? error.constructor.name : 'Unknown',
-              recoverySuggestions: [
-                'Try uploading again',
-                'Check your internet connection',
-                'Try a different file format',
-              ],
-            },
-          };
-
-          setState((prev) => ({
-            ...prev,
-            uploadProgress: {
-              ...prev.uploadProgress,
-              [fileId]: {
-                ...(prev.uploadProgress[fileId] || {
-                  fileName: file.name,
-                  progress: 0,
-                  estimatedTimeRemaining: 0,
-                }),
-                fileId,
-                status: 'error',
-                error: uploadError.message,
-              },
-            },
-          }));
-
-          onError(uploadError);
-        }
-      }
-
-      setState((prev) => ({ ...prev, isProcessing: false }));
-    },
-    [
-      onUploadProgress,
-      onContentAnalysis,
-      onContentExtracted,
-      onUploadComplete,
-      onAnalysisReady,
-      onError,
-      estimateProcessingTime,
-      extractSmartContent,
-      generateEnhancedAnalysis,
-      generateLivePreview,
-      processFileContent,
-      simulateEnhancedUpload,
-    ]
-  );
-
-  // Generate live preview during upload
-  const generateLivePreview = useCallback(
-    async (file: File) => {
-      try {
-        // Simulate live preview generation
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const preview: LivePreview = {
-          isEnabled: true,
-          extractedText: await extractTextPreview(file),
-          detectedSections: await detectSectionsPreview(file),
-          qualityScore: Math.random() * 0.4 + 0.6, // Simulate quality score
-        };
-
-        setState((prev) => ({ ...prev, livePreview: preview }));
-      } catch (error) {
-        console.error('Failed to generate live preview:', error);
-      }
-    },
-    [detectSectionsPreview, extractTextPreview]
-  );
-
-  // Enhanced upload simulation with detailed progress
-  const simulateEnhancedUpload = useCallback(
-    async (fileId: string, file: File) => {
-      const steps = [
-        { name: 'uploading', duration: 2000, description: 'Uploading file...' },
-        { name: 'processing', duration: 3000, description: 'Processing content...' },
-        { name: 'analyzing', duration: 2000, description: 'Analyzing structure...' },
-      ] as const;
-
-      for (let i = 0; i < steps.length; i++) {
-        const step = steps[i];
-        const baseProgress = (i / steps.length) * 100;
-
-        // Simulate progress within each step
-        for (let progress = 0; progress <= 100; progress += 5) {
-          const totalProgress = baseProgress + progress / steps.length;
-          const remainingSteps = steps.length - i - 1;
-          const remainingTime =
-            remainingSteps * 2000 + ((100 - progress) * (step?.duration ?? 0)) / 100;
-
-          setState((prev) => ({
-            ...prev,
-            uploadProgress: {
-              ...prev.uploadProgress,
-              [fileId]: {
-                ...(prev.uploadProgress[fileId] || {
-                  fileName: file.name,
-                  estimatedTimeRemaining: 0,
-                }),
-                fileId,
-                progress: Math.min(totalProgress, 95),
-                status: step?.name,
-              },
-            },
-          }));
-
-          onUploadProgress({
-            fileId,
-            fileName: file.name,
-            progress: Math.min(totalProgress, 95),
-            status: step?.name,
-            estimatedTimeRemaining: remainingTime,
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, (step?.duration ?? 0) / 20));
-        }
-      }
-    },
-    [onUploadProgress]
-  );
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching suggestions:', error);
+      return [];
+    }
+  };
 
   // Smart content extraction with ML-like features
   const extractSmartContent = useCallback(
@@ -539,29 +359,6 @@ export const EnhancedSmartUpload: React.FC<SmartUploadProps> = ({
     [getAISuggestions]
   );
 
-  // Get AI-powered suggestions
-  const getAISuggestions = async (file: File): Promise<any[]> => {
-    const resumeText = await file.text();
-    try {
-      const response = await fetch('/pages/api/resume-suggestions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ resumeText }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.statusText}`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error('Error fetching suggestions:', error);
-      return [];
-    }
-  };
-
   // Generate enhanced analysis result
   const generateEnhancedAnalysis = useCallback(
     async (_file: File, extractedContent: ExtractedContent): Promise<EnhancedAnalysisResult> => {
@@ -618,35 +415,59 @@ export const EnhancedSmartUpload: React.FC<SmartUploadProps> = ({
     []
   );
 
-  // Utility functions for preview generation
-  const extractTextPreview = useCallback(async (_file: File): Promise<string> => {
-    // Simulate text extraction
-    return 'John Doe - Software Engineer\nExperienced developer with expertise in...';
-  }, []);
+  // Enhanced upload simulation with detailed progress
+  const simulateEnhancedUpload = useCallback(
+    async (fileId: string) => {
+      const steps = [
+        { name: 'uploading' as const, duration: 2000, description: 'Uploading file...' },
+        { name: 'processing' as const, duration: 3000, description: 'Processing content...' },
+        { name: 'analyzing' as const, duration: 2000, description: 'Analyzing structure...' },
+      ] as const;
 
-  const detectSectionsPreview = useCallback(async (_file: File) => {
-    // Simulate section detection
-    return [
-      {
-        id: 'contact',
-        type: 'contact' as const,
-        title: 'Contact',
-        content: 'Contact info...',
-        confidence: 0.95,
-        suggestions: [],
-        isComplete: true,
-      },
-      {
-        id: 'summary',
-        type: 'summary' as const,
-        title: 'Summary',
-        content: 'Professional summary...',
-        confidence: 0.88,
-        suggestions: [],
-        isComplete: false,
-      },
-    ];
-  }, []);
+      for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        if (!step) continue;
+        const baseProgress = (i / steps.length) * 100;
+
+        // Simulate progress within each step
+        for (let progress = 0; progress <= 100; progress += 5) {
+          const totalProgress = baseProgress + progress / steps.length;
+          const remainingSteps = steps.length - i - 1;
+          const remainingTime =
+            remainingSteps * 2000 + ((100 - progress) * (step.duration || 0)) / 100;
+
+          setState((prev) => {
+            const newUploadProgress = { ...prev.uploadProgress };
+            newUploadProgress[fileId] = {
+              ...newUploadProgress[fileId],
+              fileId,
+              fileName: newUploadProgress[fileId]?.fileName || '',
+              progress: totalProgress,
+              estimatedTimeRemaining: remainingTime,
+              status: step.name,
+            };
+            return { ...prev, uploadProgress: newUploadProgress };
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, (step.duration || 0) / 20));
+        }
+
+        // Update status when step is complete
+        setState((prev) => {
+          const newUploadProgress = { ...prev.uploadProgress };
+          newUploadProgress[fileId] = {
+            ...newUploadProgress[fileId],
+            fileId,
+            fileName: newUploadProgress[fileId]?.fileName || '',
+            status: step.name,
+            progress: 100,
+          };
+          return { ...prev, uploadProgress: newUploadProgress };
+        });
+      }
+    },
+    []
+  );
 
   // Traditional content analysis for backward compatibility
   const processFileContent = useCallback(async (file: File): Promise<ContentAnalysis> => {
@@ -693,26 +514,208 @@ export const EnhancedSmartUpload: React.FC<SmartUploadProps> = ({
     };
   }, []);
 
-  // Utility functions
-  const estimateProcessingTime = useCallback((file: File): number => {
-    // Estimate based on file size and type
-    const baseTime = 5000; // 5 seconds base
-    const sizeMultiplier = file.size / (1024 * 1024); // MB
-    return Math.floor(baseTime + sizeMultiplier * 2000);
-  }, []);
+  // Generate live preview during upload
+  const generateLivePreview = useCallback(
+    async (file: File) => {
+      try {
+        // Simulate live preview generation
+        await new Promise((resolve) => setTimeout(resolve, 500));
 
-  const generateRecoverySuggestions = useCallback((error: UploadError): string[] => {
-    switch (error.code) {
-      case 'FILE_TOO_LARGE':
-        return ['Compress your file', 'Use PDF format', 'Remove images if possible'];
-      case 'INVALID_FILE_TYPE':
-        return ['Convert to PDF or DOCX', 'Use camera capture', 'Try cloud import'];
-      case 'EMPTY_FILE':
-        return ['Check file content', 'Re-save the document', 'Try a different file'];
-      default:
-        return ['Try again', 'Check internet connection', 'Contact support'];
-    }
-  }, []);
+        const preview: LivePreview = {
+          isEnabled: true,
+          extractedText: await extractTextPreview(file),
+          detectedSections: await detectSectionsPreview(file),
+          qualityScore: Math.random() * 0.4 + 0.6, // Simulate quality score
+        };
+
+        setState((prev) => ({ ...prev, livePreview: preview }));
+      } catch (error) {
+        console.error('Failed to generate live preview:', error);
+      }
+    },
+    [detectSectionsPreview, extractTextPreview]
+  );
+
+  // Enhanced upload process with real-time features
+  const startEnhancedUpload = useCallback(
+    async (files: File[]) => {
+      setState((prev) => ({ ...prev, isProcessing: true }));
+
+      for (const file of files) {
+        const fileId = generateFileId(file);
+
+        try {
+          // Initialize progress with ETA calculation
+          const initialProgress: UploadProgress = {
+            fileId,
+            fileName: file.name,
+            progress: 0,
+            status: 'uploading',
+            estimatedTimeRemaining: estimateProcessingTime(file),
+          };
+
+          setState((prev) => ({
+            ...prev,
+            uploadProgress: {
+              ...prev.uploadProgress,
+              [fileId]: initialProgress,
+            },
+          }));
+
+          onUploadProgress(initialProgress);
+
+          // Start live preview generation
+          await generateLivePreview(file);
+
+          // Enhanced upload simulation with real-time feedback
+          await simulateEnhancedUpload(fileId);
+
+          // Smart content extraction and analysis
+          const extractedContent = await extractSmartContent(file);
+          setState((prev) => ({ ...prev, extractedContent }));
+          onContentExtracted(extractedContent);
+
+          // Traditional content analysis for backward compatibility
+          const analysis = await processFileContent(file);
+          onContentAnalysis(analysis);
+
+          // Generate enhanced analysis result
+          const enhancedAnalysis = await generateEnhancedAnalysis(file, extractedContent);
+          onAnalysisReady(enhancedAnalysis);
+
+          // Complete upload with results
+          const result: UploadResult = {
+            fileId,
+            analysisId: generateAnalysisId(),
+            initialScore: enhancedAnalysis.overallScore,
+            processingTime: Date.now(),
+          };
+
+          onUploadComplete(result);
+
+          // Update final progress
+          const finalProgress: UploadProgress = {
+            fileId,
+            fileName: file.name,
+            progress: 100,
+            status: 'complete',
+          };
+
+          setState((prev) => ({
+            ...prev,
+            uploadProgress: {
+              ...prev.uploadProgress,
+              [fileId]: finalProgress,
+            },
+          }));
+
+          onUploadProgress(finalProgress);
+        } catch (error) {
+          const uploadError: UploadError = {
+            code: 'UPLOAD_FAILED',
+            message: error instanceof Error ? error.message : 'Upload failed',
+            details: {
+              fileName: file.name,
+              errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+              recoverySuggestions: [
+                'Try uploading again',
+                'Check your internet connection',
+                'Try a different file format',
+              ],
+            },
+          };
+
+          setState((prev) => ({
+            ...prev,
+            uploadProgress: {
+              ...prev.uploadProgress,
+              [fileId]: {
+                ...(prev.uploadProgress[fileId] || {
+                  fileName: file.name,
+                  progress: 0,
+                  estimatedTimeRemaining: 0,
+                }),
+                fileId,
+                status: 'error',
+                error: uploadError.message,
+              },
+            },
+          }));
+
+          onError(uploadError);
+        }
+      }
+
+      setState((prev) => ({ ...prev, isProcessing: false }));
+    },
+    [
+      onUploadProgress,
+      onContentAnalysis,
+      onContentExtracted,
+      onUploadComplete,
+      onAnalysisReady,
+      onError,
+      estimateProcessingTime,
+      extractSmartContent,
+      generateEnhancedAnalysis,
+      generateLivePreview,
+      processFileContent,
+      simulateEnhancedUpload,
+    ]
+  );
+
+  // Enhanced file handling with batch processing
+  const handleFiles = useCallback(
+    async (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      const validFiles: File[] = [];
+      const errors: UploadError[] = [];
+
+      // Validate each file
+      fileArray.forEach((file) => {
+        const error = validateFile(file);
+        if (error) {
+          errors.push(error);
+        } else {
+          validFiles.push(file);
+        }
+      });
+
+      // Check multiple files limit
+      if (!enableMultipleFiles && validFiles.length > 1) {
+        errors.push({
+          code: 'MULTIPLE_FILES_NOT_ALLOWED',
+          message: 'Only one file can be uploaded at a time. Please select a single file.',
+          details: { fileCount: validFiles.length },
+        });
+        return;
+      }
+
+      // Update state with new files
+      setState((prev) => ({
+        ...prev,
+        files: enableMultipleFiles ? [...prev.files, ...validFiles] : validFiles,
+        errors: [...prev.errors, ...errors],
+      }));
+
+      // Start enhanced upload process for valid files
+      if (validFiles.length > 0) {
+        await startEnhancedUpload(validFiles);
+      }
+
+      // Report errors with recovery suggestions
+      errors.forEach((error) => {
+        onError({
+          ...error,
+          details: {
+            ...error.details,
+            recoverySuggestions: generateRecoverySuggestions(error),
+          },
+        });
+      });
+    },
+    [validateFile, enableMultipleFiles, onError, generateRecoverySuggestions, startEnhancedUpload]
+  );
 
   // Event handlers
   const handleDragEnter = useCallback((e: React.DragEvent) => {

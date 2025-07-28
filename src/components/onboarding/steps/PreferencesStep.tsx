@@ -61,25 +61,29 @@ export default function PreferencesStep({
 
       <div className="space-y-8">
         {/* Theme Selection */}
-        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md">
+        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl">
           <div className="card-body">
-            <h3 className="card-title mb-4 text-xl">Appearance Settings</h3>
-            <div className="space-y-4">
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Theme Preference</span>
+            <h3 className="card-title mb-4 text-xl flex items-center">
+              <span className="mr-2">🎨</span> Appearance Settings
+            </h3>
+            <div className="space-y-1">
+              <div className="form-control py-1">
+                <label className="label py-1">
+                  <span className="label-text font-medium">Theme Preference</span>
                 </label>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {(['light', 'dark', 'system'] as const).map((theme) => (
                     <button
                       key={theme}
                       type="button"
                       onClick={() => handleThemeChange(theme)}
-                      className={`btn btn-sm ${
-                        data.preferences.theme === theme ? 'btn-primary' : 'btn-outline'
+                      className={`btn btn-sm flex-1 min-w-[100px] transition-all duration-200 transform hover:scale-105 ${
+                        data.preferences.theme === theme 
+                          ? 'btn-primary shadow-md' 
+                          : 'btn-outline border-2'
                       }`}
                     >
-                      {theme.charAt(0).toUpperCase() + theme.slice(1)}
+                      <span className="capitalize">{theme}</span>
                     </button>
                   ))}
                 </div>
@@ -89,19 +93,26 @@ export default function PreferencesStep({
         </div>
 
         {/* Notification Channels */}
-        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md">
+        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl">
           <div className="card-body">
-            <h3 className="card-title mb-4 text-xl">Notification Channels</h3>
-            <div className="space-y-4">
+            <h3 className="card-title mb-4 text-xl flex items-center">
+              <span className="mr-2">🔔</span> Notification Channels
+            </h3>
+            <div className="space-y-2">
               {Object.entries(data.preferences.notificationChannels).map(([key, value]) => (
-                <div key={key} className="form-control">
-                  <label className="label cursor-pointer">
-                    <span className="label-text">
+                <div 
+                  key={key} 
+                  className={`form-control p-3 rounded-lg transition-all duration-200 ${
+                    value ? 'bg-primary/10' : 'hover:bg-primary/5'
+                  }`}
+                >
+                  <label className="label cursor-pointer justify-between">
+                    <span className="label-text font-medium">
                       {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                     </span>
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-colors duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-all duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
                       checked={value}
                       onChange={(e) =>
                         handleNotificationChannelChange(
@@ -118,19 +129,26 @@ export default function PreferencesStep({
         </div>
 
         {/* Notification Subscriptions */}
-        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md">
+        <div className="card border border-white/20 bg-white/30 shadow-lg backdrop-blur-md transition-all duration-300 hover:shadow-xl">
           <div className="card-body">
-            <h3 className="card-title mb-4 text-xl">Email Subscriptions</h3>
-            <div className="space-y-4">
+            <h3 className="card-title mb-4 text-xl flex items-center">
+              <span className="mr-2">📧</span> Email Subscriptions
+            </h3>
+            <div className="space-y-2">
               {Object.entries(data.preferences.notificationSubscriptions).map(([key, value]) => (
-                <div key={key} className="form-control">
-                  <label className="label cursor-pointer">
-                    <span className="label-text">
+                <div 
+                  key={key} 
+                  className={`form-control p-3 rounded-lg transition-all duration-200 ${
+                    value ? 'bg-primary/10' : 'hover:bg-primary/5'
+                  }`}
+                >
+                  <label className="label cursor-pointer justify-between">
+                    <span className="label-text font-medium">
                       {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
                     </span>
                     <input
                       type="checkbox"
-                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-colors duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-all duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
                       checked={value}
                       onChange={(e) =>
                         handleNotificationSubscriptionChange(
@@ -151,15 +169,23 @@ export default function PreferencesStep({
           <button
             type="button"
             onClick={onBackAction}
-            className="btn btn-outline"
+            className="btn btn-ghost gap-2"
             disabled={isLoading}
           >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 17l-5-5m0 0l5-5m-5 5h12"
+              />
+            </svg>
             Back
           </button>
           <button
             type="button"
             onClick={onNextAction}
-            className="btn btn-primary"
+            className="btn btn-primary btn-lg gap-2 rounded-lg"
             disabled={isLoading}
           >
             {isLoading ? (
@@ -168,7 +194,17 @@ export default function PreferencesStep({
                 Saving...
               </>
             ) : (
-              'Continue'
+              <>
+                Continue
+                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 7l5 5m0 0l-5 5m5-5H6"
+                  />
+                </svg>
+              </>
             )}
           </button>
         </div>

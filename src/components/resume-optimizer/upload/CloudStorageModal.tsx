@@ -3,7 +3,7 @@
 import * as Dialog from '@radix-ui/react-dialog';
 import { AnimatePresence, motion } from 'framer-motion';
 import type React from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { CloudFile, CloudStorageProvider } from '../types';
 
 /**
@@ -119,44 +119,6 @@ export const CloudStorageModal: React.FC<CloudStorageModalProps> = ({
     currentFolder: '/',
   });
 
-  const handleProviderConnect = useCallback(
-    async (provider: CloudStorageProvider) => {
-      setState((prev) => ({ ...prev, isConnecting: true, selectedProvider: provider }));
-
-      try {
-        // Simulate OAuth flow
-        console.log(`Connecting to ${provider.name}...`);
-
-        // In a real implementation, this would:
-        // 1. Open OAuth popup window
-        // 2. Handle authentication callback
-        // 3. Store access tokens securely
-        // 4. Fetch user's files
-
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Simulate successful connection
-        setState((prev) => ({
-          ...prev,
-          isConnecting: false,
-          isLoadingFiles: true,
-          selectedProvider: { ...provider, isConnected: true },
-        }));
-
-        // Load files
-        await loadFiles(provider);
-      } catch (error) {
-        console.error(`Failed to connect to ${provider.name}:`, error);
-        setState((prev) => ({
-          ...prev,
-          isConnecting: false,
-          selectedProvider: null,
-        }));
-      }
-    },
-    [loadFiles]
-  );
-
   const loadFiles = useCallback(async (provider: CloudStorageProvider) => {
     try {
       // Simulate file loading
@@ -174,10 +136,50 @@ export const CloudStorageModal: React.FC<CloudStorageModalProps> = ({
         files: mockFiles.filter((file) => file.provider === provider.name),
       }));
     } catch (error) {
-      console.error('Failed to load files:', error);
-      setState((prev) => ({ ...prev, isLoadingFiles: false }));
+      console.error('Error loading files:', error);
+      setState((prev) => ({
+        ...prev,
+        isLoadingFiles: false,
+        error: 'Failed to load files. Please try again.',
+      }));
     }
   }, []);
+
+  const handleProviderConnect = useCallback(async (provider: CloudStorageProvider) => {
+    setState((prev) => ({ ...prev, isConnecting: true }));
+    
+    try {
+      // Simulate connection process
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // In a real implementation, this would:
+      // - Redirect to OAuth flow
+      // - Handle authentication callbacks
+      // - Store access tokens securely
+      
+      setState((prev) => ({
+        ...prev,
+        isConnecting: false,
+        selectedProvider: provider,
+        files: [],
+        currentPath: '/',
+      }));
+    } catch (error) {
+      console.error('Error connecting to provider:', error);
+      setState((prev) => ({
+        ...prev,
+        isConnecting: false,
+        error: 'Failed to connect. Please try again.',
+      }));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (state.selectedProvider) {
+      setState((prev) => ({ ...prev, isLoadingFiles: true, files: [] }));
+      loadFiles(state.selectedProvider);
+    }
+  }, [state.selectedProvider, loadFiles]);
 
   const handleFileToggle = useCallback((fileId: string) => {
     setState((prev) => {

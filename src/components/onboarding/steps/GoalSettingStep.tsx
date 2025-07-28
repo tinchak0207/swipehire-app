@@ -27,7 +27,9 @@ export default function GoalSettingStep({
       label: 'Short-term Goals',
       description: 'Goals for the next 3-6 months',
       icon: '🎯',
-      color: 'success',
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       examples: isJobSeeker
         ? ['Land a new job', 'Complete certification', 'Update portfolio']
         : ['Hire 3 developers', 'Improve hiring process', 'Build employer brand'],
@@ -37,7 +39,9 @@ export default function GoalSettingStep({
       label: 'Mid-term Goals',
       description: 'Goals for the next 6-12 months',
       icon: '📈',
-      color: 'info',
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       examples: isJobSeeker
         ? ['Get promoted', 'Switch career paths', 'Build professional network']
         : ['Expand team by 50%', 'Launch new product', 'Enter new market'],
@@ -47,7 +51,9 @@ export default function GoalSettingStep({
       label: 'Long-term Goals',
       description: 'Goals for 1+ years',
       icon: '🚀',
-      color: 'primary',
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       examples: isJobSeeker
         ? ['Become team lead', 'Start own business', 'Achieve work-life balance']
         : ['Scale to 100+ employees', 'Go public', 'Become industry leader'],
@@ -57,7 +63,9 @@ export default function GoalSettingStep({
       label: 'Skill Development',
       description: 'Skills you want to develop',
       icon: '🧠',
-      color: 'warning',
+      color: 'blue',
+      bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
       examples: isJobSeeker
         ? ['Learn React', 'Improve leadership', 'Master data analysis']
         : ['Improve interviewing', 'Learn talent analytics', 'Develop coaching skills'],
@@ -103,10 +111,10 @@ export default function GoalSettingStep({
   const totalGoals = Object.values(goals).flat().length;
 
   return (
-    <div className="mx-auto max-w-3xl animate-fade-in rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 p-8 backdrop-blur-sm">
+    <div className="mx-auto max-w-3xl animate-fade-in rounded-2xl bg-gradient-to-br from-blue-50 to-white p-8 backdrop-blur-sm">
       {/* Header */}
       <div className="mb-12 text-center">
-        <h2 className="mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text font-bold text-4xl text-transparent">
+        <h2 className="mb-3 font-bold text-4xl text-gray-900">
           Set Your Goals
         </h2>
         <p className="mx-auto max-w-lg text-gray-600 text-lg">
@@ -124,14 +132,14 @@ export default function GoalSettingStep({
           return (
             <div
               key={goalType.key}
-              className="card rounded-xl border-0 bg-white/90 shadow-lg transition-all duration-300 hover:shadow-xl"
+              className={`rounded-xl border-2 ${goalType.borderColor} ${goalType.bgColor} shadow-sm overflow-hidden`}
             >
-              <div className="card-body text-black">
+              <div className="p-6">
                 <div className="mb-4 flex items-center space-x-3">
-                  <span className="text-2xl">{goalType.icon}</span>
+                  <span className="text-3xl">{goalType.icon}</span>
                   <div>
-                    <h3 className="font-bold text-xl">{goalType.label}</h3>
-                    <p className="text-base-content/60 text-sm">{goalType.description}</p>
+                    <h3 className="font-semibold text-xl text-gray-900">{goalType.label}</h3>
+                    <p className="text-gray-600 text-sm">{goalType.description}</p>
                   </div>
                 </div>
 
@@ -140,11 +148,14 @@ export default function GoalSettingStep({
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
                       {currentGoals.map((goal, index) => (
-                        <div key={index} className={`badge badge-${goalType.color} badge-lg gap-2`}>
+                        <div 
+                          key={index} 
+                          className={`badge badge-lg gap-2 px-3 py-2 bg-white text-gray-700 border border-gray-300`}
+                        >
                           {goal}
                           <button
                             onClick={() => removeGoal(goalType.key, index)}
-                            className="btn btn-ghost btn-xs h-4 min-h-0 w-4 p-0"
+                            className="btn btn-ghost btn-xs h-4 min-h-0 w-4 p-0 hover:bg-gray-200 rounded-full"
                           >
                             <svg
                               className="h-3 w-3"
@@ -167,11 +178,11 @@ export default function GoalSettingStep({
                 )}
 
                 {/* Add New Goal */}
-                <div className="mb-4 flex gap-2">
+                <div className="mb-4 flex gap-2 flex-col sm:flex-row">
                   <input
                     type="text"
                     placeholder={`Add a ${goalType.label.toLowerCase().slice(0, -1)}...`}
-                    className="input input-lg flex-1 border-2 border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+                    className="input input-lg flex-1 border-2 border-gray-300 bg-white text-gray-800 placeholder-gray-400 transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-lg"
                     value={newGoal.type === goalType.key ? newGoal.text : ''}
                     onChange={(e) => setNewGoal({ type: goalType.key, text: e.target.value })}
                     onKeyPress={(e) => {
@@ -183,30 +194,30 @@ export default function GoalSettingStep({
                   <button
                     onClick={() => addGoal(goalType.key)}
                     disabled={!newGoal.text.trim() || newGoal.type !== goalType.key}
-                    className={`btn btn-lg ${
+                    className={`btn btn-lg rounded-lg min-h-0 h-12 ${
                       !newGoal.text.trim() || newGoal.type !== goalType.key
                         ? 'cursor-not-allowed opacity-50'
-                        : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-md transition-all hover:from-blue-600 hover:to-purple-700 hover:shadow-lg'
-                    } rounded-lg`}
+                        : 'bg-blue-600 hover:bg-blue-700 text-white'
+                    } transition-all shadow-sm hover:shadow`}
                   >
-                    Add
+                    Add Goal
                   </button>
                 </div>
 
                 {/* Example Goals */}
                 <div>
-                  <p className="mb-2 text-base-content/60 text-sm">Quick add examples:</p>
+                  <p className="mb-2 text-gray-600 text-sm font-medium">Quick add examples:</p>
                   <div className="flex flex-wrap gap-2">
                     {goalType.examples.map((example, index) => (
                       <button
                         key={index}
                         onClick={() => addExampleGoal(goalType.key, example)}
                         disabled={currentGoals.includes(example)}
-                        className={`btn btn-outline btn-xs ${
+                        className={`btn btn-sm rounded-full ${
                           currentGoals.includes(example)
                             ? 'btn-disabled opacity-50'
-                            : `btn-${goalType.color}`
-                        } `}
+                            : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300'
+                        } transition-all`}
                       >
                         + {example}
                       </button>
@@ -221,8 +232,8 @@ export default function GoalSettingStep({
 
       {/* Goal Summary */}
       {totalGoals > 0 && (
-        <div className="alert alert-success mt-8">
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="alert mt-8 rounded-lg border border-blue-200 bg-blue-50 shadow-sm">
+          <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -231,8 +242,8 @@ export default function GoalSettingStep({
             />
           </svg>
           <div>
-            <h3 className="font-bold">Great start!</h3>
-            <div className="text-sm">
+            <h3 className="font-semibold text-blue-800">Great start!</h3>
+            <div className="text-blue-700 text-sm">
               You've set {totalGoals} goal{totalGoals !== 1 ? 's' : ''}.
               {isJobSeeker
                 ? ' These will help guide your career development and job search.'
@@ -244,11 +255,11 @@ export default function GoalSettingStep({
 
       {/* Integration Info */}
       <div className="card mt-8 rounded-lg border border-gray-200 bg-white shadow-sm">
-        <div className="card-body text-black">
-          <div className="flex items-start space-x-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-info/20">
+        <div className="card-body p-6">
+          <div className="flex items-start space-x-4">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-blue-100">
               <svg
-                className="h-5 w-5 text-info"
+                className="h-6 w-6 text-blue-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -262,10 +273,10 @@ export default function GoalSettingStep({
               </svg>
             </div>
             <div>
-              <h4 className="mb-2 font-semibold text-info">
+              <h4 className="mb-2 font-semibold text-blue-700">
                 {isJobSeeker ? 'Career Dashboard Integration' : 'Hiring Dashboard Integration'}
               </h4>
-              <p className="text-base-content/70 text-sm">
+              <p className="text-gray-600 text-sm">
                 {isJobSeeker
                   ? 'Your goals will be integrated with your Career Dashboard, where you can track progress, get AI-powered recommendations, and receive personalized action steps.'
                   : 'Your goals will be integrated with your Hiring Dashboard, where you can track recruitment progress, get candidate recommendations, and monitor team growth metrics.'}
@@ -278,7 +289,7 @@ export default function GoalSettingStep({
       {/* Skip Option */}
       {totalGoals === 0 && (
         <div className="mt-8 text-center">
-          <p className="mb-4 text-base-content/60">
+          <p className="mb-4 text-gray-600">
             Don't worry if you're not sure about your goals yet. You can always add them later in
             your dashboard.
           </p>
@@ -286,8 +297,12 @@ export default function GoalSettingStep({
       )}
 
       {/* Action Buttons */}
-      <div className="mt-8 flex items-center justify-between">
-        <button onClick={onBackAction} className="btn btn-ghost" disabled={isLoading}>
+      <div className="mt-10 flex items-center justify-between">
+        <button 
+          onClick={onBackAction} 
+          className="flex items-center font-medium text-gray-600 transition-colors duration-200 hover:text-gray-800"
+          disabled={isLoading}
+        >
           <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
@@ -299,16 +314,29 @@ export default function GoalSettingStep({
           Back
         </button>
 
-        <button onClick={onNextAction} disabled={isLoading} className="btn btn-primary btn-lg">
+        <button
+          onClick={onNextAction}
+          disabled={isLoading}
+          className={`rounded-xl px-8 py-4 font-bold text-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
+            !isLoading
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:scale-105 hover:from-blue-600 hover:to-blue-700'
+              : 'cursor-not-allowed bg-gray-200 text-gray-400'
+          }`}
+        >
           {isLoading ? (
             <>
-              <span className="loading loading-spinner loading-sm" />
+              <span className="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-white border-b-2" />
               Saving...
             </>
           ) : (
             <>
               Complete Setup
-              <svg className="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="ml-2 inline h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

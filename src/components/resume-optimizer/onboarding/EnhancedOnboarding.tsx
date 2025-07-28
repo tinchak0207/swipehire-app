@@ -142,7 +142,7 @@ export const EnhancedOnboarding: React.FC<EnhancedOnboardingProps> = ({
           setCurrentStepIndex((prev) => prev + 1);
         } else {
           // Complete onboarding
-          const goals = stepData.goals as unknown as OptimizationGoals;
+          const goals = stepData['goals'] as unknown as OptimizationGoals;
           const path = (stepData['path-selection'] as any)?.selectedPath as OnboardingPath;
           onComplete(goals, path);
         }

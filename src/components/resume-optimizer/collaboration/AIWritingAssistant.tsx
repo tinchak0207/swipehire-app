@@ -260,7 +260,7 @@ const WritingIcons = {
     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
       <path
         fillRule="evenodd"
-        d="M5 2a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0V6H3a1 1 0 110-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 1a1 1 0 01.967.744L14.146 7.2 17.5 8.134a1 1 0 010 1.732L14.146 10.8l-1.179 5.456a1 1 0 01-1.934 0L9.854 10.8 6.5 9.866a1 1 0 010-1.732L9.854 7.2l1.179-5.456A1 1 0 0112 1z"
+        d="M5 2a1 1 0 01.967.744L14.146 7.2 17.5 8.134a1 1 0 010 1.732L14.146 10.8l-1.179 5.456a1 1 0 01-1.934 0L9.854 10.8 6.5 9.866a1 1 0 010-1.732L9.854 7.2l1.179-5.456A1 1 0 0112 1z"
         clipRule="evenodd"
       />
     </svg>
@@ -278,7 +278,7 @@ const WritingIcons = {
     <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
       <path
         fillRule="evenodd"
-        d="M5 2a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0V6H3a1 1 0 110-2h1V3a1 1 0 011-1zm0 10a1 1 0 011 1v1h1a1 1 0 110 2H6v1a1 1 0 11-2 0v-1H3a1 1 0 110-2h1v-1a1 1 0 011-1zM12 1a1 1 0 01.967.744L14.146 7.2 17.5 8.134a1 1 0 010 1.732L14.146 10.8l-1.179 5.456a1 1 0 01-1.934 0L9.854 10.8 6.5 9.866a1 1 0 010-1.732L9.854 7.2l1.179-5.456A1 1 0 0112 1z"
+        d="M5 2a1 1 0 01.967.744L14.146 7.2 17.5 8.134a1 1 0 010 1.732L14.146 10.8l-1.179 5.456a1 1 0 01-1.934 0L9.854 10.8 6.5 9.866a1 1 0 010-1.732L9.854 7.2l1.179-5.456A1 1 0 0112 1z"
         clipRule="evenodd"
       />
     </svg>
@@ -832,8 +832,8 @@ export const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({
 }) => {
   // State management
   const [suggestions, setSuggestions] = useState<WritingSuggestion[]>([]);
-  const [metrics, setMetrics] = useState<WritingMetrics | null>(null);
-  const [toneAnalysis, setToneAnalysis] = useState<ToneAnalysis | null>(null);
+  const [metrics] = useState<WritingMetrics | null>(null);
+  const [toneAnalysis] = useState<ToneAnalysis | null>(null);
   const [grammarCheck, setGrammarCheck] = useState<GrammarCheck | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [activeTab, setActiveTab] = useState<'suggestions' | 'metrics' | 'tone' | 'grammar'>(
@@ -842,136 +842,6 @@ export const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({
 
   // Refs
   const analysisTimeoutRef = useRef<NodeJS.Timeout>();
-
-  // Mock data for demonstration
-  const mockSuggestions: WritingSuggestion[] = [
-    {
-      id: 'suggestion-1',
-      type: 'word-choice',
-      category: 'enhancement',
-      priority: 'medium',
-      title: 'Stronger Action Verb',
-      description: 'Use a more impactful action verb to better showcase your achievements',
-      originalText: 'Worked on developing new features',
-      suggestedText: 'Architected and implemented new features',
-      explanation:
-        'Action verbs like "architected" and "implemented" are more specific and demonstrate technical leadership',
-      confidence: 0.88,
-      impact: {
-        readabilityScore: 5,
-        professionalismScore: 12,
-        clarityScore: 8,
-        engagementScore: 10,
-        atsCompatibility: 7,
-      },
-      position: { start: 100, end: 130, line: 5, column: 0 },
-      alternatives: [
-        'Designed and developed new features',
-        'Led the development of new features',
-        'Spearheaded feature development',
-      ],
-      isRealTime: true,
-      canAutoApply: true,
-    },
-    {
-      id: 'suggestion-2',
-      type: 'grammar',
-      category: 'correctness',
-      priority: 'high',
-      title: 'Subject-Verb Agreement',
-      description: 'Fix grammatical error in subject-verb agreement',
-      originalText: 'The team were responsible for',
-      suggestedText: 'The team was responsible for',
-      explanation: 'Collective nouns like "team" typically take singular verbs in American English',
-      confidence: 0.95,
-      impact: {
-        readabilityScore: 3,
-        professionalismScore: 8,
-        clarityScore: 5,
-        engagementScore: 2,
-        atsCompatibility: 1,
-      },
-      position: { start: 200, end: 225, line: 8, column: 0 },
-      alternatives: [],
-      isRealTime: false,
-      canAutoApply: true,
-    },
-  ];
-
-  const mockMetrics: WritingMetrics = {
-    readabilityScore: 75,
-    gradeLevel: 10,
-    sentenceComplexity: 0.65,
-    vocabularyLevel: 'Professional',
-    passiveVoicePercentage: 15,
-    averageSentenceLength: 18,
-    wordCount: 250,
-    characterCount: 1450,
-    paragraphCount: 4,
-  };
-
-  const mockToneAnalysis: ToneAnalysis = {
-    currentTone: 'professional',
-    confidence: 0.82,
-    recommendations: [
-      {
-        targetTone: 'confident',
-        reason: 'Adding more assertive language could better showcase your achievements',
-        examples: ['Led', 'Achieved', 'Delivered'],
-        impact: 8,
-      },
-    ],
-    toneConsistency: 0.78,
-    appropriateness: 0.85,
-  };
-
-  const mockGrammarCheck: GrammarCheck = {
-    errors: [
-      {
-        id: 'error-1',
-        type: 'grammar',
-        severity: 'medium',
-        message: 'Consider using active voice instead of passive voice',
-        position: { start: 150, end: 180, line: 6, column: 0 },
-        suggestions: ['I developed the system', 'I created the solution'],
-        rule: 'passive-voice',
-      },
-    ],
-    suggestions: [],
-    overallScore: 85,
-    errorTypes: {
-      grammar: 1,
-      spelling: 0,
-      punctuation: 0,
-    },
-  };
-
-  // Initialize mock data
-  useEffect(() => {
-    setSuggestions(mockSuggestions);
-    setMetrics(mockMetrics);
-    setToneAnalysis(mockToneAnalysis);
-    setGrammarCheck(mockGrammarCheck);
-  }, []);
-
-  // Real-time content analysis
-  useEffect(() => {
-    if (!enableRealTime) return;
-
-    if (analysisTimeoutRef.current) {
-      clearTimeout(analysisTimeoutRef.current);
-    }
-
-    analysisTimeoutRef.current = setTimeout(() => {
-      analyzeContent();
-    }, 1000);
-
-    return () => {
-      if (analysisTimeoutRef.current) {
-        clearTimeout(analysisTimeoutRef.current);
-      }
-    };
-  }, [enableRealTime, analyzeContent]);
 
   // Analyze content
   const analyzeContent = useCallback(async () => {
@@ -983,12 +853,29 @@ export const AIWritingAssistant: React.FC<AIWritingAssistantProps> = ({
 
       // Update suggestions based on content
       // This would be replaced with actual AI analysis
+      console.log('Analyzing content:', content); // Use the content parameter
     } catch (error) {
       console.error('Error analyzing content:', error);
     } finally {
       setIsAnalyzing(false);
     }
-  }, []);
+  }, [content]);
+
+  // Effects
+  useEffect(() => {
+    if (enableRealTime) {
+      // Debounce analysis
+      analysisTimeoutRef.current = setTimeout(() => {
+        analyzeContent();
+      }, 1000);
+    }
+
+    return () => {
+      if (analysisTimeoutRef.current) {
+        clearTimeout(analysisTimeoutRef.current);
+      }
+    };
+  }, [enableRealTime, analyzeContent]);
 
   // Handle suggestion application
   const handleSuggestionApply = useCallback(

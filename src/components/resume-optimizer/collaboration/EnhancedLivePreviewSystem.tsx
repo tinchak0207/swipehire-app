@@ -52,6 +52,7 @@ export interface EnhancedLivePreviewProps {
   readonly onVersionSave: (version: VersionSnapshot) => void;
   readonly onCommentAdd: (comment: Comment) => void;
   readonly enableSmartSuggestions?: boolean;
+  readonly targetJobTitle?: string;
 }
 
 export interface CollaborationUser {
@@ -465,16 +466,17 @@ export const EnhancedLivePreviewSystem: React.FC<EnhancedLivePreviewProps> = ({
   optimizedContent,
   collaborationUsers,
   currentUser,
-  enableRealTimeUpdates,
-  enableCollaboration,
-  enableComments,
-  enableSuggestions,
+  enableRealTimeUpdates = true,
+  enableCollaboration = true,
+  enableComments = true,
+  enableSuggestions = true,
   websocketUrl,
   onContentChange,
   onSuggestionApply,
   onCollaborationEvent,
   onCommentAdd,
-  enableSmartSuggestions = false,
+  enableSmartSuggestions = true,
+  targetJobTitle = '',
 }) => {
   // State management
   const [previewMode, setPreviewMode] = useState<PreviewMode>({
@@ -734,6 +736,7 @@ export const EnhancedLivePreviewSystem: React.FC<EnhancedLivePreviewProps> = ({
               socket={socket}
               currentUser={currentUser}
               collaborationUsers={collaborationUsers as any}
+              targetJobTitle={targetJobTitle || ''}
             />
           </motion.div>
         )}

@@ -25,7 +25,8 @@ const getCookie = (name: string): string | undefined => {
   return undefined;
 };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
+const API_BASE_URL = process.env['NEXT_PUBLIC_API_URL'] || '/api';
+const BACKEND_BASE_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 /**
  * Validates uploaded file for resume processing
@@ -187,7 +188,7 @@ export const fetchUserProfile = async (userId?: string): Promise<UserProfileData
 
       // Attempt to refresh token before giving up
       try {
-        const refreshResponse = await fetch(`${API_BASE_URL}/auth/refresh`, {
+        const refreshResponse = await fetch(`${BACKEND_BASE_URL}/api/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
         });
@@ -908,7 +909,13 @@ function transformBackendResponse(
       score: backendData.quantitativeAnalysis.score,
       achievementsWithNumbers: backendData.quantitativeAnalysis.achievementsWithNumbers,
       totalAchievements: backendData.quantitativeAnalysis.totalAchievements,
-      suggestions: backendData.quantitativeAnalysis.suggestions,
+      suggestions: backendData.quantitativeAnalysis.suggestions.map(suggestion => ({
+        section: suggestion.section,
+        originalText: suggestion.originalText,
+        suggestedText: suggestion.suggestedText,
+        reasoning: suggestion.reasoning,
+        description: '' // Adding the missing required description field
+      })),
       impactWords: backendData.quantitativeAnalysis.impactWords,
     },
     createdAt: backendData.createdAt,

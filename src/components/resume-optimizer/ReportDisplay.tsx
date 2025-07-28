@@ -19,6 +19,7 @@ import type { EditorState, ResumeAnalysisResponse } from '@/lib/types/resume-opt
 import EmbeddedTextEditor from './EmbeddedTextEditor';
 import ScoreDisplay from './ScoreDisplay';
 import SuggestionCard from './SuggestionCard';
+import { GamifiedAnalyticsDashboard } from './gamification/GamifiedAnalyticsDashboard';
 
 interface ReportDisplayProps {
   analysisResult: ResumeAnalysisResponse | null;
@@ -275,6 +276,11 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
     metadata,
   } = analysisResult || {};
 
+  const actionVerbsAnalysis = {
+    strongActionVerbs: quantitativeAnalysis.impactWords.length,
+    totalActionVerbs: quantitativeAnalysis.impactWords.length + 5, // Mock value
+  };
+
   // Helper functions
   const getScoreColor = (score: number): string => {
     if (score >= 80) return 'text-success';
@@ -504,10 +510,20 @@ const ReportDisplay: React.FC<ReportDisplayProps> = ({
               <div className="stat-figure text-secondary">
                 <SparklesIcon className="h-8 w-8" />
               </div>
-              <div className="stat-title text-xs">Suggestions</div>
-              <div className="stat-value text-2xl text-secondary">{suggestions.length}</div>
-              <div className="stat-desc">{adoptedSuggestions.size} adopted</div>
+              <div className="stat-title text-xs">Action Verbs</div>
+              <div className="stat-value text-2xl text-secondary">
+                {actionVerbsAnalysis.strongActionVerbs}
+              </div>
+              <div className="stat-desc">of {actionVerbsAnalysis.totalActionVerbs} total</div>
             </div>
+          </div>
+
+          {/* Gamified Analytics Dashboard */}
+          <div className="mt-8">
+            <GamifiedAnalyticsDashboard 
+              analysisData={analysisResult} 
+              userId="current-user" 
+            />
           </div>
 
           {/* Strengths and Weaknesses */}

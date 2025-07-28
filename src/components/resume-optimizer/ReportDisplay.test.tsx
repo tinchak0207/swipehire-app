@@ -246,6 +246,7 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         suggestedText:
           'Improved application performance by 40%, reducing load times from 3.2s to 1.9s',
         reasoning: 'Adding specific metrics makes the achievement more impactful and credible',
+        description: 'Adding specific metrics makes the achievement more impactful and credible',
       },
       {
         section: 'Professional Experience',
@@ -253,12 +254,15 @@ const mockAnalysisResult: ResumeAnalysisResponse = {
         suggestedText: 'Led a team of 5 developers to deliver 12 features over 6 months',
         reasoning:
           'Quantifying team size and deliverables demonstrates leadership scale and impact',
+        description:
+          'Quantifying team size and deliverables demonstrates leadership scale and impact',
       },
       {
         section: 'Professional Experience',
         originalText: 'Increased user engagement',
         suggestedText: 'Increased user engagement by 35% through implementation of new features',
         reasoning: 'Specific percentage increase shows measurable business impact',
+        description: 'Specific percentage increase shows measurable business impact',
       },
     ],
     impactWords: ['Led', 'Improved', 'Developed', 'Implemented', 'Optimized', 'Delivered'],

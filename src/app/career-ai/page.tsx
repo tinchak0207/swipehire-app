@@ -100,7 +100,7 @@ export default function CareerAIPage() {
   const getUserPhotoURL = () => {
     if (fullBackendUser?.profileAvatarUrl) {
       if (fullBackendUser.profileAvatarUrl.startsWith('/uploads/')) {
-        return `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL}${fullBackendUser.profileAvatarUrl}`;
+        return `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL']}${fullBackendUser.profileAvatarUrl}`;
       }
       return fullBackendUser.profileAvatarUrl;
     }

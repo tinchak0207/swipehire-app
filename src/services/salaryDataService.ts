@@ -125,8 +125,8 @@ interface SalaryDataServiceConfig {
 }
 
 const defaultConfig: SalaryDataServiceConfig = {
-  baseUrl: process.env.NEXT_PUBLIC_SALARY_API_URL || 'https://api.salarydata.com/v1',
-  apiKey: process.env.NEXT_PUBLIC_SALARY_API_KEY,
+  baseUrl: process.env['NEXT_PUBLIC_SALARY_API_URL'] || 'https://api.salarydata.com/v1',
+  apiKey: process.env['NEXT_PUBLIC_SALARY_API_KEY'],
   timeout: 10000,
   retryAttempts: 3,
   retryDelay: 1000,

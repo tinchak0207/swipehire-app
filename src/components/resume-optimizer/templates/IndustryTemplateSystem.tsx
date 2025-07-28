@@ -215,15 +215,13 @@ const templateCategories: TemplateCategory[] = [
   },
 ];
 
-export function IndustryTemplateSystem({
-  userProfile,
-  targetRole,
+export const IndustryTemplateSystem: React.FC<IndustryTemplateSystemProps> = ({
   targetIndustry,
   experienceLevel,
   onTemplateSelect,
   onTemplatePreview,
   className = '',
-}: IndustryTemplateSystemProps) {
+}) => {
   const { toast } = useToast();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');

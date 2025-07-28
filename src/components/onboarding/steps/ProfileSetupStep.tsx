@@ -66,12 +66,12 @@ export default function ProfileSetupStep({
   const isRecruiter = data.userType === 'recruiter';
 
   // Validation
-  const canProceed = isJobSeeker
+  /*const canProceed = isJobSeeker
     ? formData.headline &&
       formData.experienceSummary &&
       formData.skills &&
       formData.skills.length > 0
-    : formData.companyName && formData.companyIndustry && formData.companyDescription;
+    : formData.companyName && formData.companyIndustry && formData.companyDescription;*/
 
   if (showQuestionnaire && isJobSeeker) {
     return (
@@ -115,33 +115,42 @@ export default function ProfileSetupStep({
         <div className="p-8 md:p-12">
           {isJobSeeker && (
             <>
-              {/* Career Questionnaire Option */}
-              <div className="mb-8 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 p-6">
-                <div className="flex items-center justify-between">
+              {/* Info box for job seekers */}
+              <div className="mb-8 rounded-2xl border border-gray-100 bg-gradient-to-r from-gray-50 to-gray-100 p-6">
+                <div className="flex flex-col items-center text-center md:flex-row md:items-start md:text-left">
+                  <div className="mb-4 mr-4 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-gray-200">
+                    <svg
+                      className="h-6 w-6 text-gray-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
                   <div>
-                    <h3 className="mb-2 flex items-center font-bold text-gray-800 text-lg">
-                      <span className="mr-2">🤖</span>
-                      AI-Powered Career Assessment
+                    <h3 className="mb-2 font-bold text-gray-800 text-lg">
+                      Why we ask for this information
                     </h3>
                     <p className="text-gray-600">
-                      Let our AI guide you through a comprehensive career questionnaire
+                      This helps us match you with the most relevant opportunities and provide
+                      personalized career recommendations. All information is kept confidential.
                     </p>
                   </div>
+                </div>
+                <div className="mt-4 text-center">
                   <button
+                    type="button"
                     onClick={() => setShowQuestionnaire(true)}
-                    className="rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-blue-700 hover:shadow-xl"
+                    className="rounded-xl bg-gradient-to-r from-gray-500 to-gray-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-300 hover:scale-105 hover:from-gray-600 hover:to-gray-700 hover:shadow-xl"
                   >
-                    Start Assessment
+                    Enhance with AI Career Analysis
                   </button>
-                </div>
-              </div>
-
-              <div className="relative my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-gray-200 border-t" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 font-medium text-gray-500">OR</span>
                 </div>
               </div>
 
@@ -415,12 +424,8 @@ export default function ProfileSetupStep({
 
       {/* Action Buttons */}
       <div className="mt-12 flex items-center justify-between">
-        <button
-          onClick={onBack}
-          className="flex items-center font-medium text-gray-600 transition-colors duration-200 hover:text-gray-800"
-          disabled={isLoading}
-        >
-          <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <button onClick={onBack} className="btn btn-ghost gap-2" disabled={isLoading}>
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -431,29 +436,16 @@ export default function ProfileSetupStep({
           Back
         </button>
 
-        <button
-          onClick={onNext}
-          disabled={!canProceed || isLoading}
-          className={`rounded-xl px-8 py-4 font-bold text-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
-            canProceed && !isLoading
-              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white hover:scale-105 hover:from-green-600 hover:to-green-700'
-              : 'cursor-not-allowed bg-gray-200 text-gray-400'
-          }`}
-        >
+        <button onClick={onNext} disabled={isLoading} className="btn btn-primary btn-lg gap-2 rounded-lg">
           {isLoading ? (
             <>
-              <span className="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-white border-b-2" />
+              <span className="loading loading-spinner loading-sm" />
               Saving...
             </>
           ) : (
             <>
               Continue
-              <svg
-                className="ml-2 inline h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"

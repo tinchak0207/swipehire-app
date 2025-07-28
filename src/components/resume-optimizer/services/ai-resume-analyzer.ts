@@ -177,7 +177,7 @@ Focus on:
   /**
    * AI-powered grammar and readability check
    */
-  private async checkGrammar(resumeText: string): Promise<GrammarCheck> {
+  private async checkGrammar(resumeText: string): Promise<any> {
     const prompt = `Analyze the following resume text for grammar, spelling, and readability issues.
 
 RESUME TEXT:
@@ -634,8 +634,11 @@ Provide the optimized resume text with the suggested improvements applied. Maint
       impactWords: ['improved', 'increased', 'developed'],
       suggestions: [
         {
+          section: 'experience',
+          originalText: 'Managed a team.',
+          suggestedText: 'Managed a team of 5 engineers.',
+          reasoning: 'Adding numbers to achievements makes them more impactful.',
           description: 'Add quantifiable metrics to your achievements',
-          example: 'Increased sales by 25% over 6 months',
         },
       ],
     };

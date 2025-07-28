@@ -21,6 +21,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import SuggestionCard from '../SuggestionCard';
 
 // Types and Interfaces
 export interface SmartSuggestion {
@@ -383,20 +384,6 @@ const ATS_PATTERNS = [
   },
 ];
 
-// Icons for suggestions
-const SuggestionIcons = {
-  keyword: '🔑',
-  grammar: '📝',
-  style: '✨',
-  content: '💡',
-  ats: '🤖',
-  industry: '🏢',
-  tone: '🎭',
-  structure: '🏗️',
-  quantification: '📊',
-  'action-verb': '⚡',
-};
-
 // Animation variants
 const suggestionAnimations: any = {
   container: {
@@ -434,160 +421,44 @@ const suggestionAnimations: any = {
   },
 };
 
-// Smart Suggestion Card Component
-const SmartSuggestionCard: React.FC<{
+// Adapter component for SmartSuggestion format
+const SmartSuggestionAdapter: React.FC<{
   suggestion: SmartSuggestion;
-  onApply: () => void;
+  onApply: (suggestionId: string) => void;
   onDismiss: () => void;
 }> = ({ suggestion, onApply, onDismiss }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
-
-  const priorityColors = {
-    critical: 'border-error bg-error/10',
-    high: 'border-warning bg-warning/10',
-    medium: 'border-info bg-info/10',
-    low: 'border-success bg-success/10',
-  };
-
-  const handleApply = useCallback(async () => {
-    if (!suggestion.canAutoApply) return;
-
-    setIsApplying(true);
-    try {
-      await onApply();
-    } finally {
-      setIsApplying(false);
-    }
-  }, [suggestion.canAutoApply, onApply]);
-
-  const confidenceColor = useMemo(() => {
-    if (suggestion.confidence >= 0.9) return 'text-success';
-    if (suggestion.confidence >= 0.7) return 'text-warning';
-    return 'text-error';
-  }, [suggestion.confidence]);
+  // Convert SmartSuggestion format to shared SuggestionCard format
+  const convertedSuggestion = useMemo(() => ({
+    id: suggestion.id,
+    type: suggestion.type as any,
+    title: suggestion.title,
+    description: suggestion.description,
+    impact: suggestion.priority as any,
+    suggestion: suggestion.reason,
+    beforeText: suggestion.originalText,
+    afterText: suggestion.suggestedText,
+    section: suggestion.context?.currentSection || suggestion.type,
+    priority: suggestion.priority === 'critical' ? 4 : 
+             suggestion.priority === 'high' ? 3 : 
+             suggestion.priority === 'medium' ? 2 : 1,
+    estimatedScoreImprovement: suggestion.impact.scoreIncrease,
+  }), [suggestion]);
 
   return (
     <motion.div
-      className={`card border-2 ${priorityColors[suggestion.priority]} transition-all duration-300 hover:shadow-lg`}
       variants={suggestionAnimations.item}
       layout
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
-      <div className="card-body p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">{SuggestionIcons[suggestion.type]}</span>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold text-sm">{suggestion.title}</span>
-                <div
-                  className={`badge badge-${suggestion.priority === 'critical' ? 'error' : suggestion.priority === 'high' ? 'warning' : suggestion.priority === 'medium' ? 'info' : 'success'} badge-xs`}
-                >
-                  {suggestion.priority}
-                </div>
-              </div>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-base-content/70 text-xs capitalize">{suggestion.type}</span>
-                <span className={`font-medium text-xs ${confidenceColor}`}>
-                  {Math.round(suggestion.confidence * 100)}% confidence
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <button className="btn btn-ghost btn-xs" onClick={() => setIsExpanded(!isExpanded)}>
-            {isExpanded ? '▼' : '▶'}
-          </button>
-        </div>
-
-        {/* Description */}
-        <p className="mt-2 text-base-content/80 text-sm">{suggestion.description}</p>
-
-        {/* Impact Metrics */}
-        <div className="mt-3 flex items-center gap-4">
-          {suggestion.impact.scoreIncrease > 0 && (
-            <div className="flex items-center gap-1">
-              <span className="text-success text-xs">+{suggestion.impact.scoreIncrease}</span>
-              <span className="text-base-content/70 text-xs">score</span>
-            </div>
-          )}
-          {suggestion.impact.atsCompatibility > 0 && (
-            <div className="flex items-center gap-1">
-              <span className="text-info text-xs">+{suggestion.impact.atsCompatibility}%</span>
-              <span className="text-base-content/70 text-xs">ATS</span>
-            </div>
-          )}
-        </div>
-
-        {/* Expanded Content */}
-        <AnimatePresence>
-          {isExpanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="mt-4 space-y-3"
-            >
-              {/* Before/After */}
-              {suggestion.originalText && suggestion.suggestedText && (
-                <div className="space-y-2">
-                  <div className="rounded border border-error/20 bg-error/10 p-2 text-sm">
-                    <div className="mb-1 font-medium text-error text-xs">Original</div>
-                    <div className="font-mono">{suggestion.originalText}</div>
-                  </div>
-                  <div className="rounded border border-success/20 bg-success/10 p-2 text-sm">
-                    <div className="mb-1 font-medium text-success text-xs">Suggested</div>
-                    <div className="font-mono">{suggestion.suggestedText}</div>
-                  </div>
-                </div>
-              )}
-
-              {/* Reason */}
-              <div className="rounded bg-base-200 p-2 text-sm">
-                <div className="mb-1 font-medium text-xs">Why this helps:</div>
-                <div>{suggestion.reason}</div>
-              </div>
-
-              {/* Context */}
-              <div className="text-base-content/70 text-xs">
-                <div>Section: {suggestion.context.currentSection}</div>
-                <div>
-                  Position: Line {suggestion.position.line}, Column {suggestion.position.column}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Actions */}
-        <div className="card-actions mt-4 justify-end">
-          <button className="btn btn-ghost btn-xs" onClick={onDismiss}>
-            Dismiss
-          </button>
-
-          {suggestion.canAutoApply && !suggestion.isApplied && (
-            <button
-              className={`btn btn-primary btn-xs ${isApplying ? 'loading' : ''}`}
-              onClick={handleApply}
-              disabled={isApplying}
-            >
-              {!isApplying && '✓'}
-              {isApplying ? 'Applying...' : 'Apply'}
-            </button>
-          )}
-
-          {suggestion.isApplied && (
-            <div className="btn btn-success btn-xs no-animation">✓ Applied</div>
-          )}
-
-          {!suggestion.canAutoApply && (
-            <button className="btn btn-outline btn-xs">Manual Review</button>
-          )}
-        </div>
-      </div>
+      <SuggestionCard
+        suggestion={convertedSuggestion}
+        isAdopted={suggestion.isApplied}
+        isIgnored={false}
+        onAdopt={() => onApply(suggestion.id)}
+        onIgnore={onDismiss}
+        onApplyToEditor={suggestion.canAutoApply ? (suggestionId, _suggestion) => onApply(suggestionId) : undefined}
+      />
     </motion.div>
   );
 };
@@ -1158,7 +1029,7 @@ export const SmartSuggestionsEngine: React.FC<SmartSuggestionsEngineProps> = ({
           >
             <AnimatePresence mode="popLayout">
               {filteredAndSortedSuggestions.map((suggestion) => (
-                <SmartSuggestionCard
+                <SmartSuggestionAdapter
                   key={suggestion.id}
                   suggestion={suggestion}
                   onApply={() => handleApplySuggestion(suggestion.id)}

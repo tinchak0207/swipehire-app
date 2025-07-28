@@ -76,6 +76,80 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [documentDetected, setDocumentDetected] = useState(false);
 
+  // Simple edge detection algorithm
+  const performEdgeDetection = useCallback((imageData: ImageData): boolean => {
+    const data = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    let edgeCount = 0;
+    const threshold = 50;
+
+    // Sample every 10th pixel for performance
+    for (let y = 1; y < height - 1; y += 10) {
+      for (let x = 1; x < width - 1; x += 10) {
+        const idx = (y * width + x) * 4;
+
+        // Calculate gradient magnitude
+        const gx = Math.abs((data[idx] ?? 0) - (data[idx + 4] ?? 0));
+        const gy = Math.abs((data[idx] ?? 0) - (data[idx + width * 4] ?? 0));
+        const gradient = Math.sqrt(gx * gx + gy * gy);
+
+        if (gradient > threshold) {
+          edgeCount++;
+        }
+      }
+    }
+
+    // If we found enough edges, consider it a document
+    const edgeDensity = edgeCount / ((width * height) / 100);
+    return edgeDensity > 0.1;
+  }, []);
+
+  // Document detection using edge detection
+  const startDocumentDetection = useCallback(() => {
+    const detectDocument = () => {
+      if (!videoRef.current || !canvasRef.current || !state.isStreaming) return;
+
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      // Set canvas dimensions to match video
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw video frame to canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Get image data for edge detection
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      
+      // Perform edge detection
+      const isDocument = performEdgeDetection(imageData);
+      
+      if (isDocument && !documentDetected) {
+        setDocumentDetected(true);
+      } else if (!isDocument && documentDetected) {
+        setDocumentDetected(false);
+      }
+
+      // Continue detection if still streaming
+      if (state.autoDetectEnabled && state.isStreaming) {
+        requestAnimationFrame(detectDocument);
+      }
+    };
+
+    detectDocument();
+  }, [
+    videoRef,
+    canvasRef,
+    state.isStreaming,
+    state.autoDetectEnabled,
+    documentDetected,
+    performEdgeDetection,
+  ]);
+
   // Start camera with enhanced settings
   const startCamera = useCallback(async () => {
     try {
@@ -134,68 +208,41 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     setDocumentDetected(false);
   }, [stream]);
 
-  // Document detection using edge detection
-  const startDocumentDetection = useCallback(() => {
-    const detectDocument = () => {
-      if (!videoRef.current || !canvasRef.current || !state.isStreaming) return;
+  // Apply image enhancements
+  const applyImageEnhancements = useCallback(
+    async (context: CanvasRenderingContext2D, width: number, height: number) => {
+      const imageData = context.getImageData(0, 0, width, height);
+      const data = imageData.data;
 
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
+      // Apply brightness and contrast adjustments
+      const brightness = 10;
+      const contrast = 1.2;
 
-      if (!context) return;
-
-      // Set canvas size to match video
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-
-      // Draw current frame
-      context.drawImage(video, 0, 0);
-
-      // Simple document detection using edge detection
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const detected = performEdgeDetection(imageData);
-
-      setDocumentDetected(detected);
-
-      // Continue detection
-      if (state.isStreaming) {
-        requestAnimationFrame(detectDocument);
+      for (let i = 0; i < data.length; i += 4) {
+        // Apply contrast
+        data[i] = Math.min(255, Math.max(0, ((data[i] ?? 0) - 128) * contrast + 128 + brightness));
+        data[i + 1] = Math.min(
+          255,
+          Math.max(0, ((data[i + 1] ?? 0) - 128) * contrast + 128 + brightness)
+        );
+        data[i + 2] = Math.min(
+          255,
+          Math.max(0, ((data[i + 2] ?? 0) - 128) * contrast + 128 + brightness)
+        );
       }
-    };
 
-    requestAnimationFrame(detectDocument);
-  }, [videoRef, canvasRef, state.isStreaming, performEdgeDetection]);
+      context.putImageData(imageData, 0, 0);
+    },
+    []
+  );
 
-  // Simple edge detection algorithm
-  const performEdgeDetection = useCallback((imageData: ImageData): boolean => {
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    let edgeCount = 0;
-    const threshold = 50;
-
-    // Sample every 10th pixel for performance
-    for (let y = 1; y < height - 1; y += 10) {
-      for (let x = 1; x < width - 1; x += 10) {
-        const idx = (y * width + x) * 4;
-
-        // Calculate gradient magnitude
-        const gx = Math.abs((data[idx] ?? 0) - (data[idx + 4] ?? 0));
-        const gy = Math.abs((data[idx] ?? 0) - (data[idx + width * 4] ?? 0));
-        const magnitude = Math.sqrt(gx * gx + gy * gy);
-
-        if (magnitude > threshold) {
-          edgeCount++;
-        }
-      }
-    }
-
-    // Document detected if sufficient edges found
-    return edgeCount > 100;
+  // Convert data URL to Blob
+  const dataURLToBlob = useCallback(async (dataURL: string): Promise<Blob> => {
+    const response = await fetch(dataURL);
+    return response.blob();
   }, []);
 
-  // Capture photo with enhancements
+  // Capture photo from video stream
   const capturePhoto = useCallback(async () => {
     if (!videoRef.current || !canvasRef.current) return;
 
@@ -205,29 +252,28 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
       const video = videoRef.current;
       const canvas = canvasRef.current;
       const context = canvas.getContext('2d');
+      if (!context) throw new Error('Could not get canvas context');
 
-      if (!context) throw new Error('Canvas context not available');
-
-      // Set high-quality canvas settings
+      // Set canvas dimensions to match video
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
-      // Draw image with high quality
-      context.imageSmoothingEnabled = true;
-      context.imageSmoothingQuality = 'high';
-      context.drawImage(video, 0, 0);
+      // Draw video frame to canvas
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       // Apply enhancements if enabled
       if (state.enhancementEnabled) {
         await applyImageEnhancements(context, canvas.width, canvas.height);
       }
 
-      // Convert to high-quality JPEG
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      // Convert to blob
+      const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+      const blob = await dataURLToBlob(dataURL);
 
+      // Create captured image object
       const capturedImage: CapturedImage = {
-        blob: await dataURLToBlob(dataUrl),
-        dataUrl,
+        dataUrl: dataURL,
+        blob,
         width: canvas.width,
         height: canvas.height,
         timestamp: new Date(),
@@ -264,39 +310,27 @@ export const CameraCaptureModal: React.FC<CameraCaptureModalProps> = ({
     dataURLToBlob,
   ]);
 
-  // Apply image enhancements
-  const applyImageEnhancements = useCallback(
-    async (context: CanvasRenderingContext2D, width: number, height: number) => {
-      const imageData = context.getImageData(0, 0, width, height);
-      const data = imageData.data;
+  // Effects
+  useEffect(() => {
+    let detectionTimeout: NodeJS.Timeout | null = null;
+    
+    if (state.isStreaming && state.autoDetectEnabled) {
+      detectionTimeout = setTimeout(() => {
+        startDocumentDetection();
+      }, 500);
+    }
 
-      // Apply brightness and contrast adjustments
-      const brightness = 10;
-      const contrast = 1.2;
-
-      for (let i = 0; i < data.length; i += 4) {
-        // Apply contrast
-        data[i] = Math.min(255, Math.max(0, ((data[i] ?? 0) - 128) * contrast + 128 + brightness));
-        data[i + 1] = Math.min(
-          255,
-          Math.max(0, ((data[i + 1] ?? 0) - 128) * contrast + 128 + brightness)
-        );
-        data[i + 2] = Math.min(
-          255,
-          Math.max(0, ((data[i + 2] ?? 0) - 128) * contrast + 128 + brightness)
-        );
+    return () => {
+      if (detectionTimeout) {
+        clearTimeout(detectionTimeout);
       }
-
-      context.putImageData(imageData, 0, 0);
-    },
-    []
-  );
-
-  // Convert data URL to Blob
-  const dataURLToBlob = useCallback(async (dataURL: string): Promise<Blob> => {
-    const response = await fetch(dataURL);
-    return response.blob();
-  }, []);
+    };
+  }, [
+    state.isStreaming,
+    state.autoDetectEnabled,
+    videoRef,
+    startDocumentDetection,
+  ]);
 
   // Process and use captured images
   const processCaptures = useCallback(async () => {

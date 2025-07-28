@@ -1,11 +1,13 @@
 'use client';
 
-import { CheckIcon, DocumentTextIcon, PencilIcon, XMarkIcon } from '@heroicons/react/24/outline';
-import { useState } from 'react';
+import { CheckIcon, DocumentTextIcon, PencilIcon, XMarkIcon, ArrowPathIcon, EyeIcon } from '@heroicons/react/24/outline';
+import { useState, useCallback, useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import type { SuggestionCardProps } from '@/lib/types/resume-optimizer';
 
 /**
- * Suggestion card component for displaying optimization suggestions
+ * Enhanced unified suggestion card component for displaying optimization suggestions
+ * Consolidates functionality from multiple implementations across the codebase
  */
 const SuggestionCard: React.FC<SuggestionCardProps> = ({
   suggestion,
@@ -17,7 +19,46 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
   onApplyToEditor,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
   const [modifiedText, setModifiedText] = useState(suggestion.suggestion);
+
+  // Animation variants
+  const animationVariants = {
+    card: {
+      hidden: { y: 20, opacity: 0 },
+      visible: { y: 0, opacity: 1, transition: { duration: 0.3 } },
+      hover: { y: -2, scale: 1.01, transition: { duration: 0.2 } },
+    },
+    expandedContent: {
+      hidden: { height: 0, opacity: 0 },
+      visible: { height: 'auto', opacity: 1, transition: { duration: 0.3 } },
+    },
+  };
+
+  // Enhanced confidence color calculation
+  const confidenceColor = useMemo(() => {
+    const score = suggestion.estimatedScoreImprovement;
+    if (score >= 8) return 'text-success';
+    if (score >= 5) return 'text-warning';
+    if (score >= 2) return 'text-info';
+    return 'text-base-content';
+  }, [suggestion.estimatedScoreImprovement]);
+
+  // Priority colors with enhanced styling
+  const priorityColors = useMemo(() => {
+    switch (suggestion.impact) {
+      case 'high':
+        return 'border-error bg-error/10';
+      case 'medium':
+        return 'border-warning bg-warning/10';
+      case 'low':
+        return 'border-success bg-success/10';
+      default:
+        return 'border-base-300 bg-base-100';
+    }
+  }, [suggestion.impact]);
 
   const getImpactColor = (impact: string): string => {
     switch (impact) {
@@ -51,27 +92,48 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
     }
   };
 
-  const handleModify = (): void => {
+  const handleModify = useCallback((): void => {
     if (onModify) {
       onModify(suggestion.id, modifiedText);
       setIsEditing(false);
     }
-  };
+  }, [onModify, suggestion.id, modifiedText]);
 
-  const handleCancelEdit = (): void => {
+  const handleCancelEdit = useCallback((): void => {
     setModifiedText(suggestion.suggestion);
     setIsEditing(false);
-  };
+  }, [suggestion.suggestion]);
+
+  const handleApply = useCallback(async (): Promise<void> => {
+    if (!onApplyToEditor) return;
+    
+    setIsApplying(true);
+    try {
+      await onApplyToEditor(suggestion.id, suggestion);
+      onAdopt(suggestion.id);
+    } finally {
+      setIsApplying(false);
+    }
+  }, [onApplyToEditor, suggestion, onAdopt]);
+
+  const handlePreview = useCallback((): void => {
+    setShowPreview(!showPreview);
+  }, [showPreview]);
 
   return (
-    <div
-      className={`rounded-lg border p-4 transition-all duration-200 ${
+    <motion.div
+      className={`rounded-lg border-2 p-4 transition-all duration-300 hover:shadow-lg ${priorityColors} ${
         isAdopted
           ? 'border-green-300 bg-green-50'
           : isIgnored
             ? 'border-gray-300 bg-gray-50 opacity-60'
-            : 'border-gray-200 hover:border-gray-300'
+            : 'hover:border-gray-300'
       }`}
+      variants={animationVariants.card}
+      initial="hidden"
+      animate="visible"
+      whileHover="hover"
+      layout
     >
       <div className="mb-3 flex items-start justify-between">
         <div className="flex items-center gap-3">
@@ -79,13 +141,22 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
             {getTypeIcon(suggestion.type)}
           </span>
           <div>
-            <h4 className="font-semibold text-gray-800">{suggestion.title}</h4>
+            <div className="flex items-center gap-2">
+              <h4 className="font-semibold text-gray-800">{suggestion.title}</h4>
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="btn btn-ghost btn-xs"
+                title={isExpanded ? 'Show less' : 'Show more'}
+              >
+                {isExpanded ? '▼' : '▶'}
+              </button>
+            </div>
             <div className="mt-1 flex items-center gap-2">
               <span className={`badge badge-sm ${getImpactColor(suggestion.impact)}`}>
                 {suggestion.impact} impact
               </span>
               {suggestion.estimatedScoreImprovement > 0 && (
-                <span className="badge badge-sm badge-outline">
+                <span className={`badge badge-sm badge-outline ${confidenceColor}`}>
                   +{suggestion.estimatedScoreImprovement} pts
                 </span>
               )}
@@ -106,12 +177,13 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
               </button>
               {onApplyToEditor && (
                 <button
-                  onClick={() => onApplyToEditor(suggestion.id, suggestion)}
-                  className="btn btn-primary btn-sm"
+                  onClick={handleApply}
+                  className={`btn btn-primary btn-sm ${isApplying ? 'loading' : ''}`}
                   title="Apply this suggestion to the editor"
+                  disabled={isApplying}
                 >
-                  <DocumentTextIcon className="h-4 w-4" />
-                  Apply to Editor
+                  {!isApplying && <DocumentTextIcon className="h-4 w-4" />}
+                  {isApplying ? 'Applying...' : 'Apply to Editor'}
                 </button>
               )}
               {onModify && (
@@ -122,6 +194,16 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
                 >
                   <PencilIcon className="h-4 w-4" />
                   Modify
+                </button>
+              )}
+              {(suggestion.beforeText || suggestion.afterText) && (
+                <button
+                  onClick={handlePreview}
+                  className="btn btn-ghost btn-sm"
+                  title="Preview changes"
+                >
+                  <EyeIcon className="h-4 w-4" />
+                  {showPreview ? 'Hide' : 'Preview'}
                 </button>
               )}
               <button
@@ -164,48 +246,128 @@ const SuggestionCard: React.FC<SuggestionCardProps> = ({
 
       <p className="mb-3 text-gray-600 text-sm">{suggestion.description}</p>
 
-      {isEditing ? (
-        <div className="space-y-2">
-          <label className="label">
-            <span className="label-text font-medium">Edit suggestion:</span>
-          </label>
-          <textarea
-            value={modifiedText}
-            onChange={(e) => setModifiedText(e.target.value)}
-            className="textarea textarea-bordered h-20 w-full text-sm"
-            placeholder="Modify the suggestion text..."
-          />
-        </div>
-      ) : (
-        <div className="rounded-lg bg-gray-50 p-3">
+      {/* Editing Interface */}
+      <AnimatePresence>
+        {isEditing && (
+          <motion.div
+            className="mb-3 space-y-2"
+            variants={animationVariants.expandedContent}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <label className="label">
+              <span className="label-text font-medium">Edit suggestion:</span>
+            </label>
+            <textarea
+              value={modifiedText}
+              onChange={(e) => setModifiedText(e.target.value)}
+              className="textarea textarea-bordered h-20 w-full text-sm"
+              placeholder="Modify the suggestion text..."
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Suggestion Content */}
+      {!isEditing && (
+        <div className="rounded-lg bg-gray-50 p-3 mb-3">
           <p className="font-medium text-gray-800 text-sm">{suggestion.suggestion}</p>
         </div>
       )}
 
-      {suggestion.beforeText && suggestion.afterText && !isEditing && (
-        <div className="mt-3 space-y-2">
-          <div className="font-medium text-gray-500 text-xs uppercase tracking-wide">
-            Before & After
-          </div>
-          <div className="grid gap-3 md:grid-cols-2">
-            <div className="rounded border border-red-200 bg-red-50 p-2">
-              <div className="mb-1 font-medium text-red-700 text-xs">Before:</div>
-              <div className="text-red-800 text-sm">{suggestion.beforeText}</div>
+      {/* Before/After Preview */}
+      <AnimatePresence>
+        {(showPreview || isExpanded) && suggestion.beforeText && suggestion.afterText && !isEditing && (
+          <motion.div
+            className="mt-3 space-y-2"
+            variants={animationVariants.expandedContent}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            <div className="font-medium text-gray-500 text-xs uppercase tracking-wide">
+              Before & After
             </div>
-            <div className="rounded border border-green-200 bg-green-50 p-2">
-              <div className="mb-1 font-medium text-green-700 text-xs">After:</div>
-              <div className="text-green-800 text-sm">{suggestion.afterText}</div>
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="rounded border border-red-200 bg-red-50 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="font-medium text-red-700 text-xs">Before:</div>
+                  <span className="badge badge-xs badge-error">ORIGINAL</span>
+                </div>
+                <div className="text-red-800 text-sm whitespace-pre-wrap">{suggestion.beforeText}</div>
+              </div>
+              <div className="rounded border border-green-200 bg-green-50 p-3">
+                <div className="mb-2 flex items-center justify-between">
+                  <div className="font-medium text-green-700 text-xs">After:</div>
+                  <span className="badge badge-xs badge-success">IMPROVED</span>
+                </div>
+                <div className="text-green-800 text-sm whitespace-pre-wrap">{suggestion.afterText}</div>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+            {onApplyToEditor && (
+              <div className="mt-3 flex justify-center">
+                <button
+                  onClick={handleApply}
+                  className={`btn btn-primary btn-sm ${isApplying ? 'loading' : ''}`}
+                  title="Apply this change to your resume"
+                  disabled={isApplying}
+                >
+                  {!isApplying && <ArrowPathIcon className="h-4 w-4" />}
+                  {isApplying ? 'Applying...' : 'One-Click Apply Change'}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
+      {/* Extended Information for Expanded View */}
+      <AnimatePresence>
+        {isExpanded && (
+          <motion.div
+            className="mt-4 space-y-3"
+            variants={animationVariants.expandedContent}
+            initial="hidden"
+            animate="visible"
+            exit="hidden"
+          >
+            {/* Impact Metrics */}
+            <div className="rounded bg-base-200 p-3">
+              <div className="mb-2 font-medium text-xs">Expected Impact</div>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex justify-between">
+                  <span>Score Improvement:</span>
+                  <span className={`font-medium ${confidenceColor}`}>
+                    +{suggestion.estimatedScoreImprovement}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Priority:</span>
+                  <span className="font-medium capitalize">{suggestion.priority}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Context Information */}
+            {suggestion.section && (
+              <div className="text-base-content/70 text-xs">
+                <div className="font-medium">Context:</div>
+                <div>Section: {suggestion.section}</div>
+                <div>Type: {suggestion.type}</div>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Section Badge */}
       {suggestion.section && (
         <div className="mt-2">
           <span className="badge badge-outline badge-xs">Section: {suggestion.section}</span>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

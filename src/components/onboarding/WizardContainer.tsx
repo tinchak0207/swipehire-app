@@ -240,7 +240,7 @@ export default function WizardContainer({
 
       // Save to backend
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+        `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
         {
           method: 'POST',
           headers: {
@@ -276,7 +276,7 @@ export default function WizardContainer({
       if (mongoDbUserId) {
         try {
           await fetch(
-            `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+            `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
             {
               method: 'POST',
               headers: {
@@ -325,7 +325,7 @@ export default function WizardContainer({
     if (mongoDbUserId) {
       try {
         await fetch(
-          `${process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
+          `${process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000'}/api/users/${mongoDbUserId}/update`,
           {
             method: 'POST',
             headers: {
@@ -409,22 +409,22 @@ export default function WizardContainer({
   const getStepGradient = () => {
     switch (currentStep) {
       case 1:
-        return 'bg-gradient-to-br from-blue-50 via-white to-blue-100';
+        return 'from-blue-50 via-white to-blue-100';
       case 2:
-        return 'bg-gradient-to-br from-green-50 via-white to-green-100';
+        return 'from-green-50 via-white to-green-100';
       case 3:
-        return 'bg-gradient-to-br from-purple-50 via-white to-purple-100';
+        return 'from-purple-50 via-white to-purple-100';
       case 4:
-        return 'bg-gradient-to-br from-orange-50 via-white to-orange-100';
+        return 'from-gray-50 via-white to-gray-100';
       case 5:
-        return 'bg-gradient-to-br from-pink-50 via-white to-pink-100';
+        return 'from-pink-50 via-white to-pink-100';
       default:
-        return 'bg-gradient-to-br from-gray-50 via-white to-gray-100';
+        return 'from-gray-50 via-white to-gray-100';
     }
   };
 
   return (
-    <div className={`min-h-screen transition-all duration-700 ease-in-out ${getStepGradient()}`}>
+    <div className={`min-h-screen transition-all duration-700 ease-in-out bg-gradient-to-br ${getStepGradient()} text-gray-800`}>
       <div className="container mx-auto max-w-5xl px-4 py-8">
         <ProgressIndicator
           currentStep={currentStep}
@@ -432,7 +432,14 @@ export default function WizardContainer({
           stepTitles={['Welcome', 'Profile Setup', 'Preferences', 'Goal Setting', 'Complete']}
         />
 
-        <div className="mt-8 animate-fade-in">{renderCurrentStep()}</div>
+        <div className="mt-8 animate-fade-in">
+          {/* Glassmorphism container for onboarding steps */}
+          <div className="rounded-2xl border border-white/30 bg-white/30 p-1 shadow-2xl backdrop-blur-xl">
+            <div className="rounded-xl bg-white/80 p-5 backdrop-blur-sm">
+              {renderCurrentStep()}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

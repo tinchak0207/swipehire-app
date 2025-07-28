@@ -28,7 +28,7 @@ import {
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 
-const CUSTOM_BACKEND_URL = process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL || 'http://localhost:5000';
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 interface VideoRecorderUIProps {
   onRecordingComplete?: (videoDataUrl: string) => void;
@@ -50,6 +50,30 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
   const { mongoDbUserId, updateFullBackendUserFields } = useUserPreferences();
 
   const { toast } = useToast();
+
+  const handleStopRecording = useCallback(() => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.stop();
+    }
+    setIsRecording(false);
+
+    setElapsedTime((prev) => prev);
+    toast({ title: 'Recording Stopped', description: 'Processing video...' });
+  }, [toast]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | undefined;
+    if (isRecording) {
+      interval = setInterval(() => {
+        setElapsedTime((prev) => prev + 1);
+      }, 1000);
+    } else if (elapsedTime >= recordingDuration && isRecording) {
+      handleStopRecording();
+      toast({ title: 'Recording Finished', description: 'Time limit reached.' });
+    }
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRecording, elapsedTime, toast, handleStopRecording]);
 
   const stopCameraStream = useCallback(() => {
     if (videoRef.current?.srcObject) {
@@ -138,20 +162,6 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
     };
   }, [requestCameraPermission, stopCameraStream]);
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (isRecording && elapsedTime < recordingDuration) {
-      interval = setInterval(() => {
-        setElapsedTime((prevTime) => prevTime + 1);
-      }, 1000);
-    } else if (elapsedTime >= recordingDuration && isRecording) {
-      handleStopRecording();
-      toast({ title: 'Recording Finished', description: 'Time limit reached.' });
-    }
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isRecording, elapsedTime, toast, handleStopRecording]);
-
   const handleStartRecording = async () => {
     if (!hasCameraPermission || !videoRef.current?.srcObject) {
       const canStart = await requestCameraPermission();
@@ -235,16 +245,6 @@ export function VideoRecorderUI({ onRecordingComplete }: VideoRecorderUIProps) {
       });
     }
   };
-
-  const handleStopRecording = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop();
-    }
-    setIsRecording(false);
-
-    setElapsedTime((prev) => prev);
-    toast({ title: 'Recording Stopped', description: 'Processing video...' });
-  }, [toast]);
 
   const handleReRecord = async () => {
     setIsRecording(false);

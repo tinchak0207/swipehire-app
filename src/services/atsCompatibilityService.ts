@@ -70,7 +70,7 @@ class ATSCompatibilityService {
 
   constructor() {
     this.mistral = new Mistral({
-      apiKey: process.env.MISTRAL_API_KEY || '',
+      apiKey: process.env['MISTRAL_API_KEY'] || '',
     });
   }
 

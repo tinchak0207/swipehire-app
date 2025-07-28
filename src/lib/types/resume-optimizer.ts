@@ -231,6 +231,7 @@ export interface QuantitativeSuggestion {
   originalText: string;
   suggestedText: string;
   reasoning: string;
+  description: string;
 }
 
 // Editor and interaction types
@@ -322,7 +323,7 @@ export interface SuggestionCardProps {
   onAdopt: (suggestionId: string) => void;
   onIgnore: (suggestionId: string) => void;
   onModify?: (suggestionId: string, modifiedText: string) => void;
-  onApplyToEditor?: (suggestionId: string, suggestion: OptimizationSuggestion) => void;
+  onApplyToEditor?: ((suggestionId: string, suggestion: OptimizationSuggestion) => void) | undefined;
 }
 
 export interface ScoreDisplayProps {

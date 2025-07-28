@@ -14,6 +14,7 @@ import type {
   UploadError,
   UploadProgress,
   UploadResult,
+  UploadStatus,
 } from './types';
 
 /**
@@ -131,49 +132,80 @@ export const SmartUpload: React.FC<SmartUploadProps> = ({
     [acceptedFormats, maxFileSize]
   );
 
-  // Handle file selection
-  const handleFiles = useCallback(
-    (files: FileList | File[]) => {
-      const fileArray = Array.from(files);
-      const validFiles: File[] = [];
-      const errors: UploadError[] = [];
+  // Process file content (mock implementation)
+  const processFileContent = useCallback(async (file: File): Promise<ContentAnalysis> => {
+    // Simulate content extraction
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      // Validate each file
-      fileArray.forEach((file) => {
-        const error = validateFile(file);
-        if (error) {
-          errors.push(error);
-        } else {
-          validFiles.push(file);
+    return {
+      extractedText: 'Mock extracted text content...',
+      detectedSections: [
+        {
+          type: 'contact',
+          content: 'Contact information',
+          startIndex: 0,
+          endIndex: 100,
+          confidence: 0.95,
+        },
+        {
+          type: 'summary',
+          content: 'Professional summary',
+          startIndex: 100,
+          endIndex: 300,
+          confidence: 0.88,
+        },
+        {
+          type: 'experience',
+          content: 'Work experience',
+          startIndex: 300,
+          endIndex: 800,
+          confidence: 0.92,
+        },
+      ],
+      fileMetadata: {
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        lastModified: new Date(file.lastModified),
+        wordCount: Math.floor(Math.random() * 500) + 200,
+      },
+      qualityIndicators: {
+        completeness: Math.random() * 0.3 + 0.7,
+        formatting: Math.random() * 0.4 + 0.6,
+        atsCompatibility: Math.random() * 0.5 + 0.5,
+        readability: Math.random() * 0.3 + 0.7,
+      },
+    };
+  }, []);
+
+  // Simulate upload progress
+  const simulateUpload = useCallback(
+    async (fileId: string, file: File) => {
+      const steps = ['uploading', 'processing', 'analyzing'] as const;
+
+      for (let i = 0; i < steps.length; i++) {
+        const status = steps[i];
+        const baseProgress = (i / steps.length) * 100;
+
+        // Simulate progress within each step
+        for (let progress = 0; progress <= 100; progress += 10) {
+          const totalProgress = baseProgress + progress / steps.length;
+
+          onUploadProgress({
+            fileId,
+            fileName: file.name,
+            progress: Math.min(totalProgress, 100),
+            status: status as UploadStatus,
+          });
+
+          await new Promise((resolve) => setTimeout(resolve, 100));
         }
-      });
-
-      // Check multiple files limit
-      if (!enableMultipleFiles && validFiles.length > 1) {
-        errors.push({
-          code: 'MULTIPLE_FILES_NOT_ALLOWED',
-          message: 'Only one file can be uploaded at a time',
-          details: { fileCount: validFiles.length },
-        });
-        return;
       }
 
-      // Update state
-      setState((prev) => ({
-        ...prev,
-        files: enableMultipleFiles ? [...prev.files, ...validFiles] : validFiles,
-        errors: [...prev.errors, ...errors],
-      }));
-
-      // Start upload process for valid files
-      if (validFiles.length > 0) {
-        startUpload(validFiles);
-      }
-
-      // Report errors
-      errors.forEach((error) => onError(error));
+      // Process file content
+      await processFileContent(file);
     },
-    [validateFile, enableMultipleFiles, onError, startUpload]
+    [onUploadProgress, processFileContent]
   );
 
   // Start upload process
@@ -276,95 +308,50 @@ export const SmartUpload: React.FC<SmartUploadProps> = ({
     ]
   );
 
-  // Simulate upload progress
-  const simulateUpload = useCallback(
-    async (fileId: string, file: File) => {
-      const steps = ['uploading', 'processing', 'analyzing'] as const;
+  // Handle file selection
+  const handleFiles = useCallback(
+    (files: FileList | File[]) => {
+      const fileArray = Array.from(files);
+      const validFiles: File[] = [];
+      const errors: UploadError[] = [];
 
-      for (let i = 0; i < steps.length; i++) {
-        const status = steps[i];
-        const baseProgress = (i / steps.length) * 100;
-
-        // Simulate progress within each step
-        for (let progress = 0; progress <= 100; progress += 10) {
-          const totalProgress = baseProgress + progress / steps.length;
-
-          const updatedProgress: UploadProgress = {
-            fileId,
-            fileName: file.name,
-            progress: Math.min(totalProgress, 95),
-            status: status as any,
-            estimatedTimeRemaining: Math.max(0, (100 - totalProgress) * 100),
-          };
-
-          setState((prev) => ({
-            ...prev,
-            uploadProgress: {
-              ...prev.uploadProgress,
-              [fileId]: updatedProgress,
-            },
-          }));
-
-          onUploadProgress({
-            fileId,
-            fileName: file.name,
-            progress: Math.min(totalProgress, 95),
-            status: status as any,
-            estimatedTimeRemaining: Math.max(0, (100 - totalProgress) * 100),
-          });
-
-          await new Promise((resolve) => setTimeout(resolve, 200));
+      // Validate each file
+      fileArray.forEach((file) => {
+        const error = validateFile(file);
+        if (error) {
+          errors.push(error);
+        } else {
+          validFiles.push(file);
         }
+      });
+
+      // Check multiple files limit
+      if (!enableMultipleFiles && validFiles.length > 1) {
+        errors.push({
+          code: 'MULTIPLE_FILES_NOT_ALLOWED',
+          message: 'Only one file can be uploaded at a time',
+          details: { fileCount: validFiles.length },
+        });
+        return;
       }
+
+      // Update state
+      setState((prev) => ({
+        ...prev,
+        files: enableMultipleFiles ? [...prev.files, ...validFiles] : validFiles,
+        errors: [...prev.errors, ...errors],
+      }));
+
+      // Start upload process for valid files
+      if (validFiles.length > 0) {
+        startUpload(validFiles);
+      }
+
+      // Report errors
+      errors.forEach((error) => onError(error));
     },
-    [onUploadProgress]
+    [validateFile, enableMultipleFiles, onError, startUpload]
   );
-
-  // Process file content (mock implementation)
-  const processFileContent = useCallback(async (file: File): Promise<ContentAnalysis> => {
-    // Simulate content extraction
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    return {
-      extractedText: 'Mock extracted text content...',
-      detectedSections: [
-        {
-          type: 'contact',
-          content: 'Contact information',
-          startIndex: 0,
-          endIndex: 100,
-          confidence: 0.95,
-        },
-        {
-          type: 'summary',
-          content: 'Professional summary',
-          startIndex: 100,
-          endIndex: 300,
-          confidence: 0.88,
-        },
-        {
-          type: 'experience',
-          content: 'Work experience',
-          startIndex: 300,
-          endIndex: 800,
-          confidence: 0.92,
-        },
-      ],
-      fileMetadata: {
-        name: file.name,
-        size: file.size,
-        type: file.type,
-        lastModified: new Date(file.lastModified),
-        wordCount: Math.floor(Math.random() * 500) + 200,
-      },
-      qualityIndicators: {
-        completeness: Math.random() * 0.3 + 0.7,
-        formatting: Math.random() * 0.4 + 0.6,
-        atsCompatibility: Math.random() * 0.5 + 0.5,
-        readability: Math.random() * 0.3 + 0.7,
-      },
-    };
-  }, []);
 
   // Drag and drop handlers
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -655,6 +642,8 @@ const FileUploadCard: React.FC<FileUploadCardProps> = ({ file, progress, onRemov
         return '⚙️';
       case 'analyzing':
         return '🔍';
+      case 'pending':
+        return '🕒';
       default:
         return '📄';
     }

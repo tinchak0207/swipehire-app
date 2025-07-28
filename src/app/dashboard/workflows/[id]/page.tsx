@@ -10,7 +10,7 @@ import { useWorkflow } from '@/hooks/useWorkflow';
 
 export default function WorkflowEditorPage() {
   const params = useParams();
-  const id = params ? (params.id as string) : null;
+  const id = params ? (params['id'] as string) : null;
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
 
   const { workflow, isLoading, isError } = useWorkflow(id || '');

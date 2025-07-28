@@ -98,26 +98,26 @@ export function ApplicantCard({
   return (
     <Card
       className={cn(
-        'w-full rounded-lg border bg-card shadow-md transition-all duration-200 ease-in-out hover:shadow-lg',
+        'w-full rounded-xl border bg-white shadow-sm transition-all duration-200 ease-in-out hover:shadow-md',
         isFocused
-          ? 'border-blue-500 shadow-xl ring-2 ring-blue-500'
+          ? 'border-blue-500 ring-2 ring-blue-100'
           : 'border-slate-200 hover:border-slate-300'
       )}
     >
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="space-y-4 p-4">
         <div className="flex items-start space-x-3">
           <div className="relative shrink-0">
-            <Avatar className="h-10 w-10 rounded-md">
+            <Avatar className="h-12 w-12 rounded-lg">
               <AvatarImage
                 src={avatarUrl}
                 alt={candidate.name}
                 data-ai-hint={candidate.dataAiHint || 'person'}
               />
-              <AvatarFallback className="rounded-md bg-slate-200 text-slate-600">
+              <AvatarFallback className="rounded-lg bg-slate-100 text-slate-600">
                 {candidate.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className="-bottom-0.5 -right-0.5 absolute h-3 w-3 rounded-full border-2 border-card bg-green-500" />
+            <div className="-bottom-0.5 -right-0.5 absolute h-3 w-3 rounded-full border-2 border-white bg-green-500" />
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex items-start justify-between">
@@ -129,7 +129,7 @@ export function ApplicantCard({
                   {candidate.name}
                 </CardTitle>
                 <CardDescription
-                  className="truncate text-blue-600 text-xs leading-tight"
+                  className="truncate text-blue-600 text-xs leading-tight mt-1"
                   title={candidate.role}
                 >
                   {candidate.role}
@@ -138,7 +138,7 @@ export function ApplicantCard({
               <Badge
                 variant="outline"
                 className={cn(
-                  'flex h-6 shrink-0 items-center px-2 py-0.5 font-medium text-xs',
+                  'flex h-6 shrink-0 items-center px-2 py-0.5 font-medium text-xs rounded-full',
                   timeRemainingDetails.colorClasses
                 )}
               >
@@ -147,7 +147,7 @@ export function ApplicantCard({
               </Badge>
             </div>
             {locationAndExperience.length > 0 && (
-              <p className="mt-0.5 flex items-center truncate text-slate-500 text-xs">
+              <p className="mt-2 flex items-center truncate text-slate-500 text-xs">
                 <MapPin className="mr-1 h-3 w-3 shrink-0 text-slate-400" />{' '}
                 {locationAndExperience.join(' • ')}
               </p>
@@ -155,8 +155,8 @@ export function ApplicantCard({
           </div>
         </div>
 
-        <div>
-          <div className="mb-0.5 flex items-center justify-between text-slate-500 text-xs">
+        <div className="pt-1">
+          <div className="mb-1 flex items-center justify-between text-slate-500 text-xs">
             <span className="flex items-center font-medium">
               <BarChart3 className="mr-1 h-3.5 w-3.5 text-slate-400" />
               Profile Strength
@@ -167,19 +167,19 @@ export function ApplicantCard({
           </div>
           <Progress
             value={candidate.profileStrength || 0}
-            className="h-1.5 bg-slate-200 from-purple-400 to-blue-500 [&>div]:bg-gradient-to-r"
+            className="h-2 bg-slate-200 from-blue-400 to-blue-500 [&>div]:bg-gradient-to-r"
           />
         </div>
 
         {candidate.skills && candidate.skills.length > 0 && (
           <div>
-            <p className="mb-1 font-medium text-slate-500 text-xs">Top Skills</p>
+            <p className="mb-2 font-medium text-slate-700 text-xs">Top Skills</p>
             <div className="flex flex-wrap gap-1.5">
               {candidate.skills.slice(0, 3).map((skill) => (
                 <Badge
                   key={skill}
                   variant="secondary"
-                  className="bg-slate-100 px-1.5 py-0.5 font-normal text-slate-700 text-xs"
+                  className="bg-slate-100 px-2 py-1 font-normal text-slate-700 text-xs rounded-md"
                 >
                   {skill}
                 </Badge>
@@ -187,7 +187,7 @@ export function ApplicantCard({
               {candidate.skills.length > 3 && (
                 <Badge
                   variant="outline"
-                  className="border-slate-300 px-1.5 py-0.5 font-normal text-slate-500 text-xs"
+                  className="border-slate-300 px-2 py-1 font-normal text-slate-500 text-xs rounded-md"
                 >
                   +{candidate.skills.length - 3}
                 </Badge>
@@ -196,41 +196,43 @@ export function ApplicantCard({
           </div>
         )}
 
-        <p className="pt-1 text-slate-500 text-xs">
-          Applied: {formattedApplicationTime} for {jobOpeningTitle || 'general interest'}
-        </p>
+        <div className="pt-2">
+          <p className="text-slate-500 text-xs">
+            Applied: {formattedApplicationTime} for {jobOpeningTitle || 'general interest'}
+          </p>
+        </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-4 gap-2 border-t bg-slate-50 p-3">
+      <CardFooter className="grid grid-cols-4 gap-2 border-t bg-slate-50 p-3 rounded-b-xl">
         <Button
           variant="outline"
           size="sm"
           onClick={() => onRejectApplicant(match)}
-          className="h-9 border-red-300 py-2 font-medium text-red-600 text-xs hover:border-red-400 hover:bg-red-100"
+          className="h-8 border-red-200 py-1 font-medium text-red-600 text-xs hover:border-red-300 hover:bg-red-50 rounded-md"
         >
-          <UserX className="mr-1.5 h-3.5 w-3.5" /> Reject
+          <UserX className="mr-1 h-3 w-3" /> Reject
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={handleViewProfile}
-          className="h-9 border-slate-300 py-2 font-medium text-xs hover:bg-slate-100"
+          className="h-8 border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 rounded-md"
         >
-          <Eye className="mr-1.5 h-3.5 w-3.5" /> View
+          <Eye className="mr-1 h-3 w-3" /> View
         </Button>
         <Button
           onClick={() => onInviteToInterview(match)}
           size="sm"
-          className="h-9 bg-green-600 py-2 font-medium text-white text-xs hover:bg-green-700"
+          className="h-8 bg-blue-600 py-1 font-medium text-white text-xs hover:bg-blue-700 rounded-md"
         >
-          <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> Invite
+          <CheckCircle className="mr-1 h-3 w-3" /> Invite
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => onArchiveMatch(match._id)}
-          className="h-9 border-slate-300 py-2 font-medium text-slate-600 text-xs hover:border-slate-400 hover:bg-slate-100"
+          className="h-8 border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100 rounded-md"
         >
-          <Archive className="mr-1.5 h-3.5 w-3.5" /> Archive
+          <Archive className="mr-1 h-3 w-3" /> Archive
         </Button>
       </CardFooter>
     </Card>

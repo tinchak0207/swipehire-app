@@ -31,15 +31,15 @@ export default function CompletionStep({
   // Generate confetti pieces
   useEffect(() => {
     if (showConfetti) {
-      const pieces = Array.from({ length: 50 }, (_, i) => ({
+      const pieces = Array.from({ length: 100 }, (_, i) => ({
         id: i,
         left: Math.random() * 100,
-        delay: Math.random() * 3,
+        delay: Math.random() * 5,
         color:
-          ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3'][
+          ['#2563eb', '#3b82f6', '#60a5fa', '#93c5fd', '#bfdbfe', '#1d4ed8'][
             Math.floor(Math.random() * 6)
-          ] || '#ff6b6b',
-        size: Math.random() * 10 + 5,
+          ] || '#2563eb',
+        size: Math.random() * 12 + 6,
       }));
       setConfettiPieces(pieces);
     }
@@ -67,8 +67,8 @@ export default function CompletionStep({
               style={{
                 left: `${piece.left}%`,
                 animationDelay: `${piece.delay}s`,
-                animationDuration: '3s',
-                top: '-10px',
+                animationDuration: '4s',
+                top: '-20px',
               }}
             >
               <div
@@ -77,7 +77,7 @@ export default function CompletionStep({
                   backgroundColor: piece.color,
                   width: `${piece.size}px`,
                   height: `${piece.size}px`,
-                  animationDuration: '2s',
+                  animationDuration: '3s',
                 }}
               />
             </div>
@@ -88,25 +88,31 @@ export default function CompletionStep({
       {/* Success Header */}
       <div className="mb-12 text-center">
         <div className="mb-6">
-          <div className="mx-auto mb-6 flex h-24 w-24 animate-pulse items-center justify-center rounded-full bg-black/10">
-            <svg
-              className="h-12 w-12 text-black"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+          <div className="mx-auto mb-6 flex h-32 w-32 animate-pulse items-center justify-center rounded-full bg-blue-100 shadow-lg">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-200">
+              <svg
+                className="h-12 w-12 text-blue-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
           </div>
-          <h1 className="mb-4 font-bold text-4xl text-black">🎉 Welcome to SwipeHire!</h1>
-          <p className="text-base-content/70 text-lg">
+          <h1 className="mb-4 font-bold text-4xl text-gray-900">
+            🎉 Welcome to SwipeHire!
+          </h1>
+          <p className="mx-auto max-w-lg text-gray-600 text-lg">
             Your profile is set up and you're ready to{' '}
-            {isJobSeeker ? 'find your dream job' : 'discover amazing talent'}!
+            <span className="font-semibold text-blue-600">
+              {isJobSeeker ? 'find your dream job' : 'discover amazing talent'}!
+            </span>
           </p>
         </div>
       </div>
@@ -114,10 +120,10 @@ export default function CompletionStep({
       {/* Setup Summary */}
       <div className="mb-8 grid gap-6 md:grid-cols-2">
         {/* Profile Summary */}
-        <div className="card bg-white text-black">
-          <div className="card-body">
-            <h3 className="card-title text-lg">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="space-y-4">
+            <h3 className="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -129,32 +135,59 @@ export default function CompletionStep({
             </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Completeness</span>
-                <span className="font-semibold">{profileCompleteness}%</span>
+                <span className="text-gray-700 text-sm">Completeness</span>
+                <span className="font-semibold text-gray-900">{profileCompleteness}%</span>
               </div>
-              <progress
-                className="progress progress-success w-full"
-                value={profileCompleteness}
-                max="100"
-              />
-              <div className="text-base-content/60 text-xs">
+              <div className="h-2.5 w-full rounded-full bg-gray-200">
+                <div
+                  className="h-2.5 rounded-full bg-blue-600"
+                  style={{ width: `${profileCompleteness}%` }}
+                ></div>
+              </div>
+              <div className="text-gray-600 text-sm">
                 {isJobSeeker ? (
                   <>
-                    ✓ Role: {data.userType}
-                    <br />
-                    {data.profileData.headline && '✓ Professional headline set'}
-                    <br />
-                    {data.profileData.skills?.length &&
-                      `✓ ${data.profileData.skills.length} skills added`}
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className={data.userType ? 'text-gray-700' : 'text-gray-400'}>
+                        ✓ Role: {data.userType || 'Not set'}
+                      </span>
+                    </div>
+                    {data.profileData.headline && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-gray-700">
+                          ✓ Professional headline set
+                        </span>
+                      </div>
+                    )}
+                    {data.profileData.skills?.length && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-700">
+                          ✓ {data.profileData.skills.length} skills added
+                        </span>
+                      </div>
+                    )}
                   </>
                 ) : (
                   <>
-                    ✓ Role: {data.userType}
-                    <br />
-                    {data.profileData.companyName && `✓ Company: ${data.profileData.companyName}`}
-                    <br />
-                    {data.profileData.companyIndustry &&
-                      `✓ Industry: ${data.profileData.companyIndustry}`}
+                    <div className="flex items-center gap-1 mb-1">
+                      <span className={data.userType ? 'text-gray-700' : 'text-gray-400'}>
+                        ✓ Role: {data.userType || 'Not set'}
+                      </span>
+                    </div>
+                    {data.profileData.companyName && (
+                      <div className="flex items-center gap-1 mb-1">
+                        <span className="text-gray-700">
+                          ✓ Company: {data.profileData.companyName}
+                        </span>
+                      </div>
+                    )}
+                    {data.profileData.companyIndustry && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-gray-700">
+                          ✓ Industry: {data.profileData.companyIndustry}
+                        </span>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -163,10 +196,10 @@ export default function CompletionStep({
         </div>
 
         {/* Goals Summary */}
-        <div className="card bg-white text-black">
-          <div className="card-body">
-            <h3 className="card-title text-lg">
-              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+          <div className="space-y-4">
+            <h3 className="flex items-center gap-2 font-semibold text-gray-900 text-lg">
+              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -178,38 +211,50 @@ export default function CompletionStep({
             </h3>
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm">Total Goals</span>
-                <span className="font-semibold">{totalGoals}</span>
+                <span className="text-gray-700 text-sm">Total Goals</span>
+                <span className="font-semibold text-gray-900">{totalGoals}</span>
               </div>
               {totalGoals > 0 ? (
-                <div className="space-y-1 text-base-content/60 text-xs">
+                <div className="space-y-2 text-gray-600 text-sm">
                   {data.goals.shortTerm.length > 0 && (
-                    <div>
-                      🎯 {data.goals.shortTerm.length} short-term goal
-                      {data.goals.shortTerm.length !== 1 ? 's' : ''}
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🎯</span>
+                      <span>
+                        {data.goals.shortTerm.length} short-term goal
+                        {data.goals.shortTerm.length !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   )}
                   {data.goals.midTerm.length > 0 && (
-                    <div>
-                      📈 {data.goals.midTerm.length} mid-term goal
-                      {data.goals.midTerm.length !== 1 ? 's' : ''}
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">📈</span>
+                      <span>
+                        {data.goals.midTerm.length} mid-term goal
+                        {data.goals.midTerm.length !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   )}
                   {data.goals.longTerm.length > 0 && (
-                    <div>
-                      🚀 {data.goals.longTerm.length} long-term goal
-                      {data.goals.longTerm.length !== 1 ? 's' : ''}
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🚀</span>
+                      <span>
+                        {data.goals.longTerm.length} long-term goal
+                        {data.goals.longTerm.length !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   )}
                   {data.goals.skillDevelopment.length > 0 && (
-                    <div>
-                      🧠 {data.goals.skillDevelopment.length} skill development goal
-                      {data.goals.skillDevelopment.length !== 1 ? 's' : ''}
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg">🧠</span>
+                      <span>
+                        {data.goals.skillDevelopment.length} skill development goal
+                        {data.goals.skillDevelopment.length !== 1 ? 's' : ''}
+                      </span>
                     </div>
                   )}
                 </div>
               ) : (
-                <div className="text-base-content/60 text-xs">
+                <div className="text-gray-600 text-sm">
                   You can add goals anytime in your dashboard
                 </div>
               )}
@@ -219,129 +264,142 @@ export default function CompletionStep({
       </div>
 
       {/* Next Steps */}
-      <div className="card mb-8 border border-primary/20 bg-primary/5">
-        <div className="card-body">
-          <h3 className="card-title text-primary">
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
-            What's Next?
-          </h3>
-          <div className="space-y-4">
-            {isJobSeeker ? (
-              <>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="font-bold text-primary text-sm">1</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Explore Job Matches</h4>
-                    <p className="text-base-content/60 text-sm">
-                      Start swiping through personalized job recommendations
-                    </p>
-                  </div>
+      <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+        <h3 className="mb-6 flex items-center gap-2 font-semibold text-gray-900 text-lg">
+          <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 10V3L4 14h7v7l9-11h-7z"
+            />
+          </svg>
+          What's Next?
+        </h3>
+        <div className="space-y-5">
+          {isJobSeeker ? (
+            <>
+              <div className="flex items-start space-x-4">
+                <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <span className="font-semibold text-blue-700">1</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="font-bold text-primary text-sm">2</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Track Your Progress</h4>
-                    <p className="text-base-content/60 text-sm">
-                      Monitor your goals and get AI-powered career insights
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Explore Job Matches</h4>
+                  <p className="text-gray-600 text-sm">
+                    Start swiping through personalized job recommendations
+                  </p>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="font-bold text-primary text-sm">3</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Connect with Companies</h4>
-                    <p className="text-base-content/60 text-sm">
-                      Chat with recruiters and schedule interviews
-                    </p>
-                  </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <span className="font-semibold text-blue-700">2</span>
                 </div>
-              </>
-            ) : (
-              <>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="font-bold text-primary text-sm">1</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Post Job Openings</h4>
-                    <p className="text-base-content/60 text-sm">
-                      Create compelling job posts to attract top talent
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Track Your Progress</h4>
+                  <p className="text-gray-600 text-sm">
+                    Monitor your goals and get AI-powered career insights
+                  </p>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="font-bold text-primary text-sm">2</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Review Candidates</h4>
-                    <p className="text-base-content/60 text-sm">
-                      Swipe through AI-matched candidate profiles
-                    </p>
-                  </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <span className="font-semibold text-blue-700">3</span>
                 </div>
-                <div className="flex items-start space-x-3">
-                  <div className="mt-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-primary/10">
-                    <span className="font-bold text-primary text-sm">3</span>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">Build Your Pipeline</h4>
-                    <p className="text-base-content/60 text-sm">
-                      Manage applications and track hiring progress
-                    </p>
-                  </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Connect with Companies</h4>
+                  <p className="text-gray-600 text-sm">
+                    Chat with recruiters and schedule interviews
+                  </p>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-start space-x-4">
+                <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <span className="font-semibold text-blue-700">1</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Post Job Openings</h4>
+                  <p className="text-gray-600 text-sm">
+                    Create compelling job posts to attract top talent
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <span className="font-semibold text-blue-700">2</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Review Candidates</h4>
+                  <p className="text-gray-600 text-sm">
+                    Swipe through AI-matched candidate profiles
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-start space-x-4">
+                <div className="mt-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
+                  <span className="font-semibold text-blue-700">3</span>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-900">Build Your Pipeline</h4>
+                  <p className="text-gray-600 text-sm">
+                    Manage applications and track hiring progress
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
       {/* Tips */}
-      <div className="alert alert-info mb-8">
-        <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-        <div>
-          <h3 className="font-bold">💡 Pro Tip</h3>
-          <div className="text-sm">
-            {isJobSeeker
-              ? 'Complete your profile with a video resume and portfolio links to stand out to recruiters!'
-              : 'Add your company logo and detailed job descriptions to attract the best candidates!'}
+      <div className="mb-8 rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <svg className="h-6 w-6 flex-shrink-0 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+          <div>
+            <h3 className="font-semibold text-gray-900">💡 Pro Tip</h3>
+            <div className="text-gray-600 text-sm">
+              {isJobSeeker
+                ? 'Complete your profile with a video resume and portfolio links to stand out to recruiters!'
+                : 'Add your company logo and detailed job descriptions to attract the best candidates!'}
+            </div>
           </div>
         </div>
       </div>
 
       {/* Action Button */}
       <div className="text-center">
-        <button onClick={onComplete} disabled={isLoading} className="btn btn-primary btn-lg px-12">
+        <button 
+          onClick={onComplete} 
+          disabled={isLoading} 
+          className={`rounded-xl px-8 py-4 font-bold text-lg shadow-lg transition-all duration-300 hover:shadow-xl ${
+            !isLoading
+              ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:scale-105 hover:from-blue-600 hover:to-blue-700'
+              : 'cursor-not-allowed bg-gray-200 text-gray-400'
+          }`}
+        >
           {isLoading ? (
             <>
-              <span className="loading loading-spinner loading-sm" />
+              <span className="mr-2 inline-block h-5 w-5 animate-spin rounded-full border-white border-b-2" />
               Finalizing...
             </>
           ) : (
             <>
               {isJobSeeker ? 'Start Job Hunting' : 'Start Hiring'}
-              <svg className="ml-2 h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg
+                className="ml-2 inline h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -356,7 +414,7 @@ export default function CompletionStep({
 
       {/* Footer Message */}
       <div className="mt-8 text-center">
-        <p className="text-base-content/50 text-sm">
+        <p className="text-gray-500 text-sm">
           Welcome to the future of {isJobSeeker ? 'job searching' : 'recruiting'}! 🚀
         </p>
       </div>

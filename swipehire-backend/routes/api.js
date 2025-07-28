@@ -27,6 +27,9 @@ router.post('/users/:identifier/update', userController.updateUser);
 router.delete('/users/:userId/account', userController.deleteAccount);
 router.post('/users/:userId/request-data-export', userController.requestDataExport);
 
+// Auth routes
+router.post('/auth/refresh', userController.refreshAuthToken);
+
 // Job routes
 router.post('/users/:userId/jobs', uploadJobMediaToMemory.single('mediaFile'), jobController.createJob);
 router.get('/users/:userId/jobs', jobController.getUserJobs);

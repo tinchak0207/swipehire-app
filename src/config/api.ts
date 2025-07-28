@@ -11,7 +11,7 @@ interface ApiConfig {
 }
 
 const API_CONFIG: ApiConfig = {
-  baseUrl: process.env.NEXT_PUBLIC_CUSTOM_BACKEND_URL,
+  baseUrl: process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'],
 
   endpoints: {
     user: '/api/users',

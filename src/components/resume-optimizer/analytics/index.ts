@@ -35,6 +35,7 @@ export type {
 export { ResumeAnalyticsService, resumeAnalyticsService } from '@/services/resumeAnalyticsService';
 // Main Analytics Dashboard Component
 export { AdvancedAnalyticsDashboard } from './AdvancedAnalyticsDashboard';
+export { default as PredictiveAnalyticsDashboard } from './PredictiveAnalyticsDashboard';
 
 /**
  * Analytics System Features:

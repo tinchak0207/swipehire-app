@@ -18,7 +18,7 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import type React from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import type {
   EnhancedAnalysisResult,
   OptimizationGoals,
@@ -26,6 +26,7 @@ import type {
   SuggestionType,
   UserProfile,
 } from '../types';
+import SuggestionCard from '../SuggestionCard';
 
 // Smart Suggestions Types
 export interface SmartSuggestionsProps {
@@ -280,165 +281,59 @@ const suggestionAnimations = {
   },
 };
 
-// Suggestion Card Component
-const SuggestionCard: React.FC<{
+
+// Adapter component for SmartSuggestion format
+const SmartSuggestionCardAdapter: React.FC<{
   suggestion: SmartSuggestion;
-  onApply: () => void;
+  onApply: (suggestionId: string) => void;
   onDismiss: () => void;
   onPreview: () => void;
   index: number;
-}> = ({ suggestion, onApply, onDismiss, onPreview, index }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+}> = ({ suggestion, onApply, onDismiss, index }) => {
+  // Convert SmartSuggestion format to shared SuggestionCard format
+  const convertedSuggestion = useMemo(() => {
+    const priorityMap: Record<SmartSuggestion['priority'], number> = {
+      low: 1,
+      medium: 2,
+      high: 3,
+      critical: 4,
+    };
 
-  const categoryIcons = {
-    grammar: SuggestionIcons.Grammar,
-    style: SuggestionIcons.Style,
-    tone: SuggestionIcons.Tone,
-    keyword: SuggestionIcons.Keyword,
-    structure: SuggestionIcons.Structure,
-    ats: SuggestionIcons.ATS,
-    industry: SuggestionIcons.Industry,
-    impact: SuggestionIcons.Impact,
-    clarity: SuggestionIcons.Clarity,
-    conciseness: SuggestionIcons.Conciseness,
+    return {
+      id: suggestion.id,
+      type: suggestion.category as any,
+      title: suggestion.title,
+      description: suggestion.description,
+      impact: suggestion.priority as any,
+      suggestion: suggestion.reason,
+      beforeText: suggestion.originalText,
+      afterText: suggestion.suggestedText,
+      section: suggestion.category,
+      priority: priorityMap[suggestion.priority],
+      estimatedScoreImprovement: suggestion.impact.scoreIncrease,
+    };
+  }, [suggestion]);
+
+  const handleApplyToEditor = (suggestionId: string, _suggestion: any) => {
+    onApply(suggestionId);
   };
-
-  const categoryColors = {
-    grammar: 'border-error bg-error/10 text-error',
-    style: 'border-info bg-info/10 text-info',
-    tone: 'border-warning bg-warning/10 text-warning',
-    keyword: 'border-primary bg-primary/10 text-primary',
-    structure: 'border-secondary bg-secondary/10 text-secondary',
-    ats: 'border-success bg-success/10 text-success',
-    industry: 'border-accent bg-accent/10 text-accent',
-    impact: 'border-primary bg-primary/10 text-primary',
-    clarity: 'border-info bg-info/10 text-info',
-    conciseness: 'border-warning bg-warning/10 text-warning',
-  };
-
-  const priorityColors = {
-    low: 'badge-ghost',
-    medium: 'badge-warning',
-    high: 'badge-error',
-    critical: 'badge-error animate-pulse',
-  };
-
-  const IconComponent = categoryIcons[suggestion.category];
 
   return (
     <motion.div
-      className={`card border-2 ${categoryColors[suggestion.category]} transition-all duration-300 hover:shadow-lg`}
       variants={suggestionAnimations.fadeIn}
       initial="hidden"
       animate="visible"
       custom={index}
       layout
     >
-      <div className="card-body p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="rounded-lg bg-base-100 p-2">
-              <IconComponent />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-sm">{suggestion.title}</h3>
-                <div className={`badge badge-sm ${priorityColors[suggestion.priority]}`}>
-                  {suggestion.priority}
-                </div>
-              </div>
-              <div className="mt-1 text-base-content/70 text-xs">
-                {suggestion.category} • {Math.round(suggestion.confidence * 100)}% confidence
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1">
-            {suggestion.canAutoApply && (
-              <div className="tooltip" data-tip="Can auto-apply">
-                <SuggestionIcons.Auto />
-              </div>
-            )}
-            {suggestion.isRealTime && (
-              <div className="h-2 w-2 animate-pulse rounded-full bg-success" />
-            )}
-          </div>
-        </div>
-
-        {/* Description */}
-        <p className="mt-3 text-base-content/80 text-sm">{suggestion.description}</p>
-
-        {/* Original vs Suggested Text */}
-        <div className="mt-4 space-y-2">
-          <div className="rounded-lg border border-error/20 bg-error/10 p-3">
-            <div className="mb-1 font-medium text-error text-xs">Original</div>
-            <div className="text-sm">{suggestion.originalText}</div>
-          </div>
-          <div className="rounded-lg border border-success/20 bg-success/10 p-3">
-            <div className="mb-1 font-medium text-success text-xs">Suggested</div>
-            <div className="text-sm">{suggestion.suggestedText}</div>
-          </div>
-        </div>
-
-        {/* Reason */}
-        <div className="mt-3">
-          <p className="text-base-content/70 text-xs">
-            <span className="font-medium">Why:</span> {suggestion.reason}
-          </p>
-        </div>
-
-        {/* Impact Metrics */}
-        {isExpanded && (
-          <motion.div
-            className="mt-4 rounded-lg bg-base-200 p-3"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-          >
-            <div className="mb-2 font-medium text-xs">Expected Impact</div>
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              <div className="flex justify-between">
-                <span>Score:</span>
-                <span className="font-medium">+{suggestion.impact.scoreIncrease}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>ATS:</span>
-                <span className="font-medium">+{suggestion.impact.atsImprovement}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Readability:</span>
-                <span className="font-medium">+{suggestion.impact.readabilityGain}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Keywords:</span>
-                <span className="font-medium">+{suggestion.impact.keywordDensityChange}%</span>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Actions */}
-        <div className="card-actions mt-4 justify-between">
-          <div className="flex gap-1">
-            <button className="btn btn-ghost btn-xs" onClick={() => setIsExpanded(!isExpanded)}>
-              {isExpanded ? 'Less' : 'More'}
-            </button>
-            <button className="btn btn-ghost btn-xs" onClick={onPreview}>
-              Preview
-            </button>
-          </div>
-
-          <div className="flex gap-1">
-            <button className="btn btn-ghost btn-xs" onClick={onDismiss}>
-              Dismiss
-            </button>
-            <button className="btn btn-primary btn-xs" onClick={onApply}>
-              {suggestion.canAutoApply ? 'Auto Apply' : 'Apply'}
-            </button>
-          </div>
-        </div>
-      </div>
+      <SuggestionCard
+        suggestion={convertedSuggestion}
+        isAdopted={false}
+        isIgnored={false}
+        onAdopt={() => onApply(suggestion.id)}
+        onIgnore={onDismiss}
+        onApplyToEditor={suggestion.canAutoApply ? handleApplyToEditor : undefined}
+      />
     </motion.div>
   );
 };
@@ -558,8 +453,6 @@ const RealTimeFeedback: React.FC<{
 
 // Main Smart Suggestions Engine Component
 export const SmartSuggestionsEngine: React.FC<SmartSuggestionsProps> = ({
-  content,
-  cursorPosition,
   enableRealTime,
   onSuggestionApply,
   onSuggestionDismiss,
@@ -581,8 +474,6 @@ export const SmartSuggestionsEngine: React.FC<SmartSuggestionsProps> = ({
   const [sortBy, setSortBy] = useState<'priority' | 'confidence' | 'impact'>('priority');
 
   // Refs
-  const analysisTimeoutRef = useRef<NodeJS.Timeout>();
-  const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Mock data for demonstration
   const mockSuggestions: SmartSuggestion[] = [
@@ -705,50 +596,6 @@ export const SmartSuggestionsEngine: React.FC<SmartSuggestionsProps> = ({
     setContextAnalysis(mockContextAnalysis);
     setIndustryKeywords(mockIndustryKeywords);
   }, []);
-
-  // Handle real-time content analysis
-  useEffect(() => {
-    if (!enableRealTime) return;
-
-    setRealTimeFeedback((prev) => ({
-      ...prev,
-      isTyping: true,
-      lastKeystroke: new Date(),
-    }));
-
-    // Clear existing timeouts
-    if (analysisTimeoutRef.current) {
-      clearTimeout(analysisTimeoutRef.current);
-    }
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // Set typing to false after pause
-    typingTimeoutRef.current = setTimeout(() => {
-      setRealTimeFeedback((prev) => ({
-        ...prev,
-        isTyping: false,
-        pauseDuration: Date.now() - prev.lastKeystroke.getTime(),
-      }));
-    }, 1000);
-
-    // Trigger analysis after longer pause
-    analysisTimeoutRef.current = setTimeout(() => {
-      if (content.length > 10) {
-        analyzeContent();
-      }
-    }, 2000);
-
-    return () => {
-      if (analysisTimeoutRef.current) {
-        clearTimeout(analysisTimeoutRef.current);
-      }
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
-  }, [content, enableRealTime, analyzeContent]);
 
   // Analyze content for suggestions
   const analyzeContent = useCallback(async () => {
@@ -918,7 +765,7 @@ export const SmartSuggestionsEngine: React.FC<SmartSuggestionsProps> = ({
       >
         <AnimatePresence>
           {filteredAndSortedSuggestions.map((suggestion, index) => (
-            <SuggestionCard
+            <SmartSuggestionCardAdapter
               key={suggestion.id}
               suggestion={suggestion}
               onApply={() => handleSuggestionApply(suggestion)}
