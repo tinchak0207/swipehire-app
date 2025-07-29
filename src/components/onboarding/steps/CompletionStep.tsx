@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 interface CompletionStepProps {
   data: Record<string, any>;
   onComplete: () => void;

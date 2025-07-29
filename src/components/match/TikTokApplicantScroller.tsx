@@ -77,7 +77,6 @@ export function TikTokApplicantScroller({
     scrollToApplicant(prevIndex);
   };
 
-  
   // Set card ref
   const setCardRef = useCallback((matchId: string, element: HTMLDivElement | null) => {
     if (element) {

@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { usePortfolio } from '@/hooks/usePortfolio';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
 import PortfolioPreview from '@/components/portfolio/PortfolioPreview';
+import { usePortfolio } from '@/hooks/usePortfolio';
 import type { Portfolio } from '@/lib/types/portfolio';
 
 /**
@@ -19,12 +19,7 @@ export default function PublicPortfolioPage() {
   const portfolioId = params?.['id'] as string | undefined;
 
   // Fetch portfolio details
-  const {
-    data: portfolio,
-    isLoading,
-    error,
-    refetch,
-  } = usePortfolio(portfolioId ?? '');
+  const { data: portfolio, isLoading, error, refetch } = usePortfolio(portfolioId ?? '');
 
   // Increment view counter once on mount (fire-and-forget)
   useEffect(() => {

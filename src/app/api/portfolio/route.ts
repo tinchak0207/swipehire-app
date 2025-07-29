@@ -23,7 +23,7 @@ const portfolioCreateSchema = z.object({
   customCss: z.string().max(10000, 'Custom CSS too long').default(''),
   seoTitle: z.string().max(60, 'SEO title too long').optional(),
   seoDescription: z.string().max(160, 'SEO description too long').optional(),
-  socialImage: z.string().url('Invalid social image URL').optional().or(z.literal(''))
+  socialImage: z.string().url('Invalid social image URL').optional().or(z.literal('')),
 });
 
 const portfolioFiltersSchema = z.object({
@@ -33,7 +33,7 @@ const portfolioFiltersSchema = z.object({
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   page: z.number().int().min(1).default(1),
   limit: z.number().int().min(1).max(100).default(10),
-  includePrivate: z.boolean().default(true)
+  includePrivate: z.boolean().default(true),
 });
 
 // --- Helper Functions ---
@@ -44,7 +44,7 @@ async function getAuthenticatedUser(request: NextRequest): Promise<string | null
     // For testing purposes, return a valid ObjectId format
     return '507f1f77bcf86cd799439011';
   }
-  
+
   // Extract Firebase UID from the token
   // In a real app, you'd validate the JWT token here
   // For now, we'll extract a simple user ID from the token
@@ -87,7 +87,7 @@ function parsePortfolioFilters(searchParams: URLSearchParams) {
     sortOrder: searchParams.get('sortOrder') || 'desc',
     page: parseInt(searchParams.get('page') || '1', 10),
     limit: parseInt(searchParams.get('limit') || '10', 10),
-    includePrivate: searchParams.get('includePrivate') !== 'false'
+    includePrivate: searchParams.get('includePrivate') !== 'false',
   };
   return portfolioFiltersSchema.safeParse(rawFilters);
 }
@@ -98,28 +98,34 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const userId = await getAuthenticatedUser(request);
     if (!userId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Authentication required' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Authentication required',
+        },
+        { status: 401 }
+      );
     }
 
     const validation = parsePortfolioFilters(request.nextUrl.searchParams);
     if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        message: 'Invalid filters',
-        errors: validation.error.errors
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Invalid filters',
+          errors: validation.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const filters = validation.data;
-    
+
     // Build query parameters for backend
     const queryParams = new URLSearchParams({
       page: filters.page.toString(),
       limit: filters.limit.toString(),
-      includePrivate: filters.includePrivate.toString()
+      includePrivate: filters.includePrivate.toString(),
     });
 
     if (filters.sortBy) queryParams.append('sortBy', filters.sortBy);
@@ -134,21 +140,26 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      return NextResponse.json({
-        success: false,
-        message: errorData.message || 'Failed to fetch portfolios'
-      }, { status: response.status });
+      return NextResponse.json(
+        {
+          success: false,
+          message: errorData.message || 'Failed to fetch portfolios',
+        },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data);
-
   } catch (error) {
     console.error('Error fetching portfolios:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Internal server error' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Internal server error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -156,53 +167,64 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     const userId = await getAuthenticatedUser(request);
     if (!userId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Authentication required' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Authentication required',
+        },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
     const validation = portfolioCreateSchema.safeParse(body);
 
     if (!validation.success) {
-      return NextResponse.json({
-        success: false,
-        message: 'Invalid data',
-        errors: validation.error.errors
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Invalid data',
+          errors: validation.error.errors,
+        },
+        { status: 400 }
+      );
     }
 
     const portfolioData = {
       ...validation.data,
-      userId
+      userId,
     };
 
     const response = await makeBackendRequest(
       '/api/portfolios',
       {
         method: 'POST',
-        body: JSON.stringify(portfolioData)
+        body: JSON.stringify(portfolioData),
       },
       userId
     );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      return NextResponse.json({
-        success: false,
-        message: errorData.message || 'Failed to create portfolio'
-      }, { status: response.status });
+      return NextResponse.json(
+        {
+          success: false,
+          message: errorData.message || 'Failed to create portfolio',
+        },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data, { status: 201 });
-
   } catch (error) {
     console.error('Error creating portfolio:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Internal server error' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Internal server error',
+      },
+      { status: 500 }
+    );
   }
 }

@@ -159,7 +159,7 @@ function ChatAnimationCard({
           <div className="text-purple-200 text-sm">Avg. Gen. Time</div>
         </Card>
         <Card className="border-white/20 bg-white/10 p-4 text-center shadow-xl backdrop-blur-md">
-          <div className="font-bold text-2xl text-white">{"<24h"}</div>
+          <div className="font-bold text-2xl text-white">{'<24h'}</div>
           <div className="text-purple-200 text-sm">Guaranteed Reply</div>
         </Card>
       </div>
@@ -189,7 +189,7 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
         setIsTypingState(true);
         setTextState('');
         let index = 0;
-        
+
         const typeNextChar = () => {
           if (index < message.length) {
             setTextState((prev) => prev + message.charAt(index));
@@ -200,7 +200,7 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
             resolve();
           }
         };
-        
+
         typeNextChar();
       });
     },
@@ -218,23 +218,23 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
 
   const startAnimation = useCallback(async () => {
     if (animationStarted) return;
-    
+
     setAnimationStarted(true);
     resetAnimation();
 
     try {
       // Wait for initial render
       await new Promise((resolve) => setTimeout(resolve, 500));
-      
+
       // Type applicant message
       await typeMessage(fullApplicantMessage, setTypedApplicantMessage, setIsTypingApplicant);
-      
+
       // Show AI analyzing
       await new Promise((resolve) => setTimeout(resolve, 700));
       setShowAiAnalyzing(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setShowAiAnalyzing(false);
-      
+
       // Type AI reply
       await typeMessage(fullAiReply, setTypedAiReply, setIsTypingAiReply);
     } catch (error) {
@@ -285,7 +285,8 @@ export default function AiHrAssistantPage() {
   const { fullBackendUser, mongoDbUserId, preferences } = useUserPreferences();
   const router = useRouter();
 
-  const fullApplicantMessage = ".Hello, I'm interested in the Frontend Developer position. I have 3 years of experience in React and TypeScript. When would be a good time to discuss this opportunity?";
+  const fullApplicantMessage =
+    ".Hello, I'm interested in the Frontend Developer position. I have 3 years of experience in React and TypeScript. When would be a good time to discuss this opportunity?";
   const fullAiReply =
     ".Hello! Thank you for your interest in our Frontend Developer position. Your React and TypeScript experience looks great for this role. We'd love to schedule an interview with you. Are you available next Tuesday or Wednesday afternoon?";
 

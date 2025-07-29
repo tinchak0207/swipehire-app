@@ -233,9 +233,7 @@ const PortfolioCreationWizard: React.FC = () => {
   const StepComponent = currentStep.component;
 
   return (
-    <div
-      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-blue-50/30 to-indigo-50/20 backdrop-blur-sm transition-all duration-1000 ease-in-out"
-    >
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-blue-50/30 to-indigo-50/20 backdrop-blur-sm transition-all duration-1000 ease-in-out">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-blue-400/10 blur-3xl" />
@@ -344,8 +342,15 @@ const PortfolioCreationWizard: React.FC = () => {
             transition={{ delay: 1, duration: 0.5 }}
             className="mt-8 text-center text-sm text-black"
           >
-            Press <kbd className="rounded bg-gray-200/50 px-2 py-1 text-xs text-blue-600 font-semibold">Ctrl+Enter</kbd> to
-            continue, <kbd className="rounded bg-gray-200/50 px-2 py-1 text-xs text-blue-600 font-semibold">Esc</kbd> to go back
+            Press{' '}
+            <kbd className="rounded bg-gray-200/50 px-2 py-1 text-xs text-blue-600 font-semibold">
+              Ctrl+Enter
+            </kbd>{' '}
+            to continue,{' '}
+            <kbd className="rounded bg-gray-200/50 px-2 py-1 text-xs text-blue-600 font-semibold">
+              Esc
+            </kbd>{' '}
+            to go back
           </motion.div>
         </div>
       </div>

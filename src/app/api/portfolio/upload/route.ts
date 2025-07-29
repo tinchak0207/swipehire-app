@@ -25,21 +25,18 @@ async function authenticateUser(request: NextRequest): Promise<string | null> {
 /**
  * Forward upload request to backend
  */
-async function forwardUploadToBackend(
-  formData: FormData,
-  userId: string
-): Promise<Response> {
+async function forwardUploadToBackend(formData: FormData, userId: string): Promise<Response> {
   const baseUrl = API_CONFIG.baseUrl;
   if (!baseUrl) {
     throw new Error('Backend URL not configured');
   }
 
   const url = `${baseUrl}/api/portfolios/upload`;
-  
+
   return fetch(url, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${userId}`,
+      Authorization: `Bearer ${userId}`,
     },
     body: formData,
   });
@@ -53,10 +50,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Authenticate user
     const userId = await authenticateUser(request);
     if (!userId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Authentication required' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Authentication required',
+        },
+        { status: 401 }
+      );
     }
 
     // Get form data from request
@@ -64,10 +64,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const file = formData.get('file') as File;
 
     if (!file) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'No file provided' 
-      }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'No file provided',
+        },
+        { status: 400 }
+      );
     }
 
     // Forward to backend
@@ -75,21 +78,26 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      return NextResponse.json({
-        success: false,
-        message: errorData.message || 'Failed to upload file'
-      }, { status: response.status });
+      return NextResponse.json(
+        {
+          success: false,
+          message: errorData.message || 'Failed to upload file',
+        },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
     return NextResponse.json(data, { status: 201 });
-
   } catch (error) {
     console.error('Error uploading file:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Internal server error' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Internal server error',
+      },
+      { status: 500 }
+    );
   }
 }
 
@@ -101,10 +109,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     // Authenticate user
     const userId = await authenticateUser(request);
     if (!userId) {
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Authentication required' 
-      }, { status: 401 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Authentication required',
+        },
+        { status: 401 }
+      );
     }
 
     const uploadInfo = {
@@ -114,28 +125,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         allowedTypes: {
           images: [
             'image/jpeg',
-            'image/jpg', 
+            'image/jpg',
             'image/png',
             'image/gif',
             'image/webp',
             'image/svg+xml',
           ],
-          videos: [
-            'video/mp4', 
-            'video/webm', 
-            'video/ogg', 
-            'video/avi', 
-            'video/mov', 
-            'video/wmv'
-          ],
-          audio: [
-            'audio/mp3', 
-            'audio/wav', 
-            'audio/ogg', 
-            'audio/aac', 
-            'audio/flac', 
-            'audio/m4a'
-          ],
+          videos: ['video/mp4', 'video/webm', 'video/ogg', 'video/avi', 'video/mov', 'video/wmv'],
+          audio: ['audio/mp3', 'audio/wav', 'audio/ogg', 'audio/aac', 'audio/flac', 'audio/m4a'],
         },
         uploadPath: `/uploads/portfolio/${userId}/`,
       },
@@ -144,9 +141,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(uploadInfo);
   } catch (error) {
     console.error('Error getting upload info:', error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Internal server error' 
-    }, { status: 500 });
+    return NextResponse.json(
+      {
+        success: false,
+        message: 'Internal server error',
+      },
+      { status: 500 }
+    );
   }
 }

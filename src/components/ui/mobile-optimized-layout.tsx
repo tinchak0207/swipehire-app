@@ -1,7 +1,7 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
-import { ReactNode } from 'react';
 
 interface MobileOptimizedContainerProps {
   children: ReactNode;
@@ -14,30 +14,32 @@ export function MobileOptimizedContainer({
   children,
   className,
   maxWidth = 'lg',
-  padding = 'md'
+  padding = 'md',
 }: MobileOptimizedContainerProps) {
   const maxWidthClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
-    full: 'max-w-full'
+    full: 'max-w-full',
   };
 
   const paddingClasses = {
     none: '',
     sm: 'p-2 sm:p-3',
     md: 'p-3 sm:p-4',
-    lg: 'p-4 sm:p-6'
+    lg: 'p-4 sm:p-6',
   };
 
   return (
-    <div className={cn(
-      'w-full mx-auto',
-      maxWidthClasses[maxWidth],
-      paddingClasses[padding],
-      className
-    )}>
+    <div
+      className={cn(
+        'w-full mx-auto',
+        maxWidthClasses[maxWidth],
+        paddingClasses[padding],
+        className
+      )}
+    >
       {children}
     </div>
   );
@@ -54,28 +56,23 @@ export function MobileOptimizedGrid({
   children,
   className,
   cols = 2,
-  gap = 'md'
+  gap = 'md',
 }: MobileOptimizedGridProps) {
   const gridClasses = {
     1: 'grid-cols-1',
     2: 'grid-cols-1 sm:grid-cols-2',
     3: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3',
-    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+    4: 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
   };
 
   const gapClasses = {
     sm: 'gap-2 sm:gap-3',
     md: 'gap-3 sm:gap-4',
-    lg: 'gap-4 sm:gap-6'
+    lg: 'gap-4 sm:gap-6',
   };
 
   return (
-    <div className={cn(
-      'grid w-full',
-      gridClasses[cols],
-      gapClasses[gap],
-      className
-    )}>
+    <div className={cn('grid w-full', gridClasses[cols], gapClasses[gap], className)}>
       {children}
     </div>
   );

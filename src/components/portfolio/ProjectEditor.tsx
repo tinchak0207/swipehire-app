@@ -219,7 +219,9 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
 
           {/* Project Title */}
           <div className="flex-1">
-            <h3 className="font-semibold text-gray-800">{project.title || `Project ${index + 1}`}</h3>
+            <h3 className="font-semibold text-gray-800">
+              {project.title || `Project ${index + 1}`}
+            </h3>
             <div className="flex items-center gap-3 text-gray-500 text-sm">
               <span className="flex items-center gap-1">
                 <EyeIcon className="h-3 w-3" />
@@ -256,8 +258,8 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
           </div>
 
           {/* Expand/Collapse */}
-          <button 
-            className="rounded-lg border border-gray-200/50 bg-white/60 px-3 py-1 text-gray-700 text-sm transition-all duration-200 hover:bg-blue-50 hover:text-blue-600" 
+          <button
+            className="rounded-lg border border-gray-200/50 bg-white/60 px-3 py-1 text-gray-700 text-sm transition-all duration-200 hover:bg-blue-50 hover:text-blue-600"
             onClick={() => setIsExpanded(!isExpanded)}
           >
             {isExpanded ? 'Collapse' : 'Expand'}
@@ -385,7 +387,9 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                   >
                     <div className="flex items-center gap-3">
                       {link.type === 'github' && <GithubIcon className="h-4 w-4 text-gray-600" />}
-                      {link.type === 'demo' && <ExternalLinkIcon className="h-4 w-4 text-gray-600" />}
+                      {link.type === 'demo' && (
+                        <ExternalLinkIcon className="h-4 w-4 text-gray-600" />
+                      )}
                       <div>
                         <div className="font-medium text-gray-800 text-sm">{link.label}</div>
                         <div className="text-gray-500 text-xs">
@@ -412,7 +416,9 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                   <select
                     className="select w-full rounded-lg border-gray-200/50 bg-white/60 text-black focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
                     value={newLink.type}
-                    onChange={(e) => setNewLink({ ...newLink, type: e.target.value as ExternalLink['type'] })}
+                    onChange={(e) =>
+                      setNewLink({ ...newLink, type: e.target.value as ExternalLink['type'] })
+                    }
                   >
                     <option value="other">Other</option>
                     <option value="github">GitHub</option>
@@ -420,7 +426,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                     <option value="behance">Behance</option>
                     <option value="dribbble">Dribbble</option>
                   </select>
-                  
+
                   <input
                     type="text"
                     placeholder="Link label..."
@@ -428,7 +434,7 @@ const ProjectEditor: React.FC<ProjectEditorProps> = ({
                     value={newLink.label}
                     onChange={(e) => setNewLink({ ...newLink, label: e.target.value })}
                   />
-                  
+
                   <input
                     type="url"
                     placeholder="https://..."

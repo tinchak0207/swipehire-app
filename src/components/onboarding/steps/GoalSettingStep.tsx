@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { WizardData } from '../WizardContainer';
+import type { WizardData } from '../WizardContainer';
 
 interface GoalSettingStepProps {
   data: Partial<WizardData>;
@@ -152,29 +152,29 @@ export default function GoalSettingStep({
                           <div
                             key={index}
                             className={
-                            'badge badge-lg gap-2 border border-gray-300 bg-white px-3 py-2 text-gray-700'
-                          }
-                        >
-                          {goal}
-                          <button
-                            onClick={() => removeGoal(goalType.key, index)}
-                            className="btn btn-ghost btn-xs h-4 min-h-0 w-4 rounded-full p-0 hover:bg-gray-200"
+                              'badge badge-lg gap-2 border border-gray-300 bg-white px-3 py-2 text-gray-700'
+                            }
                           >
-                            <svg
-                              className="h-3 w-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
+                            {goal}
+                            <button
+                              onClick={() => removeGoal(goalType.key, index)}
+                              className="btn btn-ghost btn-xs h-4 min-h-0 w-4 rounded-full p-0 hover:bg-gray-200"
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M6 18L18 6M6 6l12 12"
-                              />
-                            </svg>
-                          </button>
-                        </div>
+                              <svg
+                                className="h-3 w-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M6 18L18 6M6 6l12 12"
+                                />
+                              </svg>
+                            </button>
+                          </div>
                         ))}
                     </div>
                   </div>

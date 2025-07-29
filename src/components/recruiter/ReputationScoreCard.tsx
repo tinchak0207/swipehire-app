@@ -1,6 +1,6 @@
 'use client';
 
-import { CheckCircle, Info, Star, TrendingDown, TrendingUp, Sparkles } from 'lucide-react';
+import { CheckCircle, Info, Sparkles, Star, TrendingDown, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,10 @@ export function ReputationScoreCard({
   const getBoostAlert = () => {
     if (boostStatus === 'increased') {
       return (
-        <Alert variant="default" className="mt-3 border-blue-200/50 bg-gradient-to-r from-blue-50/80 to-cyan-50/60 backdrop-blur-sm text-sm">
+        <Alert
+          variant="default"
+          className="mt-3 border-blue-200/50 bg-gradient-to-r from-blue-50/80 to-cyan-50/60 backdrop-blur-sm text-sm"
+        >
           <TrendingUp className="h-4 w-4 text-blue-600" />
           <AlertTitle className="font-semibold text-blue-700 text-xs">
             Push Priority Increased!
@@ -54,9 +57,14 @@ export function ReputationScoreCard({
     }
     if (boostStatus === 'decreased') {
       return (
-        <Alert variant="default" className="mt-3 border-gray-200/50 bg-gradient-to-r from-gray-50/80 to-blue-50/30 backdrop-blur-sm text-sm">
+        <Alert
+          variant="default"
+          className="mt-3 border-gray-200/50 bg-gradient-to-r from-gray-50/80 to-blue-50/30 backdrop-blur-sm text-sm"
+        >
           <TrendingDown className="h-4 w-4 text-gray-700" />
-          <AlertTitle className="font-semibold text-gray-700 text-xs">Push Priority Decreased</AlertTitle>
+          <AlertTitle className="font-semibold text-gray-700 text-xs">
+            Push Priority Decreased
+          </AlertTitle>
           <AlertDescription className="text-gray-600 text-xs">
             Your reputation score has lowered your job posting visibility. Review improvement
             methods.
@@ -65,9 +73,14 @@ export function ReputationScoreCard({
       );
     }
     return (
-      <Alert variant="default" className="mt-3 border-blue-200/50 bg-gradient-to-r from-blue-50/80 to-cyan-50/60 backdrop-blur-sm text-sm">
+      <Alert
+        variant="default"
+        className="mt-3 border-blue-200/50 bg-gradient-to-r from-blue-50/80 to-cyan-50/60 backdrop-blur-sm text-sm"
+      >
         <Info className="h-4 w-4 text-blue-600" />
-        <AlertTitle className="font-semibold text-blue-700 text-xs">Traffic Boost System</AlertTitle>
+        <AlertTitle className="font-semibold text-blue-700 text-xs">
+          Traffic Boost System
+        </AlertTitle>
         <AlertDescription className="text-blue-600 text-xs">
           Your Reputation Score impacts your job posting visibility. A higher score increases
           priority and frequency in search results.
@@ -90,9 +103,16 @@ export function ReputationScoreCard({
       <CardContent className="space-y-6 bg-white/80 backdrop-blur-sm">
         <div className="text-center">
           <div className="rounded-xl border border-gray-200/50 bg-white/80 p-6 shadow-sm backdrop-blur-sm">
-            <p className={cn('font-black text-6xl transition-all duration-300', getScoreIntensity(score))}>{score}</p>
+            <p
+              className={cn(
+                'font-black text-6xl transition-all duration-300',
+                getScoreIntensity(score)
+              )}
+            >
+              {score}
+            </p>
             <p className="mt-2 font-medium text-gray-600 text-sm tracking-wide">out of 100</p>
-            
+
             {/* AI Assistant Button */}
             <div className="mt-4">
               <Button
@@ -109,7 +129,7 @@ export function ReputationScoreCard({
                   <Sparkles className="h-4 w-4 transition-transform duration-200 group-hover:rotate-12" />
                   <span className="font-semibold text-sm">Increase in one click</span>
                 </div>
-                
+
                 {/* Subtle glow effect */}
                 <div className="absolute inset-0 -z-10 rounded-xl bg-gradient-to-r from-blue-400/20 to-blue-600/20 blur-xl transition-opacity duration-200 group-hover:opacity-100 opacity-0" />
               </Button>
@@ -123,26 +143,38 @@ export function ReputationScoreCard({
           <div>
             <div className="mb-2 flex justify-between text-sm">
               <span className="font-semibold text-gray-700">Reply Rate</span>
-              <span className={cn('font-bold transition-colors duration-200', getScoreIntensity(replyRate))}>{replyRate}%</span>
+              <span
+                className={cn(
+                  'font-bold transition-colors duration-200',
+                  getScoreIntensity(replyRate)
+                )}
+              >
+                {replyRate}%
+              </span>
             </div>
             <div className="rounded-full bg-gray-100 p-0.5">
               <Progress
                 value={replyRate}
-                className={cn("h-3 rounded-full", getProgressBarStyle(replyRate))}
+                className={cn('h-3 rounded-full', getProgressBarStyle(replyRate))}
               />
             </div>
           </div>
           <div>
             <div className="mb-2 flex justify-between text-sm">
               <span className="font-semibold text-gray-700">Effective Reply Rate</span>
-              <span className={cn('font-bold transition-colors duration-200', getScoreIntensity(effectiveReplyRate))}>
+              <span
+                className={cn(
+                  'font-bold transition-colors duration-200',
+                  getScoreIntensity(effectiveReplyRate)
+                )}
+              >
                 {effectiveReplyRate}%
               </span>
             </div>
             <div className="rounded-full bg-gray-100 p-0.5">
               <Progress
                 value={effectiveReplyRate}
-                className={cn("h-3 rounded-full", getProgressBarStyle(effectiveReplyRate))}
+                className={cn('h-3 rounded-full', getProgressBarStyle(effectiveReplyRate))}
               />
             </div>
           </div>

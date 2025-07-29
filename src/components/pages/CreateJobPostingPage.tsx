@@ -254,14 +254,20 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
             Create Job Posting
           </h1>
           <p className="mx-auto max-w-2xl text-gray-600 text-lg">
-            Design your perfect job posting with our intuitive interface. Attract top talent with compelling descriptions and competitive offers.
+            Design your perfect job posting with our intuitive interface. Attract top talent with
+            compelling descriptions and competitive offers.
           </p>
         </div>
 
         {!isPostingAllowed && !isGuestMode && (
-          <Alert variant="destructive" className="mb-8 border-red-200/50 bg-gradient-to-r from-red-50 to-pink-50 backdrop-blur-sm">
+          <Alert
+            variant="destructive"
+            className="mb-8 border-red-200/50 bg-gradient-to-r from-red-50 to-pink-50 backdrop-blur-sm"
+          >
             <AlertTriangle className="h-5 w-5" />
-            <AlertTitle className="text-red-700">Company Profile Incomplete to Post Jobs</AlertTitle>
+            <AlertTitle className="text-red-700">
+              Company Profile Incomplete to Post Jobs
+            </AlertTitle>
             <AlertDescription className="text-red-600">
               Please complete your Company Profile.
               {fullBackendUser?.selectedRole === 'recruiter' &&
@@ -290,86 +296,32 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
               Create New Job Posting
             </CardTitle>
             <CardDescription className="mt-3 text-gray-600 text-lg">
-              Fill in the details below to post a new job, mission, or quest. Make it compelling to attract the best candidates.
+              Fill in the details below to post a new job, mission, or quest. Make it compelling to
+              attract the best candidates.
             </CardDescription>
           </CardHeader>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardContent className="space-y-6 bg-white/80 p-8 backdrop-blur-sm">
-              {/* Job Title Section */}
-              <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:shadow-lg">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="mb-3 flex items-center font-semibold text-gray-700 text-lg">
-                        <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
-                          <FileText className="h-4 w-4 text-white" />
-                        </div>
-                        Job Title / Mission Name
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g., Senior Software Engineer, Design a new Logo"
-                          {...field}
-                          disabled={!isPostingAllowed}
-                          className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-blue-500 focus:bg-white/80 focus:ring-2 focus:ring-blue-200"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Description Section */}
-              <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 hover:shadow-lg">
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="mb-3 flex items-center font-semibold text-gray-700 text-lg">
-                        <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md">
-                          <FileText className="h-4 w-4 text-white" />
-                        </div>
-                        Description & Requirements
-                      </FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Describe the role, responsibilities, required skills, and any specific quest objectives..."
-                          className="min-h-[140px] resize-y rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-cyan-500 focus:bg-white/80 focus:ring-2 focus:ring-cyan-200"
-                          {...field}
-                          disabled={!isPostingAllowed}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Location & Compensation Grid */}
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:shadow-lg">
+              <CardContent className="space-y-6 bg-white/80 p-8 backdrop-blur-sm">
+                {/* Job Title Section */}
+                <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:shadow-lg">
                   <FormField
                     control={form.control}
-                    name="location"
+                    name="title"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="mb-3 flex items-center font-semibold text-gray-700 text-lg">
-                          <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md">
+                          <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-md">
                             <FileText className="h-4 w-4 text-white" />
                           </div>
-                          Location
+                          Job Title / Mission Name
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="e.g., San Francisco, CA or Remote (US)"
+                            placeholder="e.g., Senior Software Engineer, Design a new Logo"
                             {...field}
                             disabled={!isPostingAllowed}
-                            className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-purple-500 focus:bg-white/80 focus:ring-2 focus:ring-purple-200"
+                            className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-blue-500 focus:bg-white/80 focus:ring-2 focus:ring-blue-200"
                           />
                         </FormControl>
                         <FormMessage />
@@ -378,24 +330,25 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
                   />
                 </div>
 
-                <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:shadow-lg">
+                {/* Description Section */}
+                <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-cyan-50 hover:to-blue-50 hover:shadow-lg">
                   <FormField
                     control={form.control}
-                    name="compensation"
+                    name="description"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="mb-3 flex items-center font-semibold text-gray-700 text-lg">
-                          <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
-                            <DollarSign className="h-4 w-4 text-white" />
+                          <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-md">
+                            <FileText className="h-4 w-4 text-white" />
                           </div>
-                          Compensation / Prize
+                          Description & Requirements
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="e.g., $100,000 - $120,000 per year, $500 for project completion"
+                          <Textarea
+                            placeholder="Describe the role, responsibilities, required skills, and any specific quest objectives..."
+                            className="min-h-[140px] resize-y rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-cyan-500 focus:bg-white/80 focus:ring-2 focus:ring-cyan-200"
                             {...field}
                             disabled={!isPostingAllowed}
-                            className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-green-500 focus:bg-white/80 focus:ring-2 focus:ring-green-200"
                           />
                         </FormControl>
                         <FormMessage />
@@ -403,170 +356,233 @@ function CreateJobPostingPage({ isGuestMode }: CreateJobPostingPageProps) {
                     )}
                   />
                 </div>
-              </div>
 
-              {/* Tags Section */}
-              <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-amber-50 hover:to-yellow-50 hover:shadow-lg">
-                <FormItem>
-                  <FormLabel className="mb-4 flex items-center font-semibold text-gray-700 text-lg">
-                    <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-md">
-                      <Tag className="h-4 w-4 text-white" />
-                    </div>
-                    Tags & Categories
-                  </FormLabel>
-                  
-                  {/* Tag Display */}
-                  <div className="mb-4 flex flex-wrap gap-2">
-                    {tagList.map((tag, index) => (
-                      <Badge
-                        key={index}
-                        variant="secondary"
-                        className="flex items-center gap-1 rounded-full border-blue-200 bg-gradient-to-r from-blue-100 to-cyan-100 px-3 py-1.5 font-medium text-blue-700 text-sm transition-all duration-200 hover:shadow-md"
-                      >
-                        {tag}
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-4 w-4 p-0 text-blue-600 hover:bg-red-100 hover:text-red-600"
-                          onClick={() => handleRemoveTag(tag)}
-                          aria-label={`Remove tag ${tag}`}
-                          disabled={!isPostingAllowed}
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </Badge>
-                    ))}
+                {/* Location & Compensation Grid */}
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-purple-50 hover:to-indigo-50 hover:shadow-lg">
+                    <FormField
+                      control={form.control}
+                      name="location"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="mb-3 flex items-center font-semibold text-gray-700 text-lg">
+                            <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 shadow-md">
+                              <FileText className="h-4 w-4 text-white" />
+                            </div>
+                            Location
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., San Francisco, CA or Remote (US)"
+                              {...field}
+                              disabled={!isPostingAllowed}
+                              className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-purple-500 focus:bg-white/80 focus:ring-2 focus:ring-purple-200"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
 
-                  {/* Tag Input */}
+                  <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:shadow-lg">
+                    <FormField
+                      control={form.control}
+                      name="compensation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="mb-3 flex items-center font-semibold text-gray-700 text-lg">
+                            <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-green-500 to-emerald-600 shadow-md">
+                              <DollarSign className="h-4 w-4 text-white" />
+                            </div>
+                            Compensation / Prize
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              placeholder="e.g., $100,000 - $120,000 per year, $500 for project completion"
+                              {...field}
+                              disabled={!isPostingAllowed}
+                              className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-green-500 focus:bg-white/80 focus:ring-2 focus:ring-green-200"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+
+                {/* Tags Section */}
+                <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-amber-50 hover:to-yellow-50 hover:shadow-lg">
+                  <FormItem>
+                    <FormLabel className="mb-4 flex items-center font-semibold text-gray-700 text-lg">
+                      <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-600 shadow-md">
+                        <Tag className="h-4 w-4 text-white" />
+                      </div>
+                      Tags & Categories
+                    </FormLabel>
+
+                    {/* Tag Display */}
+                    <div className="mb-4 flex flex-wrap gap-2">
+                      {tagList.map((tag, index) => (
+                        <Badge
+                          key={index}
+                          variant="secondary"
+                          className="flex items-center gap-1 rounded-full border-blue-200 bg-gradient-to-r from-blue-100 to-cyan-100 px-3 py-1.5 font-medium text-blue-700 text-sm transition-all duration-200 hover:shadow-md"
+                        >
+                          {tag}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-4 w-4 p-0 text-blue-600 hover:bg-red-100 hover:text-red-600"
+                            onClick={() => handleRemoveTag(tag)}
+                            aria-label={`Remove tag ${tag}`}
+                            disabled={!isPostingAllowed}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {/* Tag Input */}
+                    <FormField
+                      control={form.control}
+                      name="tags"
+                      render={({ field }) => (
+                        <div className="flex items-center gap-3">
+                          <Input
+                            id="tags-input-field"
+                            placeholder="Type a tag (e.g., react, javascript, remote) and press Enter"
+                            value={currentTagInput}
+                            onChange={(e) => {
+                              setCurrentTagInput(e.target.value);
+                              field.onChange(e);
+                            }}
+                            onKeyDown={handleTagInputKeyDown}
+                            disabled={!isPostingAllowed || tagList.length >= 10}
+                            className="h-12 flex-grow rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-blue-500 focus:bg-white/80 focus:ring-2 focus:ring-blue-200"
+                          />
+                          <Button
+                            type="button"
+                            onClick={handleAddTag}
+                            variant="outline"
+                            size="sm"
+                            disabled={!isPostingAllowed || tagList.length >= 10}
+                            className="h-12 rounded-lg border-gray-200 bg-white/80 px-6 font-medium text-gray-700 transition-all duration-200 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-700 hover:shadow-md"
+                          >
+                            Add Tag
+                          </Button>
+                        </div>
+                      )}
+                    />
+
+                    <FormDescription className="mt-3 text-gray-600">
+                      Help categorize your job posting. Add up to 10 relevant tags (letters,
+                      numbers, hyphens only, max 20 chars each).
+                    </FormDescription>
+                    <FormField
+                      control={form.control}
+                      name="actualTags"
+                      render={() => <FormItem />}
+                    />
+                    <FormMessage>
+                      {form.formState.errors.actualTags?.message ||
+                        form.formState.errors.actualTags?.root?.message}
+                    </FormMessage>
+                  </FormItem>
+                </div>
+
+                {/* Media Upload Section */}
+                <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-lg">
+                  <div className="mb-4 flex items-center">
+                    <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
+                      <ImageIcon className="h-4 w-4 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-gray-700 text-lg">Media Attachment</h3>
+                  </div>
+
                   <FormField
                     control={form.control}
-                    name="tags"
-                    render={({ field }) => (
-                      <div className="flex items-center gap-3">
-                        <Input
-                          id="tags-input-field"
-                          placeholder="Type a tag (e.g., react, javascript, remote) and press Enter"
-                          value={currentTagInput}
-                          onChange={(e) => {
-                            setCurrentTagInput(e.target.value);
-                            field.onChange(e);
-                          }}
-                          onKeyDown={handleTagInputKeyDown}
-                          disabled={!isPostingAllowed || tagList.length >= 10}
-                          className="h-12 flex-grow rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-blue-500 focus:bg-white/80 focus:ring-2 focus:ring-blue-200"
+                    name="mediaFile"
+                    render={({ field: { onChange, value, ...restField } }) => (
+                      <div className="mb-4">
+                        <CustomFileInput
+                          id="jobMediaFile"
+                          fieldLabel="Upload Picture or Video (Max 10MB)"
+                          buttonText="Choose File"
+                          buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
+                          selectedFileName={value?.name || null}
+                          onFileSelected={(file) => onChange(file)}
+                          inputProps={{ accept: 'image/*,video/*', ...restField }}
+                          disabled={!isPostingAllowed || !!form.watch('videoOrImageUrl')}
+                          className="rounded-lg border-gray-200 bg-white/60"
                         />
-                        <Button
-                          type="button"
-                          onClick={handleAddTag}
-                          variant="outline"
-                          size="sm"
-                          disabled={!isPostingAllowed || tagList.length >= 10}
-                          className="h-12 rounded-lg border-gray-200 bg-white/80 px-6 font-medium text-gray-700 transition-all duration-200 hover:border-blue-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:text-blue-700 hover:shadow-md"
-                        >
-                          Add Tag
-                        </Button>
                       </div>
                     )}
                   />
-                  
-                  <FormDescription className="mt-3 text-gray-600">
-                    Help categorize your job posting. Add up to 10 relevant tags (letters, numbers, hyphens only, max 20 chars each).
-                  </FormDescription>
-                  <FormField control={form.control} name="actualTags" render={() => <FormItem />} />
-                  <FormMessage>
-                    {form.formState.errors.actualTags?.message ||
-                      form.formState.errors.actualTags?.root?.message}
-                  </FormMessage>
-                </FormItem>
-              </div>
 
-              {/* Media Upload Section */}
-              <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-md backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-lg">
-                <div className="mb-4 flex items-center">
-                  <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 shadow-md">
-                    <ImageIcon className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="font-semibold text-gray-700 text-lg">Media Attachment</h3>
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="mediaFile"
-                  render={({ field: { onChange, value, ...restField } }) => (
-                    <div className="mb-4">
-                      <CustomFileInput
-                        id="jobMediaFile"
-                        fieldLabel="Upload Picture or Video (Max 10MB)"
-                        buttonText="Choose File"
-                        buttonIcon={<ImageIcon className="mr-2 h-4 w-4" />}
-                        selectedFileName={value?.name || null}
-                        onFileSelected={(file) => onChange(file)}
-                        inputProps={{ accept: 'image/*,video/*', ...restField }}
-                        disabled={!isPostingAllowed || !!form.watch('videoOrImageUrl')}
-                        className="rounded-lg border-gray-200 bg-white/60"
-                      />
+                  <div className="relative my-4">
+                    <div className="absolute inset-0 flex items-center">
+                      <div className="w-full border-t border-gray-200" />
                     </div>
-                  )}
-                />
-                
-                <div className="relative my-4">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-gray-200"></div>
+                    <div className="relative flex justify-center text-sm">
+                      <span className="bg-white px-3 text-gray-500">OR</span>
+                    </div>
                   </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-white px-3 text-gray-500">OR</span>
-                  </div>
-                </div>
 
-                <FormField
-                  control={form.control}
-                  name="videoOrImageUrl"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="font-medium text-gray-700">Enter Media URL</FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="https://example.com/image.png or https://youtube.com/watch?v=..."
-                          {...field}
-                          disabled={!isPostingAllowed || !!watchedMediaFile}
-                          className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-indigo-500 focus:bg-white/80 focus:ring-2 focus:ring-indigo-200"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-            <CardFooter className="rounded-b-2xl border-t border-white/20 bg-gradient-to-r from-white/60 to-blue-50/60 p-8 backdrop-blur-sm">
-              <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-between">
-                <div className="text-center sm:text-left">
-                  <p className="font-medium text-gray-700 text-sm">Ready to find your perfect candidate?</p>
-                  <p className="text-gray-500 text-xs">Your job posting will be reviewed and published within 24 hours.</p>
+                  <FormField
+                    control={form.control}
+                    name="videoOrImageUrl"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-medium text-gray-700">Enter Media URL</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://example.com/image.png or https://youtube.com/watch?v=..."
+                            {...field}
+                            disabled={!isPostingAllowed || !!watchedMediaFile}
+                            className="h-12 rounded-lg border-gray-200 bg-white/60 text-gray-800 placeholder:text-gray-500 transition-all duration-200 focus:border-indigo-500 focus:bg-white/80 focus:ring-2 focus:ring-indigo-200"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </div>
-                <Button
-                  type="submit"
-                  disabled={isLoading || !isPostingAllowed || !mongoDbUserId}
-                  size="lg"
-                  className="group relative overflow-hidden rounded-xl border-white/30 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 font-semibold text-white shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-purple-700 hover:shadow-2xl focus:ring-2 focus:ring-blue-200/50"
-                >
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-3 h-5 w-5 animate-spin" />
-                      Publishing...
-                    </>
-                  ) : (
-                    <>
-                      <Briefcase className="mr-3 h-5 w-5" />
-                      Post Job
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardFooter>
+              </CardContent>
+              <CardFooter className="rounded-b-2xl border-t border-white/20 bg-gradient-to-r from-white/60 to-blue-50/60 p-8 backdrop-blur-sm">
+                <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-between">
+                  <div className="text-center sm:text-left">
+                    <p className="font-medium text-gray-700 text-sm">
+                      Ready to find your perfect candidate?
+                    </p>
+                    <p className="text-gray-500 text-xs">
+                      Your job posting will be reviewed and published within 24 hours.
+                    </p>
+                  </div>
+                  <Button
+                    type="submit"
+                    disabled={isLoading || !isPostingAllowed || !mongoDbUserId}
+                    size="lg"
+                    className="group relative overflow-hidden rounded-xl border-white/30 bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 font-semibold text-white shadow-xl backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:from-blue-600 hover:to-purple-700 hover:shadow-2xl focus:ring-2 focus:ring-blue-200/50"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-3 h-5 w-5 animate-spin" />
+                        Publishing...
+                      </>
+                    ) : (
+                      <>
+                        <Briefcase className="mr-3 h-5 w-5" />
+                        Post Job
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardFooter>
             </form>
           </Form>
         </Card>

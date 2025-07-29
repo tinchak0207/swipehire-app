@@ -1,8 +1,8 @@
 'use client';
 
 import { AlertTriangle, Clock, Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 interface EmbeddedReminderProps {
@@ -18,7 +18,7 @@ export function EmbeddedReminder({
   isVisible = true,
   className,
   onActionClick,
-  actionLabel = 'Use AI HR Assistant'
+  actionLabel = 'Use AI HR Assistant',
 }: EmbeddedReminderProps) {
   if (!isVisible) {
     return null;
@@ -62,13 +62,11 @@ export function EmbeddedReminder({
                   IMPORTANT REMINDER
                 </Badge>
               </div>
-              
+
               {/* Message text */}
-              <p className="text-gray-800 font-medium leading-relaxed text-sm">
-                {message}
-              </p>
+              <p className="text-gray-800 font-medium leading-relaxed text-sm">{message}</p>
             </div>
-            
+
             {/* Action button matching DashboardSidebar button style */}
             {onActionClick && (
               <Button
@@ -82,7 +80,7 @@ export function EmbeddedReminder({
                   'border border-orange-300',
                   // Subtle hover effects
                   'transition-all duration-200 hover:shadow-lg',
-                  'focus:outline-none focus:ring-2 focus:ring-orange-200',
+                  'focus:outline-none focus:ring-2 focus:ring-orange-200'
                 )}
               >
                 <Sparkles className="h-4 w-4 mr-1.5" />

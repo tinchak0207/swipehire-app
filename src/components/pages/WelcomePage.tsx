@@ -390,9 +390,7 @@ export default function WelcomePage({ onStartExploring, onGuestMode }: WelcomePa
           <div className="grid gap-8 md:grid-cols-3">
             <div>
               <h3 className="font-semibold text-lg text-slate-800">SwipeHire</h3>
-              <p className="mt-2 text-slate-600">
-                The future of hiring is a swipe away.
-              </p>
+              <p className="mt-2 text-slate-600">The future of hiring is a swipe away.</p>
             </div>
             <div>
               <h3 className="font-semibold text-lg text-slate-800">Quick Links</h3>

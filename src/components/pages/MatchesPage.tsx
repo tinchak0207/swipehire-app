@@ -221,7 +221,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     return matches.filter((match) => match.candidate && match.company && match.status === 'active');
   }, [matches, fullBackendUser?.selectedRole]);
 
-    const handleInviteToInterview = (match: Match) => {
+  const handleInviteToInterview = (match: Match) => {
     toast({
       title: 'Action: Invite to Interview',
       description: `Sending interview invitation to ${match.candidate.name}.`,
@@ -234,7 +234,6 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
     });
   };
 
-  
   // Remove the previous scroll handling useEffect as we'll handle it in the TikTokApplicantScroller
 
   if (isGuestMode) {

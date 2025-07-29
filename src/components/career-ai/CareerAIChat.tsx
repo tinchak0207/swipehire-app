@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { EmbeddedReminder } from '@/components/common/EmbeddedReminder';
 import type { CandidateProfileForAI, CareerChatMessage, Goal } from '@/lib/types';
 import { sendCareerChatMessage } from '@/services/careerService';
-import { EmbeddedReminder } from '@/components/common/EmbeddedReminder';
 
 interface CareerAIChatProps {
   profile?: CandidateProfileForAI;

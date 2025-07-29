@@ -1,6 +1,7 @@
 'use client';
 
 import type { UserRole } from '@/lib/types';
+
 interface WelcomeStepProps {
   data: Record<string, any>;
   onUpdate: (data: Partial<Record<string, any>>) => void;

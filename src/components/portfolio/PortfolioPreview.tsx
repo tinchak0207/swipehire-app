@@ -1,24 +1,25 @@
 'use client';
 
 import {
+  Award,
+  Briefcase,
   CalendarIcon,
+  CreditCard,
+  Download,
   ExternalLink as ExternalLinkIcon,
   EyeIcon,
   GithubIcon,
-  HeartIcon,
-  MessageCircleIcon,
-  TagIcon,
-  Sparkles,
   Globe,
-  Award,
-  Briefcase,
-  Download,
-  CreditCard,
+  HeartIcon,
   Mail,
+  MessageCircleIcon,
+  Sparkles,
+  TagIcon,
 } from 'lucide-react';
 import Image from 'next/image';
-import React, { useRef, useState } from 'react';
 import QRCode from 'qrcode.react';
+import type React from 'react';
+import { useRef, useState } from 'react';
 import type { Media, PortfolioDraft, Project } from '@/lib/types/portfolio';
 import { cn } from '@/lib/utils';
 
@@ -30,15 +31,16 @@ interface PortfolioPreviewProps {
  * Glassmorphism Card Component
  * Reusable glass card with consistent styling matching DashboardSidebar
  */
-const GlassCard: React.FC<{ 
-  children: React.ReactNode; 
+const GlassCard: React.FC<{
+  children: React.ReactNode;
   className?: string;
   hover?: boolean;
 }> = ({ children, className = '', hover = true }) => (
   <div
     className={cn(
       'rounded-xl border border-gray-200/50 bg-white/80 backdrop-blur-sm shadow-lg',
-      hover && 'transition-all duration-200 hover:scale-[1.02] hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 hover:shadow-xl',
+      hover &&
+        'transition-all duration-200 hover:scale-[1.02] hover:bg-gradient-to-r hover:from-blue-50 hover:to-cyan-50 hover:border-blue-300 hover:shadow-xl',
       className
     )}
   >
@@ -48,7 +50,7 @@ const GlassCard: React.FC<{
 
 /**
  * Enhanced PortfolioPreview Component
- * 
+ *
  * Beautiful glassmorphism design matching DashboardSidebar aesthetic with:
  * - Gradient backgrounds and glass effects
  * - Smooth animations and hover states
@@ -73,17 +75,17 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
     try {
       // Make sure the business card is visible
       setShowBusinessCard(true);
-      
+
       // Wait for the modal to render
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       if (!businessCardRef.current) {
         throw new Error('Business card element not found');
       }
 
       // Import html2canvas-pro dynamically
       const html2canvas = (await import('html2canvas-pro')).default;
-      
+
       // Capture the business card element directly
       const canvas = await html2canvas(businessCardRef.current, {
         backgroundColor: null,
@@ -94,18 +96,19 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
         foreignObjectRendering: false,
         removeContainer: true,
         width: 1050,
-        height: 600
+        height: 600,
       });
 
       // Create download link
       const link = document.createElement('a');
-      const sanitizedTitle = (portfolio.title || 'portfolio').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+      const sanitizedTitle = (portfolio.title || 'portfolio')
+        .replace(/[^a-z0-9]/gi, '_')
+        .toLowerCase();
       link.download = `${sanitizedTitle}_business_card.png`;
       link.href = canvas.toDataURL('image/png');
       link.click();
-      
+
       console.log('Export successful');
-      
     } catch (error) {
       console.error('Export failed:', error);
       alert('Export failed. Please try again.');
@@ -120,31 +123,31 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
   const BusinessCard = () => {
     const portfolioUrl = `${window.location.origin}/portfolio/view/${portfolio.id}`;
     const topProjects = portfolio.projects.slice(0, 3);
-    
+
     return (
       <div
         ref={businessCardRef}
         className="w-[1050px] h-[600px] relative overflow-hidden print:shadow-none"
-        style={{ 
+        style={{
           fontFamily: 'Inter, system-ui, sans-serif',
           background: 'linear-gradient(135deg, #f8fafc 0%, #e0f2fe 50%, #e0e7ff 100%)',
-          imageRendering: 'crisp-edges'
+          imageRendering: 'crisp-edges',
         }}
       >
         {/* Background Pattern - Simplified for export */}
         <div className="absolute inset-0 opacity-30">
-          <div 
+          <div
             className="absolute top-0 right-0 w-96 h-96 rounded-full"
-            style={{ 
+            style={{
               background: 'radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%)',
-              filter: 'blur(60px)'
+              filter: 'blur(60px)',
             }}
           />
-          <div 
+          <div
             className="absolute bottom-0 left-0 w-80 h-80 rounded-full"
-            style={{ 
+            style={{
               background: 'radial-gradient(circle, rgba(99, 102, 241, 0.1) 0%, transparent 70%)',
-              filter: 'blur(60px)'
+              filter: 'blur(60px)',
             }}
           />
         </div>
@@ -156,30 +159,27 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
             {/* Header */}
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <div 
+                <div
                   className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                  style={{ 
+                  style={{
                     background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)'
+                    boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)',
                   }}
                 >
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h1 
+                  <h1
                     className="text-3xl font-bold text-gray-800 mb-1 leading-tight"
-                    style={{ 
+                    style={{
                       fontWeight: '800',
                       letterSpacing: '-0.025em',
-                      lineHeight: '1.1'
+                      lineHeight: '1.1',
                     }}
                   >
                     {portfolio.title || 'Professional Portfolio'}
                   </h1>
-                  <p 
-                    className="text-blue-600 font-medium"
-                    style={{ fontWeight: '600' }}
-                  >
+                  <p className="text-blue-600 font-medium" style={{ fontWeight: '600' }}>
                     SwipeHire Portfolio
                   </p>
                 </div>
@@ -188,15 +188,15 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
               {/* Description */}
               {portfolio.description && (
                 <div className="max-w-md">
-                  <p 
+                  <p
                     className="text-gray-700 text-lg leading-relaxed"
-                    style={{ 
+                    style={{
                       lineHeight: '1.6',
-                      fontWeight: '400'
+                      fontWeight: '400',
                     }}
                   >
-                    {portfolio.description.length > 120 
-                      ? `${portfolio.description.substring(0, 120)}...` 
+                    {portfolio.description.length > 120
+                      ? `${portfolio.description.substring(0, 120)}...`
                       : portfolio.description}
                   </p>
                 </div>
@@ -213,20 +213,20 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                         backgroundColor: '#dbeafe',
                         color: '#1d4ed8',
                         fontWeight: '600',
-                        border: '1px solid #93c5fd'
+                        border: '1px solid #93c5fd',
                       }}
                     >
                       {tag}
                     </span>
                   ))}
                   {portfolio.tags.length > 4 && (
-                    <span 
+                    <span
                       className="px-3 py-1 rounded-full text-sm font-medium"
                       style={{
                         backgroundColor: '#f3f4f6',
                         color: '#4b5563',
                         fontWeight: '600',
-                        border: '1px solid #d1d5db'
+                        border: '1px solid #d1d5db',
                       }}
                     >
                       +{portfolio.tags.length - 4} more
@@ -248,26 +248,28 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
               </div>
               <div className="flex items-center gap-3 text-gray-700">
                 <CreditCard className="w-5 h-5 text-blue-600 flex-shrink-0" />
-                <span className="text-sm font-medium">{portfolio.projects.length} Projects Showcase</span>
+                <span className="text-sm font-medium">
+                  {portfolio.projects.length} Projects Showcase
+                </span>
               </div>
             </div>
           </div>
 
           {/* Right Section - Projects & QR */}
-          <div 
+          <div
             className="w-80 p-8 border-l"
-            style={{ 
+            style={{
               backgroundColor: 'rgba(255, 255, 255, 0.8)',
-              borderColor: 'rgba(229, 231, 235, 0.5)'
+              borderColor: 'rgba(229, 231, 235, 0.5)',
             }}
           >
             {/* QR Code - 直接使用本地生成的QR码 */}
             <div className="text-center mb-8">
-              <div 
+              <div
                 className="inline-block p-4 rounded-2xl"
-                style={{ 
+                style={{
                   backgroundColor: '#ffffff',
-                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+                  boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)',
                 }}
               >
                 <QRCode
@@ -279,21 +281,18 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                   style={{
                     width: '96px',
                     height: '96px',
-                    imageRendering: 'crisp-edges'
+                    imageRendering: 'crisp-edges',
                   }}
                 />
               </div>
-              <p 
-                className="text-xs text-gray-600 mt-2 font-medium"
-                style={{ fontWeight: '500' }}
-              >
+              <p className="text-xs text-gray-600 mt-2 font-medium" style={{ fontWeight: '500' }}>
                 Scan to view portfolio
               </p>
             </div>
 
             {/* Featured Projects */}
             <div className="mb-6">
-              <h3 
+              <h3
                 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"
                 style={{ fontWeight: '700' }}
               >
@@ -302,31 +301,31 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
               </h3>
               <div className="space-y-3">
                 {topProjects.map((project, index) => (
-                  <div 
-                    key={`business-card-project-${index}`} 
+                  <div
+                    key={`business-card-project-${index}`}
                     className="p-3 rounded-lg border"
                     style={{
                       backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                      borderColor: 'rgba(229, 231, 235, 0.5)'
+                      borderColor: 'rgba(229, 231, 235, 0.5)',
                     }}
                   >
-                    <h4 
+                    <h4
                       className="font-semibold text-gray-800 text-sm mb-1"
-                      style={{ 
+                      style={{
                         fontWeight: '600',
-                        lineHeight: '1.3'
+                        lineHeight: '1.3',
                       }}
                     >
                       {project.title || `Project ${index + 1}`}
                     </h4>
-                    <p 
+                    <p
                       className="text-xs text-gray-600"
-                      style={{ 
+                      style={{
                         lineHeight: '1.4',
                         display: '-webkit-box',
                         WebkitLineClamp: 2,
                         WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
+                        overflow: 'hidden',
                       }}
                     >
                       {project.description || 'Professional project showcase'}
@@ -340,7 +339,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                             style={{
                               backgroundColor: '#eff6ff',
                               color: '#2563eb',
-                              fontWeight: '500'
+                              fontWeight: '500',
                             }}
                           >
                             {tag}
@@ -350,9 +349,9 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                     )}
                   </div>
                 ))}
-                
+
                 {portfolio.projects.length === 0 && (
-                  <div 
+                  <div
                     className="p-4 rounded-lg text-center"
                     style={{ backgroundColor: '#f9fafb' }}
                   >
@@ -363,39 +362,27 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
             </div>
 
             {/* Stats */}
-            <div 
-              className="pt-4 border-t"
-              style={{ borderColor: 'rgba(229, 231, 235, 0.5)' }}
-            >
+            <div className="pt-4 border-t" style={{ borderColor: 'rgba(229, 231, 235, 0.5)' }}>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div 
-                    className="text-xl font-bold text-blue-600"
-                    style={{ fontWeight: '700' }}
-                  >
+                  <div className="text-xl font-bold text-blue-600" style={{ fontWeight: '700' }}>
                     {portfolio.projects.length}
                   </div>
-                  <div 
-                    className="text-xs text-gray-600"
-                    style={{ fontWeight: '500' }}
-                  >
+                  <div className="text-xs text-gray-600" style={{ fontWeight: '500' }}>
                     Projects
                   </div>
                 </div>
                 <div>
-                  <div 
+                  <div
                     className="text-xl font-bold"
-                    style={{ 
+                    style={{
                       fontWeight: '700',
-                      color: portfolio.isPublished ? '#059669' : '#d97706'
+                      color: portfolio.isPublished ? '#059669' : '#d97706',
                     }}
                   >
                     {portfolio.isPublished ? 'Live' : 'Draft'}
                   </div>
-                  <div 
-                    className="text-xs text-gray-600"
-                    style={{ fontWeight: '500' }}
-                  >
+                  <div className="text-xs text-gray-600" style={{ fontWeight: '500' }}>
                     Status
                   </div>
                 </div>
@@ -405,7 +392,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
         </div>
 
         {/* Branding Footer */}
-        <div 
+        <div
           className="absolute bottom-4 left-12 flex items-center gap-2 text-gray-500"
           style={{ fontSize: '11px' }}
         >
@@ -420,16 +407,16 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
    * Get link icon with consistent styling
    */
   const getLinkIcon = (type: string) => {
-    const iconClass = "h-4 w-4 transition-colors duration-200";
+    const iconClass = 'h-4 w-4 transition-colors duration-200';
     switch (type) {
       case 'github':
-        return <GithubIcon className={cn(iconClass, "text-gray-700")} />;
+        return <GithubIcon className={cn(iconClass, 'text-gray-700')} />;
       case 'demo':
-        return <EyeIcon className={cn(iconClass, "text-blue-600")} />;
+        return <EyeIcon className={cn(iconClass, 'text-blue-600')} />;
       case 'live':
-        return <Globe className={cn(iconClass, "text-green-600")} />;
+        return <Globe className={cn(iconClass, 'text-green-600')} />;
       default:
-        return <ExternalLinkIcon className={cn(iconClass, "text-purple-600")} />;
+        return <ExternalLinkIcon className={cn(iconClass, 'text-purple-600')} />;
     }
   };
 
@@ -437,8 +424,8 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
    * Render media with glassmorphism styling
    */
   const renderMedia = (mediaItem: Media, index: number) => {
-    const mediaClass = "rounded-xl object-cover w-full h-48 shadow-md";
-    
+    const mediaClass = 'rounded-xl object-cover w-full h-48 shadow-md';
+
     switch (mediaItem.type) {
       case 'image':
         return (
@@ -663,7 +650,9 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                       </div>
                       <div className="flex items-center gap-2">
                         <CalendarIcon className="h-4 w-4" />
-                        <span>{new Date(project.createdAt || Date.now()).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(project.createdAt || Date.now()).toLocaleDateString()}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -710,7 +699,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
             <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full border border-gray-200/50 bg-white/80 backdrop-blur-sm shadow-lg">
               <Sparkles className="h-8 w-8 text-blue-600" />
             </div>
-            
+
             <h1 className="mb-6 font-extrabold font-montserrat text-5xl text-blue-600 tracking-tight md:text-6xl">
               {portfolio.title || 'Untitled Portfolio'}
             </h1>
@@ -761,7 +750,9 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                 <div className="mb-2 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
                   <EyeIcon className="h-6 w-6 text-white" />
                 </div>
-                <div className="font-bold text-gray-800 text-lg capitalize">{portfolio.layout || 'Grid'}</div>
+                <div className="font-bold text-gray-800 text-lg capitalize">
+                  {portfolio.layout || 'Grid'}
+                </div>
                 <div className="text-gray-600 text-sm font-medium">Layout</div>
               </GlassCard>
 
@@ -784,9 +775,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
       </div>
 
       {/* Portfolio Content */}
-      <div className="relative z-10 container mx-auto px-6 py-12">
-        {renderProjects()}
-      </div>
+      <div className="relative z-10 container mx-auto px-6 py-12">{renderProjects()}</div>
 
       {/* Footer */}
       <div className="relative z-10 mt-16 border-gray-200/50 border-t bg-white/80 backdrop-blur-sm">
@@ -810,7 +799,9 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-800">Digital Business Card</h2>
-                  <p className="text-sm text-gray-600">Preview and export your portfolio as a business card</p>
+                  <p className="text-sm text-gray-600">
+                    Preview and export your portfolio as a business card
+                  </p>
                 </div>
               </div>
               <button

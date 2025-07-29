@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import CareerQuestionnaire from '@/components/career-ai/CareerQuestionnaire';
 import {
   Availability,
@@ -6,8 +7,7 @@ import {
   LocationPreference,
   WorkExperienceLevel,
 } from '@/lib/types';
-import { WizardData } from '../WizardContainer';
-import { useState } from 'react';
+import type { WizardData } from '../WizardContainer';
 
 interface ProfileSetupStepProps {
   data: Partial<WizardData>;

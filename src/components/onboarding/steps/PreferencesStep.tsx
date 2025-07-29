@@ -1,4 +1,4 @@
-import { WizardData } from '../WizardContainer';
+import type { WizardData } from '../WizardContainer';
 
 interface PreferencesStepProps {
   data: Partial<WizardData>;
@@ -115,7 +115,9 @@ export default function PreferencesStep({
                       checked={!!value}
                       onChange={(e) =>
                         handleNotificationChannelChange(
-                          key as keyof NonNullable<WizardData['preferences']>['notificationChannels'],
+                          key as keyof NonNullable<
+                            WizardData['preferences']
+                          >['notificationChannels'],
                           e.target.checked
                         )
                       }
@@ -134,31 +136,35 @@ export default function PreferencesStep({
               <span className="mr-2">📧</span> Email Subscriptions
             </h3>
             <div className="space-y-2">
-              {Object.entries(data.preferences?.notificationSubscriptions || {}).map(([key, value]) => (
-                <div
-                  key={key}
-                  className={`form-control rounded-lg p-3 transition-all duration-200 ${
-                    value ? 'bg-primary/10' : 'hover:bg-primary/5'
-                  }`}
-                >
-                  <label className="label cursor-pointer justify-between">
-                    <span className="label-text font-medium">
-                      {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
-                    </span>
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-all duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                      checked={!!value}
-                      onChange={(e) =>
-                        handleNotificationSubscriptionChange(
-                          key as keyof NonNullable<WizardData['preferences']>['notificationSubscriptions'],
-                          e.target.checked
-                        )
-                      }
-                    />
-                  </label>
-                </div>
-              ))}
+              {Object.entries(data.preferences?.notificationSubscriptions || {}).map(
+                ([key, value]) => (
+                  <div
+                    key={key}
+                    className={`form-control rounded-lg p-3 transition-all duration-200 ${
+                      value ? 'bg-primary/10' : 'hover:bg-primary/5'
+                    }`}
+                  >
+                    <label className="label cursor-pointer justify-between">
+                      <span className="label-text font-medium">
+                        {key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}
+                      </span>
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary checkbox-lg h-6 w-6 rounded-md border-2 transition-all duration-200 ease-in-out hover:border-primary-focus focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                        checked={!!value}
+                        onChange={(e) =>
+                          handleNotificationSubscriptionChange(
+                            key as keyof NonNullable<
+                              WizardData['preferences']
+                            >['notificationSubscriptions'],
+                            e.target.checked
+                          )
+                        }
+                      />
+                    </label>
+                  </div>
+                )
+              )}
             </div>
           </div>
         </div>

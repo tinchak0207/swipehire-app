@@ -9,31 +9,26 @@ interface MobileOptimizedLoaderProps {
   text?: string;
 }
 
-export function MobileOptimizedLoader({ 
-  size = 'md', 
+export function MobileOptimizedLoader({
+  size = 'md',
   className,
-  text = 'Loading...'
+  text = 'Loading...',
 }: MobileOptimizedLoaderProps) {
   const sizeClasses = {
     sm: 'h-6 w-6',
     md: 'h-8 w-8 sm:h-6 sm:w-6',
-    lg: 'h-12 w-12 sm:h-8 sm:w-8'
+    lg: 'h-12 w-12 sm:h-8 sm:w-8',
   };
 
   return (
-    <div className={cn(
-      'flex flex-col items-center justify-center gap-3 sm:gap-2 p-4 sm:p-2',
-      className
-    )}>
-      <Loader2 className={cn(
-        'animate-spin text-primary',
-        sizeClasses[size]
-      )} />
-      {text && (
-        <p className="text-sm text-muted-foreground font-medium">
-          {text}
-        </p>
+    <div
+      className={cn(
+        'flex flex-col items-center justify-center gap-3 sm:gap-2 p-4 sm:p-2',
+        className
       )}
+    >
+      <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
+      {text && <p className="text-sm text-muted-foreground font-medium">{text}</p>}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Loader2, Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
@@ -18,7 +19,6 @@ import type {
   WorkExperienceLevel,
 } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { z } from 'zod';
 import CompletionStep from './steps/CompletionStep';
 import GoalSettingStep from './steps/GoalSettingStep';
 import PreferencesStep from './steps/PreferencesStep';
@@ -47,22 +47,26 @@ export const personalInfoSchema = z.object({
 });
 
 export const experienceSchema = z.object({
-  experiences: z.array(z.object({
-    title: z.string(),
-    company: z.string(),
-    startDate: z.string(),
-    endDate: z.string().optional(),
-    description: z.string().optional(),
-  })),
+  experiences: z.array(
+    z.object({
+      title: z.string(),
+      company: z.string(),
+      startDate: z.string(),
+      endDate: z.string().optional(),
+      description: z.string().optional(),
+    })
+  ),
 });
 
 export const educationSchema = z.object({
-  educations: z.array(z.object({
-    school: z.string(),
-    degree: z.string(),
-    fieldOfStudy: z.string(),
-    graduationYear: z.string().optional(),
-  })),
+  educations: z.array(
+    z.object({
+      school: z.string(),
+      degree: z.string(),
+      fieldOfStudy: z.string(),
+      graduationYear: z.string().optional(),
+    })
+  ),
 });
 
 export const skillsSchema = z.object({
@@ -198,7 +202,6 @@ export function WizardContainer({ onCompleteAction, onSkipAction }: WizardContai
     }
   };
 
-  
   const progress = ((currentStep + 1) / steps.length) * 100;
 
   const renderStep = () => {
@@ -240,18 +243,19 @@ export function WizardContainer({ onCompleteAction, onSkipAction }: WizardContai
       </div>
 
       <AnimatePresence mode="wait">
-        <motion.div key={currentStep} variants={formVariant} initial="hidden" animate="visible" exit="exit">
+        <motion.div
+          key={currentStep}
+          variants={formVariant}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+        >
           {renderStep()}
         </motion.div>
       </AnimatePresence>
 
       {currentStep < steps.length - 1 && (
-        <div
-          className={cn(
-            'mt-8 flex',
-            currentStep === 0 ? 'justify-end' : 'justify-between'
-          )}
-        >
+        <div className={cn('mt-8 flex', currentStep === 0 ? 'justify-end' : 'justify-between')}>
           {currentStep > 0 && (
             <Button variant="outline" onClick={prevStep} disabled={isSubmitting}>
               <ArrowLeft className="mr-2 h-4 w-4" /> Previous

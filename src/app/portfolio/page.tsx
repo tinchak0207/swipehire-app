@@ -1,22 +1,22 @@
 'use client';
 
-import { 
-  EyeIcon, 
-  PencilIcon, 
-  PlusIcon, 
-  ShareIcon, 
-  TrashIcon,
-  SparklesIcon,
-  FolderIcon,
+import {
   CalendarIcon,
+  EllipsisVerticalIcon,
+  EyeIcon,
+  FolderIcon,
   GlobeAltIcon,
   LockClosedIcon,
-  EllipsisVerticalIcon
+  PencilIcon,
+  PlusIcon,
+  ShareIcon,
+  SparklesIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline';
-import { 
-  HeartIcon as HeartSolidIcon,
+import {
   EyeIcon as EyeSolidIcon,
-  FolderIcon as FolderSolidIcon
+  FolderIcon as FolderSolidIcon,
+  HeartIcon as HeartSolidIcon,
 } from '@heroicons/react/24/solid';
 import { Briefcase } from 'lucide-react';
 import Link from 'next/link';
@@ -82,7 +82,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
               {portfolio.description || 'No description provided'}
             </p>
           </div>
-          
+
           {/* Action menu */}
           <div className="relative ml-4">
             <button
@@ -91,18 +91,15 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
             >
               <EllipsisVerticalIcon className="h-4 w-4" />
             </button>
-            
+
             {isMenuOpen && (
               <>
                 {/* Backdrop */}
-                <div 
-                  className="fixed inset-0 z-10" 
-                  onClick={() => setIsMenuOpen(false)}
-                />
-                
+                <div className="fixed inset-0 z-10" onClick={() => setIsMenuOpen(false)} />
+
                 {/* Menu */}
                 <div className="absolute right-0 top-10 z-20 w-48 rounded-xl border border-gray-200 bg-white/90 p-2 shadow-xl backdrop-blur-sm">
-                  <Link 
+                  <Link
                     href={`/portfolio/view/${portfolio.id}`}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 text-sm transition-colors hover:bg-blue-50 hover:text-blue-700"
                     onClick={() => setIsMenuOpen(false)}
@@ -110,7 +107,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
                     <EyeIcon className="h-4 w-4" />
                     View Portfolio
                   </Link>
-                  <Link 
+                  <Link
                     href={`/portfolio/edit/${portfolio.id}`}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 text-sm transition-colors hover:bg-blue-50 hover:text-blue-700"
                     onClick={() => setIsMenuOpen(false)}
@@ -118,7 +115,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
                     <PencilIcon className="h-4 w-4" />
                     Edit Portfolio
                   </Link>
-                  <button 
+                  <button
                     onClick={handleShare}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-gray-700 text-sm transition-colors hover:bg-blue-50 hover:text-blue-700"
                   >
@@ -143,8 +140,8 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
         {portfolio.tags && portfolio.tags.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {portfolio.tags.slice(0, 3).map((tag) => (
-              <span 
-                key={tag} 
+              <span
+                key={tag}
                 className="rounded-full border border-blue-200 bg-blue-100 px-3 py-1 font-semibold text-blue-700 text-xs"
               >
                 {tag}
@@ -177,7 +174,9 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
           <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white/60 p-3 transition-colors hover:bg-green-50">
             <FolderSolidIcon className="h-4 w-4 text-green-600" />
             <div>
-              <div className="font-bold text-gray-800 text-sm">{portfolio.projects?.length || 0}</div>
+              <div className="font-bold text-gray-800 text-sm">
+                {portfolio.projects?.length || 0}
+              </div>
               <div className="text-gray-600 text-xs">Projects</div>
             </div>
           </div>
@@ -204,7 +203,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({ portfolio, onDelete }) =>
               {new Date(portfolio.updatedAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
-                year: 'numeric'
+                year: 'numeric',
               })}
             </span>
           </div>
@@ -247,18 +246,24 @@ const PortfolioDashboard: React.FC = () => {
             </div>
             <div className="h-12 w-40 animate-pulse rounded-xl bg-white/80 border border-gray-200" />
           </div>
-          
+
           {/* Stats skeleton */}
           <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
             {[...Array(3)].map((_, i) => (
-              <div key={`stats-skeleton-${i}`} className="h-24 animate-pulse rounded-xl bg-white/80 border border-gray-200 shadow-lg" />
+              <div
+                key={`stats-skeleton-${i}`}
+                className="h-24 animate-pulse rounded-xl bg-white/80 border border-gray-200 shadow-lg"
+              />
             ))}
           </div>
-          
+
           {/* Cards skeleton */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <div key={`card-skeleton-${i}`} className="h-80 animate-pulse rounded-xl bg-white/80 border border-gray-200 shadow-lg" />
+              <div
+                key={`card-skeleton-${i}`}
+                className="h-80 animate-pulse rounded-xl bg-white/80 border border-gray-200 shadow-lg"
+              />
             ))}
           </div>
         </div>
@@ -273,13 +278,25 @@ const PortfolioDashboard: React.FC = () => {
           <div className="mx-auto max-w-md rounded-xl border border-red-200 bg-red-50 p-6 text-center shadow-lg">
             <div className="mb-4 flex justify-center">
               <div className="rounded-full bg-red-100 p-3">
-                <svg className="h-8 w-8 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                <svg
+                  className="h-8 w-8 text-red-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
                 </svg>
               </div>
             </div>
             <h3 className="mb-2 font-bold text-red-800 text-lg">Error Loading Portfolios</h3>
-            <p className="text-red-600">Please try again later or contact support if the problem persists.</p>
+            <p className="text-red-600">
+              Please try again later or contact support if the problem persists.
+            </p>
           </div>
         </div>
       </div>
@@ -298,10 +315,12 @@ const PortfolioDashboard: React.FC = () => {
         <div className="mb-8 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <div className={cn(
-                'flex h-12 w-12 items-center justify-center rounded-xl shadow-lg transition-all duration-200',
-                'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:scale-105 hover:shadow-xl'
-              )}>
+              <div
+                className={cn(
+                  'flex h-12 w-12 items-center justify-center rounded-xl shadow-lg transition-all duration-200',
+                  'bg-gradient-to-br from-blue-500 to-blue-600 text-white hover:scale-105 hover:shadow-xl'
+                )}
+              >
                 <Briefcase className="h-6 w-6" />
               </div>
               <div>
@@ -310,8 +329,8 @@ const PortfolioDashboard: React.FC = () => {
               </div>
             </div>
           </div>
-          <Link 
-            href="/portfolio/new" 
+          <Link
+            href="/portfolio/new"
             className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:scale-105 hover:shadow-xl"
           >
             <PlusIcon className="h-5 w-5 transition-transform group-hover:scale-110" />
@@ -336,27 +355,31 @@ const PortfolioDashboard: React.FC = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-green-50 hover:to-emerald-50 hover:border-green-300 hover:shadow-xl">
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-gradient-to-br from-green-500 to-green-600 p-3 shadow-lg">
                   <EyeSolidIcon className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <div className="font-bold text-gray-800 text-2xl">{totalViews.toLocaleString()}</div>
+                  <div className="font-bold text-gray-800 text-2xl">
+                    {totalViews.toLocaleString()}
+                  </div>
                   <div className="text-gray-600 text-sm font-medium">Total Views</div>
                   <div className="text-gray-500 text-xs">Across all portfolios</div>
                 </div>
               </div>
             </div>
-            
+
             <div className="rounded-xl border border-gray-200 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-200 hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 hover:border-red-300 hover:shadow-xl">
               <div className="flex items-center gap-4">
                 <div className="rounded-xl bg-gradient-to-br from-red-500 to-red-600 p-3 shadow-lg">
                   <HeartSolidIcon className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <div className="font-bold text-gray-800 text-2xl">{totalLikes.toLocaleString()}</div>
+                  <div className="font-bold text-gray-800 text-2xl">
+                    {totalLikes.toLocaleString()}
+                  </div>
                   <div className="text-gray-600 text-sm font-medium">Total Likes</div>
                   <div className="text-gray-500 text-xs">From your audience</div>
                 </div>
@@ -377,7 +400,10 @@ const PortfolioDashboard: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-bold text-gray-800 text-xl">Published Portfolios</h2>
-                    <p className="text-gray-600 text-sm">{publishedPortfolios.length} portfolio{publishedPortfolios.length !== 1 ? 's' : ''} live and visible to the public</p>
+                    <p className="text-gray-600 text-sm">
+                      {publishedPortfolios.length} portfolio
+                      {publishedPortfolios.length !== 1 ? 's' : ''} live and visible to the public
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -401,7 +427,10 @@ const PortfolioDashboard: React.FC = () => {
                   </div>
                   <div>
                     <h2 className="font-bold text-gray-800 text-xl">Draft Portfolios</h2>
-                    <p className="text-gray-600 text-sm">{draftPortfolios.length} portfolio{draftPortfolios.length !== 1 ? 's' : ''} in progress</p>
+                    <p className="text-gray-600 text-sm">
+                      {draftPortfolios.length} portfolio{draftPortfolios.length !== 1 ? 's' : ''} in
+                      progress
+                    </p>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -427,10 +456,11 @@ const PortfolioDashboard: React.FC = () => {
               </div>
               <h3 className="mb-3 font-bold text-gray-800 text-xl">No portfolios yet</h3>
               <p className="mb-6 text-gray-600 leading-relaxed">
-                Get started by creating your first portfolio to showcase your work and projects to potential employers and clients.
+                Get started by creating your first portfolio to showcase your work and projects to
+                potential employers and clients.
               </p>
-              <Link 
-                href="/portfolio/new" 
+              <Link
+                href="/portfolio/new"
                 className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-3 font-semibold text-white shadow-lg transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:scale-105 hover:shadow-xl"
               >
                 <SparklesIcon className="h-5 w-5 transition-transform group-hover:scale-110" />

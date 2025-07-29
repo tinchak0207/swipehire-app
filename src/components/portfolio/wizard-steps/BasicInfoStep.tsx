@@ -136,7 +136,9 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             placeholder="Tell visitors about yourself, your skills, and what makes you unique..."
             rows={4}
             className={`w-full resize-none rounded-2xl border-2 bg-white/80 px-6 py-4 text-lg text-black placeholder-black/50 backdrop-blur-sm transition-all duration-300 focus:outline-none ${
-              descriptionFocused || description ? 'border-gray-200/50 bg-white/90' : 'border-gray-200/50'
+              descriptionFocused || description
+                ? 'border-gray-200/50 bg-white/90'
+                : 'border-gray-200/50'
             } ${errors.description ? 'border-red-400' : ''}`}
             onFocus={() => setDescriptionFocused(true)}
             onBlur={() => setDescriptionFocused(false)}

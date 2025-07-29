@@ -392,8 +392,8 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
               <h2 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-2xl text-transparent">
                 Projects
               </h2>
-              <button 
-                className="btn btn-sm rounded-lg border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg" 
+              <button
+                className="btn btn-sm rounded-lg border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg"
                 onClick={handleAddProject}
               >
                 <PlusIcon className="mr-2 h-4 w-4" />
@@ -479,8 +479,8 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
 
             <div className="space-y-3">
               {/* Preview Button */}
-              <button 
-                className="btn btn-block rounded-lg border-gray-200 bg-white/80 text-gray-700 transition-all duration-200 hover:border-blue-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:text-blue-700" 
+              <button
+                className="btn btn-block rounded-lg border-gray-200 bg-white/80 text-gray-700 transition-all duration-200 hover:border-blue-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:text-blue-700"
                 onClick={() => setShowPreview(true)}
               >
                 <EyeIcon className="mr-2 h-4 w-4" />
@@ -490,8 +490,8 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
               {/* Save Draft Button */}
               <button
                 className={`btn btn-block rounded-lg transition-all duration-200 ${
-                  isSaving 
-                    ? 'bg-gray-400 text-white' 
+                  isSaving
+                    ? 'bg-gray-400 text-white'
                     : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:from-blue-600 hover:to-blue-700 hover:shadow-lg'
                 }`}
                 onClick={() => handleSave(false)}
@@ -504,8 +504,8 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
               {/* Publish Button */}
               <button
                 className={`btn btn-block rounded-lg transition-all duration-200 ${
-                  isSaving 
-                    ? 'bg-gray-400 text-white' 
+                  isSaving
+                    ? 'bg-gray-400 text-white'
                     : 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md hover:from-green-600 hover:to-green-700 hover:shadow-lg'
                 }`}
                 onClick={() => handleSave(true)}
@@ -578,8 +578,8 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
                 <h3 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-lg text-transparent">
                   Portfolio Preview
                 </h3>
-                <button 
-                  className="btn btn-sm btn-circle border-gray-200 bg-white/80 text-gray-700 transition-all duration-200 hover:bg-red-50 hover:text-red-600" 
+                <button
+                  className="btn btn-sm btn-circle border-gray-200 bg-white/80 text-gray-700 transition-all duration-200 hover:bg-red-50 hover:text-red-600"
                   onClick={() => setShowPreview(false)}
                 >
                   ✕
@@ -590,7 +590,10 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
                 <PortfolioPreview portfolio={draft} />
               </div>
             </div>
-            <div className="modal-backdrop bg-black/30 backdrop-blur-sm" onClick={() => setShowPreview(false)} />
+            <div
+              className="modal-backdrop bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowPreview(false)}
+            />
           </div>
         )}
       </div>

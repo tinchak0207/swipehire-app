@@ -12,6 +12,7 @@ import {
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query';
+import { auth } from '@/lib/firebase'; // Added import for Firebase auth
 import type {
   CreatePortfolioRequest,
   MediaUploadResponse,
@@ -20,7 +21,6 @@ import type {
   PortfolioSearchParams,
   UpdatePortfolioRequest,
 } from '../lib/types/portfolio';
-import { auth } from '@/lib/firebase'; // Added import for Firebase auth
 
 // API base URL - in production, this should come from environment variables
 const API_BASE_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
@@ -43,7 +43,7 @@ class PortfolioService {
     // In production you should change the backend to validate the real ID token instead.
     const user = auth.currentUser;
     const token = user ? user.uid : null;
-    
+
     const response = await fetch(url, {
       ...options,
       headers: {
@@ -54,9 +54,9 @@ class PortfolioService {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ 
-        success: false, 
-        message: 'Network error' 
+      const errorData = await response.json().catch(() => ({
+        success: false,
+        message: 'Network error',
       }));
       throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
     }
@@ -88,7 +88,7 @@ class PortfolioService {
     const url = `${API_BASE_URL}/api/portfolios/my?${searchParams.toString()}`;
     const response = await PortfolioService.fetchWithAuth(url);
     const data = await response.json();
-    
+
     // Normalize the portfolio objects so we always have an `id` field available
     const normalizeArray = (arr: any[]): PortfolioListResponse =>
       arr.map(PortfolioService.normalizePortfolio);
@@ -97,7 +97,7 @@ class PortfolioService {
     if (data.success && data.data) {
       return normalizeArray(data.data); // Backend returns { success: true, data: [...] }
     }
-    
+
     return Array.isArray(data) ? normalizeArray(data) : []; // Fallback for direct array or empty
   }
 
