@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { CandidateProfileForAI, CareerChatMessage, Goal } from '@/lib/types';
 import { sendCareerChatMessage } from '@/services/careerService';
+import { EmbeddedReminder } from '@/components/common/EmbeddedReminder';
 
 interface CareerAIChatProps {
   profile?: CandidateProfileForAI;
@@ -286,6 +287,13 @@ export default function CareerAIChat({ profile, goals, currentStage }: CareerAIC
             </div>
           )}
         </div>
+
+        {/* Important Reminder - Embedded with Visual Effects */}
+        <EmbeddedReminder
+          message="Failure to reply within 72 hours will deduct from your company's reputation score. It is recommended to use the AI Human Resources function to ensure timely replies."
+          onActionClick={() => window.open('/ai-hr-assistant', '_blank')}
+          actionLabel="Use AI HR Assistant"
+        />
       </div>
     </div>
   );

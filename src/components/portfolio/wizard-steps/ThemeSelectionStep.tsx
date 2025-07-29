@@ -125,8 +125,8 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
         className="space-y-6"
       >
         <div className="flex items-center space-x-3">
-          <Palette className="h-6 w-6 text-white" />
-          <h3 className="font-bold text-2xl text-white">Choose Your Theme</h3>
+          <Palette className="h-6 w-6 text-blue-600" />
+          <h3 className="font-bold text-2xl text-blue-600">Choose Your Theme</h3>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -143,16 +143,16 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
               onMouseEnter={() => setPreviewTheme(theme.id)}
               onMouseLeave={() => setPreviewTheme(null)}
             >
-              <div className="rounded-2xl border-2 border-white/20 bg-white/10 p-6 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/20">
+              <div className="rounded-2xl border-2 border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/90">
                 {/* Theme preview */}
                 <div
                   className={`mb-4 h-32 w-full rounded-xl ${theme.preview} relative overflow-hidden`}
                 >
                   <div className="absolute inset-0 bg-black/20" />
                   <div className="absolute right-2 bottom-2 left-2">
-                    <div className="rounded bg-white/20 p-2 backdrop-blur-sm">
-                      <div className="mb-1 h-2 rounded bg-white/40" />
-                      <div className="h-1 w-2/3 rounded bg-white/30" />
+                    <div className="rounded bg-white/40 p-2 backdrop-blur-sm">
+                      <div className="mb-1 h-2 rounded bg-white/60" />
+                      <div className="h-1 w-2/3 rounded bg-white/50" />
                     </div>
                   </div>
 
@@ -175,7 +175,7 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                       className="absolute inset-0 flex items-center justify-center bg-black/40"
                     >
                       <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
-                        <Eye className="h-6 w-6 text-white" />
+                        <Eye className="h-6 w-6 text-blue-600" />
                       </div>
                     </motion.div>
                   )}
@@ -183,15 +183,15 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
 
                 {/* Theme info */}
                 <div className="space-y-3">
-                  <h4 className="font-bold text-white text-xl">{theme.name}</h4>
-                  <p className="text-sm text-white/70">{theme.description}</p>
+                  <h4 className="font-bold text-blue-600 text-xl">{theme.name}</h4>
+                  <p className="text-sm text-black/70">{theme.description}</p>
 
                   {/* Features */}
                   <div className="flex flex-wrap gap-2">
                     {theme.features.map((feature) => (
                       <span
                         key={feature}
-                        className="rounded-full bg-white/20 px-2 py-1 text-white/80 text-xs"
+                        className="rounded-full bg-blue-100 px-2 py-1 text-black/80 text-xs"
                       >
                         {feature}
                       </span>
@@ -212,8 +212,8 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
         className="space-y-6"
       >
         <div className="flex items-center space-x-3">
-          <Layout className="h-6 w-6 text-white" />
-          <h3 className="font-bold text-2xl text-white">Select Layout Style</h3>
+          <Layout className="h-6 w-6 text-blue-600" />
+          <h3 className="font-bold text-2xl text-blue-600">Select Layout Style</h3>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -228,27 +228,27 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
               }`}
               onClick={() => handleLayoutSelect(layout.id)}
             >
-              <div className="rounded-2xl border-2 border-white/20 bg-white/10 p-6 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/20">
+              <div className="rounded-2xl border-2 border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm transition-all duration-300 hover:scale-105 hover:bg-white/90">
                 {/* Layout preview */}
-                <div className="relative mb-4 h-24 w-full overflow-hidden rounded-lg bg-white/10 p-3">
+                <div className="relative mb-4 h-24 w-full overflow-hidden rounded-lg bg-blue-100 p-3">
                   {layout.id === 'grid' && (
                     <div className="grid h-full grid-cols-2 gap-2">
-                      <div className="rounded bg-white/30" />
-                      <div className="rounded bg-white/30" />
-                      <div className="rounded bg-white/30" />
-                      <div className="rounded bg-white/30" />
+                      <div className="rounded bg-blue-200" />
+                      <div className="rounded bg-blue-200" />
+                      <div className="rounded bg-blue-200" />
+                      <div className="rounded bg-blue-200" />
                     </div>
                   )}
 
                   {layout.id === 'masonry' && (
                     <div className="grid h-full grid-cols-2 gap-2">
                       <div className="space-y-2">
-                        <div className="h-8 rounded bg-white/30" />
-                        <div className="h-12 rounded bg-white/30" />
+                        <div className="h-8 rounded bg-blue-200" />
+                        <div className="h-12 rounded bg-blue-200" />
                       </div>
                       <div className="space-y-2">
-                        <div className="h-12 rounded bg-white/30" />
-                        <div className="h-8 rounded bg-white/30" />
+                        <div className="h-12 rounded bg-blue-200" />
+                        <div className="h-8 rounded bg-blue-200" />
                       </div>
                     </div>
                   )}
@@ -256,16 +256,16 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                   {layout.id === 'list' && (
                     <div className="h-full space-y-2">
                       <div className="flex space-x-2">
-                        <div className="h-4 w-8 rounded bg-white/30" />
-                        <div className="h-4 flex-1 rounded bg-white/30" />
+                        <div className="h-4 w-8 rounded bg-blue-200" />
+                        <div className="h-4 flex-1 rounded bg-blue-200" />
                       </div>
                       <div className="flex space-x-2">
-                        <div className="h-4 w-8 rounded bg-white/30" />
-                        <div className="h-4 flex-1 rounded bg-white/30" />
+                        <div className="h-4 w-8 rounded bg-blue-200" />
+                        <div className="h-4 flex-1 rounded bg-blue-200" />
                       </div>
                       <div className="flex space-x-2">
-                        <div className="h-4 w-8 rounded bg-white/30" />
-                        <div className="h-4 flex-1 rounded bg-white/30" />
+                        <div className="h-4 w-8 rounded bg-blue-200" />
+                        <div className="h-4 flex-1 rounded bg-blue-200" />
                       </div>
                     </div>
                   )}
@@ -285,10 +285,10 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
                 {/* Layout info */}
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <layout.icon className="h-5 w-5 text-white" />
-                    <h4 className="font-bold text-lg text-white">{layout.name}</h4>
+                    <layout.icon className="h-5 w-5 text-blue-600" />
+                    <h4 className="font-bold text-lg text-blue-600">{layout.name}</h4>
                   </div>
-                  <p className="text-sm text-white/70">{layout.description}</p>
+                  <p className="text-sm text-black/70">{layout.description}</p>
                 </div>
               </div>
             </motion.div>
@@ -301,23 +301,23 @@ const ThemeSelectionStep: React.FC<ThemeSelectionStepProps> = ({ form, data, onD
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        className="rounded-2xl border border-white/20 bg-white/5 p-6 backdrop-blur-sm"
+        className="rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm"
       >
-        <h4 className="mb-3 flex items-center space-x-2 font-semibold text-white">
-          <Sparkles className="h-4 w-4" />
+        <h4 className="mb-3 flex items-center space-x-2 font-semibold text-blue-600">
+          <Sparkles className="h-4 w-4 text-blue-600" />
           <span>Your Selection</span>
         </h4>
 
         <div className="grid gap-4 md:grid-cols-2">
           <div>
-            <p className="text-sm text-white/60">Theme</p>
-            <p className="font-medium text-white">
+            <p className="text-sm text-black/60">Theme</p>
+            <p className="font-medium text-black">
               {themes.find((t) => t.id === selectedTheme)?.name}
             </p>
           </div>
           <div>
-            <p className="text-sm text-white/60">Layout</p>
-            <p className="font-medium text-white">
+            <p className="text-sm text-black/60">Layout</p>
+            <p className="font-medium text-black">
               {layouts.find((l) => l.id === selectedLayout)?.name}
             </p>
           </div>

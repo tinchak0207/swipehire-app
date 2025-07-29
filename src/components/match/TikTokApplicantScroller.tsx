@@ -32,7 +32,8 @@ export function TikTokApplicantScroller({
 
     const handleScroll = () => {
       const scrollPosition = container.scrollTop;
-      const cardHeight = window.innerHeight * 0.9; // 90% of viewport height
+      const containerHeight = container.clientHeight;
+      const cardHeight = containerHeight; // Each card takes full container height
       const newIndex = Math.round(scrollPosition / cardHeight);
 
       if (newIndex >= 0 && newIndex < applicants.length) {
@@ -55,7 +56,8 @@ export function TikTokApplicantScroller({
   const scrollToApplicant = useCallback((index: number) => {
     if (!containerRef.current) return;
 
-    const cardHeight = window.innerHeight * 0.9;
+    const containerHeight = containerRef.current.clientHeight;
+    const cardHeight = containerHeight;
     const targetPosition = index * cardHeight;
 
     containerRef.current.scrollTo({
@@ -86,7 +88,7 @@ export function TikTokApplicantScroller({
   }, []);
 
   return (
-    <div className="relative h-[75vh] w-full overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="relative h-full min-h-0 w-full overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Main scroller container */}
       <div
         ref={containerRef}
@@ -103,9 +105,9 @@ export function TikTokApplicantScroller({
           <div
             key={applicant._id}
             ref={(el) => setCardRef(applicant._id, el)}
-            className="flex h-[67.5vh] w-full snap-start items-center justify-center p-4"
+            className="flex h-full w-full snap-start items-center justify-center p-2 md:p-4"
           >
-            <div className="h-full w-[50.625vh] max-w-full">
+            <div className="h-full w-full max-w-sm mx-auto md:w-[50.625vh] md:max-w-full">
               {' '}
               {/* 3:4 aspect ratio (3:4 width:height) - height changed from 90vh to 67.5vh */}
               <ApplicantCard
@@ -124,7 +126,8 @@ export function TikTokApplicantScroller({
       <div className="-translate-y-1/2 absolute top-1/2 right-4 flex transform flex-col gap-2">
         <Button
           size="icon"
-          className="h-10 w-10 rounded-full shadow-lg"
+          variant="outline"
+          className="h-10 w-10 rounded-full shadow-lg bg-white/90 border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-white hover:border-gray-300 disabled:text-gray-300 disabled:bg-gray-50 disabled:border-gray-200"
           onClick={goToPrevious}
           disabled={currentIndex === 0}
         >
@@ -132,7 +135,8 @@ export function TikTokApplicantScroller({
         </Button>
         <Button
           size="icon"
-          className="h-10 w-10 rounded-full shadow-lg"
+          variant="outline"
+          className="h-10 w-10 rounded-full shadow-lg bg-white/90 border-gray-200 text-gray-400 hover:text-gray-600 hover:bg-white hover:border-gray-300 disabled:text-gray-300 disabled:bg-gray-50 disabled:border-gray-200"
           onClick={goToNext}
           disabled={currentIndex === applicants.length - 1}
         >

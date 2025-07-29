@@ -205,11 +205,11 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange })
         transition={{ duration: 0.5 }}
         className="space-y-4 text-center"
       >
-        <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/20 backdrop-blur-sm">
-          <Rocket className="h-8 w-8 text-white" />
+        <div className="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border border-gray-200/50 bg-white/80 backdrop-blur-sm">
+          <Rocket className="h-8 w-8 text-blue-600" />
         </div>
-        <h2 className="mb-2 font-bold text-2xl text-white">Showcase Your Best Work</h2>
-        <p className="mx-auto max-w-2xl text-white/80">
+        <h2 className="mb-2 font-bold text-2xl text-blue-600">Showcase Your Best Work</h2>
+        <p className="mx-auto max-w-2xl text-black/80">
           Add your most impressive projects to create a compelling portfolio. Include details about
           technologies used and provide links to live demos or source code.
         </p>
@@ -240,17 +240,17 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange })
         <motion.button
           type="button"
           onClick={addProject}
-          className="group w-full rounded-2xl border-2 border-white/30 border-dashed bg-white/10 p-6 text-white backdrop-blur-sm transition-all duration-300 hover:border-white/50 hover:bg-white/20"
+          className="group w-full rounded-2xl border-2 border-gray-200/50 border-dashed bg-white/80 p-6 text-black backdrop-blur-sm transition-all duration-300 hover:border-gray-200 hover:bg-white/90"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <div className="flex flex-col items-center space-y-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 transition-colors group-hover:bg-white/30">
-              <Plus className="h-6 w-6" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 transition-colors group-hover:bg-blue-200">
+              <Plus className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <h3 className="font-semibold text-lg">Add New Project</h3>
-              <p className="text-sm text-white/70">
+              <h3 className="font-semibold text-lg text-blue-600">Add New Project</h3>
+              <p className="text-sm text-black/70">
                 {projects.length === 0
                   ? 'Add your first project to get started'
                   : 'Add another project to your portfolio'}
@@ -264,7 +264,7 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange })
           <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center space-x-2 rounded-lg border border-red-400/30 bg-red-500/10 p-4 text-red-300 backdrop-blur-sm"
+            className="flex items-center space-x-2 rounded-lg border border-red-400/30 bg-red-500/10 p-4 text-red-500 backdrop-blur-sm"
           >
             <AlertCircle className="h-5 w-5 flex-shrink-0" />
             <span>{errors['projects'].message}</span>
@@ -277,28 +277,28 @@ const ProjectsStep: React.FC<ProjectsStepProps> = ({ form, data, onDataChange })
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="rounded-2xl border border-white/20 bg-white/5 p-6 backdrop-blur-sm"
+            className="rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm"
           >
             <div className="mb-4 flex items-center space-x-3">
               <CheckCircle className="h-5 w-5 text-green-400" />
-              <h3 className="font-semibold text-white">Portfolio Summary</h3>
+              <h3 className="font-semibold text-blue-600">Portfolio Summary</h3>
             </div>
             <div className="grid grid-cols-1 gap-4 text-center md:grid-cols-3">
               <div className="space-y-1">
-                <div className="font-bold text-2xl text-white">{projects.length}</div>
-                <div className="text-sm text-white/70">Projects</div>
+                <div className="font-bold text-2xl text-blue-600">{projects.length}</div>
+                <div className="text-sm text-black/70">Projects</div>
               </div>
               <div className="space-y-1">
-                <div className="font-bold text-2xl text-white">
+                <div className="font-bold text-2xl text-blue-600">
                   {projects.reduce((acc, p) => acc + p.technologies.length, 0)}
                 </div>
-                <div className="text-sm text-white/70">Technologies</div>
+                <div className="text-sm text-black/70">Technologies</div>
               </div>
               <div className="space-y-1">
-                <div className="font-bold text-2xl text-white">
+                <div className="font-bold text-2xl text-blue-600">
                   {projects.reduce((acc, p) => acc + p.links.length, 0)}
                 </div>
-                <div className="text-sm text-white/70">External Links</div>
+                <div className="text-sm text-black/70">External Links</div>
               </div>
             </div>
           </motion.div>
@@ -376,17 +376,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
-      className="overflow-hidden rounded-2xl border border-white/20 bg-white/10 backdrop-blur-sm"
+      className="overflow-hidden rounded-2xl border border-gray-200/50 bg-white/80 backdrop-blur-sm"
     >
       <div className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <GripVertical className="h-5 w-5 cursor-grab text-white/50" />
+            <GripVertical className="h-5 w-5 cursor-grab text-black/50" />
             <div>
-              <h3 className="font-semibold text-white">
+              <h3 className="font-semibold text-blue-600">
                 {project.title || `Project ${index + 1}`}
               </h3>
-              <p className="text-sm text-white/70">
+              <p className="text-sm text-black/70">
                 {project.technologies.length} technologies • {project.links.length} links
               </p>
             </div>
@@ -395,14 +395,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
             <button
               type="button"
               onClick={onToggleExpand}
-              className="rounded-lg bg-white/20 px-4 py-2 text-white transition-colors hover:bg-white/30"
+              className="rounded-lg bg-blue-100 px-4 py-2 text-blue-600 transition-colors hover:bg-blue-200"
             >
               {isExpanded ? 'Collapse' : 'Expand'}
             </button>
             <button
               type="button"
               onClick={onRemove}
-              className="rounded-lg p-2 text-red-300 transition-colors hover:bg-red-500/20 hover:text-red-200"
+              className="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-500/20 hover:text-red-400"
             >
               <Trash2 className="h-4 w-4" />
             </button>
@@ -419,16 +419,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
           >
             {/* Project Title */}
             <div className="space-y-2">
-              <label className="block font-medium text-white">Project Title *</label>
+              <label className="block font-medium text-blue-600">Project Title *</label>
               <input
                 type="text"
                 value={project.title}
                 onChange={(e) => updateField('title', e.target.value)}
                 placeholder="Enter project title"
-                className="w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full rounded-lg border border-gray-200/50 bg-white/80 px-4 py-3 text-black placeholder-black/50 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
               />
               {errors?.title && (
-                <p className="flex items-center space-x-1 text-red-300 text-sm">
+                <p className="flex items-center space-x-1 text-red-500 text-sm">
                   <AlertCircle className="h-4 w-4" />
                   <span>{errors.title.message}</span>
                 </p>
@@ -437,16 +437,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
             {/* Project Description */}
             <div className="space-y-2">
-              <label className="block font-medium text-white">Project Description *</label>
+              <label className="block font-medium text-blue-600">Project Description *</label>
               <textarea
                 value={project.description}
                 onChange={(e) => updateField('description', e.target.value)}
                 placeholder="Describe your project, what it does, and what makes it special"
                 rows={4}
-                className="w-full resize-none rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-white/50 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-white/30"
+                className="w-full resize-none rounded-lg border border-gray-200/50 bg-white/80 px-4 py-3 text-black placeholder-black/50 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
               />
               {errors?.description && (
-                <p className="flex items-center space-x-1 text-red-300 text-sm">
+                <p className="flex items-center space-x-1 text-red-500 text-sm">
                   <AlertCircle className="h-4 w-4" />
                   <span>{errors.description.message}</span>
                 </p>
@@ -455,7 +455,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
             {/* Technologies */}
             <div className="space-y-3">
-              <label className="block font-medium text-white">Technologies Used</label>
+              <label className="block font-medium text-blue-600">Technologies Used</label>
 
               {/* Technology Tags */}
               {project.technologies.length > 0 && (
@@ -463,13 +463,13 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                   {project.technologies.map((tech, techIndex) => (
                     <span
                       key={techIndex}
-                      className="inline-flex items-center space-x-1 rounded-full bg-white/20 px-3 py-1 text-sm text-white"
+                      className="inline-flex items-center space-x-1 rounded-full bg-blue-100 px-3 py-1 text-sm text-black"
                     >
                       <span>{tech}</span>
                       <button
                         type="button"
                         onClick={() => removeTechnology(tech)}
-                        className="text-white/70 hover:text-white"
+                        className="text-black/70 hover:text-black"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -491,12 +491,12 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     }
                   }}
                   placeholder="Add a technology (e.g., React, Node.js)"
-                  className="flex-1 rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white placeholder-white/50 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-white/30"
+                  className="flex-1 rounded-lg border border-gray-200/50 bg-white/80 px-4 py-2 text-black placeholder-black/50 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
                 />
                 <button
                   type="button"
                   onClick={() => addTechnology(newTechnology)}
-                  className="rounded-lg bg-white/20 px-4 py-2 text-white transition-colors hover:bg-white/30"
+                  className="rounded-lg bg-blue-100 px-4 py-2 text-blue-600 transition-colors hover:bg-blue-200"
                 >
                   Add
                 </button>
@@ -504,7 +504,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
               {/* Popular Technologies */}
               <div className="space-y-2">
-                <p className="text-sm text-white/70">Popular technologies:</p>
+                <p className="text-sm text-black/70">Popular technologies:</p>
                 <div className="flex flex-wrap gap-2">
                   {POPULAR_TECHNOLOGIES.filter((tech) => !project.technologies.includes(tech))
                     .slice(0, 8)
@@ -513,7 +513,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                         key={tech}
                         type="button"
                         onClick={() => addTechnology(tech)}
-                        className="rounded-full bg-white/10 px-3 py-1 text-sm text-white/80 transition-colors hover:bg-white/20"
+                        className="rounded-full bg-blue-100 px-3 py-1 text-sm text-black/80 transition-colors hover:bg-blue-200"
                       >
                         {tech}
                       </button>
@@ -524,7 +524,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
 
             {/* Project Links */}
             <div className="space-y-3">
-              <label className="block font-medium text-white">Project Links</label>
+              <label className="block font-medium text-blue-600">Project Links</label>
 
               {/* Existing Links */}
               {project.links.length > 0 && (
@@ -535,19 +535,19 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     return (
                       <div
                         key={linkIndex}
-                        className="flex items-center space-x-3 rounded-lg bg-white/10 p-3"
+                        className="flex items-center space-x-3 rounded-lg bg-blue-100 p-3"
                       >
-                        <LinkIcon className="h-5 w-5 text-white/70" />
+                        <LinkIcon className="h-5 w-5 text-blue-600" />
                         <div className="flex-1">
-                          <p className="font-medium text-white">
+                          <p className="font-medium text-black">
                             {LINK_TYPES.find((type) => type.value === link.type)?.label}
                           </p>
-                          <p className="truncate text-sm text-white/70">{link.url}</p>
+                          <p className="truncate text-sm text-black/70">{link.url}</p>
                         </div>
                         <button
                           type="button"
                           onClick={() => removeLink(linkIndex)}
-                          className="text-red-300 hover:text-red-200"
+                          className="text-red-500 hover:text-red-400"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -558,17 +558,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
               )}
 
               {/* Add New Link */}
-              <div className="space-y-3 rounded-lg bg-white/5 p-4">
+              <div className="space-y-3 rounded-lg bg-blue-50 p-4">
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   <select
                     value={newLink.type}
                     onChange={(e) =>
                       setNewLink({ ...newLink, type: e.target.value as ProjectLink['type'] })
                     }
-                    className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-white/30"
+                    className="rounded-lg border border-gray-200/50 bg-white/80 px-4 py-2 text-black focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100"
                   >
                     {LINK_TYPES.map((type) => (
-                      <option key={type.value} value={type.value} className="bg-gray-800">
+                      <option key={type.value} value={type.value} className="bg-white">
                         {type.label}
                       </option>
                     ))}
@@ -578,14 +578,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
                     value={newLink.url}
                     onChange={(e) => setNewLink({ ...newLink, url: e.target.value })}
                     placeholder="https://..."
-                    className="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-white placeholder-white/50 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-white/30 md:col-span-2"
+                    className="rounded-lg border border-gray-200/50 bg-white/80 px-4 py-2 text-black placeholder-black/50 focus:border-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-100 md:col-span-2"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={addLink}
                   disabled={!newLink.url.trim()}
-                  className="w-full rounded-lg bg-white/20 px-4 py-2 text-white transition-colors hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="w-full rounded-lg bg-blue-100 px-4 py-2 text-blue-600 transition-colors hover:bg-blue-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Add Link
                 </button>

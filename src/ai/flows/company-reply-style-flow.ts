@@ -41,7 +41,7 @@ export async function generateCompanyReplyStyle(
 
   // Return mock data
   return {
-    styleAnalysis: `Based on ${input.companyName}'s profile as a leader in the ${input.companyIndustry || 'relevant'} industry, the communication style should be professional, confident, and slightly formal, yet approachable. Emphasize innovation and collaboration if these are key cultural highlights.`,
+    styleAnalysis: `.Based on ${input.companyName}'s profile as a leader in the ${input.companyIndustry || 'relevant'} industry, the communication style should be professional, confident, and slightly formal, yet approachable. Emphasize innovation and collaboration if these are key cultural highlights.`,
     suggestedGuidelines: [
       'Maintain a professional and respectful tone.',
       'Highlight company values when appropriate.',

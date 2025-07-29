@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  AlertTriangle,
   Briefcase,
   HeartHandshake,
   Loader2,
@@ -16,7 +15,6 @@ import { AiHumanResourcesTab } from '@/components/ai/AiHumanResourcesTab';
 import { FocusedChatPanel } from '@/components/match/FocusedChatPanel';
 import { IcebreakerCard } from '@/components/match/IcebreakerCard';
 import { TikTokApplicantScroller } from '@/components/match/TikTokApplicantScroller';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -262,35 +260,37 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
 
   if (fullBackendUser?.selectedRole === 'recruiter') {
     return (
-      <div className="flex flex-grow flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 p-4 md:p-6">
+      <div className="flex flex-grow flex-col overflow-hidden bg-gradient-to-br from-gray-50 to-blue-50 p-2 md:p-4 lg:p-6">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
           className="flex min-h-0 flex-grow flex-col"
         >
-          <TabsList className="mb-6 grid w-full max-w-md shrink-0 grid-cols-2 rounded-xl border bg-white p-1 shadow-sm">
-            <TabsTrigger
-              value="applicants"
-              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
-            >
-              <Users className="mr-2 h-4 w-4" />
-              All Incoming
-            </TabsTrigger>
-            <TabsTrigger
-              value="ai_hr_tool"
-              className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
-            >
-              <Sparkles className="mr-2 h-4 w-4" />
-              AI HR Tool
-            </TabsTrigger>
-          </TabsList>
+          <div className="mb-2 flex flex-col gap-2 md:mb-2 md:gap-4 md:flex-row md:items-start md:justify-between">
+            <TabsList className="grid w-full max-w-md shrink-0 grid-cols-2 rounded-xl border bg-white p-1 shadow-sm">
+              <TabsTrigger
+                value="applicants"
+                className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <Users className="mr-2 h-4 w-4" />
+                All Incoming
+              </TabsTrigger>
+              <TabsTrigger
+                value="ai_hr_tool"
+                className="rounded-lg data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <Sparkles className="mr-2 h-4 w-4" />
+                AI HR Tool
+              </TabsTrigger>
+            </TabsList>
+          </div>
           <TabsContent
             value="applicants"
             className="mt-0 flex min-h-0 flex-grow flex-col overflow-hidden"
           >
-            <div className="flex min-h-0 flex-grow flex-col gap-6 overflow-hidden rounded-xl md:flex-row">
-              <div className="flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm md:h-[75vh] md:w-1/3 lg:w-2/5 xl:w-1/3">
-                <div className="relative mb-3 w-full shrink-0 px-4 pt-4">
+            <div className="flex min-h-0 flex-grow flex-col gap-2 overflow-hidden rounded-xl md:gap-4 md:flex-row">
+              <div className="flex flex-col overflow-hidden rounded-lg border bg-white shadow-sm flex-1 min-h-0 md:h-[70vh] md:w-1/3 lg:w-2/5 xl:w-1/3">
+                <div className="relative mb-2 w-full shrink-0 px-3 pt-3 md:mb-3 md:px-4 md:pt-4">
                   <Input
                     type="text"
                     placeholder="Search applicants by name or role..."
@@ -298,7 +298,7 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="h-10 rounded-lg border-slate-300 bg-slate-50 pl-10 text-sm focus:border-blue-500 focus:ring-blue-500"
                   />
-                  <Search className="absolute top-1/2 left-7 h-4 w-4 text-slate-400" />
+                  <Search className="absolute top-1/2 left-6 h-4 w-4 text-slate-400 md:left-7" />
                 </div>
                 <div className="flex-grow overflow-hidden">
                   <TikTokApplicantScroller
@@ -341,17 +341,6 @@ export function MatchesPage({ isGuestMode }: MatchesPageProps) {
                 )}
               </div>
             </div>
-            <Alert
-              variant="destructive"
-              className="mx-0 mt-6 shrink-0 rounded-lg border-red-200 bg-red-50 text-red-700 text-sm"
-            >
-              <AlertTriangle className="!text-red-600 h-5 w-5" />
-              <AlertTitle className="font-semibold text-red-800">Important Reminder</AlertTitle>
-              <AlertDescription className="text-red-700/90">
-                Failure to reply within 72 hours will deduct from your company's reputation score.
-                It is recommended to use the AI Human Resources function to ensure timely replies.
-              </AlertDescription>
-            </Alert>
           </TabsContent>
           <TabsContent value="ai_hr_tool" className="mt-0 min-h-0 flex-grow overflow-y-auto p-1">
             <AiHumanResourcesTab />

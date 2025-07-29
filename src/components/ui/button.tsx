@@ -11,10 +11,10 @@ const buttonVariants = {
 };
 
 const buttonSizes = {
-  default: 'h-10 py-2 px-4',
-  sm: 'h-9 px-3 rounded-md',
-  lg: 'h-11 px-8 rounded-md',
-  icon: 'h-10 w-10',
+  default: 'h-10 py-2 px-4 min-h-[44px] sm:h-10 sm:min-h-0', // 44px minimum for mobile touch targets
+  sm: 'h-9 px-3 rounded-md min-h-[40px] sm:h-9 sm:min-h-0',
+  lg: 'h-11 px-8 rounded-md min-h-[44px] sm:h-11 sm:min-h-0',
+  icon: 'h-10 w-10 min-h-[44px] min-w-[44px] sm:h-10 sm:w-10 sm:min-h-0 sm:min-w-0',
 };
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -40,10 +40,10 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             'text-primary underline-offset-4 hover:underline': variant === 'link',
           },
           {
-            'h-10 px-4 py-2': size === 'default',
-            'h-9 rounded-md px-3': size === 'sm',
-            'h-11 rounded-md px-8': size === 'lg',
-            'h-10 w-10': size === 'icon',
+            'h-10 px-4 py-2 min-h-[44px] sm:h-10 sm:min-h-0': size === 'default',
+            'h-9 rounded-md px-3 min-h-[40px] sm:h-9 sm:min-h-0': size === 'sm',
+            'h-11 rounded-md px-8 min-h-[44px] sm:h-11 sm:min-h-0': size === 'lg',
+            'h-10 w-10 min-h-[44px] min-w-[44px] sm:h-10 sm:w-10 sm:min-h-0 sm:min-w-0': size === 'icon',
           },
           className
         )}

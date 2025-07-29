@@ -7,7 +7,7 @@ import { ArrowRight, Bot, Clock, Loader2, MessageSquare, Sparkles } from 'lucide
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { Dispatch, SetStateAction } from 'react';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppHeader } from '../../components/AppHeader';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent } from '../../components/ui/card';
@@ -159,7 +159,7 @@ function ChatAnimationCard({
           <div className="text-purple-200 text-sm">Avg. Gen. Time</div>
         </Card>
         <Card className="border-white/20 bg-white/10 p-4 text-center shadow-xl backdrop-blur-md">
-          <div className="font-bold text-2xl text-white">&lt;24h</div>
+          <div className="font-bold text-2xl text-white">{"<24h"}</div>
           <div className="text-purple-200 text-sm">Guaranteed Reply</div>
         </Card>
       </div>
@@ -175,6 +175,8 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
   const [showAiAnalyzing, setShowAiAnalyzing] = useState(false);
   const [typedAiReply, setTypedAiReply] = useState('');
   const [isTypingAiReply, setIsTypingAiReply] = useState(false);
+  const [animationStarted, setAnimationStarted] = useState(false);
+  const animationRef = useRef<NodeJS.Timeout | null>(null);
 
   const typeMessage = useCallback(
     async (
@@ -183,52 +185,89 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
       setIsTypingState: Dispatch<SetStateAction<boolean>>,
       speed = 30
     ): Promise<void> => {
-      setIsTypingState(true);
-      setTextState('');
-      for (let i = 0; i < message.length; i++) {
-        setTextState((prev) => prev + message.charAt(i));
-        await new Promise((resolve) => setTimeout(resolve, speed));
-      }
-      setIsTypingState(false);
+      return new Promise((resolve) => {
+        setIsTypingState(true);
+        setTextState('');
+        let index = 0;
+        
+        const typeNextChar = () => {
+          if (index < message.length) {
+            setTextState((prev) => prev + message.charAt(index));
+            index++;
+            setTimeout(typeNextChar, speed);
+          } else {
+            setIsTypingState(false);
+            resolve();
+          }
+        };
+        
+        typeNextChar();
+      });
     },
     []
   );
 
-  useEffect(() => {
-    AOS.init({ duration: 800, once: true, offset: 50 });
+  const resetAnimation = useCallback(() => {
+    setTypedApplicantMessage('');
+    setIsTypingApplicant(false);
+    setShowAiAnalyzing(false);
+    setTypedAiReply('');
+    setIsTypingAiReply(false);
+    setAnimationStarted(false);
+  }, []);
 
-    const animateChat = async () => {
-      setTypedApplicantMessage('');
-      setIsTypingApplicant(false);
-      setShowAiAnalyzing(false);
-      setTypedAiReply('');
-      setIsTypingAiReply(false);
+  const startAnimation = useCallback(async () => {
+    if (animationStarted) return;
+    
+    setAnimationStarted(true);
+    resetAnimation();
 
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    try {
+      // Wait for initial render
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      
+      // Type applicant message
       await typeMessage(fullApplicantMessage, setTypedApplicantMessage, setIsTypingApplicant);
+      
+      // Show AI analyzing
       await new Promise((resolve) => setTimeout(resolve, 700));
       setShowAiAnalyzing(true);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setShowAiAnalyzing(false);
+      
+      // Type AI reply
       await typeMessage(fullAiReply, setTypedAiReply, setIsTypingAiReply);
-    };
-
-    const cardElement = document.querySelector('[data-aos="fade-left"]');
-    if (cardElement) {
-      setTimeout(
-        () => {
-          if (typeof window !== 'undefined' && (cardElement as HTMLElement).dataset['aosId']) {
-            animateChat();
-          }
-        },
-        Number.parseFloat((cardElement as HTMLElement).dataset['aosDelay'] || '0') + 200
-      );
-    } else {
-      setTimeout(() => {
-        if (typeof window !== 'undefined') animateChat();
-      }, 500);
+    } catch (error) {
+      console.error('Animation error:', error);
+      // Fallback - show final state immediately
+      setTypedApplicantMessage(fullApplicantMessage);
+      setTypedAiReply(fullAiReply);
+      setIsTypingApplicant(false);
+      setIsTypingAiReply(false);
+      setShowAiAnalyzing(false);
     }
-  }, [typeMessage, fullApplicantMessage, fullAiReply]);
+  }, [animationStarted, typeMessage, fullApplicantMessage, fullAiReply, resetAnimation]);
+
+  useEffect(() => {
+    // Initialize AOS
+    AOS.init({ duration: 800, once: true, offset: 50 });
+
+    // Clear any existing animation
+    if (animationRef.current) {
+      clearTimeout(animationRef.current);
+    }
+
+    // Start animation after component mount
+    animationRef.current = setTimeout(() => {
+      startAnimation();
+    }, 1000);
+
+    return () => {
+      if (animationRef.current) {
+        clearTimeout(animationRef.current);
+      }
+    };
+  }, [startAnimation]);
 
   return {
     typedApplicantMessage,
@@ -236,6 +275,7 @@ function useChatAnimation(fullApplicantMessage: string, fullAiReply: string) {
     showAiAnalyzing,
     typedAiReply,
     isTypingAiReply,
+    resetAnimation,
   };
 }
 
@@ -245,9 +285,9 @@ export default function AiHrAssistantPage() {
   const { fullBackendUser, mongoDbUserId, preferences } = useUserPreferences();
   const router = useRouter();
 
-  const fullApplicantMessage = "Hello, I'm interested in the Frontend Developer position...";
+  const fullApplicantMessage = ".Hello, I'm interested in the Frontend Developer position. I have 3 years of experience in React and TypeScript. When would be a good time to discuss this opportunity?";
   const fullAiReply =
-    "Hello Applicant! Thank you for your interest. Based on your skills, we think you're a good fit. Would you be available for an interview next Tuesday or Wednesday?";
+    ".Hello! Thank you for your interest in our Frontend Developer position. Your React and TypeScript experience looks great for this role. We'd love to schedule an interview with you. Are you available next Tuesday or Wednesday afternoon?";
 
   const animationState = useChatAnimation(fullApplicantMessage, fullAiReply);
 

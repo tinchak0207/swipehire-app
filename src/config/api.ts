@@ -17,6 +17,7 @@ const API_CONFIG: ApiConfig = {
     user: '/api/users',
     resume: '/api/resume',
     health: '/api/health',
+    portfolio: '/api/portfolios',
     // Add more endpoints as needed
   },
 

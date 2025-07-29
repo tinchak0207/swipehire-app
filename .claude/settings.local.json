@@ -15,7 +15,8 @@
       "TodoRead",
       "TodoWrite",
       "WebSearch",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "mcp__sequential-thinking__sequentialthinking"
     ],
     "deny": []
   }

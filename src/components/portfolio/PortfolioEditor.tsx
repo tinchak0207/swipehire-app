@@ -327,23 +327,25 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
   }, [draft.isDirty]);
 
   return (
-    <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-      {/* Main Editor Panel */}
-      <div className="space-y-6 lg:col-span-2">
-        {/* Basic Information Card */}
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h2 className="card-title mb-4 text-2xl">Portfolio Information</h2>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-blue-50/30 to-indigo-50/20">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {/* Main Editor Panel */}
+        <div className="space-y-6 lg:col-span-2">
+          {/* Basic Information Card */}
+          <div className="rounded-xl border border-gray-200/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+            <h2 className="mb-6 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-2xl text-transparent">
+              Portfolio Information
+            </h2>
 
             {/* Title Field */}
-            <div className="form-control">
+            <div className="form-control mb-6">
               <label className="label">
-                <span className="label-text font-medium">Title *</span>
+                <span className="label-text font-medium text-gray-700">Title *</span>
               </label>
               <input
                 type="text"
                 placeholder="Enter portfolio title..."
-                className="input input-bordered w-full"
+                className="input w-full rounded-lg border-gray-200/50 bg-white/60 text-black transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white/80 focus:ring-2 focus:ring-blue-200"
                 value={draft.title}
                 onChange={(e) => handleFieldChange('title', e.target.value)}
                 required
@@ -351,12 +353,12 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             </div>
 
             {/* Description Field */}
-            <div className="form-control">
+            <div className="form-control mb-6">
               <label className="label">
-                <span className="label-text font-medium">Description</span>
+                <span className="label-text font-medium text-gray-700">Description</span>
               </label>
               <textarea
-                className="textarea textarea-bordered h-24"
+                className="textarea h-24 w-full rounded-lg border-gray-200/50 bg-white/60 text-black transition-all duration-200 placeholder:text-gray-500 focus:border-blue-500 focus:bg-white/80 focus:ring-2 focus:ring-blue-200"
                 placeholder="Describe your portfolio..."
                 value={draft.description}
                 onChange={(e) => handleFieldChange('description', e.target.value)}
@@ -364,9 +366,9 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             </div>
 
             {/* Tags */}
-            <div className="form-control">
+            <div className="form-control mb-6">
               <label className="label">
-                <span className="label-text font-medium">Tags</span>
+                <span className="label-text font-medium text-gray-700">Tags</span>
               </label>
               <TagSelector
                 selectedTags={draft.tags}
@@ -378,19 +380,22 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             {/* Layout Selection */}
             <div className="form-control">
               <label className="label">
-                <span className="label-text font-medium">Layout</span>
+                <span className="label-text font-medium text-gray-700">Layout</span>
               </label>
               <LayoutSelector selectedLayout={draft.layout} onLayoutChange={handleLayoutChange} />
             </div>
           </div>
-        </div>
 
-        {/* Projects Section */}
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="card-title text-2xl">Projects</h2>
-              <button className="btn btn-accent btn-sm" onClick={handleAddProject}>
+          {/* Projects Section */}
+          <div className="rounded-xl border border-gray-200/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-2xl text-transparent">
+                Projects
+              </h2>
+              <button 
+                className="btn btn-sm rounded-lg border-gray-200 bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md transition-all duration-200 hover:from-blue-600 hover:to-blue-700 hover:shadow-lg" 
+                onClick={handleAddProject}
+              >
                 <PlusIcon className="mr-2 h-4 w-4" />
                 Add Project
               </button>
@@ -399,9 +404,12 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             {/* Projects List */}
             <div className="space-y-4">
               {draft.projects.length === 0 ? (
-                <div className="py-8 text-center text-base-content/60">
-                  <p>No projects added yet.</p>
-                  <p className="mt-2 text-sm">Click "Add Project" to get started.</p>
+                <div className="rounded-lg border border-gray-200/30 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 py-12 text-center backdrop-blur-sm">
+                  <div className="mb-2 text-gray-600">
+                    <PlusIcon className="mx-auto mb-3 h-12 w-12 text-gray-400" />
+                    <p className="text-lg">No projects added yet.</p>
+                  </div>
+                  <p className="text-gray-500 text-sm">Click "Add Project" to get started.</p>
                 </div>
               ) : (
                 <DndContext
@@ -460,25 +468,32 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Sidebar */}
-      <div className="space-y-6">
-        {/* Actions Card */}
-        <div className="card bg-base-100 shadow-xl">
-          <div className="card-body">
-            <h3 className="card-title mb-4 text-lg">Actions</h3>
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Actions Card */}
+          <div className="rounded-xl border border-gray-200/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+            <h3 className="mb-6 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-lg text-transparent">
+              Actions
+            </h3>
 
             <div className="space-y-3">
               {/* Preview Button */}
-              <button className="btn btn-outline btn-block" onClick={() => setShowPreview(true)}>
+              <button 
+                className="btn btn-block rounded-lg border-gray-200 bg-white/80 text-gray-700 transition-all duration-200 hover:border-blue-300 hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 hover:text-blue-700" 
+                onClick={() => setShowPreview(true)}
+              >
                 <EyeIcon className="mr-2 h-4 w-4" />
                 Preview
               </button>
 
               {/* Save Draft Button */}
               <button
-                className={`btn btn-primary btn-block ${isSaving ? 'loading' : ''}`}
+                className={`btn btn-block rounded-lg transition-all duration-200 ${
+                  isSaving 
+                    ? 'bg-gray-400 text-white' 
+                    : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md hover:from-blue-600 hover:to-blue-700 hover:shadow-lg'
+                }`}
                 onClick={() => handleSave(false)}
                 disabled={isSaving || !draft.isDirty}
               >
@@ -488,7 +503,11 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
 
               {/* Publish Button */}
               <button
-                className={`btn btn-success btn-block ${isSaving ? 'loading' : ''}`}
+                className={`btn btn-block rounded-lg transition-all duration-200 ${
+                  isSaving 
+                    ? 'bg-gray-400 text-white' 
+                    : 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-md hover:from-green-600 hover:to-green-700 hover:shadow-lg'
+                }`}
                 onClick={() => handleSave(true)}
                 disabled={isSaving || !draft.title.trim()}
               >
@@ -498,71 +517,83 @@ const PortfolioEditor: React.FC<PortfolioEditorProps> = ({ initialData, mode, po
             </div>
 
             {/* Auto-save Toggle */}
-            <div className="form-control mt-4">
-              <label className="label cursor-pointer">
-                <span className="label-text">Auto-save</span>
+            <div className="form-control mt-6">
+              <label className="label cursor-pointer justify-start gap-3">
                 <input
                   type="checkbox"
                   className="toggle toggle-primary"
                   checked={autoSaveEnabled}
                   onChange={(e) => setAutoSaveEnabled(e.target.checked)}
                 />
+                <span className="label-text font-medium text-gray-700">Auto-save</span>
               </label>
             </div>
 
             {/* Status Indicator */}
             {draft.isDirty && (
-              <div className="alert alert-warning mt-4">
-                <span className="text-sm">Unsaved changes</span>
+              <div className="mt-4 rounded-lg border border-yellow-200/50 bg-gradient-to-r from-yellow-50 to-amber-50 p-3 backdrop-blur-sm">
+                <div className="flex items-center gap-2">
+                  <div className="h-2 w-2 animate-pulse rounded-full bg-yellow-500" />
+                  <span className="font-medium text-yellow-700 text-sm">Unsaved changes</span>
+                </div>
               </div>
             )}
           </div>
-        </div>
 
-        {/* Portfolio Stats (if editing) */}
-        {mode === 'edit' && (
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body">
-              <h3 className="card-title mb-4 text-lg">Portfolio Stats</h3>
-              <div className="stats stats-vertical shadow">
-                <div className="stat">
-                  <div className="stat-title">Projects</div>
-                  <div className="stat-value text-2xl">{draft.projects.length}</div>
+          {/* Portfolio Stats (if editing) */}
+          {mode === 'edit' && (
+            <div className="rounded-xl border border-gray-200/50 bg-white/80 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 hover:shadow-xl">
+              <h3 className="mb-6 bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-lg text-transparent">
+                Portfolio Stats
+              </h3>
+              <div className="space-y-4">
+                <div className="rounded-lg border border-blue-200/30 bg-gradient-to-r from-blue-50/50 to-cyan-50/50 p-4 backdrop-blur-sm">
+                  <div className="text-center">
+                    <div className="font-bold text-2xl text-blue-600">{draft.projects.length}</div>
+                    <div className="text-gray-600 text-sm">Projects</div>
+                  </div>
                 </div>
-                <div className="stat">
-                  <div className="stat-title">Status</div>
-                  <div className="stat-value text-lg">
-                    {draft.isPublished ? (
-                      <span className="text-success">Published</span>
-                    ) : (
-                      <span className="text-warning">Draft</span>
-                    )}
+                <div className="rounded-lg border border-green-200/30 bg-gradient-to-r from-green-50/50 to-emerald-50/50 p-4 backdrop-blur-sm">
+                  <div className="text-center">
+                    <div className="font-bold text-lg">
+                      {draft.isPublished ? (
+                        <span className="text-green-600">Published</span>
+                      ) : (
+                        <span className="text-orange-600">Draft</span>
+                      )}
+                    </div>
+                    <div className="text-gray-600 text-sm">Status</div>
                   </div>
                 </div>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Preview Modal */}
+        {showPreview && (
+          <div className="modal modal-open">
+            <div className="modal-box h-5/6 w-11/12 max-w-7xl rounded-xl border border-gray-200/50 bg-white/95 shadow-2xl backdrop-blur-md">
+              <div className="mb-4 flex items-center justify-between border-b border-gray-200/50 pb-4">
+                <h3 className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text font-bold text-lg text-transparent">
+                  Portfolio Preview
+                </h3>
+                <button 
+                  className="btn btn-sm btn-circle border-gray-200 bg-white/80 text-gray-700 transition-all duration-200 hover:bg-red-50 hover:text-red-600" 
+                  onClick={() => setShowPreview(false)}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="h-full overflow-auto rounded-lg border border-gray-200/30 bg-white/50 p-4 backdrop-blur-sm">
+                <PortfolioPreview portfolio={draft} />
+              </div>
+            </div>
+            <div className="modal-backdrop bg-black/30 backdrop-blur-sm" onClick={() => setShowPreview(false)} />
           </div>
         )}
       </div>
-
-      {/* Preview Modal */}
-      {showPreview && (
-        <div className="modal modal-open">
-          <div className="modal-box h-5/6 w-11/12 max-w-7xl">
-            <div className="mb-4 flex items-center justify-between">
-              <h3 className="font-bold text-lg">Portfolio Preview</h3>
-              <button className="btn btn-sm btn-circle" onClick={() => setShowPreview(false)}>
-                ✕
-              </button>
-            </div>
-
-            <div className="h-full overflow-auto">
-              <PortfolioPreview portfolio={draft} />
-            </div>
-          </div>
-          <div className="modal-backdrop" onClick={() => setShowPreview(false)} />
-        </div>
-      )}
     </div>
   );
 };

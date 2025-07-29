@@ -76,7 +76,7 @@ const steps: WizardStep[] = [
     title: 'Welcome to Portfolio Builder',
     subtitle: 'Create a stunning portfolio in minutes',
     icon: Sparkles,
-    gradient: 'from-teal-600 via-green-600 to-emerald-600',
+    gradient: 'from-slate-50 via-blue-50/30 to-indigo-50/20',
     component: WelcomeStep,
   },
   {
@@ -84,7 +84,7 @@ const steps: WizardStep[] = [
     title: 'Tell us about yourself',
     subtitle: 'Basic information for your portfolio',
     icon: Target,
-    gradient: 'from-teal-600 via-green-600 to-emerald-600',
+    gradient: 'from-slate-50 via-blue-50/30 to-indigo-50/20',
     component: BasicInfoStep,
   },
   {
@@ -92,7 +92,7 @@ const steps: WizardStep[] = [
     title: 'Choose your style',
     subtitle: 'Pick a theme that represents you',
     icon: Palette,
-    gradient: 'from-teal-600 via-green-600 to-emerald-600',
+    gradient: 'from-slate-50 via-blue-50/30 to-indigo-50/20',
     component: ThemeSelectionStep,
   },
   {
@@ -100,7 +100,7 @@ const steps: WizardStep[] = [
     title: 'Showcase your work',
     subtitle: 'Add your best projects',
     icon: Rocket,
-    gradient: 'from-teal-600 via-green-600 to-emerald-600',
+    gradient: 'from-slate-50 via-blue-50/30 to-indigo-50/20',
     component: ProjectsStep,
   },
   {
@@ -108,7 +108,7 @@ const steps: WizardStep[] = [
     title: 'Review & Launch',
     subtitle: 'Final check before publishing',
     icon: CheckCircle,
-    gradient: 'from-teal-600 via-green-600 to-emerald-600',
+    gradient: 'from-slate-50 via-blue-50/30 to-indigo-50/20',
     component: ReviewStep,
   },
 ];
@@ -234,23 +234,23 @@ const PortfolioCreationWizard: React.FC = () => {
 
   return (
     <div
-      className={`relative min-h-screen overflow-hidden bg-gradient-to-br ${currentStep.gradient} transition-all duration-1000 ease-in-out`}
+      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-50 via-blue-50/30 to-indigo-50/20 backdrop-blur-sm transition-all duration-1000 ease-in-out"
     >
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-white/10 blur-3xl" />
-        <div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-white/10 blur-3xl delay-1000" />
-        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-96 w-96 transform animate-pulse rounded-full bg-white/5 blur-3xl delay-500" />
+        <div className="-top-40 -right-40 absolute h-80 w-80 animate-pulse rounded-full bg-blue-400/10 blur-3xl" />
+        <div className="-bottom-40 -left-40 absolute h-80 w-80 animate-pulse rounded-full bg-indigo-400/10 blur-3xl delay-1000" />
+        <div className="-translate-x-1/2 -translate-y-1/2 absolute top-1/2 left-1/2 h-96 w-96 transform animate-pulse rounded-full bg-slate-400/5 blur-3xl delay-500" />
       </div>
 
       {/* Progress indicator */}
       <div className="-translate-x-1/2 absolute top-8 left-1/2 z-20 transform">
-        <div className="flex items-center space-x-2 rounded-full border border-white/20 bg-white/10 px-6 py-3 backdrop-blur-sm">
+        <div className="flex items-center space-x-2 rounded-full border border-gray-200/50 bg-white/80 px-6 py-3 backdrop-blur-sm shadow-lg">
           {steps.map((step, index) => (
             <div
               key={step.key}
               className={`h-3 w-3 rounded-full transition-all duration-300 ${
-                index <= currentStepIndex ? 'bg-white shadow-lg' : 'bg-white/30'
+                index <= currentStepIndex ? 'bg-blue-600 shadow-lg' : 'bg-gray-300'
               }`}
             />
           ))}
@@ -269,13 +269,13 @@ const PortfolioCreationWizard: React.FC = () => {
             transition={{ duration: 0.5 }}
             className="mb-12 text-center"
           >
-            <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full border border-white/30 bg-white/20 backdrop-blur-sm">
-              <currentStep.icon className="h-8 w-8 text-white" />
+            <div className="mb-6 inline-flex h-16 w-16 items-center justify-center rounded-full border border-gray-200/50 bg-white/80 backdrop-blur-sm shadow-lg">
+              <currentStep.icon className="h-8 w-8 text-blue-600" />
             </div>
-            <h1 className="mb-6 font-extrabold font-montserrat text-5xl text-white tracking-tight md:text-6xl">
+            <h1 className="mb-6 font-extrabold font-montserrat text-5xl text-blue-600 tracking-tight md:text-6xl">
               {currentStep.title}
             </h1>
-            <p className="mx-auto max-w-2xl font-medium text-white/95 text-xl leading-relaxed md:text-2xl">
+            <p className="mx-auto max-w-2xl font-medium text-black text-xl leading-relaxed md:text-2xl">
               {currentStep.subtitle}
             </p>
           </motion.div>
@@ -288,7 +288,7 @@ const PortfolioCreationWizard: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.5 }}
-              className="rounded-3xl border border-white/20 bg-white/10 p-8 shadow-3xl backdrop-blur-sm md:p-12"
+              className="rounded-3xl border border-gray-200/50 bg-white/80 p-8 shadow-xl backdrop-blur-sm md:p-12"
             >
               <StepComponent
                 form={form}
@@ -314,21 +314,21 @@ const PortfolioCreationWizard: React.FC = () => {
               className={`flex items-center space-x-2 rounded-full px-6 py-3 transition-all duration-200 ${
                 isFirstStep
                   ? 'cursor-not-allowed opacity-50'
-                  : 'border border-white/30 bg-white/20 text-white backdrop-blur-sm hover:scale-105 hover:bg-white/30'
+                  : 'border border-gray-200/50 bg-white/80 text-black backdrop-blur-sm hover:scale-105 hover:bg-white/90 hover:text-blue-600 shadow-lg'
               }`}
             >
               <ArrowLeft className="h-5 w-5" />
               <span>Back</span>
             </button>
 
-            <div className="text-sm text-white/60">
+            <div className="text-sm text-black">
               Step {currentStepIndex + 1} of {steps.length}
             </div>
 
             <button
               onClick={goToNextStep}
               disabled={isSubmitting}
-              className="flex items-center space-x-2 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-500 px-8 py-3.5 font-bold text-gray-900 transition-all duration-200 hover:scale-105 hover:shadow-xl hover:brightness-110 focus:outline-none focus:ring-4 focus:ring-white/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex items-center space-x-2 rounded-full bg-gradient-to-r from-blue-500 to-blue-600 px-8 py-3.5 font-bold text-white transition-all duration-200 hover:scale-105 hover:shadow-xl hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-200 disabled:cursor-not-allowed disabled:opacity-50 shadow-lg"
             >
               <span>
                 {isSubmitting ? 'Creating...' : isLastStep ? 'Create Portfolio' : 'Continue'}
@@ -342,10 +342,10 @@ const PortfolioCreationWizard: React.FC = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
-            className="mt-8 text-center text-sm text-white/50"
+            className="mt-8 text-center text-sm text-black"
           >
-            Press <kbd className="rounded bg-white/20 px-2 py-1 text-xs">Ctrl+Enter</kbd> to
-            continue, <kbd className="rounded bg-white/20 px-2 py-1 text-xs">Esc</kbd> to go back
+            Press <kbd className="rounded bg-gray-200/50 px-2 py-1 text-xs text-blue-600 font-semibold">Ctrl+Enter</kbd> to
+            continue, <kbd className="rounded bg-gray-200/50 px-2 py-1 text-xs text-blue-600 font-semibold">Esc</kbd> to go back
           </motion.div>
         </div>
       </div>

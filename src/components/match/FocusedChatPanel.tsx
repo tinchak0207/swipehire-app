@@ -26,6 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Candidate, ChatMessage, Company, Match } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { fetchMessages, sendMessage } from '@/services/chatService';
+import { EmbeddedReminder } from '@/components/common/EmbeddedReminder';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 let socket: Socket | null = null;
@@ -526,6 +527,15 @@ export function FocusedChatPanel({ match, mongoDbUserId }: FocusedChatPanelProps
           <div ref={messagesEndRef} />
         </div>
       </ScrollArea>
+      
+      {/* Important Reminder - Embedded with Visual Effects */}
+      <EmbeddedReminder
+        message="Failure to reply within 72 hours will deduct from your company's reputation score. It is recommended to use the AI Human Resources function to ensure timely replies."
+        onActionClick={() => router.push('/ai-hr-assistant')}
+        actionLabel="Use AI HR Assistant"
+        className="border-t border-slate-200"
+      />
+      
       <footer className="shrink-0 border-slate-200 border-t bg-white p-3">
         <div className="mb-2 flex flex-wrap items-center gap-1.5">
           <span className="mr-1 self-center text-slate-500 text-xs">

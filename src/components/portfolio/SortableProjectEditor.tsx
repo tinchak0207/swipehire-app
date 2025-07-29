@@ -54,7 +54,7 @@ const SortableProjectEditor: React.FC<SortableProjectEditorProps> = ({
       ref={setNodeRef}
       style={style}
       className={`
-        ${isSortableDragging ? 'z-50' : ''} ${isDragging ? 'shadow-2xl ring-2 ring-primary ring-opacity-50' : ''} `}
+        ${isSortableDragging ? 'z-50' : ''} ${isDragging ? 'shadow-2xl ring-2 ring-blue-500 ring-opacity-50 scale-105' : ''} `}
       {...attributes}
     >
       <ProjectEditor

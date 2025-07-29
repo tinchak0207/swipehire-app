@@ -19,11 +19,11 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ portfolioId, onComplete }) =>
         animate={{ opacity: 1, y: 0 }}
         className="space-y-6 text-center"
       >
-        <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full border border-white/30 bg-white/20 backdrop-blur-sm">
+        <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full border border-gray-200/50 bg-white/80 backdrop-blur-sm">
           <CheckCircle className="h-12 w-12 text-green-400" />
         </div>
-        <h2 className="mb-2 font-bold text-3xl text-white">Portfolio Created!</h2>
-        <p className="mx-auto max-w-2xl text-white/80">
+        <h2 className="mb-2 font-bold text-3xl text-blue-600">Portfolio Created!</h2>
+        <p className="mx-auto max-w-2xl text-black/80">
           Your portfolio has been successfully created and published. You can view it now or
           continue editing later.
         </p>
@@ -38,7 +38,7 @@ const SuccessStep: React.FC<SuccessStepProps> = ({ portfolioId, onComplete }) =>
             </Link>
           </Button>
 
-          <p className="text-center text-sm text-white/60">
+          <p className="text-center text-sm text-black/60">
             Share your portfolio with anyone using this link
           </p>
         </div>

@@ -115,6 +115,8 @@
     font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
     overflow-x: hidden;
     max-width: 100vw;
+    font-size: 16px; /* Ensure minimum font size for mobile */
+    line-height: 1.5; /* Better line height for mobile readability */
   }
   
   /* Prevent horizontal overflow on all pages */
@@ -157,6 +159,33 @@
 
   .typing-cursor::after { content: '|'; animation: blink 1s step-end infinite; }
   @keyframes blink { from, to { color: transparent; } 50% { color: inherit; } }
+
+  /* Mobile-specific optimizations */
+  @media (max-width: 640px) {
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    .mobile-spacing {
+      padding: 1rem;
+    }
+    
+    .mobile-text-size {
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    /* Improve tap highlighting on mobile */
+    button, a, input, textarea, select {
+      -webkit-tap-highlight-color: rgba(59, 130, 246, 0.2);
+    }
+    
+    /* Better mobile scrolling */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 
   /* AI Tool Backgrounds - Kept from previous state */
   .ai-tool-bg-script { background: linear-gradient(135deg, hsla(210, 85%, 65%, 0.85), hsla(230, 70%, 50%, 0.85)); }

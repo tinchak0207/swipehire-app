@@ -104,136 +104,153 @@ export function ApplicantCard({
           : 'border-slate-200 hover:border-slate-300'
       )}
     >
-      <CardContent className="flex-grow space-y-4 p-4">
-        <div className="flex items-start space-x-3">
+      <CardContent className="flex flex-col justify-between flex-grow p-4 space-y-4">
+        {/* Header Section - Avatar, Name, and Time Badge */}
+        <div className="flex items-center space-x-3">
           <div className="relative shrink-0">
-            <Avatar className="h-12 w-12 rounded-lg">
+            <Avatar className="h-12 w-12 rounded-xl border-2 border-slate-100">
               <AvatarImage
                 src={avatarUrl}
                 alt={candidate.name}
                 data-ai-hint={candidate.dataAiHint || 'person'}
+                className="object-cover"
               />
-              <AvatarFallback className="rounded-lg bg-slate-100 text-slate-600">
+              <AvatarFallback className="rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 font-semibold text-lg">
                 {candidate.name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            <div className="-bottom-0.5 -right-0.5 absolute h-3 w-3 rounded-full border-2 border-white bg-green-500" />
+            <div className="-bottom-1 -right-1 absolute h-4 w-4 rounded-full border-2 border-white bg-green-500 shadow-sm" />
           </div>
           <div className="min-w-0 flex-1">
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
                 <CardTitle
-                  className="truncate font-semibold text-base text-slate-800 leading-tight"
+                  className="truncate font-bold text-lg text-slate-800 leading-tight"
                   title={candidate.name}
                 >
                   {candidate.name}
                 </CardTitle>
                 <CardDescription
-                  className="mt-1 truncate text-blue-600 text-xs leading-tight"
+                  className="mt-1 truncate text-blue-600 text-sm font-medium leading-tight"
                   title={candidate.role}
                 >
                   {candidate.role}
                 </CardDescription>
+                {locationAndExperience.length > 0 && (
+                  <p className="mt-2 flex items-center truncate text-slate-500 text-sm">
+                    <MapPin className="mr-1.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                    {locationAndExperience.join(' • ')}
+                  </p>
+                )}
               </div>
               <Badge
                 variant="outline"
                 className={cn(
-                  'flex h-6 shrink-0 items-center rounded-full px-2 py-0.5 font-medium text-xs',
+                  'flex h-7 shrink-0 items-center rounded-full px-3 py-1 font-semibold text-xs whitespace-nowrap',
                   timeRemainingDetails.colorClasses
                 )}
               >
-                <Clock className={cn('mr-1 h-3 w-3', timeRemainingDetails.iconColor)} />
+                <Clock className={cn('mr-1.5 h-3.5 w-3.5', timeRemainingDetails.iconColor)} />
                 {timeRemainingDetails.text}
               </Badge>
             </div>
-            {locationAndExperience.length > 0 && (
-              <p className="mt-2 flex items-center truncate text-slate-500 text-xs">
-                <MapPin className="mr-1 h-3 w-3 shrink-0 text-slate-400" />{' '}
-                {locationAndExperience.join(' • ')}
-              </p>
-            )}
           </div>
         </div>
 
-        <div className="pt-1">
-          <div className="mb-1 flex items-center justify-between text-slate-500 text-xs">
-            <span className="flex items-center font-medium">
-              <BarChart3 className="mr-1 h-3.5 w-3.5 text-slate-400" />
+        {/* Profile Strength Section */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="flex items-center font-semibold text-slate-700 text-sm">
+              <BarChart3 className="mr-2 h-4 w-4 text-slate-500" />
               Profile Strength
             </span>
-            <span className="font-semibold text-blue-600 text-sm">
+            <span className="font-bold text-blue-600 text-base">
               {candidate.profileStrength || 0}%
             </span>
           </div>
           <Progress
             value={candidate.profileStrength || 0}
-            className="h-2 bg-slate-200 from-blue-400 to-blue-500 [&>div]:bg-gradient-to-r"
+            className="h-2.5 bg-slate-200 from-blue-400 to-blue-600 [&>div]:bg-gradient-to-r [&>div]:rounded-full"
           />
         </div>
 
+        {/* Skills Section */}
         {candidate.skills && candidate.skills.length > 0 && (
-          <div>
-            <p className="mb-2 font-medium text-slate-700 text-xs">Top Skills</p>
-            <div className="flex flex-wrap gap-1.5">
-              {candidate.skills.slice(0, 3).map((skill) => (
+          <div className="space-y-2">
+            <p className="font-semibold text-slate-700 text-sm">Top Skills</p>
+            <div className="flex flex-wrap gap-2">
+              {candidate.skills.slice(0, 4).map((skill) => (
                 <Badge
                   key={skill}
                   variant="secondary"
-                  className="rounded-md bg-slate-100 px-2 py-1 font-normal text-slate-700 text-xs"
+                  className="rounded-lg bg-slate-100 px-2.5 py-1 font-medium text-slate-700 text-sm hover:bg-slate-200 transition-colors"
                 >
                   {skill}
                 </Badge>
               ))}
-              {candidate.skills.length > 3 && (
+              {candidate.skills.length > 4 && (
                 <Badge
                   variant="outline"
-                  className="rounded-md border-slate-300 px-2 py-1 font-normal text-slate-500 text-xs"
+                  className="rounded-lg border-slate-300 px-2.5 py-1 font-medium text-slate-500 text-sm"
                 >
-                  +{candidate.skills.length - 3}
+                  +{candidate.skills.length - 4} more
                 </Badge>
               )}
             </div>
           </div>
         )}
 
-        <div className="pt-2">
-          <p className="text-slate-500 text-xs">
-            Applied: {formattedApplicationTime} for {jobOpeningTitle || 'general interest'}
+        {/* Application Info Section */}
+        <div className="pt-1 border-t border-slate-100">
+          <p className="text-slate-600 text-sm leading-relaxed">
+            <span className="font-medium">Applied:</span> {formattedApplicationTime}
+            <br />
+            <span className="font-medium">Position:</span> {jobOpeningTitle || 'General Interest'}
           </p>
         </div>
       </CardContent>
-      <CardFooter className="grid grid-cols-4 gap-2 rounded-b-xl border-t bg-slate-50 p-3">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onRejectApplicant(match)}
-          className="h-8 rounded-md border-red-200 py-1 font-medium text-red-600 text-xs hover:border-red-300 hover:bg-red-50"
-        >
-          <UserX className="mr-1 h-3 w-3" /> Reject
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleViewProfile}
-          className="h-8 rounded-md border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100"
-        >
-          <Eye className="mr-1 h-3 w-3" /> View
-        </Button>
-        <Button
-          onClick={() => onInviteToInterview(match)}
-          size="sm"
-          className="h-8 rounded-md bg-blue-600 py-1 font-medium text-white text-xs hover:bg-blue-700"
-        >
-          <CheckCircle className="mr-1 h-3 w-3" /> Invite
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onArchiveMatch(match._id)}
-          className="h-8 rounded-md border-slate-200 py-1 font-medium text-slate-600 text-xs hover:border-slate-300 hover:bg-slate-100"
-        >
-          <Archive className="mr-1 h-3 w-3" /> Archive
-        </Button>
+
+      {/* Action Buttons Footer */}
+      <CardFooter className="grid grid-cols-2 gap-3 rounded-b-xl border-t bg-gradient-to-r from-slate-50 to-slate-100 p-3 pt-2">
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onRejectApplicant(match)}
+            className="h-8 rounded-lg border-red-200 font-medium text-red-600 text-sm hover:border-red-300 hover:bg-red-50 transition-all"
+          >
+            <UserX className="mr-1.5 h-4 w-4" />
+            Reject
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleViewProfile}
+            className="h-8 rounded-lg border-slate-300 font-medium text-slate-600 text-sm hover:border-slate-400 hover:bg-slate-100 transition-all"
+          >
+            <Eye className="mr-1.5 h-4 w-4" />
+            View
+          </Button>
+        </div>
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            onClick={() => onInviteToInterview(match)}
+            size="sm"
+            className="h-8 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 font-semibold text-white text-sm hover:from-blue-700 hover:to-blue-800 shadow-sm transition-all"
+          >
+            <CheckCircle className="mr-1.5 h-4 w-4" />
+            Invite
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onArchiveMatch(match._id)}
+            className="h-8 rounded-lg border-slate-300 font-medium text-slate-600 text-sm hover:border-slate-400 hover:bg-slate-100 transition-all"
+          >
+            <Archive className="mr-1.5 h-4 w-4" />
+            Archive
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

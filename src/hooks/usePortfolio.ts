@@ -20,9 +20,10 @@ import type {
   PortfolioSearchParams,
   UpdatePortfolioRequest,
 } from '../lib/types/portfolio';
+import { auth } from '@/lib/firebase'; // Added import for Firebase auth
 
 // API base URL - in production, this should come from environment variables
-const API_BASE_URL = '/api';
+const API_BASE_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 // Query keys for React Query
 export const portfolioKeys = {
@@ -37,24 +38,38 @@ export const portfolioKeys = {
 // API service functions
 class PortfolioService {
   private static async fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
-    // TODO: Replace with actual authentication token
-    const token = 'mock-token';
-
+    // Get Firebase ID token for authentication
+    // NOTE: Backend currently expects the Firebase UID as the bearer token (not the JWT).
+    // In production you should change the backend to validate the real ID token instead.
+    const user = auth.currentUser;
+    const token = user ? user.uid : null;
+    
     const response = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
       },
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Network error' }));
-      throw new Error(errorData.error || `HTTP ${response.status}`);
+      const errorData = await response.json().catch(() => ({ 
+        success: false, 
+        message: 'Network error' 
+      }));
+      throw new Error(errorData.message || errorData.error || `HTTP ${response.status}`);
     }
 
     return response;
+  }
+
+  // Convert backend _id to id for consistency
+  private static normalizePortfolio(raw: any): Portfolio {
+    return {
+      ...raw,
+      id: raw.id ?? raw._id,
+    } as Portfolio;
   }
 
   static async getPortfolios(filters: PortfolioSearchParams = {}): Promise<PortfolioListResponse> {
@@ -70,25 +85,39 @@ class PortfolioService {
       }
     });
 
-    const url = `${API_BASE_URL}/portfolio?${searchParams.toString()}`;
+    const url = `${API_BASE_URL}/api/portfolios/my?${searchParams.toString()}`;
     const response = await PortfolioService.fetchWithAuth(url);
-    return response.json();
+    const data = await response.json();
+    
+    // Normalize the portfolio objects so we always have an `id` field available
+    const normalizeArray = (arr: any[]): PortfolioListResponse =>
+      arr.map(PortfolioService.normalizePortfolio);
+
+    // Handle both direct array and wrapped response formats
+    if (data.success && data.data) {
+      return normalizeArray(data.data); // Backend returns { success: true, data: [...] }
+    }
+    
+    return Array.isArray(data) ? normalizeArray(data) : []; // Fallback for direct array or empty
   }
 
   static async getPortfolio(id: string): Promise<Portfolio> {
-    const url = `${API_BASE_URL}/portfolio/${id}`;
+    const url = `${API_BASE_URL}/api/portfolios/${id}`;
     const response = await PortfolioService.fetchWithAuth(url);
-    return response.json();
+    const json = await response.json();
+    const raw = json.data ?? json; // unwrap if wrapped
+    return PortfolioService.normalizePortfolio(raw);
   }
 
   static async createPortfolio(data: CreatePortfolioRequest): Promise<Portfolio> {
     try {
-      const url = `${API_BASE_URL}/portfolio`;
+      const url = `${API_BASE_URL}/api/portfolios`;
       const response = await PortfolioService.fetchWithAuth(url, {
         method: 'POST',
         body: JSON.stringify(data),
       });
-      return response.json();
+      const json = await response.json();
+      return PortfolioService.normalizePortfolio(json);
     } catch (error) {
       console.error('Failed to create portfolio:', error);
       throw error;

@@ -77,8 +77,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
         transition={{ duration: 0.5 }}
         className="space-y-3"
       >
-        <label className="flex items-center space-x-2 font-semibold text-lg text-white">
-          <User className="h-5 w-5" />
+        <label className="flex items-center space-x-2 font-semibold text-lg text-blue-600">
+          <User className="h-5 w-5 text-blue-600" />
           <span>Portfolio Title</span>
           <span className="text-red-300">*</span>
         </label>
@@ -88,8 +88,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             {...register('title')}
             type="text"
             placeholder="e.g., John Doe - Full Stack Developer"
-            className={`w-full rounded-2xl border-2 bg-white/10 px-6 py-4 text-lg text-white placeholder-white/50 backdrop-blur-sm transition-all duration-300 focus:outline-none ${
-              titleFocused || title ? 'border-white/50 bg-white/20' : 'border-white/20'
+            className={`w-full rounded-2xl border-2 bg-white/80 px-6 py-4 text-lg text-black placeholder-black/50 backdrop-blur-sm transition-all duration-300 focus:outline-none ${
+              titleFocused || title ? 'border-gray-200/50 bg-white/90' : 'border-gray-200/50'
             } ${errors.title ? 'border-red-400' : ''}`}
             onFocus={() => setTitleFocused(true)}
             onBlur={() => setTitleFocused(false)}
@@ -97,7 +97,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           />
 
           {/* Character counter */}
-          <div className="-translate-y-1/2 absolute top-1/2 right-4 transform text-sm text-white/50">
+          <div className="-translate-y-1/2 absolute top-1/2 right-4 transform text-sm text-black/50">
             {title.length}/100
           </div>
         </div>
@@ -106,14 +106,14 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           <motion.p
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center space-x-1 text-red-300 text-sm"
+            className="flex items-center space-x-1 text-red-500 text-sm"
           >
             <span>⚠️</span>
             <span>{errors.title?.message as string}</span>
           </motion.p>
         )}
 
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-black/60">
           This will be the main heading of your portfolio. Make it memorable!
         </p>
       </motion.div>
@@ -125,8 +125,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
         transition={{ duration: 0.5, delay: 0.1 }}
         className="space-y-3"
       >
-        <label className="flex items-center space-x-2 font-semibold text-lg text-white">
-          <FileText className="h-5 w-5" />
+        <label className="flex items-center space-x-2 font-semibold text-lg text-blue-600">
+          <FileText className="h-5 w-5 text-blue-600" />
           <span>About You</span>
         </label>
 
@@ -135,8 +135,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
             {...register('description')}
             placeholder="Tell visitors about yourself, your skills, and what makes you unique..."
             rows={4}
-            className={`w-full resize-none rounded-2xl border-2 bg-white/10 px-6 py-4 text-lg text-white placeholder-white/50 backdrop-blur-sm transition-all duration-300 focus:outline-none ${
-              descriptionFocused || description ? 'border-white/50 bg-white/20' : 'border-white/20'
+            className={`w-full resize-none rounded-2xl border-2 bg-white/80 px-6 py-4 text-lg text-black placeholder-black/50 backdrop-blur-sm transition-all duration-300 focus:outline-none ${
+              descriptionFocused || description ? 'border-gray-200/50 bg-white/90' : 'border-gray-200/50'
             } ${errors.description ? 'border-red-400' : ''}`}
             onFocus={() => setDescriptionFocused(true)}
             onBlur={() => setDescriptionFocused(false)}
@@ -144,7 +144,7 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           />
 
           {/* Character counter */}
-          <div className="absolute right-4 bottom-4 text-sm text-white/50">
+          <div className="absolute right-4 bottom-4 text-sm text-black/50">
             {description.length}/500
           </div>
         </div>
@@ -153,14 +153,14 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           <motion.p
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center space-x-1 text-red-300 text-sm"
+            className="flex items-center space-x-1 text-red-500 text-sm"
           >
             <span>⚠️</span>
             <span>{errors.description?.message as string}</span>
           </motion.p>
         )}
 
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-black/60">
           Optional: A brief introduction that appears at the top of your portfolio.
         </p>
       </motion.div>
@@ -172,12 +172,12 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
         transition={{ duration: 0.5, delay: 0.2 }}
         className="space-y-3"
       >
-        <label className="flex items-center space-x-2 font-semibold text-lg text-white">
-          <Tag className="h-5 w-5" />
+        <label className="flex items-center space-x-2 font-semibold text-lg text-blue-600">
+          <Tag className="h-5 w-5 text-blue-600" />
           <span>Skills & Interests</span>
         </label>
 
-        <div className="rounded-2xl border-2 border-white/20 bg-white/10 p-6 backdrop-blur-sm">
+        <div className="rounded-2xl border-2 border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm">
           <TagSelector
             selectedTags={tags}
             onTagsChange={handleTagsChange}
@@ -186,8 +186,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
 
           {/* Suggested tags */}
           <div className="mt-4">
-            <p className="mb-3 flex items-center space-x-1 text-sm text-white/70">
-              <Sparkles className="h-4 w-4" />
+            <p className="mb-3 flex items-center space-x-1 text-sm text-black/70">
+              <Sparkles className="h-4 w-4 text-blue-600" />
               <span>Popular tags:</span>
             </p>
             <div className="flex flex-wrap gap-2">
@@ -203,8 +203,8 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
                   disabled={tags.includes(tag) || tags.length >= 10}
                   className={`rounded-full px-3 py-1 text-sm transition-all duration-200 ${
                     tags.includes(tag)
-                      ? 'cursor-not-allowed bg-white/30 text-white/50'
-                      : 'bg-white/10 text-white/80 hover:scale-105 hover:bg-white/20'
+                      ? 'cursor-not-allowed bg-blue-100 text-black/50'
+                      : 'bg-blue-100 text-black/80 hover:scale-105 hover:bg-blue-200'
                   }`}
                 >
                   {tag}
@@ -218,14 +218,14 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           <motion.p
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center space-x-1 text-red-300 text-sm"
+            className="flex items-center space-x-1 text-red-500 text-sm"
           >
             <span>⚠️</span>
             <span>{errors.tags?.message as string}</span>
           </motion.p>
         )}
 
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-black/60">
           Add up to 10 tags to help people discover your portfolio. ({tags.length}/10)
         </p>
       </motion.div>
@@ -236,20 +236,20 @@ const BasicInfoStep: React.FC<BasicInfoStepProps> = ({ form, data, onDataChange 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="rounded-2xl border border-white/20 bg-white/5 p-6 backdrop-blur-sm"
+          className="rounded-2xl border border-gray-200/50 bg-white/80 p-6 backdrop-blur-sm"
         >
-          <h3 className="mb-3 flex items-center space-x-2 font-semibold text-white">
-            <Sparkles className="h-4 w-4" />
+          <h3 className="mb-3 flex items-center space-x-2 font-semibold text-blue-600">
+            <Sparkles className="h-4 w-4 text-blue-600" />
             <span>Preview</span>
           </h3>
 
           <div className="space-y-3">
-            <h4 className="font-bold text-2xl text-white">{title}</h4>
-            {description && <p className="text-white/80 leading-relaxed">{description}</p>}
+            <h4 className="font-bold text-2xl text-blue-600">{title}</h4>
+            {description && <p className="text-black/80 leading-relaxed">{description}</p>}
             {tags.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag: string) => (
-                  <span key={tag} className="rounded-full bg-white/20 px-3 py-1 text-sm text-white">
+                  <span key={tag} className="rounded-full bg-blue-100 px-3 py-1 text-sm text-black">
                     {tag}
                   </span>
                 ))}

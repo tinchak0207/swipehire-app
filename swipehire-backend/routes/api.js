@@ -14,6 +14,7 @@ const notificationController = require('../controllers/notifications/notificatio
 const eventController = require('../controllers/events/eventController');
 const industryEventsController = require('../controllers/events/industryEventsController');
 const followupReminderController = require('../controllers/followup/followupReminderController');
+const portfolioController = require('../controllers/portfolio/portfolioController');
 
 // User routes
 router.post('/users', userController.createUser);
@@ -101,5 +102,16 @@ router.get('/users/:userId/matches/:matchId/followup-reminders', followupReminde
 router.put('/followup-reminders/:reminderId/status', followupReminderController.updateReminderStatus);
 router.put('/followup-reminders/:reminderId/snooze', followupReminderController.snoozeReminder);
 router.delete('/followup-reminders/:reminderId', followupReminderController.deleteReminder);
+
+// Portfolio routes
+router.post('/portfolios', portfolioController.createPortfolio);
+router.get('/portfolios/public', portfolioController.getPublicPortfolios);
+router.get('/portfolios/my', portfolioController.getUserPortfolios); // Changed from user/:userId to my
+router.get('/portfolios/user/:userId', portfolioController.getUserPortfolios);
+router.get('/portfolios/:id', portfolioController.getPortfolioById);
+router.get('/portfolios/url/:url', portfolioController.getPortfolioByUrl);
+router.put('/portfolios/:id', portfolioController.updatePortfolio);
+router.delete('/portfolios/:id', portfolioController.deletePortfolio);
+router.post('/portfolios/:id/like', portfolioController.togglePortfolioLike);
 
 module.exports = router;
