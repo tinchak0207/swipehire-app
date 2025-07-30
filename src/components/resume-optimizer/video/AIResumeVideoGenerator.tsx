@@ -768,7 +768,7 @@ export function AIResumeVideoGenerator({
                     <div className="flex gap-2">
                       <Input
                         readOnly
-                        value={`https://swipehire.com/video/${videoResult.metadata.generatedAt}`}
+                        value={`https://swipehire.top/video/${videoResult.metadata.generatedAt}`}
                         className="flex-1"
                       />
                       <Button variant="outline">Copy</Button>

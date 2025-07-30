@@ -32,7 +32,6 @@ Sitemap: https://www.swipehire.top/sitemap.xml
 
 # Crawl-delay for specific bots (if needed)
 User-agent: Googlebot
-Crawl-delay: 1
 
 # Prevent indexing of error pages
 Disallow: /404

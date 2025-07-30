@@ -320,7 +320,7 @@ export function addCriticalResourceHints(): void {
   const preconnectDomains = [
     'https://fonts.googleapis.com',
     'https://fonts.gstatic.com',
-    'https://api.swipehire.com',
+    'https://api.swipehire.top',
   ];
 
   preconnectDomains.forEach((domain) => {

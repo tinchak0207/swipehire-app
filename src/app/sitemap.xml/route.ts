@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import { fetchJobsFromBackend } from '@/services/jobService';
+import { fetchCompaniesFromBackend } from '@/services/companyService';
+import { EventService } from '@/services/eventService';
+import { fetchBlogPostsFromBackend } from '@/services/blogService';
 
 // Enhanced sitemap.xml generator for SwipeHire SEO optimization
 // Includes static pages, job categories, locations, and dynamic content
@@ -96,50 +100,13 @@ export async function GET() {
   );
 
   // Blog article pages
-  const blogPages = [
-    {
-      url: `${baseUrl}/blog/ai-recruitment-trends`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.6',
-    },
-    {
-      url: `${baseUrl}/blog/data-privacy`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.6',
-    },
-    {
-      url: `${baseUrl}/blog/employer-best-practices`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.6',
-    },
-    {
-      url: `${baseUrl}/blog/remote-work-guide`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.6',
-    },
-    {
-      url: `${baseUrl}/blog/success-stories`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.6',
-    },
-    {
-      url: `${baseUrl}/blog/video-resume-tips`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.6',
-    },
-    {
-      url: `${baseUrl}/blog/how-to-beat-the-ats-in-2025`,
-      lastmod: currentDate,
-      changefreq: 'monthly',
-      priority: '0.7',
-    },
-  ];
+  const { posts } = await fetchBlogPostsFromBackend();
+  const blogPages = posts.map((post) => ({
+    url: `${baseUrl}/blog/${post.id}`,
+    lastmod: currentDate,
+    changefreq: 'weekly',
+    priority: '0.7',
+  }));
 
   // Search pages for popular queries
   const searchPages = [
@@ -232,6 +199,37 @@ export async function GET() {
   // - Event details
   // - Portfolio pages
   // - Additional blog content
+  const { jobs } = await fetchJobsFromBackend();
+  const jobPages = jobs.flatMap((company) =>
+    (company.jobOpenings || []).map((job) => ({
+      url: `${baseUrl}/jobs/${job._id}`,
+      lastmod: currentDate,
+      changefreq: 'daily',
+      priority: '1.0',
+    }))
+  );
+
+  allPages.push(...jobPages);
+
+  const { companies } = await fetchCompaniesFromBackend();
+  const companyPages = companies.map((company) => ({
+    url: `${baseUrl}/companies/${company.id}`,
+    lastmod: currentDate,
+    changefreq: 'weekly',
+    priority: '0.8',
+  }));
+
+  allPages.push(...companyPages);
+
+  const { events } = await EventService.getEvents();
+  const eventPages = events.map((event) => ({
+    url: `${baseUrl}/events/${event.id}`,
+    lastmod: currentDate,
+    changefreq: 'weekly',
+    priority: '0.7',
+  }));
+
+  allPages.push(...eventPages);
 
   // Generate XML for all pages
   const urlEntries = allPages

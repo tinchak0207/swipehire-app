@@ -137,7 +137,7 @@ class RealtimeService {
   connect(userId: string) {
     if (typeof window === 'undefined') return;
 
-    this.ws = new WebSocket(`wss://api.swipehire.com/ws/${userId}`);
+    this.ws = new WebSocket(`wss://api.swipehire.top/ws/${userId}`);
 
     this.ws.onmessage = (event) => {
       const data = JSON.parse(event.data);

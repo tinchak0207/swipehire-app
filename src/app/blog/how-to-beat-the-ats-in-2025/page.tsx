@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { generateArticleSchema, StructuredData } from '@/lib/structured-data';
 
 export const metadata: Metadata = {
   title: 'How to Beat the ATS in 2025: An AI-Powered Guide for Engineers',
@@ -38,8 +39,24 @@ export const metadata: Metadata = {
 };
 
 export default function BlogPostPage() {
+  const articleSchema = generateArticleSchema({
+    headline: 'How to Beat the ATS in 2025: An AI-Powered Guide for Engineers',
+    description: 'Learn how to optimize your engineering resume for Applicant Tracking Systems (ATS) using AI. This guide covers keyword optimization, formatting, and leveraging AI tools to get your application noticed.',
+    author: 'The SwipeHire Team',
+    publisherName: 'SwipeHire',
+    publisherUrl: 'https://swipehire.top',
+    publisherLogo: 'https://swipehire.top/logo.png',
+    datePublished: '2023-10-26T00:00:00Z',
+    dateModified: '2023-10-26T00:00:00Z',
+    image: 'https://swipehire.top/images/blog/ats-hero-image.png',
+    url: 'https://swipehire.top/blog/how-to-beat-the-ats-in-2025',
+    category: 'Career Advice',
+    keywords: ['ATS', 'Applicant Tracking System', 'Resume Optimization', 'AI in Recruiting', 'Engineering Resume', 'Job Application', 'SwipeHire'],
+  });
+
   return (
     <div className="bg-gradient-to-b from-gray-50 to-blue-50 py-12 md:py-20">
+      <StructuredData data={articleSchema} />
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <article className="prose prose-lg mx-auto max-w-4xl lg:prose-xl">
           <header className="mb-8 text-center">

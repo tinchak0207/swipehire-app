@@ -25,6 +25,8 @@ import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 import { useEvent, useRegisterEvent, useSaveEvent } from '@/hooks/useEvents';
 import { EventFormat, type EventSpeaker, type IndustryEvent } from '@/lib/types';
+import { generateEventSchema, StructuredData } from '@/lib/structured-data';
+import Head from 'next/head';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -241,6 +243,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
   const statusInfo = getEventStatusInfo(event);
   const isEventFull = event.capacity && event.registeredCount >= event.capacity;
+  const eventSchema = generateEventSchema(event);
 
   const formatPrice = () => {
     if (event.isFree) return 'Free';
@@ -255,6 +258,18 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Head>
+        <title>{event.title} - SwipeHire Events</title>
+        <meta name="description" content={event.description} />
+        <meta property="og:title" content={event.title} />
+        <meta property="og:description" content={event.description} />
+        <meta property="og:type" content="event" />
+        {event.bannerUrl && <meta property="og:image" content={event.bannerUrl} />}
+        <meta property="og:url" content={`https://swipehire.top/events/${event.id}`} />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
+      <StructuredData data={eventSchema} />
+      
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">

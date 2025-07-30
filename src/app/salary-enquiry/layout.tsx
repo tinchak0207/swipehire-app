@@ -40,7 +40,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://swipehire.com/salary-enquiry',
+    url: 'https://swipehire.top/salary-enquiry',
     siteName: 'SwipeHire',
     title: 'Market Salary Enquiry - Discover Competitive Compensation Data',
     description:
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     images: ['/images/salary-enquiry-twitter.jpg'],
   },
   alternates: {
-    canonical: 'https://swipehire.com/salary-enquiry',
+    canonical: 'https://swipehire.top/salary-enquiry',
   },
   category: 'Career Tools',
 };
@@ -89,7 +89,7 @@ const SalaryEnquiryLayout: React.FC<SalaryEnquiryLayoutProps> = ({ children }) =
             '@type': 'WebApplication',
             name: 'SwipeHire Salary Enquiry',
             description: 'Comprehensive salary data and compensation analysis tool',
-            url: 'https://swipehire.com/salary-enquiry',
+            url: 'https://swipehire.top/salary-enquiry',
             applicationCategory: 'BusinessApplication',
             operatingSystem: 'Web Browser',
             offers: {
@@ -108,7 +108,7 @@ const SalaryEnquiryLayout: React.FC<SalaryEnquiryLayoutProps> = ({ children }) =
             provider: {
               '@type': 'Organization',
               name: 'SwipeHire',
-              url: 'https://swipehire.com',
+              url: 'https://swipehire.top',
             },
           }),
         }}
@@ -126,13 +126,13 @@ const SalaryEnquiryLayout: React.FC<SalaryEnquiryLayoutProps> = ({ children }) =
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Home',
-                item: 'https://swipehire.com',
+                item: 'https:/swipehire.top',
               },
               {
                 '@type': 'ListItem',
                 position: 2,
                 name: 'Salary Enquiry',
-                item: 'https://swipehire.com/salary-enquiry',
+                item: 'https://swipehire.top/salary-enquiry',
               },
             ],
           }),
