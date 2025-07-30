@@ -263,7 +263,7 @@ const PortfolioPreview: React.FC<PortfolioPreviewProps> = ({ portfolio }) => {
               borderColor: 'rgba(229, 231, 235, 0.5)',
             }}
           >
-            {/* QR Code - 直接使用本地生成的QR码 */}
+            {/* QR Code - Directly use locally generated QR code */}
             <div className="text-center mb-8">
               <div
                 className="inline-block p-4 rounded-2xl"

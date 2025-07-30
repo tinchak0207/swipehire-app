@@ -8,7 +8,8 @@ import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockCompanies } from '@/lib/mockData';
-import type { Company, CompanyReview } from '@/lib/types';
+import type { Company, CompanyReview, CompanyJobOpening as JobOpening } from '@/lib/types';
+import Script from 'next/script';
 
 // Conceptual: This page would fetch company data based on companyId
 
@@ -205,20 +206,72 @@ export default function CompanyProfilePage() {
                   <Briefcase className="mr-2 h-5 w-5" /> Current Openings ({jobOpenings.length})
                 </h2>
                 <div className="space-y-3">
-                  {jobOpenings.slice(0, 3).map((job) => (
-                    <div
-                      key={job._id || job.title}
-                      className="rounded-md border p-3 transition-shadow hover:shadow-md"
-                    >
-                      <h3 className="font-semibold text-foreground">{job.title}</h3>
-                      <p className="text-muted-foreground text-xs">
-                        {job.location || 'Not specified'} - {job.jobType || 'Not specified'}
-                      </p>
-                      <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-primary">
-                        View Details (Conceptual)
-                      </Button>
-                    </div>
-                  ))}
+                  {jobOpenings.slice(0, 3).map((job: JobOpening) => {
+                    const jobPostingJsonLd = {
+                      '@context': 'https://schema.org',
+                      '@type': 'JobPosting',
+                      title: job.title,
+                      description: job.description,
+                      identifier: {
+                        '@type': 'PropertyValue',
+                        name: 'SwipeHire Job ID',
+                        value: job._id,
+                      },
+                      datePosted: job.datePosted
+                        ? new Date(job.datePosted).toISOString().split('T')[0]
+                        : undefined,
+                      validThrough: job.validThrough
+                        ? new Date(job.validThrough).toISOString().split('T')[0]
+                        : undefined,
+                      employmentType: job.jobType ? job.jobType.replace(/_/g, ' ').toUpperCase() : 'FULL_TIME',
+                      hiringOrganization: {
+                        '@type': 'Organization',
+                        name: companyData.name,
+                        sameAs: companyData.websiteUrl,
+                        logo: companyData.logoUrl,
+                      },
+                      jobLocation: {
+                        '@type': 'Place',
+                        address: {
+                          '@type': 'PostalAddress',
+                          streetAddress: job.location,
+                          addressLocality: job.location?.split(',')[0],
+                          addressRegion: job.location?.split(',')[1],
+                          addressCountry: 'US', // Assuming US, this should be dynamic
+                        },
+                      },
+                      baseSalary: {
+                        '@type': 'MonetaryAmount',
+                        currency: 'USD', // Assuming USD
+                        value: {
+                          '@type': 'QuantitativeValue',
+                          minValue: job.salaryMin,
+                          maxValue: job.salaryMax,
+                          unitText: 'YEAR',
+                        },
+                      },
+                    };
+
+                    return (
+                      <div
+                        key={job._id || job.title}
+                        className="rounded-md border p-3 transition-shadow hover:shadow-md"
+                      >
+                        <Script
+                          id={`job-posting-schema-${job._id}`}
+                          type="application/ld+json"
+                          dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+                        />
+                        <h3 className="font-semibold text-foreground">{job.title}</h3>
+                        <p className="text-muted-foreground text-xs">
+                          {job.location || 'Not specified'} - {job.jobType || 'Not specified'}
+                        </p>
+                        <Button variant="link" size="sm" className="mt-1 h-auto p-0 text-primary">
+                          View Details (Conceptual)
+                        </Button>
+                      </div>
+                    );
+                  })}
                   {jobOpenings.length > 3 && (
                     <p className="text-muted-foreground text-sm">
                       And {jobOpenings.length - 3} more...

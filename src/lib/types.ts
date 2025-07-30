@@ -239,7 +239,8 @@ export interface CompanyJobOpening {
   companyNameForJob?: string;
   companyLogoForJob?: string;
   companyIndustryForJob?: string;
-  postedAt?: string | Date;
+  datePosted?: string | Date;
+  validThrough?: string | Date;
   status?: 'draft' | 'active' | 'paused' | 'expired' | 'filled' | 'closed';
 }
 
@@ -251,6 +252,7 @@ export interface Company {
   description: string;
   cultureHighlights: string[];
   logoUrl?: string;
+  websiteUrl?: string;
   dataAiHint?: string;
   introVideoUrl?: string;
   jobOpenings?: CompanyJobOpening[];

@@ -512,7 +512,7 @@ export function ManageJobPostingsPage({ isGuestMode }: ManageJobPostingsPageProp
                         {job.location || 'Not specified'} - {job.jobType || 'Not specified'}
                         <span className="mt-0.5 block text-muted-foreground/80 text-xs">
                           Posted:{' '}
-                          {formatDistanceToNow(new Date(job.postedAt || Date.now()), {
+                          {formatDistanceToNow(new Date(job.datePosted || Date.now()), {
                             addSuffix: true,
                           })}
                         </span>

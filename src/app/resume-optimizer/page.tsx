@@ -11,6 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
+
 import { useEffect, useState } from 'react';
 import InteractiveWizard from '@/components/resume-optimizer/wizard/interactive-wizard';
 

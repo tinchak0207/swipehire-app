@@ -95,18 +95,20 @@ const TestimonialCard = ({
     const delayMs = Number.parseInt(aosDelay || '0', 10);
     const startDelay = (Number.isNaN(delayMs) ? 0 : delayMs) + 300;
 
+    let isMounted = true; // Add mount status to prevent memory leaks
+
     const timer = setTimeout(() => {
-      if (quote) {
-        typingInterval = setInterval(() => {
-          if (index < quote.length) {
-            setDisplayedQuote((prev) => prev + quote.charAt(index));
-            index++;
-          } else {
-            if (typingInterval) clearInterval(typingInterval);
-            setIsTypingComplete(true);
-          }
-        }, typingSpeed);
-      }
+      if (!isMounted || !quote) return;
+
+      typingInterval = setInterval(() => {
+        if (index < quote.length) {
+          setDisplayedQuote((prev) => prev + quote.charAt(index));
+          index++;
+        } else {
+          if (typingInterval) clearInterval(typingInterval);
+          setIsTypingComplete(true);
+        }
+      }, typingSpeed);
     }, startDelay);
 
     return () => {
@@ -114,6 +116,7 @@ const TestimonialCard = ({
       if (typingInterval) {
         clearInterval(typingInterval);
       }
+      isMounted = false; // Set to unmounted on cleanup
     };
   }, [quote, aosDelay]);
 
@@ -121,7 +124,7 @@ const TestimonialCard = ({
     <Card
       className="subtle-card-hover group flex h-full flex-col bg-card shadow-lg"
       data-aos={aosAnimation || 'fade-up'}
-      data-aos-delay={aosDelay}
+      data-aos-delay={aosDelay?.toString()}
     >
       <CardContent className="flex flex-grow flex-col pt-6">
         <blockquote className="min-h-[6em] flex-grow text-muted-foreground italic leading-relaxed transition-colors duration-300 group-hover:text-foreground/80">
