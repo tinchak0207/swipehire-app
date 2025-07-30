@@ -12,6 +12,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { BookmarkIcon as BookmarkSolidIcon } from '@heroicons/react/24/solid';
 import { format, formatDistanceToNow, isAfter, isBefore } from 'date-fns';
+import Head from 'next/head';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -24,9 +25,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { useUserPreferences } from '@/contexts/UserPreferencesContext';
 import { useToast } from '@/hooks/use-toast';
 import { useEvent, useRegisterEvent, useSaveEvent } from '@/hooks/useEvents';
-import { EventFormat, type EventSpeaker, type IndustryEvent } from '@/lib/types';
 import { generateEventSchema, StructuredData } from '@/lib/structured-data';
-import Head from 'next/head';
+import { EventFormat, type EventSpeaker, type IndustryEvent } from '@/lib/types';
 
 interface EventDetailPageProps {
   params: Promise<{
@@ -269,7 +269,7 @@ const EventDetailPage: React.FC<EventDetailPageProps> = ({ params }) => {
         <meta name="twitter:card" content="summary_large_image" />
       </Head>
       <StructuredData data={eventSchema} />
-      
+
       {/* Header */}
       <div className="bg-white shadow-sm">
         <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">

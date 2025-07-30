@@ -58,16 +58,18 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
               {data.demandLevel} Demand
             </Badge>
           </div>
-          
+
           <h1 className="mb-4 font-bold text-4xl text-gray-900 sm:text-5xl">
             {data.skill} Jobs in {data.location}
           </h1>
-          
+
           <p className="mx-auto mb-8 max-w-3xl text-xl text-gray-600">
-            Discover {data.jobCount}+ {data.skill} opportunities in {data.location}. 
-            {data.location === 'Remote' ? ' Work from anywhere with top tech companies.' : ` ${data.techScene}`}
+            Discover {data.jobCount}+ {data.skill} opportunities in {data.location}.
+            {data.location === 'Remote'
+              ? ' Work from anywhere with top tech companies.'
+              : ` ${data.techScene}`}
           </p>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-gray-500">
             <div className="flex items-center">
               <Users className="mr-2 h-4 w-4" />
@@ -106,28 +108,24 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
                     </div>
                     <Progress value={75} className="h-2" />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Job Availability</span>
-                      <span className="text-sm text-gray-500">
-                        {data.demandLevel}
-                      </span>
+                      <span className="text-sm text-gray-500">{data.demandLevel}</span>
                     </div>
-                    <Progress 
-                      value={data.demandLevel === 'High' ? 85 : 60} 
-                      className="h-2" 
-                    />
+                    <Progress value={data.demandLevel === 'High' ? 85 : 60} className="h-2" />
                   </div>
                 </div>
-                
+
                 {data.location !== 'Remote' && (
                   <div className="rounded-lg bg-blue-50 p-4">
                     <h4 className="mb-2 font-semibold text-blue-900">Cost of Living Impact</h4>
                     <p className="text-blue-800 text-sm">
-                      {data.location} has a {data.costOfLiving.toLowerCase()} cost of living. 
-                      Your ${data.averageSalary.toLocaleString()} salary provides 
-                      {data.costOfLiving === 'High' ? ' comfortable' : ' excellent'} purchasing power in this market.
+                      {data.location} has a {data.costOfLiving.toLowerCase()} cost of living. Your $
+                      {data.averageSalary.toLocaleString()} salary provides
+                      {data.costOfLiving === 'High' ? ' comfortable' : ' excellent'} purchasing
+                      power in this market.
                     </p>
                   </div>
                 )}
@@ -167,13 +165,14 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
               <Card>
                 <CardHeader>
                   <CardTitle>Latest {data.skill} Jobs</CardTitle>
-                  <CardDescription>
-                    Recent opportunities posted in {data.location}
-                  </CardDescription>
+                  <CardDescription>Recent opportunities posted in {data.location}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {mockJobs.map((job) => (
-                    <div key={job.id} className="flex items-start justify-between rounded-lg border p-4">
+                    <div
+                      key={job.id}
+                      className="flex items-start justify-between rounded-lg border p-4"
+                    >
                       <div className="space-y-1">
                         <h4 className="font-semibold">{job.title}</h4>
                         <p className="text-gray-600 text-sm">{job.company}</p>
@@ -232,9 +231,7 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
             <Card>
               <CardHeader>
                 <CardTitle>Related Skills</CardTitle>
-                <CardDescription>
-                  Other in-demand skills in {data.skillCategory}
-                </CardDescription>
+                <CardDescription>Other in-demand skills in {data.skillCategory}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {relatedSkills.map((skill) => (
@@ -259,9 +256,7 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
               <Card>
                 <CardHeader>
                   <CardTitle>Similar Markets</CardTitle>
-                  <CardDescription>
-                    Compare {data.skill} salaries in other cities
-                  </CardDescription>
+                  <CardDescription>Compare {data.skill} salaries in other cities</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {relatedLocations.map((location) => (
@@ -273,7 +268,9 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
                       <div className="flex items-center justify-between">
                         <div>
                           <span className="font-medium">{location.city}</span>
-                          {location.state && <span className="text-gray-500">, {location.state}</span>}
+                          {location.state && (
+                            <span className="text-gray-500">, {location.state}</span>
+                          )}
                         </div>
                         <span className="text-sm text-gray-500">
                           ${location.averageSalary.toLocaleString()}
@@ -288,9 +285,7 @@ export const SkillLocationPage: React.FC<SkillLocationPageProps> = ({
             {/* CTA */}
             <Card className="border-2 border-dashed border-blue-300 bg-blue-50">
               <CardContent className="p-6 text-center">
-                <h3 className="mb-2 font-semibold text-blue-900">
-                  Ready to Find Your Next Role?
-                </h3>
+                <h3 className="mb-2 font-semibold text-blue-900">Ready to Find Your Next Role?</h3>
                 <p className="mb-4 text-blue-800 text-sm">
                   Get personalized {data.skill} job recommendations
                 </p>

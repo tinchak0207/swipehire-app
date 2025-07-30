@@ -41,7 +41,8 @@ export const metadata: Metadata = {
 export default function BlogPostPage() {
   const articleSchema = generateArticleSchema({
     headline: 'How to Beat the ATS in 2025: An AI-Powered Guide for Engineers',
-    description: 'Learn how to optimize your engineering resume for Applicant Tracking Systems (ATS) using AI. This guide covers keyword optimization, formatting, and leveraging AI tools to get your application noticed.',
+    description:
+      'Learn how to optimize your engineering resume for Applicant Tracking Systems (ATS) using AI. This guide covers keyword optimization, formatting, and leveraging AI tools to get your application noticed.',
     author: 'The SwipeHire Team',
     publisherName: 'SwipeHire',
     publisherUrl: 'https://swipehire.top',
@@ -51,7 +52,15 @@ export default function BlogPostPage() {
     image: 'https://swipehire.top/images/blog/ats-hero-image.png',
     url: 'https://swipehire.top/blog/how-to-beat-the-ats-in-2025',
     category: 'Career Advice',
-    keywords: ['ATS', 'Applicant Tracking System', 'Resume Optimization', 'AI in Recruiting', 'Engineering Resume', 'Job Application', 'SwipeHire'],
+    keywords: [
+      'ATS',
+      'Applicant Tracking System',
+      'Resume Optimization',
+      'AI in Recruiting',
+      'Engineering Resume',
+      'Job Application',
+      'SwipeHire',
+    ],
   });
 
   return (

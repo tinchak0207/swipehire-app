@@ -53,7 +53,7 @@ export const generateJobMetadata = ({
 }): Metadata => {
   const salaryRange = salaryMin && salaryMax ? `${salaryMin}k-${salaryMax}k` : '';
   const skillsText = skills.length > 0 ? skills.slice(0, 3).join(', ') : '';
-  
+
   const metaTitle = `${title} at ${company} - ${location} ${salaryRange ? `| ${salaryRange}` : ''} | ${new Date().getFullYear()}`;
   const metaDescription = `Apply for ${title} position at ${company} in ${location}. ${salaryRange ? `Salary: ${salaryRange}. ` : ''}${skillsText ? `Skills: ${skillsText}. ` : ''}Join innovative team on SwipeHire.`;
 
@@ -69,7 +69,7 @@ export const generateJobMetadata = ({
       location.toLowerCase(),
       `${location.toLowerCase()} tech jobs`,
       type.toLowerCase(),
-      ...skills.map(skill => skill.toLowerCase()),
+      ...skills.map((skill) => skill.toLowerCase()),
       'remote work',
       'tech jobs',
       'software engineer',
@@ -133,7 +133,7 @@ export const generateEventMetadata = ({
     month: 'long',
     day: 'numeric',
   });
-  
+
   const priceText = isFree ? 'Free' : price ? `${price}` : 'TBA';
   const metaTitle = `${title} - ${eventDate} | Tech Events on SwipeHire | ${new Date().getFullYear()}`;
   const metaDescription = `Join ${title} organized by ${organizer}. ${description.slice(0, 100)}... ${priceText} • ${location} • Register on SwipeHire.`;
@@ -278,7 +278,7 @@ export const generateArticleMetadata = ({
     description: metaDescription,
     keywords: [
       ...title.toLowerCase().split(' '),
-      ...tags.map(tag => tag.toLowerCase()),
+      ...tags.map((tag) => tag.toLowerCase()),
       category.toLowerCase(),
       'career advice',
       'tech industry insights',
@@ -337,9 +337,12 @@ export const generateLocationMetadata = ({
   url: string;
 }): Metadata => {
   const location = `${city}, ${state}`;
-  const salaryText = averageSalary ? `Average salary: ${averageSalary.min}k-${averageSalary.max}k. ` : '';
-  const companiesText = topCompanies.length > 0 ? `Top employers: ${topCompanies.slice(0, 3).join(', ')}. ` : '';
-  
+  const salaryText = averageSalary
+    ? `Average salary: ${averageSalary.min}k-${averageSalary.max}k. `
+    : '';
+  const companiesText =
+    topCompanies.length > 0 ? `Top employers: ${topCompanies.slice(0, 3).join(', ')}. ` : '';
+
   const metaTitle = `Tech Jobs in ${location} - ${jobCount}+ Opportunities | SwipeHire | ${new Date().getFullYear()}`;
   const metaDescription = `Find ${jobCount}+ tech jobs in ${location}. ${salaryText}${companiesText}Remote and on-site positions available. Apply now on SwipeHire.`;
 
@@ -390,7 +393,8 @@ export const generateHomepageMetadata = (): Metadata => {
   return {
     ...(baseMetadata as any),
     title: 'SwipeHire - AI-Powered Tech Recruitment Platform | Find Your Dream Job',
-    description: 'Discover your next tech role with SwipeHire\'s AI-powered job matching platform. Connect with top companies, optimize your resume, and accelerate your career in technology. Join 50,000+ professionals today.',
+    description:
+      "Discover your next tech role with SwipeHire's AI-powered job matching platform. Connect with top companies, optimize your resume, and accelerate your career in technology. Join 50,000+ professionals today.",
     keywords: [
       'tech jobs',
       'AI recruitment',
@@ -405,7 +409,8 @@ export const generateHomepageMetadata = (): Metadata => {
     ],
     openGraph: {
       title: 'SwipeHire - Where Tech Talent Meets Opportunity',
-      description: 'Join the smartest tech recruitment platform. AI-powered matching, personalized career insights, and direct connections with innovative companies.',
+      description:
+        'Join the smartest tech recruitment platform. AI-powered matching, personalized career insights, and direct connections with innovative companies.',
       url: 'https://swipehire.top',
       siteName: 'SwipeHire',
       type: 'website',
@@ -421,7 +426,8 @@ export const generateHomepageMetadata = (): Metadata => {
     twitter: {
       card: 'summary_large_image',
       title: 'SwipeHire - AI-Powered Tech Recruitment Platform',
-      description: 'Discover your next tech role with intelligent job matching and career optimization tools.',
+      description:
+        'Discover your next tech role with intelligent job matching and career optimization tools.',
       creator: '@SwipeHire',
       images: ['/og-images/homepage.png'],
     },
@@ -429,33 +435,65 @@ export const generateHomepageMetadata = (): Metadata => {
 };
 
 // Utility function to truncate description to optimal length
-export const optimizeDescription = (text: string, maxLength: number = 160): string => {
+export const optimizeDescription = (text: string, maxLength = 160): string => {
   if (text.length <= maxLength) return text;
-  
+
   const truncated = text.slice(0, maxLength - 3);
   const lastSpace = truncated.lastIndexOf(' ');
-  
+
   return lastSpace > 0 ? truncated.slice(0, lastSpace) + '...' : truncated + '...';
 };
 
 // Utility function to generate keywords from text
 export const extractKeywords = (text: string, additionalKeywords: string[] = []): string[] => {
-  const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should']);
-  
-  const words = text.toLowerCase()
+  const commonWords = new Set([
+    'the',
+    'a',
+    'an',
+    'and',
+    'or',
+    'but',
+    'in',
+    'on',
+    'at',
+    'to',
+    'for',
+    'of',
+    'with',
+    'by',
+    'is',
+    'are',
+    'was',
+    'were',
+    'be',
+    'been',
+    'have',
+    'has',
+    'had',
+    'do',
+    'does',
+    'did',
+    'will',
+    'would',
+    'could',
+    'should',
+  ]);
+
+  const words = text
+    .toLowerCase()
     .replace(/[^\w\s]/g, '')
     .split(/\s+/)
-    .filter(word => word.length > 2 && !commonWords.has(word));
-  
+    .filter((word) => word.length > 2 && !commonWords.has(word));
+
   const keywordCounts = new Map<string, number>();
-  words.forEach(word => {
+  words.forEach((word) => {
     keywordCounts.set(word, (keywordCounts.get(word) || 0) + 1);
   });
-  
+
   const sortedKeywords = Array.from(keywordCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .map(([word]) => word)
     .slice(0, 10);
-  
+
   return [...new Set([...sortedKeywords, ...additionalKeywords])];
 };

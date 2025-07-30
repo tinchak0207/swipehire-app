@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { fetchJobsFromBackend } from '@/services/jobService';
+import { fetchBlogPostsFromBackend } from '@/services/blogService';
 import { fetchCompaniesFromBackend } from '@/services/companyService';
 import { EventService } from '@/services/eventService';
-import { fetchBlogPostsFromBackend } from '@/services/blogService';
+import { fetchJobsFromBackend } from '@/services/jobService';
 
 // Enhanced sitemap.xml generator for SwipeHire SEO optimization
 // Includes static pages, job categories, locations, and dynamic content

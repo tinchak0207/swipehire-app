@@ -14,26 +14,29 @@ const nextConfig = {
     scrollRestoration: true,
     legacyBrowsers: false,
   },
-  
+
   // Compiler optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production' ? {
-      exclude: ['error', 'warn'],
-    } : false,
+    removeConsole:
+      process.env.NODE_ENV === 'production'
+        ? {
+            exclude: ['error', 'warn'],
+          }
+        : false,
   },
-  
+
   // Enable SWC minification for better performance
   swcMinify: true,
-  
+
   // Compression
   compress: true,
-  
+
   // React optimizations
   reactStrictMode: true,
-  
+
   // Package transpilation
   transpilePackages: ['@reactflow/core'],
-  
+
   // Image optimization configuration
   images: {
     dangerouslyAllowSVG: true,
@@ -99,7 +102,7 @@ const nextConfig = {
       },
     ],
   },
-  
+
   // Headers for performance and security
   async headers() {
     return [
@@ -108,11 +111,11 @@ const nextConfig = {
         headers: [
           {
             key: 'X-DNS-Prefetch-Control',
-            value: 'on'
+            value: 'on',
           },
           {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN'
+            value: 'SAMEORIGIN',
           },
         ],
       },
@@ -136,7 +139,7 @@ const nextConfig = {
       },
     ];
   },
-  
+
   webpack: (config, { isServer, dev }) => {
     if (!isServer) {
       config.resolve.fallback.fs = false;
@@ -157,7 +160,7 @@ const nextConfig = {
       test: /\.hbs$/,
       use: 'handlebars-loader',
     });
-    
+
     config.plugins.push(
       new webpack.IgnorePlugin({
         resourceRegExp: /^\.\/lib\/handlebars$/,

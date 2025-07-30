@@ -9,7 +9,7 @@ export interface FAQItem {
 export const generateFAQSchema = (faqs: FAQItem[]) => ({
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: faqs.map(faq => ({
+  mainEntity: faqs.map((faq) => ({
     '@type': 'Question',
     name: faq.question,
     acceptedAnswer: {
@@ -73,11 +73,11 @@ export const generateHowToSchema = ({
   image,
   totalTime,
   estimatedCost,
-  supply: supply.map(item => ({
+  supply: supply.map((item) => ({
     '@type': 'HowToSupply',
     name: item,
   })),
-  tool: tool.map(item => ({
+  tool: tool.map((item) => ({
     '@type': 'HowToTool',
     name: item,
   })),
@@ -131,22 +131,26 @@ export const generateCourseSchema = ({
     name: provider,
     url: 'https://swipehire.top',
   },
-  instructor: instructor ? {
-    '@type': 'Person',
-    name: instructor,
-  } : undefined,
+  instructor: instructor
+    ? {
+        '@type': 'Person',
+        name: instructor,
+      }
+    : undefined,
   courseCode,
-  hasCourseInstance: hasCourseInstance?.map(instance => ({
+  hasCourseInstance: hasCourseInstance?.map((instance) => ({
     '@type': 'CourseInstance',
     courseMode: instance.courseMode,
     startDate: instance.startDate,
     endDate: instance.endDate,
     courseSchedule: instance.courseSchedule,
   })),
-  audience: audience ? {
-    '@type': 'Audience',
-    audienceType: audience,
-  } : undefined,
+  audience: audience
+    ? {
+        '@type': 'Audience',
+        audienceType: audience,
+      }
+    : undefined,
   competencyRequired: competencyRequired?.join(', '),
   educationalCredentialAwarded,
   image,
@@ -160,7 +164,8 @@ export const generateWebSiteSchema = () => ({
   name: 'SwipeHire',
   alternateName: 'SwipeHire - Tech Recruitment Platform',
   url: 'https://swipehire.top',
-  description: 'AI-powered tech recruitment platform connecting talented developers with innovative companies.',
+  description:
+    'AI-powered tech recruitment platform connecting talented developers with innovative companies.',
   publisher: {
     '@type': 'Organization',
     name: 'SwipeHire',
@@ -261,11 +266,13 @@ export const generateLocalBusinessSchema = ({
     opens: '09:00',
     closes: '17:00',
   })),
-  geo: geo ? {
-    '@type': 'GeoCoordinates',
-    latitude: geo.latitude,
-    longitude: geo.longitude,
-  } : undefined,
+  geo: geo
+    ? {
+        '@type': 'GeoCoordinates',
+        latitude: geo.latitude,
+        longitude: geo.longitude,
+      }
+    : undefined,
 });
 
 // Review Schema
@@ -322,7 +329,7 @@ export const stringifySchema = (schema: any): string => {
 
 // Multiple schema combination utility
 export const combineSchemas = (...schemas: any[]): string => {
-  return schemas.map(schema => stringifySchema(schema)).join('\n');
+  return schemas.map((schema) => stringifySchema(schema)).join('\n');
 };
 
 // Schema validation utility (development only)

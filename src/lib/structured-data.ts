@@ -1,5 +1,5 @@
 import React from 'react';
-import { IndustryEvent, EventFormat } from '@/lib/types';
+import type { EventFormat, IndustryEvent } from '@/lib/types';
 
 // Base interfaces for structured data
 interface Organization {
@@ -68,11 +68,13 @@ interface EventSchema {
   endDate: string;
   eventAttendanceMode: string;
   eventStatus: string;
-  location?: Place | {
-    '@type': 'VirtualLocation';
-    url: string;
-    name?: string;
-  };
+  location?:
+    | Place
+    | {
+        '@type': 'VirtualLocation';
+        url: string;
+        name?: string;
+      };
   organizer: Organization;
   offers?: {
     '@type': 'Offer';
@@ -283,18 +285,19 @@ export const generateEventSchema = (event: IndustryEvent): EventSchema => {
   if (event.isFree || event.price !== undefined) {
     schema.offers = {
       '@type': 'Offer',
-      price: event.isFree ? '0' : (event.price?.toString() || '0'),
+      price: event.isFree ? '0' : event.price?.toString() || '0',
       priceCurrency: event.currency || 'USD',
-      availability: event.capacity && event.registeredCount >= event.capacity 
-        ? 'https://schema.org/SoldOut' 
-        : 'https://schema.org/InStock',
+      availability:
+        event.capacity && event.registeredCount >= event.capacity
+          ? 'https://schema.org/SoldOut'
+          : 'https://schema.org/InStock',
       ...(event.registrationUrl && { url: event.registrationUrl }),
     };
   }
 
   // Speakers/Performers
   if (event.speakers && event.speakers.length > 0) {
-    schema.performer = event.speakers.map(speaker => ({
+    schema.performer = event.speakers.map((speaker) => ({
       '@type': 'Person' as const,
       name: speaker.name,
       description: speaker.bio || '',
@@ -461,19 +464,19 @@ const getEmploymentType = (type: string): string => {
   const typeMap: Record<string, string> = {
     'full-time': 'FULL_TIME',
     'part-time': 'PART_TIME',
-    'contract': 'CONTRACTOR',
-    'temporary': 'TEMPORARY',
-    'internship': 'INTERN',
-    'freelance': 'CONTRACTOR',
+    contract: 'CONTRACTOR',
+    temporary: 'TEMPORARY',
+    internship: 'INTERN',
+    freelance: 'CONTRACTOR',
   };
   return typeMap[type.toLowerCase()] || 'FULL_TIME';
 };
 
 const getEventAttendanceMode = (format: EventFormat | string): string => {
   const modeMap: Record<string, string> = {
-    'virtual': 'https://schema.org/OnlineEventAttendanceMode',
-    'in_person': 'https://schema.org/OfflineEventAttendanceMode',
-    'hybrid': 'https://schema.org/MixedEventAttendanceMode',
+    virtual: 'https://schema.org/OnlineEventAttendanceMode',
+    in_person: 'https://schema.org/OfflineEventAttendanceMode',
+    hybrid: 'https://schema.org/MixedEventAttendanceMode',
   };
   return modeMap[format] || 'https://schema.org/OfflineEventAttendanceMode';
 };
@@ -485,11 +488,11 @@ const getEventStatus = (event: IndustryEvent): string => {
 
   if (now < startDate) {
     return 'https://schema.org/EventScheduled';
-  } else if (now >= startDate && now <= endDate) {
-    return 'https://schema.org/EventRescheduled'; // Live events
-  } else {
-    return 'https://schema.org/EventCancelled'; // Past events
   }
+  if (now >= startDate && now <= endDate) {
+    return 'https://schema.org/EventRescheduled'; // Live events
+  }
+  return 'https://schema.org/EventCancelled'; // Past events
 };
 
 // React component for injecting structured data

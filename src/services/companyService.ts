@@ -1,4 +1,3 @@
-
 // src/services/companyService.ts
 import type { Company } from '../lib/types';
 
@@ -21,13 +20,18 @@ export async function fetchCompaniesFromBackend(): Promise<{
       },
     });
 
-    console.log(`[Frontend Service] GET /api/companies - Backend response status: ${response.status}`);
+    console.log(
+      `[Frontend Service] GET /api/companies - Backend response status: ${response.status}`
+    );
 
     if (!response.ok) {
       const errorData = await response
         .json()
         .catch(() => ({ message: `Failed to fetch companies. Status: ${response.status}` }));
-      console.error('[Frontend Service] GET /api/companies - Backend error response (JSON):', errorData);
+      console.error(
+        '[Frontend Service] GET /api/companies - Backend error response (JSON):',
+        errorData
+      );
       throw new Error(errorData.message);
     }
 
@@ -40,7 +44,9 @@ export async function fetchCompaniesFromBackend(): Promise<{
     } else if (responseData && Array.isArray(responseData.companies)) {
       rawCompanies = responseData.companies;
     } else {
-      console.warn('[Frontend Service] Unexpected companies response format, defaulting to empty array');
+      console.warn(
+        '[Frontend Service] Unexpected companies response format, defaulting to empty array'
+      );
     }
 
     const companies: Company[] = rawCompanies.map((company: any) => ({

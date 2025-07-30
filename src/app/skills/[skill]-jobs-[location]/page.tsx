@@ -1,12 +1,12 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import SkillLocationPage from '@/components/programmatic/SkillLocationPage';
-import { StructuredData, generateJobPostingSchema } from '@/lib/structured-data';
-import { 
-  generateSkillLocationPage, 
-  getRelatedSkills, 
-  getRelatedLocations
+import {
+  generateSkillLocationPage,
+  getRelatedLocations,
+  getRelatedSkills,
 } from '@/lib/programmatic-content';
+import { generateJobPostingSchema, StructuredData } from '@/lib/structured-data';
 
 interface PageProps {
   params: Promise<{
@@ -18,28 +18,25 @@ interface PageProps {
 // Generate static params for popular combinations
 export async function generateStaticParams() {
   const popularCombinations = [];
-  
+
   // Top 5 skills × Top 4 locations for static generation
   const topSkills = ['react', 'python', 'javascript', 'node-js', 'typescript'];
   const topLocations = ['san-francisco', 'new-york', 'seattle', 'remote'];
-  
+
   for (const skill of topSkills) {
     for (const location of topLocations) {
       popularCombinations.push({ skill, location });
     }
   }
-  
+
   return popularCombinations;
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { skill, location } = await params;
-  
-  const pageData = generateSkillLocationPage(
-    skill.replace(/-/g, ' '), 
-    location.replace(/-/g, ' ')
-  );
-  
+
+  const pageData = generateSkillLocationPage(skill.replace(/-/g, ' '), location.replace(/-/g, ' '));
+
   if (!pageData) {
     return {
       title: 'Page Not Found',
@@ -78,19 +75,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function SkillLocationJobsPage({ params }: PageProps) {
   const { skill, location } = await params;
-  
-  const pageData = generateSkillLocationPage(
-    skill.replace(/-/g, ' '), 
-    location.replace(/-/g, ' ')
-  );
-  
+
+  const pageData = generateSkillLocationPage(skill.replace(/-/g, ' '), location.replace(/-/g, ' '));
+
   if (!pageData) {
     notFound();
   }
 
   const relatedSkills = getRelatedSkills(pageData.skill);
   const relatedLocations = getRelatedLocations(pageData.location);
-  
+
   // Mock job listings for demonstration
   const mockJobs = [
     {
@@ -120,7 +114,7 @@ export default async function SkillLocationJobsPage({ params }: PageProps) {
   ];
 
   // Generate structured data for the mock jobs
-  const jobSchemas = mockJobs.map(job => 
+  const jobSchemas = mockJobs.map((job) =>
     generateJobPostingSchema({
       title: job.title,
       description: `Join ${job.company} as a ${job.title}. Work with cutting-edge ${pageData.skill} technology and contribute to innovative projects.`,
@@ -142,7 +136,7 @@ export default async function SkillLocationJobsPage({ params }: PageProps) {
       {jobSchemas.map((schema, index) => (
         <StructuredData key={index} data={schema} />
       ))}
-      
+
       <SkillLocationPage
         data={pageData}
         relatedSkills={relatedSkills}

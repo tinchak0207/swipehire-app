@@ -1,11 +1,11 @@
 import { Brain, FileText, MessageSquare } from 'lucide-react';
 import type { Metadata } from 'next';
 import PillarPageComponent from '@/components/pillar/PillarPageComponent';
+import { generatePillarPageBreadcrumbs, pillarPages } from '@/lib/pillar-content-strategy';
 import { generateBreadcrumbSchema, generateFAQSchema } from '@/lib/seo/schemas';
 import { StructuredData } from '@/lib/structured-data';
-import { pillarPages, generatePillarPageBreadcrumbs } from '@/lib/pillar-content-strategy';
 
-const pillarData = pillarPages.find(p => p.id === 'tech-interview-preparation')!;
+const pillarData = pillarPages.find((p) => p.id === 'tech-interview-preparation')!;
 
 export const metadata: Metadata = {
   title: pillarData.title,
@@ -36,23 +36,28 @@ export const metadata: Metadata = {
 const faqs = [
   {
     question: 'How long should I prepare for a tech interview?',
-    answer: 'Most candidates need 2-3 months of consistent preparation (2-3 hours daily) to feel confident. However, the timeline varies based on your current skill level and the role you\'re targeting. Senior positions may require 3-6 months of preparation.',
+    answer:
+      "Most candidates need 2-3 months of consistent preparation (2-3 hours daily) to feel confident. However, the timeline varies based on your current skill level and the role you're targeting. Senior positions may require 3-6 months of preparation.",
   },
   {
     question: 'What are the most important topics to study for coding interviews?',
-    answer: 'Focus on data structures (arrays, strings, trees, graphs, hashmaps), algorithms (sorting, searching, dynamic programming), system design fundamentals, and behavioral interview preparation. Practice on platforms like LeetCode, HackerRank, or our AI-powered interview prep tool.',
+    answer:
+      'Focus on data structures (arrays, strings, trees, graphs, hashmaps), algorithms (sorting, searching, dynamic programming), system design fundamentals, and behavioral interview preparation. Practice on platforms like LeetCode, HackerRank, or our AI-powered interview prep tool.',
   },
   {
     question: 'How do I prepare for system design interviews?',
-    answer: 'Start with understanding fundamental concepts like scalability, load balancing, databases, and caching. Practice designing real-world systems like Twitter, Uber, or Netflix. Focus on trade-offs and be able to explain your decisions clearly.',
+    answer:
+      'Start with understanding fundamental concepts like scalability, load balancing, databases, and caching. Practice designing real-world systems like Twitter, Uber, or Netflix. Focus on trade-offs and be able to explain your decisions clearly.',
   },
   {
     question: 'What should I ask at the end of a tech interview?',
-    answer: 'Ask about the team structure, engineering culture, technical challenges, growth opportunities, and the company\'s tech stack. Avoid questions about salary, benefits, or time off in initial interviews. Show genuine interest in the role and company.',
+    answer:
+      "Ask about the team structure, engineering culture, technical challenges, growth opportunities, and the company's tech stack. Avoid questions about salary, benefits, or time off in initial interviews. Show genuine interest in the role and company.",
   },
   {
     question: 'How important are behavioral interviews in tech hiring?',
-    answer: 'Behavioral interviews are crucial - they can make or break your candidacy even if you excel technically. Companies want to ensure you can work well with teams, communicate effectively, and align with their culture. Use the STAR method (Situation, Task, Action, Result) to structure your responses.',
+    answer:
+      'Behavioral interviews are crucial - they can make or break your candidacy even if you excel technically. Companies want to ensure you can work well with teams, communicate effectively, and align with their culture. Use the STAR method (Situation, Task, Action, Result) to structure your responses.',
   },
 ];
 
@@ -65,7 +70,8 @@ export default function TechInterviewPreparationPage() {
   const relatedTools = [
     {
       name: 'AI Interview Coach',
-      description: 'Practice coding interviews with AI feedback and personalized improvement suggestions.',
+      description:
+        'Practice coding interviews with AI feedback and personalized improvement suggestions.',
       url: '/tools/interview-coach',
       icon: <Brain className="h-6 w-6 text-white" />,
     },
@@ -87,11 +93,8 @@ export default function TechInterviewPreparationPage() {
     <>
       <StructuredData data={faqSchema} />
       <StructuredData data={breadcrumbSchema} />
-      
-      <PillarPageComponent 
-        pillar={pillarData} 
-        relatedTools={relatedTools}
-      />
+
+      <PillarPageComponent pillar={pillarData} relatedTools={relatedTools} />
     </>
   );
 }

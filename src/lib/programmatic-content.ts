@@ -37,9 +37,9 @@ export const techSkills = [
 
 // Location database with metadata
 export const locations = [
-  { 
-    city: 'San Francisco', 
-    state: 'CA', 
+  {
+    city: 'San Francisco',
+    state: 'CA',
     country: 'US',
     jobCount: 1250,
     averageSalary: 145000,
@@ -47,9 +47,9 @@ export const locations = [
     topCompanies: ['Google', 'Meta', 'Uber', 'Airbnb', 'Stripe'],
     techScene: 'Silicon Valley hub with highest salaries and most startups',
   },
-  { 
-    city: 'New York', 
-    state: 'NY', 
+  {
+    city: 'New York',
+    state: 'NY',
     country: 'US',
     jobCount: 980,
     averageSalary: 125000,
@@ -57,9 +57,9 @@ export const locations = [
     topCompanies: ['Goldman Sachs', 'JPMorgan', 'Bloomberg', 'Spotify', 'MongoDB'],
     techScene: 'Fintech capital with diverse tech opportunities',
   },
-  { 
-    city: 'Seattle', 
-    state: 'WA', 
+  {
+    city: 'Seattle',
+    state: 'WA',
     country: 'US',
     jobCount: 875,
     averageSalary: 130000,
@@ -67,9 +67,9 @@ export const locations = [
     topCompanies: ['Amazon', 'Microsoft', 'Meta', 'Google', 'Zillow'],
     techScene: 'Cloud computing and e-commerce innovation center',
   },
-  { 
-    city: 'Austin', 
-    state: 'TX', 
+  {
+    city: 'Austin',
+    state: 'TX',
     country: 'US',
     jobCount: 654,
     averageSalary: 110000,
@@ -77,9 +77,9 @@ export const locations = [
     topCompanies: ['Dell', 'IBM', 'Oracle', 'Indeed', 'RetailMeNot'],
     techScene: 'Rapidly growing tech scene with lower cost of living',
   },
-  { 
-    city: 'Boston', 
-    state: 'MA', 
+  {
+    city: 'Boston',
+    state: 'MA',
     country: 'US',
     jobCount: 543,
     averageSalary: 115000,
@@ -87,9 +87,9 @@ export const locations = [
     topCompanies: ['HubSpot', 'Wayfair', 'DraftKings', 'Zipcar', 'Toast'],
     techScene: 'Biotech and fintech hub with strong university connections',
   },
-  { 
-    city: 'Remote', 
-    state: '', 
+  {
+    city: 'Remote',
+    state: '',
     country: 'US',
     jobCount: 2100,
     averageSalary: 105000,
@@ -115,21 +115,24 @@ export const jobTypes = [
 
 // Generate programmatic page data
 export const generateSkillLocationPage = (skill: string, location: string) => {
-  const skillData = techSkills.find(s => s.name.toLowerCase() === skill.toLowerCase());
-  const locationData = locations.find(l => 
-    l.city.toLowerCase() === location.toLowerCase() || 
-    (location.toLowerCase() === 'remote' && l.city === 'Remote')
+  const skillData = techSkills.find((s) => s.name.toLowerCase() === skill.toLowerCase());
+  const locationData = locations.find(
+    (l) =>
+      l.city.toLowerCase() === location.toLowerCase() ||
+      (location.toLowerCase() === 'remote' && l.city === 'Remote')
   );
 
   if (!skillData || !locationData) return null;
 
-  const adjustedSalary = locationData.city === 'Remote' ? 
-    skillData.averageSalary : 
-    Math.round(skillData.averageSalary * (locationData.averageSalary / 100000));
+  const adjustedSalary =
+    locationData.city === 'Remote'
+      ? skillData.averageSalary
+      : Math.round(skillData.averageSalary * (locationData.averageSalary / 100000));
 
   return {
     skill: skillData.name,
-    location: locationData.city === 'Remote' ? 'Remote' : `${locationData.city}, ${locationData.state}`,
+    location:
+      locationData.city === 'Remote' ? 'Remote' : `${locationData.city}, ${locationData.state}`,
     jobCount: Math.floor(locationData.jobCount * (skillData.demand === 'High' ? 0.25 : 0.15)),
     averageSalary: adjustedSalary,
     skillCategory: skillData.category,
@@ -154,8 +157,8 @@ export const generateSkillLocationPage = (skill: string, location: string) => {
 };
 
 export const generateSkillJobTypePage = (skill: string, jobType: string) => {
-  const skillData = techSkills.find(s => s.name.toLowerCase() === skill.toLowerCase());
-  const jobTypeData = jobTypes.find(jt => jt.name.toLowerCase() === jobType.toLowerCase());
+  const skillData = techSkills.find((s) => s.name.toLowerCase() === skill.toLowerCase());
+  const jobTypeData = jobTypes.find((jt) => jt.name.toLowerCase() === jobType.toLowerCase());
 
   if (!skillData || !jobTypeData) return null;
 
@@ -189,8 +192,9 @@ export const generateSkillJobTypePage = (skill: string, jobType: string) => {
 // Generate all possible combinations
 export const generateAllSkillLocationCombinations = () => {
   const combinations = [];
-  
-  for (const skill of techSkills.slice(0, 15)) { // Limit to top 15 skills
+
+  for (const skill of techSkills.slice(0, 15)) {
+    // Limit to top 15 skills
     for (const location of locations) {
       const pageData = generateSkillLocationPage(skill.name, location.city);
       if (pageData) {
@@ -198,48 +202,55 @@ export const generateAllSkillLocationCombinations = () => {
       }
     }
   }
-  
+
   return combinations;
 };
 
 export const generateAllSkillJobTypeCombinations = () => {
   const combinations = [];
-  
-  for (const skill of techSkills.slice(0, 10)) { // Limit to top 10 skills
-    for (const jobType of jobTypes.slice(0, 6)) { // Limit to top 6 job types
+
+  for (const skill of techSkills.slice(0, 10)) {
+    // Limit to top 10 skills
+    for (const jobType of jobTypes.slice(0, 6)) {
+      // Limit to top 6 job types
       const pageData = generateSkillJobTypePage(skill.name, jobType.name);
       if (pageData) {
         combinations.push(pageData);
       }
     }
   }
-  
+
   return combinations;
 };
 
 // Utility to get related skills
-export const getRelatedSkills = (currentSkill: string, limit: number = 5) => {
-  const currentSkillData = techSkills.find(s => s.name.toLowerCase() === currentSkill.toLowerCase());
+export const getRelatedSkills = (currentSkill: string, limit = 5) => {
+  const currentSkillData = techSkills.find(
+    (s) => s.name.toLowerCase() === currentSkill.toLowerCase()
+  );
   if (!currentSkillData) return [];
 
   return techSkills
-    .filter(skill => 
-      skill.name !== currentSkillData.name && 
-      skill.category === currentSkillData.category
+    .filter(
+      (skill) =>
+        skill.name !== currentSkillData.name && skill.category === currentSkillData.category
     )
     .slice(0, limit);
 };
 
 // Utility to get related locations
-export const getRelatedLocations = (currentLocation: string, limit: number = 4) => {
-  const currentLocationData = locations.find(l => 
-    l.city.toLowerCase() === currentLocation.toLowerCase()
+export const getRelatedLocations = (currentLocation: string, limit = 4) => {
+  const currentLocationData = locations.find(
+    (l) => l.city.toLowerCase() === currentLocation.toLowerCase()
   );
   if (!currentLocationData) return [];
 
   return locations
-    .filter(location => location.city !== currentLocationData.city)
-    .sort((a, b) => Math.abs(a.averageSalary - currentLocationData.averageSalary) - 
-                    Math.abs(b.averageSalary - currentLocationData.averageSalary))
+    .filter((location) => location.city !== currentLocationData.city)
+    .sort(
+      (a, b) =>
+        Math.abs(a.averageSalary - currentLocationData.averageSalary) -
+        Math.abs(b.averageSalary - currentLocationData.averageSalary)
+    )
     .slice(0, limit);
 };

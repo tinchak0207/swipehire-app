@@ -1,4 +1,3 @@
-
 // src/services/blogService.ts
 import type { BlogPost } from '@/lib/types';
 
@@ -40,7 +39,9 @@ export async function fetchBlogPostsFromBackend(): Promise<{
     } else if (responseData && Array.isArray(responseData.posts)) {
       rawPosts = responseData.posts;
     } else {
-      console.warn('[Frontend Service] Unexpected blog posts response format, defaulting to empty array');
+      console.warn(
+        '[Frontend Service] Unexpected blog posts response format, defaulting to empty array'
+      );
     }
 
     const posts: BlogPost[] = rawPosts.map((post: any) => ({

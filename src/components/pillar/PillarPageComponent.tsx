@@ -17,7 +17,7 @@ interface PillarPageProps {
 }
 
 export const PillarPageComponent: React.FC<PillarPageProps> = ({ pillar, relatedTools = [] }) => {
-  const featuredArticles = pillar.clusterArticles.filter(article => article.featured);
+  const featuredArticles = pillar.clusterArticles.filter((article) => article.featured);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
@@ -28,15 +28,15 @@ export const PillarPageComponent: React.FC<PillarPageProps> = ({ pillar, related
             <BookOpen className="mr-2 h-4 w-4" />
             Complete Guide
           </Badge>
-          
+
           <h1 className="mb-6 font-bold text-4xl tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
             {pillar.title}
           </h1>
-          
+
           <p className="mx-auto mb-8 max-w-3xl text-xl text-gray-600 leading-relaxed">
             {pillar.description}
           </p>
-          
+
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-gray-500">
             <div className="flex items-center">
               <Clock className="mr-2 h-4 w-4" />
@@ -88,12 +88,14 @@ export const PillarPageComponent: React.FC<PillarPageProps> = ({ pillar, related
         {featuredArticles.length > 0 && (
           <section className="mx-auto mt-16 max-w-6xl">
             <div className="mb-8 text-center">
-              <h2 className="mb-4 font-bold text-3xl text-gray-900">Start Here: Essential Guides</h2>
+              <h2 className="mb-4 font-bold text-3xl text-gray-900">
+                Start Here: Essential Guides
+              </h2>
               <p className="text-gray-600">
                 These comprehensive guides form the foundation of your knowledge in this area.
               </p>
             </div>
-            
+
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {featuredArticles.map((article) => (
                 <ArticleCard key={article.id} article={article} featured />
@@ -107,17 +109,20 @@ export const PillarPageComponent: React.FC<PillarPageProps> = ({ pillar, related
           <h2 className="mb-8 text-center font-bold text-3xl text-gray-900">
             Complete Learning Path
           </h2>
-          
+
           {/* Group articles by category */}
           {Object.entries(
-            pillar.clusterArticles.reduce((acc, article) => {
-              const category = article.category || 'Uncategorized';
-              if (!acc[category]) {
-                acc[category] = [];
-              }
-              acc[category].push(article);
-              return acc;
-            }, {} as Record<string, ClusterArticle[]>)
+            pillar.clusterArticles.reduce(
+              (acc, article) => {
+                const category = article.category || 'Uncategorized';
+                if (!acc[category]) {
+                  acc[category] = [];
+                }
+                acc[category].push(article);
+                return acc;
+              },
+              {} as Record<string, ClusterArticle[]>
+            )
           ).map(([category, articles]) => (
             <div key={category} className="mb-12">
               <h3 className="mb-6 font-semibold text-2xl text-gray-800">{category}</h3>
@@ -137,10 +142,11 @@ export const PillarPageComponent: React.FC<PillarPageProps> = ({ pillar, related
               <div className="text-center">
                 <h2 className="mb-4 font-bold text-3xl">Supercharge Your Progress</h2>
                 <p className="mb-8 text-xl opacity-90">
-                  Use our AI-powered tools to apply what you've learned and accelerate your career growth.
+                  Use our AI-powered tools to apply what you've learned and accelerate your career
+                  growth.
                 </p>
               </div>
-              
+
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {relatedTools.map((tool) => (
                   <Card key={tool.name} className="border-0 bg-white/10 backdrop-blur-sm">
@@ -171,11 +177,10 @@ export const PillarPageComponent: React.FC<PillarPageProps> = ({ pillar, related
         <section className="mx-auto mt-16 max-w-4xl text-center">
           <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
             <CardContent className="p-12">
-              <h3 className="mb-4 font-bold text-2xl text-gray-900">
-                Ready to Take Action?
-              </h3>
+              <h3 className="mb-4 font-bold text-2xl text-gray-900">Ready to Take Action?</h3>
               <p className="mb-8 text-gray-600">
-                Join thousands of tech professionals who have accelerated their careers with SwipeHire.
+                Join thousands of tech professionals who have accelerated their careers with
+                SwipeHire.
               </p>
               <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
                 <Button size="lg" asChild>
@@ -203,24 +208,28 @@ interface ArticleCardProps {
 
 const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) => {
   return (
-    <Card className={`h-full transition-all duration-200 hover:shadow-lg ${featured ? 'border-2 border-blue-200 bg-blue-50/30' : ''}`}>
+    <Card
+      className={`h-full transition-all duration-200 hover:shadow-lg ${featured ? 'border-2 border-blue-200 bg-blue-50/30' : ''}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
-          <Badge variant={featured ? "default" : "secondary"} className="text-xs">
+          <Badge variant={featured ? 'default' : 'secondary'} className="text-xs">
             {article.category}
           </Badge>
-          {featured && <Badge variant="destructive" className="text-xs">Featured</Badge>}
+          {featured && (
+            <Badge variant="destructive" className="text-xs">
+              Featured
+            </Badge>
+          )}
         </div>
         <CardTitle className="line-clamp-2 text-lg">
           <Link href={`/blog/${article.slug}`} className="hover:text-blue-600">
             {article.title}
           </Link>
         </CardTitle>
-        <CardDescription className="line-clamp-3">
-          {article.description}
-        </CardDescription>
+        <CardDescription className="line-clamp-3">{article.description}</CardDescription>
       </CardHeader>
-      
+
       <CardContent className="pt-0">
         <div className="flex items-center justify-between text-sm text-gray-500">
           <div className="flex items-center gap-4">
@@ -231,9 +240,9 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) 
             <span>{new Date(article.publishedDate).toLocaleDateString()}</span>
           </div>
         </div>
-        
+
         <Separator className="my-4" />
-        
+
         <div className="flex flex-wrap gap-1">
           {article.keywords.slice(0, 3).map((keyword) => (
             <Badge key={keyword} variant="outline" className="text-xs">
@@ -241,7 +250,7 @@ const ArticleCard: React.FC<ArticleCardProps> = ({ article, featured = false }) 
             </Badge>
           ))}
         </div>
-        
+
         <Button asChild variant="ghost" className="mt-4 w-full justify-start p-0">
           <Link href={`/blog/${article.slug}`}>
             Read Article <ArrowRight className="ml-2 h-4 w-4" />
