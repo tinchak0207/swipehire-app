@@ -103,10 +103,13 @@ const StaffDiaryPage = dynamic(
   () => import('@/components/pages/StaffDiaryPage').then((mod) => mod.StaffDiaryPage),
   { loading: loadingComponent, ssr: false }
 );
-const WelcomePage = dynamic(() => import('@/components/pages/WelcomePage'), {
-  loading: loadingComponent,
-  ssr: false,
-});
+const WelcomePage = dynamic(
+  () => import('@/components/pages/WelcomePage').then((mod) => mod.WelcomePage),
+  {
+    loading: loadingComponent,
+    ssr: false,
+  }
+);
 const MyProfilePage = dynamic(
   () => import('@/components/pages/MyProfilePage').then((mod) => mod.MyProfilePage),
   { loading: loadingComponent, ssr: false }
