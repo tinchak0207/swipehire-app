@@ -4,12 +4,12 @@
 import { Briefcase, Building2, ExternalLink, Info, Loader2, Users } from 'lucide-react'; // Added Star
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
+import Script from 'next/script';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { mockCompanies } from '@/lib/mockData';
 import type { Company, CompanyReview, CompanyJobOpening as JobOpening } from '@/lib/types';
-import Script from 'next/script';
 
 // Conceptual: This page would fetch company data based on companyId
 
@@ -223,7 +223,9 @@ export default function CompanyProfilePage() {
                       validThrough: job.validThrough
                         ? new Date(job.validThrough).toISOString().split('T')[0]
                         : undefined,
-                      employmentType: job.jobType ? job.jobType.replace(/_/g, ' ').toUpperCase() : 'FULL_TIME',
+                      employmentType: job.jobType
+                        ? job.jobType.replace(/_/g, ' ').toUpperCase()
+                        : 'FULL_TIME',
                       hiringOrganization: {
                         '@type': 'Organization',
                         name: companyData.name,

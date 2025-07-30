@@ -1,22 +1,22 @@
 'use client';
 
+import {
+  Building,
+  ChevronRight,
+  Clock,
+  DollarSign,
+  MapPin,
+  Search,
+  Star,
+  TrendingUp,
+} from 'lucide-react';
+import Link from 'next/link';
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { 
-  MapPin, 
-  DollarSign, 
-  Clock, 
-  Building, 
-  TrendingUp,
-  Search,
-  ChevronRight,
-  Star
-} from 'lucide-react';
-import Link from 'next/link';
-import { useState } from 'react';
 
 interface JobListing {
   id: string;
@@ -42,17 +42,17 @@ const mockJobs: JobListing[] = [
     type: '全職',
     skills: ['React', 'TypeScript', 'Next.js'],
     posted: '2天前',
-    featured: true
+    featured: true,
   },
   {
-    id: '2', 
+    id: '2',
     title: '前端工程師 (React)',
     company: 'StartupXYZ',
     location: '新竹科學園區',
     salary: { min: 60, max: 90 },
     type: '全職',
     skills: ['React', 'JavaScript', 'CSS'],
-    posted: '1週前'
+    posted: '1週前',
   },
   {
     id: '3',
@@ -62,15 +62,15 @@ const mockJobs: JobListing[] = [
     salary: { min: 45, max: 65 },
     type: '全職',
     skills: ['Vue.js', 'HTML5', 'SCSS'],
-    posted: '3天前'
-  }
+    posted: '3天前',
+  },
 ];
 
 const salaryRanges = [
   { label: '40K-60K', count: 28 },
   { label: '60K-80K', count: 45 },
   { label: '80K-100K', count: 32 },
-  { label: '100K+', count: 19 }
+  { label: '100K+', count: 19 },
 ];
 
 const popularSkills = [
@@ -79,14 +79,14 @@ const popularSkills = [
   { name: 'Angular', demand: '65%', jobs: 67 },
   { name: 'TypeScript', demand: '88%', jobs: 98 },
   { name: 'Next.js', demand: '72%', jobs: 76 },
-  { name: 'CSS3', demand: '92%', jobs: 115 }
+  { name: 'CSS3', demand: '92%', jobs: 115 },
 ];
 
 const topCompanies = [
   { name: 'TSMC', openings: 12, rating: 4.5 },
   { name: 'MediaTek', openings: 8, rating: 4.3 },
   { name: 'Trend Micro', openings: 6, rating: 4.4 },
-  { name: 'HTC', openings: 4, rating: 4.2 }
+  { name: 'HTC', openings: 4, rating: 4.2 },
 ];
 
 export default function FrontendEngineerJobsPageClient() {
@@ -109,7 +109,7 @@ export default function FrontendEngineerJobsPageClient() {
               發現台灣最優質的前端工程師職缺，薪資透明、福利優渥。
               從新創到大企業，找到最適合你的前端開發工作。
             </p>
-            
+
             {/* Search Bar */}
             <div className="max-w-2xl mx-auto bg-white rounded-lg p-4 shadow-lg">
               <div className="flex flex-col md:flex-row gap-4">
@@ -137,7 +137,7 @@ export default function FrontendEngineerJobsPageClient() {
               </div>
             </div>
           </div>
-          
+
           {/* Quick Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12 text-center">
             <div>
@@ -152,7 +152,7 @@ export default function FrontendEngineerJobsPageClient() {
               <div className="text-3xl font-bold">95%</div>
               <div className="text-blue-100">遠距友善</div>
             </div>
-            <div>  
+            <div>
               <div className="text-3xl font-bold">4.2</div>
               <div className="text-blue-100">雇主評分</div>
             </div>
@@ -221,32 +221,40 @@ export default function FrontendEngineerJobsPageClient() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Link href="/jobs/frontend-engineer/taipei" 
-                        className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                  <Link
+                    href="/jobs/frontend-engineer/taipei"
+                    className="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+                  >
                     <span className="font-medium">台北</span>
                     <div className="flex items-center gap-1">
                       <span className="text-sm text-gray-600">45個</span>
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   </Link>
-                  <Link href="/jobs/frontend-engineer/hsinchu"
-                        className="flex items-center justify-between p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+                  <Link
+                    href="/jobs/frontend-engineer/hsinchu"
+                    className="flex items-center justify-between p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+                  >
                     <span className="font-medium">新竹</span>
                     <div className="flex items-center gap-1">
                       <span className="text-sm text-gray-600">32個</span>
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   </Link>
-                  <Link href="/jobs/frontend-engineer/taichung"
-                        className="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+                  <Link
+                    href="/jobs/frontend-engineer/taichung"
+                    className="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+                  >
                     <span className="font-medium">台中</span>
                     <div className="flex items-center gap-1">
                       <span className="text-sm text-gray-600">28個</span>
                       <ChevronRight className="h-4 w-4" />
                     </div>
                   </Link>
-                  <Link href="/jobs/frontend-engineer/remote"
-                        className="flex items-center justify-between p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors">
+                  <Link
+                    href="/jobs/frontend-engineer/remote"
+                    className="flex items-center justify-between p-3 bg-orange-50 rounded-lg hover:bg-orange-100 transition-colors"
+                  >
                     <span className="font-medium">遠距</span>
                     <div className="flex items-center gap-1">
                       <span className="text-sm text-gray-600">19個</span>
@@ -262,7 +270,10 @@ export default function FrontendEngineerJobsPageClient() {
               <h2 className="text-2xl font-bold mb-6">精選前端工程師職缺</h2>
               <div className="space-y-4">
                 {mockJobs.map((job) => (
-                  <Card key={job.id} className={`hover:shadow-lg transition-shadow ${job.featured ? 'ring-2 ring-blue-200' : ''}`}>
+                  <Card
+                    key={job.id}
+                    className={`hover:shadow-lg transition-shadow ${job.featured ? 'ring-2 ring-blue-200' : ''}`}
+                  >
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4">
@@ -293,7 +304,9 @@ export default function FrontendEngineerJobsPageClient() {
                             </div>
                             <div className="flex flex-wrap gap-2">
                               {job.skills.map((skill) => (
-                                <Badge key={skill} variant="outline">{skill}</Badge>
+                                <Badge key={skill} variant="outline">
+                                  {skill}
+                                </Badge>
                               ))}
                             </div>
                           </div>
@@ -306,7 +319,7 @@ export default function FrontendEngineerJobsPageClient() {
                   </Card>
                 ))}
               </div>
-              
+
               <div className="text-center mt-8">
                 <Button size="lg" variant="outline">
                   載入更多職缺
@@ -359,12 +372,24 @@ export default function FrontendEngineerJobsPageClient() {
 
               <h3>前端工程師必備技能</h3>
               <ul>
-                <li><strong>核心技術</strong>：HTML5, CSS3, JavaScript (ES6+)</li>
-                <li><strong>框架經驗</strong>：React.js, Vue.js, 或 Angular</li>
-                <li><strong>開發工具</strong>：Webpack, Vite, Git 版本控制</li>
-                <li><strong>響應式設計</strong>：RWD, Mobile-first 設計概念</li>
-                <li><strong>TypeScript</strong>：型別安全的 JavaScript 超集</li>
-                <li><strong>UI/UX 理解</strong>：設計系統、使用者體驗概念</li>
+                <li>
+                  <strong>核心技術</strong>：HTML5, CSS3, JavaScript (ES6+)
+                </li>
+                <li>
+                  <strong>框架經驗</strong>：React.js, Vue.js, 或 Angular
+                </li>
+                <li>
+                  <strong>開發工具</strong>：Webpack, Vite, Git 版本控制
+                </li>
+                <li>
+                  <strong>響應式設計</strong>：RWD, Mobile-first 設計概念
+                </li>
+                <li>
+                  <strong>TypeScript</strong>：型別安全的 JavaScript 超集
+                </li>
+                <li>
+                  <strong>UI/UX 理解</strong>：設計系統、使用者體驗概念
+                </li>
               </ul>
 
               <h3>2024年前端工程師薪資行情</h3>
@@ -372,31 +397,57 @@ export default function FrontendEngineerJobsPageClient() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">經驗年資</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">薪資範圍 (年薪)</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">主要技能要求</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        經驗年資
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        薪資範圍 (年薪)
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                        主要技能要求
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">新鮮人 (0-1年)</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        新鮮人 (0-1年)
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">45-65萬</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">HTML, CSS, JavaScript, React基礎</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        HTML, CSS, JavaScript, React基礎
+                      </td>
                     </tr>
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">初級 (1-3年)</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        初級 (1-3年)
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">65-90萬</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">React/Vue, TypeScript, RWD</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        React/Vue, TypeScript, RWD
+                      </td>
                     </tr>
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">中級 (3-5年)</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">90-140萬</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">架構設計, 效能優化, 團隊協作</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        中級 (3-5年)
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        90-140萬
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        架構設計, 效能優化, 團隊協作
+                      </td>
                     </tr>
                     <tr>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">資深 (5年以上)</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">140-250萬</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">技術領導, 系統架構, 跨團隊溝通</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        資深 (5年以上)
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        140-250萬
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        技術領導, 系統架構, 跨團隊溝通
+                      </td>
                     </tr>
                   </tbody>
                 </table>
@@ -404,14 +455,22 @@ export default function FrontendEngineerJobsPageClient() {
 
               <h3>如何透過SwipeHire找到理想前端工作</h3>
               <ol>
-                <li><strong>完善履歷</strong>：使用我們的AI履歷優化工具，提升履歷通過率</li>
-                <li><strong>技能媒合</strong>：平台會根據你的技能自動推薦適合的職缺</li>
-                <li><strong>薪資透明</strong>：所有職缺都顯示薪資範圍，不浪費時間</li>
-                <li><strong>即時通知</strong>：新職缺發布時立即收到通知，搶得先機</li>
+                <li>
+                  <strong>完善履歷</strong>：使用我們的AI履歷優化工具，提升履歷通過率
+                </li>
+                <li>
+                  <strong>技能媒合</strong>：平台會根據你的技能自動推薦適合的職缺
+                </li>
+                <li>
+                  <strong>薪資透明</strong>：所有職缺都顯示薪資範圍，不浪費時間
+                </li>
+                <li>
+                  <strong>即時通知</strong>：新職缺發布時立即收到通知，搶得先機
+                </li>
               </ol>
 
               <Separator className="my-8" />
-              
+
               <div className="text-center">
                 <h3>準備好開始你的前端工程師職涯了嗎？</h3>
                 <p className="text-lg text-gray-600 mb-6">

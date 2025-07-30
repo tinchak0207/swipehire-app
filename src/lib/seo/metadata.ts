@@ -21,14 +21,23 @@ export const defaultSEOConfig: SEOConfig = {
   siteName: 'SwipeHire',
   siteUrl: 'https://swipehire.top',
   defaultTitle: 'SwipeHire - AI智能招募平台 | 連接人才與機會',
-  defaultDescription: '最先進的AI招募平台，提供智能履歷優化、精準職缺媒合、薪資分析等服務。讓求職者找到理想工作，企業發現頂尖人才。',
+  defaultDescription:
+    '最先進的AI招募平台，提供智能履歷優化、精準職缺媒合、薪資分析等服務。讓求職者找到理想工作，企業發現頂尖人才。',
   defaultKeywords: [
-    '招募平台', '求職網站', 'AI履歷優化', '職缺媒合', '人才招聘', 
-    '薪資分析', '工作機會', '人力資源', '求職', '找工作'
+    '招募平台',
+    '求職網站',
+    'AI履歷優化',
+    '職缺媒合',
+    '人才招聘',
+    '薪資分析',
+    '工作機會',
+    '人力資源',
+    '求職',
+    '找工作',
   ],
   defaultImage: '/images/og-default.jpg',
   twitterHandle: '@SwipeHire',
-  locale: 'zh_TW'
+  locale: 'zh_TW',
 };
 
 /**
@@ -38,14 +47,18 @@ export function generateJobPostingMetadata(
   job: JobPostingSchemaData,
   config: SEOConfig = defaultSEOConfig
 ): Metadata {
-  const salaryInfo = job.salary ? 
-    `月薪${Math.floor(job.salary.min / 1000)}-${Math.floor(job.salary.max / 1000)}K` : '';
-  const locationInfo = job.location.isRemote ? '遠距工作' : 
-    job.location.city ? `${job.location.city}` : '';
-  
+  const salaryInfo = job.salary
+    ? `月薪${Math.floor(job.salary.min / 1000)}-${Math.floor(job.salary.max / 1000)}K`
+    : '';
+  const locationInfo = job.location.isRemote
+    ? '遠距工作'
+    : job.location.city
+      ? `${job.location.city}`
+      : '';
+
   const title = `${job.title}職缺 ${salaryInfo} | ${job.company.name} ${locationInfo} - ${config.siteName}`;
   const description = `【立即應徵】${job.company.name} 誠徵 ${job.title}${salaryInfo ? `，${salaryInfo}` : ''}${locationInfo ? `，工作地點：${locationInfo}` : ''}。透過SwipeHire快速媒合，開啟職涯新機會！`;
-  
+
   const keywords = [
     job.title,
     `${job.title}工作`,
@@ -53,14 +66,14 @@ export function generateJobPostingMetadata(
     ...(locationInfo ? [`${locationInfo}${job.title}`] : []),
     job.company.name,
     ...(job.skills?.slice(0, 5) || []),
-    ...config.defaultKeywords.slice(0, 3)
+    ...config.defaultKeywords.slice(0, 3),
   ].join(', ');
 
   return {
     title,
     description,
     keywords,
-    
+
     openGraph: {
       title: `${job.title} - ${job.company.name}`,
       description: `${salaryInfo} | ${locationInfo} | 立即應徵`,
@@ -71,13 +84,13 @@ export function generateJobPostingMetadata(
           url: job.company.logo || config.defaultImage,
           width: 1200,
           height: 630,
-          alt: `${job.title} at ${job.company.name}`
-        }
+          alt: `${job.title} at ${job.company.name}`,
+        },
       ],
       locale: config.locale,
       type: 'website',
     },
-    
+
     twitter: {
       card: 'summary_large_image',
       title: `${job.title} 職缺 - ${job.company.name}`,
@@ -87,7 +100,7 @@ export function generateJobPostingMetadata(
     },
 
     alternates: {
-      canonical: `${config.siteUrl}/jobs/${job.jobId}`
+      canonical: `${config.siteUrl}/jobs/${job.jobId}`,
     },
 
     robots: {
@@ -100,7 +113,7 @@ export function generateJobPostingMetadata(
         'max-image-preview': 'large',
         'max-snippet': -1,
       },
-    }
+    },
   };
 }
 
@@ -121,7 +134,7 @@ export function generateJobSearchMetadata(
   config: SEOConfig = defaultSEOConfig
 ): Metadata {
   const { query = '', location = '', jobType, experienceLevel, page = 1, totalJobs } = options;
-  
+
   const titleParts = [
     query && `${query}職缺`,
     location && `${location}地區`,
@@ -129,13 +142,13 @@ export function generateJobSearchMetadata(
     experienceLevel && `${experienceLevel}`,
     page > 1 && `第${page}頁`,
     '工作機會搜尋',
-    config.siteName
+    config.siteName,
   ].filter(Boolean);
-  
+
   const title = titleParts.join(' | ');
-  
+
   const description = `搜尋${query}${location ? `在${location}的` : ''}最新職缺與工作機會${totalJobs ? `（共${totalJobs}個職位）` : ''}。SwipeHire提供即時更新的職位資訊，薪資透明，快速媒合。立即找到理想工作！`;
-  
+
   const keywords = [
     query && `${query}工作`,
     query && `${query}職缺`,
@@ -144,14 +157,16 @@ export function generateJobSearchMetadata(
     '求職網站',
     '找工作',
     '職缺搜尋',
-    ...config.defaultKeywords.slice(0, 3)
-  ].filter(Boolean).join(', ');
+    ...config.defaultKeywords.slice(0, 3),
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   return {
     title,
     description,
     keywords,
-    
+
     openGraph: {
       title: `${query}職缺搜尋結果${location ? ` - ${location}` : ''}`,
       description: `找到${totalJobs || '多個'}${query}相關職缺`,
@@ -161,7 +176,7 @@ export function generateJobSearchMetadata(
       locale: config.locale,
       type: 'website',
     },
-    
+
     twitter: {
       card: 'summary',
       title: `${query}職缺 - ${config.siteName}`,
@@ -170,13 +185,13 @@ export function generateJobSearchMetadata(
     },
 
     alternates: {
-      canonical: buildJobSearchUrl(options, config.siteUrl)
+      canonical: buildJobSearchUrl(options, config.siteUrl),
     },
 
     robots: {
       index: !!(query || location), // Only index if there's a meaningful search
       follow: true,
-    }
+    },
   };
 }
 
@@ -190,7 +205,7 @@ export function generateCompanyMetadata(
 ): Metadata {
   const title = `${company.name}公司簡介與職缺${jobCount ? ` (${jobCount}個職位)` : ''} - ${config.siteName}`;
   const description = `${company.description || `了解${company.name}公司文化、福利待遇與工作環境`}${jobCount ? `。目前有${jobCount}個職缺開放中` : ''}。透過SwipeHire探索更多工作機會！`;
-  
+
   return {
     title,
     description,
@@ -200,9 +215,11 @@ export function generateCompanyMetadata(
       `${company.name}工作`,
       company.industry || '',
       '公司介紹',
-      ...config.defaultKeywords.slice(0, 3)
-    ].filter(Boolean).join(', '),
-    
+      ...config.defaultKeywords.slice(0, 3),
+    ]
+      .filter(Boolean)
+      .join(', '),
+
     openGraph: {
       title: `${company.name} - 公司介紹與職缺`,
       description: `${company.industry || ''}公司 | ${jobCount || '多個'}職缺開放中`,
@@ -213,13 +230,13 @@ export function generateCompanyMetadata(
           url: company.logo || config.defaultImage,
           width: 1200,
           height: 630,
-          alt: `${company.name} 公司介紹`
-        }
+          alt: `${company.name} 公司介紹`,
+        },
       ],
       locale: config.locale,
       type: 'website',
     },
-    
+
     twitter: {
       card: 'summary_large_image',
       title: `${company.name} 職缺與公司介紹`,
@@ -228,8 +245,8 @@ export function generateCompanyMetadata(
     },
 
     alternates: {
-      canonical: company.url || `${config.siteUrl}/company/${encodeURIComponent(company.name)}`
-    }
+      canonical: company.url || `${config.siteUrl}/company/${encodeURIComponent(company.name)}`,
+    },
   };
 }
 
@@ -249,23 +266,24 @@ export function generateJobCategoryMetadata(
   config: SEOConfig = defaultSEOConfig
 ): Metadata {
   const { skill, location, level, jobCount, averageSalary } = options;
-  
+
   const titleParts = [
     skill,
     location,
     level,
     '職缺',
     jobCount && `${jobCount}個工作機會`,
-    config.siteName
+    config.siteName,
   ].filter(Boolean);
-  
+
   const title = titleParts.join(' | ');
-  
-  const salaryInfo = averageSalary ? 
-    `平均薪資${Math.floor(averageSalary.min / 1000)}-${Math.floor(averageSalary.max / 1000)}K` : '';
-  
+
+  const salaryInfo = averageSalary
+    ? `平均薪資${Math.floor(averageSalary.min / 1000)}-${Math.floor(averageSalary.max / 1000)}K`
+    : '';
+
   const description = `最新${skill}職缺大集合！${salaryInfo}${location ? `，${location}地區` : ''}${jobCount ? `，共${jobCount}個職位` : ''}。立即查看${skill}工作機會，快速投遞履歷！透過SwipeHire找到理想${skill}工作。`;
-  
+
   return {
     title,
     description,
@@ -276,9 +294,11 @@ export function generateJobCategoryMetadata(
       location && `${location}${skill}`,
       level && `${level}${skill}`,
       `${skill}招聘`,
-      ...config.defaultKeywords.slice(0, 3)
-    ].filter(Boolean).join(', '),
-    
+      ...config.defaultKeywords.slice(0, 3),
+    ]
+      .filter(Boolean)
+      .join(', '),
+
     openGraph: {
       title: `${skill}職缺精選${location ? ` - ${location}` : ''}`,
       description: `${jobCount || '多個'}職位 | ${salaryInfo || '薪資優渥'}`,
@@ -288,7 +308,7 @@ export function generateJobCategoryMetadata(
       locale: config.locale,
       type: 'website',
     },
-    
+
     twitter: {
       card: 'summary',
       title: `${skill}職缺 - ${config.siteName}`,
@@ -297,8 +317,8 @@ export function generateJobCategoryMetadata(
     },
 
     alternates: {
-      canonical: `${config.siteUrl}/jobs/${encodeURIComponent(skill.toLowerCase())}`
-    }
+      canonical: `${config.siteUrl}/jobs/${encodeURIComponent(skill.toLowerCase())}`,
+    },
   };
 }
 
@@ -307,13 +327,13 @@ export function generateJobCategoryMetadata(
  */
 function buildJobSearchUrl(options: JobSearchMetadataOptions, baseUrl: string): string {
   const params = new URLSearchParams();
-  
+
   if (options.query) params.set('q', options.query);
-  if (options.location) params.set('location', options.location);  
+  if (options.location) params.set('location', options.location);
   if (options.jobType) params.set('type', options.jobType);
   if (options.experienceLevel) params.set('level', options.experienceLevel);
   if (options.page && options.page > 1) params.set('page', options.page.toString());
-  
+
   const queryString = params.toString();
   return `${baseUrl}/search${queryString ? `?${queryString}` : ''}`;
 }
@@ -328,13 +348,11 @@ export function generateStructuredDataScript(schema: Record<string, any>): strin
 /**
  * Utility to truncate text for meta descriptions
  */
-export function truncateDescription(text: string, maxLength: number = 160): string {
+export function truncateDescription(text: string, maxLength = 160): string {
   if (text.length <= maxLength) return text;
-  
+
   const truncated = text.slice(0, maxLength);
   const lastSpace = truncated.lastIndexOf(' ');
-  
-  return lastSpace > 0 ? 
-    truncated.slice(0, lastSpace) + '...' : 
-    truncated + '...';
+
+  return lastSpace > 0 ? truncated.slice(0, lastSpace) + '...' : truncated + '...';
 }

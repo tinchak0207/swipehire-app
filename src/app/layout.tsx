@@ -11,19 +11,31 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: {
     template: '%s | SwipeHire - AI-Powered Recruitment Platform',
-    default: 'SwipeHire - AI-Powered Recruitment Platform | Connecting Talent with Opportunities'
+    default: 'SwipeHire - AI-Powered Recruitment Platform | Connecting Talent with Opportunities',
   },
-  description: 'The most advanced AI recruitment platform, offering intelligent resume optimization, precise job matching, salary analysis, and more. Helping job seekers find their ideal jobs and companies discover top talent.',
+  description:
+    'The most advanced AI recruitment platform, offering intelligent resume optimization, precise job matching, salary analysis, and more. Helping job seekers find their ideal jobs and companies discover top talent.',
   keywords: [
-    'Recruitment platform', 'Job search website', 'AI resume optimization', 'Job matching', 'Talent acquisition', 
-    'Salary analysis', 'Job opportunities', 'Human resources', 'Job seeking', 'Find a job',
-    'Front-end engineer jobs', 'Software engineer jobs', 'Jobs in Taipei', 'Remote work'
+    'Recruitment platform',
+    'Job search website',
+    'AI resume optimization',
+    'Job matching',
+    'Talent acquisition',
+    'Salary analysis',
+    'Job opportunities',
+    'Human resources',
+    'Job seeking',
+    'Find a job',
+    'Front-end engineer jobs',
+    'Software engineer jobs',
+    'Jobs in Taipei',
+    'Remote work',
   ],
   authors: [{ name: 'SwipeHire Team' }],
   creator: 'SwipeHire',
   publisher: 'SwipeHire',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
-  
+
   openGraph: {
     title: 'SwipeHire - AI-Powered Recruitment Platform',
     description: 'Intelligent recruitment solutions connecting talent and opportunities',
@@ -34,17 +46,18 @@ export const metadata: Metadata = {
         url: '/images/og-homepage.jpg',
         width: 1200,
         height: 630,
-        alt: 'SwipeHire AI-Powered Recruitment Platform'
-      }
+        alt: 'SwipeHire AI-Powered Recruitment Platform',
+      },
     ],
     locale: 'en_US',
     type: 'website',
   },
-  
+
   twitter: {
     card: 'summary_large_image',
     title: 'SwipeHire - AI-Powered Recruitment Platform',
-    description: 'The most advanced AI recruitment platform, connecting top talent with quality companies.',
+    description:
+      'The most advanced AI recruitment platform, connecting top talent with quality companies.',
     site: '@SwipeHire',
     images: ['/images/twitter-card.jpg'],
   },
@@ -53,8 +66,8 @@ export const metadata: Metadata = {
     canonical: 'https://swipehire.top',
     languages: {
       'en-US': 'https://swipehire.top/en',
-      'zh-TW': 'https://swipehire.top'
-    }
+      'zh-TW': 'https://swipehire.top',
+    },
   },
 
   robots: {
@@ -90,22 +103,22 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
-            __html: stringifySchema(websiteSchema)
+            __html: stringifySchema(websiteSchema),
           }}
         />
-        
+
         {/* Additional Meta Tags */}
         <meta name="format-detection" content="telephone=no" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SwipeHire" />
-        
+
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
+
         {/* Favicon and App Icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />

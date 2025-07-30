@@ -1,8 +1,8 @@
-import { MetadataRoute } from 'next';
+import type { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
   const baseUrl = 'https://swipehire.top';
-  
+
   return {
     rules: [
       {
@@ -17,12 +17,12 @@ export default function robots(): MetadataRoute.Robots {
           '/blog/*',
           '/search',
           '/resume-optimizer',
-          '/salary-enquiry', 
+          '/salary-enquiry',
           '/portfolio',
           '/events',
           '/interview-guide',
           '/skills/',
-          '/skills/*'
+          '/skills/*',
         ],
         disallow: [
           '/api/',
@@ -32,9 +32,9 @@ export default function robots(): MetadataRoute.Robots {
           '/test*',
           '/demo/',
           '/private/',
-          '/*?*utm_*',  // Block UTM parameters
+          '/*?*utm_*', // Block UTM parameters
           '/*?*fbclid*', // Block Facebook click IDs
-          '/*?*gclid*',  // Block Google click IDs
+          '/*?*gclid*', // Block Google click IDs
           '/resume-optimizer/editor-test/',
           '/resume-optimizer/report-test/',
           '/resume-optimizer/test-*',
@@ -42,7 +42,7 @@ export default function robots(): MetadataRoute.Robots {
           '/design-preview/',
           '/test-*',
           '/career-dashboard-demo/',
-          '/typeform-demo/'
+          '/typeform-demo/',
         ],
         crawlDelay: 1,
       },
@@ -54,7 +54,7 @@ export default function robots(): MetadataRoute.Robots {
           '/jobs/',
           '/jobs/*',
           '/company/',
-          '/company/*', 
+          '/company/*',
           '/blog/',
           '/blog/*',
           '/search',
@@ -62,50 +62,26 @@ export default function robots(): MetadataRoute.Robots {
           '/salary-enquiry',
           '/portfolio',
           '/events',
-          '/interview-guide'
+          '/interview-guide',
         ],
-        disallow: [
-          '/api/',
-          '/admin/',
-          '/dashboard/',
-          '/debug/',
-          '/test*',
-          '/demo/',
-          '/private/'
-        ]
+        disallow: ['/api/', '/admin/', '/dashboard/', '/debug/', '/test*', '/demo/', '/private/'],
       },
       // Block AI scrapers but allow search engines
       {
-        userAgent: [
-          'CCBot',
-          'ChatGPT-User',
-          'Claude-Web',
-          'anthropic-ai'
-        ],
-        disallow: ['/']
+        userAgent: ['CCBot', 'ChatGPT-User', 'Claude-Web', 'anthropic-ai'],
+        disallow: ['/'],
       },
       // Allow job aggregators
       {
         userAgent: [
           'LinkedInBot',
           'IndeedBot',
-          'Slurp'  // Yahoo/Verizon Media (owns some job sites)
+          'Slurp', // Yahoo/Verizon Media (owns some job sites)
         ],
-        allow: [
-          '/jobs/',
-          '/jobs/*',
-          '/company/',
-          '/company/*'
-        ],
-        disallow: [
-          '/api/',
-          '/admin/', 
-          '/dashboard/',
-          '/resume-optimizer/',
-          '/private/'
-        ],
-        crawlDelay: 2
-      }
+        allow: ['/jobs/', '/jobs/*', '/company/', '/company/*'],
+        disallow: ['/api/', '/admin/', '/dashboard/', '/resume-optimizer/', '/private/'],
+        crawlDelay: 2,
+      },
     ],
     sitemap: [
       `${baseUrl}/sitemap.xml`,
@@ -114,6 +90,6 @@ export default function robots(): MetadataRoute.Robots {
       // `${baseUrl}/sitemap-companies.xml`,
       // `${baseUrl}/sitemap-blog.xml`
     ],
-    host: baseUrl
+    host: baseUrl,
   };
 }

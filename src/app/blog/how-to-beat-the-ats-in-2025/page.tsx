@@ -1,8 +1,7 @@
-
+import { ArrowRight, CheckCircle, Zap } from 'lucide-react';
 // src/app/blog/how-to-beat-the-ats-in-2025/page.tsx
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import { ArrowRight, CheckCircle, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,16 +109,16 @@ export default function BlogPostPage() {
                 <CheckCircle className="mr-3 mt-1 h-5 w-5 flex-shrink-0 text-green-500" />
                 <span>
                   <strong>Hard Skills:</strong> Look for specific programming languages (Python,
-                  Java, Go), frameworks (React, TensorFlow, Spring), and tools (Docker,
-                  Kubernetes, AWS). These are non-negotiable keywords.
+                  Java, Go), frameworks (React, TensorFlow, Spring), and tools (Docker, Kubernetes,
+                  AWS). These are non-negotiable keywords.
                 </span>
               </li>
               <li className="flex items-start">
                 <CheckCircle className="mr-3 mt-1 h-5 w-5 flex-shrink-0 text-green-500" />
                 <span>
                   <strong>Soft Skills & Action Verbs:</strong> Identify terms like "led,"
-                  "architected," "optimized," "collaborated," and "mentored." These demonstrate
-                  your impact and seniority.
+                  "architected," "optimized," "collaborated," and "mentored." These demonstrate your
+                  impact and seniority.
                 </span>
               </li>
               <li className="flex items-start">
@@ -164,9 +163,9 @@ export default function BlogPostPage() {
 
             <h2 className="font-bold text-3xl">Step 3: Supercharge Your Content with AI</h2>
             <p>
-              This is where you turn the tables. Use AI to your advantage to not only match
-              keywords but to craft compelling, impact-driven content that resonates with both bots
-              and humans.
+              This is where you turn the tables. Use AI to your advantage to not only match keywords
+              but to craft compelling, impact-driven content that resonates with both bots and
+              humans.
             </p>
 
             <div className="relative rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
@@ -182,8 +181,8 @@ export default function BlogPostPage() {
                   AI Resume Optimizer
                 </Link>{' '}
                 does the heavy lifting for you. It analyzes your resume against a specific job
-                description, provides a match score, and suggests concrete improvements—from
-                missing keywords to more impactful bullet points.
+                description, provides a match score, and suggests concrete improvements—from missing
+                keywords to more impactful bullet points.
               </p>
               <Button asChild size="lg" className="bg-blue-600 text-white hover:bg-blue-700">
                 <Link href="/resume-optimizer">
@@ -194,9 +193,9 @@ export default function BlogPostPage() {
 
             <h2 className="font-bold text-3xl">The Final Check: Human Readability</h2>
             <p>
-              Once your resume is optimized for the ATS, the final step is to ensure it's
-              compelling for a human reader. An AI-packed resume that sounds like it was written by
-              a robot will fail the final test: the hiring manager review.
+              Once your resume is optimized for the ATS, the final step is to ensure it's compelling
+              for a human reader. An AI-packed resume that sounds like it was written by a robot
+              will fail the final test: the hiring manager review.
             </p>
             <p>
               Read it aloud. Does it flow naturally? Does it tell a clear and convincing story of
