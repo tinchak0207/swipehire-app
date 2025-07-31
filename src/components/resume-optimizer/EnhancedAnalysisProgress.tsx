@@ -1,16 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { 
-  ClockIcon, 
-  CpuChipIcon, 
-  SparklesIcon, 
-  EyeIcon,
-  DocumentTextIcon,
+import {
+  ChartBarIcon,
   CheckBadgeIcon,
+  ClockIcon,
+  CpuChipIcon,
+  DocumentTextIcon,
+  EyeIcon,
   LightBulbIcon,
-  ChartBarIcon
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 
 interface EnhancedAnalysisProgressProps {
   isAnalyzing: boolean;
@@ -39,7 +39,7 @@ const agentMessages: AgentMessage[] = [
     message: 'Analyzing resume structure and formatting...',
     icon: <DocumentTextIcon className="h-5 w-5" />,
     color: 'text-blue-600',
-    duration: 2500 // Optimized for 20s total analysis
+    duration: 2500, // Optimized for 20s total analysis
   },
   {
     id: '2',
@@ -47,7 +47,7 @@ const agentMessages: AgentMessage[] = [
     message: 'Extracting and matching keywords with job requirements...',
     icon: <SparklesIcon className="h-5 w-5" />,
     color: 'text-purple-600',
-    duration: 3000 // Optimized for 20s total analysis
+    duration: 3000, // Optimized for 20s total analysis
   },
   {
     id: '3',
@@ -55,7 +55,7 @@ const agentMessages: AgentMessage[] = [
     message: 'Checking ATS compatibility and parsing accuracy...',
     icon: <CpuChipIcon className="h-5 w-5" />,
     color: 'text-green-600',
-    duration: 2500 // Optimized for 20s total analysis
+    duration: 2500, // Optimized for 20s total analysis
   },
   {
     id: '4',
@@ -63,7 +63,7 @@ const agentMessages: AgentMessage[] = [
     message: 'Evaluating content quality and impact statements...',
     icon: <EyeIcon className="h-5 w-5" />,
     color: 'text-orange-600',
-    duration: 3000 // Optimized for 20s total analysis
+    duration: 3000, // Optimized for 20s total analysis
   },
   {
     id: '5',
@@ -71,7 +71,7 @@ const agentMessages: AgentMessage[] = [
     message: 'Matching your skills with industry requirements...',
     icon: <CheckBadgeIcon className="h-5 w-5" />,
     color: 'text-indigo-600',
-    duration: 2500 // Optimized for 20s total analysis
+    duration: 2500, // Optimized for 20s total analysis
   },
   {
     id: '6',
@@ -79,7 +79,7 @@ const agentMessages: AgentMessage[] = [
     message: 'Generating personalized optimization suggestions...',
     icon: <LightBulbIcon className="h-5 w-5" />,
     color: 'text-yellow-600',
-    duration: 2500 // Optimized for 20s total analysis
+    duration: 2500, // Optimized for 20s total analysis
   },
   {
     id: '7',
@@ -87,49 +87,52 @@ const agentMessages: AgentMessage[] = [
     message: 'Calculating performance scores and benchmarks...',
     icon: <ChartBarIcon className="h-5 w-5" />,
     color: 'text-red-600',
-    duration: 2000 // Optimized for 20s total analysis
-  }
+    duration: 2000, // Optimized for 20s total analysis
+  },
 ];
 
 const emotionalMessages: EmotionalMessage[] = [
   {
-    message: "Our AI is working hard for you! ☕ Take a sip of coffee and relax",
-    icon: "☕",
-    color: "text-amber-600"
+    message: 'Our AI is working hard for you! ☕ Take a sip of coffee and relax',
+    icon: '☕',
+    color: 'text-amber-600',
   },
   {
-    message: "Great things take time! 🌟 Your perfect resume is being crafted",
-    icon: "🌟",
-    color: "text-yellow-600"
+    message: 'Great things take time! 🌟 Your perfect resume is being crafted',
+    icon: '🌟',
+    color: 'text-yellow-600',
   },
   {
-    message: "Almost there! 🚀 Our AI agents are putting finishing touches",
-    icon: "🚀",
-    color: "text-blue-600"
+    message: 'Almost there! 🚀 Our AI agents are putting finishing touches',
+    icon: '🚀',
+    color: 'text-blue-600',
   },
   {
-    message: "Quality analysis in progress! 💎 Every detail matters",
-    icon: "💎",
-    color: "text-purple-600"
+    message: 'Quality analysis in progress! 💎 Every detail matters',
+    icon: '💎',
+    color: 'text-purple-600',
   },
   {
     message: "Your career deserves the best! 💪 We're making it happen",
-    icon: "💪",
-    color: "text-green-600"
+    icon: '💪',
+    color: 'text-green-600',
   },
   {
-    message: "Patience pays off! 🎯 Precision analysis takes time",
-    icon: "🎯",
-    color: "text-red-600"
+    message: 'Patience pays off! 🎯 Precision analysis takes time',
+    icon: '🎯',
+    color: 'text-red-600',
   },
   {
-    message: "Deep learning in action! 🧠 AI is understanding your potential",
-    icon: "🧠",
-    color: "text-indigo-600"
-  }
+    message: 'Deep learning in action! 🧠 AI is understanding your potential',
+    icon: '🧠',
+    color: 'text-indigo-600',
+  },
 ];
 
-export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAnalysisProgressProps) {
+export function EnhancedAnalysisProgress({
+  isAnalyzing,
+  onComplete,
+}: EnhancedAnalysisProgressProps) {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [currentAgent, setCurrentAgent] = useState(agentMessages[0]);
   const [currentEmotional, setCurrentEmotional] = useState(emotionalMessages[0]);
@@ -140,12 +143,12 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
   // Stopwatch timer with decimal precision
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    
+
     if (isAnalyzing) {
       setElapsedTime(0);
       setIsVisible(true);
       interval = setInterval(() => {
-        setElapsedTime(prev => prev + 0.1);
+        setElapsedTime((prev) => prev + 0.1);
       }, 100); // Update every 100ms for decimal precision
     } else {
       // Call onComplete with the final time BEFORE resetting
@@ -166,13 +169,13 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
   // Agent message rotation
   useEffect(() => {
     let timeout: NodeJS.Timeout;
-    
+
     if (isAnalyzing && agentIndex < agentMessages.length) {
       const currentAgentMsg = agentMessages[agentIndex];
       setCurrentAgent(currentAgentMsg);
-      
+
       timeout = setTimeout(() => {
-        setAgentIndex(prev => (prev + 1) % agentMessages.length);
+        setAgentIndex((prev) => (prev + 1) % agentMessages.length);
       }, currentAgentMsg?.duration);
     }
 
@@ -184,10 +187,10 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
   // Emotional message rotation
   useEffect(() => {
     let timeout: NodeJS.Timeout;
-    
+
     if (isAnalyzing) {
       timeout = setTimeout(() => {
-        setEmotionalIndex(prev => (prev + 1) % emotionalMessages.length);
+        setEmotionalIndex((prev) => (prev + 1) % emotionalMessages.length);
         setCurrentEmotional(emotionalMessages[(emotionalIndex + 1) % emotionalMessages.length]);
       }, 8000); // Change every 8 seconds for 20s analysis (better for user engagement)
     }
@@ -228,14 +231,16 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
           <div className="flex items-center justify-center space-x-3">
             <div className="relative">
               <ClockIcon className="h-8 w-8 text-blue-600 animate-pulse" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping"></div>
+              <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-ping" />
             </div>
             <div className="text-3xl font-bold text-gray-800 font-mono">
               {formatTime(elapsedTime)}
             </div>
           </div>
           <h2 className="text-2xl font-bold text-gray-800">AI Analysis in Progress</h2>
-          <p className="text-gray-600">Our advanced AI agents are analyzing your resume with precision</p>
+          <p className="text-gray-600">
+            Our advanced AI agents are analyzing your resume with precision
+          </p>
         </div>
 
         {/* Progress Bar */}
@@ -245,11 +250,11 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
             <span>{Math.round(getProgressPercentage())}%</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-            <div 
+            <div
               className="h-full bg-gradient-to-r from-blue-500 via-purple-500 to-green-500 rounded-full transition-all duration-1000 ease-out relative"
               style={{ width: `${getProgressPercentage()}%` }}
             >
-              <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+              <div className="absolute inset-0 bg-white/20 animate-pulse" />
             </div>
           </div>
         </div>
@@ -264,9 +269,15 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
               <div className="flex items-center space-x-2 mb-2">
                 <h3 className="font-semibold text-gray-800">{currentAgent?.agent}</h3>
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" />
+                  <div
+                    className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.1s' }}
+                  />
+                  <div
+                    className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  />
                 </div>
               </div>
               <p className="text-gray-700">{currentAgent?.message}</p>
@@ -278,9 +289,7 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
         <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-100">
           <div className="flex items-center space-x-3">
             <span className="text-2xl">{currentEmotional?.icon}</span>
-            <p className={`${currentEmotional?.color} font-medium`}>
-              {currentEmotional?.message}
-            </p>
+            <p className={`${currentEmotional?.color} font-medium`}>{currentEmotional?.message}</p>
           </div>
         </div>
 
@@ -290,10 +299,10 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
             <div
               key={agent.id}
               className={`h-2 rounded-full transition-all duration-500 ${
-                index < agentIndex 
-                  ? 'bg-green-500' 
-                  : index === agentIndex 
-                    ? 'bg-blue-500 animate-pulse' 
+                index < agentIndex
+                  ? 'bg-green-500'
+                  : index === agentIndex
+                    ? 'bg-blue-500 animate-pulse'
                     : 'bg-gray-200'
               }`}
             />
@@ -303,7 +312,7 @@ export function EnhancedAnalysisProgress({ isAnalyzing, onComplete }: EnhancedAn
         {/* Motivational Quote */}
         <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
           <p className="text-purple-700 italic">
-            "Success is where preparation and opportunity meet. We're preparing your opportunity!" 
+            "Success is where preparation and opportunity meet. We're preparing your opportunity!"
           </p>
         </div>
       </div>

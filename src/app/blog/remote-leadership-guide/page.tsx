@@ -1,6 +1,16 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Calendar, Clock, MessageSquare, Monitor, TrendingUp, Users, Zap } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Clock,
+  MessageSquare,
+  Monitor,
+  TrendingUp,
+  Users,
+  Zap,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShareButton } from '@/components/blog/ShareButton';
@@ -56,7 +66,9 @@ export default function RemoteLeadershipGuidePage() {
             </div>
             <div>
               <span className="font-semibold text-gray-900">James Mitchell</span>
-              <div className="text-gray-500 text-xs">Remote Work Expert & Executive Leadership Coach</div>
+              <div className="text-gray-500 text-xs">
+                Remote Work Expert & Executive Leadership Coach
+              </div>
             </div>
           </div>
 
@@ -74,28 +86,51 @@ export default function RemoteLeadershipGuidePage() {
           <section className="prose prose-lg max-w-none text-gray-700">
             {/* Quote Block */}
             <blockquote className="mb-8 rounded-md border-cyan-500 border-l-4 bg-cyan-50 p-4 font-medium text-gray-700 text-lg">
-              "Remote leadership isn't just about managing people who work from home—it's about creating connection, purpose, and high performance across distances and time zones. The best remote leaders don't just adapt; they excel by embracing entirely new leadership paradigms."
+              "Remote leadership isn't just about managing people who work from home—it's about
+              creating connection, purpose, and high performance across distances and time zones.
+              The best remote leaders don't just adapt; they excel by embracing entirely new
+              leadership paradigms."
             </blockquote>
 
             {/* Introduction */}
             <p>
-              The rapid shift to remote and hybrid work has fundamentally transformed leadership requirements. Traditional management approaches designed for co-located teams often fail in distributed environments, leaving many leaders struggling to maintain team cohesion, productivity, and culture. However, organizations that master remote leadership gain access to global talent pools, increased employee satisfaction, and often superior performance outcomes compared to their office-bound counterparts.
+              The rapid shift to remote and hybrid work has fundamentally transformed leadership
+              requirements. Traditional management approaches designed for co-located teams often
+              fail in distributed environments, leaving many leaders struggling to maintain team
+              cohesion, productivity, and culture. However, organizations that master remote
+              leadership gain access to global talent pools, increased employee satisfaction, and
+              often superior performance outcomes compared to their office-bound counterparts.
             </p>
 
             <p>
-              Effective remote leadership requires a completely different skill set than traditional in-person management. It demands heightened emotional intelligence, advanced communication abilities, and sophisticated technology fluency. Leaders must learn to build trust without physical presence, maintain team culture across digital channels, and drive results through influence rather than oversight. This comprehensive guide provides actionable strategies for mastering these critical remote leadership competencies.
+              Effective remote leadership requires a completely different skill set than traditional
+              in-person management. It demands heightened emotional intelligence, advanced
+              communication abilities, and sophisticated technology fluency. Leaders must learn to
+              build trust without physical presence, maintain team culture across digital channels,
+              and drive results through influence rather than oversight. This comprehensive guide
+              provides actionable strategies for mastering these critical remote leadership
+              competencies.
             </p>
 
             {/* Key Takeaways */}
             <div className="mb-8 rounded-lg border-cyan-500 border-l-4 bg-cyan-50 p-6">
               <h3 className="mb-4 font-semibold text-cyan-700 text-xl">Key Takeaways</h3>
               <ul className="list-disc space-y-2 pl-5">
-                <li>Remote leadership requires fundamentally different skills than traditional management</li>
-                <li>Trust and communication are the foundational pillars of successful remote teams</li>
+                <li>
+                  Remote leadership requires fundamentally different skills than traditional
+                  management
+                </li>
+                <li>
+                  Trust and communication are the foundational pillars of successful remote teams
+                </li>
                 <li>Technology proficiency is essential for effective remote leadership</li>
-                <li>Intentional culture building prevents remote team isolation and disengagement</li>
+                <li>
+                  Intentional culture building prevents remote team isolation and disengagement
+                </li>
                 <li>Performance management must shift from activity monitoring to results focus</li>
-                <li>Continuous learning and adaptation are crucial for remote leadership success</li>
+                <li>
+                  Continuous learning and adaptation are crucial for remote leadership success
+                </li>
               </ul>
             </div>
 
@@ -103,7 +138,7 @@ export default function RemoteLeadershipGuidePage() {
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
               1. Building Trust in Virtual Environments
             </h2>
-            
+
             <Card className="border-l-4 border-cyan-500 bg-cyan-50/50 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center text-cyan-800">
@@ -112,23 +147,44 @@ export default function RemoteLeadershipGuidePage() {
               </CardHeader>
               <CardContent className="text-cyan-900">
                 <p>
-                  Trust forms the cornerstone of successful remote teams, yet it's often the most challenging aspect for leaders to establish and maintain. Without casual office interactions and physical presence cues, remote leaders must be intentional about trust-building activities. This includes consistent communication, transparent decision-making, reliable follow-through on commitments, and creating psychological safety where team members feel comfortable expressing concerns and ideas.
+                  Trust forms the cornerstone of successful remote teams, yet it's often the most
+                  challenging aspect for leaders to establish and maintain. Without casual office
+                  interactions and physical presence cues, remote leaders must be intentional about
+                  trust-building activities. This includes consistent communication, transparent
+                  decision-making, reliable follow-through on commitments, and creating
+                  psychological safety where team members feel comfortable expressing concerns and
+                  ideas.
                 </p>
               </CardContent>
             </Card>
 
             <p>
-              Establish trust through transparency and consistency. Share your decision-making process openly, explain the reasoning behind strategic choices, and admit when you don't have answers. Remote team members need to understand not just what decisions are made, but why and how. Regular one-on-one meetings become crucial for building individual relationships and understanding each team member's challenges, motivations, and career aspirations.
+              Establish trust through transparency and consistency. Share your decision-making
+              process openly, explain the reasoning behind strategic choices, and admit when you
+              don't have answers. Remote team members need to understand not just what decisions are
+              made, but why and how. Regular one-on-one meetings become crucial for building
+              individual relationships and understanding each team member's challenges, motivations,
+              and career aspirations.
             </p>
 
             <p>
-              Demonstrate reliability through consistent behaviors and communication patterns. If you commit to weekly team updates, maintain that schedule religiously. When you say you'll respond to messages within 24 hours, honor that commitment. Small consistencies build large trust deposits over time. Remote team members rely on predictable leadership behaviors to feel secure and supported in their distributed work environment.
+              Demonstrate reliability through consistent behaviors and communication patterns. If
+              you commit to weekly team updates, maintain that schedule religiously. When you say
+              you'll respond to messages within 24 hours, honor that commitment. Small consistencies
+              build large trust deposits over time. Remote team members rely on predictable
+              leadership behaviors to feel secure and supported in their distributed work
+              environment.
             </p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
-              <span className="mb-1 block font-semibold text-gray-700">Trust-Building Strategy:</span>
+              <span className="mb-1 block font-semibold text-gray-700">
+                Trust-Building Strategy:
+              </span>
               <span>
-                Implement "trust accelerators" like shared project dashboards, transparent goal tracking, and regular team retrospectives. These practices create visibility into work progress and decision-making processes, helping team members feel informed and included even when working independently across different locations and time zones.
+                Implement "trust accelerators" like shared project dashboards, transparent goal
+                tracking, and regular team retrospectives. These practices create visibility into
+                work progress and decision-making processes, helping team members feel informed and
+                included even when working independently across different locations and time zones.
               </span>
             </div>
 
@@ -137,15 +193,30 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Communication becomes exponentially more important in remote environments where casual conversations and non-verbal cues are limited. Effective remote leaders master multiple communication channels and know when to use each appropriately. Video calls for relationship building and complex discussions, instant messaging for quick questions and informal check-ins, email for formal documentation, and project management tools for task coordination and progress tracking.
+              Communication becomes exponentially more important in remote environments where casual
+              conversations and non-verbal cues are limited. Effective remote leaders master
+              multiple communication channels and know when to use each appropriately. Video calls
+              for relationship building and complex discussions, instant messaging for quick
+              questions and informal check-ins, email for formal documentation, and project
+              management tools for task coordination and progress tracking.
             </p>
 
             <p>
-              Develop communication protocols that ensure nothing falls through the cracks. Establish clear expectations for response times across different communication channels. Define which types of information should be shared where, and create standard meeting formats that maximize efficiency while maintaining connection. Document important decisions and share them broadly to ensure all team members stay informed regardless of their meeting attendance or time zone participation.
+              Develop communication protocols that ensure nothing falls through the cracks.
+              Establish clear expectations for response times across different communication
+              channels. Define which types of information should be shared where, and create
+              standard meeting formats that maximize efficiency while maintaining connection.
+              Document important decisions and share them broadly to ensure all team members stay
+              informed regardless of their meeting attendance or time zone participation.
             </p>
 
             <p>
-              Overcommunicate rather than undercommunicate, but do so strategically. Remote team members often feel isolated and uncertain about priorities, progress, and expectations. Regular updates about company news, project status, and strategic direction help maintain connection and alignment. However, avoid communication overload by being purposeful about frequency, format, and audience for different types of information sharing.
+              Overcommunicate rather than undercommunicate, but do so strategically. Remote team
+              members often feel isolated and uncertain about priorities, progress, and
+              expectations. Regular updates about company news, project status, and strategic
+              direction help maintain connection and alignment. However, avoid communication
+              overload by being purposeful about frequency, format, and audience for different types
+              of information sharing.
             </p>
 
             <Card className="border-l-4 border-blue-500 bg-blue-50/50 shadow-lg">
@@ -156,7 +227,11 @@ export default function RemoteLeadershipGuidePage() {
               </CardHeader>
               <CardContent className="text-blue-900">
                 <p>
-                  Asynchronous communication enables global teams to collaborate effectively across time zones while respecting work-life boundaries. Master written communication skills, create comprehensive documentation practices, and establish shared knowledge repositories. Use video messages for complex explanations, voice notes for quick updates, and structured written formats for decision-making processes.
+                  Asynchronous communication enables global teams to collaborate effectively across
+                  time zones while respecting work-life boundaries. Master written communication
+                  skills, create comprehensive documentation practices, and establish shared
+                  knowledge repositories. Use video messages for complex explanations, voice notes
+                  for quick updates, and structured written formats for decision-making processes.
                 </p>
               </CardContent>
             </Card>
@@ -166,21 +241,38 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Technology proficiency is no longer optional for remote leaders—it's essential for effectiveness. Master your organization's core collaboration platforms, understand their capabilities and limitations, and stay current with emerging tools that could improve team productivity. Invest time in learning advanced features of video conferencing, project management, and communication tools that your team uses daily.
+              Technology proficiency is no longer optional for remote leaders—it's essential for
+              effectiveness. Master your organization's core collaboration platforms, understand
+              their capabilities and limitations, and stay current with emerging tools that could
+              improve team productivity. Invest time in learning advanced features of video
+              conferencing, project management, and communication tools that your team uses daily.
             </p>
 
             <p>
-              Create technology standards and provide training to ensure all team members can participate fully in digital collaboration. Nothing undermines remote team effectiveness like technical difficulties during important meetings or confusion about which platform to use for different activities. Establish backup plans for technology failures and ensure everyone has reliable internet connections and appropriate equipment for professional participation.
+              Create technology standards and provide training to ensure all team members can
+              participate fully in digital collaboration. Nothing undermines remote team
+              effectiveness like technical difficulties during important meetings or confusion about
+              which platform to use for different activities. Establish backup plans for technology
+              failures and ensure everyone has reliable internet connections and appropriate
+              equipment for professional participation.
             </p>
 
             <p>
-              Leverage automation and integration to reduce administrative overhead and improve team efficiency. Connect your project management tools with communication platforms, set up automated reporting for key metrics, and use scheduling tools that work across time zones. The goal is to eliminate friction from remote collaboration while maintaining visibility into team progress and engagement levels.
+              Leverage automation and integration to reduce administrative overhead and improve team
+              efficiency. Connect your project management tools with communication platforms, set up
+              automated reporting for key metrics, and use scheduling tools that work across time
+              zones. The goal is to eliminate friction from remote collaboration while maintaining
+              visibility into team progress and engagement levels.
             </p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibual text-gray-700">Technology Tip:</span>
               <span>
-                Audit your technology stack quarterly to identify redundancies, gaps, and optimization opportunities. Survey team members about tool effectiveness and pain points. The remote work technology landscape evolves rapidly, and staying current with best-in-class solutions provides competitive advantages in team productivity and satisfaction.
+                Audit your technology stack quarterly to identify redundancies, gaps, and
+                optimization opportunities. Survey team members about tool effectiveness and pain
+                points. The remote work technology landscape evolves rapidly, and staying current
+                with best-in-class solutions provides competitive advantages in team productivity
+                and satisfaction.
               </span>
             </div>
 
@@ -189,15 +281,29 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Company culture doesn't happen naturally in remote environments—it must be intentionally created and consistently reinforced. Design virtual experiences that replicate the positive aspects of office culture while leveraging the unique advantages of remote work. This includes virtual coffee chats, online team building activities, digital collaboration spaces, and celebrations that bring distributed team members together in meaningful ways.
+              Company culture doesn't happen naturally in remote environments—it must be
+              intentionally created and consistently reinforced. Design virtual experiences that
+              replicate the positive aspects of office culture while leveraging the unique
+              advantages of remote work. This includes virtual coffee chats, online team building
+              activities, digital collaboration spaces, and celebrations that bring distributed team
+              members together in meaningful ways.
             </p>
 
             <p>
-              Create shared rituals and traditions that build team identity. Weekly team standups, monthly virtual lunch meetings, quarterly online retreats, and annual in-person gatherings help maintain connection and shared purpose. Encourage informal interactions through dedicated slack channels, virtual co-working sessions, and optional social meetings that allow team members to build relationships beyond work projects.
+              Create shared rituals and traditions that build team identity. Weekly team standups,
+              monthly virtual lunch meetings, quarterly online retreats, and annual in-person
+              gatherings help maintain connection and shared purpose. Encourage informal
+              interactions through dedicated slack channels, virtual co-working sessions, and
+              optional social meetings that allow team members to build relationships beyond work
+              projects.
             </p>
 
             <p>
-              Address isolation proactively rather than reactively. Some team members thrive in independent work environments, while others struggle with reduced social interaction. Provide multiple ways for team members to connect, collaborate, and seek support. This might include mentorship programs, cross-functional project teams, or professional development groups that create natural interaction opportunities.
+              Address isolation proactively rather than reactively. Some team members thrive in
+              independent work environments, while others struggle with reduced social interaction.
+              Provide multiple ways for team members to connect, collaborate, and seek support. This
+              might include mentorship programs, cross-functional project teams, or professional
+              development groups that create natural interaction opportunities.
             </p>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -205,11 +311,20 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Remote performance management requires shifting from activity monitoring to results measurement. Focus on outcomes rather than hours worked, deliverables rather than desk time, and impact rather than visibility. Establish clear performance expectations, measurable goals, and regular check-in processes that ensure team members know exactly what success looks like in their roles.
+              Remote performance management requires shifting from activity monitoring to results
+              measurement. Focus on outcomes rather than hours worked, deliverables rather than desk
+              time, and impact rather than visibility. Establish clear performance expectations,
+              measurable goals, and regular check-in processes that ensure team members know exactly
+              what success looks like in their roles.
             </p>
 
             <p>
-              Implement objective performance metrics that can be tracked and evaluated consistently across remote team members. This includes project completion rates, quality measures, customer satisfaction scores, and other quantifiable indicators that reflect actual contribution and value creation. Avoid the temptation to micromanage through activity monitoring software, which typically reduces trust and engagement without improving performance.
+              Implement objective performance metrics that can be tracked and evaluated consistently
+              across remote team members. This includes project completion rates, quality measures,
+              customer satisfaction scores, and other quantifiable indicators that reflect actual
+              contribution and value creation. Avoid the temptation to micromanage through activity
+              monitoring software, which typically reduces trust and engagement without improving
+              performance.
             </p>
 
             <Card className="border-l-4 border-green-500 bg-green-50/50 shadow-lg">
@@ -220,13 +335,22 @@ export default function RemoteLeadershipGuidePage() {
               </CardHeader>
               <CardContent className="text-green-900">
                 <p>
-                  Effective remote performance management requires more frequent feedback cycles and clearer goal definition than traditional office environments. Implement weekly progress reviews, monthly goal adjustments, and quarterly comprehensive evaluations. Use collaborative goal-setting processes where team members participate in defining their objectives and success metrics.
+                  Effective remote performance management requires more frequent feedback cycles and
+                  clearer goal definition than traditional office environments. Implement weekly
+                  progress reviews, monthly goal adjustments, and quarterly comprehensive
+                  evaluations. Use collaborative goal-setting processes where team members
+                  participate in defining their objectives and success metrics.
                 </p>
               </CardContent>
             </Card>
 
             <p>
-              Address performance issues promptly and constructively. Remote work can sometimes mask declining performance or personal challenges that team members are experiencing. Create safe spaces for team members to discuss obstacles, request support, and share concerns about their work or work environment. Early intervention prevents small issues from becoming major problems while demonstrating your commitment to team member success.
+              Address performance issues promptly and constructively. Remote work can sometimes mask
+              declining performance or personal challenges that team members are experiencing.
+              Create safe spaces for team members to discuss obstacles, request support, and share
+              concerns about their work or work environment. Early intervention prevents small
+              issues from becoming major problems while demonstrating your commitment to team member
+              success.
             </p>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -234,15 +358,28 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Global remote teams offer access to diverse talent and perspectives, but they require sophisticated coordination and cultural sensitivity. Develop systems for managing work across multiple time zones, including asynchronous handoffs, shared documentation practices, and meeting rotation schedules that distribute the burden of inconvenient meeting times fairly among team members.
+              Global remote teams offer access to diverse talent and perspectives, but they require
+              sophisticated coordination and cultural sensitivity. Develop systems for managing work
+              across multiple time zones, including asynchronous handoffs, shared documentation
+              practices, and meeting rotation schedules that distribute the burden of inconvenient
+              meeting times fairly among team members.
             </p>
 
             <p>
-              Understand and respect cultural differences that affect communication styles, work preferences, and collaboration approaches. Some cultures emphasize direct communication while others prefer indirect approaches. Some prioritize individual achievement while others focus on collective success. Effective remote leaders adapt their management style to accommodate these differences while maintaining team cohesion and shared objectives.
+              Understand and respect cultural differences that affect communication styles, work
+              preferences, and collaboration approaches. Some cultures emphasize direct
+              communication while others prefer indirect approaches. Some prioritize individual
+              achievement while others focus on collective success. Effective remote leaders adapt
+              their management style to accommodate these differences while maintaining team
+              cohesion and shared objectives.
             </p>
 
             <p>
-              Create inclusive practices that ensure all team members can participate fully regardless of their location, time zone, or cultural background. This includes recording important meetings for later viewing, providing multiple ways to contribute to discussions, and being mindful of holidays and cultural events that affect different team members throughout the year.
+              Create inclusive practices that ensure all team members can participate fully
+              regardless of their location, time zone, or cultural background. This includes
+              recording important meetings for later viewing, providing multiple ways to contribute
+              to discussions, and being mindful of holidays and cultural events that affect
+              different team members throughout the year.
             </p>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -250,17 +387,29 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Remote work can blur boundaries between professional and personal life, making employee well-being a critical leadership responsibility. Model healthy work-life balance through your own behaviors—respect offline hours, take vacations, and avoid sending non-urgent communications outside of business hours. Create policies and practices that protect team members from burnout while maintaining productivity and engagement.
+              Remote work can blur boundaries between professional and personal life, making
+              employee well-being a critical leadership responsibility. Model healthy work-life
+              balance through your own behaviors—respect offline hours, take vacations, and avoid
+              sending non-urgent communications outside of business hours. Create policies and
+              practices that protect team members from burnout while maintaining productivity and
+              engagement.
             </p>
 
             <p>
-              Recognize signs of remote work challenges including isolation, overwork, communication difficulties, and technology fatigue. Different team members may struggle with different aspects of remote work, so provide flexible solutions that address various needs. This might include stipends for home office equipment, mental health resources, flexible scheduling options, or co-working space allowances.
+              Recognize signs of remote work challenges including isolation, overwork, communication
+              difficulties, and technology fatigue. Different team members may struggle with
+              different aspects of remote work, so provide flexible solutions that address various
+              needs. This might include stipends for home office equipment, mental health resources,
+              flexible scheduling options, or co-working space allowances.
             </p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Well-being Strategy:</span>
               <span>
-                Implement regular "pulse surveys" to monitor team member satisfaction, stress levels, and engagement. Use this data to proactively address emerging issues and continuously improve remote work policies and practices. Prevention is more effective than intervention when it comes to remote team well-being challenges.
+                Implement regular "pulse surveys" to monitor team member satisfaction, stress
+                levels, and engagement. Use this data to proactively address emerging issues and
+                continuously improve remote work policies and practices. Prevention is more
+                effective than intervention when it comes to remote team well-being challenges.
               </span>
             </div>
 
@@ -269,25 +418,49 @@ export default function RemoteLeadershipGuidePage() {
             </h2>
 
             <p>
-              Remote leadership requires continuous learning and adaptation as technology, best practices, and team needs evolve. Stay connected with remote work communities, attend virtual conferences, and regularly review and update your remote leadership approaches based on team feedback and performance outcomes. What works for one team or situation may not work for another, so maintain flexibility in your leadership style.
+              Remote leadership requires continuous learning and adaptation as technology, best
+              practices, and team needs evolve. Stay connected with remote work communities, attend
+              virtual conferences, and regularly review and update your remote leadership approaches
+              based on team feedback and performance outcomes. What works for one team or situation
+              may not work for another, so maintain flexibility in your leadership style.
             </p>
 
             <p>
-              Conduct regular retrospectives with your team to identify what's working well and what could be improved in your remote work processes. Create safe spaces for honest feedback about your leadership effectiveness and be willing to adjust your approach based on team input. The best remote leaders are those who continuously evolve their practices based on experience and learning.
+              Conduct regular retrospectives with your team to identify what's working well and what
+              could be improved in your remote work processes. Create safe spaces for honest
+              feedback about your leadership effectiveness and be willing to adjust your approach
+              based on team input. The best remote leaders are those who continuously evolve their
+              practices based on experience and learning.
             </p>
 
             <p>
-              Measure and track the effectiveness of your remote leadership initiatives through both quantitative metrics (productivity, retention, engagement scores) and qualitative feedback (team satisfaction, culture assessments, individual development). Use this data to refine your approach and demonstrate the value of effective remote leadership to organizational stakeholders.
+              Measure and track the effectiveness of your remote leadership initiatives through both
+              quantitative metrics (productivity, retention, engagement scores) and qualitative
+              feedback (team satisfaction, culture assessments, individual development). Use this
+              data to refine your approach and demonstrate the value of effective remote leadership
+              to organizational stakeholders.
             </p>
 
             {/* Conclusion */}
             <div className="my-8 rounded-lg border-cyan-500 border-l-4 bg-cyan-50 p-6">
-              <h3 className="mb-2 font-semibold text-cyan-700 text-xl">Your Remote Leadership Journey</h3>
+              <h3 className="mb-2 font-semibold text-cyan-700 text-xl">
+                Your Remote Leadership Journey
+              </h3>
               <p>
-                Mastering remote leadership is an ongoing journey that requires commitment, continuous learning, and willingness to adapt. The leaders who excel in remote environments are those who embrace the unique opportunities and challenges of distributed work while maintaining focus on fundamental leadership principles: building trust, enabling performance, developing people, and creating shared purpose.
+                Mastering remote leadership is an ongoing journey that requires commitment,
+                continuous learning, and willingness to adapt. The leaders who excel in remote
+                environments are those who embrace the unique opportunities and challenges of
+                distributed work while maintaining focus on fundamental leadership principles:
+                building trust, enabling performance, developing people, and creating shared
+                purpose.
               </p>
               <p className="mt-4">
-                Start implementing these strategies gradually, focusing first on building trust and improving communication with your team. As you develop confidence and competency in remote leadership fundamentals, expand to more sophisticated practices around culture building, performance management, and global team coordination. The investment you make in developing remote leadership skills will pay dividends in team performance, employee satisfaction, and organizational success.
+                Start implementing these strategies gradually, focusing first on building trust and
+                improving communication with your team. As you develop confidence and competency in
+                remote leadership fundamentals, expand to more sophisticated practices around
+                culture building, performance management, and global team coordination. The
+                investment you make in developing remote leadership skills will pay dividends in
+                team performance, employee satisfaction, and organizational success.
               </p>
             </div>
 
@@ -303,7 +476,9 @@ export default function RemoteLeadershipGuidePage() {
                 >
                   Comprehensive Remote Leadership Program
                 </Link>{' '}
-                that provides practical tools, frameworks, and personalized coaching to help you build high-performing distributed teams. Our expert-designed curriculum addresses the unique challenges of remote leadership.
+                that provides practical tools, frameworks, and personalized coaching to help you
+                build high-performing distributed teams. Our expert-designed curriculum addresses
+                the unique challenges of remote leadership.
               </p>
               <Button asChild size="lg" className="bg-cyan-600 text-white hover:bg-cyan-700">
                 <Link href="/remote-work-guide">
@@ -311,7 +486,6 @@ export default function RemoteLeadershipGuidePage() {
                 </Link>
               </Button>
             </div>
-
           </section>
 
           {/* Whitepaper Download Section */}
@@ -338,7 +512,8 @@ export default function RemoteLeadershipGuidePage() {
                     Remote Work Productivity
                   </h3>
                   <p className="mt-2 text-gray-500">
-                    Discover proven strategies to excel beyond the office and maintain high productivity
+                    Discover proven strategies to excel beyond the office and maintain high
+                    productivity
                   </p>
                 </div>
               </Link>
@@ -365,7 +540,8 @@ export default function RemoteLeadershipGuidePage() {
               </Button>
             </div>
             <p className="mb-6 text-gray-500">
-              What remote leadership challenges have you faced? Share your experiences and strategies for leading distributed teams effectively.
+              What remote leadership challenges have you faced? Share your experiences and
+              strategies for leading distributed teams effectively.
             </p>
           </section>
         </article>

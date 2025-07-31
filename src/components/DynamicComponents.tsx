@@ -1,5 +1,5 @@
-import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 
 const loadingComponent = () => (
   <div className="flex min-h-[calc(100vh-250px)] items-center justify-center">
@@ -19,7 +19,8 @@ export const LoginPage = dynamic(
 );
 
 export const CandidateDiscoveryPage = dynamic(
-  () => import('@/components/pages/CandidateDiscoveryPage').then((mod) => mod.CandidateDiscoveryPage),
+  () =>
+    import('@/components/pages/CandidateDiscoveryPage').then((mod) => mod.CandidateDiscoveryPage),
   { loading: loadingComponent, ssr: false }
 );
 
@@ -71,37 +72,37 @@ export const ManageJobPostingsPage = dynamic(
 );
 
 // Route pages
-export const RecruiterOnboardingPage = dynamic(
-  () => import('@/app/recruiter-onboarding/page'),
-  { loading: loadingComponent, ssr: false }
-);
+export const RecruiterOnboardingPage = dynamic(() => import('@/app/recruiter-onboarding/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
 
 export const MarketSalaryTypeformPage = dynamic(
   () => import('@/components/pages/MarketSalaryTypeformPage'),
   { loading: loadingComponent, ssr: false }
 );
 
-export const ResumeOptimizerPage = dynamic(
-  () => import('@/app/resume-optimizer/page'),
-  { loading: loadingComponent, ssr: false }
-);
+export const ResumeOptimizerPage = dynamic(() => import('@/app/resume-optimizer/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
 
-export const WorkflowDashboardPage = dynamic(
-  () => import('@/app/dashboard/workflows/page'),
-  { loading: loadingComponent, ssr: false }
-);
+export const WorkflowDashboardPage = dynamic(() => import('@/app/dashboard/workflows/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
 
-export const PortfolioPage = dynamic(
-  () => import('@/app/portfolio/page'),
-  { loading: loadingComponent, ssr: false }
-);
+export const PortfolioPage = dynamic(() => import('@/app/portfolio/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
 
-export const EventsPage = dynamic(
-  () => import('@/app/events/page'),
-  { loading: loadingComponent, ssr: false }
-);
+export const EventsPage = dynamic(() => import('@/app/events/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});
 
-export const FollowupRemindersPage = dynamic(
-  () => import('@/app/follow-up-reminders/page'),
-  { loading: loadingComponent, ssr: false }
-);
+export const FollowupRemindersPage = dynamic(() => import('@/app/follow-up-reminders/page'), {
+  loading: loadingComponent,
+  ssr: false,
+});

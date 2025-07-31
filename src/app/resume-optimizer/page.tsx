@@ -2,13 +2,13 @@
 
 import {
   ArrowRightIcon,
+  BeakerIcon,
   CheckCircleIcon,
   ClockIcon,
   DocumentArrowUpIcon,
   PlusIcon,
   StarIcon,
   UserIcon,
-  BeakerIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
@@ -197,7 +197,8 @@ const ResumeOptimizerPage: NextPage = () => {
                 </div>
                 <h2 className="card-title mb-3 justify-center text-xl">Feature Demos</h2>
                 <p className="mb-4 text-gray-600">
-                  Explore advanced AI features: video generation, analytics, ATS scanning & smart suggestions
+                  Explore advanced AI features: video generation, analytics, ATS scanning & smart
+                  suggestions
                 </p>
                 <div className="mb-4 flex items-center justify-center">
                   <div className="flex items-center text-gray-500 text-sm">

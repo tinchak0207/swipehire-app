@@ -1,6 +1,15 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, Calendar, Clock, MessageSquare, TrendingUp, Users, Zap } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Calendar,
+  Clock,
+  MessageSquare,
+  TrendingUp,
+  Users,
+  Zap,
+} from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ShareButton } from '@/components/blog/ShareButton';
@@ -74,16 +83,29 @@ export default function LinkedInOptimizationGuidePage() {
           <section className="prose prose-lg max-w-none text-gray-700">
             {/* Quote Block */}
             <blockquote className="mb-8 rounded-md border-blue-500 border-l-4 bg-blue-50 p-4 font-medium text-gray-700 text-lg">
-              "Your LinkedIn profile is your 24/7 personal brand ambassador. In today's digital-first world, 87% of recruiters use LinkedIn to evaluate candidates, making your profile optimization crucial for career success."
+              "Your LinkedIn profile is your 24/7 personal brand ambassador. In today's
+              digital-first world, 87% of recruiters use LinkedIn to evaluate candidates, making
+              your profile optimization crucial for career success."
             </blockquote>
 
             {/* Introduction */}
             <p>
-              LinkedIn has evolved far beyond a simple networking platform—it's now the world's largest professional community with over 900 million members. Whether you're actively job hunting, looking to advance in your current role, or building your professional brand, your LinkedIn profile serves as your digital business card, portfolio, and networking hub all rolled into one. This comprehensive guide will walk you through every aspect of LinkedIn optimization, from crafting compelling headlines to building meaningful connections that drive career opportunities.
+              LinkedIn has evolved far beyond a simple networking platform—it's now the world's
+              largest professional community with over 900 million members. Whether you're actively
+              job hunting, looking to advance in your current role, or building your professional
+              brand, your LinkedIn profile serves as your digital business card, portfolio, and
+              networking hub all rolled into one. This comprehensive guide will walk you through
+              every aspect of LinkedIn optimization, from crafting compelling headlines to building
+              meaningful connections that drive career opportunities.
             </p>
 
             <p>
-              The statistics speak for themselves: professionals with complete LinkedIn profiles are 40 times more likely to receive opportunities through the platform. Yet, despite this compelling data, many professionals treat their LinkedIn profiles as afterthoughts, missing countless opportunities for career advancement, business development, and professional growth. This guide will change that, providing you with actionable strategies to transform your profile into a powerful career catalyst.
+              The statistics speak for themselves: professionals with complete LinkedIn profiles are
+              40 times more likely to receive opportunities through the platform. Yet, despite this
+              compelling data, many professionals treat their LinkedIn profiles as afterthoughts,
+              missing countless opportunities for career advancement, business development, and
+              professional growth. This guide will change that, providing you with actionable
+              strategies to transform your profile into a powerful career catalyst.
             </p>
 
             {/* Key Takeaways */}
@@ -103,7 +125,7 @@ export default function LinkedInOptimizationGuidePage() {
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
               1. Profile Foundation: Creating Your Digital First Impression
             </h2>
-            
+
             <Card className="border-l-4 border-blue-500 bg-blue-50/50 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center text-blue-800">
@@ -112,17 +134,35 @@ export default function LinkedInOptimizationGuidePage() {
               </CardHeader>
               <CardContent className="text-blue-900">
                 <p>
-                  Your profile photo is the first thing people notice, and profiles with professional photos receive 21 times more profile views and 36 times more messages. Invest in a high-quality headshot where you're smiling, making eye contact with the camera, and dressed appropriately for your industry. The background should be neutral and non-distracting. Avoid selfies, group photos, or images with poor lighting—these immediately diminish your professional credibility.
+                  Your profile photo is the first thing people notice, and profiles with
+                  professional photos receive 21 times more profile views and 36 times more
+                  messages. Invest in a high-quality headshot where you're smiling, making eye
+                  contact with the camera, and dressed appropriately for your industry. The
+                  background should be neutral and non-distracting. Avoid selfies, group photos, or
+                  images with poor lighting—these immediately diminish your professional
+                  credibility.
                 </p>
               </CardContent>
             </Card>
 
             <p>
-              Your LinkedIn headline is prime real estate—it appears next to your name in search results, connection requests, and posts. Instead of simply listing your job title, craft a compelling headline that showcases your value proposition. Use relevant keywords that your target audience might search for, and consider including measurable achievements or unique qualifications. For example, instead of "Marketing Manager," try "Digital Marketing Manager | Driving 300% ROI Growth | B2B SaaS Specialist | Content Strategy Expert."
+              Your LinkedIn headline is prime real estate—it appears next to your name in search
+              results, connection requests, and posts. Instead of simply listing your job title,
+              craft a compelling headline that showcases your value proposition. Use relevant
+              keywords that your target audience might search for, and consider including measurable
+              achievements or unique qualifications. For example, instead of "Marketing Manager,"
+              try "Digital Marketing Manager | Driving 300% ROI Growth | B2B SaaS Specialist |
+              Content Strategy Expert."
             </p>
 
             <p>
-              The summary section is your elevator pitch in written form. This is where you tell your professional story, highlighting your expertise, achievements, and career aspirations. Start with a hook that grabs attention, then dive into your professional background, key accomplishments, and what you're passionate about. Use bullet points to break up text and make it more scannable. Include relevant keywords naturally throughout your summary to improve search visibility, but avoid keyword stuffing that makes your content sound robotic.
+              The summary section is your elevator pitch in written form. This is where you tell
+              your professional story, highlighting your expertise, achievements, and career
+              aspirations. Start with a hook that grabs attention, then dive into your professional
+              background, key accomplishments, and what you're passionate about. Use bullet points
+              to break up text and make it more scannable. Include relevant keywords naturally
+              throughout your summary to improve search visibility, but avoid keyword stuffing that
+              makes your content sound robotic.
             </p>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -130,17 +170,31 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              Your experience section should read like a collection of success stories rather than a dry list of job duties. For each role, start with a brief overview of the company and your position, then dive into specific achievements and outcomes. Use action verbs and quantify your results whenever possible. Instead of saying "responsible for managing social media," write "Developed and executed social media strategy that increased follower engagement by 150% and generated $2M in attributed revenue over 18 months."
+              Your experience section should read like a collection of success stories rather than a
+              dry list of job duties. For each role, start with a brief overview of the company and
+              your position, then dive into specific achievements and outcomes. Use action verbs and
+              quantify your results whenever possible. Instead of saying "responsible for managing
+              social media," write "Developed and executed social media strategy that increased
+              follower engagement by 150% and generated $2M in attributed revenue over 18 months."
             </p>
 
             <p>
-              Many professionals make the mistake of treating their LinkedIn experience section like a traditional resume, focusing on responsibilities rather than results. LinkedIn gives you more space to tell your story, so use it wisely. Include context about challenges you faced, strategies you implemented, and results you achieved. This narrative approach helps potential employers or clients understand not just what you did, but how you think and solve problems.
+              Many professionals make the mistake of treating their LinkedIn experience section like
+              a traditional resume, focusing on responsibilities rather than results. LinkedIn gives
+              you more space to tell your story, so use it wisely. Include context about challenges
+              you faced, strategies you implemented, and results you achieved. This narrative
+              approach helps potential employers or clients understand not just what you did, but
+              how you think and solve problems.
             </p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
-                Use the STAR method (Situation, Task, Action, Result) to structure your experience descriptions. This framework helps you tell compelling stories that demonstrate your problem-solving abilities and impact. For each significant achievement, briefly describe the situation, explain the task or challenge, detail the actions you took, and highlight the measurable results.
+                Use the STAR method (Situation, Task, Action, Result) to structure your experience
+                descriptions. This framework helps you tell compelling stories that demonstrate your
+                problem-solving abilities and impact. For each significant achievement, briefly
+                describe the situation, explain the task or challenge, detail the actions you took,
+                and highlight the measurable results.
               </span>
             </div>
 
@@ -149,17 +203,30 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              The skills section is more than just a list—it's a strategic tool for improving your search visibility and demonstrating your expertise. LinkedIn allows you to list up to 50 skills, but focus on quality over quantity. Prioritize skills that are most relevant to your career goals and industry. Pin your top three skills to ensure they're prominently displayed. Regularly audit and update your skills list to reflect your current expertise and market demands.
+              The skills section is more than just a list—it's a strategic tool for improving your
+              search visibility and demonstrating your expertise. LinkedIn allows you to list up to
+              50 skills, but focus on quality over quantity. Prioritize skills that are most
+              relevant to your career goals and industry. Pin your top three skills to ensure
+              they're prominently displayed. Regularly audit and update your skills list to reflect
+              your current expertise and market demands.
             </p>
 
             <p>
-              Recommendations are powerful social proof that can set you apart from other professionals. Reach out to former colleagues, managers, clients, or direct reports who can speak to your work quality and character. When requesting recommendations, make it easy for the recommender by providing specific talking points or achievements you'd like them to highlight. Offer to write recommendations in return—this reciprocal approach often yields better results and strengthens professional relationships.
+              Recommendations are powerful social proof that can set you apart from other
+              professionals. Reach out to former colleagues, managers, clients, or direct reports
+              who can speak to your work quality and character. When requesting recommendations,
+              make it easy for the recommender by providing specific talking points or achievements
+              you'd like them to highlight. Offer to write recommendations in return—this reciprocal
+              approach often yields better results and strengthens professional relationships.
             </p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
-                When requesting recommendations, provide a draft or bullet points highlighting key achievements. This makes it easier for the recommender and ensures important accomplishments are included. Remember, quality recommendations from relevant professionals carry more weight than numerous generic ones.
+                When requesting recommendations, provide a draft or bullet points highlighting key
+                achievements. This makes it easier for the recommender and ensures important
+                accomplishments are included. Remember, quality recommendations from relevant
+                professionals carry more weight than numerous generic ones.
               </span>
             </div>
 
@@ -168,11 +235,21 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              Consistent content creation is crucial for LinkedIn success, but many professionals struggle with what to post. Focus on sharing valuable insights, industry trends, professional experiences, and lessons learned. Mix different content types: text posts, images, videos, and articles. Share others' content with thoughtful commentary that adds your unique perspective. The key is providing value to your network while showcasing your expertise and personality.
+              Consistent content creation is crucial for LinkedIn success, but many professionals
+              struggle with what to post. Focus on sharing valuable insights, industry trends,
+              professional experiences, and lessons learned. Mix different content types: text
+              posts, images, videos, and articles. Share others' content with thoughtful commentary
+              that adds your unique perspective. The key is providing value to your network while
+              showcasing your expertise and personality.
             </p>
 
             <p>
-              LinkedIn's publishing platform offers an excellent opportunity to establish thought leadership through long-form content. Write articles about industry trends, career advice, case studies, or professional insights. Well-written articles can significantly boost your profile visibility and position you as an expert in your field. Share your articles across other social media platforms and with your email list to maximize reach and engagement.
+              LinkedIn's publishing platform offers an excellent opportunity to establish thought
+              leadership through long-form content. Write articles about industry trends, career
+              advice, case studies, or professional insights. Well-written articles can
+              significantly boost your profile visibility and position you as an expert in your
+              field. Share your articles across other social media platforms and with your email
+              list to maximize reach and engagement.
             </p>
 
             <Card className="border-l-4 border-green-500 bg-green-50/50 shadow-lg">
@@ -183,7 +260,12 @@ export default function LinkedInOptimizationGuidePage() {
               </CardHeader>
               <CardContent className="text-green-900">
                 <p>
-                  LinkedIn's algorithm prioritizes content that generates engagement within the first hour of posting. Focus on posting when your audience is most active (typically Tuesday through Thursday, 9 AM to 12 PM). Use native video when possible, as it receives 5x more engagement than other content types. Ask questions to encourage comments, and respond quickly to engagement to boost your post's visibility further.
+                  LinkedIn's algorithm prioritizes content that generates engagement within the
+                  first hour of posting. Focus on posting when your audience is most active
+                  (typically Tuesday through Thursday, 9 AM to 12 PM). Use native video when
+                  possible, as it receives 5x more engagement than other content types. Ask
+                  questions to encourage comments, and respond quickly to engagement to boost your
+                  post's visibility further.
                 </p>
               </CardContent>
             </Card>
@@ -193,15 +275,27 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              Quality trumps quantity when it comes to LinkedIn connections. Focus on building relationships with people in your industry, potential collaborators, and professionals whose careers you admire. When sending connection requests, always include a personalized message explaining why you'd like to connect. Generic connection requests are often ignored and can hurt your networking efforts.
+              Quality trumps quantity when it comes to LinkedIn connections. Focus on building
+              relationships with people in your industry, potential collaborators, and professionals
+              whose careers you admire. When sending connection requests, always include a
+              personalized message explaining why you'd like to connect. Generic connection requests
+              are often ignored and can hurt your networking efforts.
             </p>
 
             <p>
-              Once connected, nurture these relationships through meaningful engagement. Comment thoughtfully on their updates, share their content when relevant, and reach out with congratulations on achievements or job changes. Remember birthdays and work anniversaries—LinkedIn makes this easy with notifications. These small gestures help maintain relationships and keep you top-of-mind for opportunities.
+              Once connected, nurture these relationships through meaningful engagement. Comment
+              thoughtfully on their updates, share their content when relevant, and reach out with
+              congratulations on achievements or job changes. Remember birthdays and work
+              anniversaries—LinkedIn makes this easy with notifications. These small gestures help
+              maintain relationships and keep you top-of-mind for opportunities.
             </p>
 
             <p>
-              Leverage LinkedIn Groups to expand your network and establish expertise. Join groups relevant to your industry, interests, and career goals. Participate actively in discussions, share valuable insights, and connect with other engaged members. Groups provide a natural conversation starter when reaching out to new connections and can significantly expand your professional network beyond your immediate circles.
+              Leverage LinkedIn Groups to expand your network and establish expertise. Join groups
+              relevant to your industry, interests, and career goals. Participate actively in
+              discussions, share valuable insights, and connect with other engaged members. Groups
+              provide a natural conversation starter when reaching out to new connections and can
+              significantly expand your professional network beyond your immediate circles.
             </p>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -209,17 +303,28 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              LinkedIn offers several advanced features that many professionals underutilize. The "Open to Work" banner discreetly signals to recruiters that you're job searching while allowing you to specify the types of opportunities you're interested in. LinkedIn Learning provides an excellent opportunity to acquire new skills and showcase your commitment to professional development—completed courses appear on your profile.
+              LinkedIn offers several advanced features that many professionals underutilize. The
+              "Open to Work" banner discreetly signals to recruiters that you're job searching while
+              allowing you to specify the types of opportunities you're interested in. LinkedIn
+              Learning provides an excellent opportunity to acquire new skills and showcase your
+              commitment to professional development—completed courses appear on your profile.
             </p>
 
             <p>
-              LinkedIn Sales Navigator, while primarily designed for sales professionals, can be valuable for job seekers and networkers. It provides advanced search capabilities, lead recommendations, and insights about companies and professionals. If your industry involves business development or client relationships, consider investing in this premium tool to enhance your networking and opportunity identification capabilities.
+              LinkedIn Sales Navigator, while primarily designed for sales professionals, can be
+              valuable for job seekers and networkers. It provides advanced search capabilities,
+              lead recommendations, and insights about companies and professionals. If your industry
+              involves business development or client relationships, consider investing in this
+              premium tool to enhance your networking and opportunity identification capabilities.
             </p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
-                Use LinkedIn's messaging feature strategically. Instead of immediately pitching yourself or your services, focus on building relationships. Ask thoughtful questions, offer help, or share relevant resources. This approach builds trust and often leads to more meaningful opportunities than direct solicitation.
+                Use LinkedIn's messaging feature strategically. Instead of immediately pitching
+                yourself or your services, focus on building relationships. Ask thoughtful
+                questions, offer help, or share relevant resources. This approach builds trust and
+                often leads to more meaningful opportunities than direct solicitation.
               </span>
             </div>
 
@@ -228,11 +333,20 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              LinkedIn provides valuable analytics about your profile and content performance. Regularly review your profile views, search appearances, and post engagement metrics. These insights help you understand what's working and what needs improvement. If certain types of content consistently perform well, create more similar content. If your profile views are declining, consider updating your headline, summary, or posting frequency.
+              LinkedIn provides valuable analytics about your profile and content performance.
+              Regularly review your profile views, search appearances, and post engagement metrics.
+              These insights help you understand what's working and what needs improvement. If
+              certain types of content consistently perform well, create more similar content. If
+              your profile views are declining, consider updating your headline, summary, or posting
+              frequency.
             </p>
 
             <p>
-              Set up Google Alerts for your name and industry keywords to stay informed about mentions and trends. This intelligence can inform your content strategy and help you join relevant conversations. Track your connection growth, but focus more on engagement quality than quantity. A smaller network of engaged professionals is more valuable than thousands of passive connections.
+              Set up Google Alerts for your name and industry keywords to stay informed about
+              mentions and trends. This intelligence can inform your content strategy and help you
+              join relevant conversations. Track your connection growth, but focus more on
+              engagement quality than quantity. A smaller network of engaged professionals is more
+              valuable than thousands of passive connections.
             </p>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -240,28 +354,52 @@ export default function LinkedInOptimizationGuidePage() {
             </h2>
 
             <p>
-              Many professionals sabotage their LinkedIn success through common mistakes. Avoid posting controversial political or personal content that could alienate potential connections or employers. Don't use LinkedIn as a platform for complaints about current or former employers—this reflects poorly on your professionalism. Resist the urge to connect with everyone; focus on building a strategic network of relevant professionals.
+              Many professionals sabotage their LinkedIn success through common mistakes. Avoid
+              posting controversial political or personal content that could alienate potential
+              connections or employers. Don't use LinkedIn as a platform for complaints about
+              current or former employers—this reflects poorly on your professionalism. Resist the
+              urge to connect with everyone; focus on building a strategic network of relevant
+              professionals.
             </p>
 
             <p>
-              Another critical mistake is treating LinkedIn as a one-way broadcasting platform. Social media is inherently social, so engage with others' content regularly. Comment thoughtfully on posts, share valuable content from your network, and participate in meaningful conversations. This engagement increases your visibility and builds stronger professional relationships.
+              Another critical mistake is treating LinkedIn as a one-way broadcasting platform.
+              Social media is inherently social, so engage with others' content regularly. Comment
+              thoughtfully on posts, share valuable content from your network, and participate in
+              meaningful conversations. This engagement increases your visibility and builds
+              stronger professional relationships.
             </p>
 
             <div className="my-6 rounded-md border-red-400 border-l-4 bg-red-50 p-4">
               <span className="mb-1 block font-semibold text-red-700">Common Pitfall:</span>
               <span>
-                Avoid the "spray and pray" approach to connection requests. Sending generic invitations to hundreds of people rarely results in meaningful connections and can get your account flagged for spam. Instead, focus on quality connections with personalized messages that explain the mutual benefit of connecting.
+                Avoid the "spray and pray" approach to connection requests. Sending generic
+                invitations to hundreds of people rarely results in meaningful connections and can
+                get your account flagged for spam. Instead, focus on quality connections with
+                personalized messages that explain the mutual benefit of connecting.
               </span>
             </div>
 
             {/* Conclusion */}
             <div className="my-8 rounded-lg border-blue-500 border-l-4 bg-blue-50 p-6">
-              <h3 className="mb-2 font-semibold text-blue-700 text-xl">Your LinkedIn Transformation Journey</h3>
+              <h3 className="mb-2 font-semibold text-blue-700 text-xl">
+                Your LinkedIn Transformation Journey
+              </h3>
               <p>
-                Optimizing your LinkedIn profile is not a one-time task—it's an ongoing process that requires consistent attention and refinement. Start by implementing the foundational elements: professional photo, compelling headline, and comprehensive summary. Then gradually incorporate advanced strategies like content creation, strategic networking, and analytics review. Remember, LinkedIn success comes from authentic engagement and providing value to your professional community.
+                Optimizing your LinkedIn profile is not a one-time task—it's an ongoing process that
+                requires consistent attention and refinement. Start by implementing the foundational
+                elements: professional photo, compelling headline, and comprehensive summary. Then
+                gradually incorporate advanced strategies like content creation, strategic
+                networking, and analytics review. Remember, LinkedIn success comes from authentic
+                engagement and providing value to your professional community.
               </p>
               <p className="mt-4">
-                The investment you make in your LinkedIn presence today will pay dividends throughout your career. Whether you're seeking new opportunities, building client relationships, or establishing thought leadership, a well-optimized LinkedIn profile serves as your most powerful professional asset. Start implementing these strategies today, and watch as your LinkedIn profile transforms from a static resume into a dynamic career catalyst.
+                The investment you make in your LinkedIn presence today will pay dividends
+                throughout your career. Whether you're seeking new opportunities, building client
+                relationships, or establishing thought leadership, a well-optimized LinkedIn profile
+                serves as your most powerful professional asset. Start implementing these strategies
+                today, and watch as your LinkedIn profile transforms from a static resume into a
+                dynamic career catalyst.
               </p>
             </div>
 
@@ -277,7 +415,9 @@ export default function LinkedInOptimizationGuidePage() {
                 >
                   AI-Powered Resume Optimizer
                 </Link>{' '}
-                that also provides LinkedIn optimization recommendations. Our advanced technology analyzes your profile against industry best practices and top performers in your field, providing personalized suggestions to improve your visibility and engagement.
+                that also provides LinkedIn optimization recommendations. Our advanced technology
+                analyzes your profile against industry best practices and top performers in your
+                field, providing personalized suggestions to improve your visibility and engagement.
               </p>
               <Button asChild size="lg" className="bg-blue-600 text-white hover:bg-blue-700">
                 <Link href="/resume-optimizer">
@@ -285,7 +425,6 @@ export default function LinkedInOptimizationGuidePage() {
                 </Link>
               </Button>
             </div>
-
           </section>
 
           {/* Whitepaper Download Section */}
@@ -312,7 +451,8 @@ export default function LinkedInOptimizationGuidePage() {
                     Personal Branding in the Digital Age
                   </h3>
                   <p className="mt-2 text-gray-500">
-                    Build your professional identity online with effective digital branding strategies
+                    Build your professional identity online with effective digital branding
+                    strategies
                   </p>
                 </div>
               </Link>
@@ -339,7 +479,8 @@ export default function LinkedInOptimizationGuidePage() {
               </Button>
             </div>
             <p className="mb-6 text-gray-500">
-              What LinkedIn optimization strategies have worked best for you? Share your experiences and tips to help other professionals maximize their LinkedIn presence.
+              What LinkedIn optimization strategies have worked best for you? Share your experiences
+              and tips to help other professionals maximize their LinkedIn presence.
             </p>
           </section>
         </article>

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 import { AuthWrapper } from '@/components/AuthWrapper';
@@ -9,6 +9,7 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://swipehire.top'),
   title: {
     template: '%s | SwipeHire - AI-Powered Recruitment Platform',
     default: 'SwipeHire - AI-Powered Recruitment Platform | Connecting Talent with Opportunities',
@@ -34,7 +35,6 @@ export const metadata: Metadata = {
   authors: [{ name: 'SwipeHire Team' }],
   creator: 'SwipeHire',
   publisher: 'SwipeHire',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
 
   openGraph: {
     title: 'SwipeHire - AI-Powered Recruitment Platform',
@@ -89,6 +89,13 @@ export const metadata: Metadata = {
   category: 'business',
 };
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -108,7 +115,10 @@ export default function RootLayout({
         />
 
         {/* Additional Meta Tags */}
-        <meta name="description" content="The most advanced AI recruitment platform, offering intelligent resume optimization, precise job matching, salary analysis, and more. Helping job seekers find their ideal jobs and companies discover top talent." />
+        <meta
+          name="description"
+          content="The most advanced AI recruitment platform, offering intelligent resume optimization, precise job matching, salary analysis, and more. Helping job seekers find their ideal jobs and companies discover top talent."
+        />
         <meta name="format-detection" content="telephone=no" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

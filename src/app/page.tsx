@@ -30,6 +30,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppHeader } from '@/components/AppHeader';
 import { OnboardingStepsModal } from '@/components/common/OnboardingStepsModal';
+// Import optimized dynamic components
+import * as DynamicComponents from '@/components/DynamicComponents';
 import { MobileLayoutWrapper } from '@/components/mobile/MobileLayoutWrapper';
 import { DashboardSidebar } from '@/components/navigation/DashboardSidebar';
 import { TopNotificationBanner } from '@/components/notifications/TopNotificationBanner';
@@ -51,9 +53,6 @@ import { auth } from '@/lib/firebase';
 import { mockNotifications } from '@/lib/mockData';
 import type { BackendUser, NotificationItem, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
-
-// Import optimized dynamic components
-import * as DynamicComponents from '@/components/DynamicComponents';
 
 const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
@@ -1147,7 +1146,10 @@ function AppContent() {
       return (
         <div className="animate-fadeInPage" key="login_page_wrapper">
           {' '}
-          <DynamicComponents.LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />{' '}
+          <DynamicComponents.LoginPage
+            onLoginBypass={handleLoginBypass}
+            onGuestMode={handleGuestMode}
+          />{' '}
         </div>
       );
     }

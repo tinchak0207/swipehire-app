@@ -3,14 +3,20 @@ import clientPromise from '@/lib/mongodb';
 import type { Workflow } from '@/lib/types';
 
 async function getWorkflows(): Promise<Workflow[]> {
-  const client = await clientPromise;
-  const db = client.db('swipehire');
-  const workflows = await db.collection('workflows').find({}).toArray();
-  // Convert _id to string for serialization
-  return workflows.map((workflow) => ({
-    ...(workflow as unknown as Workflow),
-    id: workflow._id.toString(),
-  }));
+  try {
+    const client = await clientPromise;
+    const db = client.db('swipehire');
+    const workflows = await db.collection('workflows').find({}).toArray();
+    // Convert _id to string for serialization
+    return workflows.map((workflow) => ({
+      ...(workflow as unknown as Workflow),
+      id: workflow._id.toString(),
+    }));
+  } catch (error) {
+    console.warn('MongoDB connection failed during build:', error);
+    // Return empty array during build/export when MongoDB is not available
+    return [];
+  }
 }
 
 const DashboardHomePage = async () => {

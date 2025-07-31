@@ -16,7 +16,11 @@ import {
   Video,
   Zap,
 } from 'lucide-react';
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import { AdvancedAnalyticsDashboard } from '@/components/resume-optimizer/analytics/AdvancedAnalyticsDashboard';
+import { EnhancedAnalysisProgress } from '@/components/resume-optimizer/EnhancedAnalysisProgress';
+import { SmartSuggestionsEngine } from '@/components/resume-optimizer/suggestions/SmartSuggestionsEngine';
+import { AIResumeVideoGenerator } from '@/components/resume-optimizer/video/AIResumeVideoGenerator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -30,10 +34,6 @@ import type {
   ResumeAnalysisResponse,
   TargetJobInfo,
 } from '@/lib/types/resume-optimizer';
-import { SmartSuggestionsEngine } from '@/components/resume-optimizer/suggestions/SmartSuggestionsEngine';
-import { AIResumeVideoGenerator } from '@/components/resume-optimizer/video/AIResumeVideoGenerator';
-import { AdvancedAnalyticsDashboard } from '@/components/resume-optimizer/analytics/AdvancedAnalyticsDashboard';
-import { EnhancedAnalysisProgress } from '@/components/resume-optimizer/EnhancedAnalysisProgress';
 
 interface AIEnhancedResumeOptimizerProps {
   className?: string;
@@ -52,8 +52,10 @@ export function AIEnhancedResumeOptimizer({
   const [targetJob, setTargetJob] = useState<TargetJobInfo>({
     title: 'Software Engineer',
     company: 'Tech Company',
-    description: 'We are looking for a talented Software Engineer to join our dynamic team. The ideal candidate will have experience in full-stack development, problem-solving skills, and the ability to work in a fast-paced environment. You will be responsible for developing scalable applications, collaborating with cross-functional teams, and contributing to technical decisions.',
-    keywords: 'JavaScript, TypeScript, React, Node.js, Python, SQL, Git, Agile, Problem Solving, Team Collaboration, API Development, Database Design',
+    description:
+      'We are looking for a talented Software Engineer to join our dynamic team. The ideal candidate will have experience in full-stack development, problem-solving skills, and the ability to work in a fast-paced environment. You will be responsible for developing scalable applications, collaborating with cross-functional teams, and contributing to technical decisions.',
+    keywords:
+      'JavaScript, TypeScript, React, Node.js, Python, SQL, Git, Agile, Problem Solving, Team Collaboration, API Development, Database Design',
     ...initialTargetJob,
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -62,30 +64,30 @@ export function AIEnhancedResumeOptimizer({
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
   // State to track actual analysis time from the timer
   const [actualAnalysisTime, setActualAnalysisTime] = useState<number>(0);
-  
+
   // Load analysis result from sessionStorage on component mount
   useEffect(() => {
     const storedResult = sessionStorage.getItem('resumeAnalysisResult');
     const storedTargetJob = sessionStorage.getItem('targetJobInfo');
-    
+
     if (storedResult) {
       try {
         const result = JSON.parse(storedResult);
         setAnalysisResult(result);
         setActiveTab('results'); // Automatically switch to results tab
-        
+
         // Clear the stored result to prevent reloading on subsequent visits
         sessionStorage.removeItem('resumeAnalysisResult');
       } catch (error) {
         console.error('Failed to parse stored analysis result:', error);
       }
     }
-    
+
     if (storedTargetJob) {
       try {
         const targetJobInfo = JSON.parse(storedTargetJob);
-        setTargetJob(prev => ({ ...prev, ...targetJobInfo }));
-        
+        setTargetJob((prev) => ({ ...prev, ...targetJobInfo }));
+
         // Clear the stored target job info
         sessionStorage.removeItem('targetJobInfo');
       } catch (error) {
@@ -205,11 +207,15 @@ export function AIEnhancedResumeOptimizer({
               <span className="flex items-center gap-2">
                 <Zap className="h-5 w-5 text-green-600" />
                 <span className="text-green-700 font-semibold">
-                  We analyzed your resume in {actualAnalysisTime > 0 ? actualAnalysisTime.toFixed(1) : (analysisResult.processingTime / 1000).toFixed(1)} seconds! ⚡
+                  We analyzed your resume in{' '}
+                  {actualAnalysisTime > 0
+                    ? actualAnalysisTime.toFixed(1)
+                    : (analysisResult.processingTime / 1000).toFixed(1)}{' '}
+                  seconds! ⚡
                 </span>
               </span>
             ) : (
-              "Leverage state-of-the-art AI to analyze and optimize your resume for maximum impact"
+              'Leverage state-of-the-art AI to analyze and optimize your resume for maximum impact'
             )}
           </p>
         </CardHeader>
@@ -261,7 +267,8 @@ export function AIEnhancedResumeOptimizer({
                   </Badge>
                 </CardTitle>
                 <p className="text-gray-600 text-sm">
-                  We've pre-filled these fields with common values. You can customize them or start analyzing immediately.
+                  We've pre-filled these fields with common values. You can customize them or start
+                  analyzing immediately.
                 </p>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -316,10 +323,9 @@ export function AIEnhancedResumeOptimizer({
               <div className="text-center mb-4">
                 <h3 className="font-semibold text-lg text-gray-800">Ready to Analyze!</h3>
                 <p className="text-gray-600 text-sm">
-                  {resumeText.trim() ? 
-                    "Your resume is loaded and job info is pre-filled. Click below to start!" : 
-                    "Upload your resume above to get started"
-                  }
+                  {resumeText.trim()
+                    ? 'Your resume is loaded and job info is pre-filled. Click below to start!'
+                    : 'Upload your resume above to get started'}
                 </p>
               </div>
               <Button
@@ -489,7 +495,8 @@ export function AIEnhancedResumeOptimizer({
               <Alert>
                 <Brain className="h-4 w-4" />
                 <AlertDescription>
-                  Analysis completed using {(analysisResult.metadata as any)?.aiModel || 'AI model'} with advanced parallel processing.
+                  Analysis completed using {(analysisResult.metadata as any)?.aiModel || 'AI model'}{' '}
+                  with advanced parallel processing.
                   {(analysisResult.metadata as any)?.analysisType === 'basic' &&
                     ' (Fallback mode - AI service unavailable)'}
                 </AlertDescription>
@@ -671,7 +678,7 @@ export function AIEnhancedResumeOptimizer({
       </Tabs>
 
       {/* Enhanced Analysis Progress Modal */}
-      <EnhancedAnalysisProgress 
+      <EnhancedAnalysisProgress
         isAnalyzing={isAnalyzing}
         onComplete={(actualTime) => {
           console.log('Analysis completed with actual time:', actualTime);

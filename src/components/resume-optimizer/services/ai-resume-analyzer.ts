@@ -28,7 +28,7 @@ export class AIResumeAnalyzer {
     temperature?: number;
   }): Promise<{ text: string }> {
     const models = [this.primaryModel, this.fallbackModel, this.geminiModel];
-    
+
     for (let i = 0; i < models.length; i++) {
       try {
         console.log(`Attempting with model: ${models[i]}`);
@@ -38,28 +38,29 @@ export class AIResumeAnalyzer {
           temperature: params.temperature || this.temperature,
           maxTokens: params.maxTokens,
         });
-        
+
         console.log(`Success with model: ${models[i]}`);
         return result;
       } catch (error: any) {
         const errorMessage = error?.message || '';
-        
+
         // Check if it's a rate limit, capacity, or quota error
-        const isRateLimit = error?.code === 'RATE_LIMIT_ERROR' ||
-                           errorMessage.includes('429') || 
-                           errorMessage.includes('capacity exceeded') ||
-                           errorMessage.includes('service_tier_capacity_exceeded') ||
-                           errorMessage.includes('quota') ||
-                           errorMessage.includes('rate limit');
-        
+        const isRateLimit =
+          error?.code === 'RATE_LIMIT_ERROR' ||
+          errorMessage.includes('429') ||
+          errorMessage.includes('capacity exceeded') ||
+          errorMessage.includes('service_tier_capacity_exceeded') ||
+          errorMessage.includes('quota') ||
+          errorMessage.includes('rate limit');
+
         console.warn(`Model ${models[i]} failed:`, errorMessage);
-        
+
         // If it's the last model or not a rate/capacity limit error, throw
         if (i === models.length - 1) {
           console.error('All models failed, throwing error');
           throw error;
         }
-        
+
         // For non-rate-limit errors, only try the next model if it's a different provider
         if (!isRateLimit) {
           // Skip to Gemini if both Mistral models failed for non-rate-limit reasons
@@ -68,14 +69,14 @@ export class AIResumeAnalyzer {
             i = 1; // This will increment to 2 (Gemini) in the next iteration
           }
         }
-        
+
         console.log(`Trying fallback model: ${models[i + 1]}`);
-        
+
         // Add a minimal delay before trying the next model (reduced from 1000ms)
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 200));
       }
     }
-    
+
     throw new Error('All models failed');
   }
 
@@ -84,59 +85,59 @@ export class AIResumeAnalyzer {
    */
   private cleanAndParseJSON(responseText: string): any {
     let cleanText = responseText.trim();
-    
+
     // Remove markdown code blocks if present
     if (cleanText.startsWith('```json')) {
       cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
     } else if (cleanText.startsWith('```')) {
       cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
     }
-    
+
     // Handle multiple code blocks (take the first one)
     const codeBlockMatch = cleanText.match(/```json([\s\S]*?)```/);
     if (codeBlockMatch && codeBlockMatch[1]) {
       cleanText = codeBlockMatch[1].trim();
     }
-    
+
     // Find JSON content - look for the first { or [ and last } or ]
-    const jsonStartMatch = cleanText.match(/[{\[]/);
+    const jsonStartMatch = cleanText.match(/[{[]/);
     const jsonStart = jsonStartMatch ? cleanText.indexOf(jsonStartMatch[0]) : 0;
-    
+
     if (jsonStart > 0) {
       cleanText = cleanText.substring(jsonStart);
     }
-    
+
     // Find the end of JSON by matching braces/brackets
     let braceCount = 0;
     let bracketCount = 0;
     let jsonEnd = cleanText.length;
     let inString = false;
     let escaped = false;
-    
+
     for (let i = 0; i < cleanText.length; i++) {
       const char = cleanText[i];
-      
+
       if (escaped) {
         escaped = false;
         continue;
       }
-      
+
       if (char === '\\') {
         escaped = true;
         continue;
       }
-      
+
       if (char === '"' && !escaped) {
         inString = !inString;
         continue;
       }
-      
+
       if (!inString) {
         if (char === '{') braceCount++;
         else if (char === '}') braceCount--;
         else if (char === '[') bracketCount++;
         else if (char === ']') bracketCount--;
-        
+
         // When we've closed all braces and brackets, we've found the end
         if (braceCount === 0 && bracketCount === 0 && (char === '}' || char === ']')) {
           jsonEnd = i + 1;
@@ -144,28 +145,30 @@ export class AIResumeAnalyzer {
         }
       }
     }
-    
+
     cleanText = cleanText.substring(0, jsonEnd).trim();
-    
+
     // Additional cleanup for common AI response patterns
     cleanText = cleanText
       .replace(/^Here's the.*?:/i, '') // Remove "Here's the analysis:" type prefixes
-      .replace(/^Based on.*?:/i, '') // Remove "Based on the resume:" type prefixes  
+      .replace(/^Based on.*?:/i, '') // Remove "Based on the resume:" type prefixes
       .replace(/\n\n[\s\S]*$/, '') // Remove any trailing explanation after JSON
       .trim();
-    
+
     // Final cleanup - ensure we start with { or [
-    const finalJsonMatch = cleanText.match(/([{\[][\s\S]*[}\]])/);
+    const finalJsonMatch = cleanText.match(/([{[][\s\S]*[}\]])/);
     if (finalJsonMatch && finalJsonMatch[1]) {
       cleanText = finalJsonMatch[1];
     }
-    
+
     try {
       return JSON.parse(cleanText);
     } catch (error) {
       console.error('JSON parsing failed. Clean text:', cleanText.substring(0, 500) + '...');
       console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
-      throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(
+        `Failed to parse AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     }
   }
 
@@ -622,7 +625,7 @@ Focus on:
   /**
    * Generate optimized resume content
    */
-  
+
   /**
    * Calculate overall score based on component scores
    */
@@ -777,7 +780,7 @@ Focus on:
         category: 'content',
       },
     ];
-  };
+  }
 }
 
 export const aiResumeAnalyzer = new AIResumeAnalyzer();

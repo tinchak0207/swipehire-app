@@ -1,5 +1,5 @@
-import { Mistral } from '@mistralai/mistralai';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { Mistral } from '@mistralai/mistralai';
 import type { z } from 'zod';
 
 /**
@@ -116,7 +116,7 @@ function isMistralModel(model: string): boolean {
   const mistralModels = [
     'mistral-tiny',
     'mistral-small',
-    'mistral-medium', 
+    'mistral-medium',
     'mistral-large-latest',
     'mistral-small-latest',
     'open-mistral-7b',
@@ -222,7 +222,7 @@ async function generateWithGemini(params: AIGenerateParams): Promise<AIGenerateR
 }
 
 /**
- * Generate with Mistral AI  
+ * Generate with Mistral AI
  */
 async function generateWithMistral(params: AIGenerateParams): Promise<AIGenerateResponse> {
   const client = createMistralClient();
@@ -285,11 +285,11 @@ export const ai = {
     try {
       if (isGeminiModel(model)) {
         return await generateWithGemini(params);
-      } else if (isMistralModel(model)) {
-        return await generateWithMistral(params);
-      } else {
-        throw new AIError(`Unsupported model: ${model}`, 'UNSUPPORTED_MODEL');
       }
+      if (isMistralModel(model)) {
+        return await generateWithMistral(params);
+      }
+      throw new AIError(`Unsupported model: ${model}`, 'UNSUPPORTED_MODEL');
     } catch (error) {
       if (error instanceof AIError) {
         throw error;
@@ -297,18 +297,22 @@ export const ai = {
 
       // Handle provider-specific API errors
       if (error && typeof error === 'object') {
-        const statusCode = 'status' in error && typeof (error as any).status === 'number' 
-          ? (error as any).status : 500;
+        const statusCode =
+          'status' in error && typeof (error as any).status === 'number'
+            ? (error as any).status
+            : 500;
         const message = error instanceof Error ? error.message : 'AI API error';
-        
+
         // Check for rate limiting or capacity errors
-        if (statusCode === 429 || 
-            message.includes('capacity exceeded') || 
-            message.includes('service_tier_capacity_exceeded') ||
-            message.includes('quota')) {
+        if (
+          statusCode === 429 ||
+          message.includes('capacity exceeded') ||
+          message.includes('service_tier_capacity_exceeded') ||
+          message.includes('quota')
+        ) {
           throw new AIError(message, 'RATE_LIMIT_ERROR', statusCode);
         }
-        
+
         throw new AIError(message, 'API_ERROR', statusCode);
       }
 

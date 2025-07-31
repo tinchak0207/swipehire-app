@@ -2,32 +2,32 @@
 
 import {
   ArrowLeftIcon,
+  BeakerIcon,
+  ChartBarIcon,
   CheckCircleIcon,
   DocumentArrowUpIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
-  XMarkIcon,
-  BeakerIcon,
-  VideoCameraIcon,
-  ChartBarIcon,
-  MagnifyingGlassIcon,
   LightBulbIcon,
+  MagnifyingGlassIcon,
+  VideoCameraIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AIEnhancedResumeOptimizer } from '@/components/resume-optimizer/AIEnhancedResumeOptimizer';
+import { RealTimeATSScanner } from '@/components/resume-optimizer/ats/RealTimeATSScanner';
+import { EnhancedAnalysisProgress } from '@/components/resume-optimizer/EnhancedAnalysisProgress';
 import type {
   FileValidationResult,
   ResumeParsingProgress,
   ResumeUploadState,
   TargetJobInfo,
 } from '@/lib/resume-types';
-import { type AnalysisLoadingState } from '@/services/resumeOptimizerService';
-import type { ResumeIntelligence } from '@/services/resumeIntelligenceService';
-import { AIEnhancedResumeOptimizer } from '@/components/resume-optimizer/AIEnhancedResumeOptimizer';
-import { RealTimeATSScanner } from '@/components/resume-optimizer/ats/RealTimeATSScanner';
-import { EnhancedAnalysisProgress } from '@/components/resume-optimizer/EnhancedAnalysisProgress';
 import type { ResumeAnalysisResponse } from '@/lib/types/resume-optimizer';
+import type { ResumeIntelligence } from '@/services/resumeIntelligenceService';
+import type { AnalysisLoadingState } from '@/services/resumeOptimizerService';
 
 interface ExtendedUploadState extends ResumeUploadState {
   progress: number;
@@ -211,205 +211,212 @@ const ResumeUploadPage: NextPage = () => {
     }
   }, []);
 
-  // Auto-analyze function for high-confidence detections - moved here to resolve dependencies  
-  const handleAutoAnalyze = useCallback(async (resumeText: string, detectedTargetJob: TargetJobInfo): Promise<void> => {
-    // Set analysis state to show loading
-    setAnalysisState({
-      isLoading: true,
-      progress: 0,
-      stage: 'parsing',
-      message: 'Starting AI analysis with auto-detected job information...',
-    });
-
-    try {
-      // Call the existing analysis API with auto-detected information
-      const response = await fetch('/api/resume-optimizer/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          resumeText,
-          targetJob: detectedTargetJob,
-        }),
+  // Auto-analyze function for high-confidence detections - moved here to resolve dependencies
+  const handleAutoAnalyze = useCallback(
+    async (resumeText: string, detectedTargetJob: TargetJobInfo): Promise<void> => {
+      // Set analysis state to show loading
+      setAnalysisState({
+        isLoading: true,
+        progress: 0,
+        stage: 'parsing',
+        message: 'Starting AI analysis with auto-detected job information...',
       });
 
-      const data = await response.json();
-      
-      if (data.success) {
-        // Store the result for the AI component
-        sessionStorage.setItem('resumeAnalysisResult', JSON.stringify(data.data));
-        sessionStorage.setItem('targetJobInfo', JSON.stringify(detectedTargetJob));
-        
-        // Show the AI analysis component with the result
-        setShowAIAnalysis(true);
+      try {
+        // Call the existing analysis API with auto-detected information
+        const response = await fetch('/api/resume-optimizer/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            resumeText,
+            targetJob: detectedTargetJob,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          // Store the result for the AI component
+          sessionStorage.setItem('resumeAnalysisResult', JSON.stringify(data.data));
+          sessionStorage.setItem('targetJobInfo', JSON.stringify(detectedTargetJob));
+
+          // Show the AI analysis component with the result
+          setShowAIAnalysis(true);
+          setAnalysisState({
+            isLoading: false,
+            progress: 100,
+            stage: 'finalizing' as any,
+            message: 'Analysis complete!',
+          });
+        } else {
+          throw new Error(data.error || 'Analysis failed');
+        }
+      } catch (error) {
+        console.error('Auto-analysis error:', error);
         setAnalysisState({
           isLoading: false,
-          progress: 100,
+          progress: 0,
           stage: 'finalizing' as any,
-          message: 'Analysis complete!',
+          message: 'Auto-analysis failed. You can still manually start analysis.',
         });
-      } else {
-        throw new Error(data.error || 'Analysis failed');
+        // Don't show alert for auto-analysis failures, just log them
       }
-    } catch (error) {
-      console.error('Auto-analysis error:', error);
-      setAnalysisState({
-        isLoading: false,
-        progress: 0,
-        stage: 'finalizing' as any,
-        message: 'Auto-analysis failed. You can still manually start analysis.',
-      });
-      // Don't show alert for auto-analysis failures, just log them
-    }
-  }, []);
+    },
+    []
+  );
 
   // Auto-detection function - moved here to resolve dependency order
-  const handleAutoDetection = useCallback(async (resumeText: string): Promise<void> => {
-    setIsAutoDetecting(true);
-    
-    try {
-      // Call the auto-detection API
-      const response = await fetch('/api/resume-optimizer/auto-detect', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resumeText }),
-      });
+  const handleAutoDetection = useCallback(
+    async (resumeText: string): Promise<void> => {
+      setIsAutoDetecting(true);
 
-      const data = await response.json();
-
-      if (data.success) {
-        const intelligence: ResumeIntelligence = data.data;
-        setAutoDetectionResult(intelligence);
-
-        // Auto-populate target job fields
-        setTargetJob({
-          title: intelligence.targetJobTitle,
-          keywords: intelligence.inferredKeywords.join(', '),
-          company: '', // Keep empty as it's hard to predict
-          description: intelligence.suggestedJobDescription,
+      try {
+        // Call the auto-detection API
+        const response = await fetch('/api/resume-optimizer/auto-detect', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ resumeText }),
         });
 
-        // Show detection notification
-        console.log('Auto-detected job information:', {
-          title: intelligence.targetJobTitle,
-          confidence: intelligence.confidence,
-          industry: intelligence.industryDomain,
-          seniority: intelligence.seniorityLevel
-        });
+        const data = await response.json();
 
-        // Auto-start analysis for high-confidence detections (lowered threshold for better UX)
-        if (intelligence.confidence >= 0.6 && !autoAnalysisTriggered) {
-          setAutoAnalysisTriggered(true);
-          
-          console.log(`🚀 Auto-starting analysis (confidence: ${intelligence.confidence})`);
-          
-          // Start analysis immediately after detection
-          setTimeout(async () => {
-            await handleAutoAnalyze(resumeText, {
-              title: intelligence.targetJobTitle,
-              keywords: intelligence.inferredKeywords.join(', '),
-              company: '',
-              description: intelligence.suggestedJobDescription,
-            });
-          }, 1500); // Reduced delay for better UX
-        } else if (intelligence.confidence < 0.6) {
-          console.log(`ℹ️ Confidence too low for auto-analysis: ${intelligence.confidence}`);
+        if (data.success) {
+          const intelligence: ResumeIntelligence = data.data;
+          setAutoDetectionResult(intelligence);
+
+          // Auto-populate target job fields
+          setTargetJob({
+            title: intelligence.targetJobTitle,
+            keywords: intelligence.inferredKeywords.join(', '),
+            company: '', // Keep empty as it's hard to predict
+            description: intelligence.suggestedJobDescription,
+          });
+
+          // Show detection notification
+          console.log('Auto-detected job information:', {
+            title: intelligence.targetJobTitle,
+            confidence: intelligence.confidence,
+            industry: intelligence.industryDomain,
+            seniority: intelligence.seniorityLevel,
+          });
+
+          // Auto-start analysis for high-confidence detections (lowered threshold for better UX)
+          if (intelligence.confidence >= 0.6 && !autoAnalysisTriggered) {
+            setAutoAnalysisTriggered(true);
+
+            console.log(`🚀 Auto-starting analysis (confidence: ${intelligence.confidence})`);
+
+            // Start analysis immediately after detection
+            setTimeout(async () => {
+              await handleAutoAnalyze(resumeText, {
+                title: intelligence.targetJobTitle,
+                keywords: intelligence.inferredKeywords.join(', '),
+                company: '',
+                description: intelligence.suggestedJobDescription,
+              });
+            }, 1500); // Reduced delay for better UX
+          } else if (intelligence.confidence < 0.6) {
+            console.log(`ℹ️ Confidence too low for auto-analysis: ${intelligence.confidence}`);
+          }
+        } else {
+          console.warn('Auto-detection failed:', data.error);
+          // Silently fail auto-detection, user can still manually fill fields
         }
-
-      } else {
-        console.warn('Auto-detection failed:', data.error);
+      } catch (error) {
+        console.error('Auto-detection error:', error);
         // Silently fail auto-detection, user can still manually fill fields
+      } finally {
+        setIsAutoDetecting(false);
       }
-    } catch (error) {
-      console.error('Auto-detection error:', error);
-      // Silently fail auto-detection, user can still manually fill fields
-    } finally {
-      setIsAutoDetecting(false);
-    }
-  }, [autoAnalysisTriggered, handleAutoAnalyze]);
+    },
+    [autoAnalysisTriggered, handleAutoAnalyze]
+  );
 
-  const handleUpload = useCallback(async (fileToProcess?: File): Promise<void> => {
-    const file = fileToProcess || uploadState.file;
-    if (!file) {
-      return;
-    }
+  const handleUpload = useCallback(
+    async (fileToProcess?: File): Promise<void> => {
+      const file = fileToProcess || uploadState.file;
+      if (!file) {
+        return;
+      }
 
-    setUploadState((prev) => ({
-      ...prev,
-      isUploading: true,
-      error: null,
-      progress: 0,
-      stage: 'uploading',
-    }));
-
-    try {
-      // Import the file parsing service dynamically to avoid SSR issues
-      const { parseFile } = await import('@/services/fileParsingService');
-
-      // Parse the file with progress tracking
-      const result = await parseFile(file, {
-        onProgress: (progress) => {
-          setUploadState((prev) => ({
-            ...prev,
-            progress: progress.progress,
-            stage: progress.stage,
-          }));
-        },
-        maxFileSize: 10 * 1024 * 1024, // 10MB
-        timeout: 30000, // 30 seconds
-      });
-
-      // Update state with extracted text and metadata
       setUploadState((prev) => ({
         ...prev,
-        isUploading: false,
-        extractedText: result.text,
-        metadata: result.metadata,
-        progress: 100,
-        stage: 'complete',
+        isUploading: true,
+        error: null,
+        progress: 0,
+        stage: 'uploading',
       }));
 
-      // Log metadata for debugging (can be removed in production)
-      console.log('File parsing completed:', {
-        fileName: result.metadata.fileName,
-        fileSize: result.metadata.fileSize,
-        wordCount: result.metadata.wordCount,
-        characterCount: result.metadata.characterCount,
-        extractionTime: result.metadata.extractionTime,
-        pageCount: result.metadata.pageCount,
-      });
+      try {
+        // Import the file parsing service dynamically to avoid SSR issues
+        const { parseFile } = await import('@/services/fileParsingService');
 
-      // AUTO-START: Auto-detect job information and potentially start analysis
-      await handleAutoDetection(result.text);
+        // Parse the file with progress tracking
+        const result = await parseFile(file, {
+          onProgress: (progress) => {
+            setUploadState((prev) => ({
+              ...prev,
+              progress: progress.progress,
+              stage: progress.stage,
+            }));
+          },
+          maxFileSize: 10 * 1024 * 1024, // 10MB
+          timeout: 30000, // 30 seconds
+        });
 
-    } catch (error) {
-      console.error('File parsing error:', error);
+        // Update state with extracted text and metadata
+        setUploadState((prev) => ({
+          ...prev,
+          isUploading: false,
+          extractedText: result.text,
+          metadata: result.metadata,
+          progress: 100,
+          stage: 'complete',
+        }));
 
-      let errorMessage = 'Failed to process the file. Please try again.';
+        // Log metadata for debugging (can be removed in production)
+        console.log('File parsing completed:', {
+          fileName: result.metadata.fileName,
+          fileSize: result.metadata.fileSize,
+          wordCount: result.metadata.wordCount,
+          characterCount: result.metadata.characterCount,
+          extractionTime: result.metadata.extractionTime,
+          pageCount: result.metadata.pageCount,
+        });
 
-      // Provide more specific error messages based on error type
-      if (error instanceof Error) {
-        if (error.message.includes('timeout')) {
-          errorMessage = 'File processing timed out. Please try with a smaller file.';
-        } else if (error.message.includes('corrupted')) {
-          errorMessage = 'The file appears to be corrupted. Please try with a different file.';
-        } else if (error.message.includes('password')) {
-          errorMessage =
-            'Password-protected files are not supported. Please remove the password and try again.';
-        } else if (error.message.includes('format')) {
-          errorMessage = 'This file format is not supported or the file is corrupted.';
-        } else if (error.message.includes('size')) {
-          errorMessage = 'File is too large. Please use a file smaller than 10MB.';
+        // AUTO-START: Auto-detect job information and potentially start analysis
+        await handleAutoDetection(result.text);
+      } catch (error) {
+        console.error('File parsing error:', error);
+
+        let errorMessage = 'Failed to process the file. Please try again.';
+
+        // Provide more specific error messages based on error type
+        if (error instanceof Error) {
+          if (error.message.includes('timeout')) {
+            errorMessage = 'File processing timed out. Please try with a smaller file.';
+          } else if (error.message.includes('corrupted')) {
+            errorMessage = 'The file appears to be corrupted. Please try with a different file.';
+          } else if (error.message.includes('password')) {
+            errorMessage =
+              'Password-protected files are not supported. Please remove the password and try again.';
+          } else if (error.message.includes('format')) {
+            errorMessage = 'This file format is not supported or the file is corrupted.';
+          } else if (error.message.includes('size')) {
+            errorMessage = 'File is too large. Please use a file smaller than 10MB.';
+          }
         }
-      }
 
-      setUploadState((prev) => ({
-        ...prev,
-        isUploading: false,
-        error: errorMessage,
-        stage: 'error',
-      }));
-    }
-  }, [uploadState.file, handleAutoDetection]);
+        setUploadState((prev) => ({
+          ...prev,
+          isUploading: false,
+          error: errorMessage,
+          stage: 'error',
+        }));
+      }
+    },
+    [uploadState.file, handleAutoDetection]
+  );
 
   // Auto-start processing when a file is selected
   useEffect(() => {
@@ -420,32 +427,41 @@ const ResumeUploadPage: NextPage = () => {
 
   // Auto-start analysis when target job is populated (fallback mechanism)
   useEffect(() => {
-    const shouldAutoStart = 
-      uploadState.extractedText && 
-      targetJob.title.trim() && 
-      !analysisState.isLoading && 
+    const shouldAutoStart =
+      uploadState.extractedText &&
+      targetJob.title.trim() &&
+      !analysisState.isLoading &&
       !autoAnalysisTriggered &&
       !showAIAnalysis;
 
     if (shouldAutoStart) {
       console.log('🎯 Auto-starting analysis with populated target job');
       setAutoAnalysisTriggered(true);
-      
+
       setTimeout(async () => {
         if (uploadState.extractedText) {
           await handleAutoAnalyze(uploadState.extractedText, targetJob);
         }
       }, 500); // Quick start when fields are ready
     }
-  }, [targetJob.title, uploadState.extractedText, analysisState.isLoading, autoAnalysisTriggered, showAIAnalysis, handleAutoAnalyze]);
+  }, [
+    targetJob.title,
+    uploadState.extractedText,
+    analysisState.isLoading,
+    autoAnalysisTriggered,
+    showAIAnalysis,
+    handleAutoAnalyze,
+  ]);
 
-  
-  const handleAnalysisComplete = useCallback((result: ResumeAnalysisResponse) => {
-    console.log('Analysis completed:', result);
-    // Store the result in sessionStorage for potential use in other pages
-    sessionStorage.setItem('resumeAnalysisResult', JSON.stringify(result));
-    sessionStorage.setItem('targetJobInfo', JSON.stringify(targetJob));
-  }, [targetJob]);
+  const handleAnalysisComplete = useCallback(
+    (result: ResumeAnalysisResponse) => {
+      console.log('Analysis completed:', result);
+      // Store the result in sessionStorage for potential use in other pages
+      sessionStorage.setItem('resumeAnalysisResult', JSON.stringify(result));
+      sessionStorage.setItem('targetJobInfo', JSON.stringify(targetJob));
+    },
+    [targetJob]
+  );
 
   const getStageMessage = (): string => {
     switch (uploadState.stage) {
@@ -482,10 +498,9 @@ const ResumeUploadPage: NextPage = () => {
               {showAIAnalysis ? 'AI Resume Analysis' : 'Smart Resume Optimizer'}
             </h1>
             <p className="mt-1 text-gray-600">
-              {showAIAnalysis 
+              {showAIAnalysis
                 ? 'AI-powered analysis and optimization recommendations'
-                : 'Just drag & drop your resume - AI will handle the rest automatically!'
-              }
+                : 'Just drag & drop your resume - AI will handle the rest automatically!'}
             </p>
           </div>
         </div>
@@ -574,7 +589,9 @@ const ResumeUploadPage: NextPage = () => {
                               : 'Click to upload or drag & drop'}
                           </p>
                           <p className="text-gray-500 text-sm">PDF, DOC, or DOCX (max 10MB)</p>
-                          <p className="text-blue-600 text-xs font-medium mt-1">✨ Automatic processing & AI analysis</p>
+                          <p className="text-blue-600 text-xs font-medium mt-1">
+                            ✨ Automatic processing & AI analysis
+                          </p>
                         </div>
                       </div>
                     )}
@@ -595,12 +612,14 @@ const ResumeUploadPage: NextPage = () => {
                         <span className="loading loading-spinner loading-sm mr-3 text-blue-600" />
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="font-medium text-blue-800 text-sm">🚀 Processing automatically...</span>
+                            <span className="font-medium text-blue-800 text-sm">
+                              🚀 Processing automatically...
+                            </span>
                             <span className="text-blue-600 text-sm">{uploadState.progress}%</span>
                           </div>
                           <div className="mb-2">
                             <div className="bg-blue-200 rounded-full h-2 overflow-hidden">
-                              <div 
+                              <div
                                 className="h-full bg-blue-600 rounded-full transition-all duration-500"
                                 style={{ width: `${uploadState.progress}%` }}
                               />
@@ -619,7 +638,9 @@ const ResumeUploadPage: NextPage = () => {
                         <span className="loading loading-spinner loading-sm mr-2 text-blue-600" />
                         <div>
                           <p className="font-medium text-blue-800 text-sm">🧠 AI Auto-Detection</p>
-                          <p className="text-blue-700 text-xs">Analyzing your resume to detect target job information...</p>
+                          <p className="text-blue-700 text-xs">
+                            Analyzing your resume to detect target job information...
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -631,13 +652,24 @@ const ResumeUploadPage: NextPage = () => {
                       <div className="flex items-start">
                         <CheckCircleIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-green-600" />
                         <div className="flex-1">
-                          <p className="font-medium text-green-800 text-sm">✨ Auto-Detected Job Information</p>
+                          <p className="font-medium text-green-800 text-sm">
+                            ✨ Auto-Detected Job Information
+                          </p>
                           <div className="mt-1 text-green-700 text-xs">
-                            <p><strong>Target Role:</strong> {autoDetectionResult.targetJobTitle}</p>
-                            <p><strong>Industry:</strong> {autoDetectionResult.industryDomain}</p>
-                            <p><strong>Confidence:</strong> {Math.round(autoDetectionResult.confidence * 100)}%</p>
+                            <p>
+                              <strong>Target Role:</strong> {autoDetectionResult.targetJobTitle}
+                            </p>
+                            <p>
+                              <strong>Industry:</strong> {autoDetectionResult.industryDomain}
+                            </p>
+                            <p>
+                              <strong>Confidence:</strong>{' '}
+                              {Math.round(autoDetectionResult.confidence * 100)}%
+                            </p>
                             {autoDetectionResult.confidence >= 0.8 && autoAnalysisTriggered && (
-                              <p className="mt-1 font-medium text-green-800">🚀 Starting automatic analysis...</p>
+                              <p className="mt-1 font-medium text-green-800">
+                                🚀 Starting automatic analysis...
+                              </p>
                             )}
                           </div>
                         </div>
@@ -703,7 +735,9 @@ const ResumeUploadPage: NextPage = () => {
                       type="text"
                       placeholder="e.g., Google, Microsoft, Startup Inc."
                       value={targetJob.company}
-                      onChange={(e) => setTargetJob((prev) => ({ ...prev, company: e.target.value }))}
+                      onChange={(e) =>
+                        setTargetJob((prev) => ({ ...prev, company: e.target.value }))
+                      }
                       className="input input-bordered w-full bg-white text-gray-800 placeholder-gray-500"
                     />
                   </div>
@@ -715,7 +749,9 @@ const ResumeUploadPage: NextPage = () => {
                     <textarea
                       placeholder="e.g., React, Node.js, TypeScript, AWS, Agile, Leadership"
                       value={targetJob.keywords}
-                      onChange={(e) => setTargetJob((prev) => ({ ...prev, keywords: e.target.value }))}
+                      onChange={(e) =>
+                        setTargetJob((prev) => ({ ...prev, keywords: e.target.value }))
+                      }
                       className="textarea textarea-bordered h-24 w-full bg-white text-gray-800 placeholder-gray-500"
                       aria-describedby="keywords-help"
                     />
@@ -745,13 +781,14 @@ const ResumeUploadPage: NextPage = () => {
                           </div>
                           <div className="text-center">
                             <p className="font-semibold text-green-800">
-                              {analysisState.isLoading ? '🧠 AI Analysis in Progress...' : '✅ Analysis Complete!'}
+                              {analysisState.isLoading
+                                ? '🧠 AI Analysis in Progress...'
+                                : '✅ Analysis Complete!'}
                             </p>
                             <p className="text-green-700 text-sm">
-                              {autoDetectionResult 
+                              {autoDetectionResult
                                 ? `Auto-detected with ${Math.round((autoDetectionResult?.confidence || 0) * 100)}% confidence`
-                                : 'Using your job information'
-                              }
+                                : 'Using your job information'}
                             </p>
                           </div>
                         </div>
@@ -769,16 +806,28 @@ const ResumeUploadPage: NextPage = () => {
                     </h4>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                       <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">1</div>
-                        <span className="text-blue-700"><strong>Upload</strong> your resume</span>
+                        <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          1
+                        </div>
+                        <span className="text-blue-700">
+                          <strong>Upload</strong> your resume
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">2</div>
-                        <span className="text-green-700"><strong>AI analyzes</strong> automatically</span>
+                        <div className="w-6 h-6 bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          2
+                        </div>
+                        <span className="text-green-700">
+                          <strong>AI analyzes</strong> automatically
+                        </span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">3</div>
-                        <span className="text-purple-700"><strong>Get insights</strong> instantly</span>
+                        <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                          3
+                        </div>
+                        <span className="text-purple-700">
+                          <strong>Get insights</strong> instantly
+                        </span>
                       </div>
                     </div>
                     <p className="mt-3 text-blue-600 text-xs font-medium">
@@ -803,7 +852,8 @@ const ResumeUploadPage: NextPage = () => {
                 </div>
 
                 <p className="mb-6 text-gray-600">
-                  While your resume uploads, explore our cutting-edge AI features that showcase the future of resume optimization.
+                  While your resume uploads, explore our cutting-edge AI features that showcase the
+                  future of resume optimization.
                 </p>
 
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -905,7 +955,8 @@ const ResumeUploadPage: NextPage = () => {
                       <div className="text-blue-800 text-sm">
                         <p className="font-medium">Review the extracted text</p>
                         <p>
-                          Make sure all important information was captured correctly. Click "Start AI Analysis" above to begin optimization.
+                          Make sure all important information was captured correctly. Click "Start
+                          AI Analysis" above to begin optimization.
                         </p>
                       </div>
                     </div>
@@ -925,14 +976,15 @@ const ResumeUploadPage: NextPage = () => {
                         Live Scanning
                       </div>
                     </div>
-                    
+
                     <div className="mb-4 rounded-lg bg-indigo-50 p-3">
                       <div className="flex items-start">
                         <InformationCircleIcon className="mt-0.5 mr-2 h-5 w-5 flex-shrink-0 text-indigo-600" />
                         <div className="text-indigo-800 text-sm">
                           <p className="font-medium">Instant ATS Feedback</p>
                           <p>
-                            Get real-time compatibility analysis as your resume is processed. This helps identify potential issues before full optimization.
+                            Get real-time compatibility analysis as your resume is processed. This
+                            helps identify potential issues before full optimization.
                           </p>
                         </div>
                       </div>
@@ -959,7 +1011,7 @@ const ResumeUploadPage: NextPage = () => {
       </div>
 
       {/* Enhanced Analysis Progress Modal */}
-      <EnhancedAnalysisProgress 
+      <EnhancedAnalysisProgress
         isAnalyzing={analysisState.isLoading}
         onComplete={() => {
           // setActualAnalysisTime(actualTime);

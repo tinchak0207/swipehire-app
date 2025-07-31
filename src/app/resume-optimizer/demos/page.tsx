@@ -1,24 +1,24 @@
 'use client';
 
 import {
-  BeakerIcon,
-  ChartBarIcon,
-  VideoCameraIcon,
-  CpuChipIcon,
-  MagnifyingGlassIcon,
-  LightBulbIcon,
   ArrowRightIcon,
-  SparklesIcon,
-  EyeIcon,
+  BeakerIcon,
   CalendarIcon,
+  ChartBarIcon,
+  CpuChipIcon,
+  EyeIcon,
+  LightBulbIcon,
+  MagnifyingGlassIcon,
+  SparklesIcon,
   UserGroupIcon,
+  VideoCameraIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 /**
  * Demo Hub Page - Central access point for all resume optimizer demo features
- * Links to the existing /demo/* pages and provides overview of capabilities  
+ * Links to the existing /demo/* pages and provides overview of capabilities
  */
 export default function DemoHubPage() {
   const [isLoaded, setIsLoaded] = useState(false);
@@ -31,22 +31,34 @@ export default function DemoHubPage() {
     {
       id: 'ai-resume-optimizer',
       title: 'AI Resume Optimizer',
-      description: 'Experience our state-of-the-art AI-powered resume optimization with real-time analysis',
+      description:
+        'Experience our state-of-the-art AI-powered resume optimization with real-time analysis',
       icon: <CpuChipIcon className="h-8 w-8" />,
       color: 'blue',
       href: '/demo/ai-resume-optimizer',
-      features: ['Real-time AI Analysis', 'ATS Optimization', 'Keyword Enhancement', 'Format Checking'],
+      features: [
+        'Real-time AI Analysis',
+        'ATS Optimization',
+        'Keyword Enhancement',
+        'Format Checking',
+      ],
       stats: { users: '10K+', accuracy: '95%', time: '30-60s' },
       status: 'live',
     },
     {
       id: 'ai-video-generator',
       title: 'AI Video Generator',
-      description: 'Transform your resume into professional video presentations using cutting-edge AI',
+      description:
+        'Transform your resume into professional video presentations using cutting-edge AI',
       icon: <VideoCameraIcon className="h-8 w-8" />,
       color: 'purple',
       href: '/demo/ai-video-generator',
-      features: ['AI Script Generation', 'Professional Templates', 'Voice Synthesis', 'Multiple Formats'],
+      features: [
+        'AI Script Generation',
+        'Professional Templates',
+        'Voice Synthesis',
+        'Multiple Formats',
+      ],
       stats: { quality: '4K', voices: '10+', time: '60s' },
       status: 'live',
     },
@@ -64,7 +76,8 @@ export default function DemoHubPage() {
     {
       id: 'ats-scanner',
       title: 'ATS Scanner',
-      description: 'Real-time ATS compatibility analysis with intelligent suggestions and risk assessment',
+      description:
+        'Real-time ATS compatibility analysis with intelligent suggestions and risk assessment',
       icon: <MagnifyingGlassIcon className="h-8 w-8" />,
       color: 'indigo',
       href: '/demo/ats-scanner',
@@ -146,14 +159,14 @@ export default function DemoHubPage() {
             Resume Optimizer Demo Hub
           </h1>
           <p className="mx-auto mb-6 max-w-3xl text-gray-600 text-xl">
-            Explore our cutting-edge AI-powered resume optimization features. Each demo showcases 
+            Explore our cutting-edge AI-powered resume optimization features. Each demo showcases
             advanced capabilities that help job seekers maximize their resume's impact.
           </p>
-          
+
           {/* Quick Navigation */}
           <div className="mb-8 flex flex-wrap justify-center gap-2">
-            <Link 
-              href="/resume-optimizer" 
+            <Link
+              href="/resume-optimizer"
               className="rounded-full bg-white/70 px-4 py-2 text-gray-600 text-sm backdrop-blur-sm transition-colors hover:bg-white/90 hover:text-gray-800"
             >
               ← Back to Resume Optimizer
@@ -178,13 +191,13 @@ export default function DemoHubPage() {
                 }`}
                 style={{ transitionDelay: `${300 + index * 100}ms` }}
               >
-                <div className={`card border-2 ${colors.border} ${colors.bg} ${colors.hover} shadow-lg transition-all duration-300 hover:shadow-xl group-hover:scale-105`}>
+                <div
+                  className={`card border-2 ${colors.border} ${colors.bg} ${colors.hover} shadow-lg transition-all duration-300 hover:shadow-xl group-hover:scale-105`}
+                >
                   <div className="card-body p-6">
                     {/* Header */}
                     <div className="mb-4 flex items-center justify-between">
-                      <div className={`rounded-full p-3 ${colors.icon}`}>
-                        {demo.icon}
-                      </div>
+                      <div className={`rounded-full p-3 ${colors.icon}`}>{demo.icon}</div>
                       <div className={`rounded-full px-3 py-1 text-xs ${colors.badge}`}>
                         {demo.status}
                       </div>
@@ -199,7 +212,10 @@ export default function DemoHubPage() {
                       <h4 className="mb-2 font-semibold text-gray-700 text-sm">Key Features:</h4>
                       <div className="flex flex-wrap gap-1">
                         {demo.features.map((feature, idx) => (
-                          <span key={idx} className="rounded-md bg-white/70 px-2 py-1 text-gray-600 text-xs">
+                          <span
+                            key={idx}
+                            className="rounded-md bg-white/70 px-2 py-1 text-gray-600 text-xs"
+                          >
                             {feature}
                           </span>
                         ))}
@@ -218,7 +234,9 @@ export default function DemoHubPage() {
 
                     {/* Action Button */}
                     <Link href={demo.href} className="group">
-                      <div className={`flex items-center justify-center font-medium transition-all ${colors.button} hover:underline`}>
+                      <div
+                        className={`flex items-center justify-center font-medium transition-all ${colors.button} hover:underline`}
+                      >
                         Try {demo.title}
                         <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                       </div>
@@ -290,7 +308,7 @@ export default function DemoHubPage() {
           <h3 className="mb-6 text-center font-bold text-2xl text-gray-800">
             Powered by Advanced AI Technology
           </h3>
-          
+
           <div className="grid gap-6 md:grid-cols-2">
             <div>
               <h4 className="mb-4 font-semibold text-gray-800">AI Models & Services</h4>
@@ -313,7 +331,7 @@ export default function DemoHubPage() {
                 </li>
               </ul>
             </div>
-            
+
             <div>
               <h4 className="mb-4 font-semibold text-gray-800">Technical Capabilities</h4>
               <ul className="space-y-2 text-gray-600 text-sm">

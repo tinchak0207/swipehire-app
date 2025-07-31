@@ -384,7 +384,8 @@ export default function BlogPage() {
             Download Our Whitepapers
           </h2>
           <p className="text-lg text-center text-gray-600 mb-12">
-            Get in-depth research and expert analysis on key topics shaping the future of work and recruitment.
+            Get in-depth research and expert analysis on key topics shaping the future of work and
+            recruitment.
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-center">
             {/* Card 1 */}
@@ -396,7 +397,8 @@ export default function BlogPage() {
                 AI in Recruitment: A Comprehensive Guide
               </h3>
               <p className="text-gray-600 mb-4">
-                Learn how AI is revolutionizing recruitment through algorithms, machine learning, and analytics. Discover practical applications and best practices.
+                Learn how AI is revolutionizing recruitment through algorithms, machine learning,
+                and analytics. Discover practical applications and best practices.
               </p>
               <div className="flex items-center justify-center gap-4 text-gray-400 text-sm mb-8">
                 <span className="flex items-center gap-1">
@@ -420,7 +422,8 @@ export default function BlogPage() {
                 The Future of Work: Remote & Hybrid Models
               </h3>
               <p className="text-gray-600 mb-4">
-                Explore the shift to flexible work models. Learn about productivity, employee satisfaction, and managing distributed teams.
+                Explore the shift to flexible work models. Learn about productivity, employee
+                satisfaction, and managing distributed teams.
               </p>
               <div className="flex items-center justify-center gap-4 text-gray-400 text-sm mb-8">
                 <span className="flex items-center gap-1">
@@ -444,7 +447,8 @@ export default function BlogPage() {
                 Data-Driven Recruitment Strategies
               </h3>
               <p className="text-gray-600 mb-4">
-                Use data to improve hiring. Learn how to leverage analytics for better recruitment outcomes.
+                Use data to improve hiring. Learn how to leverage analytics for better recruitment
+                outcomes.
               </p>
               <div className="flex items-center justify-center gap-4 text-gray-400 text-sm mb-8">
                 <span className="flex items-center gap-1">
