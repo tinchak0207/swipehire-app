@@ -14,8 +14,160 @@ import type {
  * Advanced AI-powered resume analysis service using state-of-the-art techniques
  */
 export class AIResumeAnalyzer {
-  private readonly model = 'mistral-large-latest';
-  private readonly temperature = 0.3; // Lower temperature for more consistent analysis
+  private readonly primaryModel = 'mistral-small-latest'; // Faster than large
+  private readonly fallbackModel = 'mistral-small-latest';
+  private readonly geminiModel = 'gemini-2.0-flash';
+  private readonly temperature = 0.1; // Lower temperature for faster, more consistent responses
+
+  /**
+   * Generate AI response with comprehensive multi-provider fallback logic
+   */
+  private async generateWithFallback(params: {
+    prompt: string;
+    maxTokens: number;
+    temperature?: number;
+  }): Promise<{ text: string }> {
+    const models = [this.primaryModel, this.fallbackModel, this.geminiModel];
+    
+    for (let i = 0; i < models.length; i++) {
+      try {
+        console.log(`Attempting with model: ${models[i]}`);
+        const result = await ai.generate({
+          prompt: params.prompt,
+          model: models[i] as any,
+          temperature: params.temperature || this.temperature,
+          maxTokens: params.maxTokens,
+        });
+        
+        console.log(`Success with model: ${models[i]}`);
+        return result;
+      } catch (error: any) {
+        const errorMessage = error?.message || '';
+        
+        // Check if it's a rate limit, capacity, or quota error
+        const isRateLimit = error?.code === 'RATE_LIMIT_ERROR' ||
+                           errorMessage.includes('429') || 
+                           errorMessage.includes('capacity exceeded') ||
+                           errorMessage.includes('service_tier_capacity_exceeded') ||
+                           errorMessage.includes('quota') ||
+                           errorMessage.includes('rate limit');
+        
+        console.warn(`Model ${models[i]} failed:`, errorMessage);
+        
+        // If it's the last model or not a rate/capacity limit error, throw
+        if (i === models.length - 1) {
+          console.error('All models failed, throwing error');
+          throw error;
+        }
+        
+        // For non-rate-limit errors, only try the next model if it's a different provider
+        if (!isRateLimit) {
+          // Skip to Gemini if both Mistral models failed for non-rate-limit reasons
+          if (i < 2 && models[2] === this.geminiModel) {
+            console.warn(`Non-rate-limit error with ${models[i]}, skipping to Gemini`);
+            i = 1; // This will increment to 2 (Gemini) in the next iteration
+          }
+        }
+        
+        console.log(`Trying fallback model: ${models[i + 1]}`);
+        
+        // Add a minimal delay before trying the next model (reduced from 1000ms)
+        await new Promise(resolve => setTimeout(resolve, 200));
+      }
+    }
+    
+    throw new Error('All models failed');
+  }
+
+  /**
+   * Clean and parse JSON response from AI, handling markdown code blocks and extra content
+   */
+  private cleanAndParseJSON(responseText: string): any {
+    let cleanText = responseText.trim();
+    
+    // Remove markdown code blocks if present
+    if (cleanText.startsWith('```json')) {
+      cleanText = cleanText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanText.startsWith('```')) {
+      cleanText = cleanText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    // Handle multiple code blocks (take the first one)
+    const codeBlockMatch = cleanText.match(/```json([\s\S]*?)```/);
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      cleanText = codeBlockMatch[1].trim();
+    }
+    
+    // Find JSON content - look for the first { or [ and last } or ]
+    const jsonStartMatch = cleanText.match(/[{\[]/);
+    const jsonStart = jsonStartMatch ? cleanText.indexOf(jsonStartMatch[0]) : 0;
+    
+    if (jsonStart > 0) {
+      cleanText = cleanText.substring(jsonStart);
+    }
+    
+    // Find the end of JSON by matching braces/brackets
+    let braceCount = 0;
+    let bracketCount = 0;
+    let jsonEnd = cleanText.length;
+    let inString = false;
+    let escaped = false;
+    
+    for (let i = 0; i < cleanText.length; i++) {
+      const char = cleanText[i];
+      
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      
+      if (char === '\\') {
+        escaped = true;
+        continue;
+      }
+      
+      if (char === '"' && !escaped) {
+        inString = !inString;
+        continue;
+      }
+      
+      if (!inString) {
+        if (char === '{') braceCount++;
+        else if (char === '}') braceCount--;
+        else if (char === '[') bracketCount++;
+        else if (char === ']') bracketCount--;
+        
+        // When we've closed all braces and brackets, we've found the end
+        if (braceCount === 0 && bracketCount === 0 && (char === '}' || char === ']')) {
+          jsonEnd = i + 1;
+          break;
+        }
+      }
+    }
+    
+    cleanText = cleanText.substring(0, jsonEnd).trim();
+    
+    // Additional cleanup for common AI response patterns
+    cleanText = cleanText
+      .replace(/^Here's the.*?:/i, '') // Remove "Here's the analysis:" type prefixes
+      .replace(/^Based on.*?:/i, '') // Remove "Based on the resume:" type prefixes  
+      .replace(/\n\n[\s\S]*$/, '') // Remove any trailing explanation after JSON
+      .trim();
+    
+    // Final cleanup - ensure we start with { or [
+    const finalJsonMatch = cleanText.match(/([{\[][\s\S]*[}\]])/);
+    if (finalJsonMatch && finalJsonMatch[1]) {
+      cleanText = finalJsonMatch[1];
+    }
+    
+    try {
+      return JSON.parse(cleanText);
+    } catch (error) {
+      console.error('JSON parsing failed. Clean text:', cleanText.substring(0, 500) + '...');
+      console.error('Error:', error instanceof Error ? error.message : 'Unknown error');
+      throw new Error(`Failed to parse AI response as JSON: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  }
 
   /**
    * Perform comprehensive AI-powered resume analysis
@@ -28,7 +180,7 @@ export class AIResumeAnalyzer {
     const startTime = Date.now();
 
     try {
-      // Run multiple analysis tasks in parallel for efficiency
+      // Run analysis tasks in parallel with reduced token limits for speed
       const [
         keywordAnalysis,
         grammarCheck,
@@ -57,8 +209,8 @@ export class AIResumeAnalyzer {
         structureScore: formatAnalysis.atsCompatibility,
       });
 
-      // Generate optimization suggestions
-      const suggestions = await this.generateOptimizationSuggestions(resumeText, targetJob, {
+      // Generate optimization suggestions in parallel (not waiting for optimized content)
+      const suggestionsPromise = this.generateOptimizationSuggestions(resumeText, targetJob, {
         keywordAnalysis,
         grammarCheck,
         formatAnalysis,
@@ -66,6 +218,9 @@ export class AIResumeAnalyzer {
       });
 
       const processingTime = Date.now() - startTime;
+
+      // Get suggestions but don't wait for optimized content to speed up response
+      const suggestions = await suggestionsPromise;
 
       return {
         id: `ai_analysis_${Date.now()}`,
@@ -78,7 +233,7 @@ export class AIResumeAnalyzer {
         suggestions,
         strengths: overallAssessment.strengths,
         weaknesses: overallAssessment.weaknesses,
-        optimizedContent: await this.generateOptimizedContent(resumeText, suggestions),
+        optimizedContent: resumeText, // Return original for now, optimize separately if needed
         createdAt: new Date().toISOString(),
         processingTime,
         metadata: {
@@ -88,7 +243,7 @@ export class AIResumeAnalyzer {
           templateUsed: templateId,
           wordCount: resumeText.split(/\s+/).length,
           processingTime,
-          aiModel: this.model,
+          aiModel: this.primaryModel,
           analysisVersion: '2.0',
         } as any,
       };
@@ -152,14 +307,12 @@ Focus on:
 5. Soft skills mentioned in job description`;
 
     try {
-      const response = await ai.generate({
+      const response = await this.generateWithFallback({
         prompt,
-        model: this.model,
-        temperature: this.temperature,
-        maxTokens: 2000,
+        maxTokens: 1000, // Reduced for speed
       });
 
-      const analysis = JSON.parse(response.text);
+      const analysis = this.cleanAndParseJSON(response.text);
       return {
         score: Math.min(100, Math.max(0, analysis.score)),
         totalKeywords: analysis.totalKeywords || 0,
@@ -213,14 +366,12 @@ Check for:
 7. Readability score`;
 
     try {
-      const response = await ai.generate({
+      const response = await this.generateWithFallback({
         prompt,
-        model: this.model,
-        temperature: this.temperature,
-        maxTokens: 1500,
+        maxTokens: 800, // Reduced for speed
       });
 
-      const analysis = JSON.parse(response.text);
+      const analysis = this.cleanAndParseJSON(response.text);
       return {
         score: Math.min(100, Math.max(0, analysis.score)),
         totalIssues: analysis.totalIssues || 0,
@@ -275,14 +426,12 @@ Evaluate:
 7. Font and styling consistency (if detectable)`;
 
     try {
-      const response = await ai.generate({
+      const response = await this.generateWithFallback({
         prompt,
-        model: this.model,
-        temperature: this.temperature,
-        maxTokens: 1500,
+        maxTokens: 800, // Reduced for speed
       });
 
-      const analysis = JSON.parse(response.text);
+      const analysis = this.cleanAndParseJSON(response.text);
       return {
         score: Math.min(100, Math.max(0, analysis.score)),
         atsCompatibility: Math.min(100, Math.max(0, analysis.atsCompatibility)),
@@ -330,14 +479,12 @@ Look for:
 7. Time-based improvements`;
 
     try {
-      const response = await ai.generate({
+      const response = await this.generateWithFallback({
         prompt,
-        model: this.model,
-        temperature: this.temperature,
-        maxTokens: 1000,
+        maxTokens: 500, // Reduced for speed
       });
 
-      const analysis = JSON.parse(response.text);
+      const analysis = this.cleanAndParseJSON(response.text);
       return {
         score: Math.min(100, Math.max(0, analysis.score)),
         achievementsWithNumbers: analysis.achievementsWithNumbers || 0,
@@ -397,14 +544,12 @@ Provide optimization suggestions in the following JSON format:
 Generate 5-10 high-impact suggestions prioritized by potential improvement.`;
 
     try {
-      const response = await ai.generate({
+      const response = await this.generateWithFallback({
         prompt,
-        model: this.model,
-        temperature: this.temperature,
-        maxTokens: 2000,
+        maxTokens: 1000, // Reduced for speed
       });
 
-      const suggestions = JSON.parse(response.text);
+      const suggestions = this.cleanAndParseJSON(response.text);
       return suggestions.map((s: any, index: number) => ({
         id: s.id || `suggestion_${index + 1}`,
         type: s.type || 'content',
@@ -452,14 +597,12 @@ Focus on:
 5. Overall professional presentation`;
 
     try {
-      const response = await ai.generate({
+      const response = await this.generateWithFallback({
         prompt,
-        model: this.model,
-        temperature: this.temperature,
-        maxTokens: 800,
+        maxTokens: 600, // Reduced for speed
       });
 
-      const assessment = JSON.parse(response.text);
+      const assessment = this.cleanAndParseJSON(response.text);
       return {
         strengths: assessment.strengths || ['Professional presentation'],
         weaknesses: assessment.weaknesses || ['Could benefit from optimization'],
@@ -479,43 +622,7 @@ Focus on:
   /**
    * Generate optimized resume content
    */
-  private async generateOptimizedContent(
-    resumeText: string,
-    suggestions: OptimizationSuggestion[]
-  ): Promise<string> {
-    const highPrioritySuggestions = suggestions
-      .filter((s) => s.priority <= 2 && s.impact === 'high')
-      .slice(0, 3);
-
-    if (highPrioritySuggestions.length === 0) {
-      return resumeText; // Return original if no high-priority suggestions
-    }
-
-    const prompt = `Apply the following high-priority optimization suggestions to improve this resume:
-
-ORIGINAL RESUME:
-${resumeText}
-
-SUGGESTIONS TO APPLY:
-${highPrioritySuggestions.map((s) => `- ${s.title}: ${s.suggestion}`).join('\n')}
-
-Provide the optimized resume text with the suggested improvements applied. Maintain the original structure and formatting while incorporating the improvements naturally.`;
-
-    try {
-      const response = await ai.generate({
-        prompt,
-        model: this.model,
-        temperature: 0.2, // Lower temperature for more consistent optimization
-        maxTokens: 3000,
-      });
-
-      return response.text;
-    } catch (error) {
-      console.error('Content optimization error:', error);
-      return resumeText; // Return original on error
-    }
-  }
-
+  
   /**
    * Calculate overall score based on component scores
    */
@@ -670,7 +777,7 @@ Provide the optimized resume text with the suggested improvements applied. Maint
         category: 'content',
       },
     ];
-  }
+  };
 }
 
 export const aiResumeAnalyzer = new AIResumeAnalyzer();

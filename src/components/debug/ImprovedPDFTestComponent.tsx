@@ -42,7 +42,7 @@ export const ImprovedPDFTestComponent: React.FC = () => {
 
       // Test local worker first
       try {
-        pdfjsLib.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.js';
+        pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf.worker.min.js';
 
         // Try to create a simple document to test worker
         const testArrayBuffer = new ArrayBuffer(8);

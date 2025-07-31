@@ -108,16 +108,29 @@ export default function RootLayout({
         />
 
         {/* Additional Meta Tags */}
+        <meta name="description" content="The most advanced AI recruitment platform, offering intelligent resume optimization, precise job matching, salary analysis, and more. Helping job seekers find their ideal jobs and companies discover top talent." />
         <meta name="format-detection" content="telephone=no" />
         <meta name="theme-color" content="#2563eb" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content="SwipeHire" />
 
+        {/* Preload and load fonts optimally */}
+        <link
+          rel="preload"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          as="style"
+        />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+        />
+
         {/* Preconnect to external domains for performance */}
         <link rel="preconnect" href="https://www.google-analytics.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://swipehire-3bscz.firebaseapp.com" />
+        <link rel="preconnect" href="https://apis.google.com" />
+        <link rel="preconnect" href="https://www.googleapis.com" />
 
         {/* Favicon and App Icons */}
         <link rel="icon" href="/favicon.ico" sizes="any" />

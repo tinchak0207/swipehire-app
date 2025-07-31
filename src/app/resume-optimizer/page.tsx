@@ -8,6 +8,7 @@ import {
   PlusIcon,
   StarIcon,
   UserIcon,
+  BeakerIcon,
 } from '@heroicons/react/24/outline';
 import type { NextPage } from 'next';
 import Link from 'next/link';
@@ -83,7 +84,7 @@ const ResumeOptimizerPage: NextPage = () => {
 
         {/* Main Options Grid */}
         <div
-          className={`mb-12 grid gap-6 transition-all duration-1000 md:grid-cols-3 ${
+          className={`mb-12 grid gap-6 transition-all duration-1000 md:grid-cols-2 lg:grid-cols-4 ${
             isLoaded ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
           }`}
           style={{ transitionDelay: '400ms' }}
@@ -175,6 +176,37 @@ const ResumeOptimizerPage: NextPage = () => {
                 </div>
                 <div className="flex items-center justify-center font-medium text-purple-600">
                   Start Building
+                  <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Demo Features Option */}
+          <Link
+            href="/resume-optimizer/demos"
+            className="group"
+            aria-label="Explore advanced demo features"
+          >
+            <div className="card border-2 border-transparent bg-white shadow-lg transition-all duration-300 hover:border-orange-200 hover:shadow-xl group-hover:scale-105">
+              <div className="card-body p-8 text-center">
+                <div className="mb-4 flex justify-center">
+                  <div className="rounded-full bg-orange-100 p-4 transition-colors group-hover:bg-orange-200">
+                    <BeakerIcon className="h-8 w-8 text-orange-600" />
+                  </div>
+                </div>
+                <h2 className="card-title mb-3 justify-center text-xl">Feature Demos</h2>
+                <p className="mb-4 text-gray-600">
+                  Explore advanced AI features: video generation, analytics, ATS scanning & smart suggestions
+                </p>
+                <div className="mb-4 flex items-center justify-center">
+                  <div className="flex items-center text-gray-500 text-sm">
+                    <BeakerIcon className="mr-1 h-4 w-4" />
+                    <span>5 demos</span>
+                  </div>
+                </div>
+                <div className="flex items-center justify-center font-medium text-orange-600">
+                  Try Demos
                   <ArrowRightIcon className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </div>
               </div>

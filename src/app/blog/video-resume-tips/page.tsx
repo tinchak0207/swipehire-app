@@ -110,21 +110,14 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Before hitting record, take time to plan your content:</p>
-            <ul className="list-disc pl-5">
-              <li>Create a detailed script or outline</li>
-              <li>Identify your key selling points</li>
-              <li>Structure your content logically</li>
-              <li>Practice your delivery</li>
-              <li>Time your presentation</li>
-            </ul>
+            <p>A great video resume starts with a great plan. Before you even think about hitting the record button, take the time to carefully plan your content. This is the foundation upon which your entire video will be built. Start by creating a detailed script or outline. This will help you to structure your thoughts and ensure that you cover all of your key selling points. Identify the top three to five things you want the hiring manager to know about you, and make sure these are front and center in your video. Structure your content logically, with a clear beginning, middle, and end. Practice your delivery multiple times, until you feel comfortable and confident. And finally, time your presentation to ensure that it is concise and to the point. Remember, the ideal length for a video resume is between 60 and 90 seconds.</p>
 
             {/* Pro Tip Callout */}
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
                 Practice in front of a mirror or record a test video to refine your delivery and
-                body language.
+                body language. Pay attention to your posture, gestures, and facial expressions. A confident and engaging presence can make all the difference.
               </span>
             </div>
 
@@ -139,20 +132,13 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Ensure your video looks and sounds professional:</p>
-            <ul className="list-disc pl-5">
-              <li>Use good lighting (natural or artificial)</li>
-              <li>Invest in a quality microphone</li>
-              <li>Choose a clean, professional background</li>
-              <li>Test your equipment before recording</li>
-              <li>Record in a quiet environment</li>
-            </ul>
+            <p>You don't need a Hollywood studio to create a professional-looking video resume, but you do need to pay attention to the technical details. Good lighting is essential. Natural light from a window is often the best option, but if that's not possible, use a ring light or other artificial light source to illuminate your face. A quality microphone is also a must. The built-in microphone on your laptop or phone may not be sufficient, so consider investing in an external microphone to ensure that your audio is clear and crisp. Choose a clean and professional background that is free from clutter. A neutral wall or a bookshelf can work well. Test your equipment before you start recording to make sure everything is working properly. And finally, record in a quiet environment where you won't be interrupted.</p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
                 Natural light from a window is often the best and most flattering source for video
-                resumes.
+                resumes. Position yourself so that the light is facing you, not behind you. This will help to eliminate shadows and create a more professional look.
               </span>
             </div>
 
@@ -167,18 +153,11 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Master the art of on-camera presentation:</p>
-            <ul className="list-disc pl-5">
-              <li>Maintain good posture and eye contact</li>
-              <li>Speak clearly and at a moderate pace</li>
-              <li>Use natural gestures and expressions</li>
-              <li>Dress professionally</li>
-              <li>Show enthusiasm and confidence</li>
-            </ul>
+            <p>Your presentation skills are just as important as the content of your video resume. After all, you're not just sharing information; you're making a personal connection with the hiring manager. Maintain good posture and make eye contact with the camera. This will help to create a sense of connection and engagement. Speak clearly and at a moderate pace. Avoid speaking too quickly or too slowly. Use natural gestures and facial expressions to convey your personality and enthusiasm. Dress professionally, as you would for an in-person interview. And most importantly, show enthusiasm and confidence. Let your passion for your work shine through. A genuine smile can go a long way in making a positive impression.</p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
-              <span>Smile and let your personality shine—employers want to see the real you!</span>
+              <span>Smile and let your personality shine—employers want to see the real you! Authenticity is key. Don't try to be someone you're not. Let your unique personality and passion come through in your video.</span>
             </div>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -192,19 +171,13 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Organize your content for maximum impact:</p>
-            <ul className="list-disc pl-5">
-              <li>Start with a strong introduction</li>
-              <li>Highlight key achievements with examples</li>
-              <li>Showcase relevant skills and experience</li>
-              <li>Include specific metrics and results</li>
-              <li>End with a clear call to action</li>
-            </ul>
+            <p>The way you structure your content can have a big impact on its effectiveness. Start with a strong introduction that grabs the viewer's attention and clearly states who you are and what you do. Then, highlight your key achievements with specific examples. Don't just say you're a great team player; tell a story about a time you collaborated with a team to achieve a difficult goal. Showcase your relevant skills and experience, and be sure to include specific metrics and results to quantify your accomplishments. For example, instead of saying you "improved sales," say you "increased sales by 15% in the first quarter." Finally, end with a clear call to action. Tell the hiring manager what you want them to do next, whether it's visiting your LinkedIn profile or scheduling an interview.</p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
                 Use real numbers and results to make your achievements more credible and memorable.
+                Quantifying your accomplishments is one of the most powerful things you can do to make your video resume stand out.
               </span>
             </div>
 
@@ -219,18 +192,11 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Steer clear of these common pitfalls:</p>
-            <ul className="list-disc pl-5">
-              <li>Making the video too long</li>
-              <li>Reading directly from a script</li>
-              <li>Using poor lighting or audio</li>
-              <li>Including irrelevant information</li>
-              <li>Forgetting to proof your content</li>
-            </ul>
+            <p>There are a few common mistakes that can derail an otherwise great video resume. One of the biggest is making the video too long. Remember, hiring managers are busy people, so keep your video concise and to the point. Another common mistake is reading directly from a script. This can make you sound robotic and unnatural. Instead, use your script as a guide, but speak in your own words. Poor lighting or audio can also be a major turn-off, so make sure your technical setup is up to par. Including irrelevant information is another no-no. Stick to the information that is most relevant to the job you are applying for. And finally, don't forget to proofread your content for any spelling or grammar errors.</p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
-              <span>Keep your video concise and focused—less is often more!</span>
+              <span>Keep your video concise and focused—less is often more! Aim for a video that is between 60 and 90 seconds long. This is long enough to get your key points across, but not so long that you lose the viewer's attention.</span>
             </div>
 
             <h2 className="mt-12 mb-4 font-bold text-3xl text-gray-900">
@@ -244,19 +210,13 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Optimize your video for professional viewing:</p>
-            <ul className="list-disc pl-5">
-              <li>Use high-quality video resolution</li>
-              <li>Ensure good audio quality</li>
-              <li>Add subtitles or captions</li>
-              <li>Include a professional thumbnail</li>
-              <li>Export in a widely supported format (MP4)</li>
-            </ul>
+            <p>A few technical tweaks can make a big difference in the overall quality of your video resume. Use a high-quality video resolution, such as 1080p or 4K. This will ensure that your video looks sharp and professional. Good audio quality is also essential. Use an external microphone to ensure that your audio is clear and easy to understand. Add subtitles or captions to your video to make it more accessible to viewers who may be watching with the sound off. Include a professional thumbnail that is eye-catching and relevant to your video. And finally, export your video in a widely supported format, such as MP4, to ensure that it can be viewed on any device.</p>
 
             <div className="my-6 rounded-md border-gray-400 border-l-4 bg-gray-100 p-4">
               <span className="mb-1 block font-semibold text-gray-700">Pro Tip:</span>
               <span>
                 Review your video on multiple devices to ensure quality and compatibility.
+                What looks good on your laptop may not look as good on a phone or tablet. So, be sure to test your video on a variety of devices before you send it off.
               </span>
             </div>
 
@@ -271,14 +231,7 @@ export default function VideoResumeTipsPage() {
                 className="object-cover"
               />
             </div>
-            <p>Let your unique qualities shine through:</p>
-            <ul className="list-disc pl-5">
-              <li>Share a personal story or passion</li>
-              <li>Showcase creativity and authenticity</li>
-              <li>Tailor your message to the job and company</li>
-              <li>Express enthusiasm for the role</li>
-              <li>Be yourself—employers value authenticity</li>
-            </ul>
+            <p>Your video resume is an opportunity to show the hiring manager who you are as a person, not just as a professional. So, don't be afraid to let your personality shine through. Share a personal story or passion that is relevant to the job or company. Showcase your creativity and authenticity. Tailor your message to the specific job and company you are applying for. Express your enthusiasm for the role and the company. And most importantly, be yourself. Employers value authenticity, so don't try to be someone you're not. Let your unique personality and passion come through in your video, and you'll be sure to make a lasting impression.</p>
 
             {/* Conclusion */}
             <div className="my-8 rounded-lg border-blue-500 border-l-4 bg-blue-50 p-6">

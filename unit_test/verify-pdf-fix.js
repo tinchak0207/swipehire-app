@@ -9,14 +9,14 @@ const path = require('node:path');
 console.log('🔍 Verifying PDF.js version compatibility...\n');
 
 // Check package.json for installed version
-const packageJsonPath = path.join(__dirname, 'package.json');
+const packageJsonPath = path.join(__dirname, '..', 'package.json');
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
 const installedVersion = packageJson.dependencies['pdfjs-dist'];
 
 console.log(`📦 Installed pdfjs-dist version: ${installedVersion}`);
 
 // Check if worker file exists
-const workerPath = path.join(__dirname, 'public', 'workers', 'pdf.worker.min.js');
+const workerPath = path.join(__dirname, '..', 'public', 'pdf.worker.min.js');
 const workerExists = fs.existsSync(workerPath);
 
 console.log(`🔧 Worker file exists: ${workerExists ? '✅ Yes' : '❌ No'}`);
@@ -30,6 +30,7 @@ if (workerExists) {
 // Check if the source worker file exists in node_modules
 const sourceWorkerPath = path.join(
   __dirname,
+  '..',
   'node_modules',
   'pdfjs-dist',
   'build',
@@ -55,13 +56,13 @@ if (workerExists && sourceWorkerExists) {
   if (!sizesMatch) {
     console.log("\n⚠️  Worker file sizes don't match. You may need to update the worker file:");
     console.log(
-      '   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\workers\\pdf.worker.min.js"'
+      '   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\pdf.worker.min.js"'
     );
   }
 }
 
 // Check fileParsingService.ts for correct CDN URLs
-const serviceFilePath = path.join(__dirname, 'src', 'services', 'fileParsingService.ts');
+const serviceFilePath = path.join(__dirname, '..', 'src', 'services', 'fileParsingService.ts');
 if (fs.existsSync(serviceFilePath)) {
   const serviceContent = fs.readFileSync(serviceFilePath, 'utf8');
 
@@ -94,13 +95,13 @@ if (workerExists && sourceWorkerExists) {
     console.log('❌ Worker file needs to be updated');
     console.log('🔧 Run this command to fix:');
     console.log(
-      '   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\workers\\pdf.worker.min.js"'
+      '   Copy-Item "node_modules\\pdfjs-dist\\build\\pdf.worker.min.mjs" "public\\pdf.worker.min.js"'
     );
   }
 } else {
   console.log('❌ Missing required files for PDF.js functionality');
   if (!workerExists) {
-    console.log('   - Worker file is missing from public/workers/');
+    console.log('   - Worker file is missing from public/');
   }
   if (!sourceWorkerExists) {
     console.log('   - Source worker file is missing from node_modules');

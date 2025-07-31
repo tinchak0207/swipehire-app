@@ -13,16 +13,16 @@ import {
   Sparkles,
   Target,
   TrendingUp,
+  Video,
   Zap,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import type {
@@ -30,23 +30,69 @@ import type {
   ResumeAnalysisResponse,
   TargetJobInfo,
 } from '@/lib/types/resume-optimizer';
+import { SmartSuggestionsEngine } from '@/components/resume-optimizer/suggestions/SmartSuggestionsEngine';
+import { AIResumeVideoGenerator } from '@/components/resume-optimizer/video/AIResumeVideoGenerator';
+import { AdvancedAnalyticsDashboard } from '@/components/resume-optimizer/analytics/AdvancedAnalyticsDashboard';
+import { EnhancedAnalysisProgress } from '@/components/resume-optimizer/EnhancedAnalysisProgress';
 
 interface AIEnhancedResumeOptimizerProps {
   className?: string;
+  initialResumeText?: string;
+  initialTargetJob?: Partial<TargetJobInfo>;
+  onAnalysisComplete?: (result: ResumeAnalysisResponse) => void;
 }
 
-export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOptimizerProps) {
-  const [resumeText, setResumeText] = useState('');
+export function AIEnhancedResumeOptimizer({
+  className = '',
+  initialResumeText = '',
+  initialTargetJob = {},
+  onAnalysisComplete,
+}: AIEnhancedResumeOptimizerProps) {
+  const [resumeText, setResumeText] = useState(initialResumeText);
   const [targetJob, setTargetJob] = useState<TargetJobInfo>({
-    title: '',
-    company: '',
-    description: '',
-    keywords: '',
+    title: 'Software Engineer',
+    company: 'Tech Company',
+    description: 'We are looking for a talented Software Engineer to join our dynamic team. The ideal candidate will have experience in full-stack development, problem-solving skills, and the ability to work in a fast-paced environment. You will be responsible for developing scalable applications, collaborating with cross-functional teams, and contributing to technical decisions.',
+    keywords: 'JavaScript, TypeScript, React, Node.js, Python, SQL, Git, Agile, Problem Solving, Team Collaboration, API Development, Database Design',
+    ...initialTargetJob,
   });
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<ResumeAnalysisResponse | null>(null);
   const [activeTab, setActiveTab] = useState('input');
   const [appliedSuggestions, setAppliedSuggestions] = useState<Set<string>>(new Set());
+  // State to track actual analysis time from the timer
+  const [actualAnalysisTime, setActualAnalysisTime] = useState<number>(0);
+  
+  // Load analysis result from sessionStorage on component mount
+  useEffect(() => {
+    const storedResult = sessionStorage.getItem('resumeAnalysisResult');
+    const storedTargetJob = sessionStorage.getItem('targetJobInfo');
+    
+    if (storedResult) {
+      try {
+        const result = JSON.parse(storedResult);
+        setAnalysisResult(result);
+        setActiveTab('results'); // Automatically switch to results tab
+        
+        // Clear the stored result to prevent reloading on subsequent visits
+        sessionStorage.removeItem('resumeAnalysisResult');
+      } catch (error) {
+        console.error('Failed to parse stored analysis result:', error);
+      }
+    }
+    
+    if (storedTargetJob) {
+      try {
+        const targetJobInfo = JSON.parse(storedTargetJob);
+        setTargetJob(prev => ({ ...prev, ...targetJobInfo }));
+        
+        // Clear the stored target job info
+        sessionStorage.removeItem('targetJobInfo');
+      } catch (error) {
+        console.error('Failed to parse stored target job info:', error);
+      }
+    }
+  }, []);
 
   const handleAnalyze = useCallback(async () => {
     if (!resumeText.trim() || !targetJob.title.trim()) {
@@ -69,6 +115,10 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
       if (data.success) {
         setAnalysisResult(data.data);
         setActiveTab('results');
+        // Call the callback if provided
+        if (onAnalysisComplete) {
+          onAnalysisComplete(data.data);
+        }
       } else {
         throw new Error(data.error || 'Analysis failed');
       }
@@ -84,6 +134,23 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
     setAppliedSuggestions((prev) => new Set([...prev, suggestion.id]));
     // In a real implementation, this would apply the suggestion to the resume text
     console.log('Applying suggestion:', suggestion);
+  }, []);
+
+  const handleSmartSuggestionApplied = useCallback((suggestionId: string) => {
+    console.log('Smart suggestion applied:', suggestionId);
+  }, []);
+
+  const handleSmartSuggestionDismissed = useCallback((suggestionId: string) => {
+    console.log('Smart suggestion dismissed:', suggestionId);
+  }, []);
+
+  const handleContentUpdate = useCallback((newContent: string) => {
+    setResumeText(newContent);
+  }, []);
+
+  const handleVideoGenerated = useCallback((videoUrl: string) => {
+    console.log('Video generated:', videoUrl);
+    // Could show success message or update UI
   }, []);
 
   const getScoreColor = (score: number) => {
@@ -134,7 +201,16 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
             </Badge>
           </CardTitle>
           <p className="text-gray-600">
-            Leverage state-of-the-art AI to analyze and optimize your resume for maximum impact
+            {analysisResult ? (
+              <span className="flex items-center gap-2">
+                <Zap className="h-5 w-5 text-green-600" />
+                <span className="text-green-700 font-semibold">
+                  We analyzed your resume in {actualAnalysisTime > 0 ? actualAnalysisTime.toFixed(1) : (analysisResult.processingTime / 1000).toFixed(1)} seconds! ⚡
+                </span>
+              </span>
+            ) : (
+              "Leverage state-of-the-art AI to analyze and optimize your resume for maximum impact"
+            )}
           </p>
         </CardHeader>
       </Card>
@@ -180,7 +256,13 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
                 <CardTitle className="flex items-center gap-2">
                   <Target className="h-5 w-5" />
                   Target Job Information
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    Pre-filled for quick start
+                  </Badge>
                 </CardTitle>
+                <p className="text-gray-600 text-sm">
+                  We've pre-filled these fields with common values. You can customize them or start analyzing immediately.
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
@@ -229,12 +311,21 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
           </div>
 
           {/* Analyze Button */}
-          <Card>
+          <Card className="border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
             <CardContent className="pt-6">
+              <div className="text-center mb-4">
+                <h3 className="font-semibold text-lg text-gray-800">Ready to Analyze!</h3>
+                <p className="text-gray-600 text-sm">
+                  {resumeText.trim() ? 
+                    "Your resume is loaded and job info is pre-filled. Click below to start!" : 
+                    "Upload your resume above to get started"
+                  }
+                </p>
+              </div>
               <Button
                 onClick={handleAnalyze}
                 disabled={!resumeText.trim() || !targetJob.title.trim() || isAnalyzing}
-                className="h-12 w-full text-lg"
+                className="h-14 w-full text-lg bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
                 size="lg"
               >
                 {isAnalyzing ? (
@@ -245,22 +336,10 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
                 ) : (
                   <>
                     <Zap className="mr-2 h-5 w-5" />
-                    Analyze Resume with AI
+                    Start AI Analysis
                   </>
                 )}
               </Button>
-              {isAnalyzing && (
-                <div className="mt-4 space-y-2">
-                  <div className="flex justify-between text-gray-600 text-sm">
-                    <span>AI Analysis in Progress...</span>
-                    <span>This may take 30-60 seconds</span>
-                  </div>
-                  <Progress value={33} className="h-2" />
-                  <p className="text-center text-gray-500 text-xs">
-                    Using advanced AI models to analyze keywords, grammar, format, and achievements
-                  </p>
-                </div>
-              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -410,12 +489,35 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
               <Alert>
                 <Brain className="h-4 w-4" />
                 <AlertDescription>
-                  Analysis completed in {analysisResult.processingTime}ms using{' '}
-                  {(analysisResult.metadata as any)?.aiModel || 'AI model'}.
+                  Analysis completed using {(analysisResult.metadata as any)?.aiModel || 'AI model'} with advanced parallel processing.
                   {(analysisResult.metadata as any)?.analysisType === 'basic' &&
                     ' (Fallback mode - AI service unavailable)'}
                 </AlertDescription>
               </Alert>
+
+              {/* Advanced Analytics Dashboard */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    Analytics Dashboard
+                  </CardTitle>
+                  <p className="text-gray-600 text-sm">
+                    Comprehensive performance analytics and improvement insights
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <AdvancedAnalyticsDashboard
+                    userId="current_user"
+                    timeRange="month"
+                    realTime={true}
+                    showBenchmarks={true}
+                    showInsights={true}
+                    allowExport={true}
+                    height={600}
+                  />
+                </CardContent>
+              </Card>
             </>
           )}
         </TabsContent>
@@ -486,6 +588,52 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
                 </CardContent>
               </Card>
 
+              {/* Smart Suggestions Engine */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Brain className="h-5 w-5" />
+                    Smart Suggestions Engine
+                  </CardTitle>
+                  <p className="text-gray-600 text-sm">
+                    Real-time AI suggestions with industry-specific recommendations
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <SmartSuggestionsEngine
+                    content={resumeText}
+                    targetRole={targetJob.title}
+                    targetIndustry="Technology" // Could be made configurable
+                    experienceLevel="mid" // Could be made configurable
+                    enableRealTime={true}
+                    enableMLSuggestions={true}
+                    onSuggestionGenerated={() => {}}
+                    onSuggestionApplied={handleSmartSuggestionApplied}
+                    onSuggestionDismissed={handleSmartSuggestionDismissed}
+                    onContentUpdate={handleContentUpdate}
+                  />
+                </CardContent>
+              </Card>
+
+              {/* AI Resume Video Generator */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Video className="h-5 w-5" />
+                    AI Resume Video Generator
+                  </CardTitle>
+                  <p className="text-gray-600 text-sm">
+                    Transform your optimized resume into a professional video presentation
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <AIResumeVideoGenerator
+                    resumeText={analysisResult.optimizedContent || resumeText}
+                    onVideoGenerated={handleVideoGenerated}
+                  />
+                </CardContent>
+              </Card>
+
               {/* Optimized Content Preview */}
               {analysisResult.optimizedContent &&
                 analysisResult.optimizedContent !== resumeText && (
@@ -521,6 +669,15 @@ export function AIEnhancedResumeOptimizer({ className = '' }: AIEnhancedResumeOp
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Enhanced Analysis Progress Modal */}
+      <EnhancedAnalysisProgress 
+        isAnalyzing={isAnalyzing}
+        onComplete={(actualTime) => {
+          console.log('Analysis completed with actual time:', actualTime);
+          setActualAnalysisTime(actualTime);
+        }}
+      />
     </div>
   );
 }

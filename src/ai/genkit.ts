@@ -1,17 +1,20 @@
 import { Mistral } from '@mistralai/mistralai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import type { z } from 'zod';
 
 /**
- * Available Mistral AI models
+ * Available AI models
  */
-export type MistralModel =
+export type AIModel =
   | 'mistral-tiny'
   | 'mistral-small'
   | 'mistral-medium'
   | 'mistral-large-latest'
+  | 'mistral-small-latest'
   | 'open-mistral-7b'
   | 'open-mixtral-8x7b'
-  | 'open-mixtral-8x22b';
+  | 'open-mixtral-8x22b'
+  | 'gemini-2.0-flash';
 
 /**
  * Chat message role types
@@ -31,7 +34,7 @@ export interface ChatMessage {
  */
 export interface AIGenerateParams {
   prompt: string;
-  model?: MistralModel;
+  model?: AIModel;
   systemPrompt?: string;
   temperature?: number;
   maxTokens?: number;
@@ -94,20 +97,59 @@ function createMistralClient(): Mistral {
 }
 
 /**
- * Validate model name
+ * Initialize Google AI client
  */
-function validateModel(model: string): model is MistralModel {
-  const validModels: MistralModel[] = [
+function createGoogleAIClient(): GoogleGenerativeAI {
+  const apiKey = process.env['GEMINI_API_KEY'] || process.env['NEXT_PUBLIC_GEMINI_API_KEY'];
+
+  if (!apiKey) {
+    throw new Error('Gemini API key not found in environment variables');
+  }
+
+  return new GoogleGenerativeAI(apiKey);
+}
+
+/**
+ * Check if model is a Mistral model
+ */
+function isMistralModel(model: string): boolean {
+  const mistralModels = [
     'mistral-tiny',
     'mistral-small',
-    'mistral-medium',
+    'mistral-medium', 
     'mistral-large-latest',
+    'mistral-small-latest',
     'open-mistral-7b',
     'open-mixtral-8x7b',
     'open-mixtral-8x22b',
   ];
+  return mistralModels.includes(model);
+}
 
-  return validModels.includes(model as MistralModel);
+/**
+ * Check if model is a Gemini model
+ */
+function isGeminiModel(model: string): boolean {
+  return model.startsWith('gemini-');
+}
+
+/**
+ * Validate model name
+ */
+function validateModel(model: string): model is AIModel {
+  const validModels: AIModel[] = [
+    'mistral-tiny',
+    'mistral-small',
+    'mistral-medium',
+    'mistral-large-latest',
+    'mistral-small-latest',
+    'open-mistral-7b',
+    'open-mixtral-8x7b',
+    'open-mixtral-8x22b',
+    'gemini-2.0-flash',
+  ];
+
+  return validModels.includes(model as AIModel);
 }
 
 /**
@@ -146,70 +188,127 @@ function buildMessages(
 }
 
 /**
+ * Generate with Gemini AI
+ */
+async function generateWithGemini(params: AIGenerateParams): Promise<AIGenerateResponse> {
+  const client = createGoogleAIClient();
+  const model = client.getGenerativeModel({ model: params.model || 'gemini-2.0-flash' });
+
+  let prompt = params.prompt;
+  if (params.systemPrompt) {
+    prompt = `${params.systemPrompt}\n\n${prompt}`;
+  }
+
+  const result = await model.generateContent({
+    contents: [{ role: 'user', parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: params.temperature ?? 0.7,
+      maxOutputTokens: params.maxTokens ?? 1000,
+      topP: params.topP ?? 1.0,
+    },
+  });
+
+  const response = await result.response;
+  const text = response.text();
+
+  if (!text) {
+    throw new AIError('Empty response from Gemini', 'EMPTY_RESPONSE');
+  }
+
+  return {
+    text,
+    model: params.model || 'gemini-2.0-flash',
+  };
+}
+
+/**
+ * Generate with Mistral AI  
+ */
+async function generateWithMistral(params: AIGenerateParams): Promise<AIGenerateResponse> {
+  const client = createMistralClient();
+  const model = params.model || 'mistral-small';
+
+  const messages = buildMessages(params);
+
+  const response = await client.chat.complete({
+    model,
+    messages,
+    temperature: params.temperature ?? 0.7,
+    maxTokens: params.maxTokens ?? 1000,
+    topP: params.topP ?? 1.0,
+  });
+
+  if (!response.choices || response.choices.length === 0) {
+    throw new AIError('No response generated from Mistral', 'NO_RESPONSE');
+  }
+
+  const choice = response.choices?.[0];
+  if (!choice?.message?.content) {
+    throw new AIError('Empty response content from Mistral', 'EMPTY_RESPONSE');
+  }
+
+  // Handle case where content might be ContentChunk[]
+  const content =
+    typeof choice.message.content === 'string'
+      ? choice.message.content
+      : choice.message.content.join('');
+
+  const result: AIGenerateResponse = {
+    text: content,
+    model,
+  };
+
+  if (response.usage) {
+    result.usage = {
+      promptTokens: response.usage.promptTokens || 0,
+      completionTokens: response.usage.completionTokens || 0,
+      totalTokens: response.usage.totalTokens || 0,
+    };
+  }
+
+  return result;
+}
+/**
  * Main AI interface for the application
  */
 export const ai = {
   /**
-   * Generate text using Mistral AI
+   * Generate text using AI with multi-provider fallback
    */
   generate: async (params: AIGenerateParams): Promise<AIGenerateResponse> => {
+    const model = params.model || 'mistral-small';
+
+    if (!validateModel(model)) {
+      throw new AIError(`Invalid model: ${model}`, 'INVALID_MODEL');
+    }
+
     try {
-      const client = createMistralClient();
-      const model = params.model || 'mistral-small';
-
-      if (!validateModel(model)) {
-        throw new AIError(`Invalid model: ${model}`, 'INVALID_MODEL');
+      if (isGeminiModel(model)) {
+        return await generateWithGemini(params);
+      } else if (isMistralModel(model)) {
+        return await generateWithMistral(params);
+      } else {
+        throw new AIError(`Unsupported model: ${model}`, 'UNSUPPORTED_MODEL');
       }
-
-      const messages = buildMessages(params);
-
-      const response = await client.chat.complete({
-        model,
-        messages,
-        temperature: params.temperature ?? 0.7,
-        maxTokens: params.maxTokens ?? 1000,
-        topP: params.topP ?? 1.0,
-      });
-
-      if (!response.choices || response.choices.length === 0) {
-        throw new AIError('No response generated', 'NO_RESPONSE');
-      }
-
-      const choice = response.choices?.[0];
-      if (!choice?.message?.content) {
-        throw new AIError('Empty response content', 'EMPTY_RESPONSE');
-      }
-
-      // Handle case where content might be ContentChunk[]
-      const content =
-        typeof choice.message.content === 'string'
-          ? choice.message.content
-          : choice.message.content.join('');
-
-      const result: AIGenerateResponse = {
-        text: content,
-        model,
-      };
-
-      if (response.usage) {
-        result.usage = {
-          promptTokens: response.usage.promptTokens || 0,
-          completionTokens: response.usage.completionTokens || 0,
-          totalTokens: response.usage.totalTokens || 0,
-        };
-      }
-
-      return result;
     } catch (error) {
       if (error instanceof AIError) {
         throw error;
       }
 
-      // Handle Mistral API errors
-      if (error && typeof error === 'object' && 'status' in error) {
-        const statusCode = typeof (error as any).status === 'number' ? (error as any).status : 500;
-        const message =
-          error instanceof Error ? error.message || 'Mistral API error' : 'Mistral API error';
+      // Handle provider-specific API errors
+      if (error && typeof error === 'object') {
+        const statusCode = 'status' in error && typeof (error as any).status === 'number' 
+          ? (error as any).status : 500;
+        const message = error instanceof Error ? error.message : 'AI API error';
+        
+        // Check for rate limiting or capacity errors
+        if (statusCode === 429 || 
+            message.includes('capacity exceeded') || 
+            message.includes('service_tier_capacity_exceeded') ||
+            message.includes('quota')) {
+          throw new AIError(message, 'RATE_LIMIT_ERROR', statusCode);
+        }
+        
         throw new AIError(message, 'API_ERROR', statusCode);
       }
 
@@ -291,15 +390,17 @@ export const ai = {
   /**
    * Get available models
    */
-  getAvailableModels: (): MistralModel[] => {
+  getAvailableModels: (): AIModel[] => {
     return [
       'mistral-tiny',
       'mistral-small',
       'mistral-medium',
       'mistral-large-latest',
+      'mistral-small-latest',
       'open-mistral-7b',
       'open-mixtral-8x7b',
       'open-mixtral-8x22b',
+      'gemini-2.0-flash',
     ];
   },
 

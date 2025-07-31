@@ -26,7 +26,6 @@ import {
   Users,
   Wand2,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppHeader } from '@/components/AppHeader';
@@ -53,102 +52,10 @@ import { mockNotifications } from '@/lib/mockData';
 import type { BackendUser, NotificationItem, UserRole } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
-const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
-const loadingComponent = () => (
-  <div className="flex min-h-[calc(100vh-250px)] items-center justify-center">
-    <Loader2 className="h-12 w-12 animate-spin text-primary" />
-  </div>
-);
+// Import optimized dynamic components
+import * as DynamicComponents from '@/components/DynamicComponents';
 
-const CandidateDiscoveryPage = dynamic(
-  () =>
-    import('@/components/pages/CandidateDiscoveryPage').then((mod) => mod.CandidateDiscoveryPage),
-  {
-    loading: loadingComponent,
-    ssr: false,
-  }
-);
-const JobDiscoveryPage = dynamic(
-  () => import('@/components/pages/JobDiscoveryPage').then((mod) => mod.JobDiscoveryPage),
-  {
-    loading: loadingComponent,
-    ssr: false,
-  }
-);
-const AiToolsPage = dynamic(
-  () => import('@/components/pages/AiToolsPage').then((mod) => mod.AiToolsPage),
-  { loading: loadingComponent, ssr: false }
-);
-const MatchesPage = dynamic(
-  () => import('@/components/pages/MatchesPage').then((mod) => mod.MatchesPage),
-  { loading: loadingComponent, ssr: false }
-);
-const SettingsPage = dynamic(
-  () => import('@/components/pages/SettingsPage').then((mod) => mod.SettingsPage),
-  { loading: loadingComponent, ssr: false }
-);
-const LoginPage = dynamic(
-  () => import('@/components/pages/LoginPage').then((mod) => mod.LoginPage),
-  { loading: loadingComponent, ssr: false }
-);
-const CreateJobPostingPage = dynamic(() => import('@/components/pages/CreateJobPostingPage'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const ManageJobPostingsPage = dynamic(
-  () => import('@/components/pages/ManageJobPostingsPage').then((mod) => mod.ManageJobPostingsPage),
-  { loading: loadingComponent, ssr: false }
-);
-const StaffDiaryPage = dynamic(
-  () => import('@/components/pages/StaffDiaryPage').then((mod) => mod.StaffDiaryPage),
-  { loading: loadingComponent, ssr: false }
-);
-const WelcomePage = dynamic(
-  () => import('@/components/pages/WelcomePage').then((mod) => mod.WelcomePage),
-  {
-    loading: loadingComponent,
-    ssr: false,
-  }
-);
-const MyProfilePage = dynamic(
-  () => import('@/components/pages/MyProfilePage').then((mod) => mod.MyProfilePage),
-  { loading: loadingComponent, ssr: false }
-);
-const RecruiterOnboardingPage = dynamic(() => import('@/app/recruiter-onboarding/page'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const MarketSalaryTypeformPage = dynamic(
-  () => import('@/components/pages/MarketSalaryTypeformPage'),
-  {
-    loading: loadingComponent,
-    ssr: false,
-  }
-);
-const ResumeOptimizerPage = dynamic(() => import('@/app/resume-optimizer/page'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const WorkflowDashboardPage = dynamic(() => import('@/app/dashboard/workflows/page'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const PortfolioPage = dynamic(() => import('@/app/portfolio/page'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const EventsPage = dynamic(() => import('@/app/events/page'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const FollowupRemindersPage = dynamic(() => import('@/app/follow-up-reminders/page'), {
-  loading: loadingComponent,
-  ssr: false,
-});
-const InterviewGuidePage = dynamic(
-  () => import('@/components/pages/InterviewGuidePage').then((mod) => mod.InterviewGuidePage),
-  { loading: loadingComponent, ssr: false }
-);
+const CUSTOM_BACKEND_URL = process.env['NEXT_PUBLIC_CUSTOM_BACKEND_URL'] || 'http://localhost:5000';
 
 const HAS_SEEN_WELCOME_KEY = 'hasSeenSwipeHireWelcomeV2';
 const GUEST_MODE_KEY = 'isGuestModeActive';
@@ -936,7 +843,7 @@ function AppContent() {
         value: 'salaryEnquiry',
         label: 'Market Salary Inquiry',
         icon: DollarSign,
-        component: <MarketSalaryTypeformPage />,
+        component: <DynamicComponents.MarketSalaryTypeformPage />,
         description: 'Research market salary data and compensation trends',
         isNew: true,
         shortcut: '?�S',
@@ -945,7 +852,7 @@ function AppContent() {
         value: 'resumeOptimizer',
         label: 'Resume Optimization tools',
         icon: FileText,
-        component: <ResumeOptimizerPage />,
+        component: <DynamicComponents.ResumeOptimizerPage />,
         description:
           'AI-powered resume analysis, ATS optimization, and personalized suggestions to boost your job prospects',
         isNew: true,
@@ -956,7 +863,7 @@ function AppContent() {
         label: 'AI Tools',
         icon: Wand2,
         component: (
-          <AiToolsPage
+          <DynamicComponents.AiToolsPage
             isGuestMode={isGuestModeActive}
             currentUserRole={fullBackendUser?.selectedRole || null}
           />
@@ -970,7 +877,7 @@ function AppContent() {
         label: 'Interview Guide',
         icon: Brain,
         component: (
-          <InterviewGuidePage
+          <DynamicComponents.InterviewGuidePage
             isGuestMode={isGuestModeActive}
             currentUserRole={fullBackendUser?.selectedRole || null}
           />
@@ -983,7 +890,7 @@ function AppContent() {
         value: 'workflows',
         label: 'Build Workflow',
         icon: GitBranch,
-        component: <WorkflowDashboardPage />,
+        component: <DynamicComponents.WorkflowDashboardPage />,
         description: 'Create and manage automated workflows for recruitment and career processes',
         isNew: true,
         shortcut: '?�W',
@@ -992,7 +899,7 @@ function AppContent() {
         value: 'myPortfolio',
         label: 'My Portfolio',
         icon: User,
-        component: <PortfolioPage />,
+        component: <DynamicComponents.PortfolioPage />,
         description: 'Showcase your work, projects, and professional achievements',
         isNew: true,
         shortcut: '?�O',
@@ -1001,7 +908,7 @@ function AppContent() {
         value: 'industryEvents',
         label: 'Industry Events',
         icon: Calendar,
-        component: <EventsPage />,
+        component: <DynamicComponents.EventsPage />,
         description: 'Discover networking events, conferences, and workshops in your industry',
         isNew: true,
         shortcut: '?�E',
@@ -1010,7 +917,7 @@ function AppContent() {
         value: 'followupReminders',
         label: 'Follow-up Reminders',
         icon: Bell,
-        component: <FollowupRemindersPage />,
+        component: <DynamicComponents.FollowupRemindersPage />,
         description: 'Manage and track follow-ups for your job applications',
         isNew: true,
         shortcut: '?�F',
@@ -1019,7 +926,7 @@ function AppContent() {
         value: 'myMatches',
         label: 'My Matches',
         icon: HeartHandshake,
-        component: <MatchesPage isGuestMode={isGuestModeActive} />,
+        component: <DynamicComponents.MatchesPage isGuestMode={isGuestModeActive} />,
         description: 'View and manage your job matches',
         badge:
           mockNotifications.filter((n) => n.type === 'new_message' && !n.read).length > 0
@@ -1031,7 +938,7 @@ function AppContent() {
         label: 'Settings',
         icon: UserCog,
         component: (
-          <SettingsPage
+          <DynamicComponents.SettingsPage
             isGuestMode={isGuestModeActive}
             currentUserRole={fullBackendUser?.selectedRole || null}
           />
@@ -1049,7 +956,7 @@ function AppContent() {
         label: 'Find Talent',
         icon: Users,
         component: (
-          <CandidateDiscoveryPage
+          <DynamicComponents.CandidateDiscoveryPage
             searchTerm={searchTerm}
             key={`cand-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`}
             isGuestMode={isGuestModeActive}
@@ -1062,7 +969,7 @@ function AppContent() {
         value: 'postJob',
         label: 'Post a Job',
         icon: FilePlus2,
-        component: <CreateJobPostingPage isGuestMode={isGuestModeActive} />,
+        component: <DynamicComponents.CreateJobPostingPage isGuestMode={isGuestModeActive} />,
         description: 'Create and publish job openings',
         shortcut: '?�N',
       },
@@ -1070,7 +977,7 @@ function AppContent() {
         value: 'manageJobs',
         label: 'Manage Jobs',
         icon: SettingsIcon,
-        component: <ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
+        component: <DynamicComponents.ManageJobPostingsPage isGuestMode={isGuestModeActive} />,
         description: 'Track and manage your job postings',
         shortcut: '?�M',
       },
@@ -1086,7 +993,7 @@ function AppContent() {
         label: 'Find Jobs',
         icon: Briefcase,
         component: (
-          <JobDiscoveryPage
+          <DynamicComponents.JobDiscoveryPage
             searchTerm={searchTerm}
             key={`job-discovery-${fullBackendUser?.selectedRole}-${mongoDbUserId}`}
           />
@@ -1098,7 +1005,7 @@ function AppContent() {
         value: 'myProfile',
         label: 'My Profile',
         icon: UserCircle,
-        component: <MyProfilePage isGuestMode={isGuestModeActive} />,
+        component: <DynamicComponents.MyProfilePage isGuestMode={isGuestModeActive} />,
         description: 'Manage your professional profile',
         shortcut: '?�P',
       },
@@ -1107,7 +1014,7 @@ function AppContent() {
         label: 'My Diary',
         icon: BookOpenText,
         component: (
-          <StaffDiaryPage
+          <DynamicComponents.StaffDiaryPage
             isGuestMode={isGuestModeActive}
             currentUserName={userName}
             currentUserMongoId={mongoDbUserId}
@@ -1211,7 +1118,7 @@ function AppContent() {
         fullBackendUser?.selectedRole === 'recruiter' &&
         fullBackendUser?.companyProfileComplete === false
       ) {
-        return <RecruiterOnboardingPage />;
+        return <DynamicComponents.RecruiterOnboardingPage />;
       }
       return (
         <div className="flex min-h-screen items-center justify-center bg-background">
@@ -1229,7 +1136,7 @@ function AppContent() {
 
     if (showWelcomePage) {
       return (
-        <WelcomePage
+        <DynamicComponents.WelcomePage
           key="welcome_page_wrapper"
           onStartExploring={handleStartExploring}
           onGuestMode={handleGuestMode}
@@ -1240,7 +1147,7 @@ function AppContent() {
       return (
         <div className="animate-fadeInPage" key="login_page_wrapper">
           {' '}
-          <LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />{' '}
+          <DynamicComponents.LoginPage onLoginBypass={handleLoginBypass} onGuestMode={handleGuestMode} />{' '}
         </div>
       );
     }
